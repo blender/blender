@@ -98,7 +98,7 @@ TEST(virtual_array, VectorSet)
 
 TEST(virtual_array, Func)
 {
-  auto func = [](int64_t index) { return (int)(index * index); };
+  auto func = [](int64_t index) { return int(index * index); };
   VArray<int> varray = VArray<int>::ForFunc(10, func);
   EXPECT_EQ(varray.size(), 10);
   EXPECT_EQ(varray[0], 0);
@@ -108,7 +108,7 @@ TEST(virtual_array, Func)
 
 TEST(virtual_array, AsSpan)
 {
-  auto func = [](int64_t index) { return (int)(10 * index); };
+  auto func = [](int64_t index) { return int(10 * index); };
   VArray<int> func_varray = VArray<int>::ForFunc(10, func);
   VArraySpan span_varray{func_varray};
   EXPECT_EQ(span_varray.size(), 10);
@@ -210,7 +210,7 @@ TEST(virtual_array, MaterializeCompressed)
     EXPECT_EQ(compressed_array[2], 4);
   }
   {
-    VArray<int> varray = VArray<int>::ForFunc(10, [](const int64_t i) { return (int)(i * i); });
+    VArray<int> varray = VArray<int>::ForFunc(10, [](const int64_t i) { return int(i * i); });
     std::array<int, 3> compressed_array;
     varray.materialize_compressed({5, 7, 8}, compressed_array);
     EXPECT_EQ(compressed_array[0], 25);

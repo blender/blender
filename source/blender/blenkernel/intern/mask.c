@@ -308,7 +308,7 @@ BezTriple *BKE_mask_spline_point_next_bezt(MaskSpline *spline,
     return NULL;
   }
 
-  return &((point + 1))->bezt;
+  return &(point + 1)->bezt;
 }
 
 MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)

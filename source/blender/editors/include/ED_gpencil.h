@@ -475,7 +475,8 @@ void ED_gpencil_stroke_reproject(struct Depsgraph *depsgraph,
                                  struct bGPDframe *gpf,
                                  struct bGPDstroke *gps,
                                  eGP_ReprojectModes mode,
-                                 bool keep_original);
+                                 bool keep_original,
+                                 const float offset);
 
 /**
  * Turn brush cursor in on/off.

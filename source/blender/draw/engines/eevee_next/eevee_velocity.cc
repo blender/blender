@@ -226,11 +226,11 @@ void VelocityModule::step_swap()
 
     for (VelocityObjectData &vel : velocity_map.values()) {
       vel.obj.ofs[step_a] = vel.obj.ofs[step_b];
-      vel.obj.ofs[step_b] = (uint)-1;
+      vel.obj.ofs[step_b] = uint(-1);
       vel.geo.ofs[step_a] = vel.geo.ofs[step_b];
       vel.geo.len[step_a] = vel.geo.len[step_b];
-      vel.geo.ofs[step_b] = (uint)-1;
-      vel.geo.len[step_b] = (uint)-1;
+      vel.geo.ofs[step_b] = uint(-1);
+      vel.geo.len[step_b] = uint(-1);
     }
   };
 
@@ -262,7 +262,7 @@ void VelocityModule::end_sync()
   uint32_t max_resource_id_ = 0u;
 
   for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
-    if (item.value.obj.resource_id == (uint32_t)-1) {
+    if (item.value.obj.resource_id == uint32_t(-1)) {
       deleted_obj.append(item.key);
     }
     else {
@@ -302,7 +302,7 @@ void VelocityModule::end_sync()
     }
     indirection_buf[vel.obj.resource_id] = vel;
     /* Reset for next sync. */
-    vel.obj.resource_id = (uint)-1;
+    vel.obj.resource_id = uint(-1);
   }
 
   object_steps[STEP_PREVIOUS]->push_update();

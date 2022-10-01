@@ -125,7 +125,7 @@ set(SRC
   intern/displist.cc
   intern/dynamicpaint.c
   intern/editlattice.c
-  intern/editmesh.c
+  intern/editmesh.cc
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
   intern/editmesh_tangent.cc
@@ -199,7 +199,7 @@ set(SRC
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
-  intern/mesh_iterators.c
+  intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc
   intern/mesh_merge.c
@@ -214,7 +214,7 @@ set(SRC
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
-  intern/modifier.c
+  intern/modifier.cc
   intern/movieclip.c
   intern/multires.c
   intern/multires_reshape.c
@@ -235,7 +235,7 @@ set(SRC
   intern/object_deform.c
   intern/object_dupli.cc
   intern/object_facemap.c
-  intern/object_update.c
+  intern/object_update.cc
   intern/ocean.c
   intern/ocean_spectrum.c
   intern/outliner_treehash.cc
@@ -297,10 +297,11 @@ set(SRC
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c
+  intern/viewer_path.cc
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
-  intern/workspace.c
+  intern/workspace.cc
   intern/world.c
   intern/writeavi.c
 
@@ -482,6 +483,7 @@ set(SRC
   BKE_unit.h
   BKE_vfont.h
   BKE_vfontdata.h
+  BKE_viewer_path.h
   BKE_volume.h
   BKE_volume_render.h
   BKE_volume_to_mesh.hh

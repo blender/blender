@@ -174,8 +174,7 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
   }
 }
 
-wmDrag *WM_drag_data_create(
-    bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
+wmDrag *WM_drag_data_create(bContext *C, int icon, int type, void *poin, double value, uint flags)
 {
   wmDrag *drag = MEM_cnew<wmDrag>(__func__);
 
@@ -234,8 +233,7 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
   wm_dropbox_invoke(C, drag);
 }
 
-void WM_event_start_drag(
-    bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
+void WM_event_start_drag(bContext *C, int icon, int type, void *poin, double value, uint flags)
 {
   wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
   WM_event_start_prepared_drag(C, drag);
@@ -587,7 +585,7 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
   }
 
   wmDragAsset *asset_drag = static_cast<wmDragAsset *>(drag->poin);
-  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : nullptr;
+  return ELEM(idcode, 0, asset_drag->id_type) ? asset_drag : nullptr;
 }
 
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)

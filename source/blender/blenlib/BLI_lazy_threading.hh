@@ -21,7 +21,7 @@
  * Given those constraints, a single grain size cannot be determined. One could just schedule all
  * tasks individually but that would create a lot of overhead when the tasks happen to be very
  * small. While TBB will keep all tasks on a single thread if the other threads are busy, if they
- * are idle they will start stealing the work even if that's not benefitial for overall
+ * are idle they will start stealing the work even if that's not beneficial for overall
  * performance.
  *
  * This file provides a simple API that allows a task scheduler to properly handle tasks whose size

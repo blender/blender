@@ -73,7 +73,7 @@ void ViewMap::Clean()
   }
 }
 
-ViewShape *ViewMap::viewShape(unsigned id)
+ViewShape *ViewMap::viewShape(uint id)
 {
   int index = _shapeIdToIndex[id];
   return _VShapes[index];

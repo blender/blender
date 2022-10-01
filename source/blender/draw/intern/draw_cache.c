@@ -2889,6 +2889,12 @@ GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
   return DRW_mesh_batch_cache_get_edit_mesh_analysis(ob->data);
 }
 
+GPUBatch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_MESH);
+  return DRW_mesh_batch_cache_get_surface_viewer_attribute(ob->data);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2900,6 +2906,13 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_CURVES_LEGACY);
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_wire_edge(cu);
+}
+
+GPUBatch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_CURVES_LEGACY);
+  struct Curve *cu = ob->data;
+  return DRW_curve_batch_cache_get_wire_edge_viewer_attribute(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
@@ -3003,6 +3016,12 @@ GPUBatch *DRW_cache_pointcloud_surface_get(Object *object)
 {
   BLI_assert(object->type == OB_POINTCLOUD);
   return DRW_pointcloud_batch_cache_get_surface(object);
+}
+
+GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(Object *object)
+{
+  BLI_assert(object->type == OB_POINTCLOUD);
+  return DRW_pointcloud_batch_cache_get_surface_viewer_attribute(object);
 }
 
 /** \} */
@@ -3369,7 +3388,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, base_name);
+    GPU_vertformat_alias_add(format, cl->type == CD_MLOOPUV ? "a" : base_name);
   }
 
   /* Active display layer name. */

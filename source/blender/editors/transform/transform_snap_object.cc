@@ -1293,7 +1293,7 @@ static bool nearest_world_tree(SnapObjectContext *UNUSED(sctx),
   *r_dist_sq = dist_sq;
 
   /* scale to make `snap_face_nearest_steps` steps */
-  float step_scale_factor = 1.0f / max_ff(1.0f, (float)params->face_nearest_steps);
+  float step_scale_factor = 1.0f / max_ff(1.0f, float(params->face_nearest_steps));
   mul_v3_fl(delta_local, step_scale_factor);
 
   float co_local[3];
@@ -3461,7 +3461,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
         copy_v3_v3(r_face_nor, no);
       }
 
-      if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST)) {
+      if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
         retval = SCE_SNAP_MODE_FACE_RAYCAST;
 
         copy_v3_v3(r_loc, loc);

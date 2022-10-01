@@ -282,7 +282,7 @@ static Mathutils_Callback FrsMaterial_mathutils_cb = {
     FrsMaterial_mathutils_set_index,
 };
 
-static unsigned char FrsMaterial_mathutils_cb_index = -1;
+static uchar FrsMaterial_mathutils_cb_index = -1;
 
 void FrsMaterial_mathutils_register_callback()
 {
@@ -517,7 +517,7 @@ static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
 
 static Py_hash_t FrsMaterial_hash(PyObject *self)
 {
-  return (Py_uhash_t)BLI_hash_mm2((const unsigned char *)self, sizeof(*self), 0);
+  return (Py_uhash_t)BLI_hash_mm2((const uchar *)self, sizeof(*self), 0);
 }
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 

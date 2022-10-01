@@ -95,16 +95,23 @@ static void color_filter_task_cb(void *__restrict userdata,
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;
     float brightness, contrast, gain, delta, offset;
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
+    fade *= SCULPT_automasking_factor_get(
+        ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -334,6 +341,9 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
   if (use_automasking) {
+    /* Increment stroke id for automasking system. */
+    SCULPT_stroke_id_next(ob);
+
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
     float mval_fl[2] = {UNPACK2(event->mval)};
@@ -358,7 +368,8 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COLOR);
+  SCULPT_filter_cache_init(
+      C, ob, sd, SCULPT_UNDO_COLOR, event->mval, RNA_float_get(op->ptr, "area_normal_radius"));
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
@@ -383,9 +394,9 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* rna */
+  SCULPT_mesh_filter_properties(ot);
+
   RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_HUE, "Filter Type", "");
-  RNA_def_float(
-      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
 
   PropertyRNA *prop = RNA_def_float_color(
       ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);

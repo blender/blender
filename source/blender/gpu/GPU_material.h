@@ -117,6 +117,15 @@ typedef enum eGPUMaterialStatus {
   GPU_MAT_SUCCESS,
 } eGPUMaterialStatus;
 
+/* GPU_MAT_OPTIMIZATION_SKIP for cases where we do not
+ * plan to perform optimization on a given material. */
+typedef enum eGPUMaterialOptimizationStatus {
+  GPU_MAT_OPTIMIZATION_SKIP = 0,
+  GPU_MAT_OPTIMIZATION_READY,
+  GPU_MAT_OPTIMIZATION_QUEUED,
+  GPU_MAT_OPTIMIZATION_SUCCESS,
+} eGPUMaterialOptimizationStatus;
+
 typedef enum eGPUDefaultValue {
   GPU_DEFAULT_0 = 0,
   GPU_DEFAULT_1,
@@ -246,6 +255,7 @@ struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
 const char *GPU_material_get_name(GPUMaterial *material);
+
 /**
  * Return can be NULL if it's a world material.
  */
@@ -255,6 +265,13 @@ struct Material *GPU_material_get_material(GPUMaterial *material);
  */
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 void GPU_material_status_set(GPUMaterial *mat, eGPUMaterialStatus status);
+
+/**
+ * Return status for async optimization jobs.
+ */
+eGPUMaterialOptimizationStatus GPU_material_optimization_status(GPUMaterial *mat);
+void GPU_material_optimization_status_set(GPUMaterial *mat, eGPUMaterialOptimizationStatus status);
+bool GPU_material_optimization_ready(GPUMaterial *mat);
 
 struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 /**
@@ -318,8 +335,6 @@ typedef struct GPUUniformAttr {
 
   /* Meaningful part of the attribute set key. */
   char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
-  /** Escaped name with [""]. */
-  char name_id_prop[64 * 2 + 4];
   /** Hash of name[64] + use_dupli. */
   uint32_t hash_code;
   bool use_dupli;

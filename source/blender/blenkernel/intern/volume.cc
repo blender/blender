@@ -1636,8 +1636,8 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, flo
 
   openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
 
-  r_min = float3((float)bbox.min().x(), (float)bbox.min().y(), (float)bbox.min().z());
-  r_max = float3((float)bbox.max().x(), (float)bbox.max().y(), (float)bbox.max().z());
+  r_min = float3(float(bbox.min().x()), float(bbox.min().y()), float(bbox.min().z()));
+  r_max = float3(float(bbox.max().x()), float(bbox.max().y()), float(bbox.max().z()));
 
   return true;
 }
@@ -1646,7 +1646,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
                                                               const blender::float4x4 &transform)
 {
   openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
-  grid_transform->postMult(openvdb::Mat4d(((float *)transform.values)));
+  grid_transform->postMult(openvdb::Mat4d((float *)transform.values));
 
   /* Create a transformed grid. The underlying tree is shared. */
   return grid->copyGridReplacingTransform(grid_transform);

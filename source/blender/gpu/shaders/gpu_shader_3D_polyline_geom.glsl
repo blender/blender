@@ -18,14 +18,14 @@ vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)
 void do_vertex(const int i, vec4 pos, vec2 ofs)
 {
 #if defined(UNIFORM)
-  interp_out.color = color;
+  interp_out.final_color = color;
 
 #elif defined(FLAT)
   /* WATCH: Assuming last provoking vertex. */
-  interp_out.color = interp_in[1].color;
+  interp_out.final_color = interp_in[1].final_color;
 
 #elif defined(SMOOTH)
-  interp_out.color = interp_in[i].color;
+  interp_out.final_color = interp_in[i].final_color;
 #endif
 
 #ifdef CLIP

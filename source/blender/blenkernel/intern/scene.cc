@@ -114,6 +114,32 @@
 
 #include "bmesh.h"
 
+CurveMapping *BKE_sculpt_default_cavity_curve()
+
+{
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0, 0, 1, 1);
+
+  cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+  cumap->preset = CURVE_PRESET_LINE;
+
+  BKE_curvemap_reset(cumap->cm, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_changed(cumap, false);
+  BKE_curvemapping_init(cumap);
+
+  return cumap;
+}
+
+void BKE_sculpt_check_cavity_curves(Sculpt *sd)
+{
+  if (!sd->automasking_cavity_curve) {
+    sd->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
+  }
+
+  if (!sd->automasking_cavity_curve_op) {
+    sd->automasking_cavity_curve_op = BKE_sculpt_default_cavity_curve();
+  }
+}
+
 static void scene_init_data(ID *id)
 {
   Scene *scene = (Scene *)id;
@@ -137,7 +163,7 @@ static void scene_init_data(ID *id)
 
   scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
 
-  scene->toolsettings->autokey_mode = (uchar)U.autokey_mode;
+  scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
 
   /* Grease pencil multi-frame falloff curve. */
   scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -156,11 +182,11 @@ static void scene_init_data(ID *id)
 
   scene->unit.system = USER_UNIT_METRIC;
   scene->unit.scale_length = 1.0f;
-  scene->unit.length_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_LENGTH);
-  scene->unit.mass_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_MASS);
-  scene->unit.time_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TIME);
-  scene->unit.temperature_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC,
-                                                                  B_UNIT_TEMPERATURE);
+  scene->unit.length_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_LENGTH));
+  scene->unit.mass_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_MASS));
+  scene->unit.time_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TIME));
+  scene->unit.temperature_unit = uchar(
+      BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TEMPERATURE));
 
   /* Anti-Aliasing threshold. */
   scene->grease_pencil_settings.smaa_threshold = 1.0f;
@@ -745,7 +771,7 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
   { \
     CHECK_TYPE(&((_id_super)->id), ID *); \
     BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
       return false; \
     } \
   } \
@@ -880,8 +906,8 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
-      unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
-      unsigned int i;
+      uint len = uint(MEM_allocN_len(se)) / uint(sizeof(*se));
+      uint i;
 
       if (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE) {
         /* only operate on one path */
@@ -940,6 +966,13 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   if (tos->sculpt) {
     BLO_write_struct(writer, Sculpt, tos->sculpt);
+    if (tos->sculpt->automasking_cavity_curve) {
+      BKE_curvemapping_blend_write(writer, tos->sculpt->automasking_cavity_curve);
+    }
+    if (tos->sculpt->automasking_cavity_curve_op) {
+      BKE_curvemapping_blend_write(writer, tos->sculpt->automasking_cavity_curve_op);
+    }
+
     BKE_paint_blend_write(writer, &tos->sculpt->paint);
   }
   if (tos->uvsculpt) {
@@ -1005,10 +1038,10 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (sce->r.avicodecdata) {
     BLO_write_struct(writer, AviCodecData, sce->r.avicodecdata);
     if (sce->r.avicodecdata->lpFormat) {
-      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);
+      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbFormat), sce->r.avicodecdata->lpFormat);
     }
     if (sce->r.avicodecdata->lpParms) {
-      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
+      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbParms), sce->r.avicodecdata->lpParms);
     }
   }
 
@@ -1153,6 +1186,24 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     sce->toolsettings->particle.object = nullptr;
     sce->toolsettings->gp_sculpt.paintcursor = nullptr;
 
+    if (sce->toolsettings->sculpt) {
+      BLO_read_data_address(reader, &sce->toolsettings->sculpt->automasking_cavity_curve);
+      BLO_read_data_address(reader, &sce->toolsettings->sculpt->automasking_cavity_curve_op);
+
+      if (sce->toolsettings->sculpt->automasking_cavity_curve) {
+        BKE_curvemapping_blend_read(reader, sce->toolsettings->sculpt->automasking_cavity_curve);
+        BKE_curvemapping_init(sce->toolsettings->sculpt->automasking_cavity_curve);
+      }
+
+      if (sce->toolsettings->sculpt->automasking_cavity_curve_op) {
+        BKE_curvemapping_blend_read(reader,
+                                    sce->toolsettings->sculpt->automasking_cavity_curve_op);
+        BKE_curvemapping_init(sce->toolsettings->sculpt->automasking_cavity_curve_op);
+      }
+
+      BKE_sculpt_check_cavity_curves(sce->toolsettings->sculpt);
+    }
+
     /* Relink grease pencil interpolation curves. */
     BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);
     if (sce->toolsettings->gp_interpolate.custom_ipo) {
@@ -1207,8 +1258,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       intptr_t seqbase_offset;
       intptr_t channels_offset;
 
-      seqbase_offset = ((intptr_t) & (temp.seqbase)) - ((intptr_t)&temp);
-      channels_offset = ((intptr_t) & (temp.channels)) - ((intptr_t)&temp);
+      seqbase_offset = intptr_t(&(temp).seqbase) - intptr_t(&temp);
+      channels_offset = intptr_t(&(temp).channels) - intptr_t(&temp);
 
       /* seqbase root pointer */
       if (ed->seqbasep == old_seqbasep) {
@@ -1228,7 +1279,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       }
 
       /* Active channels root pointer. */
-      if (ed->displayed_channels == old_displayed_channels || ed->displayed_channels == nullptr) {
+      if (ELEM(ed->displayed_channels, old_displayed_channels, nullptr)) {
         ed->displayed_channels = &ed->channels;
       }
       else {
@@ -1263,7 +1314,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
           }
         }
 
-        if (ms->old_channels == old_displayed_channels || ms->old_channels == nullptr) {
+        if (ELEM(ms->old_channels, old_displayed_channels, nullptr)) {
           ms->old_channels = &ed->channels;
         }
         else {
@@ -1326,7 +1377,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->pointcache) {
-        rbw->ltime = (float)rbw->pointcache->startframe;
+        rbw->ltime = float(rbw->pointcache->startframe);
       }
     }
     else {
@@ -1340,7 +1391,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->shared->pointcache) {
-        rbw->ltime = (float)rbw->shared->pointcache->startframe;
+        rbw->ltime = float(rbw->shared->pointcache->startframe);
       }
     }
     rbw->objects = nullptr;
@@ -1740,6 +1791,18 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   if (ts->sculpt) {
     ts->sculpt = static_cast<Sculpt *>(MEM_dupallocN(ts->sculpt));
     BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag);
+
+    if (ts->sculpt->automasking_cavity_curve) {
+      ts->sculpt->automasking_cavity_curve = BKE_curvemapping_copy(
+          ts->sculpt->automasking_cavity_curve);
+      BKE_curvemapping_init(ts->sculpt->automasking_cavity_curve);
+    }
+
+    if (ts->sculpt->automasking_cavity_curve_op) {
+      ts->sculpt->automasking_cavity_curve_op = BKE_curvemapping_copy(
+          ts->sculpt->automasking_cavity_curve_op);
+      BKE_curvemapping_init(ts->sculpt->automasking_cavity_curve_op);
+    }
   }
   if (ts->uvsculpt) {
     ts->uvsculpt = static_cast<UvSculpt *>(MEM_dupallocN(ts->uvsculpt));
@@ -1797,6 +1860,13 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     MEM_freeN(toolsettings->wpaint);
   }
   if (toolsettings->sculpt) {
+    if (toolsettings->sculpt->automasking_cavity_curve) {
+      BKE_curvemapping_free(toolsettings->sculpt->automasking_cavity_curve);
+    }
+    if (toolsettings->sculpt->automasking_cavity_curve_op) {
+      BKE_curvemapping_free(toolsettings->sculpt->automasking_cavity_curve_op);
+    }
+
     BKE_paint_free(&toolsettings->sculpt->paint);
     MEM_freeN(toolsettings->sculpt);
   }
@@ -2261,7 +2331,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
     return nullptr;
   }
 
-  const int ctime = (int)BKE_scene_ctime_get(scene);
+  const int ctime = int(BKE_scene_ctime_get(scene));
   int frame = -(MAXFRAME + 1);
   int min_frame = MAXFRAME + 1;
   Object *camera = nullptr;
@@ -2425,8 +2495,8 @@ float BKE_scene_frame_get(const Scene *scene)
 void BKE_scene_frame_set(Scene *scene, float frame)
 {
   double intpart;
-  scene->r.subframe = modf((double)frame, &intpart);
-  scene->r.cfra = (int)intpart;
+  scene->r.subframe = modf(double(frame), &intpart);
+  scene->r.cfra = int(intpart);
 }
 
 /* -------------------------------------------------------------------- */
@@ -2802,10 +2872,10 @@ int get_render_child_particle_number(const RenderData *r, int child_num, bool fo
 {
   if (r->mode & R_SIMPLIFY) {
     if (for_render) {
-      return (int)(r->simplify_particles_render * child_num);
+      return int(r->simplify_particles_render * child_num);
     }
 
-    return (int)(r->simplify_particles * child_num);
+    return int(r->simplify_particles * child_num);
   }
 
   return child_num;
@@ -2997,7 +3067,7 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
     case B_UNIT_LENGTH:
     case B_UNIT_VELOCITY:
     case B_UNIT_ACCELERATION:
-      return value * (double)unit->scale_length;
+      return value * double(unit->scale_length);
     case B_UNIT_AREA:
     case B_UNIT_POWER:
       return value * pow(unit->scale_length, 2);
@@ -3315,10 +3385,10 @@ struct DepsgraphKey {
    */
 };
 
-static unsigned int depsgraph_key_hash(const void *key_v)
+static uint depsgraph_key_hash(const void *key_v)
 {
   const DepsgraphKey *key = static_cast<const DepsgraphKey *>(key_v);
-  unsigned int hash = BLI_ghashutil_ptrhash(key->view_layer);
+  uint hash = BLI_ghashutil_ptrhash(key->view_layer);
   /* TODO(sergey): Include hash from other fields in the key. */
   return hash;
 }

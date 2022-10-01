@@ -2521,7 +2521,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
   immUnbindProgram();
 
-  BLF_size(fontid, 1.75f * fstyle_points * U.pixelsize, U.dpi);
+  BLF_size(fontid, 1.75f * fstyle_points * U.dpi_fac);
   UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
@@ -2740,7 +2740,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   /* get type, initial, min, and max values of the property */
-  switch ((rc->type = RNA_property_type(rc->prop))) {
+  switch (rc->type = RNA_property_type(rc->prop)) {
     case PROP_INT: {
       int value, min, max, step;
 

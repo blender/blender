@@ -52,7 +52,7 @@ static void compute_normalize_edge_vectors(float auv[2][2],
 
 static short v2_to_short_angle(const float v[2])
 {
-  return atan2f(v[1], v[0]) * (float)M_1_PI * SHRT_MAX;
+  return atan2f(v[1], v[0]) * float(M_1_PI) * SHRT_MAX;
 }
 
 static void edituv_get_edituv_stretch_angle(float auv[2][2],
@@ -63,7 +63,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
   r_stretch->uv_angles[0] = v2_to_short_angle(auv[0]);
   r_stretch->uv_angles[1] = v2_to_short_angle(auv[1]);
   /* Compute 3D angle here. */
-  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * (float)M_1_PI * SHRT_MAX;
+  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * float(M_1_PI) * SHRT_MAX;
 
 #if 0 /* here for reference, this is done in shader now. */
   float uvang = angle_normalized_v2v2(auv0, auv1);

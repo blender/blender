@@ -114,7 +114,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
   }
 
   /* try object constraints first */
-  if ((BLI_findindex(&ob->constraints, con) != -1)) {
+  if (BLI_findindex(&ob->constraints, con) != -1) {
     return &ob->constraints;
   }
 
@@ -126,7 +126,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
      * NOTE: it's not possible to directly look up the active bone yet, so this will have to do
      */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if ((BLI_findindex(&pchan->constraints, con) != -1)) {
+      if (BLI_findindex(&pchan->constraints, con) != -1) {
 
         if (r_pchan) {
           *r_pchan = pchan;

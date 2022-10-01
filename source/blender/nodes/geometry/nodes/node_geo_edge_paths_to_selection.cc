@@ -106,6 +106,11 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

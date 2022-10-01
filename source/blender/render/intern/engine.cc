@@ -152,6 +152,7 @@ static void engine_depsgraph_free(RenderEngine *engine)
     /* Need GPU context since this might free GPU buffers. */
     const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT);
     if (use_gpu_context) {
+      GPU_render_begin();
       DRW_render_context_enable(engine->re);
     }
 
@@ -160,6 +161,7 @@ static void engine_depsgraph_free(RenderEngine *engine)
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);
+      GPU_render_end();
     }
   }
 }
@@ -756,6 +758,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
     /* Need GPU context since this might free GPU buffers. */
     const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT) && reuse_depsgraph;
     if (use_gpu_context) {
+      GPU_render_begin();
       DRW_render_context_enable(engine->re);
     }
 
@@ -763,6 +766,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);
+      GPU_render_end();
     }
   }
   else {
@@ -798,7 +802,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
   DEG_ids_clear_recalc(engine->depsgraph, false);
 
   Render *re = engine->re;
-  double cfra = (double)frame + (double)subframe;
+  double cfra = double(frame) + double(subframe);
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(re->scene, cfra);
@@ -935,6 +939,7 @@ static void engine_render_view_layer(Render *re,
   if (use_engine) {
     const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT);
     if (use_gpu_context) {
+      GPU_render_begin();
       DRW_render_context_enable(engine->re);
     }
 
@@ -950,6 +955,7 @@ static void engine_render_view_layer(Render *re,
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);
+      GPU_render_end();
     }
   }
 

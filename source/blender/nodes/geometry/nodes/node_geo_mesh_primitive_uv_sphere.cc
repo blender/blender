@@ -266,16 +266,16 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
   const float segments_inv = 1.0f / segments;
 
   for (const int i_segment : IndexRange(segments)) {
-    const float segment = static_cast<float>(i_segment);
+    const float segment = float(i_segment);
     uvs[loop_index++] = float2((segment + 0.5f) * segments_inv, 0.0f);
     uvs[loop_index++] = float2(segment * segments_inv, dy);
     uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, dy);
   }
 
   for (const int i_ring : IndexRange(1, rings - 2)) {
-    const float ring = static_cast<float>(i_ring);
+    const float ring = float(i_ring);
     for (const int i_segment : IndexRange(segments)) {
-      const float segment = static_cast<float>(i_segment);
+      const float segment = float(i_segment);
       uvs[loop_index++] = float2(segment * segments_inv, ring / rings);
       uvs[loop_index++] = float2(segment * segments_inv, (ring + 1.0f) / rings);
       uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, (ring + 1.0f) / rings);
@@ -284,7 +284,7 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
   }
 
   for (const int i_segment : IndexRange(segments)) {
-    const float segment = static_cast<float>(i_segment);
+    const float segment = float(i_segment);
     uvs[loop_index++] = float2((segment + 0.5f) * segments_inv, 1.0f);
     uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, 1.0f - dy);
     uvs[loop_index++] = float2(segment * segments_inv, 1.0f - dy);
@@ -309,7 +309,8 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+        MutableSpan vert_normals{
+            reinterpret_cast<float3 *>(BKE_mesh_vertex_normals_for_write(mesh)), mesh->totvert};
         calculate_sphere_vertex_data(verts, vert_normals, radius, segments, rings);
         BKE_mesh_vertex_normals_clear_dirty(mesh);
       },

@@ -85,7 +85,7 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
   data->align_y = GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE;
   data->pivot_mode = GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT;
   node->storage = data;
-  node->id = (ID *)BKE_vfont_builtin_get();
+  node->id = reinterpret_cast<ID *>(BKE_vfont_builtin_get());
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -93,11 +93,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryStringToCurves &storage = node_storage(*node);
   const GeometryNodeStringToCurvesOverflowMode overflow = (GeometryNodeStringToCurvesOverflowMode)
                                                               storage.overflow;
-  bNodeSocket *socket_remainder = ((bNodeSocket *)node->outputs.first)->next;
+  bNodeSocket *socket_remainder = static_cast<bNodeSocket *>(node->outputs.first)->next;
   nodeSetSocketAvailability(
       ntree, socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
 
-  bNodeSocket *height_socket = (bNodeSocket *)node->inputs.last;
+  bNodeSocket *height_socket = static_cast<bNodeSocket *>(node->inputs.last);
   nodeSetSocketAvailability(
       ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
 }
@@ -203,7 +203,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.linedist = line_spacing;
   cu.vfont = vfont;
   cu.overflow = overflow;
-  cu.tb = (TextBox *)MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), __func__);
+  cu.tb = static_cast<TextBox *>(MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), __func__));
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;
   cu.totbox = 1;
@@ -213,8 +213,8 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.len = len_bytes;
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
-  cu.str = (char *)MEM_mallocN(len_bytes + sizeof(char32_t), __func__);
-  cu.strinfo = (CharInfo *)MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__);
+  cu.str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), __func__));
+  cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
   BLI_strncpy(cu.str, layout.text.c_str(), len_bytes + 1);
 
   struct CharTrans *chartransdata = nullptr;
@@ -226,7 +226,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
       nullptr, &cu, FO_DUPLI, nullptr, &r_text, &text_len, &text_free, &chartransdata);
 
   if (text_free) {
-    MEM_freeN((void *)r_text);
+    MEM_freeN(const_cast<char32_t *>(r_text));
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
@@ -272,7 +272,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             TextLayout &layout,
                                             InstancesComponent &instances)
 {
-  VFont *vfont = (VFont *)params.node().id;
+  VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
   Map<int, int> handles;
   bool pivot_required = params.output_is_required("Pivot Point");
 

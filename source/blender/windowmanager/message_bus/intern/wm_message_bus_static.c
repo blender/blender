@@ -31,7 +31,7 @@ static bool wm_msg_static_gset_cmp(const void *key_a_p, const void *key_b_p)
 {
   const wmMsgParams_Static *params_a = &((const wmMsgSubscribeKey_Static *)key_a_p)->msg.params;
   const wmMsgParams_Static *params_b = &((const wmMsgSubscribeKey_Static *)key_b_p)->msg.params;
-  return !((params_a->event == params_b->event));
+  return !(params_a->event == params_b->event);
 }
 static void wm_msg_static_gset_key_free(void *key_p)
 {

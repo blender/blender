@@ -68,7 +68,7 @@ static OVERLAY_UVLineStyle edit_uv_line_style_from_space_image(const SpaceImage 
 static GPUTexture *edit_uv_mask_texture(
     Mask *mask, const int width, const int height_, const float aspx, const float aspy)
 {
-  const int height = (float)height_ * (aspy / aspx);
+  const int height = float(height_) * (aspy / aspx);
   MaskRasterHandle *handle;
   float *buffer = static_cast<float *>(MEM_mallocN(sizeof(float) * height * width, __func__));
 
@@ -301,15 +301,15 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     srgb_to_linearrgb_v4(selected_color, selected_color);
 
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", theme_color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", theme_color);
     const float3 offset = {0.0f, 0.0f, 0.0f};
     DRW_shgroup_uniform_vec3_copy(grp, "offset", offset);
 
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       const int tile_x = ((tile->tile_number - 1001) % 10);
       const int tile_y = ((tile->tile_number - 1001) / 10);
-      obmat[3][1] = (float)tile_y;
-      obmat[3][0] = (float)tile_x;
+      obmat[3][1] = float(tile_y);
+      obmat[3][0] = float(tile_x);
       DRW_shgroup_call_obmat(grp, geom, obmat);
     }
     /* Only mark active border when overlays are enabled. */
@@ -318,8 +318,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       ImageTile *active_tile = static_cast<ImageTile *>(
           BLI_findlink(&image->tiles, image->active_tile_index));
       if (active_tile) {
-        obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
-        obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
+        obmat[3][0] = float((active_tile->tile_number - 1001) % 10);
+        obmat[3][1] = float((active_tile->tile_number - 1001) / 10);
         grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
         DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
         DRW_shgroup_call_obmat(grp, geom, obmat);
@@ -335,9 +335,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     char text[16];
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       BLI_snprintf(text, 5, "%d", tile->tile_number);
-      float tile_location[3] = {static_cast<float>((tile->tile_number - 1001) % 10),
-                                static_cast<float>((tile->tile_number - 1001) / 10),
-                                0.0f};
+      float tile_location[3] = {
+          float((tile->tile_number - 1001) % 10), float((tile->tile_number - 1001) / 10), 0.0f};
       DRW_text_cache_add(
           dt, tile_location, text, strlen(text), 10, 10, DRW_TEXT_CACHE_GLOBALSPACE, color);
     }
@@ -372,8 +371,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
       float size_image[2];
       BKE_image_get_size_fl(image, nullptr, size_image);
-      float size_stencil_image[2] = {static_cast<float>(stencil_ibuf->x),
-                                     static_cast<float>(stencil_ibuf->y)};
+      float size_stencil_image[2] = {float(stencil_ibuf->x), float(stencil_ibuf->y)};
 
       float obmat[4][4];
       unit_m4(obmat);

@@ -133,7 +133,7 @@ static void read_mverts_interp(MVert *mverts,
     const Imath::V3f &floor_pos = (*positions)[i];
     const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
-    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
+    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), float(weight));
     copy_zup_from_yup(mvert.co, tmp);
   }
 }
@@ -188,9 +188,9 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const bool do_uvs = (mloopuvs && uvs && uvs_indices);
   const bool do_uvs_per_loop = do_uvs && mesh_data.uv_scope == ABC_UV_SCOPE_LOOP;
   BLI_assert(!do_uvs || mesh_data.uv_scope != ABC_UV_SCOPE_NONE);
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
   bool seen_invalid_geometry = false;
 
   for (int i = 0; i < face_counts->size(); i++) {
@@ -448,7 +448,7 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
                           const CDStreamConfig &config,
                           const float velocity_scale)
 {
-  const int num_velocity_vectors = static_cast<int>(velocities->size());
+  const int num_velocity_vectors = int(velocities->size());
   if (num_velocity_vectors != config.mesh->totvert) {
     /* Files containing videogrammetry data may be malformed and export velocity data on missing
      * frames (most likely by copying the last valid data). */
@@ -903,8 +903,6 @@ static void read_vertex_creases(Mesh *mesh,
 
     vertex_crease_data[idx] = (*sharpnesses)[i];
   }
-
-  mesh->cd_flag |= ME_CDFLAG_VERT_CREASE;
 }
 
 static void read_edge_creases(Mesh *mesh,
@@ -917,6 +915,9 @@ static void read_edge_creases(Mesh *mesh,
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
+
+  float *creases = static_cast<float *>(
+      CustomData_add_layer(&mesh->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, edges.size()));
 
   for (const int i : edges.index_range()) {
     MEdge *edge = &edges[i];
@@ -939,13 +940,11 @@ static void read_edge_creases(Mesh *mesh,
     }
 
     if (edge) {
-      edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
+      creases[edge - edges.data()] = unit_float_to_uchar_clamp((*sharpnesses)[s]);
     }
   }
 
   BLI_edgehash_free(edge_hash, nullptr);
-
-  mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 }
 
 /* ************************************************************************** */

@@ -556,7 +556,7 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 
     /* but we need a packed file then */
     if (pf) {
-      sound->handle = AUD_Sound_bufferFile((unsigned char *)pf->data, pf->size);
+      sound->handle = AUD_Sound_bufferFile((uchar *)pf->data, pf->size);
     }
     else {
       /* or else load it from disk */
@@ -1155,11 +1155,12 @@ void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
 
   /* cheap test to skip looping over all objects (no speakers is a common case) */
   if (DEG_id_type_any_exists(depsgraph, ID_SPK)) {
-    DEG_OBJECT_ITER_BEGIN (depsgraph,
-                           object,
-                           (DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                            DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
-                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET)) {
+    DEGObjectIterSettings deg_iter_settings = {0};
+    deg_iter_settings.depsgraph = depsgraph;
+    deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                              DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
+                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
       sound_update_base(scene, object, new_set);
     }
     DEG_OBJECT_ITER_END;

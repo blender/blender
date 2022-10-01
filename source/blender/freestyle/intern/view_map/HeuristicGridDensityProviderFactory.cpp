@@ -10,7 +10,7 @@
 namespace Freestyle {
 
 HeuristicGridDensityProviderFactory::HeuristicGridDensityProviderFactory(real sizeFactor,
-                                                                         unsigned numFaces)
+                                                                         uint numFaces)
     : sizeFactor(sizeFactor), numFaces(numFaces)
 {
 }

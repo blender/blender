@@ -212,13 +212,13 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *p_data_object)
     if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
       const HDROP hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
 
-      const UINT totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
+      const uint totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
       if (totfiles) {
         str_array = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
         str_array->count = 0;
         str_array->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
 
-        for (UINT nfile = 0; nfile < totfiles; nfile++) {
+        for (uint nfile = 0; nfile < totfiles; nfile++) {
           WCHAR fpath[MAX_PATH];
           if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
             char *temp_path;
@@ -341,7 +341,7 @@ void printLastError(void)
                     (LPTSTR)&s,
                     0,
                     NULL)) {
-    printf("\nLastError: (%d) %s\n", (int)err, s);
+    printf("\nLastError: (%d) %s\n", int(err), s);
     LocalFree(s);
   }
 }

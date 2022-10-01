@@ -271,7 +271,7 @@ void BKE_defvert_normalize(MDeformVert *dvert)
   }
   else {
     MDeformWeight *dw;
-    unsigned int i;
+    uint i;
     float tot_weight = 0.0f;
 
     for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
@@ -309,7 +309,7 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
   else {
     MDeformWeight *dw_lock = NULL;
     MDeformWeight *dw;
-    unsigned int i;
+    uint i;
     float tot_weight = 0.0f;
     float lock_iweight = 1.0f;
 
@@ -363,7 +363,7 @@ void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
   }
   else {
     MDeformWeight *dw;
-    unsigned int i;
+    uint i;
     float tot_weight = 0.0f;
     float lock_iweight = 0.0f;
 
@@ -752,7 +752,7 @@ MDeformWeight *BKE_defvert_find_index(const MDeformVert *dvert, const int defgro
 {
   if (dvert && defgroup >= 0) {
     MDeformWeight *dw = dvert->dw;
-    unsigned int i;
+    uint i;
 
     for (i = dvert->totweight; i != 0; i--, dw++) {
       if (dw->def_nr == defgroup) {
@@ -865,7 +865,7 @@ int BKE_defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert
 {
   if (dvert_a->totweight && dvert_b->totweight) {
     MDeformWeight *dw = dvert_a->dw;
-    unsigned int i;
+    uint i;
 
     for (i = dvert_a->totweight; i != 0; i--, dw++) {
       if (dw->weight > 0.0f && BKE_defvert_find_weight(dvert_b, dw->def_nr) > 0.0f) {

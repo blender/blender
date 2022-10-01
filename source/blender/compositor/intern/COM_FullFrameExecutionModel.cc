@@ -271,7 +271,7 @@ void FullFrameExecutionModel::update_progress_bar()
 {
   const bNodeTree *tree = context_.get_bnodetree();
   if (tree) {
-    const float progress = num_operations_finished_ / static_cast<float>(operations_.size());
+    const float progress = num_operations_finished_ / float(operations_.size());
     tree->progress(tree->prh, progress);
 
     char buf[128];

@@ -6,7 +6,7 @@ void main()
   vec4 tex_color;
   tex_color = texture_read_as_linearrgb(imgTexture, imgPremultiplied, uvs_clamped);
 
-  fragColor = tex_color * color;
+  fragColor = tex_color * ucolor;
 
   if (!imgAlphaBlend) {
     /* Arbitrary discard anything below 5% opacity.

@@ -349,6 +349,25 @@ class VectorSet {
   }
 
   /**
+   * Remove all values for which the given predicate is true. This may change the order of elements
+   * in the vector.
+   *
+   * This is similar to std::erase_if.
+   */
+  template<typename Predicate> void remove_if(Predicate &&predicate)
+  {
+    for (Slot &slot : slots_) {
+      if (slot.is_occupied()) {
+        const int64_t index = slot.index();
+        const Key &key = keys_[index];
+        if (predicate(key)) {
+          this->remove_key_internal(slot);
+        }
+      }
+    }
+  }
+
+  /**
    * Delete and return a key from the set. This will remove the last element in the vector. The
    * order of the remaining elements in the set is not changed.
    */
@@ -513,7 +532,7 @@ class VectorSet {
    */
   int64_t size_in_bytes() const
   {
-    return static_cast<int64_t>(sizeof(Slot) * slots_.size() + sizeof(Key) * usable_slots_);
+    return int64_t(sizeof(Slot) * slots_.size() + sizeof(Key) * usable_slots_);
   }
 
   /**
@@ -557,7 +576,7 @@ class VectorSet {
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     BLI_assert(total_slots >= 1);
-    const uint64_t new_slot_mask = static_cast<uint64_t>(total_slots) - 1;
+    const uint64_t new_slot_mask = uint64_t(total_slots) - 1;
 
     /* Optimize the case when the set was empty beforehand. We can avoid some copies here. */
     if (this->size() == 0) {
@@ -839,7 +858,7 @@ class VectorSet {
   Key *allocate_keys_array(const int64_t size)
   {
     return static_cast<Key *>(
-        slots_.allocator().allocate(sizeof(Key) * static_cast<size_t>(size), alignof(Key), AT));
+        slots_.allocator().allocate(sizeof(Key) * size_t(size), alignof(Key), AT));
   }
 
   void deallocate_keys_array(Key *keys)

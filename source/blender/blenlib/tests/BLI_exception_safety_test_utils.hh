@@ -87,7 +87,7 @@ class ExceptionThrower {
 
   uint64_t hash() const
   {
-    return static_cast<uint64_t>(value);
+    return uint64_t(value);
   }
 
   friend bool operator==(const ExceptionThrower &a, const ExceptionThrower &b)

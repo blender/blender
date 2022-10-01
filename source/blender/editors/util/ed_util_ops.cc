@@ -229,7 +229,7 @@ static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
   ID *id = (ID *)idptr.data;
 
   if (!BKE_id_is_editable(CTX_data_main(C), id) ||
-      (ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
+      ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS)) {
     BKE_report(op->reports, RPT_ERROR, "Data-block type does not support fake user");
     return OPERATOR_CANCELLED;
   }

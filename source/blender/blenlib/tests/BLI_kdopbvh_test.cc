@@ -18,7 +18,7 @@ static void rng_v3_round(float *coords, int coords_len, struct RNG *rng, int rou
 {
   for (int i = 0; i < coords_len; i++) {
     float f = BLI_rng_get_float(rng) * 2.0f - 1.0f;
-    coords[i] = ((float)((int)(f * round)) / (float)round) * scale;
+    coords[i] = (float(int(f * round)) / float(round)) * scale;
   }
 }
 
@@ -90,7 +90,7 @@ static void find_nearest_points_test(
     if (j != i) {
 #if 0
       const float dist = len_v3v3(points[i], points[j]);
-      if (dist > (1.0f / (float)round)) {
+      if (dist > (1.0f / float(round))) {
         printf("%.15f (%d %d)\n", dist, i, j);
         print_v3_id(points[i]);
         print_v3_id(points[j]);

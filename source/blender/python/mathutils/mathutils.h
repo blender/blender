@@ -17,9 +17,10 @@ extern char BaseMathObject_is_frozen_doc[];
 extern char BaseMathObject_is_valid_doc[];
 extern char BaseMathObject_owner_doc[];
 
+PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_type);
+
 #define BASE_MATH_NEW(struct_name, root_type, base_type) \
-  ((struct_name *)((base_type ? (base_type)->tp_alloc(base_type, 0) : \
-                                _PyObject_GC_New(&(root_type)))))
+  ((struct_name *)_BaseMathObject_new_impl(&root_type, base_type))
 
 /** #BaseMathObject.flag */
 enum {
@@ -76,6 +77,7 @@ PyObject *BaseMathObject_freeze(BaseMathObject *self);
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
 void BaseMathObject_dealloc(BaseMathObject *self);
+int BaseMathObject_is_gc(BaseMathObject *self);
 
 PyMODINIT_FUNC PyInit_mathutils(void);
 

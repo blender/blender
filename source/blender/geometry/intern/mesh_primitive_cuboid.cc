@@ -328,9 +328,9 @@ static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::Att
 
   int loop_index = 0;
 
-  const float x_delta = 0.25f / static_cast<float>(config.edges_x);
-  const float y_delta = 0.25f / static_cast<float>(config.edges_y);
-  const float z_delta = 0.25f / static_cast<float>(config.edges_z);
+  const float x_delta = 0.25f / float(config.edges_x);
+  const float y_delta = 0.25f / float(config.edges_y);
+  const float z_delta = 0.25f / float(config.edges_z);
 
   /* Calculate bottom face UVs. */
   for (const int y : IndexRange(config.edges_y)) {

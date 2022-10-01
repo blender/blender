@@ -403,11 +403,11 @@ static void rna_userdef_anim_update(Main *UNUSED(bmain),
   USERDEF_TAG_DIRTY;
 }
 
-static void rna_userdef_tablet_api_update(Main *UNUSED(bmain),
-                                          Scene *UNUSED(scene),
-                                          PointerRNA *UNUSED(ptr))
+static void rna_userdef_input_devices(Main *UNUSED(bmain),
+                                      Scene *UNUSED(scene),
+                                      PointerRNA *UNUSED(ptr))
 {
-  WM_init_tablet_api();
+  WM_init_input_devices();
   USERDEF_TAG_DIRTY;
 }
 
@@ -5738,6 +5738,14 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, view_zoom_axes);
   RNA_def_property_ui_text(prop, "Zoom Axis", "Axis of mouse movement to zoom in or out on");
 
+  prop = RNA_def_property(srna, "use_multitouch_gestures", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_NO_MULTITOUCH_GESTURES);
+  RNA_def_property_ui_text(
+      prop,
+      "Multitouch Gestures",
+      "Use multitouch gestures for navigation with touchpad, instead of scroll wheel emulation");
+  RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
+
   prop = RNA_def_property(srna, "invert_mouse_zoom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_INVERT);
   RNA_def_property_ui_text(
@@ -5873,7 +5881,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
                            "Tablet API",
                            "Select the tablet API to use for pressure sensitivity (may require "
                            "restarting Blender for changes to take effect)");
-  RNA_def_property_update(prop, 0, "rna_userdef_tablet_api_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
 
 #  ifdef WITH_INPUT_NDOF
   /* 3D mouse settings */

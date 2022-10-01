@@ -173,7 +173,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
     return nullptr;
   }
   DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-  if ((blender_mat->blend_flag & MA_BL_CULL_BACKFACE)) {
+  if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
   float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);
@@ -188,7 +188,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          GPUMaterial *gpumat)
 {
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_LESS_EQUAL;
-  if ((blender_mat->blend_flag & MA_BL_CULL_BACKFACE)) {
+  if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
   float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);

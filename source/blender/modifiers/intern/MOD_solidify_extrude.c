@@ -1024,16 +1024,18 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
                                    NULL;
     float nor[3];
 #endif
-    const uchar crease_rim = smd->crease_rim * 255.0f;
-    const uchar crease_outer = smd->crease_outer * 255.0f;
-    const uchar crease_inner = smd->crease_inner * 255.0f;
+    const float crease_rim = smd->crease_rim;
+    const float crease_outer = smd->crease_outer;
+    const float crease_inner = smd->crease_inner;
 
     int *origindex_edge;
     int *orig_ed;
     uint j;
 
+    float *result_edge_crease = NULL;
     if (crease_rim || crease_outer || crease_inner) {
-      result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+      result_edge_crease = (float *)CustomData_add_layer(
+          &result->edata, CD_CREASE, CD_SET_DEFAULT, NULL, result->totedge);
     }
 
     /* add faces & edges */
@@ -1051,7 +1053,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
 
       if (crease_rim) {
-        ed->crease = crease_rim;
+        result_edge_crease[ed - medge] = crease_rim;
       }
     }
 
@@ -1140,16 +1142,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
       if (crease_outer) {
         /* crease += crease_outer; without wrapping */
-        char *cr = &(ed->crease);
-        int tcr = *cr + crease_outer;
-        *cr = tcr > 255 ? 255 : tcr;
+        float *cr = &(result_edge_crease[ed - medge]);
+        float tcr = *cr + crease_outer;
+        *cr = tcr > 1.0f ? 1.0f : tcr;
       }
 
       if (crease_inner) {
         /* crease += crease_inner; without wrapping */
-        char *cr = &(medge[edges_num + (do_shell ? eidx : i)].crease);
-        int tcr = *cr + crease_inner;
-        *cr = tcr > 255 ? 255 : tcr;
+        float *cr = &(result_edge_crease[edges_num + (do_shell ? eidx : i)]);
+        float tcr = *cr + crease_inner;
+        *cr = tcr > 1.0f ? 1.0f : tcr;
       }
 
 #ifdef SOLIDIFY_SIDE_NORMALS

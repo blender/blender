@@ -66,7 +66,7 @@
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
   const int *face_sets = static_cast<const int *>(
-      CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   if (!face_sets) {
     return SCULPT_FACE_SET_NONE;
   }
@@ -82,7 +82,8 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
 {
-  int *face_sets = static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+  int *face_sets = static_cast<int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   if (!face_sets) {
     return;
   }
@@ -128,8 +129,13 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap[vd.index];
       for (int j = 0; j < ss->pmap[vd.index].count; j++) {
@@ -153,7 +159,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.fno,
                                                                     vd.mask ? *vd.mask : 0.0f,
                                                                     vd.vertex,
-                                                                    thread_id);
+                                                                    thread_id,
+                                                                    &automask_data);
 
         if (fade > 0.05f) {
           ss->face_sets[vert_map->indices[j]] = ss->cache->paint_face_set;
@@ -172,7 +179,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
                                                                   vd.vertex,
-                                                                  thread_id);
+                                                                  thread_id,
+                                                                  &automask_data);
 
       if (fade > 0.05f) {
         SCULPT_vertex_face_set_set(ss, vd.vertex, ss->cache->paint_face_set);
@@ -204,8 +212,13 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   }
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -221,7 +234,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
     if (vd.mvert) {
@@ -235,6 +249,12 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (ss->pbvh) {
+    Mesh *mesh = BKE_mesh_from_object(ob);
+    BKE_pbvh_face_sets_color_set(
+        ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
+  }
 
   BKE_curvemapping_init(brush->curve);
 
@@ -672,10 +692,11 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
     }
     case SCULPT_FACE_SETS_FROM_CREASES: {
-      const Span<MEdge> edges = mesh->edges();
+      const float *creases = static_cast<const float *>(
+          CustomData_get_layer(&mesh->edata, CD_CREASE));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return edges[edge].crease / 255.0f < threshold;
+            return creases[edge] < threshold;
           });
       break;
     }
@@ -945,7 +966,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   /* Update the active vertex and Face Set using the cursor position to avoid relying on the paint
    * cursor updates. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
@@ -1408,12 +1429,13 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
+  ss->face_sets = BKE_sculpt_face_sets_ensure(BKE_mesh_from_object(ob));
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;

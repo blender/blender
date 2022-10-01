@@ -165,10 +165,10 @@ static void ui_popup_block_position(wmWindow *window,
       dir1 &= (UI_DIR_UP | UI_DIR_DOWN);
     }
 
-    if ((dir2 == 0) && (ELEM(dir1, UI_DIR_LEFT, UI_DIR_RIGHT))) {
+    if ((dir2 == 0) && ELEM(dir1, UI_DIR_LEFT, UI_DIR_RIGHT)) {
       dir2 = UI_DIR_DOWN;
     }
-    if ((dir2 == 0) && (ELEM(dir1, UI_DIR_UP, UI_DIR_DOWN))) {
+    if ((dir2 == 0) && ELEM(dir1, UI_DIR_UP, UI_DIR_DOWN)) {
       dir2 = UI_DIR_LEFT;
     }
 

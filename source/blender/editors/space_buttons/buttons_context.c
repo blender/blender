@@ -1188,22 +1188,22 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     PointerRNA *ptr = &path->ptr[i];
 
     /* Skip scene and view layer to save space. */
-    if ((!ELEM(sbuts->mainb,
-               BCONTEXT_RENDER,
-               BCONTEXT_OUTPUT,
-               BCONTEXT_SCENE,
-               BCONTEXT_VIEW_LAYER,
-               BCONTEXT_WORLD) &&
-         ptr->type == &RNA_Scene)) {
+    if (!ELEM(sbuts->mainb,
+              BCONTEXT_RENDER,
+              BCONTEXT_OUTPUT,
+              BCONTEXT_SCENE,
+              BCONTEXT_VIEW_LAYER,
+              BCONTEXT_WORLD) &&
+        ptr->type == &RNA_Scene) {
       continue;
     }
-    if ((!ELEM(sbuts->mainb,
-               BCONTEXT_RENDER,
-               BCONTEXT_OUTPUT,
-               BCONTEXT_SCENE,
-               BCONTEXT_VIEW_LAYER,
-               BCONTEXT_WORLD) &&
-         ptr->type == &RNA_ViewLayer)) {
+    if (!ELEM(sbuts->mainb,
+              BCONTEXT_RENDER,
+              BCONTEXT_OUTPUT,
+              BCONTEXT_SCENE,
+              BCONTEXT_VIEW_LAYER,
+              BCONTEXT_WORLD) &&
+        ptr->type == &RNA_ViewLayer) {
       continue;
     }
 

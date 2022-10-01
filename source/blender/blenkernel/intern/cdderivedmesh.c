@@ -115,8 +115,8 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
 static void cdDM_recalc_looptri(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  const unsigned int totpoly = dm->numPolyData;
-  const unsigned int totloop = dm->numLoopData;
+  const uint totpoly = dm->numPolyData;
+  const uint totloop = dm->numLoopData;
 
   DM_ensure_looptri_data(dm);
   BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
@@ -206,7 +206,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
    * but only if the original mesh had its deformed_only flag correctly set
    * (which isn't generally the case). */
   dm->deformedOnly = 1;
-  dm->cd_flag = mesh->cd_flag;
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);

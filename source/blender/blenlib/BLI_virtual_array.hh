@@ -324,7 +324,7 @@ class VArrayImpl_For_ArrayContainer : public VArrayImpl_For_Span<T> {
 
  public:
   VArrayImpl_For_ArrayContainer(Container container)
-      : VArrayImpl_For_Span<T>((int64_t)container.size()), container_(std::move(container))
+      : VArrayImpl_For_Span<T>(int64_t(container.size())), container_(std::move(container))
   {
     this->data_ = const_cast<T *>(container_.data());
   }

@@ -81,12 +81,12 @@ void Node::add_output_socket(DataType datatype, bNodeSocket *bSocket)
   outputs_.append(socket);
 }
 
-NodeOutput *Node::get_output_socket(unsigned int index) const
+NodeOutput *Node::get_output_socket(uint index) const
 {
   return outputs_[index];
 }
 
-NodeInput *Node::get_input_socket(unsigned int index) const
+NodeInput *Node::get_input_socket(uint index) const
 {
   return inputs_[index];
 }

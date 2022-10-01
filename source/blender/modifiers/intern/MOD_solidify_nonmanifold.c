@@ -192,6 +192,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* These might be null. */
   const float *orig_vert_bweight = CustomData_get_layer(&mesh->vdata, CD_BWEIGHT);
   const float *orig_edge_bweight = CustomData_get_layer(&mesh->edata, CD_BWEIGHT);
+  const float *orig_edge_crease = CustomData_get_layer(&mesh->edata, CD_CREASE);
 
   uint new_verts_num = 0;
   uint new_edges_num = 0;
@@ -1984,12 +1985,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Get vertex crease layer and ensure edge creases are active if vertex creases are found, since
    * they will introduce edge creases in the used custom interpolation method. */
   const float *vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
+  float *result_edge_crease = NULL;
   if (vertex_crease) {
-    result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+    result_edge_crease = (float *)CustomData_add_layer(
+        &result->edata, CD_CREASE, CD_SET_DEFAULT, NULL, result->totedge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
-      result->cd_flag &= (char)(~ME_CDFLAG_VERT_CREASE);
     }
   }
 
@@ -2004,7 +2006,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           if (g->new_vert != MOD_SOLIDIFY_EMPTY_TAG) {
             CustomData_copy_data(&mesh->vdata, &result->vdata, (int)i, (int)g->new_vert, 1);
             copy_v3_v3(mvert[g->new_vert].co, g->co);
-            mvert[g->new_vert].flag = orig_mvert[i].flag;
           }
         }
       }
@@ -2042,9 +2043,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             medge[insert].v1 = v1;
             medge[insert].v2 = v2;
             medge[insert].flag = orig_medge[(*l)->old_edge].flag | ME_EDGEDRAW | ME_EDGERENDER;
-            medge[insert].crease = orig_medge[(*l)->old_edge].crease;
+            if (result_edge_crease) {
+              result_edge_crease[insert] = orig_edge_crease ? orig_edge_crease[(*l)->old_edge] :
+                                                              0.0f;
+            }
             if (result_edge_bweight) {
-              result_edge_bweight[insert] = orig_edge_bweight[(*l)->old_edge];
+              result_edge_bweight[insert] = orig_edge_bweight ? orig_edge_bweight[(*l)->old_edge] :
+                                                                0.0f;
             }
             if (bevel_convex != 0.0f && (*l)->faces[1] != NULL) {
               result_edge_bweight[insert] = clamp_f(
@@ -2118,12 +2123,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         EdgeGroup *g2 = gs;
         EdgeGroup *last_g = NULL;
         EdgeGroup *first_g = NULL;
-        char mv_crease = vertex_crease ? (char)(vertex_crease[i] * 255.0f) : 0;
+        float mv_crease = vertex_crease ? vertex_crease[i] : 0.0f;
         float mv_bweight = orig_vert_bweight ? orig_vert_bweight[i] : 0.0f;
         /* Data calculation cache. */
-        char max_crease;
-        char last_max_crease = 0;
-        char first_max_crease = 0;
+        float max_crease;
+        float last_max_crease = 0.0f;
+        float first_max_crease = 0.0f;
         float max_bweight;
         float last_max_bweight = 0.0f;
         float first_max_bweight = 0.0f;
@@ -2139,14 +2144,24 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             BLI_assert(g->edges_len >= 2);
 
             if (g->edges_len == 2) {
-              max_crease = min_cc(orig_medge[g->edges[0]->old_edge].crease,
-                                  orig_medge[g->edges[1]->old_edge].crease);
+              if (result_edge_crease) {
+                if (orig_edge_crease) {
+                  max_crease = min_ff(orig_edge_crease[g->edges[0]->old_edge],
+                                      orig_edge_crease[g->edges[1]->old_edge]);
+                }
+                else {
+                  max_crease = 0.0f;
+                }
+              }
             }
             else {
               for (uint k = 1; k < g->edges_len - 1; k++) {
-                const MEdge *ed = orig_medge + g->edges[k]->old_edge;
-                if (ed->crease > max_crease) {
-                  max_crease = ed->crease;
+                const uint orig_edge_index = g->edges[k]->old_edge;
+                const MEdge *ed = &orig_medge[orig_edge_index];
+                if (result_edge_crease) {
+                  if (orig_edge_crease && orig_edge_crease[orig_edge_index] > max_crease) {
+                    max_crease = orig_edge_crease[orig_edge_index];
+                  }
                 }
                 if (g->edges[k]->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
                   if (result_edge_bweight) {
@@ -2193,7 +2208,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = max_cc(mv_crease, min_cc(last_max_crease, max_crease));
+              if (result_edge_crease) {
+                result_edge_crease[edge_index] = max_ff(mv_crease,
+                                                        min_ff(last_max_crease, max_crease));
+              }
               if (result_edge_bweight) {
                 result_edge_bweight[edge_index] = max_ff(mv_bweight,
                                                          min_ff(last_max_bweight, max_bweight));
@@ -2224,8 +2242,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = first_g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | first_flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = max_cc(mv_crease,
-                                                min_cc(last_max_crease, first_max_crease));
+              if (result_edge_crease) {
+                result_edge_crease[edge_index] = max_ff(mv_crease,
+                                                        min_ff(last_max_crease, first_max_crease));
+              }
               if (result_edge_bweight) {
                 result_edge_bweight[edge_index] = max_ff(
                     mv_bweight, min_ff(last_max_bweight, first_max_bweight));

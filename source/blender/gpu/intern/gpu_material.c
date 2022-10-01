@@ -54,8 +54,8 @@ typedef struct GPUSkyBuilder {
 } GPUSkyBuilder;
 
 struct GPUMaterial {
-  /* Contains GPUShader and source code for deferred compilation.
-   * Can be shared between similar material (i.e: sharing same nodetree topology). */
+  /* Contains #GPUShader and source code for deferred compilation.
+   * Can be shared between similar material (i.e: sharing same node-tree topology). */
   GPUPass *pass;
   /** UBOs for this material parameters. */
   GPUUniformBuf *ubo;

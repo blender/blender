@@ -934,6 +934,242 @@ void OBJECT_OT_gpencil_modifier_copy_to_selected(wmOperatorType *ot)
   gpencil_edit_modifier_properties(ot);
 }
 
+/************************* Time Offset Advanced Modifier *******************************/
+
+static bool time_segment_poll(bContext *C)
+{
+  return gpencil_edit_modifier_poll_generic(C, &RNA_TimeGpencilModifier, 0, false);
+}
+
+static bool time_segment_name_exists_fn(void *arg, const char *name)
+{
+  const TimeGpencilModifierData *gpmd = (const TimeGpencilModifierData *)arg;
+  for (int i = 0; i < gpmd->segments_len; i++) {
+    if (STREQ(gpmd->segments[i].name, name) && gpmd->segments[i].name != name) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static int time_segment_add_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Time);
+  if (gpmd == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+  const int new_active_index = gpmd->segment_active_index + 1;
+  TimeGpencilModifierSegment *new_segments = MEM_malloc_arrayN(
+      gpmd->segments_len + 1, sizeof(TimeGpencilModifierSegment), __func__);
+
+  if (gpmd->segments_len != 0) {
+    /* Copy the segments before the new segment. */
+    memcpy(new_segments, gpmd->segments, sizeof(TimeGpencilModifierSegment) * new_active_index);
+    /* Copy the segments after the new segment. */
+    memcpy(new_segments + new_active_index + 1,
+           gpmd->segments + new_active_index,
+           sizeof(TimeGpencilModifierSegment) * (gpmd->segments_len - new_active_index));
+  }
+
+  /* Create the new segment. */
+  TimeGpencilModifierSegment *ds = &new_segments[new_active_index];
+  memcpy(
+      ds, DNA_struct_default_get(TimeGpencilModifierSegment), sizeof(TimeGpencilModifierSegment));
+  BLI_uniquename_cb(
+      time_segment_name_exists_fn, gpmd, DATA_("Segment"), '.', ds->name, sizeof(ds->name));
+  ds->gpmd = gpmd;
+
+  MEM_SAFE_FREE(gpmd->segments);
+  gpmd->segments = new_segments;
+  gpmd->segments_len++;
+  gpmd->segment_active_index++;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int time_segment_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return time_segment_add_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_time_segment_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Segment";
+  ot->description = "Add a segment to the time modifier";
+  ot->idname = "GPENCIL_OT_time_segment_add";
+
+  /* api callbacks */
+  ot->poll = time_segment_poll;
+  ot->invoke = time_segment_add_invoke;
+  ot->exec = time_segment_add_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+}
+
+static int time_segment_remove_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+
+  TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Time);
+
+  if (gpmd->segment_active_index < 0 || gpmd->segment_active_index >= gpmd->segments_len) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (gpmd->segments_len == 1) {
+    MEM_SAFE_FREE(gpmd->segments);
+    gpmd->segment_active_index = -1;
+  }
+  else {
+    TimeGpencilModifierSegment *new_segments = MEM_malloc_arrayN(
+        gpmd->segments_len, sizeof(TimeGpencilModifierSegment), __func__);
+
+    /* Copy the segments before the deleted segment. */
+    memcpy(new_segments,
+           gpmd->segments,
+           sizeof(TimeGpencilModifierSegment) * gpmd->segment_active_index);
+
+    /* Copy the segments after the deleted segment. */
+    memcpy(new_segments + gpmd->segment_active_index,
+           gpmd->segments + gpmd->segment_active_index + 1,
+           sizeof(TimeGpencilModifierSegment) *
+               (gpmd->segments_len - gpmd->segment_active_index - 1));
+
+    MEM_freeN(gpmd->segments);
+    gpmd->segments = new_segments;
+    gpmd->segment_active_index = MAX2(gpmd->segment_active_index - 1, 0);
+  }
+
+  gpmd->segments_len--;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int time_segment_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return time_segment_remove_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_time_segment_remove(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Time Segment";
+  ot->description = "Remove the active segment from the time modifier";
+  ot->idname = "GPENCIL_OT_time_segment_remove";
+
+  /* api callbacks */
+  ot->poll = time_segment_poll;
+  ot->invoke = time_segment_remove_invoke;
+  ot->exec = time_segment_remove_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+
+  RNA_def_int(
+      ot->srna, "index", 0, 0, INT_MAX, "Index", "Index of the segment to remove", 0, INT_MAX);
+}
+
+enum {
+  GP_TIME_SEGEMENT_MOVE_UP = -1,
+  GP_TIME_SEGEMENT_MOVE_DOWN = 1,
+};
+
+static int time_segment_move_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+
+  TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Time);
+
+  if (gpmd->segments_len < 2) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const int direction = RNA_enum_get(op->ptr, "type");
+  if (direction == GP_TIME_SEGEMENT_MOVE_UP) {
+    if (gpmd->segment_active_index == 0) {
+      return OPERATOR_CANCELLED;
+    }
+
+    SWAP(TimeGpencilModifierSegment,
+         gpmd->segments[gpmd->segment_active_index],
+         gpmd->segments[gpmd->segment_active_index - 1]);
+
+    gpmd->segment_active_index--;
+  }
+  else if (direction == GP_TIME_SEGEMENT_MOVE_DOWN) {
+    if (gpmd->segment_active_index == gpmd->segments_len - 1) {
+      return OPERATOR_CANCELLED;
+    }
+
+    SWAP(TimeGpencilModifierSegment,
+         gpmd->segments[gpmd->segment_active_index],
+         gpmd->segments[gpmd->segment_active_index + 1]);
+
+    gpmd->segment_active_index++;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int time_segment_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return time_segment_move_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_time_segment_move(wmOperatorType *ot)
+{
+  static const EnumPropertyItem segment_move[] = {
+      {GP_TIME_SEGEMENT_MOVE_UP, "UP", 0, "Up", ""},
+      {GP_TIME_SEGEMENT_MOVE_DOWN, "DOWN", 0, "Down", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* identifiers */
+  ot->name = "Move Time Segment";
+  ot->description = "Move the active time segment up or down";
+  ot->idname = "GPENCIL_OT_time_segment_move";
+
+  /* api callbacks */
+  ot->poll = time_segment_poll;
+  ot->invoke = time_segment_move_invoke;
+  ot->exec = time_segment_move_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+
+  ot->prop = RNA_def_enum(ot->srna, "type", segment_move, 0, "Type", "");
+}
+
 /************************* Dash Modifier *******************************/
 
 static bool dash_segment_poll(bContext *C)

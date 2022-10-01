@@ -263,7 +263,6 @@ void BLT_lang_set(const char *str)
 #else
   (void)str;
 #endif
-  IMB_thumb_clear_translations();
 }
 
 const char *BLT_lang_get(void)

@@ -34,6 +34,7 @@ set(SRC
   screendump.c
   workspace_edit.c
   workspace_layout_edit.c
+  workspace_listen.cc
 
   screen_intern.h
 )

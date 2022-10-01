@@ -48,6 +48,11 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const EdgeNeighborCountFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

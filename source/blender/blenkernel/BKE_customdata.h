@@ -457,12 +457,6 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, int 
  */
 const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
-/**
- * Copies the data from source to the data element at index in the first layer of type
- * no effect if there is no layer of type.
- */
-void CustomData_set(const struct CustomData *data, int index, int type, const void *source);
-
 void CustomData_bmesh_set(const struct CustomData *data,
                           void *block,
                           int type,
@@ -470,18 +464,6 @@ void CustomData_bmesh_set(const struct CustomData *data,
 
 void CustomData_bmesh_set_n(
     struct CustomData *data, void *block, int type, int n, const void *source);
-/**
- * Sets the data of the block at physical layer n.
- * no real type checking is performed.
- */
-void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n, const void *source);
-
-/**
- * Set the pointer of to the first layer of type. the old data is not freed.
- * returns the value of `ptr` if the layer is found, NULL otherwise.
- */
-void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
-void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr);
 
 /**
  * Sets the nth layer of type as active.
@@ -590,7 +572,6 @@ void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype
  * \return True if some errors were found.
  */
 bool CustomData_layer_validate(struct CustomDataLayer *layer, uint totitems, bool do_fixes);
-void CustomData_layers__print(struct CustomData *data);
 
 /* External file storage */
 
@@ -634,8 +615,7 @@ enum {
                      CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
 
   /* Edges. */
-  CD_FAKE_SEAM = CD_FAKE | 100,         /* UV seam flag for edges. */
-  CD_FAKE_CREASE = CD_FAKE | CD_CREASE, /* *sigh*. */
+  CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
 
   /* Multiple types of mesh elements... */
   CD_FAKE_UV = CD_FAKE |

@@ -35,11 +35,11 @@ void GaussianBokehBlurOperation::init_data()
     }
   }
 
-  radxf_ = size_ * (float)data_.sizex;
+  radxf_ = size_ * float(data_.sizex);
   CLAMP(radxf_, 0.0f, width / 2.0f);
 
   /* Vertical. */
-  radyf_ = size_ * (float)data_.sizey;
+  radyf_ = size_ * float(data_.sizey);
   CLAMP(radyf_, 0.0f, height / 2.0f);
 
   radx_ = ceil(radxf_);
@@ -71,8 +71,8 @@ void GaussianBokehBlurOperation::update_gauss()
     float facy = (radyf_ > 0.0f ? 1.0f / radyf_ : 0.0f);
     for (int j = -rady_; j <= rady_; j++) {
       for (int i = -radx_; i <= radx_; i++, dgauss++) {
-        float fj = (float)j * facy;
-        float fi = (float)i * facx;
+        float fj = float(j) * facy;
+        float fi = float(i) * facx;
         float dist = sqrt(fj * fj + fi * fi);
         *dgauss = RE_filter_value(data_.filtertype, dist);
 
@@ -105,10 +105,10 @@ void GaussianBokehBlurOperation::execute_pixel(float output[4], int x, int y, vo
   const float width = this->get_width();
   const float height = this->get_height();
 
-  radxf_ = size_ * (float)data_.sizex;
+  radxf_ = size_ * float(data_.sizex);
   CLAMP(radxf_, 0.0f, width / 2.0f);
 
-  radyf_ = size_ * (float)data_.sizey;
+  radyf_ = size_ * float(data_.sizey);
   CLAMP(radyf_, 0.0f, height / 2.0f);
 
   radx_ = ceil(radxf_);
@@ -265,22 +265,22 @@ void GaussianBlurReferenceOperation::init_data()
   if (data_.relative) {
     switch (data_.aspect) {
       case CMP_NODE_BLUR_ASPECT_NONE:
-        data_.sizex = (int)(data_.percentx * 0.01f * data_.image_in_width);
-        data_.sizey = (int)(data_.percenty * 0.01f * data_.image_in_height);
+        data_.sizex = int(data_.percentx * 0.01f * data_.image_in_width);
+        data_.sizey = int(data_.percenty * 0.01f * data_.image_in_height);
         break;
       case CMP_NODE_BLUR_ASPECT_Y:
-        data_.sizex = (int)(data_.percentx * 0.01f * data_.image_in_width);
-        data_.sizey = (int)(data_.percenty * 0.01f * data_.image_in_width);
+        data_.sizex = int(data_.percentx * 0.01f * data_.image_in_width);
+        data_.sizey = int(data_.percenty * 0.01f * data_.image_in_width);
         break;
       case CMP_NODE_BLUR_ASPECT_X:
-        data_.sizex = (int)(data_.percentx * 0.01f * data_.image_in_height);
-        data_.sizey = (int)(data_.percenty * 0.01f * data_.image_in_height);
+        data_.sizex = int(data_.percentx * 0.01f * data_.image_in_height);
+        data_.sizey = int(data_.percenty * 0.01f * data_.image_in_height);
         break;
     }
   }
 
   /* Horizontal. */
-  filtersizex_ = (float)data_.sizex;
+  filtersizex_ = float(data_.sizex);
   int imgx = get_width() / 2;
   if (filtersizex_ > imgx) {
     filtersizex_ = imgx;
@@ -288,10 +288,10 @@ void GaussianBlurReferenceOperation::init_data()
   else if (filtersizex_ < 1) {
     filtersizex_ = 1;
   }
-  radx_ = (float)filtersizex_;
+  radx_ = float(filtersizex_);
 
   /* Vertical. */
-  filtersizey_ = (float)data_.sizey;
+  filtersizey_ = float(data_.sizey);
   int imgy = get_height() / 2;
   if (filtersizey_ > imgy) {
     filtersizey_ = imgy;
@@ -299,7 +299,7 @@ void GaussianBlurReferenceOperation::init_data()
   else if (filtersizey_ < 1) {
     filtersizey_ = 1;
   }
-  rady_ = (float)filtersizey_;
+  rady_ = float(filtersizey_);
 }
 
 void *GaussianBlurReferenceOperation::initialize_tile_data(rcti * /*rect*/)
@@ -340,8 +340,8 @@ void GaussianBlurReferenceOperation::execute_pixel(float output[4], int x, int y
   float temp_size[4];
   input_size_->read(temp_size, x, y, data);
   float ref_size = temp_size[0];
-  int refradx = (int)(ref_size * radx_);
-  int refrady = (int)(ref_size * rady_);
+  int refradx = int(ref_size * radx_);
+  int refrady = int(ref_size * rady_);
   if (refradx > filtersizex_) {
     refradx = filtersizex_;
   }
@@ -447,8 +447,8 @@ void GaussianBlurReferenceOperation::update_memory_buffer_partial(MemoryBuffer *
   MemoryBuffer *size_input = inputs[SIZE_INPUT_INDEX];
   for (BuffersIterator<float> it = output->iterate_with({size_input}, area); !it.is_end(); ++it) {
     const float ref_size = *it.in(0);
-    int ref_radx = (int)(ref_size * radx_);
-    int ref_rady = (int)(ref_size * rady_);
+    int ref_radx = int(ref_size * radx_);
+    int ref_rady = int(ref_size * rady_);
     if (ref_radx > filtersizex_) {
       ref_radx = filtersizex_;
     }

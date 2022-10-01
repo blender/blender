@@ -44,9 +44,9 @@ static bool modifierTypesInit = false;
 
 typedef void (*modifier_apply_threaded_cb)(int width,
                                            int height,
-                                           unsigned char *rect,
+                                           uchar *rect,
                                            float *rect_float,
-                                           unsigned char *mask_rect,
+                                           uchar *mask_rect,
                                            const float *mask_rect_float,
                                            void *data_v);
 
@@ -61,7 +61,7 @@ typedef struct ModifierInitData {
 typedef struct ModifierThread {
   int width, height;
 
-  unsigned char *rect, *mask_rect;
+  uchar *rect, *mask_rect;
   float *rect_float, *mask_rect_float;
 
   void *user_data;
@@ -140,7 +140,7 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
   handle->user_data = init_data->user_data;
 
   if (ibuf->rect) {
-    handle->rect = (unsigned char *)ibuf->rect + offset;
+    handle->rect = (uchar *)ibuf->rect + offset;
   }
 
   if (ibuf->rect_float) {
@@ -149,7 +149,7 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
 
   if (mask) {
     if (mask->rect) {
-      handle->mask_rect = (unsigned char *)mask->rect + offset;
+      handle->mask_rect = (uchar *)mask->rect + offset;
     }
 
     if (mask->rect_float) {
@@ -345,17 +345,13 @@ static void make_cb_table_float_sop(
   }
 }
 
-static void color_balance_byte_byte(StripColorBalance *cb_,
-                                    unsigned char *rect,
-                                    unsigned char *mask_rect,
-                                    int width,
-                                    int height,
-                                    float mul)
+static void color_balance_byte_byte(
+    StripColorBalance *cb_, uchar *rect, uchar *mask_rect, int width, int height, float mul)
 {
-  // unsigned char cb_tab[3][256];
-  unsigned char *cp = rect;
-  unsigned char *e = cp + width * 4 * height;
-  unsigned char *m = mask_rect;
+  // uchar cb_tab[3][256];
+  uchar *cp = rect;
+  uchar *e = cp + width * 4 * height;
+  uchar *m = mask_rect;
 
   StripColorBalance cb = calc_cb(cb_);
 
@@ -394,18 +390,18 @@ static void color_balance_byte_byte(StripColorBalance *cb_,
 }
 
 static void color_balance_byte_float(StripColorBalance *cb_,
-                                     unsigned char *rect,
+                                     uchar *rect,
                                      float *rect_float,
-                                     unsigned char *mask_rect,
+                                     uchar *mask_rect,
                                      int width,
                                      int height,
                                      float mul)
 {
   float cb_tab[4][256];
   int c, i;
-  unsigned char *p = rect;
-  unsigned char *e = p + width * 4 * height;
-  unsigned char *m = mask_rect;
+  uchar *p = rect;
+  uchar *e = p + width * 4 * height;
+  uchar *m = mask_rect;
   float *o;
   StripColorBalance cb;
 
@@ -501,7 +497,7 @@ typedef struct ColorBalanceThread {
 
   int width, height;
 
-  unsigned char *rect, *mask_rect;
+  uchar *rect, *mask_rect;
   float *rect_float, *mask_rect_float;
 
   bool make_float;
@@ -528,7 +524,7 @@ static void color_balance_init_handle(void *handle_v,
   handle->make_float = init_data->make_float;
 
   if (ibuf->rect) {
-    handle->rect = (unsigned char *)ibuf->rect + offset;
+    handle->rect = (uchar *)ibuf->rect + offset;
   }
 
   if (ibuf->rect_float) {
@@ -537,7 +533,7 @@ static void color_balance_init_handle(void *handle_v,
 
   if (mask) {
     if (mask->rect) {
-      handle->mask_rect = (unsigned char *)mask->rect + offset;
+      handle->mask_rect = (uchar *)mask->rect + offset;
     }
 
     if (mask->rect_float) {
@@ -555,8 +551,8 @@ static void *color_balance_do_thread(void *thread_data_v)
   ColorBalanceThread *thread_data = (ColorBalanceThread *)thread_data_v;
   StripColorBalance *cb = thread_data->cb;
   int width = thread_data->width, height = thread_data->height;
-  unsigned char *rect = thread_data->rect;
-  unsigned char *mask_rect = thread_data->mask_rect;
+  uchar *rect = thread_data->rect;
+  uchar *mask_rect = thread_data->mask_rect;
   float *rect_float = thread_data->rect_float;
   float *mask_rect_float = thread_data->mask_rect_float;
   float mul = thread_data->mul;
@@ -657,9 +653,9 @@ typedef struct WhiteBalanceThreadData {
 
 static void whiteBalance_apply_threaded(int width,
                                         int height,
-                                        unsigned char *rect,
+                                        uchar *rect,
                                         float *rect_float,
-                                        unsigned char *mask_rect,
+                                        uchar *mask_rect,
                                         const float *mask_rect_float,
                                         void *data_v)
 {
@@ -765,9 +761,9 @@ static void curves_copy_data(SequenceModifierData *target, SequenceModifierData 
 
 static void curves_apply_threaded(int width,
                                   int height,
-                                  unsigned char *rect,
+                                  uchar *rect,
                                   float *rect_float,
-                                  unsigned char *mask_rect,
+                                  uchar *mask_rect,
                                   const float *mask_rect_float,
                                   void *data_v)
 {
@@ -798,7 +794,7 @@ static void curves_apply_threaded(int width,
         }
       }
       if (rect) {
-        unsigned char *pixel = rect + pixel_index;
+        uchar *pixel = rect + pixel_index;
         float result[3], tempc[4];
 
         straight_uchar_to_premul_float(tempc, pixel);
@@ -895,9 +891,9 @@ static void hue_correct_copy_data(SequenceModifierData *target, SequenceModifier
 
 static void hue_correct_apply_threaded(int width,
                                        int height,
-                                       unsigned char *rect,
+                                       uchar *rect,
                                        float *rect_float,
-                                       unsigned char *mask_rect,
+                                       uchar *mask_rect,
                                        const float *mask_rect_float,
                                        void *data_v)
 {
@@ -990,9 +986,9 @@ typedef struct BrightContrastThreadData {
 
 static void brightcontrast_apply_threaded(int width,
                                           int height,
-                                          unsigned char *rect,
+                                          uchar *rect,
                                           float *rect_float,
-                                          unsigned char *mask_rect,
+                                          uchar *mask_rect,
                                           const float *mask_rect_float,
                                           void *data_v)
 {
@@ -1008,7 +1004,7 @@ static void brightcontrast_apply_threaded(int width,
   /*
    * The algorithm is by Werner D. Streidt
    * (http://visca.com/ffactory/archives/5-99/msg00021.html)
-   * Extracted of OpenCV demhist.c
+   * Extracted of OpenCV `demhist.c`.
    */
   if (contrast > 0) {
     a = 1.0f - delta * 2.0f;
@@ -1026,14 +1022,14 @@ static void brightcontrast_apply_threaded(int width,
       int pixel_index = (y * width + x) * 4;
 
       if (rect) {
-        unsigned char *pixel = rect + pixel_index;
+        uchar *pixel = rect + pixel_index;
 
         for (c = 0; c < 3; c++) {
           i = (float)pixel[c] / 255.0f;
           v = a * i + b;
 
           if (mask_rect) {
-            unsigned char *m = mask_rect + pixel_index;
+            uchar *m = mask_rect + pixel_index;
             float t = (float)m[c] / 255.0f;
 
             v = (float)pixel[c] / 255.0f * (1.0f - t) + v * t;
@@ -1092,9 +1088,9 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
 
 static void maskmodifier_apply_threaded(int width,
                                         int height,
-                                        unsigned char *rect,
+                                        uchar *rect,
                                         float *rect_float,
-                                        unsigned char *mask_rect,
+                                        uchar *mask_rect,
                                         const float *mask_rect_float,
                                         void *UNUSED(data_v))
 {
@@ -1113,9 +1109,9 @@ static void maskmodifier_apply_threaded(int width,
       int pixel_index = (y * width + x) * 4;
 
       if (rect) {
-        unsigned char *pixel = rect + pixel_index;
-        unsigned char *mask_pixel = mask_rect + pixel_index;
-        unsigned char mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        uchar *pixel = rect + pixel_index;
+        uchar *mask_pixel = mask_rect + pixel_index;
+        uchar mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
 
         /* byte buffer is straight, so only affect on alpha itself,
          * this is the only way to alpha-over byte strip after
@@ -1190,9 +1186,9 @@ static void tonemapmodifier_init_data(SequenceModifierData *smd)
 
 static void tonemapmodifier_apply_threaded_simple(int width,
                                                   int height,
-                                                  unsigned char *rect,
+                                                  uchar *rect,
                                                   float *rect_float,
-                                                  unsigned char *mask_rect,
+                                                  uchar *mask_rect,
                                                   const float *mask_rect_float,
                                                   void *data_v)
 {
@@ -1249,9 +1245,9 @@ static void tonemapmodifier_apply_threaded_simple(int width,
 
 static void tonemapmodifier_apply_threaded_photoreceptor(int width,
                                                          int height,
-                                                         unsigned char *rect,
+                                                         uchar *rect,
                                                          float *rect_float,
-                                                         unsigned char *mask_rect,
+                                                         uchar *mask_rect,
                                                          const float *mask_rect_float,
                                                          void *data_v)
 {
@@ -1319,7 +1315,7 @@ static void tonemapmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf,
   float lsum = 0.0f;
   int p = ibuf->x * ibuf->y;
   float *fp = ibuf->rect_float;
-  unsigned char *cp = (unsigned char *)ibuf->rect;
+  uchar *cp = (uchar *)ibuf->rect;
   float avl, maxl = -FLT_MAX, minl = FLT_MAX;
   const float sc = 1.0f / p;
   float Lav = 0.0f;

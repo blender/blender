@@ -15,7 +15,9 @@ NODE_STORAGE_FUNCS(NodeTexVoronoi)
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .hide_value()
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
@@ -173,7 +175,7 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
                             outWSock,
                             storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                (ELEM(storage.dimensions, 1, 4)));
+                                ELEM(storage.dimensions, 1, 4));
   nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 

@@ -44,7 +44,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveResample &storage = node_storage(*node);
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
-  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next->next;
+  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
   bNodeSocket *length_socket = count_socket->next;
 
   nodeSetSocketAvailability(ntree, count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);

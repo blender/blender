@@ -74,8 +74,12 @@ static void UVsToTransData(const float aspect[2],
 /**
  * \param dists: Store the closest connected distance to selected vertices.
  */
-static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float aspect[2])
+static void uv_set_connectivity_distance(const ToolSettings *ts,
+                                         BMesh *bm,
+                                         float *dists,
+                                         const float aspect[2])
 {
+#define TMP_LOOP_SELECT_TAG BM_ELEM_TAG_ALT
   /* Mostly copied from #transform_convert_mesh_connectivity_distance. */
   BLI_LINKSTACK_DECLARE(queue, BMLoop *);
 
@@ -101,15 +105,15 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       float dist;
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-      bool uv_vert_sel = luv->flag & MLOOPUV_VERTSEL;
+      bool uv_vert_sel = uvedit_uv_select_test_ex(ts, l, cd_loop_uv_offset);
 
       if (uv_vert_sel) {
         BLI_LINKSTACK_PUSH(queue, l);
+        BM_elem_flag_enable(l, TMP_LOOP_SELECT_TAG);
         dist = 0.0f;
       }
       else {
+        BM_elem_flag_disable(l, TMP_LOOP_SELECT_TAG);
         dist = FLT_MAX;
       }
 
@@ -164,7 +168,7 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
 
         bool other_vert_sel, connected_vert_sel;
 
-        other_vert_sel = luv_other->flag & MLOOPUV_VERTSEL;
+        other_vert_sel = BM_elem_flag_test_bool(l_other, TMP_LOOP_SELECT_TAG);
 
         BM_ITER_ELEM (l_connected, &l_connected_iter, l_other->v, BM_LOOPS_OF_VERT) {
           if (l_connected == l_other) {
@@ -176,7 +180,7 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
           }
 
           MLoopUV *luv_connected = BM_ELEM_CD_GET_VOID_P(l_connected, cd_loop_uv_offset);
-          connected_vert_sel = luv_connected->flag & MLOOPUV_VERTSEL;
+          connected_vert_sel = BM_elem_flag_test_bool(l_connected, TMP_LOOP_SELECT_TAG);
 
           /* Check if this loop is connected in UV space.
            * If the uv loops share the same selection state (if not, they are not connected as
@@ -232,6 +236,7 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
   BLI_LINKSTACK_FREE(queue_next);
 
   MEM_freeN(dists_prev);
+#undef TMP_LOOP_SELECT_TAG
 }
 
 static void createTransUVs(bContext *C, TransInfo *t)
@@ -337,7 +342,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     if (is_prop_connected) {
       prop_dists = MEM_callocN(em->bm->totloop * sizeof(float), "TransObPropDists(UV Editing)");
 
-      uv_set_connectivity_distance(em->bm, prop_dists, t->aspect);
+      uv_set_connectivity_distance(t->settings, em->bm, prop_dists, t->aspect);
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {

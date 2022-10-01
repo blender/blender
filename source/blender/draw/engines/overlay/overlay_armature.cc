@@ -140,11 +140,11 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
 
     pd->armature_bone_select_act_grp = grp = DRW_shgroup_create(sh, psl->armature_bone_select_ps);
     float4 color = {0.0f, 0.0f, 0.0f, alpha};
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
 
     pd->armature_bone_select_grp = grp = DRW_shgroup_create(sh, psl->armature_bone_select_ps);
     color = {0.0f, 0.0f, 0.0f, powf(alpha, 4)};
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
   }
 
   for (int i = 0; i < 2; i++) {
@@ -416,7 +416,7 @@ static float encode_2f_to_float(float a, float b)
 {
   CLAMP(a, 0.0f, 1.0f);
   CLAMP(b, 0.0f, 2.0f); /* Can go up to 2. Needed for wire size. */
-  return (float)((int)(a * 255) | ((int)(b * 255) << 8));
+  return float(int(a * 255) | (int(b * 255) << 8));
 }
 
 void OVERLAY_bone_instance_data_set_color_hint(BoneInstanceData *data, const float hint_color[4])
@@ -941,11 +941,11 @@ static void cp_shade_color3ub(uchar cp[3], const int offset)
 {
   int r, g, b;
 
-  r = offset + (int)cp[0];
+  r = offset + int(cp[0]);
   CLAMP(r, 0, 255);
-  g = offset + (int)cp[1];
+  g = offset + int(cp[1]);
   CLAMP(g, 0, 255);
-  b = offset + (int)cp[2];
+  b = offset + int(cp[2]);
   CLAMP(b, 0, 255);
 
   cp[0] = r;
@@ -2241,7 +2241,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
        eBone = eBone->next, index += 0x10000) {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
-        const int select_id = is_select ? index : (uint)-1;
+        const int select_id = is_select ? index : uint(-1);
         const short constflag = 0;
 
         /* catch exception for bone with hidden parent */
@@ -2378,7 +2378,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                                (arm->flag & ARM_POSEMODE) && (bone->flag & BONE_SELECTED) &&
                                ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
                                (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT));
-        const int select_id = is_pose_select ? index : (uint)-1;
+        const int select_id = is_pose_select ? index : uint(-1);
         const short constflag = pchan->constflag;
 
         pchan_draw_data_init(pchan);

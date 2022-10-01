@@ -116,7 +116,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   const DRWContextState *draw_ctx = DRW_context_state_get();
   struct DRWTextStore *dt = DRW_text_cache_ensure();
   int txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  int cfra = (int)DEG_get_ctime(draw_ctx->depsgraph);
+  int cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
   bool selected = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->base_flag & BASE_SELECTED);
   bool show_keyframes = (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) != 0;
   bool show_keyframes_no = (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) != 0;

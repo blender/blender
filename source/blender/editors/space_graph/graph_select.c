@@ -893,7 +893,7 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
   ot->poll = graphop_visible_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* Properties. */
   ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
@@ -1295,6 +1295,7 @@ void GRAPH_OT_select_column(wmOperatorType *ot)
 
   /* props */
   ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 }
 
 /** \} */

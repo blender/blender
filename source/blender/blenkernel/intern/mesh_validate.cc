@@ -987,7 +987,7 @@ static bool mesh_validate_customdata(CustomData *data,
     }
   }
 
-  PRINT_MSG("%s: Finished (is_valid=%d)\n\n", __func__, (int)!has_fixes);
+  PRINT_MSG("%s: Finished (is_valid=%d)\n\n", __func__, int(!has_fixes));
 
   *r_change = has_fixes;
 

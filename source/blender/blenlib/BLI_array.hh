@@ -424,8 +424,7 @@ class Array {
 
   T *allocate(int64_t size)
   {
-    return static_cast<T *>(
-        allocator_.allocate(static_cast<size_t>(size) * sizeof(T), alignof(T), AT));
+    return static_cast<T *>(allocator_.allocate(size_t(size) * sizeof(T), alignof(T), AT));
   }
 
   void deallocate_if_not_inline(T *ptr)

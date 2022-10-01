@@ -60,7 +60,7 @@ using Vector3 = float[3];
 using Vector4 = float[4];
 struct IK_Target;
 using ErrorCallback = void (*)(const iTaSC::ConstraintValues *values,
-                               unsigned int nvalues,
+                               uint nvalues,
                                IK_Target *iktarget);
 
 /* one structure for each target in the scene */
@@ -75,7 +75,7 @@ struct IK_Target {
   ErrorCallback errorCallback;
   std::string targetName;
   std::string constraintName;
-  unsigned short controlType;
+  ushort controlType;
   short channel;      /* index in IK channel array of channel on which this target is defined */
   short ee;           /* end effector number */
   bool simulation;    /* true when simulation mode is used (update feedback) */
@@ -704,7 +704,7 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
 
 static bool copypose_callback(const iTaSC::Timestamp &timestamp,
                               iTaSC::ConstraintValues *const _values,
-                              unsigned int _nvalues,
+                              uint _nvalues,
                               void *_param)
 {
   IK_Target *iktarget = (IK_Target *)_param;
@@ -749,7 +749,7 @@ static bool copypose_callback(const iTaSC::Timestamp &timestamp,
 }
 
 static void copypose_error(const iTaSC::ConstraintValues *values,
-                           unsigned int nvalues,
+                           uint nvalues,
                            IK_Target *iktarget)
 {
   iTaSC::ConstraintSingleValue *value;
@@ -761,7 +761,7 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
     for (i = 0, error = 0.0, value = values->values; i < values->number; i++, value++) {
       error += KDL::sqr(value->y - value->yd);
     }
-    iktarget->blenderConstraint->lin_error = (float)KDL::sqrt(error);
+    iktarget->blenderConstraint->lin_error = float(KDL::sqrt(error));
     values++;
   }
   if (iktarget->controlType & iTaSC::CopyPose::CTL_ROTATION) {
@@ -769,14 +769,14 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
     for (i = 0, error = 0.0, value = values->values; i < values->number; i++, value++) {
       error += KDL::sqr(value->y - value->yd);
     }
-    iktarget->blenderConstraint->rot_error = (float)KDL::sqrt(error);
+    iktarget->blenderConstraint->rot_error = float(KDL::sqrt(error));
     values++;
   }
 }
 
 static bool distance_callback(const iTaSC::Timestamp &timestamp,
                               iTaSC::ConstraintValues *const _values,
-                              unsigned int _nvalues,
+                              uint _nvalues,
                               void *_param)
 {
   IK_Target *iktarget = (IK_Target *)_param;
@@ -826,15 +826,15 @@ static bool distance_callback(const iTaSC::Timestamp &timestamp,
 }
 
 static void distance_error(const iTaSC::ConstraintValues *values,
-                           unsigned int _nvalues,
+                           uint _nvalues,
                            IK_Target *iktarget)
 {
-  iktarget->blenderConstraint->lin_error = (float)(values->values[0].y - values->values[0].yd);
+  iktarget->blenderConstraint->lin_error = float(values->values[0].y - values->values[0].yd);
 }
 
 static bool joint_callback(const iTaSC::Timestamp &timestamp,
                            iTaSC::ConstraintValues *const _values,
-                           unsigned int _nvalues,
+                           uint _nvalues,
                            void *_param)
 {
   IK_Channel *ikchan = (IK_Channel *)_param;
@@ -909,7 +909,7 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
       break;
   }
   if (dof >= 0) {
-    for (unsigned int i = 0; i < _nvalues; i++, dof++) {
+    for (uint i = 0; i < _nvalues; i++, dof++) {
       _values[i].values[0].yd = ikchan->jointValue[dof];
       _values[i].alpha = chan->ikrotweight;
       _values[i].feedback = ikparam->feedback;
@@ -1139,7 +1139,7 @@ static IK_Scene *convert_tree(
   KDL::Frame initPose;
   Bone *bone;
   int a, numtarget;
-  unsigned int t;
+  uint t;
   float length;
   bool ret = true;
   double *rot;
@@ -1483,7 +1483,7 @@ static IK_Scene *convert_tree(
   }
   /* set the weight */
   e_matrix &Wq = arm->getWq();
-  assert(Wq.cols() == (int)weights.size());
+  assert(Wq.cols() == int(weights.size()));
   for (int q = 0; q < Wq.cols(); q++) {
     Wq(q, q) = weights[q];
   }
@@ -1512,7 +1512,7 @@ static IK_Scene *convert_tree(
     iktarget->bldepsgraph = depsgraph;
     condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
     pchan = tree->pchan[iktarget->channel];
-    unsigned int controltype, bone_count;
+    uint controltype, bone_count;
     double bone_length;
     float mat[4][4];
 
@@ -1826,9 +1826,9 @@ static void execute_scene(struct Depsgraph *depsgraph,
     }
     if (joint->getType() == KDL::Joint::TransY) {
       /* stretch bones have a TY joint, compute the scale */
-      scale = (float)(q[0] / q_rest[0]);
+      scale = float(q[0] / q_rest[0]);
       /* the length is the joint itself */
-      length = (float)q[0];
+      length = float(q[0]);
     }
     else {
       scale = 1.0f;

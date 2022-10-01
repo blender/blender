@@ -48,7 +48,7 @@ void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *dat
     }
   }
 
-  average /= (float)count;
+  average /= float(count);
 
   output[0] = average;
 }

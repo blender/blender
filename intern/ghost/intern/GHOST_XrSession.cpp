@@ -484,7 +484,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
   swapchain.updateCompositionLayerProjectViewSubImage(r_proj_layer_view.subImage);
 
   assert(view_idx < 256);
-  draw_view_info.view_idx = (char)view_idx;
+  draw_view_info.view_idx = char(view_idx);
   draw_view_info.swapchain_format = swapchain.getFormat();
   draw_view_info.expects_srgb_buffer = swapchain.isBufferSRGB();
   draw_view_info.ofsx = r_proj_layer_view.subImage.imageRect.offset.x;
@@ -745,7 +745,7 @@ bool GHOST_XrSession::attachActionSets()
 
   for (auto &[profile, bindings] : profile_bindings) {
     bindings_info.interactionProfile = profile;
-    bindings_info.countSuggestedBindings = (uint32_t)bindings.size();
+    bindings_info.countSuggestedBindings = uint32_t(bindings.size());
     bindings_info.suggestedBindings = bindings.data();
 
     CHECK_XR(xrSuggestInteractionProfileBindings(instance, &bindings_info),
@@ -754,7 +754,7 @@ bool GHOST_XrSession::attachActionSets()
 
   /* Attach action sets. */
   XrSessionActionSetsAttachInfo attach_info{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
-  attach_info.countActionSets = (uint32_t)m_oxr->action_sets.size();
+  attach_info.countActionSets = uint32_t(m_oxr->action_sets.size());
 
   /* Create an aligned copy of the action sets to pass to xrAttachSessionActionSets(). */
   std::vector<XrActionSet> action_sets(attach_info.countActionSets);
@@ -776,7 +776,7 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
 
   XrActionsSyncInfo sync_info{XR_TYPE_ACTIONS_SYNC_INFO};
   sync_info.countActiveActionSets = (action_set_name != nullptr) ? 1 :
-                                                                   (uint32_t)action_sets.size();
+                                                                   uint32_t(action_sets.size());
   if (sync_info.countActiveActionSets < 1) {
     return false;
   }

@@ -41,7 +41,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
                              static_cast<BIFIconID>(RNA_struct_ui_icon(rna_ptr.type)) :
                              icon_override;
 
-  path.append({name, static_cast<int>(icon)});
+  path.append({name, int(icon)});
 }
 
 /* -------------------------------------------------------------------- */

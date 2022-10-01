@@ -372,7 +372,7 @@ template<size_t Size, size_t Alignment> class AlignedBuffer {
  */
 template<typename T, int64_t Size = 1> class TypedBuffer {
  private:
-  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * (size_t)Size, alignof(T)> buffer_;
+  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * size_t(Size), alignof(T)> buffer_;
 
  public:
   operator T *()
@@ -516,7 +516,7 @@ inline constexpr bool is_same_any_v = (std::is_same_v<T, Args> || ...);
  */
 inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
 {
-  return (static_cast<int64_t>(element_size) < 100) ? 4 : 0;
+  return (int64_t(element_size) < 100) ? 4 : 0;
 }
 
 /**

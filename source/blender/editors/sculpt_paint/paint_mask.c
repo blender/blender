@@ -1354,7 +1354,9 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
-  ss->face_sets = CustomData_get_layer(&((Mesh *)object->data)->pdata, CD_SCULPT_FACE_SETS);
+
+  ss->face_sets = CustomData_get_layer_named(
+      &((Mesh *)object->data)->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(object->data);

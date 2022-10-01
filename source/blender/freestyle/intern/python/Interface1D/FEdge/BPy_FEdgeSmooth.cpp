@@ -129,7 +129,7 @@ static Mathutils_Callback FEdgeSmooth_mathutils_cb = {
     FEdgeSmooth_mathutils_set_index,
 };
 
-static unsigned char FEdgeSmooth_mathutils_cb_index = -1;
+static uchar FEdgeSmooth_mathutils_cb_index = -1;
 
 void FEdgeSmooth_mathutils_register_callback()
 {
@@ -173,7 +173,7 @@ static int FEdgeSmooth_material_index_set(BPy_FEdgeSmooth *self,
                                           PyObject *value,
                                           void *UNUSED(closure))
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }

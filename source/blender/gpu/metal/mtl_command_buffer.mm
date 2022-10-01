@@ -54,6 +54,7 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
       MTLCommandBufferDescriptor *desc = [[MTLCommandBufferDescriptor alloc] init];
       desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
       desc.retainedReferences = YES;
+      BLI_assert(context_.queue != nil);
       active_command_buffer_ = [context_.queue commandBufferWithDescriptor:desc];
     }
     else {
@@ -611,40 +612,187 @@ void MTLRenderPassState::bind_vertex_sampler(MTLSamplerBinding &sampler_binding,
                                              bool use_argument_buffer_for_samplers,
                                              uint slot)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder vertex sampler binding utility. This will be
-   * implemented alongside MTLShader. */
+  /* Range check. */
+  const MTLShaderInterface *shader_interface = ctx.pipeline_state.active_shader->get_interface();
+  BLI_assert(slot >= 0);
+  BLI_assert(slot <= shader_interface->get_max_texture_index());
+  BLI_assert(slot < MTL_MAX_TEXTURE_SLOTS);
+  UNUSED_VARS_NDEBUG(shader_interface);
+
+  /* If sampler state has not changed for the given slot, we do not need to fetch. */
+  if (this->cached_vertex_sampler_state_bindings[slot].sampler_state == nil ||
+      !(this->cached_vertex_sampler_state_bindings[slot].binding_state == sampler_binding.state) ||
+      use_argument_buffer_for_samplers) {
+
+    id<MTLSamplerState> sampler_state = (sampler_binding.state == DEFAULT_SAMPLER_STATE) ?
+                                            ctx.get_default_sampler_state() :
+                                            ctx.get_sampler_from_state(sampler_binding.state);
+    if (!use_argument_buffer_for_samplers) {
+      /* Update binding and cached state. */
+      id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+      BLI_assert(rec != nil);
+      [rec setVertexSamplerState:sampler_state atIndex:slot];
+      this->cached_vertex_sampler_state_bindings[slot].binding_state = sampler_binding.state;
+      this->cached_vertex_sampler_state_bindings[slot].sampler_state = sampler_state;
+    }
+
+    /* Flag last binding type. */
+    this->cached_vertex_sampler_state_bindings[slot].is_arg_buffer_binding =
+        use_argument_buffer_for_samplers;
+
+    /* Always assign to argument buffer samplers binding array - Efficiently ensures the value in
+     * the samplers array is always up to date. */
+    ctx.samplers_.mtl_sampler[slot] = sampler_state;
+    ctx.samplers_.mtl_sampler_flags[slot] = sampler_binding.state;
+  }
 }
 
 void MTLRenderPassState::bind_fragment_sampler(MTLSamplerBinding &sampler_binding,
                                                bool use_argument_buffer_for_samplers,
                                                uint slot)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder fragment sampler binding utility. This will be
-   * implemented alongside MTLShader. */
+  /* Range check. */
+  const MTLShaderInterface *shader_interface = ctx.pipeline_state.active_shader->get_interface();
+  BLI_assert(slot >= 0);
+  BLI_assert(slot <= shader_interface->get_max_texture_index());
+  BLI_assert(slot < MTL_MAX_TEXTURE_SLOTS);
+  UNUSED_VARS_NDEBUG(shader_interface);
+
+  /* If sampler state has not changed for the given slot, we do not need to fetch*/
+  if (this->cached_fragment_sampler_state_bindings[slot].sampler_state == nil ||
+      !(this->cached_fragment_sampler_state_bindings[slot].binding_state ==
+        sampler_binding.state) ||
+      use_argument_buffer_for_samplers) {
+
+    id<MTLSamplerState> sampler_state = (sampler_binding.state == DEFAULT_SAMPLER_STATE) ?
+                                            ctx.get_default_sampler_state() :
+                                            ctx.get_sampler_from_state(sampler_binding.state);
+    if (!use_argument_buffer_for_samplers) {
+      /* Update binding and cached state. */
+      id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+      BLI_assert(rec != nil);
+      [rec setFragmentSamplerState:sampler_state atIndex:slot];
+      this->cached_fragment_sampler_state_bindings[slot].binding_state = sampler_binding.state;
+      this->cached_fragment_sampler_state_bindings[slot].sampler_state = sampler_state;
+    }
+
+    /* Flag last binding type */
+    this->cached_fragment_sampler_state_bindings[slot].is_arg_buffer_binding =
+        use_argument_buffer_for_samplers;
+
+    /* Always assign to argument buffer samplers binding array - Efficiently ensures the value in
+     * the samplers array is always up to date. */
+    ctx.samplers_.mtl_sampler[slot] = sampler_state;
+    ctx.samplers_.mtl_sampler_flags[slot] = sampler_binding.state;
+  }
 }
 
 void MTLRenderPassState::bind_vertex_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder vertex buffer binding utility. This will be
-   * implemented alongside the full MTLMemoryManager. */
+  BLI_assert(index >= 0);
+  BLI_assert(buffer_offset >= 0);
+  BLI_assert(buffer != nil);
+
+  BufferBindingCached &current_vert_ubo_binding = this->cached_vertex_buffer_bindings[index];
+  if (current_vert_ubo_binding.offset != buffer_offset ||
+      current_vert_ubo_binding.metal_buffer != buffer || current_vert_ubo_binding.is_bytes) {
+
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+    BLI_assert(rec != nil);
+
+    if (current_vert_ubo_binding.metal_buffer == buffer) {
+      /* If buffer is the same, but offset has changed. */
+      [rec setVertexBufferOffset:buffer_offset atIndex:index];
+    }
+    else {
+      /* Bind Vertex Buffer. */
+      [rec setVertexBuffer:buffer offset:buffer_offset atIndex:index];
+    }
+
+    /* Update Bind-state cache. */
+    this->cached_vertex_buffer_bindings[index].is_bytes = false;
+    this->cached_vertex_buffer_bindings[index].metal_buffer = buffer;
+    this->cached_vertex_buffer_bindings[index].offset = buffer_offset;
+  }
 }
 
 void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder fragment buffer binding utility. This will be
-   * implemented alongside the full MTLMemoryManager. */
+  BLI_assert(index >= 0);
+  BLI_assert(buffer_offset >= 0);
+  BLI_assert(buffer != nil);
+
+  BufferBindingCached &current_frag_ubo_binding = this->cached_fragment_buffer_bindings[index];
+  if (current_frag_ubo_binding.offset != buffer_offset ||
+      current_frag_ubo_binding.metal_buffer != buffer || current_frag_ubo_binding.is_bytes) {
+
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+    BLI_assert(rec != nil);
+
+    if (current_frag_ubo_binding.metal_buffer == buffer) {
+      /* If buffer is the same, but offset has changed. */
+      [rec setFragmentBufferOffset:buffer_offset atIndex:index];
+    }
+    else {
+      /* Bind Fragment Buffer */
+      [rec setFragmentBuffer:buffer offset:buffer_offset atIndex:index];
+    }
+
+    /* Update Bind-state cache */
+    this->cached_fragment_buffer_bindings[index].is_bytes = false;
+    this->cached_fragment_buffer_bindings[index].metal_buffer = buffer;
+    this->cached_fragment_buffer_bindings[index].offset = buffer_offset;
+  }
 }
 
 void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint length, uint index)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder vertex bytes binding utility. This will be
-   * implemented alongside the full MTLMemoryManager. */
+  /* Bytes always updated as source data may have changed. */
+  BLI_assert(index >= 0 && index < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+  BLI_assert(length > 0);
+  BLI_assert(bytes != nullptr);
+
+  if (length < MTL_MAX_SET_BYTES_SIZE) {
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+    [rec setVertexBytes:bytes length:length atIndex:index];
+  }
+  else {
+    /* We have run over the setBytes limit, bind buffer instead. */
+    MTLTemporaryBuffer range =
+        ctx.get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(length, 256);
+    memcpy(range.data, bytes, length);
+    this->bind_vertex_buffer(range.metal_buffer, range.buffer_offset, index);
+  }
+
+  /* Update Bind-state cache */
+  this->cached_vertex_buffer_bindings[index].is_bytes = true;
+  this->cached_vertex_buffer_bindings[index].metal_buffer = nil;
+  this->cached_vertex_buffer_bindings[index].offset = -1;
 }
 
 void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint length, uint index)
 {
-  /* TODO(Metal): Implement RenderCommandEncoder fragment bytes binding utility. This will be
-   * implemented alongside the full MTLMemoryManager. */
+  /* Bytes always updated as source data may have changed. */
+  BLI_assert(index >= 0 && index < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+  BLI_assert(length > 0);
+  BLI_assert(bytes != nullptr);
+
+  if (length < MTL_MAX_SET_BYTES_SIZE) {
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
+    [rec setFragmentBytes:bytes length:length atIndex:index];
+  }
+  else {
+    /* We have run over the setBytes limit, bind buffer instead. */
+    MTLTemporaryBuffer range =
+        ctx.get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(length, 256);
+    memcpy(range.data, bytes, length);
+    this->bind_fragment_buffer(range.metal_buffer, range.buffer_offset, index);
+  }
+
+  /* Update Bind-state cache. */
+  this->cached_fragment_buffer_bindings[index].is_bytes = true;
+  this->cached_fragment_buffer_bindings[index].metal_buffer = nil;
+  this->cached_fragment_buffer_bindings[index].offset = -1;
 }
 
 /** \} */

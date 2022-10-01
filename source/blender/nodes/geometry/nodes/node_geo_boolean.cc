@@ -37,7 +37,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)node->custom1;
 
-  bNodeSocket *geometry_1_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *geometry_1_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *geometry_2_socket = geometry_1_socket->next;
 
   switch (operation) {
@@ -148,7 +148,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   MEM_SAFE_FREE(result->mat);
-  result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
+  result->mat = static_cast<Material **>(
+      MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__));
   result->totcol = materials.size();
   MutableSpan(result->mat, result->totcol).copy_from(materials);
 

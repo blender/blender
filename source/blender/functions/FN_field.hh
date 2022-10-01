@@ -546,7 +546,7 @@ template<typename T> struct ValueOrField {
 
   bool is_field() const
   {
-    return (bool)this->field;
+    return bool(this->field);
   }
 
   Field<T> as_field() const

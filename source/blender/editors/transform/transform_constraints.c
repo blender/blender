@@ -337,25 +337,20 @@ static bool isPlaneProjectionViewAligned(const TransInfo *t, const float plane[4
   return fabsf(factor) < eps;
 }
 
-static void planeProjection(const TransInfo *t, const float in[3], float out[3])
+static void planeProjection(const TransInfo *t,
+                            const float plane[3],
+                            const float in[3],
+                            float out[3])
 {
-  float vec[3], factor, norm[3];
 
-  add_v3_v3v3(vec, in, t->center_global);
-  view_vector_calc(t, vec, norm);
+  float pos[3], view_vec[3], factor;
 
-  sub_v3_v3v3(vec, out, in);
+  add_v3_v3v3(pos, in, t->center_global);
+  view_vector_calc(t, pos, view_vec);
 
-  factor = dot_v3v3(vec, norm);
-  if (factor == 0.0f) {
-    return; /* prevent divide by zero */
+  if (isect_ray_plane_v3(pos, view_vec, plane, &factor, false)) {
+    madd_v3_v3v3fl(out, in, view_vec, factor);
   }
-  factor = dot_v3v3(vec, vec) / factor;
-
-  copy_v3_v3(vec, norm);
-  mul_v3_fl(vec, factor);
-
-  add_v3_v3v3(out, in, vec);
 }
 
 static short transform_orientation_or_default(const TransInfo *t)
@@ -397,7 +392,6 @@ static void applyAxisConstraintVec(const TransInfo *t,
   copy_v3_v3(out, in);
   if (!td && t->con.mode & CON_APPLY) {
     bool is_snap_to_point = false, is_snap_to_edge = false, is_snap_to_face = false;
-    mul_m3_v3(t->con.pmtx, out);
 
     if (activeSnap(t)) {
       if (validSnap(t)) {
@@ -410,8 +404,11 @@ static void applyAxisConstraintVec(const TransInfo *t,
       }
     }
 
-    /* With snap points, a projection is alright, no adjustments needed. */
-    if (!is_snap_to_point || is_snap_to_edge || is_snap_to_face) {
+    if (is_snap_to_point) {
+      /* With snap points, a projection is alright, no adjustments needed. */
+      mul_m3_v3(t->con.pmtx, out);
+    }
+    else {
       const int dims = getConstraintSpaceDimension(t);
       if (dims == 2) {
         if (!is_zero_v3(out)) {
@@ -428,7 +425,10 @@ static void applyAxisConstraintVec(const TransInfo *t,
           else {
             /* View alignment correction. */
             if (!isPlaneProjectionViewAligned(t, plane)) {
-              planeProjection(t, in, out);
+              planeProjection(t, plane, in, out);
+            }
+            else {
+              mul_m3_v3(t->con.pmtx, out);
             }
           }
         }

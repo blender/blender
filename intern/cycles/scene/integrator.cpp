@@ -60,6 +60,25 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
   SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
 
+  static NodeEnum guiding_ditribution_enum;
+  guiding_ditribution_enum.insert("PARALLAX_AWARE_VMM", GUIDING_TYPE_PARALLAX_AWARE_VMM);
+  guiding_ditribution_enum.insert("DIRECTIONAL_QUAD_TREE", GUIDING_TYPE_DIRECTIONAL_QUAD_TREE);
+  guiding_ditribution_enum.insert("VMM", GUIDING_TYPE_VMM);
+
+  SOCKET_BOOLEAN(use_guiding, "Guiding", false);
+  SOCKET_BOOLEAN(deterministic_guiding, "Deterministic Guiding", true);
+  SOCKET_BOOLEAN(use_surface_guiding, "Surface Guiding", true);
+  SOCKET_FLOAT(surface_guiding_probability, "Surface Guiding Probability", 0.5f);
+  SOCKET_BOOLEAN(use_volume_guiding, "Volume Guiding", true);
+  SOCKET_FLOAT(volume_guiding_probability, "Volume Guiding Probability", 0.5f);
+  SOCKET_INT(guiding_training_samples, "Training Samples", 128);
+  SOCKET_BOOLEAN(use_guiding_direct_light, "Guide Direct Light", true);
+  SOCKET_BOOLEAN(use_guiding_mis_weights, "Use MIS Weights", true);
+  SOCKET_ENUM(guiding_distribution_type,
+              "Guiding Distribution Type",
+              guiding_ditribution_enum,
+              GUIDING_TYPE_PARALLAX_AWARE_VMM);
+
   SOCKET_BOOLEAN(caustics_reflective, "Reflective Caustics", true);
   SOCKET_BOOLEAN(caustics_refractive, "Refractive Caustics", true);
   SOCKET_FLOAT(filter_glossy, "Filter Glossy", 0.0f);
@@ -209,6 +228,17 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     kintegrator->filter_closures |= FILTER_CLOSURE_TRANSPARENT;
   }
 
+  GuidingParams guiding_params = get_guiding_params(device);
+  kintegrator->use_guiding = guiding_params.use;
+  kintegrator->train_guiding = kintegrator->use_guiding;
+  kintegrator->use_surface_guiding = guiding_params.use_surface_guiding;
+  kintegrator->use_volume_guiding = guiding_params.use_volume_guiding;
+  kintegrator->surface_guiding_probability = surface_guiding_probability;
+  kintegrator->volume_guiding_probability = volume_guiding_probability;
+  kintegrator->use_guiding_direct_light = use_guiding_direct_light;
+  kintegrator->use_guiding_mis_weights = use_guiding_mis_weights;
+  kintegrator->guiding_distribution_type = guiding_params.type;
+
   kintegrator->seed = seed;
 
   kintegrator->sample_clamp_direct = (sample_clamp_direct == 0.0f) ? FLT_MAX :
@@ -354,4 +384,20 @@ DenoiseParams Integrator::get_denoise_params() const
   return denoise_params;
 }
 
+GuidingParams Integrator::get_guiding_params(const Device *device) const
+{
+  const bool use = use_guiding && device->info.has_guiding;
+
+  GuidingParams guiding_params;
+  guiding_params.use_surface_guiding = use && use_surface_guiding &&
+                                       surface_guiding_probability > 0.0f;
+  guiding_params.use_volume_guiding = use && use_volume_guiding &&
+                                      volume_guiding_probability > 0.0f;
+  guiding_params.use = guiding_params.use_surface_guiding || guiding_params.use_volume_guiding;
+  guiding_params.type = guiding_distribution_type;
+  guiding_params.training_samples = guiding_training_samples;
+  guiding_params.deterministic = deterministic_guiding;
+
+  return guiding_params;
+}
 CCL_NAMESPACE_END

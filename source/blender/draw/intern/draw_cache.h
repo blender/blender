@@ -170,10 +170,12 @@ struct GPUBatch *DRW_cache_mesh_surface_sculptcolors_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
+struct GPUBatch *DRW_cache_mesh_surface_viewer_attribute_get(struct Object *ob);
 
 /* Curve */
 
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
+struct GPUBatch *DRW_cache_curve_edge_wire_viewer_attribute_get(struct Object *ob);
 
 /* edit-mode */
 
@@ -226,6 +228,7 @@ struct GPUBatch *DRW_cache_curves_edge_detection_get(struct Object *ob, bool *r_
 
 struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
 struct GPUBatch *DRW_cache_pointcloud_surface_get(struct Object *obj);
+struct GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(struct Object *obj);
 
 /* Volume */
 

@@ -144,7 +144,7 @@ static const char *check_memlist(MemHead *memh);
 /* vars                                                                  */
 /* --------------------------------------------------------------------- */
 
-static unsigned int totblock = 0;
+static uint totblock = 0;
 static size_t mem_in_use = 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
@@ -453,7 +453,7 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
   print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -467,7 +467,7 @@ void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (unsigned int)mem_in_use);
+        (uint)mem_in_use);
     abort();
     return NULL;
   }
@@ -526,7 +526,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
   print_error("aligned_malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -550,7 +550,7 @@ void *MEM_guarded_callocN(size_t len, const char *str)
   print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -564,7 +564,7 @@ void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (unsigned int)mem_in_use);
+        (uint)mem_in_use);
     abort();
     return NULL;
   }
@@ -606,7 +606,7 @@ void MEM_guarded_printmemlist_stats(void)
 {
   MemHead *membl;
   MemPrintBlock *pb, *printblock;
-  unsigned int totpb, a, b;
+  uint totpb, a, b;
   size_t mem_in_use_slop = 0;
 
   mem_lock_thread();
@@ -1177,9 +1177,9 @@ size_t MEM_guarded_get_memory_in_use(void)
   return _mem_in_use;
 }
 
-unsigned int MEM_guarded_get_memory_blocks_in_use(void)
+uint MEM_guarded_get_memory_blocks_in_use(void)
 {
-  unsigned int _totblock;
+  uint _totblock;
 
   mem_lock_thread();
   _totblock = totblock;

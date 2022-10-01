@@ -243,7 +243,7 @@ class GArray {
   {
     const int64_t item_size = type_->size();
     const int64_t alignment = type_->alignment();
-    return allocator_.allocate(static_cast<size_t>(size) * item_size, alignment, AT);
+    return allocator_.allocate(size_t(size) * item_size, alignment, AT);
   }
 
   void deallocate(void *ptr)

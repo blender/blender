@@ -186,12 +186,12 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
     const int segments_num = nurbs_positions_num - 1;
     const bool ignore_interior_segment = segments_num == 3 && is_periodic == false;
     if (ignore_interior_segment == false) {
-      const float mid_offset = (float)(segments_num - 1) / 2.0f;
+      const float mid_offset = float(segments_num - 1) / 2.0f;
       for (const int i : IndexRange(1, segments_num - 2)) {
         /* Divisor can have values: 1, 2 or 3. */
         const int divisor = is_periodic ?
                                 3 :
-                                std::min(3, (int)(-std::abs(i - mid_offset) + mid_offset + 1.0f));
+                                std::min(3, int(-std::abs(i - mid_offset) + mid_offset + 1.0f));
         const float3 &p1 = nurbs_positions[i];
         const float3 &p2 = nurbs_positions[i + 1];
         const float3 displacement = (p2 - p1) / divisor;

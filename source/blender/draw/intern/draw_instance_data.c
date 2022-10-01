@@ -410,12 +410,12 @@ typedef struct DRWSparseUniformBuf {
   BLI_bitmap *chunk_used;
 
   int num_chunks;
-  unsigned int item_size, chunk_size, chunk_bytes;
+  uint item_size, chunk_size, chunk_bytes;
 } DRWSparseUniformBuf;
 
 static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
-                                           unsigned int item_size,
-                                           unsigned int chunk_size)
+                                           uint item_size,
+                                           uint chunk_size)
 {
   buffer->chunk_buffers = NULL;
   buffer->chunk_used = NULL;
@@ -426,7 +426,7 @@ static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
   buffer->chunk_bytes = item_size * chunk_size;
 }
 
-DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsigned int chunk_size)
+DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(uint item_size, uint chunk_size)
 {
   DRWSparseUniformBuf *buf = MEM_mallocN(sizeof(DRWSparseUniformBuf), __func__);
   drw_sparse_uniform_buffer_init(buf, item_size, chunk_size);
@@ -585,87 +585,18 @@ static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
   return (DRWUniformAttrBuf *)*pval;
 }
 
-/* This function mirrors lookup_property in cycles/blender/blender_object.cpp */
-static bool drw_uniform_property_lookup(ID *id, const char *name, float r_data[4])
-{
-  PointerRNA ptr, id_ptr;
-  PropertyRNA *prop;
-
-  if (!id) {
-    return false;
-  }
-
-  RNA_id_pointer_create(id, &id_ptr);
-
-  if (!RNA_path_resolve(&id_ptr, name, &ptr, &prop)) {
-    return false;
-  }
-
-  if (prop == NULL) {
-    return false;
-  }
-
-  PropertyType type = RNA_property_type(prop);
-  int arraylen = RNA_property_array_length(&ptr, prop);
-
-  if (arraylen == 0) {
-    float value;
-
-    if (type == PROP_FLOAT) {
-      value = RNA_property_float_get(&ptr, prop);
-    }
-    else if (type == PROP_INT) {
-      value = RNA_property_int_get(&ptr, prop);
-    }
-    else {
-      return false;
-    }
-
-    copy_v4_fl4(r_data, value, value, value, 1);
-    return true;
-  }
-
-  if (type == PROP_FLOAT && arraylen <= 4) {
-    copy_v4_fl4(r_data, 0, 0, 0, 1);
-    RNA_property_float_get_array(&ptr, prop, r_data);
-    return true;
-  }
-
-  return false;
-}
-
-/* This function mirrors lookup_instance_property in cycles/blender/blender_object.cpp */
 static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
                                          Object *ob,
                                          Object *dupli_parent,
                                          DupliObject *dupli_source,
                                          float r_data[4])
 {
-  copy_v4_fl(r_data, 0);
-
   /* If requesting instance data, check the parent particle system and object. */
   if (attr->use_dupli) {
-    if (dupli_source && dupli_source->particle_system) {
-      ParticleSettings *settings = dupli_source->particle_system->part;
-      if (drw_uniform_property_lookup((ID *)settings, attr->name_id_prop, r_data) ||
-          drw_uniform_property_lookup((ID *)settings, attr->name, r_data)) {
-        return;
-      }
-    }
-    if (drw_uniform_property_lookup((ID *)dupli_parent, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)dupli_parent, attr->name, r_data)) {
-      return;
-    }
+    BKE_object_dupli_find_rgba_attribute(ob, dupli_source, dupli_parent, attr->name, r_data);
   }
-
-  /* Check the object and mesh. */
-  if (ob) {
-    if (drw_uniform_property_lookup((ID *)ob, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)ob, attr->name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, attr->name, r_data)) {
-      return;
-    }
+  else {
+    BKE_object_dupli_find_rgba_attribute(ob, NULL, NULL, attr->name, r_data);
   }
 }
 

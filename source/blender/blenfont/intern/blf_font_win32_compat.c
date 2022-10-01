@@ -39,10 +39,7 @@ static void ft_ansi_stream_close(FT_Stream stream)
   MEM_freeN(stream);
 }
 
-static unsigned long ft_ansi_stream_io(FT_Stream stream,
-                                       unsigned long offset,
-                                       unsigned char *buffer,
-                                       unsigned long count)
+static ulong ft_ansi_stream_io(FT_Stream stream, ulong offset, uchar *buffer, ulong count)
 {
   FILE *file;
   if (!count && offset > stream->size) {

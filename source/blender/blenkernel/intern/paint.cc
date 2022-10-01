@@ -1739,7 +1739,8 @@ static void sculpt_update_object(
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    ss->face_sets = static_cast<int *>(CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS));
+    ss->face_sets = static_cast<int *>(
+        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   }
   else {
     ss->face_sets = nullptr;
@@ -1966,22 +1967,17 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
-    return static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (!attributes.contains(".sculpt_face_set")) {
+    SpanAttributeWriter<int> face_sets = attributes.lookup_or_add_for_write_only_span<int>(
+        ".sculpt_face_set", ATTR_DOMAIN_FACE);
+    face_sets.span.fill(1);
+    mesh->face_sets_color_default = 1;
+    face_sets.finish();
   }
 
-  const AttributeAccessor attributes = mesh->attributes_for_write();
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
-
-  MutableSpan<int> face_sets = {
-      static_cast<int *>(CustomData_add_layer(
-          &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly)),
-      mesh->totpoly};
-
-  face_sets.fill(1);
-  mesh->face_sets_color_default = 1;
-  return face_sets.data();
+  return static_cast<int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
@@ -2035,7 +2031,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
           const MLoop *l = &loops[p->loopstart + j];
           avg += paint_mask[l->v];
         }
-        avg /= (float)p->totloop;
+        avg /= float(p->totloop);
 
         /* fill in multires mask corner */
         for (j = 0; j < p->totloop; j++) {
@@ -2083,6 +2079,14 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->constant_detail = 3.0f;
   }
 
+  if (!sd->automasking_start_normal_limit) {
+    sd->automasking_start_normal_limit = 20.0f / 180.0f * M_PI;
+    sd->automasking_start_normal_falloff = 0.25f;
+
+    sd->automasking_view_normal_limit = 90.0f / 180.0f * M_PI;
+    sd->automasking_view_normal_falloff = 0.25f;
+  }
+
   /* Set sane default tiling offsets. */
   if (!sd->paint.tile_offset[0]) {
     sd->paint.tile_offset[0] = 1.0f;
@@ -2092,6 +2096,9 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   }
   if (!sd->paint.tile_offset[2]) {
     sd->paint.tile_offset[2] = 1.0f;
+  }
+  if (!sd->automasking_cavity_curve || !sd->automasking_cavity_curve_op) {
+    BKE_sculpt_check_cavity_curves(sd);
   }
 }
 
@@ -2233,7 +2240,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        &key,
                        (void **)subdiv_ccg->grid_faces,
                        subdiv_ccg->grid_flag_mats,
-                       subdiv_ccg->grid_hidden);
+                       subdiv_ccg->grid_hidden,
+                       base_mesh);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
@@ -2557,12 +2565,10 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 
     if (cdata) {
       int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
+      bad = layer_index == -1;
 
-      if (layer_index != -1 && attr->data_for_bmesh) {
+      if (ss->bm) {
         attr->bmesh_cd_offset = cdata->layers[layer_index].offset;
-      }
-      else {
-        bad = true;
       }
     }
   }
@@ -2644,7 +2650,10 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
   SculptAttribute *attr = sculpt_get_cached_layer(ss, domain, proptype, name);
 
   if (attr) {
-    sculpt_attr_update(ob, attr);
+    if (sculpt_attr_update(ob, attr)) {
+      sculpt_attribute_update_refs(ob);
+    }
+
     return attr;
   }
 

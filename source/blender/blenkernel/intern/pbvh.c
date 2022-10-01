@@ -25,9 +25,9 @@
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
 
-#include "PIL_time.h"
+#include "DRW_pbvh.h"
 
-#include "GPU_buffers.h"
+#include "PIL_time.h"
 
 #include "bmesh.h"
 
@@ -234,8 +234,7 @@ void pbvh_grow_nodes(PBVH *pbvh, int totnode)
 
 /* Add a vertex to the map, with a positive value for unique vertices and
  * a negative value for additional vertices */
-static int map_insert_vert(
-    PBVH *pbvh, GHash *map, unsigned int *face_verts, unsigned int *uniq_verts, int vertex)
+static int map_insert_vert(PBVH *pbvh, GHash *map, uint *face_verts, uint *uniq_verts, int vertex)
 {
   void *key, **value_p;
 
@@ -514,6 +513,80 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
   build_sub(pbvh, 0, cb, prim_bbc, 0, totprim);
 }
 
+static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
+{
+  memset((void *)args, 0, sizeof(*args));
+
+  args->pbvh_type = pbvh->header.type;
+  args->mesh_verts_num = pbvh->totvert;
+  args->mesh_grids_num = pbvh->totgrid;
+  args->node = node;
+
+  BKE_pbvh_node_num_verts(pbvh, node, NULL, &args->node_verts_num);
+
+  args->grid_hidden = pbvh->grid_hidden;
+  args->face_sets_color_default = pbvh->face_sets_color_default;
+  args->face_sets_color_seed = pbvh->face_sets_color_seed;
+  args->mvert = pbvh->verts;
+  args->mloop = pbvh->mloop;
+  args->mpoly = pbvh->mpoly;
+  args->mlooptri = pbvh->looptri;
+
+  if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
+    args->hide_poly = pbvh->pdata ?
+                          CustomData_get_layer_named(pbvh->pdata, CD_PROP_BOOL, ".hide_poly") :
+                          NULL;
+  }
+
+  switch (pbvh->header.type) {
+    case PBVH_FACES:
+      args->mesh_faces_num = pbvh->mesh->totpoly;
+      args->vdata = pbvh->vdata;
+      args->ldata = pbvh->ldata;
+      args->pdata = pbvh->pdata;
+      args->totprim = node->totprim;
+      args->me = pbvh->mesh;
+      args->mpoly = pbvh->mpoly;
+      args->vert_normals = pbvh->vert_normals;
+
+      args->prim_indices = node->prim_indices;
+      args->face_sets = pbvh->face_sets;
+      break;
+    case PBVH_GRIDS:
+      args->vdata = pbvh->vdata;
+      args->ldata = pbvh->ldata;
+      args->pdata = pbvh->pdata;
+      args->ccg_key = pbvh->gridkey;
+      args->me = pbvh->mesh;
+      args->totprim = node->totprim;
+      args->grid_indices = node->prim_indices;
+      args->subdiv_ccg = pbvh->subdiv_ccg;
+      args->face_sets = pbvh->face_sets;
+      args->mpoly = pbvh->mpoly;
+
+      args->mesh_grids_num = pbvh->totgrid;
+      args->grids = pbvh->grids;
+      args->gridfaces = pbvh->gridfaces;
+      args->grid_flag_mats = pbvh->grid_flag_mats;
+      args->vert_normals = pbvh->vert_normals;
+
+      args->face_sets = pbvh->face_sets;
+      break;
+    case PBVH_BMESH:
+      args->bm = pbvh->header.bm;
+      args->vdata = &args->bm->vdata;
+      args->ldata = &args->bm->ldata;
+      args->pdata = &args->bm->pdata;
+      args->bm_faces = node->bm_faces;
+      args->bm_other_verts = node->bm_other_verts;
+      args->bm_unique_vert = node->bm_unique_verts;
+      args->totprim = BLI_gset_len(node->bm_faces);
+      args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
+
+      break;
+  }
+}
+
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
                          const MPoly *mpoly,
@@ -590,7 +663,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGKey *key,
                           void **gridfaces,
                           DMFlagMat *flagmats,
-                          BLI_bitmap **grid_hidden)
+                          BLI_bitmap **grid_hidden,
+                          Mesh *me)
 {
   const int gridsize = key->grid_size;
 
@@ -602,6 +676,14 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+
+  /* We need the base mesh attribute layout for PBVH draw. */
+  pbvh->vdata = &me->vdata;
+  pbvh->ldata = &me->ldata;
+  pbvh->pdata = &me->pdata;
+
+  /* We also need the base mesh for PBVH draw. */
+  pbvh->mesh = me;
 
   BB cb;
   BB_reset(&cb);
@@ -646,8 +728,8 @@ void BKE_pbvh_free(PBVH *pbvh)
     PBVHNode *node = &pbvh->nodes[i];
 
     if (node->flag & PBVH_Leaf) {
-      if (node->draw_buffers) {
-        GPU_pbvh_buffers_free(node->draw_buffers);
+      if (node->draw_batches) {
+        DRW_pbvh_node_free(node->draw_batches);
       }
       if (node->vert_indices) {
         MEM_freeN((void *)node->vert_indices);
@@ -693,10 +775,6 @@ void BKE_pbvh_free(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
-
-  if (pbvh->vbo_id) {
-    GPU_pbvh_free_format(pbvh->vbo_id);
-  }
 
   MEM_freeN(pbvh);
 }
@@ -989,6 +1067,8 @@ typedef struct PBVHUpdateData {
   float (*vnors)[3];
   int flag;
   bool show_sculpt_face_sets;
+  PBVHAttrReq *attrs;
+  int attrs_num;
 } PBVHUpdateData;
 
 static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
@@ -1023,7 +1103,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
   float(*vnors)[3] = data->vnors;
 
   if (node->flag & PBVH_UpdateNormals) {
-    unsigned int mpoly_prev = UINT_MAX;
+    uint mpoly_prev = UINT_MAX;
     float fn[3];
 
     const int *faces = node->prim_indices;
@@ -1031,7 +1111,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
     for (int i = 0; i < totface; i++) {
       const MLoopTri *lt = &pbvh->looptri[faces[i]];
-      const unsigned int vtri[3] = {
+      const uint vtri[3] = {
           pbvh->mloop[lt->tri[0]].v,
           pbvh->mloop[lt->tri[1]].v,
           pbvh->mloop[lt->tri[2]].v,
@@ -1241,13 +1321,6 @@ void pbvh_update_BB_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
-{
-  int update_flags = GPU_PBVH_BUFFERS_SHOW_VCOL | GPU_PBVH_BUFFERS_SHOW_MASK |
-                     GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS;
-  return update_flags;
-}
-
 bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
 {
   CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
@@ -1284,137 +1357,35 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
-    switch (pbvh->header.type) {
-      case PBVH_GRIDS: {
-        bool smooth = node->totprim > 0 ?
-                          pbvh->grid_flag_mats[node->prim_indices[0]].flag & ME_SMOOTH :
-                          false;
+    PBVH_GPU_Args args;
+    pbvh_draw_args_init(pbvh, &args, node);
 
-        node->draw_buffers = GPU_pbvh_grid_buffers_build(node->totprim, pbvh->grid_hidden, smooth);
-        break;
-      }
-      case PBVH_FACES:
-        node->draw_buffers = GPU_pbvh_mesh_buffers_build(
-            pbvh->mesh, pbvh->looptri, node->prim_indices, node->totprim);
-        break;
-      case PBVH_BMESH:
-        node->draw_buffers = GPU_pbvh_bmesh_buffers_build(pbvh->flags &
-                                                          PBVH_DYNTOPO_SMOOTH_SHADING);
-        break;
-    }
+    node->draw_batches = DRW_pbvh_node_create(&args);
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
     node->debug_draw_gen++;
 
-    const int update_flags = pbvh_get_buffers_update_flags(pbvh);
-    switch (pbvh->header.type) {
-      case PBVH_GRIDS:
-        GPU_pbvh_grid_buffers_update(pbvh->vbo_id,
-                                     node->draw_buffers,
-                                     pbvh->subdiv_ccg,
-                                     pbvh->grids,
-                                     pbvh->grid_flag_mats,
-                                     node->prim_indices,
-                                     node->totprim,
-                                     pbvh->face_sets,
-                                     pbvh->face_sets_color_seed,
-                                     pbvh->face_sets_color_default,
-                                     &pbvh->gridkey,
-                                     update_flags);
-        break;
-      case PBVH_FACES: {
-        /* Pass vertices separately because they may be not be the same as the mesh's vertices,
-         * and pass normals separately because they are managed by the PBVH. */
-        GPU_pbvh_mesh_buffers_update(pbvh->vbo_id,
-                                     node->draw_buffers,
-                                     pbvh->mesh,
-                                     pbvh->verts,
-                                     CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
-                                     pbvh->face_sets_color_seed,
-                                     pbvh->face_sets_color_default,
-                                     update_flags,
-                                     pbvh->vert_normals);
-        break;
-      }
-      case PBVH_BMESH:
-        GPU_pbvh_bmesh_buffers_update(pbvh->vbo_id,
-                                      node->draw_buffers,
-                                      pbvh->header.bm,
-                                      node->bm_faces,
-                                      node->bm_unique_verts,
-                                      node->bm_other_verts,
-                                      update_flags);
-        break;
+    if (node->draw_batches) {
+      PBVH_GPU_Args args;
+
+      pbvh_draw_args_init(pbvh, &args, node);
+      DRW_pbvh_node_update(node->draw_batches, &args);
     }
   }
 }
 
-void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
+void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
 {
-  if (node->draw_buffers) {
-    pbvh->draw_cache_invalid = true;
-
-    GPU_pbvh_buffers_free(node->draw_buffers);
-    node->draw_buffers = NULL;
-  }
-}
-
-static void pbvh_check_draw_layout(PBVH *pbvh)
-{
-  const CustomData *vdata;
-  const CustomData *ldata;
-
-  if (!pbvh->vbo_id) {
-    pbvh->vbo_id = GPU_pbvh_make_format();
-  }
-
-  switch (pbvh->header.type) {
-    case PBVH_BMESH:
-      if (!pbvh->header.bm) {
-        /* BMesh hasn't been created yet */
-        return;
-      }
-
-      vdata = &pbvh->header.bm->vdata;
-      ldata = &pbvh->header.bm->ldata;
-      break;
-    case PBVH_FACES:
-      vdata = pbvh->vdata;
-      ldata = pbvh->ldata;
-      break;
-    case PBVH_GRIDS:
-      ldata = vdata = NULL;
-      break;
-  }
-
-  /* Rebuild all draw buffers if attribute layout changed.
-   *
-   * NOTE: The optimization where we only send active attributes
-   * to the GPU in workbench mode is disabled due to bugs
-   * (there's no guarantee there isn't another EEVEE viewport which would
-   *  free the draw buffers and corrupt the draw cache).
-   */
-  if (GPU_pbvh_attribute_names_update(pbvh->header.type, pbvh->vbo_id, vdata, ldata, false)) {
-    /* attribute layout changed; force rebuild */
-    for (int i = 0; i < pbvh->totnode; i++) {
-      PBVHNode *node = pbvh->nodes + i;
-
-      if (node->flag & PBVH_Leaf) {
-        node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
-      }
-    }
+  if (node->draw_batches) {
+    DRW_pbvh_node_free(node->draw_batches);
+    node->draw_batches = NULL;
   }
 }
 
 static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
   const CustomData *vdata;
-
-  if (!pbvh->vbo_id) {
-    pbvh->vbo_id = GPU_pbvh_make_format();
-  }
 
   switch (pbvh->header.type) {
     case PBVH_BMESH:
@@ -1441,14 +1412,11 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
       if (node->flag & PBVH_RebuildDrawBuffers) {
         pbvh_free_draw_buffers(pbvh, node);
       }
-      else if ((node->flag & PBVH_UpdateDrawBuffers) && node->draw_buffers) {
-        if (pbvh->header.type == PBVH_GRIDS) {
-          GPU_pbvh_grid_buffers_update_free(
-              node->draw_buffers, pbvh->grid_flag_mats, node->prim_indices);
-        }
-        else if (pbvh->header.type == PBVH_BMESH) {
-          GPU_pbvh_bmesh_buffers_update_free(node->draw_buffers);
-        }
+      else if ((node->flag & PBVH_UpdateDrawBuffers) && node->draw_batches) {
+        PBVH_GPU_Args args;
+
+        pbvh_draw_args_init(pbvh, &args, node);
+        DRW_pbvh_update_pre(node->draw_batches, &args);
       }
     }
   }
@@ -1468,7 +1436,10 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
 
     if (node->flag & PBVH_UpdateDrawBuffers) {
       /* Flush buffers uses OpenGL, so not in parallel. */
-      GPU_pbvh_buffers_update_flush(node->draw_buffers);
+
+      if (node->draw_batches) {
+        DRW_pbvh_node_gpu_flush(node->draw_batches);
+      }
     }
 
     node->flag &= ~(PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
@@ -2167,8 +2138,8 @@ bool ray_face_intersection_tri(const float ray_start[3],
                                float *depth)
 {
   float depth_test;
-  if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
-       (depth_test < *depth))) {
+  if (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
+      (depth_test < *depth)) {
     *depth = depth_test;
     return true;
   }
@@ -2213,12 +2184,12 @@ bool ray_face_nearest_quad(const float ray_start[3],
   float dist_sq_test;
   float co[3], depth_test;
 
-  if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-            ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)) {
+  if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
-    if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-              ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq)) {
+    if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq) {
       *dist_sq = dist_sq_test;
       *depth = depth_test;
     }
@@ -2239,8 +2210,8 @@ bool ray_face_nearest_tri(const float ray_start[3],
   float dist_sq_test;
   float co[3], depth_test;
 
-  if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-            ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)) {
+  if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     return true;
@@ -2810,6 +2781,8 @@ void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default)
 typedef struct PBVHDrawSearchData {
   PBVHFrustumPlanes *frustum;
   int accum_update_flag;
+  PBVHAttrReq *attrs;
+  int attrs_num;
 } PBVHDrawSearchData;
 
 static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
@@ -2827,9 +2800,11 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
+                      void (*draw_fn)(void *user_data, PBVHBatches *batches, PBVH_GPU_Args *args),
                       void *user_data,
-                      bool UNUSED(full_render))
+                      bool UNUSED(full_render),
+                      PBVHAttrReq *attrs,
+                      int attrs_num)
 {
   PBVHNode **nodes;
   int totnode;
@@ -2840,7 +2815,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   /* Search for nodes that need updates. */
   if (update_only_visible) {
     /* Get visible nodes with draw updates. */
-    PBVHDrawSearchData data = {.frustum = update_frustum, .accum_update_flag = 0};
+    PBVHDrawSearchData data = {
+        .frustum = update_frustum, .accum_update_flag = 0, attrs, attrs_num};
     BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
     update_flag = data.accum_update_flag;
   }
@@ -2852,8 +2828,6 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
-  pbvh_check_draw_layout(pbvh);
-
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
     pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
@@ -2864,10 +2838,14 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   PBVHDrawSearchData draw_data = {.frustum = draw_frustum, .accum_update_flag = 0};
   BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &draw_data, &nodes, &totnode);
 
+  PBVH_GPU_Args args;
+
   for (int i = 0; i < totnode; i++) {
     PBVHNode *node = nodes[i];
     if (!(node->flag & PBVH_FullyHidden)) {
-      draw_fn(user_data, node->draw_buffers);
+      pbvh_draw_args_init(pbvh, &args, node);
+
+      draw_fn(user_data, node->draw_batches, &args);
     }
   }
 
@@ -3135,9 +3113,9 @@ bool pbvh_has_face_sets(PBVH *pbvh)
 {
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
-      return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));
     case PBVH_FACES:
-      return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));
+      return pbvh->pdata &&
+             CustomData_get_layer_named(pbvh->pdata, CD_PROP_INT32, ".sculpt_face_set") != NULL;
     case PBVH_BMESH:
       return false;
   }

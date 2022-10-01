@@ -200,7 +200,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
   char *edge_mode = MEM_calloc_arrayN((size_t)mesh->totedge, sizeof(char), __func__);
 
   for (int i = 0; i < mesh->totloop; i++) {
-    unsigned int eidx = mloop[i].e;
+    uint eidx = mloop[i].e;
 
     if (edge_mode[eidx] < 2) {
       edge_mode[eidx]++;
@@ -210,7 +210,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
   /* Build the boundary edge bitmask. */
   BLI_bitmap *edge_is_boundary = BLI_BITMAP_NEW(mesh->totedge,
                                                 "ShrinkwrapBoundaryData::edge_is_boundary");
-  unsigned int num_boundary_edges = 0;
+  uint num_boundary_edges = 0;
 
   for (int i = 0; i < mesh->totedge; i++) {
     edge_mode[i] = (edge_mode[i] == 1);
@@ -268,7 +268,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
     }
   }
 
-  unsigned int num_boundary_verts = 0;
+  uint num_boundary_verts = 0;
 
   for (int i = 0; i < mesh->totvert; i++) {
     vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? (int)num_boundary_verts++ : -1;

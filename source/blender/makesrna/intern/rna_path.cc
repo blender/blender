@@ -708,7 +708,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
   if (UNLIKELY(rna_path[0] == '\0')) {
     return nullptr;
   }
-  size_t rna_path_len = (size_t)strlen(rna_path) - 1;
+  size_t rna_path_len = size_t(strlen(rna_path)) - 1;
   if (rna_path[rna_path_len] != ']') {
     return nullptr;
   }
@@ -861,7 +861,7 @@ static char *rna_idp_path(PointerRNA *ptr,
         IDProperty *array = IDP_IDPArray(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
-          link.index = (int)(needle - array);
+          link.index = int(needle - array);
           path = rna_idp_path_create(&link);
           break;
         }

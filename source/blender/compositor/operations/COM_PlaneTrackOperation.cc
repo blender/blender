@@ -28,7 +28,7 @@ void PlaneTrackCommon::read_and_calculate_corners(PlaneDistortBaseOperation *dis
     distort_op->calculate_corners(corners, true, 0);
   }
   else {
-    const float frame = (float)framenumber_ - distort_op->motion_blur_shutter_;
+    const float frame = float(framenumber_) - distort_op->motion_blur_shutter_;
     const float frame_step = (distort_op->motion_blur_shutter_ * 2.0f) /
                              distort_op->motion_blur_samples_;
     float frame_iter = frame;

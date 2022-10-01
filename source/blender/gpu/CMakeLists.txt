@@ -47,7 +47,6 @@ set(SRC
   intern/gpu_batch.cc
   intern/gpu_batch_presets.c
   intern/gpu_batch_utils.c
-  intern/gpu_buffers.c
   intern/gpu_capabilities.cc
   intern/gpu_codegen.cc
   intern/gpu_compute.cc
@@ -84,7 +83,6 @@ set(SRC
   GPU_batch.h
   GPU_batch_presets.h
   GPU_batch_utils.h
-  GPU_buffers.h
   GPU_capabilities.h
   GPU_common.h
   GPU_common_types.h
@@ -192,6 +190,7 @@ set(METAL_SRC
   metal/mtl_context.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
+  metal/mtl_immediate.mm
   metal/mtl_index_buffer.mm
   metal/mtl_memory.mm
   metal/mtl_query.mm
@@ -202,13 +201,17 @@ set(METAL_SRC
   metal/mtl_texture.mm
   metal/mtl_texture_util.mm
   metal/mtl_uniform_buffer.mm
+  metal/mtl_vertex_buffer.mm
 
   metal/mtl_backend.hh
+  metal/mtl_batch.hh
   metal/mtl_capabilities.hh
   metal/mtl_common.hh
   metal/mtl_context.hh
   metal/mtl_debug.hh
+  metal/mtl_drawlist.hh
   metal/mtl_framebuffer.hh
+  metal/mtl_immediate.hh
   metal/mtl_index_buffer.hh
   metal/mtl_memory.hh
   metal/mtl_primitive.hh
@@ -222,6 +225,7 @@ set(METAL_SRC
   metal/mtl_state.hh
   metal/mtl_texture.hh
   metal/mtl_uniform_buffer.hh
+  metal/mtl_vertex_buffer.hh
 )
 
 # Select Backend source based on availability
@@ -291,6 +295,7 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_polyline_frag.glsl
   shaders/gpu_shader_3D_polyline_geom.glsl
   shaders/gpu_shader_3D_polyline_vert.glsl
+  shaders/gpu_shader_3D_polyline_vert_no_geom.glsl
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
   shaders/gpu_shader_3D_passthrough_vert.glsl
@@ -543,6 +548,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_antialiasing_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_armature_info.hh
+  ../draw/engines/overlay/shaders/infos/overlay_viewer_attribute_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_background_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_edit_mode_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_extra_info.hh

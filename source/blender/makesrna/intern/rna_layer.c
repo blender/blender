@@ -369,6 +369,41 @@ static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc,
   return false;
 }
 
+static bool rna_LayerCollection_children_lookupint(struct PointerRNA *ptr,
+                                                   int key,
+                                                   struct PointerRNA *r_ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  LayerCollection *lc = (LayerCollection *)ptr->data;
+  ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+
+  LayerCollection *child = BLI_findlink(&lc->layer_collections, key);
+  if (!child) {
+    return false;
+  }
+  RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child, r_ptr);
+  return true;
+}
+
+static bool rna_LayerCollection_children_lookupstring(struct PointerRNA *ptr,
+                                                      const char *key,
+                                                      struct PointerRNA *r_ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  LayerCollection *lc = (LayerCollection *)ptr->data;
+  ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+
+  LISTBASE_FOREACH (LayerCollection *, child, &lc->layer_collections) {
+    if (STREQ(child->collection->id.name + 2, key)) {
+      RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child, r_ptr);
+      return true;
+    }
+  }
+  return false;
+}
+
 #else
 
 static void rna_def_layer_collection(BlenderRNA *brna)
@@ -399,6 +434,15 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "layer_collections", NULL);
   RNA_def_property_struct_type(prop, "LayerCollection");
   RNA_def_property_ui_text(prop, "Children", "Child layer collections");
+  RNA_def_property_collection_funcs(prop,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    "rna_LayerCollection_children_lookupint",
+                                    "rna_LayerCollection_children_lookupstring",
+                                    NULL);
 
   /* Restriction flags. */
   prop = RNA_def_property(srna, "exclude", PROP_BOOLEAN, PROP_NONE);

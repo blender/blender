@@ -288,7 +288,8 @@ static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
 static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 {
   GHashIterator gh_iter;
-  const int cd_face_sets = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_face_sets = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   GHASH_ITER (gh_iter, faces) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);

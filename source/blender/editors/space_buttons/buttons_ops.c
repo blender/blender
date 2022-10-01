@@ -337,6 +337,12 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   RNA_string_set(op->ptr, path_prop, str);
   MEM_freeN(str);
 
+  PropertyRNA *prop_check_existing = RNA_struct_find_property(op->ptr, "check_existing");
+  if (!RNA_property_is_set(op->ptr, prop_check_existing)) {
+    const bool is_output_path = (RNA_property_flag(prop) & PROP_PATH_OUTPUT) != 0;
+    RNA_property_boolean_set(op->ptr, prop_check_existing, is_output_path);
+  }
+
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;

@@ -22,6 +22,7 @@
 #include "DNA_vec_types.h"
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
+#include "DNA_viewer_path_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1086,6 +1087,7 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_DIR = (1 << 30),
   FILE_TYPE_BLENDERLIB = (1u << 31),
 } eFileSel_File_Types;
+ENUM_OPERATORS(eFileSel_File_Types, FILE_TYPE_BLENDERLIB);
 
 /** Selection Flags in filesel: struct direntry, unsigned char selflag. */
 typedef enum eDirEntry_SelectFlag {
@@ -1318,6 +1320,8 @@ typedef enum eSpaceImage_Flag {
   SI_SHOW_R = (1 << 27),
   SI_SHOW_G = (1 << 28),
   SI_SHOW_B = (1 << 29),
+
+  SI_GRID_OVER_IMAGE = (1 << 30),
 } eSpaceImage_Flag;
 
 typedef enum eSpaceImageOverlay_Flag {
@@ -1885,32 +1889,6 @@ typedef struct SpreadsheetColumn {
   char *display_name;
 } SpreadsheetColumn;
 
-/**
- * An item in SpaceSpreadsheet.context_path.
- * This is a bases struct for the structs below.
- */
-typedef struct SpreadsheetContext {
-  struct SpreadsheetContext *next, *prev;
-  /* eSpaceSpreadsheet_ContextType. */
-  int type;
-  char _pad[4];
-} SpreadsheetContext;
-
-typedef struct SpreadsheetContextObject {
-  SpreadsheetContext base;
-  struct Object *object;
-} SpreadsheetContextObject;
-
-typedef struct SpreadsheetContextModifier {
-  SpreadsheetContext base;
-  char *modifier_name;
-} SpreadsheetContextModifier;
-
-typedef struct SpreadsheetContextNode {
-  SpreadsheetContext base;
-  char *node_name;
-} SpreadsheetContextNode;
-
 typedef struct SpaceSpreadsheet {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1927,12 +1905,11 @@ typedef struct SpaceSpreadsheet {
   ListBase row_filters;
 
   /**
-   * List of #SpreadsheetContext.
-   * This is a path to the data that is displayed in the spreadsheet.
-   * It can be set explicitly by an action of the user (e.g. clicking the preview icon in a
-   * geometry node) or it can be derived from context automatically based on some heuristic.
+   * Context that is currently displayed in the editor. This is usually a either a single object
+   * (in original/evaluated mode) or path to a viewer node. This is retrieved from the workspace
+   * but can be pinned so that it stays constant even when the active node changes.
    */
-  ListBase context_path;
+  ViewerPath viewer_path;
 
   /* eSpaceSpreadsheet_FilterFlag. */
   uint8_t filter_flag;

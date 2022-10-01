@@ -220,7 +220,7 @@ static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
   }
   else {
     mp_hidden = (mr->hide_poly) ? mr->hide_poly[mp_index] : false;
-    mp_select = (mp->flag & ME_FACE_SEL) != 0;
+    mp_select = mr->select_poly && mr->select_poly[mp_index];
   }
 
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
@@ -291,16 +291,16 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
-
+  const int coarse_poly_index = coarse_poly - mr->mpoly;
   bool mp_hidden, mp_select;
   if (mr->bm) {
-    const BMFace *efa = bm_original_face_get(mr, coarse_poly - mr->mpoly);
+    const BMFace *efa = bm_original_face_get(mr, coarse_poly_index);
     mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr->hide_poly) ? mr->hide_poly[coarse_poly - mr->mpoly] : false;
-    mp_select = (coarse_poly->flag & ME_FACE_SEL) != 0;
+    mp_hidden = (mr->hide_poly) ? mr->hide_poly[coarse_poly_index] : false;
+    mp_select = mr->select_poly && mr->select_poly[coarse_poly_index];
   }
 
   uint start_loop_idx = subdiv_quad_index * 4;

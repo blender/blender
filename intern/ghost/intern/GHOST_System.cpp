@@ -30,6 +30,7 @@ GHOST_System::GHOST_System()
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(0),
 #endif
+      m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),
       m_is_debug_enabled(false)
 {
@@ -303,6 +304,11 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButton mask, bool &isDown) co
     isDown = buttons.get(mask);
   }
   return success;
+}
+
+void GHOST_System::setMultitouchGestures(const bool use)
+{
+  m_multitouchGestures = use;
 }
 
 void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)

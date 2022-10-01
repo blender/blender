@@ -1088,10 +1088,10 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
 
   for (int y = 0; y < height; y++) {
     /* Tex coords between -1.0f and 1.0f. */
-    tex_coord[1] = ((float)y / (float)height) * 2.0f - 1.0f;
+    tex_coord[1] = (float(y) / float(height)) * 2.0f - 1.0f;
 
     for (int x = 0; x < width; x++) {
-      tex_coord[0] = ((float)x / (float)height) * 2.0f - 1.0f;
+      tex_coord[0] = (float(x) / float(height)) * 2.0f - 1.0f;
 
       /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
@@ -1186,7 +1186,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   /* lens adjust */
   oldlens = ((Camera *)sce->camera->data)->lens;
   if (sizex > sp->sizey) {
-    ((Camera *)sce->camera->data)->lens *= (float)sp->sizey / (float)sizex;
+    ((Camera *)sce->camera->data)->lens *= float(sp->sizey) / float(sizex);
   }
 
   /* entire cycle for render engine */
@@ -1364,17 +1364,17 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   }
 
   if (ima->x > ima->y) {
-    scaledx = (float)w;
-    scaledy = ((float)ima->y / (float)ima->x) * (float)w;
+    scaledx = float(w);
+    scaledy = (float(ima->y) / float(ima->x)) * float(w);
   }
   else {
-    scaledx = ((float)ima->x / (float)ima->y) * (float)h;
-    scaledy = (float)h;
+    scaledx = (float(ima->x) / float(ima->y)) * float(h);
+    scaledy = float(h);
   }
 
   /* Scaling down must never assign zero width/height, see: T89868. */
-  ex = MAX2(1, (short)scaledx);
-  ey = MAX2(1, (short)scaledy);
+  ex = MAX2(1, short(scaledx));
+  ey = MAX2(1, short(scaledy));
 
   dx = (w - ex) / 2;
   dy = (h - ey) / 2;

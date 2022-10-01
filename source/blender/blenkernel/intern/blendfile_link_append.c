@@ -61,7 +61,7 @@ static CLG_LogRef LOG = {"bke.blendfile_link_append"};
 typedef struct BlendfileLinkAppendContextItem {
   /** Name of the ID (without the heading two-chars IDcode). */
   char *name;
-  /** All libs (from BlendfileLinkAppendContext.libraries) to try to load this ID from. */
+  /** All libraries (from #BlendfileLinkAppendContext.libraries) to try to load this ID from. */
   BLI_bitmap *libraries;
   /** ID type. */
   short idcode;
@@ -1258,7 +1258,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     }
 
     /* For each lib file, we try to link all items belonging to that lib,
-     * and tag those successful to not try to load them again with the other libs. */
+     * and tag those successful to not try to load them again with the other libraries. */
     for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
          item_idx++, itemlink = itemlink->next) {
       BlendfileLinkAppendContextItem *item = itemlink->link;
@@ -1272,7 +1272,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
           mainl, &blo_handle, item->idcode, item->name, lapp_context->params);
 
       if (new_id) {
-        /* If the link is successful, clear item's libs 'todo' flags.
+        /* If the link is successful, clear item's libraries 'todo' flags.
          * This avoids trying to link same item with other libraries to come. */
         BLI_bitmap_set_all(item->libraries, false, lapp_context->num_libraries);
         item->new_id = new_id;

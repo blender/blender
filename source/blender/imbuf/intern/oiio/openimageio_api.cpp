@@ -193,7 +193,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   }
 
   ImageSpec spec, config;
-  config.attribute("oiio:UnassociatedAlpha", (int)1);
+  config.attribute("oiio:UnassociatedAlpha", int(1));
 
   if (!in->open(filename, spec, config)) {
     std::cerr << __func__ << ": ImageInput::open() failed:" << std::endl

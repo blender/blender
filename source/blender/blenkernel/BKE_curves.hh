@@ -208,6 +208,8 @@ class CurvesGeometry : public ::CurvesGeometry {
                                    IndexMask selection,
                                    Vector<int64_t> &r_indices) const;
 
+  Array<int> point_to_curve_map() const;
+
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
 
@@ -986,7 +988,7 @@ inline bool has_vector_handles(const int num_curve_points,
                                const bool cyclic,
                                const int resolution)
 {
-  return evaluated_size - !cyclic != (int64_t)segments_num(num_curve_points, cyclic) * resolution;
+  return evaluated_size - !cyclic != int64_t(segments_num(num_curve_points, cyclic)) * resolution;
 }
 
 inline float3 calculate_vector_handle(const float3 &point, const float3 &next_point)

@@ -210,7 +210,7 @@ static int dna_struct_find_nr_ex_impl(
 #endif
     /* Regular args. */
     const char *str,
-    unsigned int *index_last)
+    uint *index_last)
 {
   if (*index_last < structs_len) {
     const SDNA_Struct *struct_info = structs[*index_last];
@@ -242,7 +242,7 @@ static int dna_struct_find_nr_ex_impl(
   return -1;
 }
 
-int DNA_struct_find_nr_ex(const SDNA *sdna, const char *str, unsigned int *index_last)
+int DNA_struct_find_nr_ex(const SDNA *sdna, const char *str, uint *index_last)
 {
   return dna_struct_find_nr_ex_impl(
       /* Expand SDNA. */
@@ -258,7 +258,7 @@ int DNA_struct_find_nr_ex(const SDNA *sdna, const char *str, unsigned int *index
       index_last);
 }
 
-int DNA_struct_alias_find_nr_ex(const SDNA *sdna, const char *str, unsigned int *index_last)
+int DNA_struct_alias_find_nr_ex(const SDNA *sdna, const char *str, uint *index_last)
 {
 #ifdef WITH_DNA_GHASH
   BLI_assert(sdna->alias.structs_map != NULL);
@@ -279,13 +279,13 @@ int DNA_struct_alias_find_nr_ex(const SDNA *sdna, const char *str, unsigned int 
 
 int DNA_struct_find_nr(const SDNA *sdna, const char *str)
 {
-  unsigned int index_last_dummy = UINT_MAX;
+  uint index_last_dummy = UINT_MAX;
   return DNA_struct_find_nr_ex(sdna, str, &index_last_dummy);
 }
 
 int DNA_struct_alias_find_nr(const SDNA *sdna, const char *str)
 {
-  unsigned int index_last_dummy = UINT_MAX;
+  uint index_last_dummy = UINT_MAX;
   return DNA_struct_alias_find_nr_ex(sdna, str, &index_last_dummy);
 }
 
@@ -741,7 +741,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         break;
       }
       case SDNA_TYPE_USHORT: {
-        const ushort value = *((unsigned short *)old_data);
+        const ushort value = *((ushort *)old_data);
         old_value_i = value;
         old_value_f = (double)value;
         break;
@@ -790,13 +790,13 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         *new_data = (char)old_value_i;
         break;
       case SDNA_TYPE_UCHAR:
-        *((unsigned char *)new_data) = (unsigned char)old_value_i;
+        *((uchar *)new_data) = (uchar)old_value_i;
         break;
       case SDNA_TYPE_SHORT:
         *((short *)new_data) = (short)old_value_i;
         break;
       case SDNA_TYPE_USHORT:
-        *((unsigned short *)new_data) = (unsigned short)old_value_i;
+        *((ushort *)new_data) = (ushort)old_value_i;
         break;
       case SDNA_TYPE_INT:
         *((int *)new_data) = (int)old_value_i;

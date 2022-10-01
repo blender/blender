@@ -171,7 +171,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
              node->identifier().c_str(),
              node->num_links_pending,
              num_links_pending);
-      printf("Number of inlinks: %d\n", (int)node->inlinks.size());
+      printf("Number of inlinks: %d\n", int(node->inlinks.size()));
       return false;
     }
   }

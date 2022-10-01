@@ -7,6 +7,10 @@
  */
 
 #ifdef __cplusplus
+#  include "BLI_array.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -93,6 +97,7 @@ typedef struct MeshElemMap {
 /* mapping */
 UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
                                        const bool *hide_poly,
+                                       const bool *select_poly,
                                        const struct MLoop *mloop,
                                        const struct MLoopUV *mloopuv,
                                        unsigned int totpoly,
@@ -328,4 +333,20 @@ int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+namespace blender::mesh_topology {
+
+Array<int> build_corner_to_poly_map(Span<MPoly> polys, int loops_num);
+
+Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
+Array<Vector<int>> build_vert_to_corner_map(Span<MLoop> loops, int verts_num);
+
+inline int previous_poly_corner(const MPoly &poly, int corner_i)
+{
+  return corner_i - 1 + (corner_i == poly.loopstart) * poly.totloop;
+}
+
+}  // namespace blender::mesh_topology
 #endif

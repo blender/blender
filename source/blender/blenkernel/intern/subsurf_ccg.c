@@ -285,7 +285,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(
-      mpoly, NULL, mloop, mloopuv, totface, totvert, limit, false, true);
+      mpoly, NULL, NULL, mloop, mloopuv, totface, totvert, limit, false, true);
   if (!vmap) {
     return 0;
   }
@@ -327,7 +327,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     int nverts = mp->totloop;
     int j, j_next;
     CCGFace *origf = ccgSubSurf_getFace(origss, POINTER_FROM_INT(i));
-    /* unsigned int *fv = &mp->v1; */
+    /* uint *fv = &mp->v1; */
     MLoop *ml = mloop + mp->loopstart;
 
 #ifdef USE_DYNSIZE
@@ -340,8 +340,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
     for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
-      unsigned int v0 = POINTER_AS_UINT(fverts[j_next]);
-      unsigned int v1 = POINTER_AS_UINT(fverts[j]);
+      uint v0 = POINTER_AS_UINT(fverts[j_next]);
+      uint v1 = POINTER_AS_UINT(fverts[j]);
 
       if (BLI_edgeset_add(eset, v0, v1)) {
         CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
@@ -592,11 +592,12 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
 
   me = medge;
   index = (int *)dm->getEdgeDataArray(dm, CD_ORIGINDEX);
+  const float *creases = (const float *)dm->getEdgeDataArray(dm, CD_CREASE);
   for (i = 0; i < totedge; i++, me++) {
     CCGEdge *e;
     float crease;
 
-    crease = useFlatSubdiv ? creaseFactor : me->crease * creaseFactor / 255.0f;
+    crease = useFlatSubdiv ? creaseFactor : (creases ? creases[i] * creaseFactor : 0.0f);
 
     ccgSubSurf_syncEdge(
         ss, POINTER_FROM_INT(i), POINTER_FROM_UINT(me->v1), POINTER_FROM_UINT(me->v2), crease, &e);
@@ -879,7 +880,6 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
 BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
 {
   copy_v3_v3(mv->co, CCG_elem_co(key, elem));
-  mv->flag = 0;
 }
 
 static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
@@ -892,7 +892,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
   int totvert, totedge, totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  unsigned int i = 0;
+  uint i = 0;
 
   CCG_key_top_level(&key, ss);
 
@@ -949,7 +949,6 @@ BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2, const sho
 {
   med->v1 = v1;
   med->v2 = v2;
-  med->crease = 0;
   med->flag = flag;
 }
 
@@ -961,7 +960,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   int totedge, totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  unsigned int i = 0;
+  uint i = 0;
   short *edgeFlags = ccgdm->edgeFlags;
   const short ed_interior_flag = ccgdm->drawInteriorEdges ? (ME_EDGEDRAW | ME_EDGERENDER) : 0;
 

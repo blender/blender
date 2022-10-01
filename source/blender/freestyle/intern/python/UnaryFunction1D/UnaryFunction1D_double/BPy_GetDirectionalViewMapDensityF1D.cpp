@@ -67,7 +67,7 @@ static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDen
 {
   static const char *kwlist[] = {"orientation", "level", "integration_type", "sampling", nullptr};
   PyObject *obj = nullptr;
-  unsigned int u1, u2;
+  uint u1, u2;
   float f = 2.0;
 
   if (!PyArg_ParseTupleAndKeywords(

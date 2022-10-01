@@ -261,7 +261,7 @@ class Scene : public NodeOwner {
   float motion_shutter_time();
 
   bool need_update();
-  bool need_reset();
+  bool need_reset(const bool check_camera = true);
 
   void reset();
   void device_free();

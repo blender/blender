@@ -26,11 +26,6 @@ if(NOT DEFINED LIBDIR)
     else()
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
     endif()
-
-    if(CMAKE_COMPILER_IS_GNUCC AND
-       CMAKE_C_COMPILER_VERSION VERSION_LESS 9.3)
-      message(FATAL_ERROR "GCC version must be at least 9.3 for precompiled libraries, found ${CMAKE_C_COMPILER_VERSION}")
-    endif()
   endif()
 
   # Avoid namespace pollustion.
@@ -94,7 +89,7 @@ macro(add_bundled_libraries library)
     file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
     list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
     unset(_all_library_versions)
- endif()
+  endif()
 endmacro()
 
 # ----------------------------------------------------------------------------
@@ -769,7 +764,11 @@ if(WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
-    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    if(EXISTS "${LIBDIR}/wayland/bin/wayland-scanner")
+      set(WAYLAND_SCANNER "${LIBDIR}/wayland/bin/wayland-scanner")
+    else()
+      pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    endif()
 
     # When using dynamic loading, headers generated
     # from older versions of `wayland-scanner` aren't compatible.
@@ -1089,7 +1088,7 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   endif()
 endfunction()
 
-CONFIGURE_ATOMIC_LIB_IF_NEEDED()
+configure_atomic_lib_if_needed()
 
 if(PLATFORM_BUNDLED_LIBRARIES)
   # For the installed Python module and installed Blender executable, we set the

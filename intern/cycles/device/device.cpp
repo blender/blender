@@ -352,6 +352,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
   info.has_nanovdb = true;
   info.has_osl = true;
+  info.has_guiding = true;
   info.has_profiling = true;
   info.has_peer_memory = false;
   info.use_metalrt = false;
@@ -399,6 +400,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Accumulate device info. */
     info.has_nanovdb &= device.has_nanovdb;
     info.has_osl &= device.has_osl;
+    info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;
     info.has_peer_memory |= device.has_peer_memory;
     info.use_metalrt |= device.use_metalrt;

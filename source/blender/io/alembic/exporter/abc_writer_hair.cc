@@ -190,7 +190,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       for (int n = 0; n < mesh->totface; n++) {
         MFace *face = &mface[n];
         MTFace *tface = mtface + n;
-        unsigned int vtx[4];
+        uint vtx[4];
         vtx[0] = face->v1;
         vtx[1] = face->v2;
         vtx[2] = face->v3;

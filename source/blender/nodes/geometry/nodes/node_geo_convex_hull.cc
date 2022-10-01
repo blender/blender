@@ -56,7 +56,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 #  if 0 /* Disabled because it only works for meshes, not predictable enough. */
       /* Copy custom data on vertices, like vertex groups etc. */
       if (mesh && original_index < mesh->totvert) {
-        CustomData_copy_data(&mesh->vdata, &result->vdata, (int)original_index, (int)i, 1);
+        CustomData_copy_data(&mesh->vdata, &result->vdata, int(original_index), int(i), 1);
       }
 #  endif
       /* Copy the position of the original point. */
@@ -81,7 +81,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     int v_to;
     plConvexHullGetLoop(hull, i, &v_from, &v_to);
 
-    mloop_src[i].v = (uint)v_from;
+    mloop_src[i].v = uint(v_from);
     /* Add edges for ascending order loops only. */
     if (v_from < v_to) {
       MEdge &edge = edges[edge_index];

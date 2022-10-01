@@ -534,7 +534,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
   Material ***matar_object = &ob->mat;
 
   Material **matar = static_cast<Material **>(
-      MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__));
+      MEM_callocN(sizeof(*matar) * size_t(ob->totcol), __func__));
   for (int i = ob->totcol; i--;) {
     matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
   }
@@ -1131,7 +1131,7 @@ static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
     /* Ensure that there are no dots in the name. */
     BLI_str_replace_char(name, '.', '_');
     LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
-      if (strcmp(lightgroup->name, name) == 0) {
+      if (STREQ(lightgroup->name, name)) {
         return OPERATOR_CANCELLED;
       }
     }

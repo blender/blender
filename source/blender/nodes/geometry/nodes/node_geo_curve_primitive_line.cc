@@ -57,7 +57,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
   const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
-  bNodeSocket *p2_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *p2_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *direction_socket = p2_socket->next;
   bNodeSocket *length_socket = direction_socket->next;
 

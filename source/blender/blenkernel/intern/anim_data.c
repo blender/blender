@@ -659,6 +659,8 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
           srcAdt, dstAdt, basepath_change->src_basepath, basepath_change->dst_basepath);
     }
   }
+  /* Tag source action because list of fcurves changed. */
+  DEG_id_tag_update(&srcAdt->action->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 /* Path Validation -------------------------------------------- */

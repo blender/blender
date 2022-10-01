@@ -65,6 +65,8 @@ struct FieldInferencingInterface {
   Vector<OutputFieldDependency> outputs;
 };
 
+using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
@@ -103,6 +105,10 @@ class SocketDeclaration {
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
+  /** Some input sockets can have non-trivial values in the case when they are unlinked. This
+   * callback computes the default input of a values in geometry nodes when nothing is linked. */
+  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn_;
+
   friend NodeDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
 
@@ -139,6 +145,11 @@ class SocketDeclaration {
   int compositor_domain_priority() const;
   bool compositor_skip_realization() const;
   bool compositor_expects_single_value() const;
+
+  const ImplicitInputValueFn *implicit_input_fn() const
+  {
+    return implicit_input_fn_.get();
+  }
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -225,10 +236,11 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   }
 
   /** The input supports a field and is a field by default when nothing is connected. */
-  Self &implicit_field()
+  Self &implicit_field(ImplicitInputValueFn fn)
   {
     this->hide_value();
     decl_->input_field_type_ = InputSocketFieldType::Implicit;
+    decl_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
     return *(Self *)this;
   }
 
@@ -347,6 +359,13 @@ class NodeDeclarationBuilder {
                                          StringRef identifier,
                                          eNodeSocketInOut in_out);
 };
+
+namespace implicit_field_inputs {
+void position(const bNode &node, void *r_value);
+void normal(const bNode &node, void *r_value);
+void index(const bNode &node, void *r_value);
+void id_or_index(const bNode &node, void *r_value);
+}  // namespace implicit_field_inputs
 
 /* -------------------------------------------------------------------- */
 /** \name #OutputFieldDependency Inline Methods

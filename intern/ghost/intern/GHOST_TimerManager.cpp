@@ -26,7 +26,7 @@ GHOST_TimerManager::~GHOST_TimerManager()
 
 uint32_t GHOST_TimerManager::getNumTimers()
 {
-  return (uint32_t)m_timers.size();
+  return uint32_t(m_timers.size());
 }
 
 bool GHOST_TimerManager::getTimerFound(GHOST_TimerTask *timer)

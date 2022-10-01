@@ -1584,28 +1584,28 @@ static void area_move_set_limits(wmWindow *win,
 
       /* logic here is only tested for lower edge :) */
       /* left edge */
-      if ((area->v1->editflag && area->v2->editflag)) {
+      if (area->v1->editflag && area->v2->editflag) {
         *smaller = area->v4->vec.x - size_max;
         *bigger = area->v4->vec.x - size_min;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* top edge */
-      if ((area->v2->editflag && area->v3->editflag)) {
+      if (area->v2->editflag && area->v3->editflag) {
         *smaller = area->v1->vec.y + size_min;
         *bigger = area->v1->vec.y + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* right edge */
-      if ((area->v3->editflag && area->v4->editflag)) {
+      if (area->v3->editflag && area->v4->editflag) {
         *smaller = area->v1->vec.x + size_min;
         *bigger = area->v1->vec.x + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* lower edge */
-      if ((area->v4->editflag && area->v1->editflag)) {
+      if (area->v4->editflag && area->v1->editflag) {
         *smaller = area->v2->vec.y - size_max;
         *bigger = area->v2->vec.y - size_min;
         *use_bigger_smaller_snap = true;
@@ -5742,7 +5742,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_BLEND, ICON_BLENDER)) {
+    if (ELEM(drag->icon, ICON_FILE_BLEND, ICON_FILE_BACKUP, ICON_BLENDER)) {
       return true;
     }
   }

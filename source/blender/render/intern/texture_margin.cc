@@ -14,6 +14,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -44,7 +45,7 @@ class TextureMarginMap {
   /** Maps UV-edges to their corresponding UV-edge. */
   Vector<int> loop_adjacency_map_;
   /** Maps UV-edges to their corresponding polygon. */
-  Vector<int> loop_to_poly_map_;
+  Array<int> loop_to_poly_map_;
 
   int w_, h_;
   float uv_offset_[2];
@@ -245,8 +246,8 @@ class TextureMarginMap {
 
             for (int i = 0; i < maxPolygonSteps; i++) {
               /* Force to pixel grid. */
-              int nx = (int)round(destX);
-              int ny = (int)round(destY);
+              int nx = int(round(destX));
+              int ny = int(round(destY));
               uint32_t polygon_from_map = get_pixel(nx, ny);
               if (other_poly == polygon_from_map) {
                 found_pixel_in_polygon = true;
@@ -289,13 +290,8 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_.resize(totloop_);
-    for (int i = 0; i < totpoly_; i++) {
-      for (int j = 0; j < mpoly_[i].totloop; j++) {
-        int l = j + mpoly_[i].loopstart;
-        loop_to_poly_map_[l] = i;
-      }
-    }
+    loop_to_poly_map_ = blender::mesh_topology::build_corner_to_poly_map({mpoly_, totpoly_},
+                                                                         totloop_);
 
     loop_adjacency_map_.resize(totloop_, -1);
 
@@ -351,7 +347,7 @@ class TextureMarginMap {
       uint32_t poly = loop_to_poly_map_[otherloop];
 
       if (lookup_pixel(x, y, poly, &destx, &desty, &foundpoly, &found_dist)) {
-        if (mindist < 0.f || found_dist < mindist) {
+        if (mindist < 0.0f || found_dist < mindist) {
           mindist = found_dist;
           *r_other_poly = foundpoly;
           *r_destx = destx;
@@ -562,8 +558,8 @@ static void generate_margin(ImBuf *ibuf,
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
        * Add a small offset to the UVs, fixes bug T18685. */
-      vec[a][0] = (uv[0] - uv_offset[0]) * (float)ibuf->x - (0.5f + 0.001f);
-      vec[a][1] = (uv[1] - uv_offset[1]) * (float)ibuf->y - (0.5f + 0.002f);
+      vec[a][0] = (uv[0] - uv_offset[0]) * float(ibuf->x) - (0.5f + 0.001f);
+      vec[a][1] = (uv[1] - uv_offset[1]) * float(ibuf->y) - (0.5f + 0.002f);
     }
 
     /* NOTE: we need the top bit for the dijkstra distance map. */

@@ -112,13 +112,11 @@ template<typename T> class Span {
    *  Span<int> span = {1, 2, 3, 4};
    *  call_function_with_array(span);
    */
-  constexpr Span(const std::initializer_list<T> &list)
-      : Span(list.begin(), static_cast<int64_t>(list.size()))
+  constexpr Span(const std::initializer_list<T> &list) : Span(list.begin(), int64_t(list.size()))
   {
   }
 
-  constexpr Span(const std::vector<T> &vector)
-      : Span(vector.data(), static_cast<int64_t>(vector.size()))
+  constexpr Span(const std::vector<T> &vector) : Span(vector.data(), int64_t(vector.size()))
   {
   }
 
@@ -718,7 +716,7 @@ template<typename T> class MutableSpan {
   {
     BLI_assert((size_ * sizeof(T)) % sizeof(NewT) == 0);
     int64_t new_size = size_ * sizeof(T) / sizeof(NewT);
-    return MutableSpan<NewT>((NewT *)data_, new_size);
+    return MutableSpan<NewT>(reinterpret_cast<NewT *>(data_), new_size);
   }
 };
 

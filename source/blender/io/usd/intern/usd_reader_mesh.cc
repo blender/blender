@@ -275,7 +275,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
 bool USDMeshReader::valid() const
 {
-  return static_cast<bool>(mesh_prim_);
+  return bool(mesh_prim_);
 }
 
 bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
@@ -342,9 +342,9 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
 
 void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bool load_uvs)
 {
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
 
   const CustomData *ldata = &mesh->ldata;
 
@@ -422,9 +422,9 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!(ELEM(sample.interpolation,
-                   pxr::UsdGeomTokens->faceVarying,
-                   pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(sample.interpolation,
+                  pxr::UsdGeomTokens->faceVarying,
+                  pxr::UsdGeomTokens->vertex)) {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -601,7 +601,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 
   MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  vert_normals.copy_from({(float3 *)normals_.data(), int64_t(normals_.size())});
   BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
@@ -865,7 +865,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
         pxr::TfToken interp = p.GetInterpolation();
 
-        if (!(ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex)) {
           continue;
         }
 

@@ -69,7 +69,7 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<MLoopUV *>
     BLI_assert(loops_merge.is_empty());
     loops_merge.extend_unchecked(loops_for_vert);
     while (loops_merge.size() > 1) {
-      uint i_last = (uint)loops_merge.size() - 1;
+      uint i_last = uint(loops_merge.size()) - 1;
       const float *uv_src = mloopuv[loops_merge[0]].uv;
       for (uint i = 1; i <= i_last;) {
         float *uv_dst = mloopuv[loops_merge[i]].uv;

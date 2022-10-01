@@ -36,7 +36,7 @@ if(WITH_CYCLES_NATIVE_ONLY)
   )
 
   if(NOT MSVC)
-    ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_march_native "-march=native")
+    add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_march_native "-march=native")
     if(_has_march_native)
       set(CYCLES_KERNEL_FLAGS "-march=native")
     else()
@@ -45,18 +45,18 @@ if(WITH_CYCLES_NATIVE_ONLY)
     unset(_has_march_native)
   else()
     if(NOT MSVC_NATIVE_ARCH_FLAGS)
-        TRY_RUN(
-            arch_run_result
-            arch_compile_result
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc_arch_flags.c
-            COMPILE_OUTPUT_VARIABLE arch_compile_output
-            RUN_OUTPUT_VARIABLE arch_run_output
-        )
-        if(arch_compile_result AND "${arch_run_result}" EQUAL "0")
-            string(STRIP ${arch_run_output} arch_run_output)
-            set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
-        endif()
+      try_run(
+        arch_run_result
+        arch_compile_result
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc_arch_flags.c
+        COMPILE_OUTPUT_VARIABLE arch_compile_output
+        RUN_OUTPUT_VARIABLE arch_run_output
+      )
+      if(arch_compile_result AND "${arch_run_result}" EQUAL "0")
+        string(STRIP ${arch_run_output} arch_run_output)
+        set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
+      endif()
     endif()
     set(CYCLES_KERNEL_FLAGS "${MSVC_NATIVE_ARCH_FLAGS}")
   endif()
@@ -347,6 +347,24 @@ if(WITH_OPENCOLORIO)
   )
 endif()
 
+if(WITH_CYCLES_PATH_GUIDING)
+  add_definitions(-DWITH_PATH_GUIDING)
+
+  # The level of the guiding integration.
+  # Different levels can be selected to measure the overhead of different stages.
+  # 1 = recording the path segments
+  # 2 = 1 + generating (not storing) sample data from the segments
+  # 3 = 2 + storing the generates sample data
+  # 4 = 3 + training the guiding fields
+  # 5 = 4 + querying the trained guiding for sampling (full path guiding)
+  add_definitions(-DPATH_GUIDING_LEVEL=5)
+
+  include_directories(
+    SYSTEM
+    ${OPENPGL_INCLUDE_DIR}
+  )
+endif()
+
 # NaN debugging
 if(WITH_CYCLES_DEBUG_NAN)
   add_definitions(-DWITH_CYCLES_DEBUG_NAN)
@@ -364,7 +382,7 @@ endif()
 
 # Warnings
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
+  add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
   unset(_has_no_error_unused_macros)
 endif()
 

@@ -45,7 +45,7 @@ namespace Freestyle {
     (t) = (i) + (N); \
     (r0) = modff((t), &(u)); \
     (r1) = (r0)-1.0; \
-    (b0) = ((int)(u)) & BM; \
+    (b0) = int(u) & BM; \
     (b1) = ((b0) + 1) & BM; \
   } \
   (void)0
@@ -69,7 +69,7 @@ static void normalize3(float v[3])
   v[2] = v[2] / s;
 }
 
-float Noise::turbulence1(float arg, float freq, float amp, unsigned oct)
+float Noise::turbulence1(float arg, float freq, float amp, uint oct)
 {
   float t;
   float vec;
@@ -81,7 +81,7 @@ float Noise::turbulence1(float arg, float freq, float amp, unsigned oct)
   return t;
 }
 
-float Noise::turbulence2(Vec2f &v, float freq, float amp, unsigned oct)
+float Noise::turbulence2(Vec2f &v, float freq, float amp, uint oct)
 {
   float t;
   Vec2f vec;
@@ -94,7 +94,7 @@ float Noise::turbulence2(Vec2f &v, float freq, float amp, unsigned oct)
   return t;
 }
 
-float Noise::turbulence3(Vec3f &v, float freq, float amp, unsigned oct)
+float Noise::turbulence3(Vec3f &v, float freq, float amp, uint oct)
 {
   float t;
   Vec3f vec;
@@ -229,15 +229,15 @@ Noise::Noise(long seed)
 
   for (i = 0; i < _NOISE_B; i++) {
     p[i] = i;
-    g1[i] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+    g1[i] = float((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
 
     for (j = 0; j < 2; j++) {
-      g2[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+      g2[i][j] = float((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
     }
     normalize2(g2[i]);
 
     for (j = 0; j < 3; j++) {
-      g3[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+      g3[i][j] = float((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
     }
     normalize3(g3[i]);
   }

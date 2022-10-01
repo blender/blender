@@ -4799,7 +4799,7 @@ static float projected_boundary_area(BevVert *bv, BMFace *f)
   find_face_internal_boundverts(bv, f, unsnapped);
   do {
     float *co = v->nv.v->co;
-    if (v == unsnapped[0] || v == unsnapped[1] || v == unsnapped[2]) {
+    if (ELEM(v, unsnapped[0], unsnapped[1], unsnapped[2])) {
       mul_v2_m3v3(proj_co[i], axis_mat, co);
     }
     else {
@@ -4922,7 +4922,7 @@ static void build_center_ngon(BevelParams *bp, BMesh *bm, BevVert *bv, int mat_n
     BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
     if (frep) {
       BLI_array_append(vf, frep);
-      if (v == frep_unsnapped[0] || v == frep_unsnapped[1] || v == frep_unsnapped[2]) {
+      if (ELEM(v, frep_unsnapped[0], frep_unsnapped[1], frep_unsnapped[2])) {
         BLI_array_append(ve, NULL);
       }
       else {
@@ -5299,7 +5299,7 @@ static void snap_edges_for_vmesh_vert(int i,
     int previ = (i + n_bndv - 1) % n_bndv;
     /* Make jj and kk be the j and k indices for this corner. */
     int jj = corner < 2 ? j : j + 1;
-    int kk = (corner == 0 || corner == 3) ? k : k + 1;
+    int kk = ELEM(corner, 0, 3) ? k : k + 1;
     if (jj < ns2 && kk < ns2) {
       ; /* No snap. */
     }
@@ -5765,7 +5765,7 @@ static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
     BLI_array_append(bmverts, bndv->nv.v);
     if (repface) {
       BLI_array_append(bmfaces, repface);
-      if (bndv == unsnapped[0] || bndv == unsnapped[1] || bndv == unsnapped[2]) {
+      if (ELEM(bndv, unsnapped[0], unsnapped[1], unsnapped[2])) {
         BLI_array_append(bmedges, NULL);
       }
       else {
@@ -6285,7 +6285,7 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
     BMLoop *l;
     BM_ITER_ELEM (l, &iter, bme, BM_LOOPS_OF_EDGE) {
       BMFace *f = l->f;
-      if ((l->prev->e == bme2 || l->next->e == bme2)) {
+      if (l->prev->e == bme2 || l->next->e == bme2) {
         if (!bestf || l->v == bv->v) {
           bestf = f;
         }

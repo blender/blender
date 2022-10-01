@@ -510,7 +510,7 @@ static void ccd_build_deflector_hash(Depsgraph *depsgraph,
     return;
   }
 
-  unsigned int numobjects;
+  uint numobjects;
   Object **objects = BKE_collision_objects_create(
       depsgraph, vertexowner, collection, &numobjects, eModifierType_Collision);
 
@@ -547,7 +547,7 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
     return;
   }
 
-  unsigned int numobjects;
+  uint numobjects;
   Object **objects = BKE_collision_objects_create(
       depsgraph, vertexowner, collection, &numobjects, eModifierType_Collision);
 
@@ -750,10 +750,10 @@ static void build_bps_springlist(Object *ob)
     }
     /* scan for attached inner springs */
     for (b = sb->totspring, bs = sb->bspring; b > 0; b--, bs++) {
-      if (((sb->totpoint - a) == bs->v1)) {
+      if ((sb->totpoint - a) == bs->v1) {
         add_bp_springlist(bp, sb->totspring - b);
       }
-      if (((sb->totpoint - a) == bs->v2)) {
+      if ((sb->totpoint - a) == bs->v2) {
         add_bp_springlist(bp, sb->totspring - b);
       }
     } /* For springs. */
@@ -963,7 +963,7 @@ static void free_softbody_intern(SoftBody *sb)
  */
 static int query_external_colliders(Depsgraph *depsgraph, Collection *collection)
 {
-  unsigned int numobjects;
+  uint numobjects;
   Object **objects = BKE_collision_objects_create(
       depsgraph, NULL, collection, &numobjects, eModifierType_Collision);
   BKE_collision_objects_free(objects);

@@ -16,6 +16,7 @@
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
+#include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +28,6 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
-struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
@@ -36,7 +36,9 @@ struct MVert;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
+struct PBVHBatches;
 struct PBVHNode;
+struct PBVH_GPU_Args;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -97,6 +99,12 @@ typedef struct PBVHPixelsNode {
    */
   void *node_data;
 } PBVHPixelsNode;
+
+typedef struct PBVHAttrReq {
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  eAttrDomain domain;
+  eCustomDataType type;
+} PBVHAttrReq;
 
 typedef enum {
   PBVH_Leaf = 1 << 0,
@@ -257,7 +265,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGKey *key,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
-                          unsigned int **grid_hidden);
+                          unsigned int **grid_hidden,
+                          struct Mesh *me);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -348,9 +357,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
+                      void (*draw_fn)(void *user_data,
+                                      struct PBVHBatches *batches,
+                                      struct PBVH_GPU_Args *args),
                       void *user_data,
-                      bool full_render);
+                      bool full_render,
+                      PBVHAttrReq *attrs,
+                      int attrs_num);
 
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(PBVHNode *node,

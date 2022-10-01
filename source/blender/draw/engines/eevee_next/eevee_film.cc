@@ -120,7 +120,7 @@ void Film::sync_mist()
   const ::World *world = inst_.scene->world;
   float mist_start = world ? world->miststa : cam.clip_near;
   float mist_distance = world ? world->mistdist : fabsf(cam.clip_far - cam.clip_near);
-  int mist_type = world ? world->mistype : (int)WO_MIST_LINEAR;
+  int mist_type = world ? world->mistype : int(WO_MIST_LINEAR);
 
   switch (mist_type) {
     case WO_MIST_QUADRATIC:

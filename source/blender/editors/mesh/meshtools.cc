@@ -102,9 +102,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
   MPoly *mpoly = *mpoly_pp;
 
   if (me->totvert) {
-    /* merge customdata flag */
-    ((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
-
     /* standard data */
     CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
@@ -308,7 +305,8 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
     return;
   }
 
-  int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = (int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
@@ -1212,7 +1210,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
   }
 
-  if ((*r_index) == 0 || (*r_index) > (uint)me->totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(me->totpoly)) {
     return false;
   }
 
@@ -1269,7 +1267,7 @@ bool ED_mesh_pick_face_vert(
     int v_idx_best = ORIGINDEX_NONE;
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
     float len_best = FLT_MAX;
 
     const Span<MVert> verts = me_eval->verts();
@@ -1381,7 +1379,7 @@ bool ED_mesh_pick_vert(
       *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
     }
 
-    if ((*r_index) == 0 || (*r_index) > (uint)me->totvert) {
+    if ((*r_index) == 0 || (*r_index) > uint(me->totvert)) {
       return false;
     }
 
@@ -1397,7 +1395,7 @@ bool ED_mesh_pick_vert(
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
 
     VertPickData data = {nullptr};
 

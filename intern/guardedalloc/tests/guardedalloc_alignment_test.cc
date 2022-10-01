@@ -7,7 +7,7 @@
 #include "MEM_guardedalloc.h"
 #include "guardedalloc_test_base.h"
 
-#define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ((size_t)ptr % align, 0)
+#define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ(size_t(ptr) % align, 0)
 
 namespace {
 

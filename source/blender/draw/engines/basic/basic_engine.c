@@ -199,7 +199,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
   }
 
   if (use_sculpt_pbvh) {
-    DRW_shgroup_call_sculpt(shgrp, ob, false, false);
+    DRW_shgroup_call_sculpt(shgrp, ob, false, false, false, false, false);
   }
   else {
     if (stl->g_data->use_material_slot_selection && BKE_object_supports_material_slots(ob)) {

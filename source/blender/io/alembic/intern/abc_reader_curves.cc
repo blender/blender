@@ -152,7 +152,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
         break;
       case Alembic::AbcGeom::kVariableOrder:
         if (orders && orders->size() > i) {
-          nu->orderu = static_cast<short>((*orders)[i]);
+          nu->orderu = short((*orders)[i]);
           break;
         }
         ATTR_FALLTHROUGH;

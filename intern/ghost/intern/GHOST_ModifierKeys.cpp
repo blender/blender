@@ -10,6 +10,7 @@
  */
 
 #include "GHOST_ModifierKeys.h"
+#include "GHOST_Debug.h"
 
 GHOST_ModifierKeys::GHOST_ModifierKeys()
 {
@@ -49,7 +50,8 @@ GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKey mask)
       key = GHOST_kKeyRightOS;
       break;
     default:
-      // Should not happen
+      /* Should not happen. */
+      GHOST_ASSERT(0, "Invalid key!");
       key = GHOST_kKeyUnknown;
       break;
   }
@@ -76,6 +78,7 @@ bool GHOST_ModifierKeys::get(GHOST_TModifierKey mask) const
     case GHOST_kModifierKeyRightOS:
       return m_RightOS;
     default:
+      GHOST_ASSERT(0, "Invalid key!");
       return false;
   }
 }
@@ -108,6 +111,7 @@ void GHOST_ModifierKeys::set(GHOST_TModifierKey mask, bool down)
       m_RightOS = down;
       break;
     default:
+      GHOST_ASSERT(0, "Invalid key!");
       break;
   }
 }

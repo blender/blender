@@ -67,9 +67,7 @@ static void tri_fill_smooth(int x, int x_end, int y, void *user_data)
   }
 }
 
-ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom,
-                               const unsigned int size_x,
-                               const unsigned int size_y)
+ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, const uint size_y)
 {
   const int coords_len = geom->coords_len;
 

@@ -299,7 +299,7 @@ static void undosys_stack_clear_all_last(UndoStack *ustack, UndoStep *us)
       BLI_assert(us_iter != ustack->step_active);
       undosys_step_free_and_unlink(ustack, us_iter);
       undosys_stack_validate(ustack, is_not_empty);
-    } while ((us != us_iter));
+    } while (us != us_iter);
   }
 }
 
@@ -320,7 +320,7 @@ static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoS
       BLI_assert(us_iter != ustack->step_active);
       undosys_step_free_and_unlink(ustack, us_iter);
       undosys_stack_validate(ustack, is_not_empty);
-    } while ((us != us_iter));
+    } while (us != us_iter);
   }
 }
 

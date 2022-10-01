@@ -55,139 +55,277 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
       m_openGLView(openGLView),
       m_openGLContext(nil),
       m_defaultFramebuffer(0),
-      m_defaultFramebufferMetalTexture(nil),
       m_debug(false)
 {
+  /* Initialize Metal Swap-chain. */
+  current_swapchain_index = 0;
+  for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
+    m_defaultFramebufferMetalTexture[i].texture = nil;
+    m_defaultFramebufferMetalTexture[i].index = i;
+  }
   if (m_metalView) {
+    m_ownsMetalDevice = false;
     metalInit();
   }
+  else {
+    /* Prepare offscreen GHOST Context Metal device. */
+    id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
+
+    if (m_debug) {
+      printf("Selected Metal Device: %s\n", [metalDevice.name UTF8String]);
+    }
+
+    m_ownsMetalDevice = true;
+    if (metalDevice) {
+      m_metalLayer = [[CAMetalLayer alloc] init];
+      [m_metalLayer setEdgeAntialiasingMask:0];
+      [m_metalLayer setMasksToBounds:NO];
+      [m_metalLayer setOpaque:YES];
+      [m_metalLayer setFramebufferOnly:YES];
+      [m_metalLayer setPresentsWithTransaction:NO];
+      [m_metalLayer removeAllAnimations];
+      [m_metalLayer setDevice:metalDevice];
+      m_metalLayer.allowsNextDrawableTimeout = NO;
+      metalInit();
+    }
+    else {
+      ghost_fatal_error_dialog(
+          "[ERROR] Failed to create Metal device for offscreen GHOST Context.\n");
+    }
+  }
+
+  /* Initialize swap-interval. */
+  mtl_SwapInterval = 60;
 }
 
 GHOST_ContextCGL::~GHOST_ContextCGL()
 {
   metalFree();
 
-  if (m_openGLContext != nil) {
-    if (m_openGLContext == [NSOpenGLContext currentContext]) {
-      [NSOpenGLContext clearCurrentContext];
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      if (m_openGLContext == [NSOpenGLContext currentContext]) {
+        [NSOpenGLContext clearCurrentContext];
 
-      if (m_openGLView) {
-        [m_openGLView clearGLContext];
+        if (m_openGLView) {
+          [m_openGLView clearGLContext];
+        }
+      }
+
+      if (m_openGLContext != s_sharedOpenGLContext || s_sharedCount == 1) {
+        assert(s_sharedCount > 0);
+
+        s_sharedCount--;
+
+        if (s_sharedCount == 0)
+          s_sharedOpenGLContext = nil;
+
+        [m_openGLContext release];
       }
     }
+#endif
+  }
 
-    if (m_openGLContext != s_sharedOpenGLContext || s_sharedCount == 1) {
-      assert(s_sharedCount > 0);
-
-      s_sharedCount--;
-
-      if (s_sharedCount == 0)
-        s_sharedOpenGLContext = nil;
-
-      [m_openGLContext release];
+  if (m_ownsMetalDevice) {
+    if (m_metalLayer) {
+      [m_metalLayer release];
+      m_metalLayer = nil;
     }
   }
 }
 
 GHOST_TSuccess GHOST_ContextCGL::swapBuffers()
 {
-  if (m_openGLContext != nil) {
+  GHOST_TSuccess return_value = GHOST_kFailure;
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      if (m_metalView) {
+        metalSwapBuffers();
+      }
+      else if (m_openGLView) {
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        [m_openGLContext flushBuffer];
+        [pool drain];
+      }
+      return_value = GHOST_kSuccess;
+    }
+    else {
+      return_value = GHOST_kFailure;
+    }
+#endif
+  }
+  else {
     if (m_metalView) {
       metalSwapBuffers();
     }
-    else if (m_openGLView) {
-      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-      [m_openGLContext flushBuffer];
-      [pool drain];
-    }
-    return GHOST_kSuccess;
+    return_value = GHOST_kSuccess;
   }
-  else {
-    return GHOST_kFailure;
-  }
+  return return_value;
 }
 
 GHOST_TSuccess GHOST_ContextCGL::setSwapInterval(int interval)
 {
-  if (m_openGLContext != nil) {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    [m_openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
-    [pool drain];
-    return GHOST_kSuccess;
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+      [m_openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
+      [pool drain];
+      return GHOST_kSuccess;
+    }
+    else {
+      return GHOST_kFailure;
+    }
+#endif
   }
   else {
-    return GHOST_kFailure;
+    mtl_SwapInterval = interval;
+    return GHOST_kSuccess;
   }
 }
 
 GHOST_TSuccess GHOST_ContextCGL::getSwapInterval(int &intervalOut)
 {
-  if (m_openGLContext != nil) {
-    GLint interval;
 
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      GLint interval;
 
-    [m_openGLContext getValues:&interval forParameter:NSOpenGLCPSwapInterval];
+      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    [pool drain];
+      [m_openGLContext getValues:&interval forParameter:NSOpenGLCPSwapInterval];
 
-    intervalOut = static_cast<int>(interval);
+      [pool drain];
 
-    return GHOST_kSuccess;
+      intervalOut = static_cast<int>(interval);
+
+      return GHOST_kSuccess;
+    }
+    else {
+      return GHOST_kFailure;
+    }
+#endif
   }
   else {
-    return GHOST_kFailure;
+    intervalOut = mtl_SwapInterval;
+    return GHOST_kSuccess;
   }
 }
 
 GHOST_TSuccess GHOST_ContextCGL::activateDrawingContext()
 {
-  if (m_openGLContext != nil) {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    [m_openGLContext makeCurrentContext];
-    [pool drain];
-    return GHOST_kSuccess;
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+      [m_openGLContext makeCurrentContext];
+      [pool drain];
+      return GHOST_kSuccess;
+    }
+    else {
+      return GHOST_kFailure;
+    }
+#endif
   }
   else {
-    return GHOST_kFailure;
+    return GHOST_kSuccess;
   }
 }
 
 GHOST_TSuccess GHOST_ContextCGL::releaseDrawingContext()
 {
-  if (m_openGLContext != nil) {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    [NSOpenGLContext clearCurrentContext];
-    [pool drain];
-    return GHOST_kSuccess;
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+      [NSOpenGLContext clearCurrentContext];
+      [pool drain];
+      return GHOST_kSuccess;
+    }
+    else {
+      return GHOST_kFailure;
+    }
+#endif
   }
   else {
-    return GHOST_kFailure;
+    return GHOST_kSuccess;
   }
 }
 
 unsigned int GHOST_ContextCGL::getDefaultFramebuffer()
 {
-  return m_defaultFramebuffer;
+
+  if (!m_useMetalForRendering) {
+    return m_defaultFramebuffer;
+  }
+  /* NOTE(Metal): This is not valid. */
+  return 0;
 }
 
 GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 {
-  if (m_openGLContext != nil) {
-    if (m_metalView) {
-      metalUpdateFramebuffer();
-    }
-    else if (m_openGLView) {
-      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-      [m_openGLContext update];
-      [pool drain];
-    }
 
-    return GHOST_kSuccess;
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    if (m_openGLContext != nil) {
+      if (m_metalView) {
+        metalUpdateFramebuffer();
+      }
+      else if (m_openGLView) {
+        @autoreleasepool {
+          [m_openGLContext update];
+        }
+      }
+
+      return GHOST_kSuccess;
+    }
+    else {
+      return GHOST_kFailure;
+    }
+#endif
   }
   else {
-    return GHOST_kFailure;
+    if (m_metalView) {
+      metalUpdateFramebuffer();
+      return GHOST_kSuccess;
+    }
   }
+  return GHOST_kFailure;
+}
+
+id<MTLTexture> GHOST_ContextCGL::metalOverlayTexture()
+{
+  /* Increment Swap-chain - Only needed if context is requesting a new texture */
+  current_swapchain_index = (current_swapchain_index + 1) % METAL_SWAPCHAIN_SIZE;
+
+  /* Ensure backing texture is ready for current swapchain index */
+  updateDrawingContext();
+
+  /* Return texture. */
+  return m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+}
+
+MTLCommandQueue *GHOST_ContextCGL::metalCommandQueue()
+{
+  return m_metalCmdQueue;
+}
+MTLDevice *GHOST_ContextCGL::metalDevice()
+{
+  id<MTLDevice> device = m_metalLayer.device;
+  return (MTLDevice *)device;
+}
+
+void GHOST_ContextCGL::metalRegisterPresentCallback(void (*callback)(
+    MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>))
+{
+  this->contextPresentCallback = callback;
 }
 
 static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
@@ -241,120 +379,134 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 #endif
 
     /* Command-line argument would be better. */
-    static bool softwareGL = getenv("BLENDER_SOFTWAREGL");
+    if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+      /* Command-line argument would be better. */
+      static bool softwareGL = getenv("BLENDER_SOFTWAREGL");
 
-    NSOpenGLPixelFormat *pixelFormat = nil;
-    std::vector<NSOpenGLPixelFormatAttribute> attribs;
-    bool increasedSamplerLimit = false;
+      NSOpenGLPixelFormat *pixelFormat = nil;
+      std::vector<NSOpenGLPixelFormatAttribute> attribs;
+      bool increasedSamplerLimit = false;
 
-    /* Attempt to initialize device with increased sampler limit.
-     * If this is unsupported and initialization fails, initialize GL Context as normal.
-     *
-     * NOTE: This is not available when using the SoftwareGL path, or for Intel-based
-     * platforms. */
-    if (!softwareGL) {
-      if (@available(macos 11.0, *)) {
-        increasedSamplerLimit = true;
-      }
-    }
-    const int max_ctx_attempts = increasedSamplerLimit ? 2 : 1;
-    for (int ctx_create_attempt = 0; ctx_create_attempt < max_ctx_attempts; ctx_create_attempt++) {
-
-      attribs.clear();
-      attribs.reserve(40);
-      makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL, increasedSamplerLimit);
-
-      pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
-      if (pixelFormat == nil) {
-        /* If pixel format creation fails when testing increased sampler limit,
-         * attempt initialization again with feature disabled, otherwise, fail. */
-        if (increasedSamplerLimit) {
-          increasedSamplerLimit = false;
-          continue;
-        }
-        return GHOST_kFailure;
-      }
-
-      /* Attempt to create context. */
-      m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-                                                   shareContext:s_sharedOpenGLContext];
-      [pixelFormat release];
-
-      if (m_openGLContext == nil) {
-        /* If context creation fails when testing increased sampler limit,
-         * attempt re-creation with feature disabled. Otherwise, error. */
-        if (increasedSamplerLimit) {
-          increasedSamplerLimit = false;
-          continue;
-        }
-
-        /* Default context creation attempt failed. */
-        return GHOST_kFailure;
-      }
-
-      /* Created GL context successfully, activate. */
-      [m_openGLContext makeCurrentContext];
-
-      /* When increasing sampler limit, verify created context is a supported configuration. */
-      if (increasedSamplerLimit) {
-        const char *vendor = (const char *)glGetString(GL_VENDOR);
-        const char *renderer = (const char *)glGetString(GL_RENDERER);
-
-        /* If generated context type is unsupported, release existing context and
-         * fallback to creating a normal context below. */
-        if (strstr(vendor, "Intel") || strstr(renderer, "Software")) {
-          [m_openGLContext release];
-          m_openGLContext = nil;
-          increasedSamplerLimit = false;
-          continue;
+      /* Attempt to initialize device with increased sampler limit.
+       * If this is unsupported and initialization fails, initialize GL Context as normal.
+       *
+       * NOTE: This is not available when using the SoftwareGL path, or for Intel-based
+       * platforms. */
+      if (!softwareGL) {
+        if (@available(macos 11.0, *)) {
+          increasedSamplerLimit = true;
         }
       }
-    }
+      const int max_ctx_attempts = increasedSamplerLimit ? 2 : 1;
+      for (int ctx_create_attempt = 0; ctx_create_attempt < max_ctx_attempts;
+           ctx_create_attempt++) {
 
-    if (m_debug) {
-      GLint major = 0, minor = 0;
-      glGetIntegerv(GL_MAJOR_VERSION, &major);
-      glGetIntegerv(GL_MINOR_VERSION, &minor);
-      fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
-      fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
-    }
+        attribs.clear();
+        attribs.reserve(40);
+        makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL, increasedSamplerLimit);
 
-#ifdef GHOST_WAIT_FOR_VSYNC
-    {
-      GLint swapInt = 1;
-      /* Wait for vertical-sync, to avoid tearing artifacts. */
-      [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
-    }
-#endif
+        pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
+        if (pixelFormat == nil) {
+          /* If pixel format creation fails when testing increased sampler limit,
+           * attempt initialization again with feature disabled, otherwise, fail. */
+          if (increasedSamplerLimit) {
+            increasedSamplerLimit = false;
+            continue;
+          }
+          return GHOST_kFailure;
+        }
 
-    if (m_metalView) {
-      if (m_defaultFramebuffer == 0) {
-        /* Create a virtual frame-buffer. */
+        /* Attempt to create context. */
+        m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+                                                     shareContext:s_sharedOpenGLContext];
+        [pixelFormat release];
+
+        if (m_openGLContext == nil) {
+          /* If context creation fails when testing increased sampler limit,
+           * attempt re-creation with feature disabled. Otherwise, error. */
+          if (increasedSamplerLimit) {
+            increasedSamplerLimit = false;
+            continue;
+          }
+
+          /* Default context creation attempt failed. */
+          return GHOST_kFailure;
+        }
+
+        /* Created GL context successfully, activate. */
         [m_openGLContext makeCurrentContext];
-        metalInitFramebuffer();
+
+        /* When increasing sampler limit, verify created context is a supported configuration. */
+        if (increasedSamplerLimit) {
+          const char *vendor = (const char *)glGetString(GL_VENDOR);
+          const char *renderer = (const char *)glGetString(GL_RENDERER);
+
+          /* If generated context type is unsupported, release existing context and
+           * fallback to creating a normal context below. */
+          if (strstr(vendor, "Intel") || strstr(renderer, "Software")) {
+            [m_openGLContext release];
+            m_openGLContext = nil;
+            increasedSamplerLimit = false;
+            continue;
+          }
+        }
+      }
+
+      if (m_debug) {
+        GLint major = 0, minor = 0;
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+        fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
+        fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
+      }
+
+#  ifdef GHOST_WAIT_FOR_VSYNC
+      {
+        GLint swapInt = 1;
+        /* Wait for vertical-sync, to avoid tearing artifacts. */
+        [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+      }
+#  endif
+
+      if (m_metalView) {
+        if (m_defaultFramebuffer == 0) {
+          /* Create a virtual frame-buffer. */
+          [m_openGLContext makeCurrentContext];
+          metalInitFramebuffer();
+          initClearGL();
+        }
+      }
+      else if (m_openGLView) {
+        [m_openGLView setOpenGLContext:m_openGLContext];
+        [m_openGLContext setView:m_openGLView];
         initClearGL();
       }
+
+      [m_openGLContext flushBuffer];
+
+      if (s_sharedCount == 0)
+        s_sharedOpenGLContext = m_openGLContext;
+
+      s_sharedCount++;
+#endif
     }
-    else if (m_openGLView) {
-      [m_openGLView setOpenGLContext:m_openGLContext];
-      [m_openGLContext setView:m_openGLView];
-      initClearGL();
+    else {
+      /* NOTE(Metal): Metal-only path. */
+      if (m_metalView) {
+        metalInitFramebuffer();
+      }
     }
-
-    [m_openGLContext flushBuffer];
-
-    if (s_sharedCount == 0)
-      s_sharedOpenGLContext = m_openGLContext;
-
-    s_sharedCount++;
   }
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextCGL::releaseNativeHandles()
 {
+#if WITH_OPENGL
   m_openGLContext = nil;
   m_openGLView = nil;
+#endif
   m_metalView = nil;
 
   return GHOST_kSuccess;
@@ -404,10 +556,14 @@ void GHOST_ContextCGL::metalInit()
 
       fragment float4 fragment_shader(Vertex v [[stage_in]],
                       texture2d<float> t [[texture(0)]]) {
-        return t.sample(s, v.texCoord);
-      }
 
-      )msl";
+        /* Final blit should ensure alpha is 1.0. This resolves
+         * rendering artifacts for blitting of final backbuffer. */
+        float4 out_tex = t.sample(s, v.texCoord);
+        out_tex.a = 1.0;
+        return out_tex;
+      }
+    )msl";
 
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion1_1;
@@ -424,6 +580,8 @@ void GHOST_ContextCGL::metalInit()
 
     desc.fragmentFunction = [library newFunctionWithName:@"fragment_shader"];
     desc.vertexFunction = [library newFunctionWithName:@"vertex_shader"];
+    /* Ensure library is released. */
+    [library autorelease];
 
     [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT;
 
@@ -433,6 +591,20 @@ void GHOST_ContextCGL::metalInit()
     if (error) {
       ghost_fatal_error_dialog(
           "GHOST_ContextCGL::metalInit: newRenderPipelineStateWithDescriptor:error: failed!");
+    }
+
+    /* Create a render pipeline to composite things rendered with Metal on top
+     * of the frame-buffer contents. Uses the same vertex and fragment shader
+     * as the blit above, but with alpha blending enabled. */
+    desc.label = @"Metal Overlay";
+    desc.colorAttachments[0].blendingEnabled = YES;
+    desc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    desc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+
+    if (error) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
+          "creating the Metal overlay pipeline)!");
     }
   }
 }
@@ -445,123 +617,206 @@ void GHOST_ContextCGL::metalFree()
   if (m_metalRenderPipeline) {
     [m_metalRenderPipeline release];
   }
-  if (m_defaultFramebufferMetalTexture) {
-    [m_defaultFramebufferMetalTexture release];
+
+  for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
+    if (m_defaultFramebufferMetalTexture[i].texture) {
+      [m_defaultFramebufferMetalTexture[i].texture release];
+    }
   }
 }
 
 void GHOST_ContextCGL::metalInitFramebuffer()
 {
-  glGenFramebuffers(1, &m_defaultFramebuffer);
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    glGenFramebuffers(1, &m_defaultFramebuffer);
+#endif
+  }
   updateDrawingContext();
-  glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFramebuffer);
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFramebuffer);
+#endif
+  }
 }
 
 void GHOST_ContextCGL::metalUpdateFramebuffer()
 {
-  assert(m_defaultFramebuffer != 0);
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    assert(m_defaultFramebuffer != 0);
+#endif
+  }
 
   NSRect bounds = [m_metalView bounds];
   NSSize backingSize = [m_metalView convertSizeToBacking:bounds.size];
   size_t width = (size_t)backingSize.width;
   size_t height = (size_t)backingSize.height;
 
-  {
-    /* Test if there is anything to update */
-    id<MTLTexture> tex = (id<MTLTexture>)m_defaultFramebufferMetalTexture;
-    if (tex && tex.width == width && tex.height == height) {
+#if WITH_OPENGL
+  unsigned int glTex;
+  CVPixelBufferRef cvPixelBuffer = nil;
+  CVOpenGLTextureCacheRef cvGLTexCache = nil;
+  CVOpenGLTextureRef cvGLTex = nil;
+  CVMetalTextureCacheRef cvMetalTexCache = nil;
+  CVMetalTextureRef cvMetalTex = nil;
+#endif
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    /* OPENGL path */
+    {
+      /* Test if there is anything to update */
+      id<MTLTexture> tex = m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+      if (tex && tex.width == width && tex.height == height) {
+        return;
+      }
+    }
+
+    activateDrawingContext();
+
+    NSDictionary *cvPixelBufferProps = @{
+      (__bridge NSString *)kCVPixelBufferOpenGLCompatibilityKey : @YES,
+      (__bridge NSString *)kCVPixelBufferMetalCompatibilityKey : @YES,
+    };
+    CVReturn cvret = CVPixelBufferCreate(kCFAllocatorDefault,
+                                         width,
+                                         height,
+                                         METAL_CORE_VIDEO_PIXEL_FORMAT,
+                                         (__bridge CFDictionaryRef)cvPixelBufferProps,
+                                         &cvPixelBuffer);
+    if (cvret != kCVReturnSuccess) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: CVPixelBufferCreate failed!");
+    }
+
+    /* Create an OpenGL texture. */
+    cvret = CVOpenGLTextureCacheCreate(kCFAllocatorDefault,
+                                       nil,
+                                       m_openGLContext.CGLContextObj,
+                                       m_openGLContext.pixelFormat.CGLPixelFormatObj,
+                                       nil,
+                                       &cvGLTexCache);
+    if (cvret != kCVReturnSuccess) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: CVOpenGLTextureCacheCreate failed!");
+    }
+
+    cvret = CVOpenGLTextureCacheCreateTextureFromImage(
+        kCFAllocatorDefault, cvGLTexCache, cvPixelBuffer, nil, &cvGLTex);
+    if (cvret != kCVReturnSuccess) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: "
+          "CVOpenGLTextureCacheCreateTextureFromImage failed!");
+    }
+
+    glTex = CVOpenGLTextureGetName(cvGLTex);
+
+    /* Create a Metal texture. */
+    cvret = CVMetalTextureCacheCreate(
+        kCFAllocatorDefault, nil, m_metalLayer.device, nil, &cvMetalTexCache);
+    if (cvret != kCVReturnSuccess) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: CVMetalTextureCacheCreate failed!");
+    }
+
+    cvret = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                      cvMetalTexCache,
+                                                      cvPixelBuffer,
+                                                      nil,
+                                                      METAL_FRAMEBUFFERPIXEL_FORMAT,
+                                                      width,
+                                                      height,
+                                                      0,
+                                                      &cvMetalTex);
+    if (cvret != kCVReturnSuccess) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: "
+          "CVMetalTextureCacheCreateTextureFromImage failed!");
+    }
+
+    id<MTLTexture> tex = CVMetalTextureGetTexture(cvMetalTex);
+
+    if (!tex) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: CVMetalTextureGetTexture failed!");
+    }
+
+    [m_defaultFramebufferMetalTexture[current_swapchain_index].texture release];
+    m_defaultFramebufferMetalTexture[current_swapchain_index].texture = [tex retain];
+#endif
+  }
+  else {
+    /* NOTE(Metal): Metal API Path. */
+    if (m_defaultFramebufferMetalTexture[current_swapchain_index].texture &&
+        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.width == width &&
+        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.height == height) {
       return;
     }
+
+    /* Free old texture */
+    [m_defaultFramebufferMetalTexture[current_swapchain_index].texture release];
+
+    id<MTLDevice> device = m_metalLayer.device;
+    MTLTextureDescriptor *overlayDesc = [MTLTextureDescriptor
+        texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA16Float
+                                     width:width
+                                    height:height
+                                 mipmapped:NO];
+    overlayDesc.storageMode = MTLStorageModePrivate;
+    overlayDesc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+
+    id<MTLTexture> overlayTex = [device newTextureWithDescriptor:overlayDesc];
+    if (!overlayTex) {
+      ghost_fatal_error_dialog(
+          "GHOST_ContextCGL::metalUpdateFramebuffer: failed to create Metal overlay texture!");
+    }
+    else {
+      overlayTex.label = [NSString
+          stringWithFormat:@"Metal Overlay for GHOST Context %p", this];  //@"";
+
+      // NSLog(@"Created new Metal Overlay (backbuffer) for context %p\n", this);
+    }
+
+    m_defaultFramebufferMetalTexture[current_swapchain_index].texture =
+        overlayTex;  //[(MTLTexture *)overlayTex retain];
+
+    /* Clear texture on create */
+    id<MTLCommandBuffer> cmdBuffer = [m_metalCmdQueue commandBuffer];
+    MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+    {
+      auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
+      attachment.texture = m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+      attachment.loadAction = MTLLoadActionClear;
+      attachment.clearColor = MTLClearColorMake(0.294, 0.294, 0.294, 1.000);
+      attachment.storeAction = MTLStoreActionStore;
+    }
+    {
+      id<MTLRenderCommandEncoder> enc = [cmdBuffer
+          renderCommandEncoderWithDescriptor:passDescriptor];
+      [enc endEncoding];
+    }
+    [cmdBuffer commit];
   }
 
-  activateDrawingContext();
-
-  NSDictionary *cvPixelBufferProps = @{
-    (__bridge NSString *)kCVPixelBufferOpenGLCompatibilityKey : @YES,
-    (__bridge NSString *)kCVPixelBufferMetalCompatibilityKey : @YES,
-  };
-  CVPixelBufferRef cvPixelBuffer = nil;
-  CVReturn cvret = CVPixelBufferCreate(kCFAllocatorDefault,
-                                       width,
-                                       height,
-                                       METAL_CORE_VIDEO_PIXEL_FORMAT,
-                                       (__bridge CFDictionaryRef)cvPixelBufferProps,
-                                       &cvPixelBuffer);
-  if (cvret != kCVReturnSuccess) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: CVPixelBufferCreate failed!");
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFramebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, glTex, 0);
+#endif
   }
-
-  /* Create an OpenGL texture. */
-  CVOpenGLTextureCacheRef cvGLTexCache = nil;
-  cvret = CVOpenGLTextureCacheCreate(kCFAllocatorDefault,
-                                     nil,
-                                     m_openGLContext.CGLContextObj,
-                                     m_openGLContext.pixelFormat.CGLPixelFormatObj,
-                                     nil,
-                                     &cvGLTexCache);
-  if (cvret != kCVReturnSuccess) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: CVOpenGLTextureCacheCreate failed!");
-  }
-
-  CVOpenGLTextureRef cvGLTex = nil;
-  cvret = CVOpenGLTextureCacheCreateTextureFromImage(
-      kCFAllocatorDefault, cvGLTexCache, cvPixelBuffer, nil, &cvGLTex);
-  if (cvret != kCVReturnSuccess) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: "
-        "CVOpenGLTextureCacheCreateTextureFromImage failed!");
-  }
-
-  unsigned int glTex;
-  glTex = CVOpenGLTextureGetName(cvGLTex);
-
-  /* Create a Metal texture. */
-  CVMetalTextureCacheRef cvMetalTexCache = nil;
-  cvret = CVMetalTextureCacheCreate(
-      kCFAllocatorDefault, nil, m_metalLayer.device, nil, &cvMetalTexCache);
-  if (cvret != kCVReturnSuccess) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: CVMetalTextureCacheCreate failed!");
-  }
-
-  CVMetalTextureRef cvMetalTex = nil;
-  cvret = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                    cvMetalTexCache,
-                                                    cvPixelBuffer,
-                                                    nil,
-                                                    METAL_FRAMEBUFFERPIXEL_FORMAT,
-                                                    width,
-                                                    height,
-                                                    0,
-                                                    &cvMetalTex);
-  if (cvret != kCVReturnSuccess) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: "
-        "CVMetalTextureCacheCreateTextureFromImage failed!");
-  }
-
-  MTLTexture *tex = (MTLTexture *)CVMetalTextureGetTexture(cvMetalTex);
-
-  if (!tex) {
-    ghost_fatal_error_dialog(
-        "GHOST_ContextCGL::metalUpdateFramebuffer: CVMetalTextureGetTexture failed!");
-  }
-
-  [m_defaultFramebufferMetalTexture release];
-  m_defaultFramebufferMetalTexture = [tex retain];
-
-  glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFramebuffer);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, glTex, 0);
 
   [m_metalLayer setDrawableSize:CGSizeMake((CGFloat)width, (CGFloat)height)];
-
-  CVPixelBufferRelease(cvPixelBuffer);
-  CVOpenGLTextureCacheRelease(cvGLTexCache);
-  CVOpenGLTextureRelease(cvGLTex);
-  CFRelease(cvMetalTexCache);
-  CFRelease(cvMetalTex);
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    CVPixelBufferRelease(cvPixelBuffer);
+    CVOpenGLTextureCacheRelease(cvGLTexCache);
+    CVOpenGLTextureRelease(cvGLTex);
+    CFRelease(cvMetalTexCache);
+    CFRelease(cvMetalTex);
+#endif
+  }
 }
 
 void GHOST_ContextCGL::metalSwapBuffers()
@@ -570,40 +825,88 @@ void GHOST_ContextCGL::metalSwapBuffers()
   @autoreleasepool {
     /* clang-format on */
     updateDrawingContext();
-    glFlush();
 
-    assert(m_defaultFramebufferMetalTexture != 0);
+    if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+      glFlush();
+      assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
+#endif
+    }
 
     id<CAMetalDrawable> drawable = [m_metalLayer nextDrawable];
     if (!drawable) {
       return;
     }
 
-    id<MTLCommandBuffer> cmdBuffer = [m_metalCmdQueue commandBuffer];
-
     MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     {
       auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
       attachment.texture = drawable.texture;
-      attachment.loadAction = MTLLoadActionDontCare;
+      attachment.loadAction = MTLLoadActionClear;
+      attachment.clearColor = MTLClearColorMake(1.0, 0.294, 0.294, 1.000);
       attachment.storeAction = MTLStoreActionStore;
     }
 
-    id<MTLTexture> srcTexture = (id<MTLTexture>)m_defaultFramebufferMetalTexture;
+    if (!m_useMetalForRendering) {
+      id<MTLCommandBuffer> cmdBuffer = [m_metalCmdQueue commandBuffer];
+      {
+        assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
+        id<MTLRenderCommandEncoder> enc = [cmdBuffer
+            renderCommandEncoderWithDescriptor:passDescriptor];
+        [enc setRenderPipelineState:(id<MTLRenderPipelineState>)m_metalRenderPipeline];
+        [enc setFragmentTexture:m_defaultFramebufferMetalTexture[current_swapchain_index].texture
+                        atIndex:0];
+        [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        [enc endEncoding];
+      }
 
+      [cmdBuffer presentDrawable:drawable];
+
+      /* Submit command buffer */
+      [cmdBuffer commit];
+    }
+    else {
+      assert(contextPresentCallback);
+      assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
+      (*contextPresentCallback)(passDescriptor,
+                                (id<MTLRenderPipelineState>)m_metalRenderPipeline,
+                                m_defaultFramebufferMetalTexture[current_swapchain_index].texture,
+                                drawable);
+    }
+  }
+}
+
+void GHOST_ContextCGL::initClear()
+{
+
+  if (!m_useMetalForRendering) {
+#if WITH_OPENGL
+    glClearColor(0.294, 0.294, 0.294, 0.000);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.000, 0.000, 0.000, 0.000);
+#endif
+  }
+  else {
+#if WITH_METAL
+    // TODO (mg_gpusw_apple) this path is never taken, this is legacy left from inital integration
+    // of metal and gl, the whole file should be cleaned up and stripped of the legacy path
+    id<MTLCommandBuffer> cmdBuffer = [m_metalCmdQueue commandBuffer];
+    MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+    {
+      auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
+      attachment.texture = m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+      attachment.loadAction = MTLLoadActionClear;
+      attachment.clearColor = MTLClearColorMake(0.294, 0.294, 0.294, 1.000);
+      attachment.storeAction = MTLStoreActionStore;
+    }
+
+    // encoding
     {
       id<MTLRenderCommandEncoder> enc = [cmdBuffer
           renderCommandEncoderWithDescriptor:passDescriptor];
-
-      [enc setRenderPipelineState:(id<MTLRenderPipelineState>)m_metalRenderPipeline];
-      [enc setFragmentTexture:srcTexture atIndex:0];
-      [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-
       [enc endEncoding];
     }
-
-    [cmdBuffer presentDrawable:drawable];
-
     [cmdBuffer commit];
+#endif
   }
 }

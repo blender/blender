@@ -13,7 +13,10 @@ namespace blender::nodes::node_shader_tex_white_noise_cc {
 static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .min(-10000.0f)
+      .max(10000.0f)
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("W")).min(-10000.0f).max(10000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is faster. */
     node.custom1 = 1;
@@ -177,7 +180,7 @@ class WhiteNoiseFunction : public fn::MultiFunction {
 static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  builder.construct_and_set_matching_fn<WhiteNoiseFunction>((int)node.custom1);
+  builder.construct_and_set_matching_fn<WhiteNoiseFunction>(int(node.custom1));
 }
 
 }  // namespace blender::nodes::node_shader_tex_white_noise_cc

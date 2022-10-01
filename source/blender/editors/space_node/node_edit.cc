@@ -43,7 +43,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_spreadsheet.h"
+#include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -821,8 +821,8 @@ void ED_node_set_active(
             }
           }
           node->flag |= NODE_DO_OUTPUT;
-          ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
         }
+        blender::ed::viewer_path::activate_geometry_node(*bmain, *snode, *node);
       }
     }
   }
@@ -1694,6 +1694,46 @@ void NODE_OT_preview_toggle(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = node_preview_toggle_exec;
+  ot->poll = ED_operator_node_active;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int node_deactivate_viewer_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  WorkSpace &workspace = *CTX_wm_workspace(C);
+
+  bNode *active_viewer = viewer_path::find_geometry_nodes_viewer(workspace.viewer_path, snode);
+
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+    if (node->type != GEO_NODE_VIEWER) {
+      continue;
+    }
+    if (!(node->flag & SELECT)) {
+      continue;
+    }
+    if (node == active_viewer) {
+      node->flag &= ~NODE_DO_OUTPUT;
+      BKE_ntree_update_tag_node_property(snode.edittree, node);
+    }
+  }
+
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_deactivate_viewer(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Deactivate Viewer Node";
+  ot->description = "Deactivate selected viewer node in geometry nodes";
+  ot->idname = __func__;
+
+  /* callbacks */
+  ot->exec = node_deactivate_viewer_exec;
   ot->poll = ED_operator_node_active;
 
   /* flags */
@@ -2859,8 +2899,8 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode,
   float bufx = backdrop_width * snode->zoom;
   float bufy = backdrop_height * snode->zoom;
 
-  *fx = (bufx > 0.0f ? ((float)x - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  *fy = (bufy > 0.0f ? ((float)y - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  *fx = (bufx > 0.0f ? (float(x) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  *fy = (bufy > 0.0f ? (float(y) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 }
 
 static int viewer_border_exec(bContext *C, wmOperator *op)

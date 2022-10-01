@@ -55,7 +55,7 @@ static bool path_test_extension(const char *str, const char *ext)
 static void endian_switch_uint32(uint *val)
 {
   uint tval = *val;
-  *val = ((tval >> 24)) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | ((tval << 24));
+  *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
 static const char *path_slash_rfind(const char *string)
@@ -158,9 +158,8 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
 
   /* set the individual row-pointers to point at the correct offsets */
   for (i = 0; i < height; i++) {
-    row_pointers[height - 1 - i] = (png_bytep)(((const unsigned char *)pixels) +
-                                               (i * width) * bytesperpixel *
-                                                   sizeof(unsigned char));
+    row_pointers[height - 1 - i] = (png_bytep)(((const uchar *)pixels) +
+                                               (i * width) * bytesperpixel * sizeof(uchar));
   }
 
   /* write out the entire image data in one call */

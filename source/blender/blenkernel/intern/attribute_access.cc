@@ -58,7 +58,7 @@ const char *no_procedural_access_message =
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
-  return !attribute_name.startswith(".sculpt") && !attribute_name.startswith(".selection") &&
+  return !attribute_name.startswith(".sculpt") && !attribute_name.startswith(".select") &&
          !attribute_name.startswith(".hide");
 }
 

@@ -33,6 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
@@ -901,24 +902,22 @@ float blf_font_fixed_width(FontBLF *font)
   return width;
 }
 
-static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
-                                               GlyphCacheBLF *gc,
-                                               const char *str,
-                                               const size_t str_len,
-                                               BLF_GlyphBoundsFn user_fn,
-                                               void *user_data,
-                                               struct ResultBLF *r_info,
-                                               ft_pix pen_y)
+void blf_font_boundbox_foreach_glyph(FontBLF *font,
+                                     const char *str,
+                                     const size_t str_len,
+                                     BLF_GlyphBoundsFn user_fn,
+                                     void *user_data)
 {
   GlyphBLF *g, *g_prev = NULL;
   ft_pix pen_x = 0;
   size_t i = 0, i_curr;
-  rcti gbox_px;
 
   if (str_len == 0 || str[0] == 0) {
     /* early output. */
     return;
   }
+
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
   while ((i < str_len) && str[i]) {
     i_curr = i;
@@ -928,44 +927,95 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
       continue;
     }
     pen_x += blf_kerning(font, g_prev, g);
-    const ft_pix pen_x_next = ft_pix_round_advance(pen_x, g->advance_x);
 
-    gbox_px.xmin = ft_pix_to_int_floor(pen_x);
-    gbox_px.xmax = ft_pix_to_int_ceil(pen_x_next);
-    gbox_px.ymin = ft_pix_to_int_floor(pen_y);
-    gbox_px.ymax = gbox_px.ymin - g->dims[1];
-    const int advance_x_px = gbox_px.xmax - gbox_px.xmin;
+    rcti bounds;
+    bounds.xmin = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_floor(g->box_xmin);
+    bounds.xmax = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_ceil(g->box_xmax);
+    bounds.ymin = ft_pix_to_int_floor(g->box_ymin);
+    bounds.ymax = ft_pix_to_int_ceil(g->box_ymax);
 
-    pen_x = pen_x_next;
-
-    rcti box_px;
-    box_px.xmin = ft_pix_to_int_floor(g->box_xmin);
-    box_px.xmax = ft_pix_to_int_ceil(g->box_xmax);
-    box_px.ymin = ft_pix_to_int_floor(g->box_ymin);
-    box_px.ymax = ft_pix_to_int_ceil(g->box_ymax);
-
-    if (user_fn(str, i_curr, &gbox_px, advance_x_px, &box_px, g->pos, user_data) == false) {
+    if (user_fn(str, i_curr, &bounds, user_data) == false) {
       break;
     }
-
+    pen_x = ft_pix_round_advance(pen_x, g->advance_x);
     g_prev = g;
   }
 
-  if (r_info) {
-    r_info->lines = 1;
-    r_info->width = ft_pix_to_int(pen_x);
-  }
-}
-void blf_font_boundbox_foreach_glyph(FontBLF *font,
-                                     const char *str,
-                                     const size_t str_len,
-                                     BLF_GlyphBoundsFn user_fn,
-                                     void *user_data,
-                                     struct ResultBLF *r_info)
-{
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  blf_font_boundbox_foreach_glyph_ex(font, gc, str, str_len, user_fn, user_data, r_info, 0);
   blf_glyph_cache_release(font);
+}
+
+typedef struct CursorPositionForeachGlyph_Data {
+  /** Horizontal position to test. */
+  int location_x;
+  /** Write the character offset here. */
+  size_t r_offset;
+} CursorPositionForeachGlyph_Data;
+
+static bool blf_cursor_position_foreach_glyph(const char *UNUSED(str),
+                                              const size_t str_step_ofs,
+                                              const rcti *bounds,
+                                              void *user_data)
+{
+  CursorPositionForeachGlyph_Data *data = user_data;
+  if (data->location_x < (bounds->xmin + bounds->xmax) / 2) {
+    data->r_offset = str_step_ofs;
+    return false;
+  }
+  return true;
+}
+
+size_t blf_str_offset_from_cursor_position(struct FontBLF *font,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x)
+{
+  CursorPositionForeachGlyph_Data data = {
+      .location_x = location_x,
+      .r_offset = (size_t)-1,
+  };
+  blf_font_boundbox_foreach_glyph(font, str, str_len, blf_cursor_position_foreach_glyph, &data);
+
+  if (data.r_offset == (size_t)-1) {
+    /* We are to the right of the string, so return position of null terminator. */
+    data.r_offset = BLI_strnlen(str, str_len);
+  }
+  else if (BLI_str_utf8_char_width(&str[data.r_offset]) < 1) {
+    /* This is a combining character (or invalid), so move to previous visible valid char. */
+    BLI_str_cursor_step_prev_utf8(str, str_len, (int *)&data.r_offset);
+  }
+
+  return data.r_offset;
+}
+
+typedef struct StrOffsetToGlyphBounds_Data {
+  size_t str_offset;
+  rcti bounds;
+} StrOffsetToGlyphBounds_Data;
+
+static bool blf_str_offset_foreach_glyph(const char *UNUSED(str),
+                                         const size_t str_step_ofs,
+                                         const rcti *bounds,
+                                         void *user_data)
+{
+  StrOffsetToGlyphBounds_Data *data = user_data;
+  if (data->str_offset == str_step_ofs) {
+    data->bounds = *bounds;
+    return false;
+  }
+  return true;
+}
+
+void blf_str_offset_to_glyph_bounds(struct FontBLF *font,
+                                    const char *str,
+                                    size_t str_offset,
+                                    rcti *glyph_bounds)
+{
+  StrOffsetToGlyphBounds_Data data = {
+      .str_offset = str_offset,
+      .bounds = {0},
+  };
+  blf_font_boundbox_foreach_glyph(font, str, str_offset + 1, blf_str_offset_foreach_glyph, &data);
+  *glyph_bounds = data.bounds;
 }
 
 /** \} */
@@ -1146,38 +1196,6 @@ void blf_font_draw_buffer__wrap(FontBLF *font,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Text Evaluation: Count Missing Characters
- * \{ */
-
-int blf_font_count_missing_chars(FontBLF *font,
-                                 const char *str,
-                                 const size_t str_len,
-                                 int *r_tot_chars)
-{
-  int missing = 0;
-  size_t i = 0;
-
-  *r_tot_chars = 0;
-  while (i < str_len) {
-    uint c;
-
-    if ((c = str[i]) < GLYPH_ASCII_TABLE_SIZE) {
-      i++;
-    }
-    else {
-      c = BLI_str_utf8_as_unicode_step(str, str_len, &i);
-      if (blf_get_char_index(font, c) == 0) {
-        missing++;
-      }
-    }
-    (*r_tot_chars)++;
-  }
-  return missing;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Font Query: Attributes
  * \{ */
 
@@ -1300,7 +1318,6 @@ static void blf_font_fill(FontBLF *font)
   font->clip_rec.ymin = 0;
   font->clip_rec.ymax = 0;
   font->flags = 0;
-  font->dpi = 0;
   font->size = 0;
   BLI_listbase_clear(&font->cache);
   font->kerning_cache = NULL;
@@ -1346,7 +1363,9 @@ bool blf_ensure_face(FontBLF *font)
     if (font->mem) {
       err = FT_New_Memory_Face(font->ft_lib, font->mem, (FT_Long)font->mem_size, 0, &font->face);
     }
-    font->face->generic.data = font;
+    if (!err) {
+      font->face->generic.data = font;
+    }
     BLI_mutex_unlock(&ft_lib_mutex);
   }
 
@@ -1611,8 +1630,8 @@ void blf_ensure_size(FontBLF *font)
   scaler.width = 0;
   scaler.height = round_fl_to_uint(font->size * 64.0f);
   scaler.pixel = 0;
-  scaler.x_res = font->dpi;
-  scaler.y_res = font->dpi;
+  scaler.x_res = BLF_DPI;
+  scaler.y_res = BLF_DPI;
   if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) == FT_Err_Ok) {
     font->ft_size->generic.data = (void *)font;
     font->ft_size->generic.finalizer = blf_size_finalizer;
@@ -1622,7 +1641,7 @@ void blf_ensure_size(FontBLF *font)
   BLI_assert_unreachable();
 }
 
-bool blf_font_size(FontBLF *font, float size, uint dpi)
+bool blf_font_size(FontBLF *font, float size)
 {
   if (!blf_ensure_face(font)) {
     return false;
@@ -1633,15 +1652,15 @@ bool blf_font_size(FontBLF *font, float size, uint dpi)
   /* Adjust our new size to be on even 64ths. */
   size = (float)ft_size / 64.0f;
 
-  if (font->size != size || font->dpi != dpi) {
+  if (font->size != size) {
     if (font->flags & BLF_CACHED) {
       FTC_ScalerRec scaler = {0};
       scaler.face_id = font;
       scaler.width = 0;
       scaler.height = ft_size;
       scaler.pixel = 0;
-      scaler.x_res = dpi;
-      scaler.y_res = dpi;
+      scaler.x_res = BLF_DPI;
+      scaler.y_res = BLF_DPI;
       if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) != FT_Err_Ok) {
         return false;
       }
@@ -1649,7 +1668,7 @@ bool blf_font_size(FontBLF *font, float size, uint dpi)
       font->ft_size->generic.finalizer = blf_size_finalizer;
     }
     else {
-      if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) != FT_Err_Ok) {
+      if (FT_Set_Char_Size(font->face, 0, ft_size, BLF_DPI, BLF_DPI) != FT_Err_Ok) {
         return false;
       }
       font->ft_size = font->face->size;
@@ -1657,7 +1676,6 @@ bool blf_font_size(FontBLF *font, float size, uint dpi)
   }
 
   font->size = size;
-  font->dpi = dpi;
   return true;
 }
 

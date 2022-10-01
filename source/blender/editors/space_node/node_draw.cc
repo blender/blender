@@ -60,6 +60,7 @@
 #include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_viewer_path.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.h"
@@ -94,6 +95,14 @@ extern void ui_draw_dropshadow(
  * This is passed to many functions which draw the node editor.
  */
 struct TreeDrawContext {
+  /**
+   * Whether a viewer node is active in geometry nodes can not be determined by a flag on the node
+   * alone. That's because if the node group with the viewer is used multiple times, it's only
+   * active in one of these cases.
+   * The active node is cached here to avoid doing the more expensive check for every viewer node
+   * in the tree.
+   */
+  const bNode *active_geometry_nodes_viewer = nullptr;
   /**
    * Geometry nodes logs various data during execution. The logged data that corresponds to the
    * currently drawn node tree can be retrieved from the log below.
@@ -432,7 +441,7 @@ static void node_update_basis(const bContext &C,
     float aspect = 1.0f;
 
     if (node.preview_xsize && node.preview_ysize) {
-      aspect = (float)node.preview_ysize / (float)node.preview_xsize;
+      aspect = float(node.preview_ysize) / float(node.preview_xsize);
     }
 
     dy -= NODE_DYS / 2;
@@ -597,7 +606,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   float hiddenrad = HIDDEN_RAD;
   float tot = MAX2(totin, totout);
   if (tot > 4) {
-    hiddenrad += 5.0f * (float)(tot - 4);
+    hiddenrad += 5.0f * float(tot - 4);
   }
 
   node.totr.xmin = loc.x;
@@ -606,7 +615,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   node.totr.ymin = node.totr.ymax - 2 * hiddenrad;
 
   /* Output sockets. */
-  float rad = (float)M_PI / (1.0f + (float)totout);
+  float rad = float(M_PI) / (1.0f + float(totout));
   float drad = rad;
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
@@ -619,7 +628,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   }
 
   /* Input sockets. */
-  rad = drad = -(float)M_PI / (1.0f + (float)totin);
+  rad = drad = -float(M_PI) / (1.0f + float(totin));
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
     if (!nodeSocketIsHidden(socket)) {
@@ -639,15 +648,19 @@ static void node_update_hidden(bNode &node, uiBlock &block)
                                node.totr.ymax);
 }
 
-static int node_get_colorid(const bNode &node)
+static int node_get_colorid(TreeDrawContext &tree_draw_ctx, const bNode &node)
 {
   const int nclass = (node.typeinfo->ui_class == nullptr) ? node.typeinfo->nclass :
                                                             node.typeinfo->ui_class(&node);
   switch (nclass) {
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
-    case NODE_CLASS_OUTPUT:
+    case NODE_CLASS_OUTPUT: {
+      if (node.type == GEO_NODE_VIEWER) {
+        return &node == tree_draw_ctx.active_geometry_nodes_viewer ? TH_NODE_OUTPUT : TH_NODE;
+      }
       return (node.flag & NODE_DO_OUTPUT) ? TH_NODE_OUTPUT : TH_NODE;
+    }
     case NODE_CLASS_CONVERTER:
       return TH_NODE_CONVERTER;
     case NODE_CLASS_OP_COLOR:
@@ -1293,20 +1306,20 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
   float xrect = BLI_rctf_size_x(prv);
   float yrect = BLI_rctf_size_y(prv);
-  float xscale = xrect / ((float)preview->xsize);
-  float yscale = yrect / ((float)preview->ysize);
+  float xscale = xrect / float(preview->xsize);
+  float yscale = yrect / float(preview->ysize);
   float scale;
 
   /* Uniform scale and offset. */
   rctf draw_rect = *prv;
   if (xscale < yscale) {
-    float offset = 0.5f * (yrect - ((float)preview->ysize) * xscale);
+    float offset = 0.5f * (yrect - float(preview->ysize) * xscale);
     draw_rect.ymin += offset;
     draw_rect.ymax -= offset;
     scale = xscale;
   }
   else {
-    float offset = 0.5f * (xrect - ((float)preview->xsize) * yscale);
+    float offset = 0.5f * (xrect - float(preview->xsize) * yscale);
     draw_rect.xmin += offset;
     draw_rect.xmax -= offset;
     scale = yscale;
@@ -1930,8 +1943,8 @@ static void node_draw_extra_info_row(const bNode &node,
                                  UI_BTYPE_BUT,
                                  0,
                                  extra_info_row.icon,
-                                 (int)but_icon_left,
-                                 (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
+                                 int(but_icon_left),
+                                 int(rect.ymin + row * (20.0f * U.dpi_fac)),
                                  but_icon_width,
                                  UI_UNIT_Y,
                                  nullptr,
@@ -1956,10 +1969,10 @@ static void node_draw_extra_info_row(const bNode &node,
                              UI_BTYPE_LABEL,
                              0,
                              extra_info_row.text.c_str(),
-                             (int)but_text_left,
-                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                             (short)but_text_width,
-                             (short)NODE_DY,
+                             int(but_text_left),
+                             int(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             short(but_text_width),
+                             short(NODE_DY),
                              nullptr,
                              0,
                              0,
@@ -2055,7 +2068,7 @@ static void node_draw_basis(const bContext &C,
 
   const rctf &rct = node.totr;
   float color[4];
-  int color_id = node_get_colorid(node);
+  int color_id = node_get_colorid(tree_draw_ctx, node);
 
   GPU_line_width(1.0f);
 
@@ -2153,6 +2166,29 @@ static void node_draw_basis(const bContext &C,
                  "");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
+  if (node.type == GEO_NODE_VIEWER) {
+    const bool is_active = &node == tree_draw_ctx.active_geometry_nodes_viewer;
+    iconofs -= iconbutw;
+    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+    uiBut *but = uiDefIconBut(&block,
+                              UI_BTYPE_BUT,
+                              0,
+                              is_active ? ICON_HIDE_OFF : ICON_HIDE_ON,
+                              iconofs,
+                              rct.ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              nullptr,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+    /* Selection implicitly activates the node. */
+    const char *operator_idname = is_active ? "NODE_OT_deactivate_viewer" : "NODE_OT_select";
+    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)operator_idname);
+    UI_block_emboss_set(&block, UI_EMBOSS);
+  }
 
   node_add_error_message_button(tree_draw_ctx, node, block, rct, iconofs);
 
@@ -2195,10 +2231,10 @@ static void node_draw_basis(const bContext &C,
                         UI_BTYPE_LABEL,
                         0,
                         showname,
-                        (int)(rct.xmin + NODE_MARGIN_X + 0.4f),
-                        (int)(rct.ymax - NODE_DY),
-                        (short)(iconofs - rct.xmin - (18.0f * U.dpi_fac)),
-                        (short)NODE_DY,
+                        int(rct.xmin + NODE_MARGIN_X + 0.4f),
+                        int(rct.ymax - NODE_DY),
+                        short(iconofs - rct.xmin - (18.0f * U.dpi_fac)),
+                        short(NODE_DY),
                         nullptr,
                         0,
                         0,
@@ -2341,7 +2377,7 @@ static void node_draw_hidden(const bContext &C,
   float scale;
   UI_view2d_scale_get(&v2d, &scale, nullptr);
 
-  const int color_id = node_get_colorid(node);
+  const int color_id = node_get_colorid(tree_draw_ctx, node);
 
   node_draw_extra_info_panel(tree_draw_ctx, snode, node, block);
 
@@ -2425,8 +2461,8 @@ static void node_draw_hidden(const bContext &C,
                         showname,
                         round_fl_to_int(rct.xmin + NODE_MARGIN_X),
                         round_fl_to_int(centy - NODE_DY * 0.5f),
-                        (short)(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * U.dpi_fac)),
-                        (short)NODE_DY,
+                        short(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * U.dpi_fac)),
+                        short(NODE_DY),
                         nullptr,
                         0,
                         0,
@@ -2698,7 +2734,8 @@ static void node_update_nodetree(const bContext &C,
   }
 }
 
-static void frame_node_draw_label(const bNodeTree &ntree,
+static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
+                                  const bNodeTree &ntree,
                                   const bNode &node,
                                   const SpaceNode &snode)
 {
@@ -2714,15 +2751,15 @@ static void frame_node_draw_label(const bNodeTree &ntree,
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
   /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24.0f, font_size) * U.pixelsize, U.dpi);
+  BLF_size(fontid, MIN2(24.0f, font_size) * U.dpi_fac);
 
   /* title color */
-  int color_id = node_get_colorid(node);
+  int color_id = node_get_colorid(tree_draw_ctx, node);
   uchar color[3];
   UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
   BLF_color3ubv(fontid, color);
 
-  const float margin = (float)(NODE_DY / 4);
+  const float margin = float(NODE_DY / 4);
   const float width = BLF_width(fontid, label, sizeof(label));
   const float ascender = BLF_ascender(fontid);
   const int label_height = ((margin / aspect) + (ascender * aspect));
@@ -2831,7 +2868,7 @@ static void frame_node_draw(const bContext &C,
   }
 
   /* label and text */
-  frame_node_draw_label(ntree, node, snode);
+  frame_node_draw_label(tree_draw_ctx, ntree, node, snode);
 
   node_draw_extra_info_panel(tree_draw_ctx, snode, node, block);
 
@@ -2866,7 +2903,7 @@ static void reroute_node_draw(
                                 x,
                                 y,
                                 width,
-                                (short)NODE_DY,
+                                short(NODE_DY),
                                 nullptr,
                                 0,
                                 0,
@@ -3013,7 +3050,7 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
   UI_view2d_view_ortho(&v2d);
 
   /* Aspect + font, set each time. */
-  snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / (float)region.winx;
+  snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / float(region.winx);
   // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 
@@ -3036,6 +3073,9 @@ static void draw_nodetree(const bContext &C,
       tree_draw_ctx.geo_tree_log->ensure_node_warnings();
       tree_draw_ctx.geo_tree_log->ensure_node_run_time();
     }
+    WorkSpace *workspace = CTX_wm_workspace(&C);
+    tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
+        workspace->viewer_path, *snode);
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);

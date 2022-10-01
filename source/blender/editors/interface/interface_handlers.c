@@ -3017,23 +3017,6 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
   return changed;
 }
 
-static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
-                                                     const size_t str_step_ofs,
-                                                     const rcti *glyph_step_bounds,
-                                                     const int UNUSED(glyph_advance_x),
-                                                     const rcti *glyph_bounds,
-                                                     const int UNUSED(glyph_bearing[2]),
-                                                     void *user_data)
-{
-  int *cursor_data = user_data;
-  const int center = glyph_step_bounds->xmin + (BLI_rcti_size_x(glyph_bounds) / 2.0f);
-  if (cursor_data[0] < center) {
-    cursor_data[1] = str_step_ofs;
-    return false;
-  }
-  return true;
-}
-
 /**
  * \param x: Screen space cursor location - #wmEvent.x
  *
@@ -3064,7 +3047,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
       startx += UI_DPI_ICON_SIZE / aspect;
     }
   }
-  startx += (UI_TEXT_MARGIN_X * U.widget_unit) / aspect;
+  startx += (UI_TEXT_MARGIN_X * U.widget_unit - U.pixelsize) / aspect;
 
   /* mouse dragged outside the widget to the left */
   if (x < startx) {
@@ -3088,23 +3071,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
   }
   /* mouse inside the widget, mouse coords mapped in widget space */
   else {
-    str_last = &str[but->ofs];
-    const int str_last_len = strlen(str_last);
-    const int x_pos = (int)(x - startx);
-    int glyph_data[2] = {
-        x_pos, /* horizontal position to test. */
-        -1,    /* Write the character offset here. */
-    };
-    BLF_boundbox_foreach_glyph(fstyle.uifont_id,
-                               str + but->ofs,
-                               INT_MAX,
-                               ui_textedit_set_cursor_pos_foreach_glyph,
-                               glyph_data);
-    /* If value untouched then we are to the right. */
-    if (glyph_data[1] == -1) {
-      glyph_data[1] = str_last_len;
-    }
-    but->pos = glyph_data[1] + but->ofs;
+    but->pos = but->ofs + BLF_str_offset_from_cursor_position(
+                              fstyle.uifont_id, str + but->ofs, INT_MAX, (int)(x - startx));
   }
 
   ui_but_text_password_hide(password_str, but, true);
@@ -6152,7 +6120,7 @@ static bool ui_numedit_but_UNITVEC(
      * do this in "angle" space - this gives increments of same size */
     for (int i = 0; i < 3; i++) {
       angle = asinf(fp[i]);
-      angle_snap = roundf((angle / snap_steps_angle)) * snap_steps_angle;
+      angle_snap = roundf(angle / snap_steps_angle) * snap_steps_angle;
       fp[i] = sinf(angle_snap);
     }
     normalize_v3(fp);
@@ -9585,8 +9553,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   else if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
          (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0) ||
-        ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
-          (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0))) {
+        (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
+         (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0)) {
       const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
       int value, min, max;
 

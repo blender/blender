@@ -13,7 +13,10 @@ namespace blender::nodes::node_shader_tex_brick_cc {
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .min(-10000.0f)
+      .max(10000.0f)
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Color>(N_("Color1")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_input<decl::Color>(N_("Color2")).default_value({0.2f, 0.2f, 0.2f, 1.0f});
   b.add_input<decl::Color>(N_("Mortar")).default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
@@ -147,7 +150,7 @@ class BrickFunction : public fn::MultiFunction {
     n = (n + 1013) & 0x7fffffff;
     n = (n >> 13) ^ n;
     const uint nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
-    return 0.5f * ((float)nn / 1073741824.0f);
+    return 0.5f * (float(nn) / 1073741824.0f);
   }
 
   static float smoothstepf(const float f)
@@ -169,14 +172,14 @@ class BrickFunction : public fn::MultiFunction {
   {
     float offset = 0.0f;
 
-    const int rownum = (int)floorf(p.y / row_height);
+    const int rownum = int(floorf(p.y / row_height));
 
     if (offset_frequency && squash_frequency) {
       brick_width *= (rownum % squash_frequency) ? 1.0f : squash_amount;
       offset = (rownum % offset_frequency) ? 0.0f : (brick_width * offset_amount);
     }
 
-    const int bricknum = (int)floorf((p.x + offset) / brick_width);
+    const int bricknum = int(floorf((p.x + offset) / brick_width));
 
     const float x = (p.x + offset) - brick_width * bricknum;
     const float y = p.y - row_height * rownum;

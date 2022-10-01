@@ -502,7 +502,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   /* Create objects and set scene frame range. */
 
-  const float size = static_cast<float>(data->readers.size());
+  const float size = float(data->readers.size());
   size_t i = 0;
 
   chrono_t min_time = std::numeric_limits<chrono_t>::max();
@@ -542,8 +542,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
       scene->r.cfra = scene->r.sfra;
     }
     else if (min_time < max_time) {
-      scene->r.sfra = static_cast<int>(round(min_time * FPS));
-      scene->r.efra = static_cast<int>(round(max_time * FPS));
+      scene->r.sfra = int(round(min_time * FPS));
+      scene->r.efra = int(round(max_time * FPS));
       scene->r.cfra = scene->r.sfra;
     }
   }

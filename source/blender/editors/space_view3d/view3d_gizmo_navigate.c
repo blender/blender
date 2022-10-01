@@ -267,7 +267,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
       icon_offset_from_axis = icon_offset * 2.1f;
       break;
     case USER_MINI_AXIS_TYPE_MINIMAL:
-      icon_offset_from_axis = (UI_UNIT_X * 2.5) + ((U.rvisize * U.pixelsize * 2.0f));
+      icon_offset_from_axis = (UI_UNIT_X * 2.5) + (U.rvisize * U.pixelsize * 2.0f);
       break;
     case USER_MINI_AXIS_TYPE_NONE:
       icon_offset_from_axis = icon_offset_mini * 0.75f;

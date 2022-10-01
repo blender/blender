@@ -52,29 +52,29 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
                               const float cursor_position[2])
 {
   BLI_assert(curve_mask_cache->curve_mask != nullptr);
-  int offset = (int)floorf(diameter / 2.0f);
+  int offset = int(floorf(diameter / 2.0f));
   int clamped_radius = max_ff(radius, 1.0);
 
-  unsigned short *m = curve_mask_cache->curve_mask;
+  ushort *m = curve_mask_cache->curve_mask;
 
   const int aa_samples = aa_samples_per_texel_axis(brush, radius);
-  const float aa_offset = 1.0f / (2.0f * (float)aa_samples);
-  const float aa_step = 1.0f / (float)aa_samples;
+  const float aa_offset = 1.0f / (2.0f * float(aa_samples));
+  const float aa_step = 1.0f / float(aa_samples);
 
   float bpos[2];
   bpos[0] = cursor_position[0] - floorf(cursor_position[0]) + offset;
   bpos[1] = cursor_position[1] - floorf(cursor_position[1]) + offset;
 
-  float weight_factor = 65535.0f / (float)(aa_samples * aa_samples);
+  float weight_factor = 65535.0f / float(aa_samples * aa_samples);
 
   for (int y = 0; y < diameter; y++) {
     for (int x = 0; x < diameter; x++, m++) {
       float pixel_xy[2];
-      pixel_xy[0] = static_cast<float>(x) + aa_offset;
+      pixel_xy[0] = float(x) + aa_offset;
       float total_weight = 0;
 
       for (int i = 0; i < aa_samples; i++) {
-        pixel_xy[1] = static_cast<float>(y) + aa_offset;
+        pixel_xy[1] = float(y) + aa_offset;
         for (int j = 0; j < aa_samples; j++) {
           const float len = len_v2v2(pixel_xy, bpos);
           const int sample_index = min_ii((len / clamped_radius) * CurveSamplesBaseLen,
@@ -87,7 +87,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
         }
         pixel_xy[0] += aa_step;
       }
-      *m = (unsigned short)(total_weight * weight_factor);
+      *m = ushort(total_weight * weight_factor);
     }
   }
 }
@@ -140,8 +140,7 @@ static void curve_mask_free(CurveMaskCache *curve_mask_cache)
 static void curve_mask_allocate(CurveMaskCache *curve_mask_cache, const int diameter)
 {
   const size_t curve_mask_size = diameter_to_curve_mask_size(diameter);
-  curve_mask_cache->curve_mask = static_cast<unsigned short *>(
-      MEM_mallocN(curve_mask_size, __func__));
+  curve_mask_cache->curve_mask = static_cast<ushort *>(MEM_mallocN(curve_mask_size, __func__));
   curve_mask_cache->curve_mask_size = curve_mask_size;
 }
 

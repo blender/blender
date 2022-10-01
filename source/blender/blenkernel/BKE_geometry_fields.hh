@@ -145,6 +145,7 @@ class GeometryFieldInput : public fn::FieldInput {
                                  ResourceScope &scope) const override;
   virtual GVArray get_varray_for_context(const GeometryFieldContext &context,
                                          IndexMask mask) const = 0;
+  virtual std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const;
 };
 
 class MeshFieldInput : public fn::FieldInput {
@@ -156,6 +157,7 @@ class MeshFieldInput : public fn::FieldInput {
   virtual GVArray get_varray_for_context(const Mesh &mesh,
                                          eAttrDomain domain,
                                          IndexMask mask) const = 0;
+  virtual std::optional<eAttrDomain> preferred_domain(const Mesh &mesh) const;
 };
 
 class CurvesFieldInput : public fn::FieldInput {
@@ -167,6 +169,7 @@ class CurvesFieldInput : public fn::FieldInput {
   virtual GVArray get_varray_for_context(const CurvesGeometry &curves,
                                          eAttrDomain domain,
                                          IndexMask mask) const = 0;
+  virtual std::optional<eAttrDomain> preferred_domain(const CurvesGeometry &curves) const;
 };
 
 class PointCloudFieldInput : public fn::FieldInput {
@@ -218,6 +221,7 @@ class AttributeFieldInput : public GeometryFieldInput {
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override;
 };
 
 class IDAttributeFieldInput : public GeometryFieldInput {
@@ -292,6 +296,7 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override;
 };
 
 class CurveLengthFieldInput final : public CurvesFieldInput {
@@ -303,5 +308,17 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
+
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::GField &field);
+
+/**
+ * Try to find the geometry domain that the field should be evaluated on. If it is not obvious
+ * which domain is correct, none is returned.
+ */
+std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &component,
+                                                   const fn::GField &field);
 
 }  // namespace blender::bke

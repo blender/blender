@@ -88,12 +88,13 @@ set(SRC
   intern/draw_instance_data.c
   intern/draw_manager.c
   intern/draw_manager.cc
-  intern/draw_manager_data.c
+  intern/draw_manager_data.cc
   intern/draw_manager_exec.c
   intern/draw_manager_profiling.c
   intern/draw_manager_shader.c
-  intern/draw_manager_text.c
+  intern/draw_manager_text.cc
   intern/draw_manager_texture.c
+  intern/draw_pbvh.cc
   intern/draw_select_buffer.c
   intern/draw_shader.cc
   intern/draw_texture_pool.cc
@@ -201,11 +202,13 @@ set(SRC
   engines/overlay/overlay_sculpt.cc
   engines/overlay/overlay_sculpt_curves.cc
   engines/overlay/overlay_shader.cc
+  engines/overlay/overlay_viewer_attribute.cc
   engines/overlay/overlay_volume.cc
   engines/overlay/overlay_wireframe.cc
 
   DRW_engine.h
   DRW_select_buffer.h
+  DRW_pbvh.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
   intern/draw_attributes.h
@@ -228,6 +231,7 @@ set(SRC
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
+  intern/draw_pbvh.h
   intern/draw_pass.hh
   intern/draw_resource.cc
   intern/draw_resource.hh
@@ -555,6 +559,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_armature_envelope_solid_vert.glsl
   engines/overlay/shaders/overlay_armature_shape_outline_geom.glsl
   engines/overlay/shaders/overlay_armature_shape_outline_vert.glsl
+  engines/overlay/shaders/overlay_armature_shape_outline_vert_no_geom.glsl
   engines/overlay/shaders/overlay_armature_shape_solid_frag.glsl
   engines/overlay/shaders/overlay_armature_shape_solid_vert.glsl
   engines/overlay/shaders/overlay_armature_shape_wire_vert.glsl
@@ -572,6 +577,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_depth_only_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_handle_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
@@ -587,6 +593,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_edit_mesh_normal_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_particle_point_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_strand_vert.glsl
   engines/overlay/shaders/overlay_edit_uv_edges_frag.glsl
@@ -619,6 +626,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_motion_path_line_frag.glsl
   engines/overlay/shaders/overlay_motion_path_line_geom.glsl
   engines/overlay/shaders/overlay_motion_path_line_vert.glsl
+  engines/overlay/shaders/overlay_motion_path_line_vert_no_geom.glsl
   engines/overlay/shaders/overlay_motion_path_point_vert.glsl
   engines/overlay/shaders/overlay_outline_detect_frag.glsl
   engines/overlay/shaders/overlay_outline_prepass_curves_vert.glsl
@@ -641,12 +649,18 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_particle_vert.glsl
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
+  engines/overlay/shaders/overlay_pointcloud_only_vert.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
   engines/overlay/shaders/overlay_sculpt_mask_frag.glsl
   engines/overlay/shaders/overlay_sculpt_mask_vert.glsl
   engines/overlay/shaders/overlay_uniform_color_frag.glsl
   engines/overlay/shaders/overlay_varying_color.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_curve_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_curves_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_frag.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_mesh_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_volume_gridlines_vert.glsl
   engines/overlay/shaders/overlay_volume_velocity_vert.glsl
   engines/overlay/shaders/overlay_wireframe_frag.glsl

@@ -466,7 +466,7 @@ TEST(path_util, PathFrameStrip)
 #define PATH_EXTENSION_CHECK(input_path, input_ext, expect_ext) \
   { \
     const bool ret = BLI_path_extension_check(input_path, input_ext); \
-    if (strcmp(input_ext, expect_ext) == 0) { \
+    if (STREQ(input_ext, expect_ext)) { \
       EXPECT_TRUE(ret); \
     } \
     else { \
@@ -651,7 +651,7 @@ TEST(path_util, PathRelPath)
     abs_path_in[FILE_MAX - 1] = '\0';
     abs_path_out[0] = '/';
     abs_path_out[1] = '/';
-    for (int i = 2; i < FILE_MAX - ((int)ref_path_in_len - 1); i++) {
+    for (int i = 2; i < FILE_MAX - (int(ref_path_in_len) - 1); i++) {
       abs_path_out[i] = 'A';
     }
     abs_path_out[FILE_MAX - (ref_path_in_len - 1)] = '\0';

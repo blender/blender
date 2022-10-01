@@ -619,7 +619,7 @@ struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *elem
   return element_map->head_table;
 }
 
-#define INVALID_ISLAND ((unsigned int)-1)
+#define INVALID_ISLAND ((uint)-1)
 
 static void bm_uv_assign_island(UvElementMap *element_map,
                                 UvElement *element,

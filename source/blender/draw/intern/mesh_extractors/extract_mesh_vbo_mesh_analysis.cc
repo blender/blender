@@ -67,8 +67,8 @@ BLI_INLINE float overhang_remap(float fac, float min, float max, float minmax_ir
 static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
 {
   const MeshStatVis *statvis = &mr->toolsettings->statvis;
-  const float min = statvis->overhang_min / (float)M_PI;
-  const float max = statvis->overhang_max / (float)M_PI;
+  const float min = statvis->overhang_min / float(M_PI);
+  const float max = statvis->overhang_max / float(M_PI);
   const char axis = statvis->overhang_axis;
   BMEditMesh *em = mr->edit_bmesh;
   BMIter iter;
@@ -88,7 +88,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     int l_index = 0;
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      float fac = angle_normalized_v3v3(bm_face_no_get(mr, f), dir) / (float)M_PI;
+      float fac = angle_normalized_v3v3(bm_face_no_get(mr, f), dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
       for (int i = 0; i < f->len; i++, l_index++) {
         r_overhang[l_index] = fac;
@@ -98,7 +98,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   else {
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float fac = angle_normalized_v3v3(mr->poly_normals[mp_index], dir) / (float)M_PI;
+      float fac = angle_normalized_v3v3(mr->poly_normals[mp_index], dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
       for (int i = 0; i < mp->totloop; i++, l_index++) {
         r_overhang[l_index] = fac;

@@ -53,7 +53,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (use_pbvh) {
-    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true);
+    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false);
   }
   else {
     sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(static_cast<Mesh *>(ob->data));

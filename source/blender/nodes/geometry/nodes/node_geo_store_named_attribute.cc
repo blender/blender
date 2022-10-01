@@ -49,9 +49,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_geometry = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_geometry = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *socket_name = socket_geometry->next;
   bNodeSocket *socket_vector = socket_name->next;
   bNodeSocket *socket_float = socket_vector->next;
@@ -71,10 +71,11 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
+  search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
 
   if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-        static_cast<eNodeSocketDatatype>(params.other_socket().type));
+        eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
       params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -84,56 +85,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       });
     }
   }
-}
-
-static void try_capture_field_on_geometry(GeometryComponent &component,
-                                          const StringRef name,
-                                          const eAttrDomain domain,
-                                          const GField &field,
-                                          std::atomic<bool> &r_failure)
-{
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
-  const int domain_size = attributes.domain_size(domain);
-  if (domain_size == 0) {
-    return;
-  }
-
-  bke::GeometryFieldContext field_context{component, domain};
-  const IndexMask mask{IndexMask(domain_size)};
-
-  const CPPType &type = field.cpp_type();
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
-  const bke::AttributeValidator validator = attributes.lookup_validator(name);
-
-  /* Could avoid allocating a new buffer if:
-   * - We are writing to an attribute that exists already with the correct domain and type.
-   * - The field does not depend on that attribute (we can't easily check for that yet). */
-  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
-
-  fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(validator.validate_field_if_necessary(field),
-                                 GMutableSpan{type, buffer, domain_size});
-  evaluator.evaluate();
-
-  if (GAttributeWriter attribute = attributes.lookup_for_write(name)) {
-    if (attribute.domain == domain && attribute.varray.type() == type) {
-      attribute.varray.set_all(buffer);
-      attribute.finish();
-      type.destruct_n(buffer, domain_size);
-      MEM_freeN(buffer);
-      return;
-    }
-  }
-  attributes.remove(name);
-  if (attributes.add(name, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
-    return;
-  }
-
-  /* If the name corresponds to a builtin attribute, removing the attribute might fail if
-   * it's required, and adding the attribute might fail if the domain or type is incorrect. */
-  type.destruct_n(buffer, domain_size);
-  MEM_freeN(buffer);
-  r_failure = true;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -154,8 +105,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.used_named_attribute(name, NamedAttributeUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   GField field;
   switch (data_type) {
@@ -191,7 +142,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
-      try_capture_field_on_geometry(component, name, domain, field, failure);
+      if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
+        failure.store(true);
+      }
     }
   }
   else {
@@ -200,7 +153,9 @@ static void node_geo_exec(GeoNodeExecParams params)
            {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          try_capture_field_on_geometry(component, name, domain, field, failure);
+          if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
+            failure.store(true);
+          }
         }
       }
     });

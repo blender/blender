@@ -22,6 +22,17 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .vertex_source("overlay_edit_mesh_vert.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
+    .define("blender_srgb_to_framebuffer_space(a)", "a")
+    .sampler(0, ImageType::DEPTH_2D, "depthTex")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .push_constant(Type::BOOL, "selectFaces")
+    .push_constant(Type::BOOL, "selectEdges")
+    .push_constant(Type::FLOAT, "alpha")
+    .push_constant(Type::IVEC4, "dataMask")
+    .vertex_source("overlay_edit_mesh_vert_no_geom.glsl")
+    .additional_info("draw_modelmat", "draw_globals");
+
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_vert_iface, "")
     .smooth(Type::VEC4, "finalColor")
     .smooth(Type::FLOAT, "vertexCrease");
@@ -61,10 +72,27 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
     .fragment_source("overlay_edit_mesh_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
+/* The Non-Geometry shader variant passes directly to fragment. */
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .define("EDGE")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::UCHAR4, "data")
+    .vertex_in(2, Type::VEC3_101010I2, "vnor")
+    .push_constant(Type::BOOL, "do_smooth_wire")
+    .vertex_out(overlay_edit_mesh_edge_geom_iface)
+    .fragment_source("overlay_edit_mesh_frag.glsl")
+    .additional_info("overlay_edit_mesh_common_no_geom");
+
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat)
     .do_static_compilation(true)
     .define("FLAT")
     .additional_info("overlay_edit_mesh_edge");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .define("FLAT")
+    .additional_info("overlay_edit_mesh_edge_no_geom");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .do_static_compilation(true)
@@ -136,9 +164,17 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge", "drw_clipped");
 
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_clipped_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .additional_info("overlay_edit_mesh_edge_no_geom", "drw_clipped");
+
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge_flat", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .additional_info("overlay_edit_mesh_edge_flat_no_geom", "drw_clipped");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face_clipped)
     .do_static_compilation(true)
@@ -242,7 +278,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_verts)
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_tiled_image_borders)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
-    .push_constant(Type::VEC4, "color")
+    .push_constant(Type::VEC4, "ucolor")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_uv_tiled_image_borders_vert.glsl")
     .fragment_source("overlay_uniform_color_frag.glsl")
@@ -258,7 +294,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_stencil_image)
     .sampler(0, ImageType::FLOAT_2D, "imgTexture")
     .push_constant(Type::BOOL, "imgPremultiplied")
     .push_constant(Type::BOOL, "imgAlphaBlend")
-    .push_constant(Type::VEC4, "color")
+    .push_constant(Type::VEC4, "ucolor")
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_source("overlay_image_frag.glsl")
     .additional_info("draw_mesh");
@@ -326,9 +362,28 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .typedef_source("overlay_shader_shared.h")
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::INT, "data")
+    .vertex_out(overlay_edit_curve_handle_iface)
+    .push_constant(Type::BOOL, "showCurveHandles")
+    .push_constant(Type::INT, "curveHandleDisplay")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_edit_curve_handle_vert_no_geom.glsl")
+    .fragment_source("overlay_varying_color.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_curve_handle", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped_no_geom)
+    // .do_static_compilation(true) /* TODO fix on GL */
+    .additional_info("overlay_edit_curve_handle_no_geom", "drw_clipped");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
     .do_static_compilation(true)
@@ -526,14 +581,26 @@ GPU_SHADER_CREATE_INFO(overlay_depth_only_clipped)
 GPU_SHADER_CREATE_INFO(overlay_uniform_color)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
-    .push_constant(Type::VEC4, "color")
+    .push_constant(Type::VEC4, "ucolor")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_depth_only_vert.glsl")
     .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_mesh");
 
+GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud)
+    .do_static_compilation(true)
+    .push_constant(Type::VEC4, "ucolor")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_pointcloud_only_vert.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
+    .additional_info("draw_pointcloud");
+
 GPU_SHADER_CREATE_INFO(overlay_uniform_color_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_depth_only", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_uniform_color_pointcloud", "drw_clipped");
 
 /** \} */

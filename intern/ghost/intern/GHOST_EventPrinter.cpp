@@ -161,7 +161,7 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
 {
   if ((key >= GHOST_kKeyComma) && (key <= GHOST_kKeyRightBracket)) {
-    sprintf(str, "%c", (char)key);
+    sprintf(str, "%c", char(key));
   }
   else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
     sprintf(str, "Numpad %d", (key - GHOST_kKeyNumpad0));

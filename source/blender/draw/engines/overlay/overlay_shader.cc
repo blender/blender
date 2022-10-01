@@ -93,6 +93,11 @@ typedef struct OVERLAY_Shaders {
   GPUShader *sculpt_mask;
   GPUShader *sculpt_curves_selection;
   GPUShader *uniform_color;
+  GPUShader *uniform_color_pointcloud;
+  GPUShader *viewer_attribute_mesh;
+  GPUShader *viewer_attribute_pointcloud;
+  GPUShader *viewer_attribute_curve;
+  GPUShader *viewer_attribute_curves;
   GPUShader *volume_velocity_needle_sh;
   GPUShader *volume_velocity_mac_sh;
   GPUShader *volume_velocity_sh;
@@ -818,6 +823,55 @@ GPUShader *OVERLAY_shader_sculpt_curves_selection(void)
   return sh_data->sculpt_curves_selection;
 }
 
+GPUShader *OVERLAY_shader_viewer_attribute_mesh(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->viewer_attribute_mesh) {
+    sh_data->viewer_attribute_mesh = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_viewer_attribute_mesh_clipped" :
+                                                     "overlay_viewer_attribute_mesh");
+  }
+  return sh_data->viewer_attribute_mesh;
+}
+
+GPUShader *OVERLAY_shader_viewer_attribute_pointcloud(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->viewer_attribute_pointcloud) {
+    sh_data->viewer_attribute_pointcloud = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ?
+            "overlay_viewer_attribute_pointcloud_clipped" :
+            "overlay_viewer_attribute_pointcloud");
+  }
+  return sh_data->viewer_attribute_pointcloud;
+}
+
+GPUShader *OVERLAY_shader_viewer_attribute_curve(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->viewer_attribute_curve) {
+    sh_data->viewer_attribute_curve = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_viewer_attribute_curve_clipped" :
+                                                     "overlay_viewer_attribute_curve");
+  }
+  return sh_data->viewer_attribute_curve;
+}
+
+GPUShader *OVERLAY_shader_viewer_attribute_curves(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->viewer_attribute_curves) {
+    sh_data->viewer_attribute_curves = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_viewer_attribute_curves_clipped" :
+                                                     "overlay_viewer_attribute_curves");
+  }
+  return sh_data->viewer_attribute_curves;
+}
+
 struct GPUShader *OVERLAY_shader_uniform_color(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -827,6 +881,18 @@ struct GPUShader *OVERLAY_shader_uniform_color(void)
         draw_ctx->sh_cfg ? "overlay_uniform_color_clipped" : "overlay_uniform_color");
   }
   return sh_data->uniform_color;
+}
+
+struct GPUShader *OVERLAY_shader_uniform_color_pointcloud()
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->uniform_color_pointcloud) {
+    sh_data->uniform_color_pointcloud = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_uniform_color_pointcloud_clipped" :
+                           "overlay_uniform_color_pointcloud");
+  }
+  return sh_data->uniform_color_pointcloud;
 }
 
 struct GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac)

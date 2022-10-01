@@ -230,10 +230,10 @@ static void calc_node_transforms(const tinygltf::Node &gltf_node,
    * both. */
   if (gltf_node.matrix.size() == 16) {
     const std::vector<double> &dm = gltf_node.matrix;
-    float m[4][4] = {{(float)dm[0], (float)dm[1], (float)dm[2], (float)dm[3]},
-                     {(float)dm[4], (float)dm[5], (float)dm[6], (float)dm[7]},
-                     {(float)dm[8], (float)dm[9], (float)dm[10], (float)dm[11]},
-                     {(float)dm[12], (float)dm[13], (float)dm[14], (float)dm[15]}};
+    float m[4][4] = {{float(dm[0]), float(dm[1]), float(dm[2]), float(dm[3])},
+                     {float(dm[4]), float(dm[5]), float(dm[6]), float(dm[7])},
+                     {float(dm[8]), float(dm[9]), float(dm[10]), float(dm[11])},
+                     {float(dm[12]), float(dm[13]), float(dm[14]), float(dm[15])}};
     memcpy(r_local_transform, m, sizeof(float[4][4]));
   }
   else {
@@ -259,21 +259,21 @@ static void calc_node_transforms(const tinygltf::Node &gltf_node,
       scale[0] = scale[1] = scale[2] = 1.0;
     }
 
-    q.w() = (float)rotation[3];
-    q.x() = (float)rotation[0];
-    q.y() = (float)rotation[1];
-    q.z() = (float)rotation[2];
+    q.w() = float(rotation[3]);
+    q.x() = float(rotation[0]);
+    q.y() = float(rotation[1]);
+    q.z() = float(rotation[2]);
     q.normalize();
 
     scalemat.setIdentity();
-    scalemat(0, 0) = (float)scale[0];
-    scalemat(1, 1) = (float)scale[1];
-    scalemat(2, 2) = (float)scale[2];
+    scalemat(0, 0) = float(scale[0]);
+    scalemat(1, 1) = float(scale[1]);
+    scalemat(2, 2) = float(scale[2]);
 
     m.setIdentity();
     m.block<3, 3>(0, 0) = q.toRotationMatrix() * scalemat;
     m.block<3, 1>(0, 3) = Eigen::Vector3f(
-        (float)translation[0], (float)translation[1], (float)translation[2]);
+        float(translation[0]), float(translation[1]), float(translation[2]));
   }
 
   *(Eigen::Matrix4f *)r_world_transform = *(Eigen::Matrix4f *)parent_transform *
@@ -296,7 +296,7 @@ static void load_node(const tinygltf::Model &gltf_model,
   float world_transform[4][4];
 
   GHOST_XrControllerModelNode &node = nodes.emplace_back();
-  const int32_t node_idx = (int32_t)(nodes.size() - 1);
+  const int32_t node_idx = int32_t(nodes.size() - 1);
   node.parent_idx = parent_idx;
   calc_node_transforms(gltf_node, parent_transform, node.local_transform, world_transform);
 
@@ -450,7 +450,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
   CHECK_XR(g_xrLoadControllerModelMSFT(session, m_model_key, 0, &buf_size, nullptr),
            "Failed to get controller model buffer size.");
 
-  std::vector<uint8_t> buf((size_t)buf_size);
+  std::vector<uint8_t> buf((size_t(buf_size)));
   CHECK_XR(g_xrLoadControllerModelMSFT(session, m_model_key, buf_size, &buf_size, buf.data()),
            "Failed to load controller model binary buffers.");
 
@@ -467,7 +467,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
                             std::string *p2,
                             int p3,
                             int p4,
-                            const unsigned char *p5,
+                            const uchar *p5,
                             int p6,
                             void *user_pointer) -> bool {
       (void)img;
@@ -496,7 +496,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
 
   std::vector<XrControllerModelNodePropertiesMSFT> node_properties(
       model_properties.nodeCountOutput, {XR_TYPE_CONTROLLER_MODEL_NODE_PROPERTIES_MSFT});
-  model_properties.nodeCapacityInput = (uint32_t)node_properties.size();
+  model_properties.nodeCapacityInput = uint32_t(node_properties.size());
   model_properties.nodeProperties = node_properties.data();
   CHECK_XR(g_xrGetControllerModelPropertiesMSFT(session, m_model_key, &model_properties),
            "Failed to get controller model node properties.");
@@ -583,11 +583,11 @@ void GHOST_XrControllerModel::updateComponents(XrSession session)
 void GHOST_XrControllerModel::getData(GHOST_XrControllerModelData &r_data)
 {
   if (m_data_loaded) {
-    r_data.count_vertices = (uint32_t)m_vertices.size();
+    r_data.count_vertices = uint32_t(m_vertices.size());
     r_data.vertices = m_vertices.data();
-    r_data.count_indices = (uint32_t)m_indices.size();
+    r_data.count_indices = uint32_t(m_indices.size());
     r_data.indices = m_indices.data();
-    r_data.count_components = (uint32_t)m_components.size();
+    r_data.count_components = uint32_t(m_components.size());
     r_data.components = m_components.data();
   }
   else {

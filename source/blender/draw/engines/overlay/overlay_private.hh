@@ -61,6 +61,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *armature_ps[2];
   DRWPass *armature_bone_select_ps;
   DRWPass *armature_transp_ps[2];
+  DRWPass *attribute_ps;
   DRWPass *background_ps;
   DRWPass *clipping_frustum_ps;
   DRWPass *edit_curve_wire_ps[2];
@@ -284,6 +285,12 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *pointcloud_dots_grp;
   DRWShadingGroup *sculpt_mask_grp;
   DRWShadingGroup *sculpt_curves_selection_grp;
+  DRWShadingGroup *viewer_attribute_curve_grp;
+  DRWShadingGroup *viewer_attribute_curves_grp;
+  DRWShadingGroup *viewer_attribute_mesh_grp;
+  DRWShadingGroup *viewer_attribute_pointcloud_grp;
+  DRWShadingGroup *viewer_attribute_instance_grp;
+  DRWShadingGroup *viewer_attribute_instance_pointcloud_grp;
   DRWShadingGroup *volume_selection_surface_grp;
   DRWShadingGroup *wires_grp[2][2];      /* With and without coloring. */
   DRWShadingGroup *wires_all_grp[2][2];  /* With and without coloring. */
@@ -678,6 +685,10 @@ void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_sculpt_curves_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_viewer_attribute_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_viewer_attribute_cache_populate(OVERLAY_Data *vedata, Object *object);
+void OVERLAY_viewer_attribute_draw(OVERLAY_Data *vedata);
+
 void OVERLAY_wireframe_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
@@ -745,6 +756,7 @@ GPUShader *OVERLAY_shader_image(void);
 GPUShader *OVERLAY_shader_motion_path_line(void);
 GPUShader *OVERLAY_shader_motion_path_vert(void);
 GPUShader *OVERLAY_shader_uniform_color(void);
+GPUShader *OVERLAY_shader_uniform_color_pointcloud(void);
 GPUShader *OVERLAY_shader_outline_prepass(bool use_wire);
 GPUShader *OVERLAY_shader_outline_prepass_curves(void);
 GPUShader *OVERLAY_shader_outline_prepass_gpencil(void);
@@ -761,6 +773,10 @@ GPUShader *OVERLAY_shader_particle_dot(void);
 GPUShader *OVERLAY_shader_particle_shape(void);
 GPUShader *OVERLAY_shader_sculpt_mask(void);
 GPUShader *OVERLAY_shader_sculpt_curves_selection(void);
+GPUShader *OVERLAY_shader_viewer_attribute_curve(void);
+GPUShader *OVERLAY_shader_viewer_attribute_curves(void);
+GPUShader *OVERLAY_shader_viewer_attribute_mesh(void);
+GPUShader *OVERLAY_shader_viewer_attribute_pointcloud(void);
 GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac);
 GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool color_range);
 GPUShader *OVERLAY_shader_wireframe(bool custom_bias);

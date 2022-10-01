@@ -494,8 +494,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   if (id_hierarchy_root != nullptr) {
     /* If the hierarchy root is given, it must be a valid existing override (used during partial
      * resync process mainly). */
-    BLI_assert((ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
-                id_hierarchy_root->override_library->reference->lib == id_root_reference->lib));
+    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
+               id_hierarchy_root->override_library->reference->lib == id_root_reference->lib);
 
     if (!do_no_main) {
       /* When processing within Main, set existing overrides in given hierarchy as 'newid' of their
@@ -507,8 +507,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   if (!ELEM(id_hierarchy_root_reference, nullptr, id_root_reference)) {
     /* If the reference hierarchy root is given, it must be from the same library as the reference
      * root, and also tagged for override. */
-    BLI_assert((id_hierarchy_root_reference->lib == id_root_reference->lib &&
-                (id_hierarchy_root_reference->tag & LIB_TAG_DOIT) != 0));
+    BLI_assert(id_hierarchy_root_reference->lib == id_root_reference->lib &&
+               (id_hierarchy_root_reference->tag & LIB_TAG_DOIT) != 0);
   }
 
   const Library *reference_library = id_root_reference->lib;

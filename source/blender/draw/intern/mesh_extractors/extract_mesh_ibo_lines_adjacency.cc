@@ -71,7 +71,7 @@ BLI_INLINE void lines_adjacency_triangle(
     if (!value_is_init || v_data == NO_EDGE) {
       /* Save the winding order inside the sign bit. Because the
        * Edge-hash sort the keys and we need to compare winding later. */
-      int value = (int)l1 + 1; /* 0 cannot be signed so add one. */
+      int value = int(l1) + 1; /* 0 cannot be signed so add one. */
       *pval = POINTER_FROM_INT((inv_indices) ? -value : value);
       /* Store loop indices for remaining non-manifold edges. */
       data->vert_to_loop[v2] = l2;
@@ -81,7 +81,7 @@ BLI_INLINE void lines_adjacency_triangle(
       /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
       *pval = POINTER_FROM_INT(NO_EDGE);
       bool inv_opposite = (v_data < 0);
-      uint l_opposite = (uint)abs(v_data) - 1;
+      uint l_opposite = uint(abs(v_data)) - 1;
       /* TODO: Make this part thread-safe. */
       if (inv_opposite == inv_indices) {
         /* Don't share edge if triangles have non matching winding. */
@@ -146,7 +146,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
     int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
     if (v_data != NO_EDGE) {
       BLI_edgehashIterator_getKey(ehi, &v2, &v3);
-      l1 = (uint)abs(v_data) - 1;
+      l1 = uint(abs(v_data)) - 1;
       if (v_data < 0) { /* `inv_opposite`. */
         SWAP(uint, v2, v3);
       }

@@ -33,9 +33,9 @@ struct SGLSLEditMeshToTangent {
   uint GetNumFaces()
   {
 #ifdef USE_LOOPTRI_DETECT_QUADS
-    return (uint)num_face_as_quad_map;
+    return uint(num_face_as_quad_map);
 #else
-    return (uint)numTessFaces;
+    return uint(numTessFaces);
 #endif
   }
 
@@ -194,21 +194,21 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     for (int i = 0; i < tangent_names_len; i++) {
       if (tangent_names[i][0]) {
         BKE_mesh_add_loop_tangent_named_layer_for_uv(
-            &bm->ldata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
+            &bm->ldata, loopdata_out, int(loopdata_out_len), tangent_names[i]);
       }
     }
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, (int)loopdata_out_len, "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, int(loopdata_out_len), "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          &bm->ldata, loopdata_out, (int)loopdata_out_len, act_uv_name);
+          &bm->ldata, loopdata_out, int(loopdata_out_len), act_uv_name);
     }
     if (calc_ren && ren_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          &bm->ldata, loopdata_out, (int)loopdata_out_len, ren_uv_name);
+          &bm->ldata, loopdata_out, int(loopdata_out_len), ren_uv_name);
     }
     int totface = em->tottri;
 #ifdef USE_LOOPTRI_DETECT_QUADS

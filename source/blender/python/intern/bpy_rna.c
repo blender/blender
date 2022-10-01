@@ -1174,6 +1174,7 @@ static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
   if (reference) {
     self->reference = reference;
     Py_INCREF(reference);
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 }
@@ -7252,7 +7253,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
     PyC_ObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
   }
 
-  Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
+  Py_XDECREF((PyObject *)RNA_struct_py_type_get(srna));
 
   RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
@@ -8461,7 +8462,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
 
 #undef BPY_REPLACEMENT_STRING
 
-      if (item == NULL && (((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL))) {
+      if (item == NULL && ((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL)) {
         PyErr_Format(PyExc_AttributeError,
                      "expected %.200s, %.200s class to have an \"%.200s\" attribute",
                      class_type,

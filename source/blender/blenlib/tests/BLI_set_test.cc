@@ -576,6 +576,19 @@ TEST(set, RemoveDuringIteration)
   EXPECT_TRUE(set.contains(3));
 }
 
+TEST(set, RemoveIf)
+{
+  Set<int64_t> set;
+  for (const int64_t i : IndexRange(100)) {
+    set.add(i * i);
+  }
+  set.remove_if([](const int64_t key) { return key > 100; });
+  EXPECT_EQ(set.size(), 11);
+  for (const int64_t i : IndexRange(100)) {
+    EXPECT_EQ(set.contains(i * i), i <= 10);
+  }
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

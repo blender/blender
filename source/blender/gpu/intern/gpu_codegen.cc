@@ -811,7 +811,7 @@ void GPU_pass_cache_garbage_collect(void)
 {
   static int lasttime = 0;
   const int shadercollectrate = 60; /* hardcoded for now. */
-  int ctime = (int)PIL_check_seconds_timer();
+  int ctime = int(PIL_check_seconds_timer());
 
   if (ctime < shadercollectrate + lasttime) {
     return;

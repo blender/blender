@@ -14,3 +14,15 @@ index 7b894a45..92618215 100644
          )
          if(CMAKE_TOOLCHAIN_FILE)
              set(pystring_CMAKE_ARGS
+--- a/src/OpenColorIO/FileRules.cpp
++++ b/src/OpenColorIO/FileRules.cpp
+@@ -7,6 +7,9 @@
+ #include <regex>
+ #include <sstream>
+ 
++/* NOTE: this has been applied up-stream, this edit can be removed after upgrading OpenColorIO. */
++#include <cstring>
++
+ #include <OpenColorIO/OpenColorIO.h>
+ 
+ #include "CustomKeys.h"

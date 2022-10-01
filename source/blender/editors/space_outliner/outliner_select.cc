@@ -244,8 +244,8 @@ static void do_outliner_object_select_recursive(const Scene *scene,
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
-    if ((((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
-         BKE_object_is_child_recursive(ob_parent, ob))) {
+    if (((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
+        BKE_object_is_child_recursive(ob_parent, ob)) {
       ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
     }
   }

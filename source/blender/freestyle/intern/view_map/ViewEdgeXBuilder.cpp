@@ -57,7 +57,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
   WXFace *wxf;
   for (wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; wf++) {
     wxf = dynamic_cast<WXFace *>(*wf);
-    if (false == ((wxf))->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
+    if (false == (wxf)->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
       continue;
     }
     // parse all smooth layers:
@@ -68,7 +68,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
       if (!(*sl)->hasSmoothEdge()) {
         continue;
       }
-      if (stopSmoothViewEdge((*sl))) {  // has it been parsed already ?
+      if (stopSmoothViewEdge(*sl)) {  // has it been parsed already ?
         continue;
       }
       // here we know that we're dealing with a face layer that has not been processed yet and that
@@ -128,7 +128,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer)
   // bidirectional chaining.
   // first direction
   list<OWXFaceLayer> facesChain;
-  unsigned size = 0;
+  uint size = 0;
   while (!stopSmoothViewEdge(currentFace.fl)) {
     facesChain.push_back(currentFace);
     ++size;
@@ -210,7 +210,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   ViewEdge *newVEdge = new ViewEdge;
   newVEdge->setId(_currentViewId);
   ++_currentViewId;
-  unsigned size = 0;
+  uint size = 0;
 
   _pCurrentVShape->AddEdge(newVEdge);
 
@@ -685,7 +685,7 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe)
 
   // get the faces normals and the material indices
   Vec3r normalA, normalB;
-  unsigned matA(0), matB(0);
+  uint matA(0), matB(0);
   bool faceMarkA = false, faceMarkB = false;
   if (iwe.order) {
     normalB = (iwe.e->GetbFace()->GetNormal());

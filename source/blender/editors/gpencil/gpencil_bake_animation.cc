@@ -86,7 +86,7 @@ static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
   }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == nullptr) || (!ELEM(obact->type, OB_GPENCIL, OB_EMPTY))) {
+  if ((obact == nullptr) || !ELEM(obact->type, OB_GPENCIL, OB_EMPTY)) {
     return false;
   }
 
@@ -119,7 +119,7 @@ static void animdata_keyframe_list_get(ListBase *ob_list,
         /* Keyframe number is x value of point. */
         if ((bezt->f2 & SELECT) || (!only_selected)) {
           /* Insert only one key for each keyframe number. */
-          int key = (int)bezt->vec[1][0];
+          int key = int(bezt->vec[1][0]);
           if (!BLI_ghash_haskey(r_keyframes, POINTER_FROM_INT(key))) {
             BLI_ghash_insert(r_keyframes, POINTER_FROM_INT(key), POINTER_FROM_INT(key));
           }
@@ -243,7 +243,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   }
 
   /* Loop all frame range. */
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
   int key = -1;
 
   /* Get list of keyframes. */
@@ -298,6 +298,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
         BLI_addtail(&gpl_dst->frames, gpf_dst);
 
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf_dst->strokes) {
+          gps->runtime.gps_orig = NULL;
           /* Create material of the stroke. */
           Material *ma_src = BKE_object_material_get(elem->ob, gps->mat_nr + 1);
           bool found = false;
@@ -320,6 +321,8 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           /* Update point location to new object space. */
           for (int j = 0; j < gps->totpoints; j++) {
             bGPDspoint *pt = &gps->points[j];
+            pt->runtime.idx_orig = 0;
+            pt->runtime.pt_orig = NULL;
             mul_m4_v3(ob_eval->obmat, &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }
@@ -327,7 +330,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           /* Reproject stroke. */
           if (project_type != GP_REPROJECT_KEEP) {
             ED_gpencil_stroke_reproject(
-                depsgraph, &gsc, sctx, gpl_dst, gpf_dst, gps, project_type, false);
+                depsgraph, &gsc, sctx, gpl_dst, gpf_dst, gps, project_type, false, 0.0f);
           }
           else {
             BKE_gpencil_stroke_geometry_update(gpd_dst, gps);

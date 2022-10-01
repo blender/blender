@@ -72,8 +72,8 @@ static wmXrAction *action_create(const char *action_name,
   strcpy(action->name, action_name);
   action->type = type;
 
-  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
-  unsigned int subaction_idx = 0;
+  const uint count = (uint)BLI_listbase_count(user_paths);
+  uint subaction_idx = 0;
   action->count_subaction_paths = count;
 
   action->subaction_paths = MEM_mallocN(sizeof(*action->subaction_paths) * count,
@@ -142,7 +142,7 @@ static void action_destroy(void *val)
 
   char **subaction_paths = action->subaction_paths;
   if (subaction_paths) {
-    for (unsigned int i = 0; i < action->count_subaction_paths; ++i) {
+    for (uint i = 0; i < action->count_subaction_paths; ++i) {
       MEM_SAFE_FREE(subaction_paths[i]);
     }
     MEM_freeN(subaction_paths);
@@ -241,8 +241,8 @@ bool WM_xr_action_create(wmXrData *xr,
                                      action_flag,
                                      haptic_flag);
 
-  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
-  unsigned int subaction_idx = 0;
+  const uint count = (uint)BLI_listbase_count(user_paths);
+  uint subaction_idx = 0;
 
   char **subaction_paths = MEM_calloc_arrayN(
       count, sizeof(*subaction_paths), "XrAction_SubactionPathPointers");
@@ -336,8 +336,8 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const eXrAxisFlag *axis_flags,
                                  const struct wmXrPose *poses)
 {
-  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
-  BLI_assert(count == (unsigned int)BLI_listbase_count(component_paths));
+  const uint count = (uint)BLI_listbase_count(user_paths);
+  BLI_assert(count == (uint)BLI_listbase_count(component_paths));
 
   GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN(
       count, sizeof(*binding_infos), "XrActionBinding_Infos");
@@ -345,7 +345,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
   char **subaction_paths = MEM_calloc_arrayN(
       count, sizeof(*subaction_paths), "XrActionBinding_SubactionPathPointers");
 
-  for (unsigned int i = 0; i < count; ++i) {
+  for (uint i = 0; i < count; ++i) {
     GHOST_XrActionBindingInfo *binding_info = &binding_infos[i];
     const XrUserPath *user_path = BLI_findlink(user_paths, i);
     const XrComponentPath *component_path = BLI_findlink(component_paths, i);
@@ -448,12 +448,12 @@ bool WM_xr_controller_pose_actions_set(wmXrData *xr,
   }
 
   /* Ensure consistent subaction paths. */
-  const unsigned int count = grip_action->count_subaction_paths;
+  const uint count = grip_action->count_subaction_paths;
   if (count != aim_action->count_subaction_paths) {
     return false;
   }
 
-  for (unsigned int i = 0; i < count; ++i) {
+  for (uint i = 0; i < count; ++i) {
     if (!STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i])) {
       return false;
     }
@@ -483,7 +483,7 @@ bool WM_xr_action_state_get(const wmXrData *xr,
   r_state->type = (int)action->type;
 
   /* Find the action state corresponding to the subaction path. */
-  for (unsigned int i = 0; i < action->count_subaction_paths; ++i) {
+  for (uint i = 0; i < action->count_subaction_paths; ++i) {
     if (STREQ(subaction_path, action->subaction_paths[i])) {
       switch (action->type) {
         case XR_BOOLEAN_INPUT:

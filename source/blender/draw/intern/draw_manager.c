@@ -38,6 +38,7 @@
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
 #include "BKE_subdiv_modifier.h"
+#include "BKE_viewer_path.h"
 #include "BKE_volume.h"
 
 #include "DNA_camera_types.h"
@@ -969,10 +970,13 @@ void DRW_cache_free_old_batches(Main *bmain)
 
       /* TODO(fclem): This is not optimal since it iter over all dupli instances.
        * In this case only the source object should be tagged. */
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+      DEGObjectIterSettings deg_iter_settings = {0};
+      deg_iter_settings.depsgraph = depsgraph;
+      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
         DRW_batch_cache_free_old(ob, ctime);
       }
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+      DEG_OBJECT_ITER_END;
     }
   }
 }
@@ -1689,7 +1693,13 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     if (do_populate_loop) {
       DST.dupli_origin = NULL;
       DST.dupli_origin_data = NULL;
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+      DEGObjectIterSettings deg_iter_settings = {0};
+      deg_iter_settings.depsgraph = depsgraph;
+      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+      if (v3d->flag2 & V3D_SHOW_VIEWER) {
+        deg_iter_settings.viewer_path = &v3d->viewer_path;
+      }
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
         if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
           continue;
         }
@@ -1701,7 +1711,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
         drw_duplidata_load(ob);
         drw_engines_cache_populate(ob);
       }
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+      DEG_OBJECT_ITER_END;
     }
 
     drw_duplidata_free();
@@ -1841,14 +1851,17 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
     return false;
   }
 
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if (ob->type == OB_GPENCIL) {
       if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
         return true;
       }
     }
   }
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+  DEG_OBJECT_ITER_END;
 
   return false;
 }
@@ -2051,7 +2064,10 @@ void DRW_render_object_iter(
                                                0;
   DST.dupli_origin = NULL;
   DST.dupli_origin_data = NULL;
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
@@ -2067,7 +2083,7 @@ void DRW_render_object_iter(
       }
     }
   }
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+  DEG_OBJECT_ITER_END;
 
   drw_duplidata_free();
   drw_task_graph_deinit();
@@ -2195,10 +2211,13 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
     /* Only iterate over objects when overlay uses object data. */
     if (do_populate_loop) {
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+      DEGObjectIterSettings deg_iter_settings = {0};
+      deg_iter_settings.depsgraph = depsgraph;
+      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
         drw_engines_cache_populate(ob);
       }
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+      DEG_OBJECT_ITER_END;
     }
 
     drw_engines_cache_finish();
@@ -2479,7 +2498,13 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
       bool filter_exclude = false;
       DST.dupli_origin = NULL;
       DST.dupli_origin_data = NULL;
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+      DEGObjectIterSettings deg_iter_settings = {0};
+      deg_iter_settings.depsgraph = depsgraph;
+      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+      if (v3d->flag2 & V3D_SHOW_VIEWER) {
+        deg_iter_settings.viewer_path = &v3d->viewer_path;
+      }
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
         if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
           continue;
         }
@@ -2515,7 +2540,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
           drw_engines_cache_populate(ob);
         }
       }
-      DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+      DEG_OBJECT_ITER_END;
     }
 
     drw_duplidata_free();
@@ -2641,7 +2666,13 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
     DST.dupli_origin = NULL;
     DST.dupli_origin_data = NULL;
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (DST.draw_ctx.depsgraph, ob) {
+    DEGObjectIterSettings deg_iter_settings = {0};
+    deg_iter_settings.depsgraph = DST.draw_ctx.depsgraph;
+    deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+    if (v3d->flag2 & V3D_SHOW_VIEWER) {
+      deg_iter_settings.viewer_path = &v3d->viewer_path;
+    }
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
         continue;
       }
@@ -2653,7 +2684,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
       drw_duplidata_load(ob);
       drw_engines_cache_populate(ob);
     }
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+    DEG_OBJECT_ITER_END;
 
     drw_duplidata_free();
     drw_engines_cache_finish();
@@ -3139,7 +3170,7 @@ void DRW_opengl_context_create(void)
   DST.gl_context = WM_opengl_context_create();
   WM_opengl_context_activate(DST.gl_context);
   /* Be sure to create gpu_context too. */
-  DST.gpu_context = GPU_context_create(NULL);
+  DST.gpu_context = GPU_context_create(0, DST.gl_context);
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }

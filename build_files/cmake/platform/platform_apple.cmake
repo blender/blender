@@ -30,15 +30,11 @@ macro(add_bundled_libraries library)
     list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
     unset(_all_library_versions)
     unset(_library_dir)
- endif()
+  endif()
 endmacro()
 
 # ------------------------------------------------------------------------
 # Find system provided libraries.
-
-# Avoid searching for headers since this would otherwise override our lib
-# directory as well as PYTHON_ROOT_DIR.
-set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
 set(ZLIB_ROOT /usr)
@@ -78,6 +74,10 @@ endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
+
+# Avoid searching for headers since this would otherwise override our lib
+# directory as well as PYTHON_ROOT_DIR.
+set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Optionally use system Python if PYTHON_ROOT_DIR is specified.
 if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
@@ -324,7 +324,7 @@ if(WITH_LLVM)
   if(WITH_CLANG)
     find_package(Clang)
     if(NOT CLANG_FOUND)
-       message(FATAL_ERROR "Clang not found.")
+      message(FATAL_ERROR "Clang not found.")
     endif()
   endif()
 

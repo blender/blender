@@ -237,7 +237,7 @@ static int append_avi(void *context_v,
                       const char *UNUSED(suffix),
                       ReportList *UNUSED(reports))
 {
-  unsigned int *rt1, *rt2, *rectot;
+  uint *rt1, *rt2, *rectot;
   int x, y;
   char *cp, rt;
   AviMovie *avi = context_v;
@@ -249,7 +249,7 @@ static int append_avi(void *context_v,
   /* note that libavi free's the buffer... stupid interface - zr */
   rectot = MEM_mallocN(rectx * recty * sizeof(int), "rectot");
   rt1 = rectot;
-  rt2 = (unsigned int *)pixels + (recty - 1) * rectx;
+  rt2 = (uint *)pixels + (recty - 1) * rectx;
   /* flip y and convert to abgr */
   for (y = 0; y < recty; y++, rt1 += rectx, rt2 -= rectx) {
     memcpy(rt1, rt2, rectx * sizeof(int));

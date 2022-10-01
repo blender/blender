@@ -954,6 +954,7 @@ static int armature_bone_layers_exec(bContext *C, wmOperator *op)
 
   /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  DEG_id_tag_update((ID *)ob->data, ID_RECALC_PARAMETERS);
 
   return OPERATOR_FINISHED;
 }

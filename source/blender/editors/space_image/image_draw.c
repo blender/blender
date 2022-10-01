@@ -168,7 +168,7 @@ void ED_image_draw_info(Scene *scene,
 
   GPU_blend(GPU_BLEND_NONE);
 
-  BLF_size(blf_mono_font, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, 11.0f * U.dpi_fac);
 
   BLF_color3ub(blf_mono_font, 255, 255, 255);
   SNPRINTF(str, "X:%-4d  Y:%-4d |", x, y);

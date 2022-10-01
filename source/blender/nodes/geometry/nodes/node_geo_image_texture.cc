@@ -24,8 +24,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Image>(N_("Image")).hide_label();
   b.add_input<decl::Vector>(N_("Vector"))
-      .implicit_field()
-      .description(("Texture coordinates from 0 to 1"));
+      .implicit_field(implicit_field_inputs::position)
+      .description("Texture coordinates from 0 to 1");
   b.add_input<decl::Int>(N_("Frame")).min(0).max(MAXFRAMEF);
   b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field();
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
@@ -122,9 +122,9 @@ class ImageFieldsFunction : public fn::MultiFunction {
 
   static float frac(const float x, int *ix)
   {
-    const int i = (int)x - ((x < 0.0f) ? 1 : 0);
+    const int i = int(x) - ((x < 0.0f) ? 1 : 0);
     *ix = i;
-    return x - (float)i;
+    return x - float(i);
   }
 
   static float4 image_cubic_texture_lookup(const ImBuf *ibuf,
@@ -135,8 +135,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int pix, piy, nix, niy;
-    const float tx = frac(px * (float)width - 0.5f, &pix);
-    const float ty = frac(py * (float)height - 0.5f, &piy);
+    const float tx = frac(px * float(width) - 0.5f, &pix);
+    const float ty = frac(py * float(height) - 0.5f, &piy);
     int ppix, ppiy, nnix, nniy;
 
     switch (extension) {
@@ -215,8 +215,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int pix, piy, nix, niy;
-    const float nfx = frac(px * (float)width - 0.5f, &pix);
-    const float nfy = frac(py * (float)height - 0.5f, &piy);
+    const float nfx = frac(px * float(width) - 0.5f, &pix);
+    const float nfy = frac(py * float(height) - 0.5f, &piy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_CLIP: {
@@ -257,8 +257,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int ix, iy;
-    const float tx = frac(px * (float)width, &ix);
-    const float ty = frac(py * (float)height, &iy);
+    const float tx = frac(px * float(width), &ix);
+    const float ty = frac(py * float(height), &iy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_REPEAT: {
@@ -292,7 +292,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
         1, "Color");
     MutableSpan<float> r_alpha = params.uninitialized_single_output_if_required<float>(2, "Alpha");
 
-    MutableSpan<float4> color_data{(float4 *)r_color.data(), r_color.size()};
+    MutableSpan<float4> color_data{reinterpret_cast<float4 *>(r_color.data()), r_color.size()};
 
     /* Sample image texture. */
     switch (interpolation_) {

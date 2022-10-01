@@ -318,6 +318,7 @@ class DOPESHEET_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_region_ui")
+        layout.prop(st, "show_region_hud")
 
         layout.separator()
 

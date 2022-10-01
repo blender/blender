@@ -187,9 +187,9 @@ float BlenderStrokeRenderer::get_stroke_vertex_z() const
   return -z;
 }
 
-unsigned int BlenderStrokeRenderer::get_stroke_mesh_id() const
+uint BlenderStrokeRenderer::get_stroke_mesh_id() const
 {
-  unsigned mesh_id = _mesh_id;
+  uint mesh_id = _mesh_id;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
   self->_mesh_id--;
   return mesh_id;
@@ -812,7 +812,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 {
   Object *ob;
   char name[MAX_ID_NAME];
-  unsigned int mesh_id = get_stroke_mesh_id();
+  uint mesh_id = get_stroke_mesh_id();
 
   BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
   ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);

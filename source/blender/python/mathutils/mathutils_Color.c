@@ -14,7 +14,9 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "IMB_colormanagement.h"
+#ifndef MATH_STANDALONE
+#  include "IMB_colormanagement.h"
+#endif
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
@@ -91,6 +93,8 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 /* -------------------------------------------------------------------- */
 /** \name Color Methods: Color Space Conversion
  * \{ */
+
+#ifndef MATH_STANDALONE
 
 PyDoc_STRVAR(Color_from_scene_linear_to_srgb_doc,
              ".. function:: from_scene_linear_to_srgb()\n"
@@ -203,6 +207,8 @@ static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
   IMB_colormanagement_rec709_to_scene_linear(col, self->col);
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
+
+#endif /* MATH_STANDALONE */
 
 /** \} */
 
@@ -1050,7 +1056,8 @@ static struct PyMethodDef Color_methods[] = {
     /* base-math methods */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
-    /* Color-space methods. */
+/* Color-space methods. */
+#ifndef MATH_STANDALONE
     {"from_scene_linear_to_srgb",
      (PyCFunction)Color_from_scene_linear_to_srgb,
      METH_NOARGS,
@@ -1083,6 +1090,8 @@ static struct PyMethodDef Color_methods[] = {
      (PyCFunction)Color_from_rec709_linear_to_scene_linear,
      METH_NOARGS,
      Color_from_rec709_linear_to_scene_linear_doc},
+#endif /* MATH_STANDALONE */
+
     {NULL, NULL, 0, NULL},
 };
 
@@ -1147,7 +1156,7 @@ PyTypeObject color_Type = {
     NULL,                                                          /* tp_alloc */
     Color_new,                                                     /* tp_new */
     NULL,                                                          /* tp_free */
-    NULL,                                                          /* tp_is_gc */
+    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
     NULL,                                                          /* tp_bases */
     NULL,                                                          /* tp_mro */
     NULL,                                                          /* tp_cache */
@@ -1226,6 +1235,7 @@ PyObject *Color_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_sub
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

@@ -770,7 +770,7 @@ void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
   float xyval[2];
 
   /* sanity checks */
-  BLI_assert((gsc->area->spacetype == SPACE_VIEW3D));
+  BLI_assert(gsc->area->spacetype == SPACE_VIEW3D);
 
   if (flag & GP_STROKE_3DSPACE) {
     if (ED_view3d_project_float_global(region, pt, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
@@ -1038,7 +1038,8 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                  bGPDframe *gpf,
                                  bGPDstroke *gps,
                                  const eGP_ReprojectModes mode,
-                                 const bool keep_original)
+                                 const bool keep_original,
+                                 const float offset)
 {
   ToolSettings *ts = gsc->scene->toolsettings;
   ARegion *region = gsc->region;
@@ -1156,7 +1157,13 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                &depth,
                                                &location[0],
                                                &normal[0])) {
-        copy_v3_v3(&pt->x, location);
+        /* Apply offset over surface. */
+        float normal_vector[3];
+        sub_v3_v3v3(normal_vector, ray_start, location);
+        normalize_v3(normal_vector);
+        mul_v3_fl(normal_vector, offset);
+
+        add_v3_v3v3(&pt->x, location, normal_vector);
       }
       else {
         /* Default to planar */

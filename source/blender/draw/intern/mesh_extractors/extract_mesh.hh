@@ -78,14 +78,17 @@ struct MeshRenderData {
   BMEdge *eed_act;
   BMFace *efa_act;
   BMFace *efa_act_uv;
-  /* Data created on-demand (usually not for #BMesh based data). */
-  MLoopTri *mlooptri;
+  /* The triangulation of #Mesh polygons, owned by the mesh. */
+  const MLoopTri *mlooptri;
   const int *material_indices;
   const float (*vert_normals)[3];
   const float (*poly_normals)[3];
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;
+  const bool *select_vert;
+  const bool *select_edge;
+  const bool *select_poly;
   float (*loop_normals)[3];
   int *lverts, *ledges;
 
@@ -437,3 +440,4 @@ extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
+extern const MeshExtract extract_attr_viewer;

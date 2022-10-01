@@ -49,6 +49,7 @@ set(SRC_HEADERS
   foreach.h
   function.h
   guarded_allocator.h
+  guiding.h
   half.h
   hash.h
   ies.h

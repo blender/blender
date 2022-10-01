@@ -85,7 +85,7 @@
 #define ANIM_CHAN_NAME_SIZE 256
 
 /* get the pointer used for some flag */
-#define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof((ptr))), &(ptr))
+#define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof(ptr)), &(ptr))
 
 /* *********************************************** */
 /* Generic Functions (Type independent) */

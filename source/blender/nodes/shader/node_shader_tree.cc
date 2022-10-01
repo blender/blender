@@ -300,7 +300,7 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
       BLI_assert(value_socket != nullptr);
       src_int = static_cast<bNodeSocketValueInt *>(socket->default_value);
       dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
-      dst_float->value = (float)(src_int->value);
+      dst_float->value = float(src_int->value);
       break;
     case SOCK_FLOAT:
       value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_VALUE);
@@ -563,7 +563,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
                                        void (*callback)(bNode *node, int user_data),
                                        int user_data)
 {
-  /* Init tmp flag. */
+  /* Initialize `tmp_flag`. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->tmp_flag = -1;
   }

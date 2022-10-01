@@ -724,10 +724,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
   if (msl_iface.uses_ssbo_vertex_fetch_mode) {
     ss_vertex << "#define MTL_SSBO_VERTEX_FETCH 1" << std::endl;
-    ss_vertex << "#define MTL_SSBO_VERTEX_FETCH_MAX_VBOS " << MTL_SSBO_VERTEX_FETCH_MAX_VBOS
-              << std::endl;
-    ss_vertex << "#define MTL_SSBO_VERTEX_FETCH_IBO_INDEX " << MTL_SSBO_VERTEX_FETCH_IBO_INDEX
-              << std::endl;
     for (const MSLVertexInputAttribute &attr : msl_iface.vertex_input_attributes) {
       ss_vertex << "#define SSBO_ATTR_TYPE_" << attr.name << " " << attr.type << std::endl;
     }

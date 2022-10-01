@@ -254,24 +254,23 @@ typedef struct Mesh {
   float smoothresh;
 
   /**
-   * Flag for choosing whether or not so store bevel weight and crease as custom data layers in the
-   * edit mesh (they are always stored in #MVert and #MEdge currently). In the future, this data
-   * may be stored as generic named attributes (see T89054 and T93602).
-   */
-  char cd_flag;
-
-  /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
    */
   char symmetry;
 
-  /** The length of the #mat array. */
-  short totcol;
-
   /** Choice between different remesh methods in the UI. */
   char remesh_mode;
 
+  /** The length of the #mat array. */
+  short totcol;
+
+  /**
+   * Deprecated flag for choosing whether to store specific custom data that was built into #Mesh
+   * structs in edit mode. Replaced by separating that data to separate layers. Kept for forward
+   * and backwards compatibility.
+   */
+  char cd_flag DNA_DEPRECATED;
   char subdiv DNA_DEPRECATED;
   char subdivr DNA_DEPRECATED;
   char subsurftype DNA_DEPRECATED;
@@ -361,6 +360,10 @@ typedef struct Mesh {
   /** Write access to vertex group data. */
   blender::MutableSpan<MDeformVert> deform_verts_for_write();
 
+  /**
+   * Cached triangulation of the mesh.
+   */
+  blender::Span<MLoopTri> looptris() const;
 #endif
 } Mesh;
 
@@ -438,15 +441,15 @@ enum {
   ME_REMESH_REPROJECT_SCULPT_FACE_SETS = 1 << 15,
 };
 
+#ifdef DNA_DEPRECATED_ALLOW
 /** #Mesh.cd_flag */
 enum {
-#ifdef DNA_DEPRECATED_ALLOW
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
-#endif
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
   ME_CDFLAG_VERT_CREASE = 1 << 3,
 };
+#endif
 
 /** #Mesh.remesh_mode */
 enum {

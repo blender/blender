@@ -378,7 +378,7 @@ static PyObject *Stroke_texture_id_get(BPy_Stroke *self, void *UNUSED(closure))
 
 static int Stroke_texture_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }

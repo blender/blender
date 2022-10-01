@@ -5,6 +5,8 @@
  * \ingroup modifiers
  */
 
+#define DNA_DEPRECATED_ALLOW /* For #ME_FACE_SEL. */
+
 #include "BLI_utildefines.h"
 
 #include "BLI_edgehash.h"

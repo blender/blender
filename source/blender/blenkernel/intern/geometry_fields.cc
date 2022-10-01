@@ -157,6 +157,12 @@ GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &conte
   return {};
 }
 
+std::optional<eAttrDomain> GeometryFieldInput::preferred_domain(
+    const GeometryComponent & /*component*/) const
+{
+  return std::nullopt;
+}
+
 GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
                                                const IndexMask mask,
                                                ResourceScope & /*scope*/) const
@@ -171,6 +177,11 @@ GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
     return this->get_varray_for_context(mesh_context->mesh(), mesh_context->domain(), mask);
   }
   return {};
+}
+
+std::optional<eAttrDomain> MeshFieldInput::preferred_domain(const Mesh & /*mesh*/) const
+{
+  return std::nullopt;
 }
 
 GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context,
@@ -188,6 +199,12 @@ GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context
     return this->get_varray_for_context(curves_context->curves(), curves_context->domain(), mask);
   }
   return {};
+}
+
+std::optional<eAttrDomain> CurvesFieldInput::preferred_domain(
+    const CurvesGeometry & /*curves*/) const
+{
+  return std::nullopt;
 }
 
 GVArray PointCloudFieldInput::get_varray_for_context(const fn::FieldContext &context,
@@ -252,6 +269,20 @@ bool AttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
     return name_ == other_typed->name_ && type_ == other_typed->type_;
   }
   return false;
+}
+
+std::optional<eAttrDomain> AttributeFieldInput::preferred_domain(
+    const GeometryComponent &component) const
+{
+  const std::optional<AttributeAccessor> attributes = component.attributes();
+  if (!attributes.has_value()) {
+    return std::nullopt;
+  }
+  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(name_);
+  if (!meta_data.has_value()) {
+    return std::nullopt;
+  }
+  return meta_data->domain;
 }
 
 static StringRef get_random_id_attribute_name(const eAttrDomain domain)
@@ -325,6 +356,21 @@ bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
   return false;
 }
 
+std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
+    const GeometryComponent &component) const
+{
+  const std::optional<AttributeAccessor> attributes = component.attributes();
+  if (!attributes.has_value()) {
+    return std::nullopt;
+  }
+  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(
+      anonymous_id_.get());
+  if (!meta_data.has_value()) {
+    return std::nullopt;
+  }
+  return meta_data->domain;
+}
+
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
@@ -358,6 +404,131 @@ uint64_t NormalFieldInput::hash() const
 bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
 {
   return dynamic_cast<const NormalFieldInput *>(&other) != nullptr;
+}
+
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::GField &field)
+{
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  const int domain_size = attributes.domain_size(domain);
+  const CPPType &type = field.cpp_type();
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
+
+  if (domain_size == 0) {
+    return attributes.add(attribute_id, domain, data_type, AttributeInitConstruct{});
+  }
+
+  bke::GeometryFieldContext field_context{component, domain};
+  const IndexMask mask{IndexMask(domain_size)};
+  const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
+
+  /* Could avoid allocating a new buffer if:
+   * - We are writing to an attribute that exists already with the correct domain and type.
+   * - The field does not depend on that attribute (we can't easily check for that yet). */
+  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
+
+  fn::FieldEvaluator evaluator{field_context, &mask};
+  evaluator.add_with_destination(validator.validate_field_if_necessary(field),
+                                 GMutableSpan{type, buffer, domain_size});
+  evaluator.evaluate();
+
+  if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
+    if (attribute.domain == domain && attribute.varray.type() == type) {
+      attribute.varray.set_all(buffer);
+      attribute.finish();
+      type.destruct_n(buffer, domain_size);
+      MEM_freeN(buffer);
+      return true;
+    }
+  }
+  attributes.remove(attribute_id);
+  if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
+    return true;
+  }
+
+  /* If the name corresponds to a builtin attribute, removing the attribute might fail if
+   * it's required, and adding the attribute might fail if the domain or type is incorrect. */
+  type.destruct_n(buffer, domain_size);
+  MEM_freeN(buffer);
+  return false;
+}
+
+std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &component,
+                                                   const fn::GField &field)
+{
+  const GeometryComponentType component_type = component.type();
+  if (component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
+    return ATTR_DOMAIN_POINT;
+  }
+  if (component_type == GEO_COMPONENT_TYPE_INSTANCES) {
+    return ATTR_DOMAIN_INSTANCE;
+  }
+  const std::shared_ptr<const fn::FieldInputs> &field_inputs = field.node().field_inputs();
+  if (!field_inputs) {
+    return std::nullopt;
+  }
+  std::optional<eAttrDomain> output_domain;
+  auto handle_domain = [&](const std::optional<eAttrDomain> domain) {
+    if (!domain.has_value()) {
+      return false;
+    }
+    if (output_domain.has_value()) {
+      if (*output_domain != *domain) {
+        return false;
+      }
+      return true;
+    }
+    output_domain = domain;
+    return true;
+  };
+  if (component_type == GEO_COMPONENT_TYPE_MESH) {
+    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+    const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return std::nullopt;
+    }
+    for (const fn::FieldInput &field_input : field_inputs->deduplicated_nodes) {
+      if (auto geometry_field_input = dynamic_cast<const GeometryFieldInput *>(&field_input)) {
+        if (!handle_domain(geometry_field_input->preferred_domain(component))) {
+          return std::nullopt;
+        }
+      }
+      else if (auto mesh_field_input = dynamic_cast<const MeshFieldInput *>(&field_input)) {
+        if (!handle_domain(mesh_field_input->preferred_domain(*mesh))) {
+          return std::nullopt;
+        }
+      }
+      else {
+        return std::nullopt;
+      }
+    }
+  }
+  if (component_type == GEO_COMPONENT_TYPE_CURVE) {
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    const Curves *curves = curve_component.get_for_read();
+    if (curves == nullptr) {
+      return std::nullopt;
+    }
+    for (const fn::FieldInput &field_input : field_inputs->deduplicated_nodes) {
+      if (auto geometry_field_input = dynamic_cast<const GeometryFieldInput *>(&field_input)) {
+        if (!handle_domain(geometry_field_input->preferred_domain(component))) {
+          return std::nullopt;
+        }
+      }
+      else if (auto curves_field_input = dynamic_cast<const CurvesFieldInput *>(&field_input)) {
+        if (!handle_domain(
+                curves_field_input->preferred_domain(CurvesGeometry::wrap(curves->geometry)))) {
+          return std::nullopt;
+        }
+      }
+      else {
+        return std::nullopt;
+      }
+    }
+  }
+  return output_domain;
 }
 
 }  // namespace blender::bke

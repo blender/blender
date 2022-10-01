@@ -199,7 +199,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SEAM:
       return CD_FAKE_SEAM;
     case DT_TYPE_CREASE:
-      return CD_FAKE_CREASE;
+      return CD_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
       return CD_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
@@ -374,8 +374,8 @@ float data_transfer_interp_float_do(const int mix_mode,
 {
   float val_ret;
 
-  if (((mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && (val_dst < mix_factor)) ||
-       (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor)))) {
+  if ((mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && (val_dst < mix_factor)) ||
+      (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor))) {
     return val_dst; /* Do not affect destination. */
   }
 
@@ -401,31 +401,6 @@ float data_transfer_interp_float_do(const int mix_mode,
       break;
   }
   return interpf(val_ret, val_dst, mix_factor);
-}
-
-static void data_transfer_interp_char(const CustomDataTransferLayerMap *laymap,
-                                      void *dest,
-                                      const void **sources,
-                                      const float *weights,
-                                      const int count,
-                                      const float mix_factor)
-{
-  const char **data_src = (const char **)sources;
-  char *data_dst = (char *)dest;
-
-  const int mix_mode = laymap->mix_mode;
-  float val_src = 0.0f;
-  const float val_dst = (float)(*data_dst) / 255.0f;
-
-  for (int i = count; i--;) {
-    val_src += ((float)(*data_src[i]) / 255.0f) * weights[i];
-  }
-
-  val_src = data_transfer_interp_float_do(mix_mode, val_dst, val_src, mix_factor);
-
-  CLAMP(val_src, 0.0f, 1.0f);
-
-  *data_dst = (char)(val_src * 255.0f);
 }
 
 /* Helpers to match sources and destinations data layers
@@ -981,39 +956,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    if (cddata_type == CD_FAKE_CREASE) {
-      const size_t elem_size = sizeof(*((MEdge *)NULL));
-      const size_t data_size = sizeof(((MEdge *)NULL)->crease);
-      const size_t data_offset = offsetof(MEdge, crease);
-      const uint64_t data_flag = 0;
-
-      if (!(me_src->cd_flag & ME_CDFLAG_EDGE_CREASE)) {
-        if (use_delete) {
-          me_dst->cd_flag &= ~ME_CDFLAG_EDGE_CREASE;
-        }
-        return true;
-      }
-      me_dst->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-      if (r_map) {
-        data_transfer_layersmapping_add_item(r_map,
-                                             cddata_type,
-                                             mix_mode,
-                                             mix_factor,
-                                             mix_weights,
-                                             BKE_mesh_edges(me_src),
-                                             BKE_mesh_edges_for_write(me_dst),
-                                             me_src->totedge,
-                                             me_dst->totedge,
-                                             elem_size,
-                                             data_size,
-                                             data_offset,
-                                             data_flag,
-                                             data_transfer_interp_char,
-                                             interp_data);
-      }
-      return true;
-    }
-
     if (r_map && ELEM(cddata_type, CD_FAKE_SHARP, CD_FAKE_SEAM)) {
       const size_t elem_size = sizeof(*((MEdge *)NULL));
       const size_t data_size = sizeof(((MEdge *)NULL)->flag);

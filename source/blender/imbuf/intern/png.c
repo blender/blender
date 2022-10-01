@@ -129,7 +129,7 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
 
   /* use the jpeg quality setting for compression */
   int compression;
-  compression = (int)(((float)(ibuf->foptions.quality) / 11.1111f));
+  compression = (int)((float)(ibuf->foptions.quality) / 11.1111f);
   compression = compression < 0 ? 0 : (compression > 9 ? 9 : compression);
 
   if (ibuf->float_colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)) {

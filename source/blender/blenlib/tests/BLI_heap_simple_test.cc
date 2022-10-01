@@ -18,7 +18,7 @@ static void range_fl(float *array_tar, const int size)
   float *array_pt = array_tar + (size - 1);
   int i = size;
   while (i--) {
-    *(array_pt--) = (float)i;
+    *(array_pt--) = float(i);
   }
 }
 
@@ -53,7 +53,7 @@ TEST(heap, SimpleRange)
   const int items_total = SIZE;
   HeapSimple *heap = BLI_heapsimple_new();
   for (int in = 0; in < items_total; in++) {
-    BLI_heapsimple_insert(heap, (float)in, POINTER_FROM_INT(in));
+    BLI_heapsimple_insert(heap, float(in), POINTER_FROM_INT(in));
   }
   for (int out_test = 0; out_test < items_total; out_test++) {
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
@@ -67,7 +67,7 @@ TEST(heap, SimpleRangeReverse)
   const int items_total = SIZE;
   HeapSimple *heap = BLI_heapsimple_new();
   for (int in = 0; in < items_total; in++) {
-    BLI_heapsimple_insert(heap, (float)-in, POINTER_FROM_INT(-in));
+    BLI_heapsimple_insert(heap, float(-in), POINTER_FROM_INT(-in));
   }
   for (int out_test = items_total - 1; out_test >= 0; out_test--) {
     EXPECT_EQ(-out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
@@ -97,7 +97,7 @@ static void random_heapsimple_helper(const int items_total, const int random_see
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
-    BLI_heapsimple_insert(heap, values[i], POINTER_FROM_INT((int)values[i]));
+    BLI_heapsimple_insert(heap, values[i], POINTER_FROM_INT(int(values[i])));
   }
   for (int out_test = 0; out_test < items_total; out_test++) {
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));

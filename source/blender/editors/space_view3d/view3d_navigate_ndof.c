@@ -363,7 +363,7 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
 
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
-  if ((v3d->camera && (rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0)) {
+  if (v3d->camera && (rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0) {
     /* pass */
   }
   else {

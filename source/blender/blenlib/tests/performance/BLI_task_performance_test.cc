@@ -69,7 +69,7 @@ static void task_listbase_heavy_iter_func(void *UNUSED(userdata),
   LinkData *data = (LinkData *)item;
 
   /* 'Random' number of iterations. */
-  const uint num = gen_pseudo_random_number((uint)index);
+  const uint num = gen_pseudo_random_number(uint(index));
 
   for (uint i = 0; i < num; i++) {
     data->data = POINTER_FROM_INT(POINTER_AS_INT(data->data) + ((i % 2) ? -index : index));
@@ -86,7 +86,7 @@ static void task_listbase_heavy_membarrier_iter_func(void *userdata,
   int *count = (int *)userdata;
 
   /* 'Random' number of iterations. */
-  const uint num = gen_pseudo_random_number((uint)index);
+  const uint num = gen_pseudo_random_number(uint(index));
 
   for (uint i = 0; i < num; i++) {
     data->data = POINTER_FROM_INT(POINTER_AS_INT(data->data) + ((i % 2) ? -index : index));

@@ -51,7 +51,7 @@ static void initialize_straight_curve_positions(const float3 &p1,
                                                 const float3 &p2,
                                                 MutableSpan<float3> r_positions)
 {
-  const float step = 1.0f / (float)(r_positions.size() - 1);
+  const float step = 1.0f / float(r_positions.size() - 1);
   for (const int i : r_positions.index_range()) {
     r_positions[i] = math::interpolate(p1, p2, i * step);
   }

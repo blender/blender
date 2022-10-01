@@ -59,14 +59,14 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
     }
     case SOCK_INT: {
       bNodeSocketValueInt *dval = (bNodeSocketValueInt *)sock->default_value;
-      dval->value = (int)stemp->val1;
-      dval->min = (int)stemp->min;
-      dval->max = (int)stemp->max;
+      dval->value = int(stemp->val1);
+      dval->min = int(stemp->min);
+      dval->max = int(stemp->max);
       break;
     }
     case SOCK_BOOLEAN: {
       bNodeSocketValueBoolean *dval = (bNodeSocketValueBoolean *)sock->default_value;
-      dval->value = (int)stemp->val1;
+      dval->value = int(stemp->val1);
       break;
     }
     case SOCK_VECTOR: {

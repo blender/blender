@@ -161,9 +161,9 @@ static void mesh_uv_reset_array(float **fuv, const int len)
     /* Make sure we ignore 2-sided faces. */
   }
   else if (len > 2) {
-    float fac = 0.0f, dfac = 1.0f / (float)len;
+    float fac = 0.0f, dfac = 1.0f / float(len);
 
-    dfac *= (float)M_PI * 2.0f;
+    dfac *= float(M_PI) * 2.0f;
 
     for (int i = 0; i < len; i++) {
       fuv[i][0] = 0.5f * sinf(fac) + 0.5f;
@@ -990,6 +990,126 @@ void MESH_OT_customdata_bevel_weight_edge_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* Edge crease. */
+
+static int mesh_customdata_crease_edge_state(bContext *C)
+{
+  const Object *ob = ED_object_context(C);
+
+  if (ob && ob->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(ob->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, edata);
+      return CustomData_has_layer(data, CD_CREASE);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_crease_edge_add_poll(bContext *C)
+{
+  return mesh_customdata_crease_edge_state(C) == 0;
+}
+
+static int mesh_customdata_crease_edge_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_EDGE, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_edge_add(wmOperatorType *ot)
+{
+  ot->name = "Add Edge Crease";
+  ot->idname = "MESH_OT_customdata_crease_edge_add";
+  ot->description = "Add an edge crease layer";
+
+  ot->exec = mesh_customdata_crease_edge_add_exec;
+  ot->poll = mesh_customdata_crease_edge_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_crease_edge_clear_poll(bContext *C)
+{
+  return mesh_customdata_crease_edge_state(C) == 1;
+}
+
+static int mesh_customdata_crease_edge_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_EDGE, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_edge_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Edge Crease";
+  ot->idname = "MESH_OT_customdata_crease_edge_clear";
+  ot->description = "Clear the edge crease layer";
+
+  ot->exec = mesh_customdata_crease_edge_clear_exec;
+  ot->poll = mesh_customdata_crease_edge_clear_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Vertex crease. */
+
+static int mesh_customdata_crease_vertex_state(bContext *C)
+{
+  const Object *object = ED_object_context(C);
+
+  if (object && object->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(object->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, vdata);
+      return CustomData_has_layer(data, CD_CREASE);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_crease_vertex_add_poll(bContext *C)
+{
+  return mesh_customdata_crease_vertex_state(C) == 0;
+}
+
+static int mesh_customdata_crease_vertex_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_VERT, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_vertex_add(wmOperatorType *ot)
+{
+  ot->name = "Add Vertex Crease";
+  ot->idname = "MESH_OT_customdata_crease_vertex_add";
+  ot->description = "Add a vertex crease layer";
+
+  ot->exec = mesh_customdata_crease_vertex_add_exec;
+  ot->poll = mesh_customdata_crease_vertex_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_crease_vertex_clear_poll(bContext *C)
+{
+  return (mesh_customdata_crease_vertex_state(C) == 1);
+}
+
+static int mesh_customdata_crease_vertex_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_vertex_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Vertex Crease";
+  ot->idname = "MESH_OT_customdata_crease_vertex_clear";
+  ot->description = "Clear the vertex crease layer";
+
+  ot->exec = mesh_customdata_crease_vertex_clear_exec;
+  ot->poll = mesh_customdata_crease_vertex_clear_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /************************** Add Geometry Layers *************************/
 
 void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_loose)
@@ -1014,6 +1134,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
 
 static void mesh_add_verts(Mesh *mesh, int len)
 {
+  using namespace blender;
   if (len == 0) {
     return;
   }
@@ -1032,17 +1153,18 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_vertex_num = mesh->totvert;
   mesh->totvert = totvert;
 
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (MVert &vert : verts.drop_front(old_vertex_num)) {
-    vert.flag = SELECT;
-  }
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  select_vert.span.take_back(len).fill(true);
+  select_vert.finish();
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
 {
+  using namespace blender;
   CustomData edata;
   int totedge;
 
@@ -1065,13 +1187,18 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_edges_num = mesh->totedge;
   mesh->totedge = totedge;
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  for (MEdge &edge : edges.drop_front(old_edges_num)) {
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+  for (MEdge &edge : edges.take_back(len)) {
+    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
   }
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_edge", ATTR_DOMAIN_EDGE);
+  select_edge.span.take_back(len).fill(true);
+  select_edge.finish();
 }
 
 static void mesh_add_loops(Mesh *mesh, int len)
@@ -1103,6 +1230,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
 static void mesh_add_polys(Mesh *mesh, int len)
 {
+  using namespace blender;
   CustomData pdata;
   int totpoly;
 
@@ -1125,13 +1253,13 @@ static void mesh_add_polys(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_polys_num = mesh->totpoly;
   mesh->totpoly = totpoly;
 
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  for (MPoly &poly : polys.drop_front(old_polys_num)) {
-    poly.flag = ME_FACE_SEL;
-  }
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+  select_poly.span.take_back(len).fill(true);
+  select_poly.finish();
 }
 
 /* -------------------------------------------------------------------- */

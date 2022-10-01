@@ -52,13 +52,13 @@ typedef struct ImageSampleInfo {
   int width, height;
   int sample_size;
 
-  unsigned char col[4];
+  uchar col[4];
   float colf[4];
   float linearcol[4];
   int z;
   float zf;
 
-  unsigned char *colp;
+  uchar *colp;
   const float *colfp;
   int *zp;
   float *zfp;
@@ -79,7 +79,7 @@ static void image_sample_pixel_color_ubyte(const ImBuf *ibuf,
                                            uchar r_col[4],
                                            float r_col_linear[4])
 {
-  const uchar *cp = (unsigned char *)(ibuf->rect + coord[1] * ibuf->x + coord[0]);
+  const uchar *cp = (uchar *)(ibuf->rect + coord[1] * ibuf->x + coord[0]);
   copy_v4_v4_uchar(r_col, cp);
   rgba_uchar_to_float(r_col_linear, r_col);
   IMB_colormanagement_colorspace_to_scene_linear_v4(r_col_linear, false, ibuf->rect_colorspace);
@@ -311,7 +311,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
   if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
     const float *fp;
-    unsigned char *cp;
+    uchar *cp;
     int x = (int)fx, y = (int)fy;
 
     info->x = x;
@@ -323,7 +323,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
     info->colfp = NULL;
 
     if (ibuf->rect) {
-      cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
 
       info->col[0] = cp[0];
       info->col[1] = cp[1];

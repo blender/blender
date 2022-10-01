@@ -304,7 +304,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
     const float e_weight = 2.0f - (vweights[BM_elem_index_get(e->v1)] +
                                    vweights[BM_elem_index_get(e->v2)]);
     if (e_weight) {
-      cost += (BM_edge_calc_length(e) * ((e_weight * vweight_factor)));
+      cost += (BM_edge_calc_length(e) * (e_weight * vweight_factor));
     }
   }
 

@@ -310,9 +310,6 @@ void WM_init(bContext *C, int argc, const char **argv)
   /* For file-system. Called here so can include user preference paths if needed. */
   ED_file_init();
 
-  /* That one is generated on demand, we need to be sure it's clear on init. */
-  IMB_thumb_clear_translations();
-
   if (!G.background) {
     GPU_render_begin();
 

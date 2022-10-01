@@ -110,7 +110,7 @@ static ssize_t stream_read(FileReader *reader, void *buffer, size_t size)
   stream->_pStream->Read(buffer, size, &readsize);
   stream->reader.offset += readsize;
 
-  return (ssize_t)readsize;
+  return ssize_t(readsize);
 }
 
 static off64_t stream_seek(FileReader *reader, off64_t offset, int whence)
@@ -171,11 +171,11 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
   }
   *pdwAlpha = WTSAT_ARGB;
 
-  /* Scale down the thumbnail if required. */
-  if ((unsigned)thumb.width > cx || (unsigned)thumb.height > cx) {
-    float scale = 1.0f / (std::max(thumb.width, thumb.height) / (float)cx);
-    LONG NewWidth = (LONG)(thumb.width * scale);
-    LONG NewHeight = (LONG)(thumb.height * scale);
+  /* Scale up the thumbnail if required. */
+  if (uint(thumb.width) < cx && uint(thumb.height) < cx) {
+    float scale = 1.0f / (std::max(thumb.width, thumb.height) / float(cx));
+    LONG NewWidth = LONG(thumb.width * scale);
+    LONG NewHeight = LONG(thumb.height * scale);
 
     IWICImagingFactory *pImgFac;
     hr = CoCreateInstance(

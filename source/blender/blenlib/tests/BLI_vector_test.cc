@@ -317,7 +317,7 @@ TEST(vector, BecomeLarge)
   }
   EXPECT_EQ(vec.size(), 100);
   for (int i = 0; i < 100; i++) {
-    EXPECT_EQ(vec[i], static_cast<int>(i * 5));
+    EXPECT_EQ(vec[i], int(i * 5));
   }
 }
 
@@ -417,6 +417,15 @@ TEST(vector, Remove)
   EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2}).begin()));
   vec.remove(0);
   EXPECT_EQ(vec.begin(), vec.end());
+}
+
+TEST(vector, RemoveIf)
+{
+  Vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8};
+  vec.remove_if([](const int x) { return x % 2 == 0; });
+  const Vector<int> expected_vec = {1, 3, 5, 7};
+  EXPECT_EQ(vec.size(), expected_vec.size());
+  EXPECT_EQ_ARRAY(vec.data(), expected_vec.data(), size_t(vec.size()));
 }
 
 TEST(vector, ExtendSmallVector)
@@ -635,7 +644,7 @@ TEST(vector, OveralignedValues)
   Vector<AlignedBuffer<1, 512>, 2> vec;
   for (int i = 0; i < 100; i++) {
     vec.append({});
-    EXPECT_EQ((uintptr_t)&vec.last() % 512, 0);
+    EXPECT_EQ(uintptr_t(&vec.last()) % 512, 0);
   }
 }
 

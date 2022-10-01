@@ -36,7 +36,7 @@ void OVERLAY_fade_cache_init(OVERLAY_Data *vedata)
     if (draw_ctx->v3d->shading.background_type == V3D_SHADING_BACKGROUND_THEME) {
       srgb_to_linearrgb_v4(color, color);
     }
-    DRW_shgroup_uniform_vec4_copy(pd->fade_grp[i], "color", color);
+    DRW_shgroup_uniform_vec4_copy(pd->fade_grp[i], "ucolor", color);
   }
 
   if (!pd->use_in_front) {
@@ -58,7 +58,7 @@ void OVERLAY_fade_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   if (use_sculpt_pbvh) {
-    DRW_shgroup_call_sculpt(pd->fade_grp[is_xray], ob, false, false);
+    DRW_shgroup_call_sculpt(pd->fade_grp[is_xray], ob, false, false, false, false, false);
   }
   else {
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);

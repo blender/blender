@@ -503,7 +503,7 @@ static const char *tex_map_type_to_string[] = {
     "map_d",
     "map_Bump",
 };
-BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_string) == (int)MTLTexMapType::Count,
+BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_string) == int(MTLTexMapType::Count),
                   "array size mismatch");
 
 /**
@@ -641,7 +641,7 @@ void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
   /* Always emit forward slashes for cross-platform compatibility. */
   std::replace(path.begin(), path.end(), '\\', '/');
 
-  fmt_handler_.write_mtl_map(tex_map_type_to_string[(int)texture_key], options, path);
+  fmt_handler_.write_mtl_map(tex_map_type_to_string[int(texture_key)], options, path);
 }
 
 static bool is_pbr_map(MTLTexMapType type)
@@ -677,7 +677,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
     fmt_handler_.write_string("");
     fmt_handler_.write_mtl_newmtl(mtlmat.name);
     write_bsdf_properties(mtlmat, write_pbr);
-    for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
+    for (int key = 0; key < int(MTLTexMapType::Count); key++) {
       const MTLTexMap &tex = mtlmat.texture_maps[key];
       if (!tex.is_valid()) {
         continue;

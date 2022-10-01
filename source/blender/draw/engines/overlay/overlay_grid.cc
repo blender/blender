@@ -51,6 +51,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
                                                  true;
     if (background_enabled) {
       grid_flag = GRID_BACK | PLANE_IMAGE;
+      if (sima->flag & SI_GRID_OVER_IMAGE) {
+        grid_flag = PLANE_IMAGE;
+      }
     }
 
     const bool draw_grid = is_uv_edit || !ED_space_image_has_buffer(sima);
@@ -64,8 +67,8 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
     grid->distance = 1.0f;
     copy_v3_fl3(grid->size, 1.0f, 1.0f, 1.0f);
     if (is_uv_edit) {
-      grid->size[0] = (float)sima->tile_grid_shape[0];
-      grid->size[1] = (float)sima->tile_grid_shape[1];
+      grid->size[0] = float(sima->tile_grid_shape[0]);
+      grid->size[1] = float(sima->tile_grid_shape[1]);
     }
 
     grid->zoom_factor = ED_space_image_zoom_level(v2d, SI_GRID_STEPS_LEN);
@@ -119,9 +122,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
       }
     }
 
-    grid_axes[0] = (float)((grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
-    grid_axes[1] = (float)((grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
-    grid_axes[2] = (float)((grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+    grid_axes[0] = float((grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
+    grid_axes[1] = float((grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
+    grid_axes[2] = float((grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
 
     /* Z axis if needed */
     if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
@@ -153,9 +156,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
         zneg_flag |= CLIP_ZPOS;
       }
 
-      zplane_axes[0] = (float)((zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
-      zplane_axes[1] = (float)((zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
-      zplane_axes[2] = (float)((zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+      zplane_axes[0] = float((zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
+      zplane_axes[1] = float((zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
+      zplane_axes[2] = float((zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
     }
     else {
       zneg_flag = zpos_flag = CLIP_ZNEG | CLIP_ZPOS;
@@ -287,7 +290,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
     /* add wire border */
     GPUShader *sh = OVERLAY_shader_grid_image();
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->grid_ps);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", theme_color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", theme_color);
     unit_m4(mat);
     for (int x = 0; x < grid->size[0]; x++) {
       mat[3][0] = x;

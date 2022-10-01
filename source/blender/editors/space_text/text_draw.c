@@ -57,7 +57,7 @@ static void text_draw_context_init(const SpaceText *st, TextDrawContext *tdc)
 
 static void text_font_begin(const TextDrawContext *tdc)
 {
-  BLF_size(tdc->font_id, (float)tdc->lheight_px, 72);
+  BLF_size(tdc->font_id, (float)tdc->lheight_px);
 }
 
 static void text_font_end(const TextDrawContext *UNUSED(tdc))

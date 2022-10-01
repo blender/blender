@@ -102,7 +102,7 @@ void WVDataWrapper::print()
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
       if (values->getCount()) {
         for (int i = 0; i < values->getCount(); i += 2) {
-          fprintf(stderr, "%.1f, %.1f\n", (float)(*values)[i], (float)(*values)[i + 1]);
+          fprintf(stderr, "%.1f, %.1f\n", float((*values)[i]), float((*values)[i + 1]));
         }
       }
     } break;
@@ -133,8 +133,8 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
       if (values->empty()) {
         return;
       }
-      uv[0] = (float)(*values)[uv_index * stride];
-      uv[1] = (float)(*values)[uv_index * stride + 1];
+      uv[0] = float((*values)[uv_index * stride]);
+      uv[1] = float((*values)[uv_index * stride + 1]);
 
     } break;
     case COLLADAFW::MeshVertexData::DATA_TYPE_UNKNOWN:
@@ -208,7 +208,7 @@ MeshImporter::MeshImporter(UnitConverter *unitconv,
 }
 
 bool MeshImporter::set_poly_indices(
-    MPoly *mpoly, MLoop *mloop, int loop_index, const unsigned int *indices, int loop_count)
+    MPoly *mpoly, MLoop *mloop, int loop_index, const uint *indices, int loop_count)
 {
   mpoly->loopstart = loop_index;
   mpoly->totloop = loop_count;
@@ -276,7 +276,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
   const std::string &name = bc_get_dae_name(mesh);
 
-  for (unsigned int i = 0; i < prim_arr.getCount(); i++) {
+  for (uint i = 0; i < prim_arr.getCount(); i++) {
 
     COLLADAFW::MeshPrimitive *mp = prim_arr[i];
     COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
@@ -284,7 +284,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
     const char *type_str = bc_primTypeToStr(type);
 
     /* OpenCollada passes POLYGONS type for <polylist> */
-    if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
+    if (ELEM(type, COLLADAFW::MeshPrimitive::POLYLIST, COLLADAFW::MeshPrimitive::POLYGONS)) {
 
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
       COLLADAFW::Polygons::VertexCountArray &vca = mpvc->getGroupedVerticesVertexCountArray();
@@ -292,7 +292,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
       int hole_count = 0;
       int nonface_count = 0;
 
-      for (unsigned int j = 0; j < vca.getCount(); j++) {
+      for (uint j = 0; j < vca.getCount(); j++) {
         int count = vca[j];
         if (abs(count) < 3) {
           nonface_count++;
@@ -324,8 +324,9 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
       /* TODO: Add Checker for line syntax here */
     }
 
-    else if (type != COLLADAFW::MeshPrimitive::TRIANGLES &&
-             type != COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
+    else if (!ELEM(type,
+                   COLLADAFW::MeshPrimitive::TRIANGLES,
+                   COLLADAFW::MeshPrimitive::TRIANGLE_FANS)) {
       fprintf(stderr, "ERROR: Primitive type %s is not supported.\n", type_str);
       return false;
     }
@@ -455,7 +456,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
     CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);
     CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
 
-    unsigned int totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
+    uint totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
     for (int i = 0; i < totuvset; i++) {
       if (collada_mesh->getUVCoords().getLength(i) == 0) {
         totuvset = 0;
@@ -490,7 +491,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   }
 }
 
-unsigned int MeshImporter::get_vertex_count(COLLADAFW::Polygons *mp, int index)
+uint MeshImporter::get_vertex_count(COLLADAFW::Polygons *mp, int index)
 {
   int type = mp->getPrimitiveType();
   int result;
@@ -513,7 +514,7 @@ unsigned int MeshImporter::get_vertex_count(COLLADAFW::Polygons *mp, int index)
   return result;
 }
 
-unsigned int MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh)
+uint MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh)
 {
   COLLADAFW::MeshPrimitiveArray &prim_arr = mesh->getMeshPrimitives();
   int loose_edge_count = 0;
@@ -563,7 +564,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   /* set default flags */
   medge = &edges[mesh->totedge];
   for (int i = 0; i < len; i++, medge++) {
-    medge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+    medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
   }
 
   mesh->totedge = totedge;
@@ -571,11 +572,11 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
 void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 {
-  unsigned int loose_edge_count = get_loose_edge_count(mesh);
+  uint loose_edge_count = get_loose_edge_count(mesh);
   if (loose_edge_count > 0) {
 
-    unsigned int face_edge_count = me->totedge;
-    /* unsigned int total_edge_count = loose_edge_count + face_edge_count; */ /* UNUSED */
+    uint face_edge_count = me->totedge;
+    /* uint total_edge_count = loose_edge_count + face_edge_count; */ /* UNUSED */
 
     mesh_add_edges(me, loose_edge_count);
     MutableSpan<MEdge> edges = me->edges_for_write();
@@ -588,11 +589,10 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 
       int type = mp->getPrimitiveType();
       if (type == COLLADAFW::MeshPrimitive::LINES) {
-        unsigned int edge_count = mp->getFaceCount();
-        unsigned int *indices = mp->getPositionIndices().getData();
+        uint edge_count = mp->getFaceCount();
+        uint *indices = mp->getPositionIndices().getData();
 
         for (int j = 0; j < edge_count; j++, med++) {
-          med->crease = 0;
           med->flag |= ME_LOOSEEDGE;
           med->v1 = indices[2 * j];
           med->v2 = indices[2 * j + 1];
@@ -606,7 +606,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
                               Mesh *me,
                               blender::Vector<blender::float3> &loop_normals)
 {
-  unsigned int i;
+  uint i;
 
   allocate_poly_data(collada_mesh, me);
 
@@ -633,8 +633,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
     /* faces */
     size_t prim_totpoly = mp->getFaceCount();
-    unsigned int *position_indices = mp->getPositionIndices().getData();
-    unsigned int *normal_indices = mp->getNormalIndices().getData();
+    uint *position_indices = mp->getPositionIndices().getData();
+    uint *normal_indices = mp->getNormalIndices().getData();
 
     bool mp_has_normals = primitive_has_useable_normals(mp);
     bool mp_has_faces = primitive_has_faces(mp);
@@ -650,22 +650,21 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
      * XXX In particular the handling of the normal_indices is very wrong */
     /* TODO: UV, vertex color and custom normal support */
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
-      unsigned int grouped_vertex_count = mp->getGroupedVertexElementsCount();
-      for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++) {
-        unsigned int first_vertex = position_indices[0]; /* Store first trifan vertex */
-        unsigned int first_normal = normal_indices[0];   /* Store first trifan vertex normal */
-        unsigned int vertex_count = mp->getGroupedVerticesVertexCount(group_index);
+      uint grouped_vertex_count = mp->getGroupedVertexElementsCount();
+      for (uint group_index = 0; group_index < grouped_vertex_count; group_index++) {
+        uint first_vertex = position_indices[0]; /* Store first trifan vertex */
+        uint first_normal = normal_indices[0];   /* Store first trifan vertex normal */
+        uint vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
-        for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
+        for (uint vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
           /* For each triangle store indices of its 3 vertices */
-          unsigned int triangle_vertex_indices[3] = {
+          uint triangle_vertex_indices[3] = {
               first_vertex, position_indices[1], position_indices[2]};
           set_poly_indices(mpoly, mloop, loop_index, triangle_vertex_indices, 3);
 
           if (mp_has_normals) { /* vertex normals, same implementation as for the triangles */
             /* The same for vertices normals. */
-            unsigned int vertex_normal_indices[3] = {
-                first_normal, normal_indices[1], normal_indices[2]};
+            uint vertex_normal_indices[3] = {first_normal, normal_indices[1], normal_indices[2]};
             if (!is_flat_face(vertex_normal_indices, nor, 3)) {
               mpoly->flag |= ME_SMOOTH;
             }
@@ -690,17 +689,18 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
       }
     }
 
-    if (collada_meshtype == COLLADAFW::MeshPrimitive::POLYLIST ||
-        collada_meshtype == COLLADAFW::MeshPrimitive::POLYGONS ||
-        collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLES) {
+    if (ELEM(collada_meshtype,
+             COLLADAFW::MeshPrimitive::POLYLIST,
+             COLLADAFW::MeshPrimitive::POLYGONS,
+             COLLADAFW::MeshPrimitive::TRIANGLES)) {
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
-      unsigned int start_index = 0;
+      uint start_index = 0;
 
       COLLADAFW::IndexListArray &index_list_array_uvcoord = mp->getUVCoordIndicesArray();
       COLLADAFW::IndexListArray &index_list_array_vcolor = mp->getColorIndicesArray();
 
       int invalid_loop_holes = 0;
-      for (unsigned int j = 0; j < prim_totpoly; j++) {
+      for (uint j = 0; j < prim_totpoly; j++) {
 
         /* Vertices in polygon: */
         int vcount = get_vertex_count(mpvc, j);
@@ -713,7 +713,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           invalid_loop_holes += 1;
         }
 
-        for (unsigned int uvset_index = 0; uvset_index < index_list_array_uvcoord.getCount();
+        for (uint uvset_index = 0; uvset_index < index_list_array_uvcoord.getCount();
              uvset_index++) {
           /* get mtface by face index and uv set index */
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
@@ -744,7 +744,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           if (use_custom_normals) {
             /* Store the custom normals for later application. */
             float vert_normal[3];
-            unsigned int *cur_normal = normal_indices;
+            uint *cur_normal = normal_indices;
             for (int k = 0; k < vcount; k++, cur_normal++) {
               get_vector(vert_normal, nor, *cur_normal, 3);
               normalize_v3(vert_normal);
@@ -756,7 +756,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         if (mp->hasColorIndices()) {
           int vcolor_count = index_list_array_vcolor.getCount();
 
-          for (unsigned int vcolor_index = 0; vcolor_index < vcolor_count; vcolor_index++) {
+          for (uint vcolor_index = 0; vcolor_index < vcolor_count; vcolor_index++) {
 
             COLLADAFW::IndexList &color_index_list = *mp->getColorIndices(vcolor_index);
             COLLADAFW::String colname = extract_vcolname(color_index_list.getName());
@@ -834,10 +834,10 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
         return;
       }
 
-      v[0] = (float)(*values)[i++];
-      v[1] = (float)(*values)[i++];
+      v[0] = float((*values)[i++]);
+      v[1] = float((*values)[i++]);
       if (stride >= 3) {
-        v[2] = (float)(*values)[i];
+        v[2] = float((*values)[i]);
       }
       else {
         v[2] = 0.0f;
@@ -848,7 +848,7 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
   }
 }
 
-bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &nor, int count)
+bool MeshImporter::is_flat_face(uint *nind, COLLADAFW::MeshVertexData &nor, int count)
 {
   float a[3], b[3];
 
@@ -1108,7 +1108,7 @@ Object *MeshImporter::create_mesh_object(
   COLLADAFW::MaterialBindingArray &mat_array = geom->getMaterialBindings();
 
   /* loop through geom's materials */
-  for (unsigned int i = 0; i < mat_array.getCount(); i++) {
+  for (uint i = 0; i < mat_array.getCount(); i++) {
 
     if (mat_array[i].getReferencedMaterial().isValid()) {
       assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid, i);
@@ -1174,7 +1174,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
       fprintf(stderr,
               "Can't apply custom normals, me->totloop != loop_normals.size() (%d != %d)\n",
               me->totloop,
-              (int)loop_normals.size());
+              int(loop_normals.size()));
     }
     else {
       BKE_mesh_set_custom_normals(me, reinterpret_cast<float(*)[3]>(loop_normals.data()));

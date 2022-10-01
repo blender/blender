@@ -22,7 +22,7 @@ void HashGrid::clear()
   Grid::clear();
 }
 
-void HashGrid::configure(const Vec3r &orig, const Vec3r &size, unsigned nb)
+void HashGrid::configure(const Vec3r &orig, const Vec3r &size, uint nb)
 {
   Grid::configure(orig, size, nb);
 }

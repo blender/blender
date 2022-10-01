@@ -125,7 +125,7 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
 
     float3 co = no;
     for (int key = 0; key < points_per_curve; key++) {
-      float t = key / (float)(points_per_curve - 1);
+      float t = key / float(points_per_curve - 1);
       curve_positions[key] = co;
       curve_radii[key] = 0.02f * (1.0f - t);
 

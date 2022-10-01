@@ -85,7 +85,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
-    copy_v3_v3(verts[i].co, float3((float)result.vert[i].x, (float)result.vert[i].y, 0.0f));
+    copy_v3_v3(verts[i].co, float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f));
   }
   for (const int i : IndexRange(result.edge.size())) {
     edges[i].v1 = result.edge[i].first;

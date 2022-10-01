@@ -98,9 +98,9 @@ static bool seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
           (a->scene->r.views_format != b->scene->r.views_format) || (a->view_id != b->view_id));
 }
 
-static unsigned int seq_hash_render_data(const SeqRenderData *a)
+static uint seq_hash_render_data(const SeqRenderData *a)
 {
-  unsigned int rval = a->rectx + a->recty;
+  uint rval = a->rectx + a->recty;
 
   rval ^= a->preview_render_size;
   rval ^= ((intptr_t)a->bmain) << 6;
@@ -112,12 +112,12 @@ static unsigned int seq_hash_render_data(const SeqRenderData *a)
   return rval;
 }
 
-static unsigned int seq_cache_hashhash(const void *key_)
+static uint seq_cache_hashhash(const void *key_)
 {
   const SeqCacheKey *key = key_;
-  unsigned int rval = seq_hash_render_data(&key->context);
+  uint rval = seq_hash_render_data(&key->context);
 
-  rval ^= *(const unsigned int *)&key->frame_index;
+  rval ^= *(const uint *)&key->frame_index;
   rval += key->type;
   rval ^= ((intptr_t)key->seq) << 6;
 
@@ -703,8 +703,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
 
     const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(scene, key->seq);
     const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, key->seq);
-    const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) *
-                                    frame_step;
+    const int relative_base_frame = round_fl_to_int(frame_index / (float)frame_step) * frame_step;
     const int nearest_guaranted_absolute_frame = relative_base_frame +
                                                  SEQ_time_left_handle_frame_get(scene, key->seq);
 

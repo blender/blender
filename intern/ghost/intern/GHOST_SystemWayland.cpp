@@ -123,6 +123,69 @@ static bool use_gnome_confine_hack = false;
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Modifier Table
+ *
+ * Convenient access to modifier key values, allow looping over modifier keys.
+ * \{ */
+
+enum {
+  MOD_INDEX_SHIFT = 0,
+  MOD_INDEX_ALT = 1,
+  MOD_INDEX_CTRL = 2,
+  MOD_INDEX_OS = 3,
+};
+#define MOD_INDEX_NUM (MOD_INDEX_OS + 1)
+
+struct GWL_ModifierInfo {
+  /** Only for printing messages. */
+  const char *display_name;
+  const char *xkb_id;
+  GHOST_TKey key_l, key_r;
+  GHOST_TModifierKey mod_l, mod_r;
+};
+
+static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
+    [MOD_INDEX_SHIFT] =
+        {
+            .display_name = "Shift",
+            .xkb_id = XKB_MOD_NAME_SHIFT,
+            .key_l = GHOST_kKeyLeftShift,
+            .key_r = GHOST_kKeyRightShift,
+            .mod_l = GHOST_kModifierKeyLeftShift,
+            .mod_r = GHOST_kModifierKeyRightShift,
+        },
+    [MOD_INDEX_ALT] =
+        {
+            .display_name = "Alt",
+            .xkb_id = XKB_MOD_NAME_ALT,
+            .key_l = GHOST_kKeyLeftAlt,
+            .key_r = GHOST_kKeyRightAlt,
+            .mod_l = GHOST_kModifierKeyLeftAlt,
+            .mod_r = GHOST_kModifierKeyRightAlt,
+        },
+    [MOD_INDEX_CTRL] =
+        {
+            .display_name = "Control",
+            .xkb_id = XKB_MOD_NAME_CTRL,
+            .key_l = GHOST_kKeyLeftControl,
+            .key_r = GHOST_kKeyRightControl,
+            .mod_l = GHOST_kModifierKeyLeftControl,
+            .mod_r = GHOST_kModifierKeyRightControl,
+        },
+    [MOD_INDEX_OS] =
+        {
+            .display_name = "OS",
+            .xkb_id = XKB_MOD_NAME_LOGO,
+            .key_l = GHOST_kKeyLeftOS,
+            .key_r = GHOST_kKeyRightOS,
+            .mod_l = GHOST_kModifierKeyLeftOS,
+            .mod_r = GHOST_kModifierKeyRightOS,
+        },
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Private Types & Defines
  * \{ */
 
@@ -327,14 +390,7 @@ struct GWL_Seat {
    * so every time a modifier is accessed a string lookup isn't required.
    * Be sure to check for #XKB_MOD_INVALID before using.
    */
-  struct {
-    xkb_mod_index_t shift; /* #XKB_MOD_NAME_SHIFT */
-    xkb_mod_index_t caps;  /* #XKB_MOD_NAME_CAPS */
-    xkb_mod_index_t ctrl;  /* #XKB_MOD_NAME_CTRL */
-    xkb_mod_index_t alt;   /* #XKB_MOD_NAME_ALT */
-    xkb_mod_index_t num;   /* #XKB_MOD_NAME_NUM */
-    xkb_mod_index_t logo;  /* #XKB_MOD_NAME_LOGO */
-  } xkb_keymap_mod_index;
+  xkb_mod_index_t xkb_keymap_mod_index[MOD_INDEX_NUM];
 
   struct {
     /** Key repetition in character per second. */
@@ -854,7 +910,7 @@ static wl_buffer *ghost_wl_buffer_create_for_image(struct wl_shm *shm,
         wl_shm_pool_destroy(pool);
         if (buffer) {
           *r_buffer_data = buffer_data;
-          *r_buffer_data_size = (size_t)buffer_size;
+          *r_buffer_data_size = size_t(buffer_size);
         }
         else {
           /* Highly unlikely. */
@@ -1935,7 +1991,7 @@ static void tablet_tool_handle_pressure(void *data,
                                         struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                         const uint32_t pressure)
 {
-  const float pressure_unit = (float)pressure / 65535;
+  const float pressure_unit = float(pressure) / 65535;
   CLOG_INFO(LOG, 2, "pressure (%.4f)", pressure_unit);
 
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
@@ -1956,8 +2012,8 @@ static void tablet_tool_handle_tilt(void *data,
 {
   /* Map degrees to `-1.0..1.0`. */
   const float tilt_unit[2] = {
-      (float)(wl_fixed_to_double(tilt_x) / 90.0),
-      (float)(wl_fixed_to_double(tilt_y) / 90.0),
+      float(wl_fixed_to_double(tilt_x) / 90.0),
+      float(wl_fixed_to_double(tilt_y) / 90.0),
   };
   CLOG_INFO(LOG, 2, "tilt (x=%.4f, y=%.4f)", UNPACK2(tilt_unit));
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
@@ -2207,12 +2263,10 @@ static void keyboard_handle_keymap(void *data,
     }
   }
 
-  seat->xkb_keymap_mod_index.shift = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
-  seat->xkb_keymap_mod_index.caps = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CAPS);
-  seat->xkb_keymap_mod_index.ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
-  seat->xkb_keymap_mod_index.alt = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
-  seat->xkb_keymap_mod_index.num = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
-  seat->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
+  for (int i = 0; i < MOD_INDEX_NUM; i++) {
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    seat->xkb_keymap_mod_index[i] = xkb_keymap_mod_get_index(keymap, mod_info.xkb_id);
+  }
 
   keyboard_depressed_state_reset(seat);
 
@@ -2877,24 +2931,24 @@ static void global_handle_add(void *data,
   bool found = true;
 
   struct GWL_Display *display = static_cast<struct GWL_Display *>(data);
-  if (!strcmp(interface, wl_compositor_interface.name)) {
+  if (STREQ(interface, wl_compositor_interface.name)) {
     display->compositor = static_cast<wl_compositor *>(
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   /* Pass. */
 #else
-  else if (!strcmp(interface, xdg_wm_base_interface.name)) {
+  else if (STREQ(interface, xdg_wm_base_interface.name)) {
     display->xdg_shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
     xdg_wm_base_add_listener(display->xdg_shell, &shell_listener, nullptr);
   }
-  else if (!strcmp(interface, zxdg_decoration_manager_v1_interface.name)) {
+  else if (STREQ(interface, zxdg_decoration_manager_v1_interface.name)) {
     display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
-  else if (!strcmp(interface, zxdg_output_manager_v1_interface.name)) {
+  else if (STREQ(interface, zxdg_output_manager_v1_interface.name)) {
     display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 2));
     for (GWL_Output *output : display->outputs) {
@@ -2903,7 +2957,7 @@ static void global_handle_add(void *data,
       zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
     }
   }
-  else if (!strcmp(interface, wl_output_interface.name)) {
+  else if (STREQ(interface, wl_output_interface.name)) {
     GWL_Output *output = new GWL_Output;
     output->wl_output = static_cast<wl_output *>(
         wl_registry_bind(wl_registry, name, &wl_output_interface, 2));
@@ -2919,7 +2973,7 @@ static void global_handle_add(void *data,
       zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
     }
   }
-  else if (!strcmp(interface, wl_seat_interface.name)) {
+  else if (STREQ(interface, wl_seat_interface.name)) {
     GWL_Seat *seat = new GWL_Seat;
     seat->system = display->system;
     seat->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
@@ -2929,23 +2983,23 @@ static void global_handle_add(void *data,
     display->seats.push_back(seat);
     wl_seat_add_listener(seat->wl_seat, &seat_listener, seat);
   }
-  else if (!strcmp(interface, wl_shm_interface.name)) {
+  else if (STREQ(interface, wl_shm_interface.name)) {
     display->shm = static_cast<wl_shm *>(
         wl_registry_bind(wl_registry, name, &wl_shm_interface, 1));
   }
-  else if (!strcmp(interface, wl_data_device_manager_interface.name)) {
+  else if (STREQ(interface, wl_data_device_manager_interface.name)) {
     display->data_device_manager = static_cast<wl_data_device_manager *>(
         wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
-  else if (!strcmp(interface, zwp_tablet_manager_v2_interface.name)) {
+  else if (STREQ(interface, zwp_tablet_manager_v2_interface.name)) {
     display->tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
         wl_registry_bind(wl_registry, name, &zwp_tablet_manager_v2_interface, 1));
   }
-  else if (!strcmp(interface, zwp_relative_pointer_manager_v1_interface.name)) {
+  else if (STREQ(interface, zwp_relative_pointer_manager_v1_interface.name)) {
     display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_relative_pointer_manager_v1_interface, 1));
   }
-  else if (!strcmp(interface, zwp_pointer_constraints_v1_interface.name)) {
+  else if (STREQ(interface, zwp_pointer_constraints_v1_interface.name)) {
     display->pointer_constraints = static_cast<zwp_pointer_constraints_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_pointer_constraints_v1_interface, 1));
   }
@@ -3087,7 +3141,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     wl_display_roundtrip(d->display);
   }
 
-  if ((getEventManager()->getNumEvents() > 0)) {
+  if (getEventManager()->getNumEvents() > 0) {
     any_processed = true;
   }
 
@@ -3107,67 +3161,43 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   GWL_Seat *seat = d->seats[0];
 
-  bool val, val_l, val_r;
-
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
-
-#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
 
   /* Use local #WGL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
-#define MOD_VALIDATE(mod_string) \
-  if (val) { \
-    if (!(val_l || val_r)) { \
-      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
-                "modifier (%s) state is inconsistent (held keys do not match XKB)", \
-                mod_string); \
-      val_l = true; /* Set one because XKB should have priority. */ \
-    } \
-  } \
-  else { \
-    if (val_l || val_r) { \
-      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
-                "modifier (%s) state is inconsistent (released keys do not match XKB)", \
-                mod_string); \
-      val_l = false; \
-      val_r = false; \
-    } \
-  } \
-  ((void)0)
+  for (int i = 0; i < MOD_INDEX_NUM; i++) {
+    if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
+      continue;
+    }
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
+    bool val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_l)] > 0;
+    bool val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_r)] > 0;
 
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.shift);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftShift)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightShift)] > 0;
-  MOD_VALIDATE("Shift");
-  keys.set(GHOST_kModifierKeyLeftShift, val_l);
-  keys.set(GHOST_kModifierKeyRightShift, val_r);
+    /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
+     * Warn so if this happens it can be investigated. */
+    if (val) {
+      if (UNLIKELY(!(val_l || val_r))) {
+        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                  "modifier (%s) state is inconsistent (held keys do not match XKB)",
+                  mod_info.display_name);
+        /* Picking the left is arbitrary. */
+        val_l = true;
+      }
+    }
+    else {
+      if (UNLIKELY(val_l || val_r)) {
+        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                  "modifier (%s) state is inconsistent (released keys do not match XKB)",
+                  mod_info.display_name);
+        val_l = false;
+        val_r = false;
+      }
+    }
 
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.alt);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftAlt)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightAlt)] > 0;
-  MOD_VALIDATE("Alt");
-  keys.set(GHOST_kModifierKeyLeftAlt, val_l);
-  keys.set(GHOST_kModifierKeyRightAlt, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.ctrl);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftControl)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightControl)] > 0;
-  MOD_VALIDATE("Control");
-  keys.set(GHOST_kModifierKeyLeftControl, val_l);
-  keys.set(GHOST_kModifierKeyRightControl, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.logo);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftOS)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightOS)] > 0;
-  MOD_VALIDATE("OS");
-  keys.set(GHOST_kModifierKeyLeftOS, val_l);
-  keys.set(GHOST_kModifierKeyRightOS, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.num);
-  keys.set(GHOST_kModifierKeyNum, val);
-
-#undef MOD_VALIDATE
-#undef MOD_TEST
+    keys.set(mod_info.mod_l, val_l);
+    keys.set(mod_info.mod_r, val_r);
+  }
 
   return GHOST_kSuccess;
 }
@@ -3189,7 +3219,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 
 char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
 {
-  char *clipboard = static_cast<char *>(malloc((selection.size() + 1)));
+  char *clipboard = static_cast<char *>(malloc(selection.size() + 1));
   memcpy(clipboard, selection.data(), selection.size() + 1);
   return clipboard;
 }
@@ -3626,12 +3656,12 @@ static void cursor_visible_set(GWL_Seat *seat,
   if (set_mode == CURSOR_VISIBLE_ALWAYS_SET) {
     /* Pass. */
   }
-  else if ((set_mode == CURSOR_VISIBLE_ONLY_SHOW)) {
+  else if (set_mode == CURSOR_VISIBLE_ONLY_SHOW) {
     if (!use_visible) {
       return;
     }
   }
-  else if ((set_mode == CURSOR_VISIBLE_ONLY_HIDE)) {
+  else if (set_mode == CURSOR_VISIBLE_ONLY_HIDE) {
     if (use_visible) {
       return;
     }

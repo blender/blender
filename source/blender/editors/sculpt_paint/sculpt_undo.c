@@ -486,8 +486,13 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Mesh *me = BKE_object_get_original_mesh(ob);
-  int *face_sets = CustomData_add_layer(
-      &me->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, NULL, me->totpoly);
+
+  int *face_sets = CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  if (!face_sets) {
+    face_sets = CustomData_add_layer_named(
+        &me->pdata, CD_PROP_INT32, CD_CONSTRUCT, NULL, me->totpoly, ".sculpt_face_set");
+  }
+
   for (int i = 0; i < me->totpoly; i++) {
     SWAP(int, face_sets[i], unode->face_sets[i]);
   }
@@ -740,8 +745,13 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool update = false, rebuild = false, update_mask = false, update_visibility = false;
   bool need_mask = false;
   bool need_refine_subdiv = false;
+  bool clear_automask_cache = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
+    if (!ELEM(unode->type, SCULPT_UNDO_COLOR, SCULPT_UNDO_MASK)) {
+      clear_automask_cache = true;
+    }
+
     /* Restore pivot. */
     copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
     copy_v3_v3(ss->pivot_rot, unode->pivot_rot);
@@ -753,6 +763,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         break;
       }
     }
+  }
+
+  if (clear_automask_cache) {
+    ss->last_automasking_settings_hash = 0;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
@@ -1364,7 +1378,7 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
 
   unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
 
-  const int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (face_sets) {
     for (int i = 0; i < me->totpoly; i++) {
       unode->face_sets[i] = face_sets[i];

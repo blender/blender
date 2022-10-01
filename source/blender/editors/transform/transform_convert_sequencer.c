@@ -94,7 +94,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
     int left = SEQ_time_left_handle_frame_get(scene, seq);
     int right = SEQ_time_right_handle_frame_get(scene, seq);
 
-    if (((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq))) {
+    if ((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq)) {
       *r_count = 0;
       *r_flag = 0;
     }

@@ -100,6 +100,12 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
+  {
+    return ATTR_DOMAIN_FACE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

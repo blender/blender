@@ -143,6 +143,10 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_customdata_bevel_weight_vertex_clear);
   WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_add);
   WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_clear);
+  WM_operatortype_append(MESH_OT_customdata_crease_vertex_add);
+  WM_operatortype_append(MESH_OT_customdata_crease_vertex_clear);
+  WM_operatortype_append(MESH_OT_customdata_crease_edge_add);
+  WM_operatortype_append(MESH_OT_customdata_crease_edge_clear);
 
   WM_operatortype_append(MESH_OT_edgering_select);
   WM_operatortype_append(MESH_OT_loopcut);

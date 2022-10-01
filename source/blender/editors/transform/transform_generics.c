@@ -317,7 +317,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     /* initialize UV transform from */
-    if (op && ((prop = RNA_struct_find_property(op->ptr, "correct_uv")))) {
+    if (op && (prop = RNA_struct_find_property(op->ptr, "correct_uv"))) {
       if (RNA_property_is_set(op->ptr, prop)) {
         if (RNA_property_boolean_get(op->ptr, prop)) {
           t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT_SLIDE;

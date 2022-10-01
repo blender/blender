@@ -83,7 +83,7 @@ struct ParticleList {
 
   size_t size() const
   {
-    return (size_t)positions.size();
+    return size_t(positions.size());
   }
 
   void getPos(size_t n, openvdb::Vec3R &xyz) const
@@ -215,7 +215,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
     return;
   }
 
-  Volume *volume = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
+  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
   BKE_volume_init_grids(volume);
 
   const float density = params.get_input<float>("Density");
@@ -231,17 +231,16 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-
 #ifdef WITH_OPENVDB
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     initialize_volume_component_from_points(params, geometry_set);
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_default_remaining_outputs();
 #endif
 }
 

@@ -127,13 +127,13 @@ static bool egl_chk(bool result,
             file,
             line,
             text,
-            static_cast<unsigned int>(error),
+            uint(error),
             code ? code : "<Unknown>",
             msg ? msg : "<Unknown>");
 #else
     fprintf(stderr,
             "EGL Error (0x%04X): %s: %s\n",
-            static_cast<unsigned int>(error),
+            uint(error),
             code ? code : "<Unknown>",
             msg ? msg : "<Unknown>");
     (void)(file);

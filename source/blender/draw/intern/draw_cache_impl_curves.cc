@@ -108,6 +108,7 @@ static void curves_batch_cache_clear_data(CurvesEvalCache &curves_cache)
   /* TODO: more granular update tagging. */
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_point_buf);
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_length_buf);
+  GPU_VERTBUF_DISCARD_SAFE(curves_cache.data_edit_points);
   DRW_TEXTURE_FREE_SAFE(curves_cache.point_tex);
   DRW_TEXTURE_FREE_SAFE(curves_cache.length_tex);
 
@@ -303,6 +304,43 @@ static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
         break;
       }
     }
+  }
+}
+
+static void curves_batch_cache_ensure_data_edit_points(const Curves &curves_id,
+                                                       CurvesEvalCache &cache)
+{
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      curves_id.geometry);
+
+  static GPUVertFormat format_data = {0};
+  uint data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+  GPU_vertbuf_init_with_format(cache.data_edit_points, &format_data);
+  GPU_vertbuf_data_alloc(cache.data_edit_points, curves.points_num());
+
+  blender::VArray<float> selection;
+  switch (curves_id.selection_domain) {
+    case ATTR_DOMAIN_POINT:
+      selection = curves.selection_point_float();
+      for (const int point_i : selection.index_range()) {
+        uint8_t vflag = 0;
+        const float point_selection = selection[point_i];
+        SET_FLAG_FROM_TEST(vflag, (point_selection > 0.0f), VFLAG_VERT_SELECTED);
+        GPU_vertbuf_attr_set(cache.data_edit_points, data, point_i, &vflag);
+      }
+      break;
+    case ATTR_DOMAIN_CURVE:
+      selection = curves.selection_curve_float();
+      for (const int curve_i : curves.curves_range()) {
+        uint8_t vflag = 0;
+        const float curve_selection = selection[curve_i];
+        SET_FLAG_FROM_TEST(vflag, (curve_selection > 0.0f), VFLAG_VERT_SELECTED);
+        const IndexRange points = curves.points_for_curve(curve_i);
+        for (const int point_i : points) {
+          GPU_vertbuf_attr_set(cache.data_edit_points, data, point_i, &vflag);
+        }
+      }
+      break;
   }
 }
 
@@ -697,9 +735,14 @@ void DRW_curves_batch_cache_create_requested(Object *ob)
 
   if (DRW_batch_requested(cache.edit_points, GPU_PRIM_POINTS)) {
     DRW_vbo_request(cache.edit_points, &cache.curves_cache.proc_point_buf);
+    DRW_vbo_request(cache.edit_points, &cache.curves_cache.data_edit_points);
   }
 
   if (DRW_vbo_requested(cache.curves_cache.proc_point_buf)) {
     curves_batch_cache_ensure_procedural_pos(*curves, cache.curves_cache, nullptr);
+  }
+
+  if (DRW_vbo_requested(cache.curves_cache.data_edit_points)) {
+    curves_batch_cache_ensure_data_edit_points(*curves, cache.curves_cache);
   }
 }

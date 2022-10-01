@@ -205,7 +205,6 @@ struct ObjectAttribute {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
-  bool id_property_lookup(ID *id, const char *name);
 #endif
 };
 #pragma pack(pop)

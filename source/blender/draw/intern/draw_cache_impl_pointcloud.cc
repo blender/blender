@@ -32,11 +32,13 @@
 struct PointCloudBatchCache {
   GPUVertBuf *pos;  /* Position and radius. */
   GPUVertBuf *geom; /* Instanced geometry for each point in the cloud (small sphere). */
+  GPUVertBuf *attr_viewer;
   GPUIndexBuf *geom_indices;
 
   GPUBatch *dots;
   GPUBatch *surface;
   GPUBatch **surface_per_mat;
+  GPUBatch *surface_viewer_attribute;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
@@ -109,6 +111,7 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
   GPU_BATCH_DISCARD_SAFE(cache->surface);
   GPU_VERTBUF_DISCARD_SAFE(cache->pos);
   GPU_VERTBUF_DISCARD_SAFE(cache->geom);
+  GPU_VERTBUF_DISCARD_SAFE(cache->attr_viewer);
   GPU_INDEXBUF_DISCARD_SAFE(cache->geom_indices);
 
   if (cache->surface_per_mat) {
@@ -116,6 +119,7 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
       GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
     }
   }
+  GPU_BATCH_DISCARD_SAFE(cache->surface_viewer_attribute);
   MEM_SAFE_FREE(cache->surface_per_mat);
 }
 
@@ -227,6 +231,30 @@ static void pointcloud_batch_cache_ensure_geom(PointCloudBatchCache &cache)
   cache.geom_indices = GPU_indexbuf_build(&builder);
 }
 
+static void pointcloud_batch_cache_ensure_attribute_overlay(const PointCloud &pointcloud,
+                                                            PointCloudBatchCache &cache)
+{
+  using namespace blender;
+  if (cache.attr_viewer != nullptr) {
+    return;
+  }
+
+  const bke::AttributeAccessor attributes = pointcloud.attributes();
+  const VArray<ColorGeometry4f> colors = attributes.lookup_or_default<ColorGeometry4f>(
+      ".viewer", ATTR_DOMAIN_POINT, {1.0f, 0.0f, 1.0f, 1.0f});
+
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  }
+  cache.attr_viewer = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(cache.attr_viewer, pointcloud.totpoint);
+  MutableSpan<ColorGeometry4f> vbo_data{
+      static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(cache.attr_viewer)),
+      pointcloud.totpoint};
+  colors.materialize(vbo_data);
+}
+
 GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
 {
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
@@ -254,6 +282,25 @@ GPUBatch *DRW_pointcloud_batch_cache_get_surface(Object *ob)
   }
 
   return cache->surface;
+}
+
+GPUBatch *DRW_pointcloud_batch_cache_get_surface_viewer_attribute(Object *ob)
+{
+  PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+  PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
+
+  if (cache->surface_viewer_attribute == nullptr) {
+    pointcloud_batch_cache_ensure_pos(pointcloud, *cache);
+    pointcloud_batch_cache_ensure_geom(*cache);
+    pointcloud_batch_cache_ensure_attribute_overlay(pointcloud, *cache);
+
+    cache->surface_viewer_attribute = GPU_batch_create(
+        GPU_PRIM_TRIS, cache->geom, cache->geom_indices);
+    GPU_batch_instbuf_add_ex(cache->surface_viewer_attribute, cache->attr_viewer, false);
+    GPU_batch_instbuf_add_ex(cache->surface_viewer_attribute, cache->pos, false);
+  }
+
+  return cache->surface_viewer_attribute;
 }
 
 GPUBatch **DRW_cache_pointcloud_surface_shaded_get(Object *ob,

@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Size of the sphere being dragged for trackball rotation within the view bounds.
  * also affects speed (smaller is faster).
@@ -298,3 +302,7 @@ void VIEW3D_OT_zoom(struct wmOperatorType *ot);
 /* view3d_navigate_zoom_border.c */
 
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif
