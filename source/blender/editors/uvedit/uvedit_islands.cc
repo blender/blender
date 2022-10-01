@@ -40,17 +40,6 @@
 /** \name UV Face Utilities
  * \{ */
 
-static void bm_face_uv_scale_y(BMFace *f, const float scale_y, const int cd_loop_uv_offset)
-{
-  BMLoop *l_iter;
-  BMLoop *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    MLoopUV *luv = static_cast<MLoopUV *>(BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset));
-    luv->uv[1] *= scale_y;
-  } while ((l_iter = l_iter->next) != l_first);
-}
-
 static void bm_face_uv_translate_and_scale_around_pivot(BMFace *f,
                                                         const float offset[2],
                                                         const float scale[2],
@@ -159,65 +148,63 @@ static float (*bm_face_array_calc_unique_uv_coords(
   return coords;
 }
 
-/**
- * \param align_to_axis:
- * - -1: don't align to an axis.
- * -  0: align horizontally.
- * -  1: align vertically.
- */
-static void bm_face_array_uv_rotate_fit_aabb(BMFace **faces,
-                                             int faces_len,
-                                             int align_to_axis,
-                                             const int cd_loop_uv_offset)
+static void face_island_uv_rotate_fit_aabb(FaceIsland *island)
 {
+  BMFace **faces = island->faces;
+  const int faces_len = island->faces_len;
+  const float aspect_y = island->aspect_y;
+  const int cd_loop_uv_offset = island->cd_loop_uv_offset;
+
   /* Calculate unique coordinates since calculating a convex hull can be an expensive operation. */
   int coords_len;
   float(*coords)[2] = bm_face_array_calc_unique_uv_coords(
       faces, faces_len, cd_loop_uv_offset, &coords_len);
 
+  /* Correct aspect ratio. */
+  if (aspect_y != 1.0f) {
+    for (int i = 0; i < coords_len; i++) {
+      coords[i][1] /= aspect_y;
+    }
+  }
+
   float angle = BLI_convexhull_aabb_fit_points_2d(coords, coords_len);
 
-  if (align_to_axis != -1) {
-    if (angle != 0.0f) {
-      float matrix[2][2];
-      angle_to_mat2(matrix, angle);
-      for (int i = 0; i < coords_len; i++) {
-        mul_m2_v2(matrix, coords[i]);
-      }
-    }
-
-    float bounds_min[2], bounds_max[2];
-    INIT_MINMAX2(bounds_min, bounds_max);
+  /* Rotate coords by `angle` before computing bounding box. */
+  if (angle != 0.0f) {
+    float matrix[2][2];
+    angle_to_mat2(matrix, angle);
+    matrix[0][1] *= aspect_y;
+    matrix[1][1] *= aspect_y;
     for (int i = 0; i < coords_len; i++) {
-      minmax_v2v2_v2(bounds_min, bounds_max, coords[i]);
+      mul_m2_v2(matrix, coords[i]);
     }
+  }
 
-    float size[2];
-    sub_v2_v2v2(size, bounds_max, bounds_min);
-    if (align_to_axis ? (size[1] < size[0]) : (size[0] < size[1])) {
-      angle += DEG2RAD(90.0);
-    }
+  /* Compute new AABB. */
+  float bounds_min[2], bounds_max[2];
+  INIT_MINMAX2(bounds_min, bounds_max);
+  for (int i = 0; i < coords_len; i++) {
+    minmax_v2v2_v2(bounds_min, bounds_max, coords[i]);
+  }
+
+  float size[2];
+  sub_v2_v2v2(size, bounds_max, bounds_min);
+  if (size[1] < size[0]) {
+    angle += DEG2RADF(90.0f);
   }
 
   MEM_freeN(coords);
 
+  /* Apply rotation back to BMesh. */
   if (angle != 0.0f) {
     float matrix[2][2];
     angle_to_mat2(matrix, angle);
+    matrix[1][0] *= 1.0f / aspect_y;
+    /* matrix[1][1] *= aspect_y / aspect_y; */
+    matrix[0][1] *= aspect_y;
     for (int i = 0; i < faces_len; i++) {
       BM_face_uv_transform(faces[i], matrix, cd_loop_uv_offset);
     }
-  }
-}
-
-static void bm_face_array_uv_scale_y(BMFace **faces,
-                                     int faces_len,
-                                     const float scale_y,
-                                     const int cd_loop_uv_offset)
-{
-  for (int i = 0; i < faces_len; i++) {
-    BMFace *f = faces[i];
-    bm_face_uv_scale_y(f, scale_y, cd_loop_uv_offset);
   }
 }
 
@@ -497,20 +484,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     }
 
     if (params->rotate) {
-      if (island->aspect_y != 1.0f) {
-        bm_face_array_uv_scale_y(
-            island->faces, island->faces_len, 1.0f / island->aspect_y, island->cd_loop_uv_offset);
-      }
-
-      /* Align to the Y axis, could make this configurable. */
-      const int rotate_align_axis = 1;
-      bm_face_array_uv_rotate_fit_aabb(
-          island->faces, island->faces_len, rotate_align_axis, island->cd_loop_uv_offset);
-
-      if (island->aspect_y != 1.0f) {
-        bm_face_array_uv_scale_y(
-            island->faces, island->faces_len, island->aspect_y, island->cd_loop_uv_offset);
-      }
+      face_island_uv_rotate_fit_aabb(island);
     }
 
     bm_face_array_calc_bounds(

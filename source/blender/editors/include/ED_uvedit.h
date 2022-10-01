@@ -341,8 +341,6 @@ bool ED_uvedit_udim_params_from_image_space(const struct SpaceImage *sima,
 
 struct UVPackIsland_Params {
   uint rotate : 1;
-  /** -1 not to align to axis, otherwise 0,1 for X,Y. */
-  int rotate_align_axis : 2;
   uint only_selected_uvs : 1;
   uint only_selected_faces : 1;
   uint use_seams : 1;
