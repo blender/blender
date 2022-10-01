@@ -1757,7 +1757,7 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
       node->type = SH_NODE_MIX;
       NodeShaderMix *data = (NodeShaderMix *)MEM_callocN(sizeof(NodeShaderMix), __func__);
       data->blend_type = node->custom1;
-      data->clamp_result = node->custom2;
+      data->clamp_result = (node->custom2 & SHD_MIXRGB_CLAMP) ? 1 : 0;
       data->clamp_factor = 1;
       data->data_type = SOCK_RGBA;
       data->factor_mode = NODE_MIX_MODE_UNIFORM;
