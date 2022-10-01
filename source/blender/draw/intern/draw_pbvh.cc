@@ -669,7 +669,7 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
+  void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
@@ -687,7 +687,7 @@ struct PBVHBatches {
 
     BMVert v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12;
 
-    ATTR_NO_OPT auto foreach_bmesh_flat_vcol = [&](std::function<void(BMLoop * l)> callback) {
+    auto foreach_bmesh_flat_vcol = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
         PBVHTri *tri = args->tribuf->tris + i;
 

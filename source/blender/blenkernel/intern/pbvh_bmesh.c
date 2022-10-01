@@ -231,11 +231,11 @@ ATTR_NO_OPT void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
 /****************************** Building ******************************/
 
 /* Update node data after splitting */
-ATTR_NO_OPT static void pbvh_bmesh_node_finalize(PBVH *pbvh,
-                                                 const int node_index,
-                                                 const int cd_vert_node_offset,
-                                                 const int cd_face_node_offset,
-                                                 bool add_orco)
+static void pbvh_bmesh_node_finalize(PBVH *pbvh,
+                                     const int node_index,
+                                     const int cd_vert_node_offset,
+                                     const int cd_face_node_offset,
+                                     bool add_orco)
 {
   PBVHNode *n = &pbvh->nodes[node_index];
   bool has_visible = false;
@@ -3240,8 +3240,7 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
     BMVert *v;
 
     node->children_offset = 0;
-
-    pbvh_free_draw_buffers(pbvh, node);
+    node->draw_batches = NULL;
 
     // rebuild bm_other_verts
     BMFace *f;
@@ -3693,7 +3692,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(depthmap);
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_join_nodes(PBVH *bvh)
+static void pbvh_bmesh_join_nodes(PBVH *bvh)
 {
   if (bvh->totnode < 2) {
     return;

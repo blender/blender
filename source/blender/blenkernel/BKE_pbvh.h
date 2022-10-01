@@ -1189,7 +1189,7 @@ ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 #  define MV_ADD_FLAG(mv, flag1) (mv)->flag |= (flag1)
 #endif
 
-#if 0
+#if 1
 #  include "atomic_ops.h"
 #  include <float.h>
 #  include <math.h>

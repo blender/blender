@@ -95,7 +95,7 @@ int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face)
 }
 
 // returns previous face set
-ATTR_NO_OPT int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
+int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
 {
   int ret = 0;
 

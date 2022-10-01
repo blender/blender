@@ -381,6 +381,10 @@ void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
+  PBVH_CHECK_NAN(offset);
+  if (isnan(dot_v3v3(offset, offset)) || isinf(dot_v3v3(offset, offset))) {
+    printf("%s: nan!\n", __func__);
+  }
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
       .sd = sd,

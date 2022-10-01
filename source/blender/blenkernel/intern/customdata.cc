@@ -2823,7 +2823,7 @@ void CustomData_free_typemask(CustomData *data, const int totelem, eCustomDataMa
   CustomData_reset(data);
 }
 
-ATTR_NO_OPT static void customData_update_offsets(CustomData *data)
+static void customData_update_offsets(CustomData *data)
 {
   const LayerTypeInfo *typeInfo;
   int offset = 0;

@@ -710,21 +710,21 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   }
 }
 
-ATTR_NO_OPT void BKE_pbvh_build_mesh(PBVH *pbvh,
-                                     Mesh *mesh,
-                                     const MPoly *mpoly,
-                                     const MLoop *mloop,
-                                     MVert *verts,
-                                     MSculptVert *msculptverts,
-                                     int totvert,
-                                     struct CustomData *vdata,
-                                     struct CustomData *ldata,
-                                     struct CustomData *pdata,
-                                     const MLoopTri *looptri,
-                                     int looptri_num,
-                                     bool fast_draw,
-                                     float *face_areas,
-                                     SculptPMap *pmap)
+void BKE_pbvh_build_mesh(PBVH *pbvh,
+                         Mesh *mesh,
+                         const MPoly *mpoly,
+                         const MLoop *mloop,
+                         MVert *verts,
+                         MSculptVert *msculptverts,
+                         int totvert,
+                         struct CustomData *vdata,
+                         struct CustomData *ldata,
+                         struct CustomData *pdata,
+                         const MLoopTri *looptri,
+                         int looptri_num,
+                         bool fast_draw,
+                         float *face_areas,
+                         SculptPMap *pmap)
 {
   BBC *prim_bbc = NULL;
   BB cb;

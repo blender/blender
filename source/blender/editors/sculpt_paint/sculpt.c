@@ -7668,6 +7668,9 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
 
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex = srd.active_vertex;
+  if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && ss->active_vertex.i == 0) {
+    printf("%s: error!\n");
+  }
 
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
 

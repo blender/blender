@@ -13,6 +13,7 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
   ../../bmesh
 
   # RNA_prototypes.h

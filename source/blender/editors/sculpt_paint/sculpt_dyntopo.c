@@ -569,9 +569,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     SCULPT_pbvh_clear(ob, false);
   }
+#if 0
   else {
     /* Sculpt session was set up by paint.c, call BKE_sculptsession_update_attr_refs to be safe. */
     BKE_sculptsession_update_attr_refs(ob);
+
+    BKE_pbvh_update_sculpt_verts(ss->pbvh);
 
     /* Also check bm_log. */
     if (!ss->bm_log) {
@@ -580,11 +583,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     return;
   }
+#endif
 
 #ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, BKE_object_get_original_mesh(ob), PBVH_BMESH);
 #else
-  PBVH *pbvh = NULL;
+  PBVH *pbvh = ss->pbvh;
 #endif
 
   if (pbvh) {
@@ -636,6 +640,11 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                            .create_shapekey_layers = true,
                            .active_shapekey = ob->shapenr,
                        }));
+
+    if (ss->pbvh) {
+      BKE_sculptsession_update_attr_refs(ob);
+      BKE_pbvh_set_bmesh(ss->pbvh, ss->bm);
+    }
   }
 #else
   ss->bm = BM_mesh_bm_from_me_threaded(NULL,

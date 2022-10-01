@@ -1280,7 +1280,7 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   BM_FACES_OF_VERT_ITER_END;
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_face_remove(
+static void pbvh_bmesh_face_remove(
     PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool ensure_ownership_transfer)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
@@ -1362,10 +1362,7 @@ void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
   }
 }
 
-ATTR_NO_OPT void BKE_pbvh_bmesh_add_face(PBVH *pbvh,
-                                         struct BMFace *f,
-                                         bool log_face,
-                                         bool force_tree_walk)
+void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk)
 {
   bm_logstack_push();
 

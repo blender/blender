@@ -628,7 +628,7 @@ static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 }
 
 /* Get a vertex from its unique ID */
-ATTR_NO_OPT static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
+static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
   if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
     return NULL;
@@ -1036,7 +1036,7 @@ static void bm_log_edges_unmake_pre(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_unmake_pre(
+static void bm_log_faces_unmake_pre(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -1318,7 +1318,7 @@ static void bm_log_edges_restore(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_restore(
+static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -3187,7 +3187,7 @@ void _BM_log_edge_topo_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
   bm_logstack_pop();
 }
 
-ATTR_NO_OPT void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
+void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3294,9 +3294,7 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
  * vertices original location, then the move record is deleted.
  */
 
-ATTR_NO_OPT void _BM_log_vert_removed(BMLog *log,
-                                      BMVert *v,
-                                      int UNUSED(cd_vert_mask_offset) BMLOG_DEBUG_ARGS)
+void _BM_log_vert_removed(BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset) BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
