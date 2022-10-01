@@ -51,6 +51,7 @@ extern char datatoc_common_fullscreen_vert_glsl[];
  * \{ */
 
 typedef struct DRWShaderCompiler {
+  /** Default compilation queue. */
   ListBase queue; /* GPUMaterial */
   SpinLock list_lock;
 
@@ -109,6 +110,7 @@ static void drw_deferred_shader_compilation_exec(
       MEM_freeN(link);
     }
     else {
+      /* No more materials to optimize, or shaders to compile. */
       break;
     }
 
@@ -216,7 +218,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     }
     else {
       comp->gl_context = WM_opengl_context_create();
-      comp->gpu_context = GPU_context_create(NULL);
+      comp->gpu_context = GPU_context_create(NULL, comp->gl_context);
       GPU_context_active_set(NULL);
 
       WM_opengl_context_activate(DST.gl_context);
@@ -243,6 +245,8 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
           wm, wm, WM_JOB_TYPE_SHADER_COMPILATION);
       if (comp != NULL) {
         BLI_spin_lock(&comp->list_lock);
+
+        /* Search for compilation job in queue. */
         LinkData *link = (LinkData *)BLI_findptr(&comp->queue, mat, offsetof(LinkData, data));
         if (link) {
           BLI_remlink(&comp->queue, link);

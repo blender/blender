@@ -179,7 +179,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 2, 9, 11, 13, 14, 15. */
+ * FREE FLAGS: 9, 11, 13, 14, 15. */
 typedef enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -299,6 +299,12 @@ typedef enum PropertyFlag {
    * properties which denotes whether modifier panel is collapsed or not.
    */
   PROP_NO_DEG_UPDATE = (1 << 30),
+
+  /**
+   * Filepaths that refer to output get a special treatment such
+   * as having the +/- operators available in the file browser.
+   **/
+  PROP_PATH_OUTPUT = (1 << 2),
 } PropertyFlag;
 
 /**
@@ -355,7 +361,7 @@ typedef enum ParameterFlag {
   /**
    * This allows for non-breaking API updates,
    * when adding non-critical new parameter to a callback function.
-   * This way, old py code defining funcs without that parameter would still work.
+   * This way, old Python code defining functions without that parameter would still work.
    * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
    * \note only for input parameters!
    */

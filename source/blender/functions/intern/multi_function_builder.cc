@@ -27,8 +27,8 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
 CustomMF_GenericConstant::~CustomMF_GenericConstant()
 {
   if (owns_value_) {
-    signature_.param_types[0].data_type().single_type().destruct((void *)value_);
-    MEM_freeN((void *)value_);
+    signature_.param_types[0].data_type().single_type().destruct(const_cast<void *>(value_));
+    MEM_freeN(const_cast<void *>(value_));
   }
 }
 
@@ -42,7 +42,7 @@ void CustomMF_GenericConstant::call(IndexMask mask,
 
 uint64_t CustomMF_GenericConstant::hash() const
 {
-  return type_.hash_or_fallback(value_, (uintptr_t)this);
+  return type_.hash_or_fallback(value_, uintptr_t(this));
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const

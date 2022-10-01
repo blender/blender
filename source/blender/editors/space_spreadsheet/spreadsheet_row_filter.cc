@@ -242,14 +242,14 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
         const float4 value_floats = {
-            (float)value.r, (float)value.g, (float)value.b, (float)value.a};
+            float(value.r), float(value.g), float(value.b), float(value.a)};
         const float threshold_sq = pow2f(row_filter.threshold);
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell_bytes) {
               const ColorGeometry4f cell = cell_bytes.decode();
               const float4 cell_floats = {
-                  (float)cell.r, (float)cell.g, (float)cell.b, (float)cell.a};
+                  float(cell.r), float(cell.g), float(cell.b), float(cell.a)};
               return len_squared_v4v4(value_floats, cell_floats) <= threshold_sq;
             },
             prev_mask,

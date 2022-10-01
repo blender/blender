@@ -909,6 +909,11 @@ static int BPy_IDGroup_Iter_clear(BPy_IDGroup_Iter *self)
   return 0;
 }
 
+static int BPy_IDGroup_Iter_is_gc(BPy_IDGroup_Iter *self)
+{
+  return (self->group != NULL);
+}
+
 static bool BPy_Group_Iter_same_size_or_raise_error(BPy_IDGroup_Iter *self)
 {
   if (self->len_init == self->group->prop->len) {
@@ -1000,6 +1005,7 @@ static void IDGroup_Iter_init_type(void)
   SHARED_MEMBER_SET(tp_flags, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC);
   SHARED_MEMBER_SET(tp_traverse, (traverseproc)BPy_IDGroup_Iter_traverse);
   SHARED_MEMBER_SET(tp_clear, (inquiry)BPy_IDGroup_Iter_clear);
+  SHARED_MEMBER_SET(tp_is_gc, (inquiry)BPy_IDGroup_Iter_is_gc);
   SHARED_MEMBER_SET(tp_iter, PyObject_SelfIter);
 
 #undef SHARED_MEMBER_SET
@@ -1015,6 +1021,7 @@ static PyObject *IDGroup_Iter_New_WithType(BPy_IDProperty *group,
   iter->group = group;
   if (group != NULL) {
     Py_INCREF(group);
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)iter));
     PyObject_GC_Track(iter);
     iter->cur = (reversed ? group->prop->data.group.last : group->prop->data.group.first);
     iter->len_init = group->prop->len;
@@ -1084,6 +1091,11 @@ static int BPy_IDGroup_View_clear(BPy_IDGroup_View *self)
 {
   Py_CLEAR(self->group);
   return 0;
+}
+
+static int BPy_IDGroup_View_is_gc(BPy_IDGroup_View *self)
+{
+  return (self->group != NULL);
 }
 
 /* View Specific API's (Key/Value/Items). */
@@ -1233,6 +1245,7 @@ static void IDGroup_View_init_type(void)
   SHARED_MEMBER_SET(tp_flags, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC);
   SHARED_MEMBER_SET(tp_traverse, (traverseproc)BPy_IDGroup_View_traverse);
   SHARED_MEMBER_SET(tp_clear, (inquiry)BPy_IDGroup_View_clear);
+  SHARED_MEMBER_SET(tp_is_gc, (inquiry)BPy_IDGroup_View_is_gc);
   SHARED_MEMBER_SET(tp_methods, BPy_IDGroup_View_methods);
 
 #undef SHARED_MEMBER_SET
@@ -2087,6 +2100,7 @@ static BPy_IDGroup_View *IDGroup_View_New_WithType(BPy_IDProperty *group, PyType
   iter->group = group;
   if (group != NULL) {
     Py_INCREF(group);
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)iter));
     PyObject_GC_Track(iter);
   }
   return iter;

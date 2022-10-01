@@ -86,12 +86,17 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
   SculptGradientContext *gcontext = ss->filter_cache->gradient_context;
 
   SculptOrigVertData orig_data;
+  AutomaskingNodeData automask_data;
+
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  SCULPT_automasking_node_begin(data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float fade = vd.mask ? *vd.mask : 0.0f;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -223,7 +228,10 @@ static int sculpt_mask_gradient_invoke(bContext *C, wmOperator *op, const wmEven
 
   SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK);
+
+  // XXX get area_normal_radius argument properly
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK, event->mval, 0.25f);
+
   ss->filter_cache->gradient_context = sculpt_mask_gradient_context_create(ob, op);
   sculpt_gradient_context_init_common(C, op, event, ss->filter_cache->gradient_context);
 

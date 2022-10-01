@@ -423,7 +423,7 @@ VFont *BKE_vfont_builtin_get(void)
   return BKE_vfont_load(G_MAIN, FO_BUILTIN_NAME);
 }
 
-static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
+static VChar *find_vfont_char(VFontData *vfd, uint character)
 {
   return BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character));
 }
@@ -494,7 +494,7 @@ static void build_underline(Curve *cu,
 
 void BKE_vfont_build_char(Curve *cu,
                           ListBase *nubase,
-                          unsigned int character,
+                          uint character,
                           CharInfo *info,
                           float ofsx,
                           float ofsy,
@@ -1194,7 +1194,7 @@ static bool vfont_to_curve(Object *ob,
           /* pass */
         }
 
-        if ((mem[j] != '\n') && ((chartransdata[j].dobreak != 0))) {
+        if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
           if (mem[i] == ' ') {
             struct TempLineInfo *li;
 
@@ -1505,7 +1505,7 @@ static bool vfont_to_curve(Object *ob,
 
     ct = chartransdata;
     for (i = 0; i < slen; i++) {
-      unsigned int cha = (unsigned int)mem[i];
+      uint cha = (uint)mem[i];
       info = &(custrinfo[i]);
 
       if ((cu->overflow == CU_OVERFLOW_TRUNCATE) && (ob && ob->mode != OB_MODE_EDIT) &&

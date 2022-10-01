@@ -1198,7 +1198,7 @@ static void fcurve_batch_add_verts(GPUVertBuf *vbo,
                                    float y_height,
                                    int timeline_frame,
                                    float curve_val,
-                                   unsigned int *vert_count)
+                                   uint *vert_count)
 {
   float vert_pos[2][2];
 

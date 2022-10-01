@@ -77,13 +77,36 @@ static const EnumPropertyItem space_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-static void rna_Object_select_set(
-    Object *ob, bContext *C, ReportList *reports, bool select, ViewLayer *view_layer)
+static Base *find_view_layer_base_with_synced_ensure(
+    Object *ob, bContext *C, PointerRNA *view_layer_ptr, Scene **r_scene, ViewLayer **r_view_layer)
 {
-  if (view_layer == NULL) {
+  Scene *scene;
+  ViewLayer *view_layer;
+  if (view_layer_ptr->data) {
+    scene = (Scene *)view_layer_ptr->owner_id;
+    view_layer = view_layer_ptr->data;
+  }
+  else {
+    scene = CTX_data_scene(C);
     view_layer = CTX_data_view_layer(C);
   }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
+  if (r_scene != NULL) {
+    *r_scene = scene;
+  }
+  if (r_view_layer != NULL) {
+    *r_view_layer = view_layer;
+  }
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  return BKE_view_layer_base_find(view_layer, ob);
+}
+
+static void rna_Object_select_set(
+    Object *ob, bContext *C, ReportList *reports, bool select, PointerRNA *view_layer_ptr)
+{
+  Scene *scene;
+  ViewLayer *view_layer;
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, &scene, &view_layer);
 
   if (!base) {
     if (select) {
@@ -98,19 +121,14 @@ static void rna_Object_select_set(
 
   ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
 
-  Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
   ED_outliner_select_sync_from_object_tag(C);
 }
 
-static bool rna_Object_select_get(Object *ob, bContext *C, ViewLayer *view_layer)
+static bool rna_Object_select_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
   if (!base) {
     return false;
   }
@@ -119,13 +137,11 @@ static bool rna_Object_select_get(Object *ob, bContext *C, ViewLayer *view_layer
 }
 
 static void rna_Object_hide_set(
-    Object *ob, bContext *C, ReportList *reports, bool hide, ViewLayer *view_layer)
+    Object *ob, bContext *C, ReportList *reports, bool hide, PointerRNA *view_layer_ptr)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
+  Scene *scene;
+  ViewLayer *view_layer;
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, &scene, &view_layer);
   if (!base) {
     if (hide) {
       BKE_reportf(reports,
@@ -144,19 +160,14 @@ static void rna_Object_hide_set(
     base->flag &= ~BASE_HIDDEN;
   }
 
-  Scene *scene = CTX_data_scene(C);
   BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
-static bool rna_Object_hide_get(Object *ob, bContext *C, ViewLayer *view_layer)
+static bool rna_Object_hide_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
   if (!base) {
     return false;
   }
@@ -164,15 +175,15 @@ static bool rna_Object_hide_get(Object *ob, bContext *C, ViewLayer *view_layer)
   return ((base->flag & BASE_HIDDEN) != 0);
 }
 
-static bool rna_Object_visible_get(Object *ob, bContext *C, ViewLayer *view_layer, View3D *v3d)
+static bool rna_Object_visible_get(Object *ob,
+                                   bContext *C,
+                                   PointerRNA *view_layer_ptr,
+                                   View3D *v3d)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
   if (v3d == NULL) {
     v3d = CTX_wm_view3d(C);
   }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (!base) {
     return false;
@@ -181,13 +192,9 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ViewLayer *view_laye
   return BASE_VISIBLE(v3d, base);
 }
 
-static bool rna_Object_holdout_get(Object *ob, bContext *C, ViewLayer *view_layer)
+static bool rna_Object_holdout_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
   if (!base) {
     return false;
   }
@@ -195,17 +202,9 @@ static bool rna_Object_holdout_get(Object *ob, bContext *C, ViewLayer *view_laye
   return ((base->flag & BASE_HOLDOUT) != 0);
 }
 
-static bool rna_Object_indirect_only_get(Object *ob, bContext *C, ViewLayer *view_layer)
+static bool rna_Object_indirect_only_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
-  if (view_layer == NULL) {
-    view_layer = CTX_data_view_layer(C);
-  }
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-  if (!base) {
-    return false;
-  }
-
+  Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
   return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 
@@ -227,6 +226,7 @@ static Base *rna_Object_local_view_property_helper(bScreen *screen,
     view_layer = WM_window_get_active_view_layer(win);
   }
 
+  BKE_view_layer_synced_ensure(win ? WM_window_get_active_scene(win) : NULL, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   if (base == NULL) {
     BKE_reportf(
@@ -831,6 +831,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   parm = RNA_def_boolean(func, "result", 0, "", "Object selected");
   RNA_def_function_return(func, parm);
 
@@ -842,6 +843,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
   func = RNA_def_function(srna, "hide_get", "rna_Object_hide_get");
   RNA_def_function_ui_description(
@@ -850,6 +852,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   parm = RNA_def_boolean(func, "result", 0, "", "Object hidden");
   RNA_def_function_return(func, parm);
 
@@ -861,6 +864,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
   func = RNA_def_function(srna, "visible_get", "rna_Object_visible_get");
   RNA_def_function_ui_description(func,
@@ -869,6 +873,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   parm = RNA_def_pointer(
       func, "viewport", "SpaceView3D", "", "Use this instead of the active 3D viewport");
   parm = RNA_def_boolean(func, "result", 0, "", "Object visible");
@@ -879,6 +884,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   parm = RNA_def_boolean(func, "result", 0, "", "Object holdout");
   RNA_def_function_return(func, parm);
 
@@ -889,6 +895,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
+  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   parm = RNA_def_boolean(func, "result", 0, "", "Object indirect only");
   RNA_def_function_return(func, parm);
 

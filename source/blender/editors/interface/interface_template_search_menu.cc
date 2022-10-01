@@ -191,7 +191,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 
     if (drawstr_is_empty) {
       if (prop_type == PROP_ENUM) {
-        const int value_enum = (int)but->hardmax;
+        const int value_enum = int(but->hardmax);
         EnumPropertyItem enum_item;
         if (RNA_property_enum_item_from_value_gettexted((bContext *)but->block->evil_C,
                                                         &but->rnapoin,
@@ -227,7 +227,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
       item->rna.index = but->rnaindex;
 
       if (prop_type == PROP_ENUM) {
-        item->rna.enum_value = (int)but->hardmax;
+        item->rna.enum_value = int(but->hardmax);
       }
     }
   }
@@ -544,8 +544,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
         if (wm_contexts[space_type_ui_index].space_type_ui_index != -1) {
           ScrArea *area_best = wm_contexts[space_type_ui_index].area;
-          const uint value_best = (uint)area_best->winx * (uint)area_best->winy;
-          const uint value_test = (uint)area->winx * (uint)area->winy;
+          const uint value_best = uint(area_best->winx) * uint(area_best->winy);
+          const uint value_test = uint(area->winx) * uint(area->winy);
           if (value_best > value_test) {
             continue;
           }

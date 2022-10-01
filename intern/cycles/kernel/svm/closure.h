@@ -31,7 +31,7 @@ ccl_device void svm_node_glass_setup(ccl_private ShaderData *sd,
     else {
       bsdf->alpha_y = 0.0f;
       bsdf->alpha_x = 0.0f;
-      bsdf->ior = 0.0f;
+      bsdf->ior = eta;
       sd->flag |= bsdf_reflection_setup(bsdf);
     }
   }
@@ -542,7 +542,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float roughness = sqr(param1);
 
       bsdf->N = N;
-      bsdf->ior = 0.0f;
+      bsdf->ior = 1.0f;
       bsdf->extra = NULL;
 
       if (data_node.y == SVM_STACK_INVALID) {

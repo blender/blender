@@ -156,16 +156,15 @@ void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
       ob, ATTR_DOMAIN_FACE, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(orig_fsets), &params);
 }
 
-int SCULPT_face_set_flag_get(SculptSession *ss, PBVHFaceRef face, char flag)
+bool SCULPT_face_select_get(SculptSession *ss, PBVHFaceRef face)
 {
   if (ss->bm) {
     BMFace *f = (BMFace *)face.i;
 
-    flag = BM_face_flag_from_mflag(flag);
-    return f->head.hflag & flag;
+    return f->head.hflag & BM_ELEM_SELECT;
   }
   else {
-    return ss->mpoly[face.i].flag & flag;
+    return ss->select_poly ? ss->select_poly[face.i] : false;
   }
 }
 
@@ -173,7 +172,8 @@ int SCULPT_face_set_flag_get(SculptSession *ss, PBVHFaceRef face, char flag)
 
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
-  const int *face_sets = (const int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = static_cast<const int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   if (!face_sets) {
     return SCULPT_FACE_SET_NONE;
   }
@@ -189,7 +189,8 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
 {
-  int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = static_cast<int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   if (!face_sets) {
     return;
   }
@@ -360,7 +361,13 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   bool modified = false;
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap->pmap[vd.index];
       for (int j = 0; j < ss->pmap->pmap[vd.index].count; j++) {
@@ -380,7 +387,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.fno,
                                                                     vd.mask ? *vd.mask : 0.0f,
                                                                     vd.vertex,
-                                                                    thread_id);
+                                                                    thread_id,
+                                                                    &automask_data);
 
         int new_fset = active_fset;
 
@@ -438,7 +446,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                          fno,
                                                                          mask,
                                                                          (PBVHVertRef){.i = ml->v},
-                                                                         thread_id);
+                                                                         thread_id,
+                                                                         &automask_data);
 
             if (fade2 < test_limit) {
               ok = false;
@@ -471,7 +480,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.fno,
                                                                       vd.mask ? *vd.mask : 0.0f,
                                                                       vd.vertex,
-                                                                      thread_id);
+                                                                      thread_id,
+                                                                      &automask_data);
 
           int new_fset = active_fset;
 
@@ -522,7 +532,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                l->f->no,
                                                                mask,
                                                                (PBVHVertRef){.i = (intptr_t)l->v},
-                                                               thread_id);
+                                                               thread_id,
+                                                               &automask_data);
 
               if (fade2 < test_limit) {
                 ok = false;
@@ -542,33 +553,32 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       }
     }
     else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      {
-        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-          continue;
-        }
-        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                    brush,
-                                                                    vd.co,
-                                                                    sqrtf(test.dist),
-                                                                    vd.no,
-                                                                    vd.fno,
-                                                                    vd.mask ? *vd.mask : 0.0f,
-                                                                    vd.vertex,
-                                                                    thread_id);
-        int new_fset = active_fset;
+      if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+        continue;
+      }
+      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                  brush,
+                                                                  vd.co,
+                                                                  sqrtf(test.dist),
+                                                                  vd.no,
+                                                                  vd.fno,
+                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.vertex,
+                                                                  thread_id,
+                                                                  &automask_data);
+      int new_fset = active_fset;
 
-        if (use_fset_curve) {
-          float no[3];
-          SCULPT_vertex_normal_get(ss, vd.vertex, no);
+      if (use_fset_curve) {
+        float no[3];
+        SCULPT_vertex_normal_get(ss, vd.vertex, no);
 
-          new_fset = new_fset_apply_curve(
-              ss, data, new_fset, ss->cache->location, no, &test, curve_ch, count);
-        }
+        new_fset = new_fset_apply_curve(
+            ss, data, new_fset, ss->cache->location, no, &test, curve_ch, count);
+      }
 
-        if (!use_fset_strength || fade > test_limit) {
-          SCULPT_vertex_face_set_set(ss, vd.vertex, new_fset);
-          modified = true;
-        }
+      if (!use_fset_strength || fade > test_limit) {
+        SCULPT_vertex_face_set_set(ss, vd.vertex, new_fset);
+        modified = true;
       }
     }
   }
@@ -606,6 +616,9 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   }
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   bool do_reproject = SCULPT_need_reproject(ss);
 
@@ -625,7 +638,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                           vd.fno,
                                                           vd.mask ? *vd.mask : 0.0f,
                                                           vd.vertex,
-                                                          thread_id);
+                                                          thread_id,
+                                                          &automask_data);
 
     CLAMP(fade, 0.0f, 1.0f);
 
@@ -837,7 +851,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
         ok = *(bool *)BKE_sculpt_face_attr_get(fref, ss->attrs.hide_poly);
       }
 
-      ok = ok && SCULPT_face_set_flag_get(ss, fref, ME_FACE_SEL);
+      ok = ok && SCULPT_face_select_get(ss, fref);
 
       if (ok) {
         SCULPT_face_set_set(ss, fref, next_face_set);
@@ -1005,7 +1019,9 @@ static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
 static bool sculpt_face_sets_init_face_set_boundary_test(
     BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
 {
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_face_sets_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+
   return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
          BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
 }
@@ -1431,7 +1447,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   /* Update the active vertex and Face Set using the cursor position to avoid relying on the
    * paint cursor updates. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
 
@@ -2177,7 +2193,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
   Vector<BMVert *> retvs, vs;
   Vector<BMEdge *> es;
 
-  int cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  int cd_faceset_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
 
   const int tag1 = BM_ELEM_SELECT;
   const int tag2 = BM_ELEM_TAG_ALT;
@@ -2319,8 +2336,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
       bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
 
   int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-  cd_faceset_offset = CustomData_get_offset(
-      &bm->pdata, CD_SCULPT_FACE_SETS);  // recalc in case bmop changed it
+  cd_faceset_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");  // recalc in case bmop changed it
 
   BMOIter siter;
   BMElem *ele;
@@ -2464,7 +2481,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
   }
 
   /* Set the new Face Set ID for the extrusion. */
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_face_sets_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -2874,12 +2892,13 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;

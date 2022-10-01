@@ -112,10 +112,10 @@ static void clamp_to_filelist(int numfiles, FileSelection *sel)
   }
 
   /* clamp */
-  if ((sel->first >= numfiles)) {
+  if (sel->first >= numfiles) {
     sel->first = numfiles - 1;
   }
-  if ((sel->last >= numfiles)) {
+  if (sel->last >= numfiles) {
     sel->last = numfiles - 1;
   }
 }

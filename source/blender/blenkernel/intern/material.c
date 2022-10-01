@@ -1069,7 +1069,7 @@ void BKE_object_material_assign_single_obdata(struct Main *bmain,
   object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
 
-void BKE_object_material_remap(Object *ob, const unsigned int *remap)
+void BKE_object_material_remap(Object *ob, const uint *remap)
 {
   Material ***matar = BKE_object_material_array_p(ob);
   const short *totcol_p = BKE_object_material_len_p(ob);

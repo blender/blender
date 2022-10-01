@@ -150,7 +150,7 @@ static void brush_painter_2d_require_imbuf(
 {
   BrushPainterCache *cache = &tile->cache;
 
-  if ((cache->use_float != use_float)) {
+  if (cache->use_float != use_float) {
     if (cache->ibuf) {
       IMB_freeImBuf(cache->ibuf);
     }
@@ -1178,8 +1178,8 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
 
 static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
 {
-  ipos[0] = (int)floorf((pos[0] - ibufb->x / 2));
-  ipos[1] = (int)floorf((pos[1] - ibufb->y / 2));
+  ipos[0] = (int)floorf(pos[0] - ibufb->x / 2);
+  ipos[1] = (int)floorf(pos[1] - ibufb->y / 2);
 }
 
 static void paint_2d_do_making_brush(ImagePaintState *s,

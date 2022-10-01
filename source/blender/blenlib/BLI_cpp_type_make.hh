@@ -211,8 +211,8 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
   using namespace cpp_type_util;
 
   debug_name_ = debug_name;
-  size_ = (int64_t)sizeof(T);
-  alignment_ = (int64_t)alignof(T);
+  size_ = int64_t(sizeof(T));
+  alignment_ = int64_t(alignof(T));
   is_trivial_ = std::is_trivial_v<T>;
   is_trivially_destructible_ = std::is_trivially_destructible_v<T>;
   if constexpr (std::is_default_constructible_v<T>) {
@@ -221,7 +221,7 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
     value_initialize_ = value_initialize_cb<T>;
     value_initialize_indices_ = value_initialize_indices_cb<T>;
     static T default_value;
-    default_value_ = (void *)&default_value;
+    default_value_ = &default_value;
   }
   if constexpr (std::is_destructible_v<T>) {
     destruct_ = destruct_cb<T>;
@@ -271,7 +271,7 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
     is_equal_ = is_equal_cb<T>;
   }
 
-  alignment_mask_ = (uintptr_t)alignment_ - (uintptr_t)1;
+  alignment_mask_ = uintptr_t(alignment_) - uintptr_t(1);
   has_special_member_functions_ = (default_construct_ && copy_construct_ && copy_assign_ &&
                                    move_construct_ && move_assign_ && destruct_);
 }

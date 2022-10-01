@@ -326,8 +326,8 @@ void copy_point_data(const CurvesGeometry &src_curves,
 template<typename T>
 void copy_point_data(const CurvesGeometry &src_curves,
                      const CurvesGeometry &dst_curves,
-                     const IndexMask src_curve_selection,
-                     const Span<T> src,
+                     IndexMask src_curve_selection,
+                     Span<T> src,
                      MutableSpan<T> dst)
 {
   copy_point_data(src_curves, dst_curves, src_curve_selection, GSpan(src), GMutableSpan(dst));
@@ -340,11 +340,25 @@ void fill_points(const CurvesGeometry &curves,
 
 template<typename T>
 void fill_points(const CurvesGeometry &curves,
-                 const IndexMask curve_selection,
+                 IndexMask curve_selection,
                  const T &value,
                  MutableSpan<T> dst)
 {
   fill_points(curves, curve_selection, &value, dst);
+}
+
+void fill_points(const CurvesGeometry &curves,
+                 Span<IndexRange> curve_ranges,
+                 GPointer value,
+                 GMutableSpan dst);
+
+template<typename T>
+void fill_points(const CurvesGeometry &curves,
+                 Span<IndexRange> curve_ranges,
+                 const T &value,
+                 MutableSpan<T> dst)
+{
+  fill_points(curves, curve_ranges, &value, dst);
 }
 
 /**

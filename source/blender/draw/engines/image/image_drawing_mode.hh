@@ -243,8 +243,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         do_partial_update_float_buffer(tile_buffer, iterator);
       }
 
-      const float tile_width = static_cast<float>(iterator.tile_data.tile_buffer->x);
-      const float tile_height = static_cast<float>(iterator.tile_data.tile_buffer->y);
+      const float tile_width = float(iterator.tile_data.tile_buffer->x);
+      const float tile_height = float(iterator.tile_data.tile_buffer->y);
 
       for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
         const TextureInfo &info = instance_data.texture_infos[i];
@@ -260,23 +260,20 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         const float texture_height = GPU_texture_height(texture);
         /* TODO: early bound check. */
         ImageTileWrapper tile_accessor(iterator.tile_data.tile);
-        float tile_offset_x = static_cast<float>(tile_accessor.get_tile_x_offset());
-        float tile_offset_y = static_cast<float>(tile_accessor.get_tile_y_offset());
+        float tile_offset_x = float(tile_accessor.get_tile_x_offset());
+        float tile_offset_y = float(tile_accessor.get_tile_y_offset());
         rcti *changed_region_in_texel_space = &iterator.changed_region.region;
         rctf changed_region_in_uv_space;
-        BLI_rctf_init(&changed_region_in_uv_space,
-                      static_cast<float>(changed_region_in_texel_space->xmin) /
-                              static_cast<float>(iterator.tile_data.tile_buffer->x) +
-                          tile_offset_x,
-                      static_cast<float>(changed_region_in_texel_space->xmax) /
-                              static_cast<float>(iterator.tile_data.tile_buffer->x) +
-                          tile_offset_x,
-                      static_cast<float>(changed_region_in_texel_space->ymin) /
-                              static_cast<float>(iterator.tile_data.tile_buffer->y) +
-                          tile_offset_y,
-                      static_cast<float>(changed_region_in_texel_space->ymax) /
-                              static_cast<float>(iterator.tile_data.tile_buffer->y) +
-                          tile_offset_y);
+        BLI_rctf_init(
+            &changed_region_in_uv_space,
+            float(changed_region_in_texel_space->xmin) / float(iterator.tile_data.tile_buffer->x) +
+                tile_offset_x,
+            float(changed_region_in_texel_space->xmax) / float(iterator.tile_data.tile_buffer->x) +
+                tile_offset_x,
+            float(changed_region_in_texel_space->ymin) / float(iterator.tile_data.tile_buffer->y) +
+                tile_offset_y,
+            float(changed_region_in_texel_space->ymax) / float(iterator.tile_data.tile_buffer->y) +
+                tile_offset_y);
         rctf changed_overlapping_region_in_uv_space;
         const bool region_overlap = BLI_rctf_isect(&info.clipping_uv_bounds,
                                                    &changed_region_in_uv_space,
@@ -423,8 +420,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
      * transformation. */
     float uv_to_texel[4][4];
     copy_m4_m4(uv_to_texel, instance_data.ss_to_texture);
-    float scale[3] = {static_cast<float>(texture_width) / static_cast<float>(tile_buffer.x),
-                      static_cast<float>(texture_height) / static_cast<float>(tile_buffer.y),
+    float scale[3] = {float(texture_width) / float(tile_buffer.x),
+                      float(texture_height) / float(tile_buffer.y),
                       1.0f};
     rescale_m4(uv_to_texel, scale);
     uv_to_texel[3][0] += image_tile.get_tile_x_offset() /

@@ -223,12 +223,17 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     const int symmetrical_index = ss->vertex_info.symmetrize_map[vd.index];
     const PBVHVertRef symmetrical_vertex = BKE_pbvh_index_to_vertex(ss->pbvh, symmetrical_index);
@@ -252,7 +257,8 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
-                                                    thread_id);
+                                                    thread_id,
+                                                    &automask_data);
 
     float disp[3];
     sub_v3_v3v3(disp, new_co, vd.co);

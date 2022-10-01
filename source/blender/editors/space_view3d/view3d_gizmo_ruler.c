@@ -647,7 +647,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_line_width(1.0f);
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
-  BLF_size(blf_mono_font, 14.0f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, 14.0f * U.dpi_fac);
   BLF_rotation(blf_mono_font, 0.0f);
 
   UI_GetThemeColor3ubv(TH_TEXT, color_text);
@@ -1040,7 +1040,7 @@ static int gizmo_ruler_modal(bContext *C,
   const bool do_snap = !(tweak_flag & WM_GIZMO_TWEAK_SNAP);
 #endif
   const bool do_thickness = tweak_flag & WM_GIZMO_TWEAK_PRECISE;
-  if ((ruler_info->drag_state_prev.do_thickness != do_thickness)) {
+  if (ruler_info->drag_state_prev.do_thickness != do_thickness) {
     do_cursor_update = true;
   }
 

@@ -1110,7 +1110,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
   RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -1255,14 +1255,14 @@ static int select_timeline_marker_frame(ListBase *markers,
       deselect_markers(markers);
     }
 
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_cycle_selected) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (TimeMarker *, markers, marker, marker_cycle_selected) {
       /* this way a not-extend select will always give 1 selected marker */
       if (marker->frame == frame) {
         marker->flag ^= SELECT;
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_cycle_selected);
+    LISTBASE_CIRCULAR_FORWARD_END(TimeMarker *, markers, marker, marker_cycle_selected);
   }
 
   return ret_val;
@@ -1379,7 +1379,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
   ot->modal = WM_generic_select_modal;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
@@ -1479,7 +1479,7 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
   ot->poll = ed_markers_poll_markers_exist;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   WM_operator_properties_gesture_box(ot);
@@ -1603,8 +1603,8 @@ static void MARKER_OT_select_leftright(wmOperatorType *ot)
 
   /* rna storage */
   RNA_def_enum(
-      ot->srna, "mode", prop_markers_select_leftright_modes, MARKERS_LRSEL_LEFT, "mode", "Mode");
-  RNA_def_boolean(ot->srna, "extend", false, "extend", "Extend");
+      ot->srna, "mode", prop_markers_select_leftright_modes, MARKERS_LRSEL_LEFT, "Mode", "");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
 }
 
 /** \} */

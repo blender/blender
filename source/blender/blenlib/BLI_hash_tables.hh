@@ -43,8 +43,7 @@ inline constexpr int64_t log2_floor_constexpr(const int64_t x)
 inline constexpr int64_t log2_ceil_constexpr(const int64_t x)
 {
   BLI_assert(x >= 0);
-  return (is_power_of_2_constexpr(static_cast<int>(x))) ? log2_floor_constexpr(x) :
-                                                          log2_floor_constexpr(x) + 1;
+  return (is_power_of_2_constexpr(int(x))) ? log2_floor_constexpr(x) : log2_floor_constexpr(x) + 1;
 }
 
 inline constexpr int64_t power_of_2_max_constexpr(const int64_t x)
@@ -71,17 +70,14 @@ inline constexpr int64_t ceil_division_by_fraction(const int64_t x,
                                                    const int64_t numerator,
                                                    const int64_t denominator)
 {
-  return static_cast<int64_t>(
-      ceil_division(static_cast<uint64_t>(x) * static_cast<uint64_t>(denominator),
-                    static_cast<uint64_t>(numerator)));
+  return int64_t(ceil_division(uint64_t(x) * uint64_t(denominator), uint64_t(numerator)));
 }
 
 inline constexpr int64_t floor_multiplication_with_fraction(const int64_t x,
                                                             const int64_t numerator,
                                                             const int64_t denominator)
 {
-  return static_cast<int64_t>((static_cast<uint64_t>(x) * static_cast<uint64_t>(numerator) /
-                               static_cast<uint64_t>(denominator)));
+  return int64_t((uint64_t(x) * uint64_t(numerator) / uint64_t(denominator)));
 }
 
 inline constexpr int64_t total_slot_amount_for_usable_slots(
@@ -121,7 +117,7 @@ class LoadFactor {
                                       int64_t *r_total_slots,
                                       int64_t *r_usable_slots) const
   {
-    BLI_assert(is_power_of_2_i(static_cast<int>(min_total_slots)));
+    BLI_assert(is_power_of_2_i(int(min_total_slots)));
 
     int64_t total_slots = this->compute_total_slots(min_usable_slots, numerator_, denominator_);
     total_slots = std::max(total_slots, min_total_slots);
@@ -229,17 +225,17 @@ template<typename Pointer> struct PointerKeyInfo {
 
   static bool is_empty(Pointer pointer)
   {
-    return (uintptr_t)pointer == UINTPTR_MAX;
+    return uintptr_t(pointer) == UINTPTR_MAX;
   }
 
   static bool is_removed(Pointer pointer)
   {
-    return (uintptr_t)pointer == UINTPTR_MAX - 1;
+    return uintptr_t(pointer) == UINTPTR_MAX - 1;
   }
 
   static bool is_not_empty_or_removed(Pointer pointer)
   {
-    return (uintptr_t)pointer < UINTPTR_MAX - 1;
+    return uintptr_t(pointer) < UINTPTR_MAX - 1;
   }
 };
 

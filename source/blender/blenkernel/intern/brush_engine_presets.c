@@ -259,8 +259,8 @@ static bool check_builtin_init()
   //}
 
   SUBTYPE_SET(smooth_stroke_radius, BRUSH_CHANNEL_PIXEL);
-  SUBTYPE_SET(normal_mask_limit, BRUSH_CHANNEL_ANGLE);
-  SUBTYPE_SET(view_normal_mask_limit, BRUSH_CHANNEL_ANGLE);
+  SUBTYPE_SET(automasking_start_normal_limit, BRUSH_CHANNEL_ANGLE);
+  SUBTYPE_SET(automasking_view_normal_limit, BRUSH_CHANNEL_ANGLE);
 
   SUBTYPE_SET(jitter_absolute, BRUSH_CHANNEL_PIXEL);
 
@@ -300,16 +300,18 @@ static bool check_builtin_init()
   }
 
   // SETCAT(enhance_detail_presteps, "Enhancement");
-  SETCAT(concave_mask_factor, "Automasking");
+  SETCAT(automasking_cavity_factor, "Automasking");
+  SETCAT(automasking_cavity_blur_steps, "Automasking");
+
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
-  SETCAT(normal_mask_limit, "Automasking");
-  SETCAT(view_normal_mask_limit, "Automasking");
-  SETCAT(normal_mask_falloff, "Automasking");
-  SETCAT(view_normal_mask_falloff, "Automasking");
+  SETCAT(automasking_start_normal_limit, "Automasking");
+  SETCAT(automasking_view_normal_limit, "Automasking");
+  SETCAT(automasking_start_normal_falloff, "Automasking");
+  SETCAT(automasking_view_normal_falloff, "Automasking");
   SETCAT(automasking_use_original_normal, "Automasking");
 
-  def = GETDEF(concave_mask_factor);
+  def = GETDEF(automasking_cavity_factor);
   def->mappings.pressure.inv = true;
 
   // don't group strength/radius/direction in subpanels
@@ -502,7 +504,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(wet_persistence, wet_persistence, FLOAT, FLOAT)
   DEF(density, density, FLOAT, FLOAT)
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
-  DEF(concave_mask_factor, concave_mask_factor, FLOAT, FLOAT)
+  DEF(automasking_cavity_factor, automasking_cavity_factor, FLOAT, FLOAT)
+  DEF(automasking_cavity_blur_steps, automasking_cavity_blur_steps, INT, INT)
   DEF(automasking_boundary_edges_propagation_steps, automasking_boundary_edges_propagation_steps, INT, INT)
   DEF(add_col, cursor_color_add, FLOAT4, FLOAT4)
   DEF(sub_col, cursor_color_sub, FLOAT4, FLOAT4)
@@ -1215,12 +1218,13 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(automasking);
   ADDCH(automasking_boundary_edges_propagation_steps);
-  ADDCH(concave_mask_factor);
-  ADDCH(normal_mask_limit);
+  ADDCH(automasking_cavity_factor);
+  ADDCH(automasking_cavity_blur_steps);
+  ADDCH(automasking_start_normal_limit);
   ADDCH(automasking_use_original_normal);
-  ADDCH(view_normal_mask_limit);
-  ADDCH(normal_mask_falloff);
-  ADDCH(view_normal_mask_falloff);
+  ADDCH(automasking_view_normal_limit);
+  ADDCH(automasking_start_normal_falloff);
+  ADDCH(automasking_view_normal_falloff);
 
   ADDCH(dyntopo_disabled);
   ADDCH(dyntopo_disable_smooth);
@@ -2155,13 +2159,14 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
 
   ADDCH(tilt_strength_factor);
   ADDCH(automasking_boundary_edges_propagation_steps);
-  ADDCH(concave_mask_factor);
+  ADDCH(automasking_cavity_factor);
+  ADDCH(automasking_cavity_blur_steps);
   ADDCH(automasking);
-  ADDCH(normal_mask_limit);
+  ADDCH(automasking_start_normal_limit);
   ADDCH(automasking_use_original_normal);
-  ADDCH(view_normal_mask_limit);
-  ADDCH(normal_mask_falloff);
-  ADDCH(view_normal_mask_falloff);
+  ADDCH(automasking_view_normal_limit);
+  ADDCH(automasking_start_normal_falloff);
+  ADDCH(automasking_view_normal_falloff);
 
   ADDCH(topology_rake_mode);
 

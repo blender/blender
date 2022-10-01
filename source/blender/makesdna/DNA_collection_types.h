@@ -36,6 +36,7 @@ enum eCollectionLineArt_Usage {
   COLLECTION_LRT_EXCLUDE = (1 << 1),
   COLLECTION_LRT_INTERSECTION_ONLY = (1 << 2),
   COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
+  COLLECTION_LRT_FORCE_INTERSECTION = (1 << 4),
 };
 
 enum eCollectionLineArt_Flags {

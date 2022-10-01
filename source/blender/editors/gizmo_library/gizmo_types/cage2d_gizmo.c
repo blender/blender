@@ -83,8 +83,8 @@ static bool gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[2], 
     return false;
   }
 
-  margin[0] = ((handle_size * scale_xy[0]));
-  margin[1] = ((handle_size * scale_xy[1]));
+  margin[0] = (handle_size * scale_xy[0]);
+  margin[1] = (handle_size * scale_xy[1]);
   return true;
 }
 

@@ -475,7 +475,7 @@ void RE_ReleaseResultImage(Render *re)
   }
 }
 
-void RE_ResultGet32(Render *re, unsigned int *rect)
+void RE_ResultGet32(Render *re, uint *rect)
 {
   RenderResult rres;
   const int view_id = BKE_scene_multiview_view_id_get(&re->r, re->viewname);
@@ -491,10 +491,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
   RE_ReleaseResultImageViews(re, &rres);
 }
 
-void RE_AcquiredResultGet32(Render *re,
-                            RenderResult *result,
-                            unsigned int *rect,
-                            const int view_id)
+void RE_AcquiredResultGet32(Render *re, RenderResult *result, uint *rect, const int view_id)
 {
   render_result_rect_get_pixels(result,
                                 rect,
@@ -926,7 +923,7 @@ void *RE_gl_context_get(Render *re)
 void *RE_gpu_context_get(Render *re)
 {
   if (re->gpu_context == nullptr) {
-    re->gpu_context = GPU_context_create(nullptr);
+    re->gpu_context = GPU_context_create(NULL, re->gl_context);
   }
   return re->gpu_context;
 }
@@ -1241,7 +1238,7 @@ static void renderresult_stampinfo(Render *re)
     BKE_image_stamp_buf(re->scene,
                         ob_camera_eval,
                         (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                        (unsigned char *)rres.rect32,
+                        (uchar *)rres.rect32,
                         rres.rectf,
                         rres.rectx,
                         rres.recty,
@@ -1371,7 +1368,7 @@ static void do_render_sequencer(Render *re)
 
   /* set overall progress of sequence rendering */
   if (re->r.efra != re->r.sfra) {
-    re->progress(re->prh, (float)(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
+    re->progress(re->prh, float(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
   }
   else {
     re->progress(re->prh, 1.0f);
@@ -2328,7 +2325,7 @@ void RE_RenderAnim(Render *re,
         if (is_movie == false && do_write_file) {
           if (rd.mode & R_TOUCH) {
             if (!is_multiview_name) {
-              if ((BLI_file_size(name) == 0)) {
+              if (BLI_file_size(name) == 0) {
                 /* BLI_exists(name) is implicit */
                 BLI_delete(name, false, false);
               }
@@ -2343,7 +2340,7 @@ void RE_RenderAnim(Render *re,
 
                 BKE_scene_multiview_filepath_get(srv, name, filepath);
 
-                if ((BLI_file_size(filepath) == 0)) {
+                if (BLI_file_size(filepath) == 0) {
                   /* BLI_exists(filepath) is implicit */
                   BLI_delete(filepath, false, false);
                 }
@@ -2391,6 +2388,9 @@ void RE_RenderAnim(Render *re,
 
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
+  /* Ensure within GPU render boundary. */
+  GPU_render_begin();
+
   Object *camera;
   int winx, winy;
 
@@ -2411,6 +2411,9 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
     RE_engine_free(re->engine);
     re->engine = nullptr;
   }
+
+  /* Close GPU render boundary. */
+  GPU_render_end();
 }
 
 /* NOTE: repeated win/disprect calc... solve that nicer, also in compo. */

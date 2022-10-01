@@ -63,11 +63,11 @@ static FT_Fixed to_16dot16(double val)
 /** \name Glyph Cache
  * \{ */
 
-static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size, uint dpi)
+static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
   while (gc) {
-    if (gc->size == size && gc->dpi == dpi && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
+    if (gc->size == size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
         (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing)) {
@@ -85,7 +85,6 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   gc->next = NULL;
   gc->prev = NULL;
   gc->size = font->size;
-  gc->dpi = font->dpi;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
   gc->italic = ((font->flags & BLF_ITALIC) != 0);
   gc->char_weight = font->char_weight;
@@ -122,7 +121,7 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 {
   BLI_mutex_lock(&font->glyph_cache_mutex);
 
-  GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size, font->dpi);
+  GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size);
 
   if (!gc) {
     gc = blf_glyph_cache_new(font);
@@ -967,7 +966,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
                                      int fixed_width)
 {
   if (glyph_font != settings_font) {
-    blf_font_size(glyph_font, settings_font->size, settings_font->dpi);
+    blf_font_size(glyph_font, settings_font->size);
   }
 
   blf_ensure_size(glyph_font);

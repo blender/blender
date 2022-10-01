@@ -52,7 +52,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveSample &storage = node_storage(*node);
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
-  bNodeSocket *factor = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *factor = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *length = factor->next;
 
   nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);

@@ -74,11 +74,10 @@ static int UnaryFunction1DUnsigned___init__(BPy_UnaryFunction1DUnsigned *self,
   }
 
   if (!obj) {
-    self->uf1D_unsigned = new UnaryFunction1D<unsigned int>();
+    self->uf1D_unsigned = new UnaryFunction1D<uint>();
   }
   else {
-    self->uf1D_unsigned = new UnaryFunction1D<unsigned int>(
-        IntegrationType_from_BPy_IntegrationType(obj));
+    self->uf1D_unsigned = new UnaryFunction1D<uint>(IntegrationType_from_BPy_IntegrationType(obj));
   }
 
   self->uf1D_unsigned->py_uf1D = (PyObject *)self;
@@ -109,7 +108,7 @@ static PyObject *UnaryFunction1DUnsigned___call__(BPy_UnaryFunction1DUnsigned *s
     return nullptr;
   }
 
-  if (typeid(*(self->uf1D_unsigned)) == typeid(UnaryFunction1D<unsigned int>)) {
+  if (typeid(*(self->uf1D_unsigned)) == typeid(UnaryFunction1D<uint>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
     return nullptr;
   }

@@ -9,7 +9,7 @@ namespace blender::tests {
 
 static bool is_aligned(void *ptr, uint alignment)
 {
-  BLI_assert(is_power_of_2_i(static_cast<int>(alignment)));
+  BLI_assert(is_power_of_2_i(int(alignment)));
   return (POINTER_AS_UINT(ptr) & (alignment - 1)) == 0;
 }
 
@@ -36,13 +36,13 @@ TEST(linear_allocator, PackedAllocation)
   blender::AlignedBuffer<256, 32> buffer;
   allocator.provide_buffer(buffer);
 
-  uintptr_t ptr1 = (uintptr_t)allocator.allocate(10, 4); /*  0 - 10 */
-  uintptr_t ptr2 = (uintptr_t)allocator.allocate(10, 4); /* 12 - 22 */
-  uintptr_t ptr3 = (uintptr_t)allocator.allocate(8, 32); /* 32 - 40 */
-  uintptr_t ptr4 = (uintptr_t)allocator.allocate(16, 8); /* 40 - 56 */
-  uintptr_t ptr5 = (uintptr_t)allocator.allocate(1, 8);  /* 56 - 57 */
-  uintptr_t ptr6 = (uintptr_t)allocator.allocate(1, 4);  /* 60 - 61 */
-  uintptr_t ptr7 = (uintptr_t)allocator.allocate(1, 1);  /* 61 - 62 */
+  uintptr_t ptr1 = uintptr_t(allocator.allocate(10, 4)); /*  0 - 10 */
+  uintptr_t ptr2 = uintptr_t(allocator.allocate(10, 4)); /* 12 - 22 */
+  uintptr_t ptr3 = uintptr_t(allocator.allocate(8, 32)); /* 32 - 40 */
+  uintptr_t ptr4 = uintptr_t(allocator.allocate(16, 8)); /* 40 - 56 */
+  uintptr_t ptr5 = uintptr_t(allocator.allocate(1, 8));  /* 56 - 57 */
+  uintptr_t ptr6 = uintptr_t(allocator.allocate(1, 4));  /* 60 - 61 */
+  uintptr_t ptr7 = uintptr_t(allocator.allocate(1, 1));  /* 61 - 62 */
 
   EXPECT_EQ(ptr2 - ptr1, 12); /* 12 -  0 = 12 */
   EXPECT_EQ(ptr3 - ptr2, 20); /* 32 - 12 = 20 */

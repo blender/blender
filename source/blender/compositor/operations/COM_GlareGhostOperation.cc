@@ -23,7 +23,7 @@ void GlareGhostOperation::generate_glare(float *data,
                                          const NodeGlare *settings)
 {
   const int qt = 1 << settings->quality;
-  const float s1 = 4.0f / (float)qt, s2 = 2.0f * s1;
+  const float s1 = 4.0f / float(qt), s2 = 2.0f * s1;
   int x, y, n, p, np;
   fRGB c, tc, cm[64];
   float sc, isc, u, v, sm, s, t, ofs, scalef[64];
@@ -79,7 +79,7 @@ void GlareGhostOperation::generate_glare(float *data,
     if (y == 3) {
       fRGB_rgbmult(cm[x], cmo, 1.0f, cmo);
     }
-    scalef[x] = 2.1f * (1.0f - (x + ofs) / (float)(settings->iter * 4));
+    scalef[x] = 2.1f * (1.0f - (x + ofs) / float(settings->iter * 4));
     if (x & 1) {
       scalef[x] = -0.99f / scalef[x];
     }
@@ -88,9 +88,9 @@ void GlareGhostOperation::generate_glare(float *data,
   sc = 2.13;
   isc = -0.97;
   for (y = 0; y < gbuf.get_height() && (!breaked); y++) {
-    v = ((float)y + 0.5f) / (float)gbuf.get_height();
+    v = (float(y) + 0.5f) / float(gbuf.get_height());
     for (x = 0; x < gbuf.get_width(); x++) {
-      u = ((float)x + 0.5f) / (float)gbuf.get_width();
+      u = (float(x) + 0.5f) / float(gbuf.get_width());
       s = (u - 0.5f) * sc + 0.5f;
       t = (v - 0.5f) * sc + 0.5f;
       tbuf1.read_bilinear(c, s * gbuf.get_width(), t * gbuf.get_height());
@@ -114,9 +114,9 @@ void GlareGhostOperation::generate_glare(float *data,
          tbuf1.get_width() * tbuf1.get_height() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
   for (n = 1; n < settings->iter && (!breaked); n++) {
     for (y = 0; y < gbuf.get_height() && (!breaked); y++) {
-      v = ((float)y + 0.5f) / (float)gbuf.get_height();
+      v = (float(y) + 0.5f) / float(gbuf.get_height());
       for (x = 0; x < gbuf.get_width(); x++) {
-        u = ((float)x + 0.5f) / (float)gbuf.get_width();
+        u = (float(x) + 0.5f) / float(gbuf.get_width());
         tc[0] = tc[1] = tc[2] = 0.0f;
         for (p = 0; p < 4; p++) {
           np = (n << 2) + p;

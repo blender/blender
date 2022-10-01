@@ -42,7 +42,7 @@ static void float_rgba_to_gray(const float *rgba,
   }
 }
 
-static void uint8_rgba_to_float_gray(const unsigned char *rgba,
+static void uint8_rgba_to_float_gray(const uchar *rgba,
                                      float *gray,
                                      int num_pixels,
                                      float weight_red,
@@ -50,7 +50,7 @@ static void uint8_rgba_to_float_gray(const unsigned char *rgba,
                                      float weight_blue)
 {
   for (int i = 0; i < num_pixels; i++) {
-    const unsigned char *pixel = rgba + i * 4;
+    const uchar *pixel = rgba + i * 4;
 
     gray[i] = (weight_red * pixel[0] + weight_green * pixel[1] + weight_blue * pixel[2]) / 255.0f;
   }
@@ -86,7 +86,7 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
   }
   else {
     uint8_rgba_to_float_gray(
-        (unsigned char *)searchibuf->rect, gray_pixels, width * height, 0.2126f, 0.7152f, 0.0722f);
+        (uchar *)searchibuf->rect, gray_pixels, width * height, 0.2126f, 0.7152f, 0.0722f);
   }
 
   IMB_freeImBuf(searchibuf);

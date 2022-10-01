@@ -187,7 +187,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       float co[3];
       const double3 &d_co = vertp->co;
       for (int i = 0; i < 3; ++i) {
-        co[i] = static_cast<float>(d_co[i]);
+        co[i] = float(d_co[i]);
       }
       BMVert *bmv = BM_vert_create(bm, co, nullptr, BM_CREATE_NOP);
       new_bmvs[v] = bmv;

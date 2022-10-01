@@ -528,7 +528,7 @@ void *GHOST_XrActionSet::getCustomdata()
 
 uint32_t GHOST_XrActionSet::getActionCount() const
 {
-  return (uint32_t)m_actions.size();
+  return uint32_t(m_actions.size());
 }
 
 void GHOST_XrActionSet::getActionCustomdataArray(void **r_customdata_array)

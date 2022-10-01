@@ -108,7 +108,7 @@ isect_result<mpq2> isect_seg_seg(const mpq2 &v1, const mpq2 &v2, const mpq2 &v3,
 uint64_t hash_mpq_class(const mpq_class &value)
 {
   /* TODO: better/faster implementation of this. */
-  return get_default_hash(static_cast<float>(value.get_d()));
+  return get_default_hash(float(value.get_d()));
 }
 
 #endif

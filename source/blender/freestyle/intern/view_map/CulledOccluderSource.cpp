@@ -56,7 +56,7 @@ bool CulledOccluderSource::next()
 
 void CulledOccluderSource::getOccluderProscenium(real proscenium[4])
 {
-  for (unsigned int i = 0; i < 4; ++i) {
+  for (uint i = 0; i < 4; ++i) {
     proscenium[i] = gridSpaceOccluderProscenium[i];
   }
 }

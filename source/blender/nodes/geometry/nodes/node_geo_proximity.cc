@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Target"))
       .only_realized_data()
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Vector>(N_("Position")).dependent_field();
   b.add_output<decl::Float>(N_("Distance")).dependent_field();
 }
@@ -211,8 +211,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
 
   auto proximity_fn = std::make_unique<ProximityFunction>(
-      std::move(geometry_set_target),
-      static_cast<GeometryNodeProximityTargetType>(storage.target_element));
+      std::move(geometry_set_target), GeometryNodeProximityTargetType(storage.target_element));
   auto proximity_op = std::make_shared<FieldOperation>(
       FieldOperation(std::move(proximity_fn), {std::move(position_field)}));
 

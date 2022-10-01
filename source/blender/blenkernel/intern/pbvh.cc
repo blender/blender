@@ -29,8 +29,6 @@
 
 #include "PIL_time.h"
 
-#include "GPU_buffers.h"
-
 #include "bmesh.h"
 
 #include "atomic_ops.h"
@@ -64,7 +62,7 @@ template<typename T> void to_float(const T &src, float dst[4]);
 
 template<> void to_float(const MLoopCol &src, float dst[4])
 {
-  rgba_uchar_to_float(dst, reinterpret_cast<const unsigned char *>(&src));
+  rgba_uchar_to_float(dst, reinterpret_cast<const uchar *>(&src));
   srgb_to_linearrgb_v3_v3(dst, dst);
 }
 template<> void to_float(const MPropCol &src, float dst[4])
@@ -79,7 +77,7 @@ template<> void from_float(const float src[4], MLoopCol &dst)
   float temp[4];
   linearrgb_to_srgb_v3_v3(temp, src);
   temp[3] = src[3];
-  rgba_float_to_uchar(reinterpret_cast<unsigned char *>(&dst), temp);
+  rgba_float_to_uchar(reinterpret_cast<uchar *>(&dst), temp);
 }
 template<> void from_float(const float src[4], MPropCol &dst)
 {
@@ -113,7 +111,7 @@ static void pbvh_vertex_color_get_faces(const PBVH &pbvh, PBVHVertRef vertex, fl
     }
 
     if (count) {
-      mul_v4_fl(r_color, 1.0f / (float)count);
+      mul_v4_fl(r_color, 1.0f / float(count));
     }
   }
   else {

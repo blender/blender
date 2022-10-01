@@ -398,8 +398,18 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            struct GPUBatch *geom,
                                            struct GPUBatch *inst_attributes);
 
-void DRW_shgroup_call_sculpt(DRWShadingGroup *sh, Object *ob, bool wire, bool mask);
-void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **sh, int num_sh, Object *ob);
+void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
+                             Object *ob,
+                             bool use_wire,
+                             bool use_mask,
+                             bool use_fset,
+                             bool use_color,
+                             bool use_uv);
+
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
+                                            struct GPUMaterial **gpumats,
+                                            int num_shgroups,
+                                            Object *ob);
 
 DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
                                        struct GPUVertFormat *format,
@@ -933,6 +943,14 @@ typedef struct DRWContextState {
 } DRWContextState;
 
 const DRWContextState *DRW_context_state_get(void);
+
+struct DRW_Attributes;
+struct DRW_MeshCDMask;
+
+void DRW_mesh_batch_cache_get_attributes(struct Object *object,
+                                         struct Mesh *me,
+                                         struct DRW_Attributes **r_attrs,
+                                         struct DRW_MeshCDMask **r_cd_needed);
 
 #ifdef __cplusplus
 }

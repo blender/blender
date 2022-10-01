@@ -127,14 +127,11 @@ bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject
   return false;
 }
 
-void deg_iterator_duplis_init(DEGObjectIterData *data, Object *object)
+void deg_iterator_duplis_init(DEGObjectIterData *data, Object *object, ListBase *duplis)
 {
-  if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-      ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr)) {
-    data->dupli_parent = object;
-    data->dupli_list = object_duplilist(data->graph, data->scene, object);
-    data->dupli_object_next = (DupliObject *)data->dupli_list->first;
-  }
+  data->dupli_parent = object;
+  data->dupli_list = duplis;
+  data->dupli_object_next = static_cast<DupliObject *>(duplis->first);
 }
 
 /* Returns false when iterator is exhausted. */
@@ -250,7 +247,18 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
     }
 
     Object *object = (Object *)id_node->id_cow;
+    Object *object_orig = DEG_get_original_object(object);
     BLI_assert(deg::deg_validate_copy_on_write_datablock(&object->id));
+    object->runtime.select_id = object_orig->runtime.select_id;
+
+    const bool use_preview = object_orig == data->object_orig_with_preview;
+    if (use_preview) {
+      ListBase *preview_duplis = object_duplilist_preview(
+          data->graph, data->scene, object, data->settings->viewer_path);
+      deg_iterator_duplis_init(data, object, preview_duplis);
+      data->id_node_index++;
+      return true;
+    }
 
     int ob_visibility = OB_VISIBLE_ALL;
     if (data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) {
@@ -261,9 +269,12 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
       }
     }
 
-    object->runtime.select_id = DEG_get_original_object(object)->runtime.select_id;
     if (ob_visibility & OB_VISIBLE_INSTANCES) {
-      deg_iterator_duplis_init(data, object);
+      if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
+          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr)) {
+        ListBase *duplis = object_duplilist(data->graph, data->scene, object);
+        deg_iterator_duplis_init(data, object, duplis);
+      }
     }
 
     if (ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) {
@@ -300,6 +311,22 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
   data->num_id_nodes = num_id_nodes;
   data->eval_mode = DEG_get_mode(depsgraph);
   deg_invalidate_iterator_work_data(data);
+
+  /* Determine if the preview of any object should be in the iterator. */
+  const ViewerPath *viewer_path = data->settings->viewer_path;
+  if (viewer_path != nullptr) {
+    if (!BLI_listbase_is_empty(&viewer_path->path)) {
+      const ViewerPathElem *elem = static_cast<const ViewerPathElem *>(viewer_path->path.first);
+      if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
+        const IDViewerPathElem *id_elem = reinterpret_cast<const IDViewerPathElem *>(elem);
+        if (id_elem->id != nullptr) {
+          if (GS(id_elem->id->name) == ID_OB) {
+            data->object_orig_with_preview = reinterpret_cast<Object *>(id_elem->id);
+          }
+        }
+      }
+    }
+  }
 
   DEG_iterator_objects_next(iter);
 }

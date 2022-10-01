@@ -51,7 +51,7 @@ bool BCSample::get_value(std::string channel_target, const int array_index, floa
   else if (channel_type == "scale") {
     *val = matrix->scale()[array_index];
   }
-  else if (channel_type == "rotation" || channel_type == "rotation_euler") {
+  else if (ELEM(channel_type, "rotation", "rotation_euler")) {
     *val = matrix->rotation()[array_index];
   }
   else if (channel_type == "rotation_quaternion") {

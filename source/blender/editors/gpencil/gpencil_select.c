@@ -576,7 +576,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
 
       if (selectmode == GP_SELECTMODE_STROKE) {
         RNG *rng = BLI_rng_new(seed_iter);
-        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        const uint j = BLI_rng_get_uint(rng) % gps->totpoints;
         bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
         select_stroke ^= select;
         /* Curve function has select parameter inverted. */
@@ -647,7 +647,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
 
       if (selectmode == GP_SELECTMODE_STROKE) {
         RNG *rng = BLI_rng_new(seed_iter);
-        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        const uint j = BLI_rng_get_uint(rng) % gps->totpoints;
         bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
         select_stroke ^= select;
         select_all_stroke_points(gpd, gps, select_stroke);
@@ -2071,7 +2071,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
-      /* convert point coords to screenspace */
+      /* Convert point coords to screen-space. */
       const bool is_inside = is_inside_fn(gsc.region, gpstroke_iter.diff_mat, &pt->x, user_data);
       if (strokemode == false) {
         const bool is_select = (pt_active->flag & GP_SPOINT_SELECT) != 0;

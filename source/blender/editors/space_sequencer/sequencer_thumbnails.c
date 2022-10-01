@@ -374,7 +374,7 @@ static int sequencer_thumbnail_closest_guaranteed_frame_get(struct Scene *scene,
   /* Set of "guaranteed" thumbnails. */
   const int frame_index = timeline_frame - SEQ_time_left_handle_frame_get(scene, seq);
   const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, seq);
-  const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) * frame_step;
+  const int relative_base_frame = round_fl_to_int(frame_index / (float)frame_step) * frame_step;
   const int nearest_guaranted_absolute_frame = relative_base_frame +
                                                SEQ_time_left_handle_frame_get(scene, seq);
   return nearest_guaranted_absolute_frame;
@@ -536,7 +536,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     if (seq->flag & SEQ_OVERLAP) {
       GPU_blend(GPU_BLEND_ALPHA);
       if (ibuf->rect) {
-        unsigned char *buf = (unsigned char *)ibuf->rect;
+        uchar *buf = (uchar *)ibuf->rect;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
           buf[3] = OVERLAP_ALPHA;
         }

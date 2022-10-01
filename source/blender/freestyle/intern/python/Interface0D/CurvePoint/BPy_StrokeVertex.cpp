@@ -153,8 +153,8 @@ static int StrokeVertex_mathutils_check(BaseMathObject *bmo)
 static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int /*subtype*/)
 {
   BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
-  bmo->data[0] = (float)self->sv->x();
-  bmo->data[1] = (float)self->sv->y();
+  bmo->data[0] = float(self->sv->x());
+  bmo->data[1] = float(self->sv->y());
   return 0;
 }
 
@@ -171,10 +171,10 @@ static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/
   BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
   switch (index) {
     case 0:
-      bmo->data[0] = (float)self->sv->x();
+      bmo->data[0] = float(self->sv->x());
       break;
     case 1:
-      bmo->data[1] = (float)self->sv->y();
+      bmo->data[1] = float(self->sv->y());
       break;
     default:
       return -1;
@@ -206,7 +206,7 @@ static Mathutils_Callback StrokeVertex_mathutils_cb = {
     StrokeVertex_mathutils_set_index,
 };
 
-static unsigned char StrokeVertex_mathutils_cb_index = -1;
+static uchar StrokeVertex_mathutils_cb_index = -1;
 
 void StrokeVertex_mathutils_register_callback()
 {

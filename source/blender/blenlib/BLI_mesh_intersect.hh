@@ -354,12 +354,12 @@ struct BoundingBox {
 
   void combine(const double3 &p)
   {
-    min.x = min_ff(min.x, static_cast<float>(p.x));
-    min.y = min_ff(min.y, static_cast<float>(p.y));
-    min.z = min_ff(min.z, static_cast<float>(p.z));
-    max.x = max_ff(max.x, static_cast<float>(p.x));
-    max.y = max_ff(max.y, static_cast<float>(p.y));
-    max.z = max_ff(max.z, static_cast<float>(p.z));
+    min.x = min_ff(min.x, float(p.x));
+    min.y = min_ff(min.y, float(p.y));
+    min.z = min_ff(min.z, float(p.z));
+    max.x = max_ff(max.x, float(p.x));
+    max.y = max_ff(max.y, float(p.y));
+    max.z = max_ff(max.z, float(p.z));
   }
 
   void combine(const BoundingBox &bb)

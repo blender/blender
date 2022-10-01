@@ -916,15 +916,15 @@ static int viewselected_exec(bContext *C, wmOperator *op)
       if (gps->editcurve != NULL) {
         for (int i = 0; i < gps->editcurve->tot_curve_points; i++) {
           BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
-          if ((bezt->f1 & SELECT)) {
+          if (bezt->f1 & SELECT) {
             minmax_v3v3_v3(min, max, bezt->vec[0]);
             ok = true;
           }
-          if ((bezt->f2 & SELECT)) {
+          if (bezt->f2 & SELECT) {
             minmax_v3v3_v3(min, max, bezt->vec[1]);
             ok = true;
           }
-          if ((bezt->f3 & SELECT)) {
+          if (bezt->f3 & SELECT) {
             minmax_v3v3_v3(min, max, bezt->vec[2]);
             ok = true;
           }

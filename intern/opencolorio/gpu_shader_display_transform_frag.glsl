@@ -130,8 +130,10 @@ vec4 apply_dither(vec4 col, vec2 uv)
  * \{ */
 
 /* Prototypes: Implementation is generaterd and defined after. */
+#ifndef GPU_METAL /* Forward declaration invalid in MSL. */
 vec4 OCIO_to_scene_linear(vec4 pixel);
 vec4 OCIO_to_display(vec4 pixel);
+#endif
 
 vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
 {

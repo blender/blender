@@ -435,7 +435,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 
     /* Only buttons that can be edited as text. */
     const bool use_activate_init = ((prop == prop_activate_init) &&
-                                    (ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT)));
+                                    ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT));
 
     if (use_activate_init) {
       uiLayoutSetActivateInit(col, true);
@@ -495,7 +495,7 @@ static bool add_collection_search_item(CollItemSearch *cis,
                             cis->name,
                             cis->data,
                             cis->iconid,
-                            cis->has_sep_char ? (int)UI_BUT_HAS_SEP_CHAR : 0,
+                            cis->has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
                             name_prefix_offset);
 }
 
@@ -787,7 +787,7 @@ int UI_calc_float_precision(int prec, double value)
    */
   value = fabs(value);
   if ((value < pow10_neg[prec]) && (value > (1.0 / max_pow))) {
-    int value_i = (int)lround(value * max_pow);
+    int value_i = int(lround(value * max_pow));
     if (value_i != 0) {
       const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
       int test_prec;

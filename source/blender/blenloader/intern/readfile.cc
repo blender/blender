@@ -193,7 +193,7 @@ typedef struct BHeadN {
   struct BHead bhead;
 } BHeadN;
 
-#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -(int)offsetof(BHeadN, bhead)))
+#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -int(offsetof(BHeadN, bhead))))
 
 /**
  * We could change this in the future, for now it's simplest if only data is delayed
@@ -475,7 +475,7 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
     idnext = static_cast<ID *>(id->next);
 
     if (id->lib) {
-      if (((uint)id->lib->temp_index < lib_main_array_len) &&
+      if ((uint(id->lib->temp_index) < lib_main_array_len) &&
           /* this check should never fail, just in case 'id->lib' is a dangling pointer. */
           (lib_main_array[id->lib->temp_index]->curlib == id->lib)) {
         Main *mainvar = lib_main_array[id->lib->temp_index];
@@ -591,7 +591,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
       is_link = blo_bhead_is_id_valid_type(bhead) ?
-                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    BKE_idtype_idcode_is_linkable(short(code_prev)) :
                     false;
     }
 
@@ -608,7 +608,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
       is_link = blo_bhead_is_id_valid_type(bhead) ?
-                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    BKE_idtype_idcode_is_linkable(short(code_prev)) :
                     false;
     }
 
@@ -738,7 +738,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, bool do_endian_swap)
     /* this patch is to avoid `intptr_t` being read from not-eight aligned positions
      * is necessary on any modern 64bit architecture) */
     memcpy(&old, &bhead8->old, 8);
-    bhead4->old = (int)(old >> 3);
+    bhead4->old = int(old >> 3);
 
     bhead4->SDNAnr = bhead8->SDNAnr;
     bhead4->nr = bhead8->nr;
@@ -862,7 +862,7 @@ static BHeadN *get_bhead(FileData *fd)
 #endif
       else {
         new_bhead = static_cast<BHeadN *>(
-            MEM_mallocN(sizeof(BHeadN) + (size_t)bhead.len, "new_bhead"));
+            MEM_mallocN(sizeof(BHeadN) + size_t(bhead.len), "new_bhead"));
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
 #ifdef USE_BHEAD_READ_ON_DEMAND
@@ -872,7 +872,7 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = bhead;
 
-          readsize = fd->file->read(fd->file, new_bhead + 1, (size_t)bhead.len);
+          readsize = fd->file->read(fd->file, new_bhead + 1, size_t(bhead.len));
 
           if (readsize != bhead.len) {
             fd->is_eof = true;
@@ -966,7 +966,7 @@ static bool blo_bhead_read_data(FileData *fd, BHead *thisblock, void *buf)
     success = false;
   }
   else {
-    if (fd->file->read(fd->file, buf, (size_t)new_bhead->bhead.len) != new_bhead->bhead.len) {
+    if (fd->file->read(fd->file, buf, size_t(new_bhead->bhead.len)) != new_bhead->bhead.len) {
       success = false;
     }
     if (fd->flags & FD_FLAGS_IS_MEMFILE) {
@@ -2261,7 +2261,7 @@ void blo_do_versions_key_uidgen(Key *key)
 
 #ifdef USE_SETSCENE_CHECK
 /**
- * A version of #BKE_scene_validate_setscene with special checks for linked libs.
+ * A version of #BKE_scene_validate_setscene with special checks for linked libraries.
  */
 static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 {
@@ -2515,6 +2515,17 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
   }
 }
 
+static void lib_link_restore_viewer_path(struct IDNameLib_Map *id_map, ViewerPath *viewer_path)
+{
+  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
+    if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
+      auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+      typed_elem->id = static_cast<ID *>(
+          restore_pointer_by_name(id_map, (ID *)typed_elem->id, USER_IGNORE));
+    }
+  }
+}
+
 static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
                                               Main *newmain,
                                               WorkSpaceLayout *layout)
@@ -2532,6 +2543,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
               restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL));
           v3d->ob_center = static_cast<Object *>(
               restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL));
+
+          lib_link_restore_viewer_path(id_map, &v3d->viewer_path);
         }
         else if (sl->spacetype == SPACE_GRAPH) {
           SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -2741,14 +2754,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         }
         else if (sl->spacetype == SPACE_SPREADSHEET) {
           SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-
-          LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-            if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-              SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-              object_context->object = static_cast<Object *>(
-                  restore_pointer_by_name(id_map, (ID *)object_context->object, USER_IGNORE));
-            }
-          }
+          lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
         }
       }
     }
@@ -2770,6 +2776,7 @@ void blo_lib_link_restore(Main *oldmain,
     }
     workspace->pin_scene = static_cast<Scene *>(
         restore_pointer_by_name(id_map, (ID *)workspace->pin_scene, USER_IGNORE));
+    lib_link_restore_viewer_path(id_map, &workspace->viewer_path);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &curwm->windows) {
@@ -2904,7 +2911,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
   else {
     LISTBASE_FOREACH (Library *, lib, &main->libraries) {
       /* Libraries store both relative and abs paths, recreate relative paths,
-       * relative to the blend file since indirectly linked libs will be
+       * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
         BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
@@ -3151,7 +3158,7 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
 /* For undo, restore matching library datablock from the old main. */
 static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const ID *id)
 {
-  /* In undo case, most libs and linked data should be kept as is from previous state
+  /* In undo case, most libraries and linked data should be kept as is from previous state
    * (see BLO_read_from_memfile).
    * However, some needed by the snapshot being read may have been removed in previous one,
    * and would go missing.
@@ -4586,7 +4593,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* make main consistent */
   BLO_expand_main(*fd, mainl);
 
-  /* do this when expand found other libs */
+  /* Do this when expand found other libraries. */
   read_libraries(*fd, (*fd)->mainlist);
 
   curlib = mainl->curlib;

@@ -1047,6 +1047,7 @@ class NodeTreeMainUpdater {
 
   void update_individual_nodes(bNodeTree &ntree)
   {
+    Vector<bNode *> group_inout_nodes;
     LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
       nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
@@ -1057,6 +1058,18 @@ class NodeTreeMainUpdater {
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);
         }
+      }
+      if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+        group_inout_nodes.append(node);
+      }
+    }
+    /* The update function of group input/output nodes may add new interface sockets. When that
+     * happens, all the input/output nodes have to be updated again. In the future it would be
+     * better to move this functionality out of the node update function into the operator that's
+     * supposed to create the new interface socket. */
+    if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
+      for (bNode *node : group_inout_nodes) {
+        node->typeinfo->updatefunc(&ntree, node);
       }
     }
   }
@@ -1375,7 +1388,7 @@ class NodeTreeMainUpdater {
   uint32_t get_combined_socket_topology_hash(const bNodeTree &tree,
                                              Span<const bNodeSocket *> sockets)
   {
-    if (tree.has_link_cycle()) {
+    if (tree.has_available_link_cycle()) {
       /* Return dummy value when the link has any cycles. The algorithm below could be improved to
        * handle cycles more gracefully. */
       return 0;
@@ -1391,7 +1404,7 @@ class NodeTreeMainUpdater {
   Array<uint32_t> get_socket_topology_hashes(const bNodeTree &tree,
                                              Span<const bNodeSocket *> sockets)
   {
-    BLI_assert(!tree.has_link_cycle());
+    BLI_assert(!tree.has_available_link_cycle());
     Array<std::optional<uint32_t>> hash_by_socket_id(tree.all_sockets().size());
     Stack<const bNodeSocket *> sockets_to_check = sockets;
 
@@ -1419,7 +1432,7 @@ class NodeTreeMainUpdater {
         }
         /* When the hashes for the linked sockets are ready, combine them into a hash for the input
          * socket. */
-        const uint64_t socket_ptr = (uintptr_t)&socket;
+        const uint64_t socket_ptr = uintptr_t(&socket);
         uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
         for (const bNodeSocket *origin_socket : socket.logically_linked_sockets()) {
           const uint32_t origin_socket_hash = *hash_by_socket_id[origin_socket->index_in_tree()];
@@ -1444,7 +1457,7 @@ class NodeTreeMainUpdater {
         }
         /* When all input socket hashes have been computed, combine them into a hash for the output
          * socket. */
-        const uint64_t socket_ptr = (uintptr_t)&socket;
+        const uint64_t socket_ptr = uintptr_t(&socket);
         uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
         for (const bNodeSocket *input_socket : node.input_sockets()) {
           if (input_socket->is_available()) {

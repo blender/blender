@@ -477,7 +477,7 @@ struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
                                        const char *name,
                                        const char *idname);
 
-/* copy/free funcs, need to manage ID users */
+/* Copy/free functions, need to manage ID users. */
 
 /**
  * Free (or release) any data used by this node-tree.
@@ -960,8 +960,8 @@ void nodeLabel(const struct bNodeTree *ntree, const struct bNode *node, char *la
  */
 const char *nodeSocketLabel(const struct bNodeSocket *sock);
 
-bool nodeGroupPoll(struct bNodeTree *nodetree,
-                   struct bNodeTree *grouptree,
+bool nodeGroupPoll(const struct bNodeTree *nodetree,
+                   const struct bNodeTree *grouptree,
                    const char **r_disabled_hint);
 
 /**
@@ -1480,7 +1480,7 @@ struct TexResult;
 #define GEO_NODE_ROTATE_INSTANCES 1122
 #define GEO_NODE_SPLIT_EDGES 1123
 #define GEO_NODE_MESH_TO_CURVE 1124
-#define GEO_NODE_TRANSFER_ATTRIBUTE 1125
+#define GEO_NODE_TRANSFER_ATTRIBUTE_DEPRECATED 1125
 #define GEO_NODE_SUBDIVISION_SURFACE 1126
 #define GEO_NODE_CURVE_ENDPOINT_SELECTION 1127
 #define GEO_NODE_RAYCAST 1128
@@ -1525,6 +1525,22 @@ struct TexResult;
 #define GEO_NODE_INPUT_SHORTEST_EDGE_PATHS 1168
 #define GEO_NODE_EDGE_PATHS_TO_CURVES 1169
 #define GEO_NODE_EDGE_PATHS_TO_SELECTION 1170
+#define GEO_NODE_MESH_FACE_SET_BOUNDARIES 1171
+#define GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME 1172
+#define GEO_NODE_SELF_OBJECT 1173
+#define GEO_NODE_SAMPLE_INDEX 1174
+#define GEO_NODE_SAMPLE_NEAREST 1175
+#define GEO_NODE_SAMPLE_NEAREST_SURFACE 1176
+#define GEO_NODE_INPUT_CONTROL_POINT_NEIGHBORS 1177
+#define GEO_NODE_CURVE_TOPOLOGY_CURVE_OF_POINT 1178
+#define GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE 1179
+#define GEO_NODE_MESH_TOPOLOGY_OFFSET_CORNER_IN_FACE 1180
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_FACE 1181
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_VERTEX 1182
+#define GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER 1183
+#define GEO_NODE_MESH_TOPOLOGY_EDGES_OF_VERTEX 1184
+#define GEO_NODE_MESH_TOPOLOGY_FACE_OF_CORNER 1185
+#define GEO_NODE_MESH_TOPOLOGY_VERTEX_OF_CORNER 1186
 
 /** \} */
 

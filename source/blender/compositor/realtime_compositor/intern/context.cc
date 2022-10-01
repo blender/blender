@@ -17,9 +17,8 @@ int Context::get_frame_number() const
 
 float Context::get_time() const
 {
-  const float frame_number = static_cast<float>(get_frame_number());
-  const float frame_rate = static_cast<float>(get_scene()->r.frs_sec) /
-                           static_cast<float>(get_scene()->r.frs_sec_base);
+  const float frame_number = float(get_frame_number());
+  const float frame_rate = float(get_scene()->r.frs_sec) / float(get_scene()->r.frs_sec_base);
   return frame_number / frame_rate;
 }
 

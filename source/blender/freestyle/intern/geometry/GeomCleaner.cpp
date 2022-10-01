@@ -30,15 +30,15 @@ using namespace std;
 namespace Freestyle {
 
 void GeomCleaner::SortIndexedVertexArray(const float *iVertices,
-                                         unsigned iVSize,
-                                         const unsigned *iIndices,
-                                         unsigned iISize,
+                                         uint iVSize,
+                                         const uint *iIndices,
+                                         uint iISize,
                                          float **oVertices,
-                                         unsigned **oIndices)
+                                         uint **oIndices)
 {
   // First, we build a list of IndexVertex:
   list<IndexedVertex> indexedVertices;
-  unsigned i;
+  uint i;
   for (i = 0; i < iVSize; i += 3) {
     indexedVertices.emplace_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]), i / 3);
   }
@@ -47,11 +47,11 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices,
   indexedVertices.sort();
 
   // build the indices mapping array:
-  unsigned *mapIndices = new unsigned[iVSize / 3];
+  uint *mapIndices = new uint[iVSize / 3];
   *oVertices = new float[iVSize];
   list<IndexedVertex>::iterator iv;
-  unsigned newIndex = 0;
-  unsigned vIndex = 0;
+  uint newIndex = 0;
+  uint vIndex = 0;
   for (iv = indexedVertices.begin(); iv != indexedVertices.end(); iv++) {
     // Build the final results:
     (*oVertices)[vIndex] = iv->x();
@@ -64,7 +64,7 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices,
   }
 
   // Build the final index array:
-  *oIndices = new unsigned[iISize];
+  *oIndices = new uint[iISize];
   for (i = 0; i < iISize; i++) {
     (*oIndices)[i] = 3 * mapIndices[iIndices[i] / 3];
   }
@@ -73,21 +73,21 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices,
 }
 
 void GeomCleaner::CompressIndexedVertexArray(const float *iVertices,
-                                             unsigned iVSize,
-                                             const unsigned *iIndices,
-                                             unsigned iISize,
+                                             uint iVSize,
+                                             const uint *iIndices,
+                                             uint iISize,
                                              float **oVertices,
-                                             unsigned *oVSize,
-                                             unsigned **oIndices)
+                                             uint *oVSize,
+                                             uint **oIndices)
 {
   // First, we build a list of IndexVertex:
   vector<Vec3f> vertices;
-  unsigned i;
+  uint i;
   for (i = 0; i < iVSize; i += 3) {
     vertices.emplace_back(iVertices[i], iVertices[i + 1], iVertices[i + 2]);
   }
 
-  unsigned *mapVertex = new unsigned[iVSize];
+  uint *mapVertex = new uint[iVSize];
   vector<Vec3f>::iterator v = vertices.begin();
 
   vector<Vec3f> compressedVertices;
@@ -123,7 +123,7 @@ void GeomCleaner::CompressIndexedVertexArray(const float *iVertices,
   }
 
   // Map the index array:
-  *oIndices = new unsigned[iISize];
+  *oIndices = new uint[iISize];
   for (i = 0; i < iISize; i++) {
     (*oIndices)[i] = 3 * mapVertex[iIndices[i] / 3];
   }
@@ -132,16 +132,16 @@ void GeomCleaner::CompressIndexedVertexArray(const float *iVertices,
 }
 
 void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices,
-                                                    unsigned iVSize,
-                                                    const unsigned *iIndices,
-                                                    unsigned iISize,
+                                                    uint iVSize,
+                                                    const uint *iIndices,
+                                                    uint iISize,
                                                     float **oVertices,
-                                                    unsigned *oVSize,
-                                                    unsigned **oIndices)
+                                                    uint *oVSize,
+                                                    uint **oIndices)
 {
   // tmp arrays used to store the sorted data:
   float *tmpVertices;
-  unsigned *tmpIndices;
+  uint *tmpIndices;
 
   Chronometer chrono;
   // Sort data
@@ -172,35 +172,35 @@ struct GeomCleanerHasher {
 #define _MOD 2147483647UL
   inline size_t operator()(const Vec3r &p) const
   {
-    size_t res = ((unsigned long)(p[0] * _MUL)) % _MOD;
-    res = ((res + (unsigned long)(p[1]) * _MUL)) % _MOD;
-    return ((res + (unsigned long)(p[2]) * _MUL)) % _MOD;
+    size_t res = ulong(p[0] * _MUL) % _MOD;
+    res = (res + ulong(p[1]) * _MUL) % _MOD;
+    return (res + ulong(p[2]) * _MUL) % _MOD;
   }
 #undef _MUL
 #undef _MOD
 };
 
 void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
-                                          unsigned iVSize,
-                                          const unsigned *iIndices,
-                                          unsigned iISize,
+                                          uint iVSize,
+                                          const uint *iIndices,
+                                          uint iISize,
                                           float **oVertices,
-                                          unsigned *oVSize,
-                                          unsigned **oIndices)
+                                          uint *oVSize,
+                                          uint **oIndices)
 {
-  using cleanHashTable = map<Vec3f, unsigned>;
+  using cleanHashTable = map<Vec3f, uint>;
   vector<Vec3f> vertices;
-  unsigned i;
+  uint i;
   for (i = 0; i < iVSize; i += 3) {
     vertices.emplace_back(iVertices[i], iVertices[i + 1], iVertices[i + 2]);
   }
 
   cleanHashTable ht;
-  vector<unsigned> newIndices;
+  vector<uint> newIndices;
   vector<Vec3f> newVertices;
 
   // elimination of needless points
-  unsigned currentIndex = 0;
+  uint currentIndex = 0;
   vector<Vec3f>::const_iterator v = vertices.begin();
   vector<Vec3f>::const_iterator end = vertices.end();
   cleanHashTable::const_iterator found;
@@ -230,7 +230,7 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
   }
 
   // map new indices:
-  *oIndices = new unsigned[iISize];
+  *oIndices = new uint[iISize];
   for (i = 0; i < iISize; i++) {
     (*oIndices)[i] = 3 * newIndices[iIndices[i] / 3];
   }

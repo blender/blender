@@ -43,7 +43,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_spreadsheet.h"
+#include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -713,10 +713,12 @@ void ED_node_set_active(
             /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
              * than we are looking at. */
             if (ma->texpaintslot) {
-              Image *image = (Image *)node->id;
-              for (int i = 0; i < ma->tot_slots; i++) {
-                if (ma->texpaintslot[i].ima == image) {
-                  ma->paint_active_slot = i;
+              if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+                Image *image = (Image *)node->id;
+                for (int i = 0; i < ma->tot_slots; i++) {
+                  if (ma->texpaintslot[i].ima == image) {
+                    ma->paint_active_slot = i;
+                  }
                 }
               }
             }
@@ -732,23 +734,26 @@ void ED_node_set_active(
         /* Sync to Image Editor under the following conditions:
          * - current image is not pinned
          * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
-        Image *image = (Image *)node->id;
-        wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-          const bScreen *screen = WM_window_get_active_screen(win);
-          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-            LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-              if (sl->spacetype != SPACE_IMAGE) {
-                continue;
+        if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+          Image *image = (Image *)node->id;
+          wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+          LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+            const bScreen *screen = WM_window_get_active_screen(win);
+            LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+              LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+                if (sl->spacetype != SPACE_IMAGE) {
+                  continue;
+                }
+                SpaceImage *sima = (SpaceImage *)sl;
+                if (sima->pin) {
+                  continue;
+                }
+                if (sima->image &&
+                    ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+                  continue;
+                }
+                ED_space_image_set(bmain, sima, image, true);
               }
-              SpaceImage *sima = (SpaceImage *)sl;
-              if (sima->pin) {
-                continue;
-              }
-              if (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-                continue;
-              }
-              ED_space_image_set(bmain, sima, image, true);
             }
           }
         }
@@ -816,8 +821,8 @@ void ED_node_set_active(
             }
           }
           node->flag |= NODE_DO_OUTPUT;
-          ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
         }
+        blender::ed::viewer_path::activate_geometry_node(*bmain, *snode, *node);
       }
     }
   }
@@ -1689,6 +1694,46 @@ void NODE_OT_preview_toggle(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = node_preview_toggle_exec;
+  ot->poll = ED_operator_node_active;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int node_deactivate_viewer_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  WorkSpace &workspace = *CTX_wm_workspace(C);
+
+  bNode *active_viewer = viewer_path::find_geometry_nodes_viewer(workspace.viewer_path, snode);
+
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+    if (node->type != GEO_NODE_VIEWER) {
+      continue;
+    }
+    if (!(node->flag & SELECT)) {
+      continue;
+    }
+    if (node == active_viewer) {
+      node->flag &= ~NODE_DO_OUTPUT;
+      BKE_ntree_update_tag_node_property(snode.edittree, node);
+    }
+  }
+
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_deactivate_viewer(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Deactivate Viewer Node";
+  ot->description = "Deactivate selected viewer node in geometry nodes";
+  ot->idname = __func__;
+
+  /* callbacks */
+  ot->exec = node_deactivate_viewer_exec;
   ot->poll = ED_operator_node_active;
 
   /* flags */
@@ -2854,8 +2899,8 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode,
   float bufx = backdrop_width * snode->zoom;
   float bufy = backdrop_height * snode->zoom;
 
-  *fx = (bufx > 0.0f ? ((float)x - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  *fy = (bufy > 0.0f ? ((float)y - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  *fx = (bufx > 0.0f ? (float(x) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  *fy = (bufy > 0.0f ? (float(y) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 }
 
 static int viewer_border_exec(bContext *C, wmOperator *op)

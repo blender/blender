@@ -110,7 +110,7 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0,
 
   convert_matrix_datatype(m0, mat0);
   convert_matrix_datatype(m1, mat1);
-  interp_m4_m4m4(ret, mat0, mat1, static_cast<float>(weight));
+  interp_m4_m4m4(ret, mat0, mat1, float(weight));
   return convert_matrix_datatype(ret);
 }
 

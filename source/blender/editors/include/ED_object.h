@@ -227,7 +227,7 @@ bool ED_object_base_deselect_all(const struct Scene *scene,
 /**
  * Single object duplicate, if `dupflag == 0`, fully linked, else it uses the flags given.
  * Leaves selection of base/object unaltered.
- * \note don't call this within a loop since clear_* funcs loop over the entire database.
+ * \note don't call this within a loop since clear_* functions loop over the entire database.
  * \note caller must do `DAG_relations_tag_update(bmain);`
  * this is not done automatic since we may duplicate many objects in a batch.
  */

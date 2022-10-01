@@ -12,6 +12,10 @@
 #include "GPU_common_types.h"
 #include "GPU_context.h"
 
+#include "intern/GHOST_Context.h"
+#include "intern/GHOST_ContextCGL.h"
+#include "intern/GHOST_Window.h"
+
 #include "mtl_backend.hh"
 #include "mtl_capabilities.hh"
 #include "mtl_common.hh"
@@ -348,7 +352,7 @@ struct MTLSamplerArray {
   {
     uint32_t hash = this->num_samplers;
     for (int i = 0; i < this->num_samplers; i++) {
-      hash ^= (uint32_t)this->mtl_sampler_flags[i] << (i % 3);
+      hash ^= uint32_t(this->mtl_sampler_flags[i]) << (i % 3);
     }
     return hash;
   }
@@ -570,12 +574,44 @@ class MTLCommandBufferManager {
 
 class MTLContext : public Context {
   friend class MTLBackend;
+  friend class MTLRenderPassState;
+
+ public:
+  /* Swap-chain and latency management. */
+  static std::atomic<int> max_drawables_in_flight;
+  static std::atomic<int64_t> avg_drawable_latency_us;
+  static int64_t frame_latency[MTL_FRAME_AVERAGE_COUNT];
+
+ public:
+  /* Shaders and Pipeline state. */
+  MTLContextGlobalShaderPipelineState pipeline_state;
+
+  /* Metal API Resource Handles. */
+  id<MTLCommandQueue> queue = nil;
+  id<MTLDevice> device = nil;
+
+#ifndef NDEBUG
+  /* Label for Context debug name assignment. */
+  NSString *label = nil;
+#endif
+
+  /* Memory Management. */
+  MTLScratchBufferManager memory_manager;
+  static MTLBufferPool global_memory_manager;
+
+  /* CommandBuffer managers. */
+  MTLCommandBufferManager main_command_buffer;
 
  private:
-  /* Null buffers for empty/uninitialized bindings.
-   * Null attribute buffer follows default attribute format of OpenGL Back-end. */
-  id<MTLBuffer> null_buffer_;           /* All zero's. */
-  id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
+  /* Parent Context. */
+  GHOST_ContextCGL *ghost_context_;
+
+  /* Render Passes and Frame-buffers. */
+  id<MTLTexture> default_fbo_mtltexture_ = nil;
+  gpu::MTLTexture *default_fbo_gputexture_ = nullptr;
+
+  /* Depth-stencil state cache. */
+  blender::Map<MTLContextDepthStencilState, id<MTLDepthStencilState>> depth_stencil_state_cache;
 
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
@@ -601,23 +637,20 @@ class MTLContext : public Context {
   gpu::MTLBuffer *visibility_buffer_ = nullptr;
   bool visibility_is_dirty_ = false;
 
+  /* Null buffers for empty/uninitialized bindings.
+   * Null attribute buffer follows default attribute format of OpenGL Backend. */
+  id<MTLBuffer> null_buffer_;           /* All zero's. */
+  id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
+
+  /** Dummy Resources */
+  /* Maximum of 32 texture types. Though most combinations invalid. */
+  gpu::MTLTexture *dummy_textures_[GPU_TEXTURE_BUFFER] = {nullptr};
+  GPUVertFormat dummy_vertformat_;
+  GPUVertBuf *dummy_verts_ = nullptr;
+
  public:
-  /* Shaders and Pipeline state. */
-  MTLContextGlobalShaderPipelineState pipeline_state;
-
-  /* Metal API Resource Handles. */
-  id<MTLCommandQueue> queue = nil;
-  id<MTLDevice> device = nil;
-
-  /* Memory Management */
-  MTLScratchBufferManager memory_manager;
-  static MTLBufferPool global_memory_manager;
-
-  /* CommandBuffer managers. */
-  MTLCommandBufferManager main_command_buffer;
-
   /* GPUContext interface. */
-  MTLContext(void *ghost_window);
+  MTLContext(void *ghost_window, void *ghost_context);
   ~MTLContext();
 
   static void check_error(const char *info);
@@ -673,6 +706,35 @@ class MTLContext : public Context {
   void pipeline_state_init();
   MTLShader *get_active_shader();
 
+  /* These functions ensure that the current RenderCommandEncoder has
+   * the correct global state assigned. This should be called prior
+   * to every draw call, to ensure that all state is applied and up
+   * to date. We handle:
+   *
+   * - Buffer bindings (Vertex buffers, Uniforms, UBOs, transform feedback)
+   * - Texture bindings
+   * - Sampler bindings (+ argument buffer bindings)
+   * - Dynamic Render pipeline state (on encoder)
+   * - Baking Pipeline State Objects (PSOs) for current shader, based
+   *   on final pipeline state.
+   *
+   * `ensure_render_pipeline_state` will return false if the state is
+   * invalid and cannot be applied. This should cancel a draw call. */
+  bool ensure_render_pipeline_state(MTLPrimitiveType prim_type);
+  bool ensure_uniform_buffer_bindings(
+      id<MTLRenderCommandEncoder> rec,
+      const MTLShaderInterface *shader_interface,
+      const MTLRenderPipelineStateInstance *pipeline_state_instance);
+  void ensure_texture_bindings(id<MTLRenderCommandEncoder> rec,
+                               MTLShaderInterface *shader_interface,
+                               const MTLRenderPipelineStateInstance *pipeline_state_instance);
+  void ensure_depth_stencil_state(MTLPrimitiveType prim_type);
+
+  id<MTLBuffer> get_null_buffer();
+  id<MTLBuffer> get_null_attribute_buffer();
+  gpu::MTLTexture *get_dummy_texture(eGPUTextureType type);
+  void free_dummy_resources();
+
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);
   void set_scissor(int scissor_x, int scissor_y, int scissor_width, int scissor_height);
@@ -720,9 +782,37 @@ class MTLContext : public Context {
   {
     return MTLContext::global_memory_manager;
   }
-  /* Uniform Buffer Bindings to command encoders. */
-  id<MTLBuffer> get_null_buffer();
-  id<MTLBuffer> get_null_attribute_buffer();
+
+  /* Swap-chain and latency management. */
+  static void latency_resolve_average(int64_t frame_latency_us)
+  {
+    int64_t avg = 0;
+    int64_t frame_c = 0;
+    for (int i = MTL_FRAME_AVERAGE_COUNT - 1; i > 0; i--) {
+      MTLContext::frame_latency[i] = MTLContext::frame_latency[i - 1];
+      avg += MTLContext::frame_latency[i];
+      frame_c += (MTLContext::frame_latency[i] > 0) ? 1 : 0;
+    }
+    MTLContext::frame_latency[0] = frame_latency_us;
+    avg += MTLContext::frame_latency[0];
+    if (frame_c > 0) {
+      avg /= frame_c;
+    }
+    else {
+      avg = 0;
+    }
+    MTLContext::avg_drawable_latency_us = avg;
+  }
+
+ private:
+  void set_ghost_context(GHOST_ContextHandle ghostCtxHandle);
+  void set_ghost_window(GHOST_WindowHandle ghostWinHandle);
 };
+
+/* GHOST Context callback and present. */
+void present(MTLRenderPassDescriptor *blit_descriptor,
+             id<MTLRenderPipelineState> blit_pso,
+             id<MTLTexture> swapchain_texture,
+             id<CAMetalDrawable> drawable);
 
 }  // namespace blender::gpu

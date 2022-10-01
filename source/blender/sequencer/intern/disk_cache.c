@@ -69,7 +69,7 @@
 #define COLORSPACE_NAME_MAX 64 /* XXX: defined in IMB intern. */
 
 typedef struct DiskCacheHeaderEntry {
-  unsigned char encoding;
+  uchar encoding;
   uint64_t frameno;
   uint64_t size_compressed;
   uint64_t size_raw;

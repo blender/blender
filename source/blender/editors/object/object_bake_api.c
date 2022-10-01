@@ -1047,8 +1047,8 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
     const MLoopTri *lt = &looptri[i];
 
     for (int j = 0; j < 3; j++) {
-      unsigned int l = lt->tri[j];
-      unsigned int v = loops[l].v;
+      uint l = lt->tri[j];
+      uint v = loops[l].v;
 
       /* Map back to original loop if there are modifiers. */
       if (vert_origindex != NULL && poly_origindex != NULL) {

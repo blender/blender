@@ -61,8 +61,17 @@ import sys as _sys
 import addon_utils as _addon_utils
 
 _preferences = _bpy.context.preferences
-_script_module_dirs = "startup", "modules"
 _is_factory_startup = _bpy.app.factory_startup
+
+# Directories added to the start of `sys.path` for all of Blender's "scripts" directories.
+_script_module_dirs = "startup", "modules"
+
+# Base scripts, this points to the directory containing: "modules" & "startup" (see `_script_module_dirs`).
+# In Blender's code-base this is `./release/scripts`.
+#
+# NOTE: in virtually all cases this should match `BLENDER_SYSTEM_SCRIPTS` as this script is it's self a system script,
+# it must be in the `BLENDER_SYSTEM_SCRIPTS` by definition and there is no need for a look-up from `_bpy_script_paths`.
+_script_base_dir = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.dirname(__file__))))
 
 
 def execfile(filepath, *, mod=None):
@@ -324,12 +333,6 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
                         )
 
 
-# base scripts
-_scripts = (
-    _os.path.dirname(_os.path.dirname(_os.path.dirname(__file__))),
-)
-
-
 def script_path_user():
     """returns the env var and falls back to home dir or None"""
     path = _user_resource('SCRIPTS')
@@ -350,19 +353,20 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True)
     :type subdir: string
     :arg user_pref: Include the user preference script path.
     :type user_pref: bool
-    :arg check_all: Include local, user and system paths rather just the paths
-       blender uses.
+    :arg check_all: Include local, user and system paths rather just the paths Blender uses.
     :type check_all: bool
     :return: script paths.
     :rtype: list
     """
-    scripts = list(_scripts)
+    scripts = []
 
-    # Only paths Blender uses.
+    # Only script paths Blender uses.
     #
-    # Needed this is needed even when 'check_all' is enabled,
-    # so the 'BLENDER_SYSTEM_SCRIPTS' environment variable will be used.
-    base_paths = _bpy_script_paths()
+    # This is needed even when `check_all` is enabled.
+    # NOTE: Use `_script_base_dir` instead of `_bpy_script_paths()[0]` as it's taken from this files path.
+    base_paths = (_script_base_dir, )
+    if use_user:
+        base_paths += _bpy_script_paths()[1:]
 
     # Defined to be (system, user) so we can skip the second if needed.
     if not use_user:

@@ -114,7 +114,7 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
     float distfacinv_max = 1.0f; /* 0 to 1 */
 
     const int step = QualityStepHelper::get_step();
-    const float *in = it.in(0) + ((intptr_t)coord_min - coord) * elem_stride;
+    const float *in = it.in(0) + (intptr_t(coord_min) - coord) * elem_stride;
     const int in_stride = elem_stride * step;
     int index = (coord_min - coord) + filtersize_;
     const int index_end = index + (coord_max - coord_min);

@@ -1329,7 +1329,7 @@ static void deformVert(void *__restrict userdata,
   const SDefDeformData *const data = (SDefDeformData *)userdata;
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int sdbind_num = data->bind_verts[index].binds_num;
-  const unsigned int vertex_idx = data->bind_verts[index].vertex_idx;
+  const uint vertex_idx = data->bind_verts[index].vertex_idx;
   float *const vertexCos = data->vertexCos[vertex_idx];
   float norm[3], temp[3], offset[3];
 
@@ -1503,7 +1503,7 @@ static void surfacedeformModifier_do(ModifierData *md,
         ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_polys_num);
     return;
   }
-  if (smd->target_verts_num != 0 && smd->target_verts_num != target_verts_num) {
+  if (!ELEM(smd->target_verts_num, 0, target_verts_num)) {
     if (smd->target_verts_num > target_verts_num) {
       /* Number of vertices on the target did reduce. There is no usable recovery from this. */
       BKE_modifier_set_error(ob,

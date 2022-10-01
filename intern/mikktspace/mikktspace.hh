@@ -151,7 +151,7 @@ template<typename Mesh> class Mikktspace {
 
   void genTangSpace()
   {
-    nrFaces = (uint)mesh.GetNumFaces();
+    nrFaces = uint(mesh.GetNumFaces());
 
 #ifdef WITH_TBB
     nrThreads = tbb::this_task_arena::max_concurrency();
@@ -276,7 +276,7 @@ template<typename Mesh> class Mikktspace {
       if (verts != 3 && verts != 4)
         continue;
 
-      uint tA = (uint)triangles.size();
+      uint tA = uint(triangles.size());
       triangles.emplace_back(f, nrTSpaces);
       Triangle &triA = triangles[tA];
 
@@ -284,7 +284,7 @@ template<typename Mesh> class Mikktspace {
         triA.setVertices(0, 1, 2);
       }
       else {
-        uint tB = (uint)triangles.size();
+        uint tB = uint(triangles.size());
         triangles.emplace_back(f, nrTSpaces);
         Triangle &triB = triangles[tB];
 
@@ -401,7 +401,7 @@ template<typename Mesh> class Mikktspace {
     });
 
     std::stable_partition(triangles.begin(), triangles.end(), [](const Triangle &tri) {
-      return tri.markDegenerate;
+      return !tri.markDegenerate;
     });
   }
 
@@ -731,7 +731,7 @@ template<typename Mesh> class Mikktspace {
           continue;
         }
 
-        const uint newGroupId = (uint)groups.size();
+        const uint newGroupId = uint(groups.size());
         triangle.group[i] = newGroupId;
 
         groups.emplace_back(triangle.vertices[i], bool(triangle.orientPreserving));

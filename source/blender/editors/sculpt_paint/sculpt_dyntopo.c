@@ -716,12 +716,6 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   BKE_sculptsession_bm_to_me(ob, true);
 
-  /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-  bool *hide_vert = (bool *)CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
-  if (hide_vert != NULL) {
-    memset(hide_vert, 0, sizeof(bool) * me->totvert);
-  }
-
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
@@ -1729,6 +1723,9 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_mempool_iternew(solver->verts, &iter);
   UVSmoothVert *sv = BLI_mempool_iterstep(&iter);
 
+  AutomaskingNodeData automask_data = {0};
+  automask_data.have_orig_data = false;
+
   for (; sv; sv = BLI_mempool_iterstep(&iter)) {
     if (!sculpt_brush_test_sq_fn(&test, sv->v->co)) {
       sv->brushfade = 0.0f;
@@ -1743,7 +1740,8 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
                                                  sv->v->no,
                                                  0.0f,
                                                  (PBVHVertRef){.i = (intptr_t)sv->v},
-                                                 0);
+                                                 0,
+                                                 &automask_data);
   }
 
   for (int i = 0; i < 5; i++) {

@@ -43,7 +43,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set,
                                                  const Field<bool> &selection) {

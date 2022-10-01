@@ -236,7 +236,7 @@ PyObject *BPy_FEdge_from_FEdge(FEdge &fe)
   return py_fe;
 }
 
-PyObject *BPy_Nature_from_Nature(unsigned short n)
+PyObject *BPy_Nature_from_Nature(ushort n)
 {
   PyObject *args = PyTuple_New(1);
   PyTuple_SET_ITEM(args, 0, PyLong_FromLong(n));

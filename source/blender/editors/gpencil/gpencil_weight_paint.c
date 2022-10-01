@@ -235,7 +235,7 @@ static bool brush_draw_apply(tGP_BrushWeightpaintData *gso,
   if (gso->vrgroup == -1) {
     if (gso->object) {
       Object *ob_armature = BKE_modifiers_is_deformed_by_armature(gso->object);
-      if ((ob_armature != NULL)) {
+      if (ob_armature != NULL) {
         Bone *actbone = ((bArmature *)ob_armature->data)->act_bone;
         if (actbone != NULL) {
           bPoseChannel *pchan = BKE_pose_channel_find_name(ob_armature->pose, actbone->name);

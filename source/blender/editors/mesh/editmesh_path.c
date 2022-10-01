@@ -346,7 +346,9 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
 
   switch (edge_mode) {
     case EDGE_MODE_TAG_CREASE:
-      BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
+      if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+        BM_data_layer_add(bm, &bm->edata, CD_CREASE);
+      }
       break;
     case EDGE_MODE_TAG_BEVEL:
       if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {

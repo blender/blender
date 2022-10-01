@@ -222,7 +222,13 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
   for (int i = 0; i < srcbm->totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vertex);
+    AutomaskingNodeData automask_data = {0};
+    automask_data.have_orig_data = true;
+    automask_data.orig_data.co = SCULPT_vertex_origco_get(ss, vertex);
+    automask_data.orig_data.no = SCULPT_vertex_origno_get(ss, vertex);
+
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vertex, &automask_data);
     const float mask = 1.0f - SCULPT_vertex_mask_get(ss, vertex);
     const float influence = mask * automask;
 

@@ -3188,7 +3188,7 @@ PyDoc_STRVAR(vector_doc,
              "\n"
              "   This object gives access to Vectors in Blender.\n"
              "\n"
-             "   :param seq: Components of the vector, must be a sequence of at least two\n"
+             "   :arg seq: Components of the vector, must be a sequence of at least two\n"
              "   :type seq: sequence of numbers\n");
 PyTypeObject vector_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -3265,8 +3265,8 @@ PyTypeObject vector_Type = {
     /*  Low-level free-memory routine */
     NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc; */
-    NULL, /* PyObject *tp_bases; */
+    (inquiry)BaseMathObject_is_gc, /* inquiry tp_is_gc; */
+    NULL,                          /* PyObject *tp_bases; */
     /* method resolution order */
     NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
@@ -3304,7 +3304,7 @@ PyObject *Vector_CreatePyObject(const float *vec, const int vec_num, PyTypeObjec
     self->vec = vec_alloc;
     self->vec_num = vec_num;
 
-    /* init callbacks as NULL */
+    /* Initialize callbacks as NULL. */
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 
@@ -3339,7 +3339,7 @@ PyObject *Vector_CreatePyObject_wrap(float *vec, const int vec_num, PyTypeObject
   if (self) {
     self->vec_num = vec_num;
 
-    /* init callbacks as NULL */
+    /* Initialize callbacks as NULL. */
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 
@@ -3357,6 +3357,7 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int vec_num, uchar cb_type
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

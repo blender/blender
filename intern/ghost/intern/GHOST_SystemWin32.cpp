@@ -456,14 +456,11 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) cons
   down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyRightControl, down);
 
-  bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-  bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-  if (lwindown || rwindown) {
-    keys.set(GHOST_kModifierKeyOS, true);
-  }
-  else {
-    keys.set(GHOST_kModifierKeyOS, false);
-  }
+  down = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+  keys.set(GHOST_kModifierKeyLeftOS, down);
+  down = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+  keys.set(GHOST_kModifierKeyRightOS, down);
+
   return GHOST_kSuccess;
 }
 
@@ -543,7 +540,7 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
 GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
 {
   /* #RI_KEY_BREAK doesn't work for sticky keys release, so we also check for the up message. */
-  unsigned int msg = raw.data.keyboard.Message;
+  uint msg = raw.data.keyboard.Message;
   *r_key_down = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
   return this->convertKey(raw.data.keyboard.VKey,
@@ -565,7 +562,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) cons
     return key;
   }
 
-  char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
+  char ch = char(MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR));
   switch (ch) {
     case u'\"':
     case u'\'':
@@ -751,8 +748,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
         key = (extend) ? GHOST_kKeyRightAlt : GHOST_kKeyLeftAlt;
         break;
       case VK_LWIN:
+        key = GHOST_kKeyLeftOS;
+        break;
       case VK_RWIN:
-        key = GHOST_kKeyOS;
+        key = GHOST_kKeyRightOS;
         break;
       case VK_APPS:
         key = GHOST_kKeyApp;
@@ -856,7 +855,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
       case GHOST_kEventButtonDown: {
         WINTAB_PRINTF("HWND %p Wintab button down", window->getHWND());
 
-        UINT message;
+        uint message;
         switch (info.button) {
           case GHOST_kButtonMaskLeft:
             message = WM_LBUTTONDOWN;
@@ -914,7 +913,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
           continue;
         }
 
-        UINT message;
+        uint message;
         switch (info.button) {
           case GHOST_kButtonMaskLeft:
             message = WM_LBUTTONUP;
@@ -964,7 +963,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
 }
 
 void GHOST_SystemWin32::processPointerEvent(
-    UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
+    uint type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
   /* Pointer events might fire when changing windows for a device which is set to use Wintab,
    * even when Wintab is left enabled but set to the bottom of Wintab overlap order. */
@@ -1137,12 +1136,18 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
+  /* NOTE(@campbellbarton): key repeat in WIN32 also applies to modifier-keys.
+   * Check for this case and filter out modifier-repeat.
+   * Typically keyboard events are *not* filtered as part of GHOST's event handling.
+   * As other GHOST back-ends don't have the behavior, it's simplest not to send them through.
+   * Ideally it would be possible to check the key-map for keys that repeat but this doesn't look
+   * to be supported. */
   bool is_repeat = false;
   bool is_repeated_modifier = false;
   if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
-      is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
+      is_repeated_modifier = GHOST_KEY_MODIFIER_CHECK(key);
     }
     system->m_keycode_last_repeat_key = vk;
   }
@@ -1411,7 +1416,7 @@ void GHOST_SystemWin32::processTrackpad()
   }
 }
 
-LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
 {
   GHOST_Event *event = NULL;
   bool eventHandled = false;
@@ -1457,7 +1462,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_INPUT: {
           RAWINPUT raw;
           RAWINPUT *raw_ptr = &raw;
-          UINT rawSize = sizeof(RAWINPUT);
+          uint rawSize = sizeof(RAWINPUT);
 
           GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
 
@@ -1742,10 +1747,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONDOWN: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
           }
           break;
@@ -1763,10 +1768,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONUP: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
           }
           break;
@@ -2088,7 +2093,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           /* The DM_POINTERHITTEST message is sent to a window, when pointer input is first
            * detected, in order to determine the most probable input target for Direct
            * Manipulation. */
-          window->onPointerHitTest(wParam);
+          if (system->m_multitouchGestures) {
+            window->onPointerHitTest(wParam);
+          }
           break;
         }
       }

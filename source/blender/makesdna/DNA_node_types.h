@@ -505,6 +505,7 @@ typedef struct bNodeLink {
 
 #ifdef __cplusplus
   bool is_muted() const;
+  bool is_available() const;
 #endif
 
 } bNodeLink;
@@ -655,12 +656,12 @@ typedef struct bNodeTree {
   /**
    * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
-   * correctly. Use #has_link_cycle to check for cycles.
+   * correctly. Use #has_available_link_cycle to check for cycles.
    */
   blender::Span<const bNode *> toposort_left_to_right() const;
   blender::Span<const bNode *> toposort_right_to_left() const;
   /** True when there are any cycles in the node tree. */
-  bool has_link_cycle() const;
+  bool has_available_link_cycle() const;
   /**
    * True when there are nodes or sockets in the node tree that don't use a known type. This can
    * happen when nodes don't exist in the current Blender version that existed in the version where
@@ -1511,6 +1512,15 @@ typedef struct NodeGeometryTransferAttribute {
   char _pad[1];
 } NodeGeometryTransferAttribute;
 
+typedef struct NodeGeometrySampleIndex {
+  /* eCustomDataType. */
+  int8_t data_type;
+  /* eAttrDomain. */
+  int8_t domain;
+  int8_t clamp;
+  char _pad[1];
+} NodeGeometrySampleIndex;
+
 typedef struct NodeGeometryRaycast {
   /* GeometryNodeRaycastMapMode. */
   uint8_t mapping;
@@ -1588,12 +1598,19 @@ typedef struct NodeGeometryImageTexture {
 typedef struct NodeGeometryViewer {
   /* eCustomDataType. */
   int8_t data_type;
+  /* eAttrDomain. */
+  int8_t domain;
 } NodeGeometryViewer;
 
 typedef struct NodeGeometryUVUnwrap {
   /* GeometryNodeUVUnwrapMethod. */
   uint8_t method;
 } NodeGeometryUVUnwrap;
+
+typedef struct NodeGeometryDistributePointsInVolume {
+  /* GeometryNodePointDistributeVolumeMode. */
+  uint8_t mode;
+} NodeGeometryDistributePointsInVolume;
 
 typedef struct NodeFunctionCompare {
   /* NodeCompareOperation */
@@ -2175,6 +2192,11 @@ typedef enum GeometryNodeTriangulateQuads {
   GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE = 3,
   GEO_NODE_TRIANGULATE_QUAD_LONGEDGE = 4,
 } GeometryNodeTriangulateQuads;
+
+typedef enum GeometryNodeDistributePointsInVolumeMode {
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM = 0,
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID = 1,
+} GeometryNodeDistributePointsInVolumeMode;
 
 typedef enum GeometryNodeDistributePointsOnFacesMode {
   GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,

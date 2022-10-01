@@ -32,10 +32,10 @@ static const char *euler_order_str(EulerObject *self)
 
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
-  if ((str[0] && str[1] && str[2] && str[3] == '\0')) {
+  if (str[0] && str[1] && str[2] && str[3] == '\0') {
 
 #ifdef __LITTLE_ENDIAN__
-#  define MAKE_ID3(a, b, c) (((a)) | ((b) << 8) | ((c) << 16))
+#  define MAKE_ID3(a, b, c) ((a) | ((b) << 8) | ((c) << 16))
 #else
 #  define MAKE_ID3(a, b, c) (((a) << 24) | ((b) << 16) | ((c) << 8))
 #endif
@@ -774,9 +774,9 @@ PyDoc_STRVAR(
     "\n"
     "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on Wikipedia.\n"
     "\n"
-    "   :param angles: Three angles, in radians.\n"
+    "   :arg angles: Three angles, in radians.\n"
     "   :type angles: 3d vector\n"
-    "   :param order: Optional order of the angles, a permutation of ``XYZ``.\n"
+    "   :arg order: Optional order of the angles, a permutation of ``XYZ``.\n"
     "   :type order: str\n");
 PyTypeObject euler_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "Euler", /* tp_name */
@@ -821,7 +821,7 @@ PyTypeObject euler_Type = {
     NULL,                                                          /* tp_alloc */
     Euler_new,                                                     /* tp_new */
     NULL,                                                          /* tp_free */
-    NULL,                                                          /* tp_is_gc */
+    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
     NULL,                                                          /* tp_bases */
     NULL,                                                          /* tp_mro */
     NULL,                                                          /* tp_cache */
@@ -904,6 +904,7 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

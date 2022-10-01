@@ -121,8 +121,7 @@ struct PuffOperationExecutor {
 
     surface_verts_ = surface_->verts();
     surface_loops_ = surface_->loops();
-    surface_looptris_ = {BKE_mesh_runtime_looptri_ensure(surface_),
-                         BKE_mesh_runtime_looptri_len(surface_)};
+    surface_looptris_ = surface_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
 

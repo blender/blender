@@ -57,7 +57,7 @@ static uint case_strhash(const void *ptr)
 {
   const char *s = ptr;
   uint i = 0;
-  unsigned char c;
+  uchar c;
 
   while ((c = tolower(*s++))) {
     i = i * 37 + c;

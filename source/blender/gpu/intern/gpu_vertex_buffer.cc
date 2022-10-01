@@ -278,7 +278,7 @@ void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *verts_, uint a_idx, GPUVertBufRaw
   access->data = (uchar *)verts->data + a->offset;
   access->data_init = access->data;
 #ifdef DEBUG
-  access->_data_end = access->data_init + (size_t)(verts->vertex_alloc * format->stride);
+  access->_data_end = access->data_init + size_t(verts->vertex_alloc * format->stride);
 #endif
 }
 

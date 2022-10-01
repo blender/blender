@@ -84,12 +84,12 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
   return hash;
 }
 
-NodeOperationOutput *NodeOperation::get_output_socket(unsigned int index)
+NodeOperationOutput *NodeOperation::get_output_socket(uint index)
 {
   return &outputs_[index];
 }
 
-NodeOperationInput *NodeOperation::get_input_socket(unsigned int index)
+NodeOperationInput *NodeOperation::get_input_socket(uint index)
 {
   return &inputs_[index];
 }
@@ -106,7 +106,7 @@ void NodeOperation::add_output_socket(DataType datatype)
 
 void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  unsigned int used_canvas_index = 0;
+  uint used_canvas_index = 0;
   if (canvas_input_index_ == RESOLUTION_INPUT_ANY) {
     for (NodeOperationInput &input : inputs_) {
       rcti any_area = COM_AREA_NONE;
@@ -130,7 +130,7 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 
   rcti unused_area = COM_AREA_NONE;
   const rcti &local_preferred_area = r_area;
-  for (unsigned int index = 0; index < inputs_.size(); index++) {
+  for (uint index = 0; index < inputs_.size(); index++) {
     if (index == used_canvas_index) {
       continue;
     }
@@ -141,7 +141,7 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
   }
 }
 
-void NodeOperation::set_canvas_input_index(unsigned int index)
+void NodeOperation::set_canvas_input_index(uint index)
 {
   this->canvas_input_index_ = index;
 }
@@ -197,7 +197,7 @@ void NodeOperation::unset_canvas()
   flags_.is_canvas_set = false;
 }
 
-SocketReader *NodeOperation::get_input_socket_reader(unsigned int index)
+SocketReader *NodeOperation::get_input_socket_reader(uint index)
 {
   return this->get_input_socket(index)->get_reader();
 }

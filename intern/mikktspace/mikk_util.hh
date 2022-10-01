@@ -139,8 +139,8 @@ void radixsort(std::vector<T> &data, std::vector<T> &data2, KeyGetter getKey)
 
 static void float_add_atomic(float *val, float add)
 {
-  /* Hacky, but atomic floats are only supported from C++20 onwards.
-   * This works in practise since std::atomic<uint32_t> is really just an uint32_t in memory,
+  /* Hacky, but atomic floats are only supported from C++20 onward.
+   * This works in practice since `std::atomic<uint32_t>` is really just an `uint32_t` in memory,
    * so this cast lets us do a 32-bit CAS operation (which is used to build the atomic float
    * operation) without needing any external libraries or compiler-specific builtins. */
   std::atomic<uint32_t> *atomic_val = reinterpret_cast<std::atomic<uint32_t> *>(val);

@@ -742,7 +742,6 @@ class Gizmo(StructRNA):
             matrix = self.matrix_world
 
         batch, shader = shape
-        shader.bind()
 
         if select_id is not None:
             gpu.select.load_id(select_id)

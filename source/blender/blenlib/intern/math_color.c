@@ -176,7 +176,7 @@ void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b,
 
 void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
 {
-  unsigned int ri, gi, bi;
+  uint ri, gi, bi;
 
   if (hexcol[0] == '#') {
     hexcol++;
@@ -329,29 +329,29 @@ void hsv_clamp_v(float hsv[3], float v_max)
   CLAMP(hsv[2], 0.0f, v_max);
 }
 
-unsigned int hsv_to_cpack(float h, float s, float v)
+uint hsv_to_cpack(float h, float s, float v)
 {
-  unsigned int r, g, b;
+  uint r, g, b;
   float rf, gf, bf;
-  unsigned int col;
+  uint col;
 
   hsv_to_rgb(h, s, v, &rf, &gf, &bf);
 
-  r = (unsigned int)(rf * 255.0f);
-  g = (unsigned int)(gf * 255.0f);
-  b = (unsigned int)(bf * 255.0f);
+  r = (uint)(rf * 255.0f);
+  g = (uint)(gf * 255.0f);
+  b = (uint)(bf * 255.0f);
 
   col = (r + (g * 256) + (b * 256 * 256));
   return col;
 }
 
-unsigned int rgb_to_cpack(float r, float g, float b)
+uint rgb_to_cpack(float r, float g, float b)
 {
-  unsigned int ir, ig, ib;
+  uint ir, ig, ib;
 
-  ir = (unsigned int)floorf(255.0f * max_ff(r, 0.0f));
-  ig = (unsigned int)floorf(255.0f * max_ff(g, 0.0f));
-  ib = (unsigned int)floorf(255.0f * max_ff(b, 0.0f));
+  ir = (uint)floorf(255.0f * max_ff(r, 0.0f));
+  ig = (uint)floorf(255.0f * max_ff(g, 0.0f));
+  ib = (uint)floorf(255.0f * max_ff(b, 0.0f));
 
   if (ir > 255) {
     ir = 255;
@@ -366,21 +366,21 @@ unsigned int rgb_to_cpack(float r, float g, float b)
   return (ir + (ig * 256) + (ib * 256 * 256));
 }
 
-void cpack_to_rgb(unsigned int col, float *r_r, float *r_g, float *r_b)
+void cpack_to_rgb(uint col, float *r_r, float *r_g, float *r_b)
 {
-  *r_r = ((float)(((col)) & 0xFF)) * (1.0f / 255.0f);
-  *r_g = ((float)(((col) >> 8) & 0xFF)) * (1.0f / 255.0f);
-  *r_b = ((float)(((col) >> 16) & 0xFF)) * (1.0f / 255.0f);
+  *r_r = ((float)(col & 0xFF)) * (1.0f / 255.0f);
+  *r_g = ((float)((col >> 8) & 0xFF)) * (1.0f / 255.0f);
+  *r_b = ((float)((col >> 16) & 0xFF)) * (1.0f / 255.0f);
 }
 
-void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3])
+void rgb_uchar_to_float(float r_col[3], const uchar col_ub[3])
 {
   r_col[0] = ((float)col_ub[0]) * (1.0f / 255.0f);
   r_col[1] = ((float)col_ub[1]) * (1.0f / 255.0f);
   r_col[2] = ((float)col_ub[2]) * (1.0f / 255.0f);
 }
 
-void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4])
+void rgba_uchar_to_float(float r_col[4], const uchar col_ub[4])
 {
   r_col[0] = ((float)col_ub[0]) * (1.0f / 255.0f);
   r_col[1] = ((float)col_ub[1]) * (1.0f / 255.0f);
@@ -388,12 +388,12 @@ void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4])
   r_col[3] = ((float)col_ub[3]) * (1.0f / 255.0f);
 }
 
-void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3])
+void rgb_float_to_uchar(uchar r_col[3], const float col_f[3])
 {
   unit_float_to_uchar_clamp_v3(r_col, col_f);
 }
 
-void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4])
+void rgba_float_to_uchar(uchar r_col[4], const float col_f[4])
 {
   unit_float_to_uchar_clamp_v4(r_col, col_f);
 }
@@ -500,7 +500,7 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
   hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
 }
 
-void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
+void rgb_byte_set_hue_float_offset(uchar rgb[3], float hue_offset)
 {
   float rgb_float[3];
 
@@ -515,13 +515,13 @@ void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
  */
 
 float BLI_color_from_srgb_table[256];
-unsigned short BLI_color_to_srgb_table[0x10000];
+ushort BLI_color_to_srgb_table[0x10000];
 
-static unsigned short hipart(const float f)
+static ushort hipart(const float f)
 {
   union {
     float f;
-    unsigned short us[2];
+    ushort us[2];
   } tmp;
 
   tmp.f = f;
@@ -533,12 +533,12 @@ static unsigned short hipart(const float f)
 #endif
 }
 
-static float index_to_float(const unsigned short i)
+static float index_to_float(const ushort i)
 {
 
   union {
     float f;
-    unsigned short us[2];
+    ushort us[2];
   } tmp;
 
   /* positive and negative zeros, and all gradual underflow, turn into zero: */
@@ -567,7 +567,7 @@ static float index_to_float(const unsigned short i)
 void BLI_init_srgb_conversion(void)
 {
   static bool initialized = false;
-  unsigned int i, b;
+  uint i, b;
 
   if (initialized) {
     return;
@@ -576,12 +576,12 @@ void BLI_init_srgb_conversion(void)
 
   /* Fill in the lookup table to convert floats to bytes: */
   for (i = 0; i < 0x10000; i++) {
-    float f = linearrgb_to_srgb(index_to_float((unsigned short)i)) * 255.0f;
+    float f = linearrgb_to_srgb(index_to_float((ushort)i)) * 255.0f;
     if (f <= 0) {
       BLI_color_to_srgb_table[i] = 0;
     }
     else if (f < 255) {
-      BLI_color_to_srgb_table[i] = (unsigned short)(f * 0x100 + 0.5f);
+      BLI_color_to_srgb_table[i] = (ushort)(f * 0x100 + 0.5f);
     }
     else {
       BLI_color_to_srgb_table[i] = 0xff00;
@@ -594,6 +594,6 @@ void BLI_init_srgb_conversion(void)
     BLI_color_from_srgb_table[b] = f;
     i = hipart(f);
     /* replace entries so byte->float->byte does not change the data: */
-    BLI_color_to_srgb_table[i] = (unsigned short)(b * 0x100);
+    BLI_color_to_srgb_table[i] = (ushort)(b * 0x100);
   }
 }

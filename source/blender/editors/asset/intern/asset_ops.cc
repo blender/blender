@@ -925,9 +925,9 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
       callback_info.reports,
       RPT_ERROR,
       "Unable to copy bundle due to %zu external dependencies; more details on the console",
-      (size_t)callback_info.external_files.size());
+      size_t(callback_info.external_files.size()));
   printf("Unable to copy bundle due to %zu external dependencies:\n",
-         (size_t)callback_info.external_files.size());
+         size_t(callback_info.external_files.size()));
   for (const std::string &path : callback_info.external_files) {
     printf("   \"%s\"\n", path.c_str());
   }

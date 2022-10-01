@@ -453,7 +453,7 @@ static int distribute_binary_search(const float *sum, int n, float value)
   return low;
 }
 
-/* the max number if calls to rng_* funcs within psys_thread_distribute_particle
+/* the max number if calls to rng_* functions within psys_thread_distribute_particle
  * be sure to keep up to date if this changes */
 #define PSYS_RND_DIST_SKIP 3
 
@@ -480,7 +480,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
      * map to equal-colored parts of a texture */
     for (int i = 0; i < ctx->mesh->totface; i++, mface++) {
       if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
-        unsigned int *vert = &mface->v1;
+        uint *vert = &mface->v1;
 
         for (int j = 0; j < 4; j++, vert++) {
           if (*vert == pa->num) {

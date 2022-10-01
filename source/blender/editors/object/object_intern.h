@@ -221,6 +221,10 @@ void GPENCIL_OT_segment_add(struct wmOperatorType *ot);
 void GPENCIL_OT_segment_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_segment_move(struct wmOperatorType *ot);
 
+void GPENCIL_OT_time_segment_add(struct wmOperatorType *ot);
+void GPENCIL_OT_time_segment_remove(struct wmOperatorType *ot);
+void GPENCIL_OT_time_segment_move(struct wmOperatorType *ot);
+
 /* object_shader_fx.c */
 
 void OBJECT_OT_shaderfx_add(struct wmOperatorType *ot);

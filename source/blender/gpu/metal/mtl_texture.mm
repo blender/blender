@@ -12,6 +12,7 @@
 #include "GPU_batch_presets.h"
 #include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
+#include "GPU_immediate.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
 
@@ -20,6 +21,7 @@
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
 #include "mtl_texture.hh"
+#include "mtl_vertex_buffer.hh"
 
 #include "GHOST_C-api.h"
 
@@ -50,7 +52,6 @@ void gpu::MTLTexture::mtl_texture_init()
   /* VBO. */
   vert_buffer_ = nullptr;
   vert_buffer_mtl_ = nil;
-  vert_buffer_offset_ = -1;
 
   /* Default Swizzle. */
   tex_swizzle_mask_[0] = 'r';
@@ -169,26 +170,39 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
 id<MTLTexture> gpu::MTLTexture::get_metal_handle()
 {
 
-  /* ensure up to date and baked. */
-  this->ensure_baked();
-
   /* Verify VBO texture shares same buffer. */
   if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {
-    int r_offset = -1;
+    id<MTLBuffer> buf = vert_buffer_->get_metal_buffer();
 
-    /* TODO(Metal): Fetch buffer from MTLVertBuf when implemented. */
-    id<MTLBuffer> buf = nil; /*vert_buffer_->get_metal_buffer(&r_offset);*/
+    /* Source vertex buffer has been re-generated, require re-initialization. */
+    if (buf != vert_buffer_mtl_) {
+      MTL_LOG_INFO(
+          "MTLTexture '%p' using MTL_TEXTURE_MODE_VBO requires re-generation due to updated "
+          "Vertex-Buffer.\n",
+          this);
+      /* Clear state. */
+      this->reset();
+
+      /* Re-initialize. */
+      this->init_internal(wrap(vert_buffer_));
+
+      /* Update for assertion check below. */
+      buf = vert_buffer_->get_metal_buffer();
+    }
+
+    /* Ensure buffer is valid.
+     * Fetch-vert buffer handle directly in-case it changed above. */
     BLI_assert(vert_buffer_mtl_ != nil);
-    BLI_assert(buf == vert_buffer_mtl_ && r_offset == vert_buffer_offset_);
-
-    UNUSED_VARS(buf);
-    UNUSED_VARS_NDEBUG(r_offset);
+    BLI_assert(vert_buffer_->get_metal_buffer() == vert_buffer_mtl_);
   }
+
+  /* ensure up to date and baked. */
+  this->ensure_baked();
 
   if (is_baked_) {
     /* For explicit texture views, ensure we always return the texture view. */
     if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-      BLI_assert(mip_swizzle_view_ && "Texture view should always have a valid handle.");
+      BLI_assert_msg(mip_swizzle_view_, "Texture view should always have a valid handle.");
     }
 
     if (mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
@@ -208,7 +222,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle_base()
 
   /* For explicit texture views, always return the texture view. */
   if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-    BLI_assert(mip_swizzle_view_ && "Texture view should always have a valid handle.");
+    BLI_assert_msg(mip_swizzle_view_, "Texture view should always have a valid handle.");
     if (mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
       bake_mip_swizzle_view();
     }
@@ -290,7 +304,6 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
 
   /* Execute graphics draw call to perform the blit. */
   GPUBatch *quad = GPU_batch_preset_quad();
-
   GPU_batch_set_shader(quad, shader);
 
   float w = dst->width_get();
@@ -323,6 +336,20 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   GPU_depth_test(GPU_DEPTH_ALWAYS);
 
   GPU_batch_draw(quad);
+
+  /* TMP draw with IMM TODO(Metal): Remove this once GPUBatch is supported. */
+  GPUVertFormat *imm_format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  immBindShader(shader);
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
+  immVertex2f(pos, 1, 0);
+  immVertex2f(pos, 0, 0);
+  immVertex2f(pos, 1, 1);
+  immVertex2f(pos, 0, 1);
+  immEnd();
+  immUnbindProgram();
+  /**********************/
 
   /* restoring old pipeline state. */
   GPU_depth_mask(depth_write_prev);
@@ -915,7 +942,7 @@ void gpu::MTLTexture::generate_mipmap()
 
   /* Ensure texture is baked. */
   this->ensure_baked();
-  BLI_assert(is_baked_ && texture_ && "MTLTexture is not valid");
+  BLI_assert_msg(is_baked_ && texture_, "MTLTexture is not valid");
 
   if (mipmaps_ == 1 || mtl_max_mips_ == 1) {
     MTL_LOG_WARNING("Call to generate mipmaps on texture with 'mipmaps_=1\n'");
@@ -1231,7 +1258,7 @@ void gpu::MTLTexture::read_internal(int mip,
         depth_format_mode = 4;
         break;
       default:
-        BLI_assert(false && "Unhandled depth read format case");
+        BLI_assert_msg(false, "Unhandled depth read format case");
         break;
     }
   }
@@ -1445,11 +1472,12 @@ bool gpu::MTLTexture::init_internal()
 
 bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 {
-  /* Zero initialize. */
-  this->prepare_internal();
+  /* Not a valid vertex buffer format, though verifying texture is not set as such
+   * as this is not supported on Apple Silicon. */
+  BLI_assert_msg(this->format_ != GPU_DEPTH24_STENCIL8,
+                 "Apple silicon does not support GPU_DEPTH24_S8");
 
-  /* TODO(Metal): Add implementation for GPU Vert buf. */
-  return false;
+  return true;
 }
 
 bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)

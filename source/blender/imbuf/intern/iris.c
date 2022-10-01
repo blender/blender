@@ -88,7 +88,7 @@ typedef struct MFileOffset {
 #define DIRTY_FLAG_EOF (1 << 0)
 #define DIRTY_FLAG_ENCODING (1 << 1)
 
-/* funcs */
+/* Functions. */
 static void readheader(MFileOffset *inf, IMAGE *image);
 static int writeheader(FILE *outf, IMAGE *image);
 

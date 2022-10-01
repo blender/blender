@@ -312,10 +312,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                                                 ATTR_DOMAIN_POINT);
   const Span<float2> surface_uv_coords = curves.surface_uv_coords();
 
-  const Span<MLoopTri> looptris_orig{BKE_mesh_runtime_looptri_ensure(surface_mesh_orig),
-                                     BKE_mesh_runtime_looptri_len(surface_mesh_orig)};
-  const Span<MLoopTri> looptris_eval{BKE_mesh_runtime_looptri_ensure(surface_mesh_eval),
-                                     BKE_mesh_runtime_looptri_len(surface_mesh_eval)};
+  const Span<MLoopTri> looptris_orig = surface_mesh_orig->looptris();
+  const Span<MLoopTri> looptris_eval = surface_mesh_eval->looptris();
   const ReverseUVSampler reverse_uv_sampler_orig{uv_map_orig, looptris_orig};
   const ReverseUVSampler reverse_uv_sampler_eval{uv_map_eval, looptris_eval};
 

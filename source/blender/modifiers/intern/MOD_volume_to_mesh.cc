@@ -157,7 +157,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                                                                   volume_grid);
 
   openvdb::math::Transform::Ptr transform = local_grid->transform().copy();
-  transform->postMult(openvdb::Mat4d(((float *)vmmd->object->obmat)));
+  transform->postMult(openvdb::Mat4d((float *)vmmd->object->obmat));
   openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx->object->imat);
   /* `imat` had floating point issues and wasn't affine. */
   imat.setCol(3, openvdb::Vec4d(0, 0, 0, 1));

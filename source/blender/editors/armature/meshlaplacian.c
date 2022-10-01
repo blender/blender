@@ -669,17 +669,25 @@ void heat_bone_weighting(Object *ob,
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
-      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
-        for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
-          mask[ml->v] = (mesh_verts[ml->v].flag & SELECT) != 0;
+      const bool *select_vert = (const bool *)CustomData_get_layer_named(
+          &me->vdata, CD_PROP_BOOL, ".select_vert");
+      if (select_vert) {
+        for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
+          for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
+            mask[ml->v] = select_vert[ml->v];
+          }
         }
       }
     }
     else if (use_face_sel) {
-      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
-        if (mp->flag & ME_FACE_SEL) {
-          for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
-            mask[ml->v] = 1;
+      const bool *select_poly = (const bool *)CustomData_get_layer_named(
+          &me->pdata, CD_PROP_BOOL, ".select_poly");
+      if (select_poly) {
+        for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
+          if (select_poly[a]) {
+            for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
+              mask[ml->v] = 1;
+            }
           }
         }
       }

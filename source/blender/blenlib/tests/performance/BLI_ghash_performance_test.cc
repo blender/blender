@@ -177,12 +177,12 @@ TEST(ghash, TextMurmur2a)
 
 /* Int: uniform 100M first integers. */
 
-static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
+static void int_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
   {
-    unsigned int i = count;
+    uint i = count;
 
     TIMEIT_START(int_insert);
 
@@ -200,7 +200,7 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int cou
   PRINTF_GHASH_STATS(ghash);
 
   {
-    unsigned int i = count;
+    uint i = count;
 
     TIMEIT_START(int_lookup);
 
@@ -266,13 +266,13 @@ TEST(ghash, IntMurmur2a100000000)
 
 /* Int: random 50M integers. */
 
-static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
+static void randint_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
-  unsigned int *dt;
-  unsigned int i;
+  uint *data = (uint *)MEM_mallocN(sizeof(*data) * size_t(count), __func__);
+  uint *dt;
+  uint i;
 
   {
     RNG *rng = BLI_rng_new(1);
@@ -347,7 +347,7 @@ TEST(ghash, IntRandMurmur2a50000000)
 }
 #endif
 
-static unsigned int ghashutil_tests_nohash_p(const void *p)
+static uint ghashutil_tests_nohash_p(const void *p)
 {
   return POINTER_AS_UINT(p);
 }
@@ -375,14 +375,14 @@ TEST(ghash, Int4NoHash50000000)
 
 /* Int_v4: 20M of randomly-generated integer vectors. */
 
-static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
+static void int4_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  void *data_v = MEM_mallocN(sizeof(unsigned int[4]) * (size_t)count, __func__);
-  unsigned int(*data)[4] = (unsigned int(*)[4])data_v;
-  unsigned int(*dt)[4];
-  unsigned int i, j;
+  void *data_v = MEM_mallocN(sizeof(uint[4]) * size_t(count), __func__);
+  uint(*data)[4] = (uint(*)[4])data_v;
+  uint(*dt)[4];
+  uint i, j;
 
   {
     RNG *rng = BLI_rng_new(1);
@@ -483,11 +483,11 @@ TEST(ghash, Int2NoHash50000000)
 /* MultiSmall: create and manipulate a lot of very small ghash's
  * (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
 
-static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int count)
+static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const uint count)
 {
-  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
-  unsigned int *dt;
-  unsigned int i;
+  uint *data = (uint *)MEM_mallocN(sizeof(*data) * size_t(count), __func__);
+  uint *dt;
+  uint i;
 
   for (i = count, dt = data; i--; dt++) {
     *dt = BLI_rng_get_uint(rng);
@@ -510,7 +510,7 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned i
   MEM_freeN(data);
 }
 
-static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
+static void multi_small_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
@@ -518,7 +518,7 @@ static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned
 
   TIMEIT_START(multi_small_ghash);
 
-  unsigned int i = count;
+  uint i = count;
   while (i--) {
     const int count = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) *
                               (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
@@ -529,7 +529,7 @@ static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned
 
   TIMEIT_START(multi_small2_ghash);
 
-  unsigned int i = count;
+  uint i = count;
   while (i--) {
     const int count = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) / 2 *
                               (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));

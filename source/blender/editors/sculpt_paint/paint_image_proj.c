@@ -415,6 +415,7 @@ typedef struct ProjPaintState {
   const float (*vert_normals)[3];
   const MEdge *medge_eval;
   const MPoly *mpoly_eval;
+  const bool *select_poly_eval;
   const int *material_indices;
   const MLoop *mloop_eval;
   const MLoopTri *mlooptri_eval;
@@ -1242,12 +1243,12 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
     LISTBASE_CIRCULAR_BACKWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
   else {
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (vert_seams, adjacent, seam) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (VertSeam *, vert_seams, adjacent, seam) {
       if ((adjacent->normal_cw != seam->normal_cw) && cmp_uv(adjacent->uv, seam->uv)) {
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(vert_seams, adjacent, seam);
+    LISTBASE_CIRCULAR_FORWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
 
   BLI_assert(adjacent);
@@ -1532,7 +1533,7 @@ static void project_face_seams_init(const ProjPaintState *ps,
 static void screen_px_from_ortho(const float uv[2],
                                  const float v1co[3],
                                  const float v2co[3],
-                                 const float v3co[3], /* Screenspace coords */
+                                 const float v3co[3], /* Screen-space coords */
                                  const float uv1co[2],
                                  const float uv2co[2],
                                  const float uv3co[2],
@@ -4071,6 +4072,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mloop_eval = BKE_mesh_loops(ps->me_eval);
   ps->mpoly_eval = BKE_mesh_polys(ps->me_eval);
+  ps->select_poly_eval = (const bool *)CustomData_get_layer_named(
+      &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
   ps->material_indices = (const int *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
 
@@ -4154,7 +4157,7 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 }
 
 typedef struct {
-  const MPoly *mpoly_orig;
+  const bool *select_poly_orig;
 
   const int *index_mp_to_orig;
 } ProjPaintFaceLookup;
@@ -4163,8 +4166,10 @@ static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceL
 {
   memset(face_lookup, 0, sizeof(*face_lookup));
   if (ps->do_face_sel) {
+    Mesh *orig_mesh = (Mesh *)ps->ob->data;
     face_lookup->index_mp_to_orig = CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX);
-    face_lookup->mpoly_orig = BKE_mesh_polys((Mesh *)ps->ob->data);
+    face_lookup->select_poly_orig = CustomData_get_layer_named(
+        &orig_mesh->pdata, CD_PROP_BOOL, ".select_poly");
   }
 }
 
@@ -4175,17 +4180,12 @@ static bool project_paint_check_face_sel(const ProjPaintState *ps,
 {
   if (ps->do_face_sel) {
     int orig_index;
-    const MPoly *mp;
 
     if ((face_lookup->index_mp_to_orig != NULL) &&
-        (((orig_index = (face_lookup->index_mp_to_orig[lt->poly]))) != ORIGINDEX_NONE)) {
-      mp = &face_lookup->mpoly_orig[orig_index];
+        ((orig_index = (face_lookup->index_mp_to_orig[lt->poly])) != ORIGINDEX_NONE)) {
+      return face_lookup->select_poly_orig && face_lookup->select_poly_orig[orig_index];
     }
-    else {
-      mp = &ps->mpoly_eval[lt->poly];
-    }
-
-    return ((mp->flag & ME_FACE_SEL) != 0);
+    return ps->select_poly_eval && ps->select_poly_eval[lt->poly];
   }
   return true;
 }

@@ -56,6 +56,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "GPU_context.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"
@@ -323,7 +325,7 @@ void WM_event_add_notifier(const bContext *C, uint type, void *reference)
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
-void WM_main_add_notifier(unsigned int type, void *reference)
+void WM_main_add_notifier(uint type, void *reference)
 {
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -484,11 +486,15 @@ static void wm_event_execute_timers(bContext *C)
 
 void wm_event_do_notifiers(bContext *C)
 {
+  /* Ensure inside render boundary. */
+  GPU_render_begin();
+
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see T80028. */
   wm_event_execute_timers(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
+    GPU_render_end();
     return;
   }
 
@@ -561,7 +567,7 @@ void wm_event_do_notifiers(bContext *C)
       }
 
       if (note->window == win ||
-          (note->window == nullptr && (ELEM(note->reference, nullptr, scene)))) {
+          (note->window == nullptr && ELEM(note->reference, nullptr, scene))) {
         if (note->category == NC_SCENE) {
           if (note->data == ND_FRAME) {
             do_anim = true;
@@ -626,6 +632,7 @@ void wm_event_do_notifiers(bContext *C)
                win->screen->id.name + 2,
                note->category);
 #  endif
+        ED_workspace_do_listen(C, note);
         ED_screen_do_listen(C, note);
 
         LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
@@ -691,6 +698,8 @@ void wm_event_do_notifiers(bContext *C)
 
   /* Auto-run warning. */
   wm_test_autorun_warning(C);
+
+  GPU_render_end();
 }
 
 static bool wm_event_always_pass(const wmEvent *event)
@@ -2177,26 +2186,26 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   /* Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
     const bool shift = (winevent->modifier & KM_SHIFT) != 0;
-    if ((shift != (bool)kmi->shift) &&
+    if ((shift != bool(kmi->shift)) &&
         !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
     const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
-    if (ctrl != (bool)kmi->ctrl && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+    if (ctrl != bool(kmi->ctrl) && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
     const bool alt = (winevent->modifier & KM_ALT) != 0;
-    if (alt != (bool)kmi->alt && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
+    if (alt != bool(kmi->alt) && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
     const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
-    if ((oskey != (bool)kmi->oskey) && (winevent->type != EVT_OSKEY)) {
+    if ((oskey != bool(kmi->oskey)) && (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }
@@ -2379,7 +2388,7 @@ static int wm_handler_operator_call(bContext *C,
       /* When the window changes the modal modifier may have loaded a new blend file
        * (the `system_demo_mode` add-on does this), so we have to assume the event,
        * operator, area, region etc have all been freed. */
-      if ((CTX_wm_window(C) == win)) {
+      if (CTX_wm_window(C) == win) {
 
         wm_event_modalkeymap_end(event, &event_backup);
 
@@ -4267,7 +4276,7 @@ void WM_event_modal_handler_region_replace(wmWindow *win,
        * it needs to keep old region stored in handler, so don't change it. */
       if ((handler->context.region == old_region) && (handler->is_fileselect == false)) {
         handler->context.region = new_region;
-        handler->context.region_type = new_region ? new_region->regiontype : (int)RGN_TYPE_WINDOW;
+        handler->context.region_type = new_region ? new_region->regiontype : int(RGN_TYPE_WINDOW);
       }
     }
   }
@@ -4670,16 +4679,16 @@ void WM_event_add_mousemove(wmWindow *win)
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
-    return (EVT_AKEY + ((int)key - GHOST_kKeyA));
+    return (EVT_AKEY + (int(key) - GHOST_kKeyA));
   }
   if (key >= GHOST_kKey0 && key <= GHOST_kKey9) {
-    return (EVT_ZEROKEY + ((int)key - GHOST_kKey0));
+    return (EVT_ZEROKEY + (int(key) - GHOST_kKey0));
   }
   if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
-    return (EVT_PAD0 + ((int)key - GHOST_kKeyNumpad0));
+    return (EVT_PAD0 + (int(key) - GHOST_kKeyNumpad0));
   }
   if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
-    return (EVT_F1KEY + ((int)key - GHOST_kKeyF1));
+    return (EVT_F1KEY + (int(key) - GHOST_kKeyF1));
   }
 
   switch (key) {
@@ -4733,7 +4742,8 @@ static int convert_key(GHOST_TKey key)
       return EVT_LEFTCTRLKEY;
     case GHOST_kKeyRightControl:
       return EVT_RIGHTCTRLKEY;
-    case GHOST_kKeyOS:
+    case GHOST_kKeyLeftOS:
+    case GHOST_kKeyRightOS:
       return EVT_OSKEY;
     case GHOST_kKeyLeftAlt:
       return EVT_LEFTALTKEY;
@@ -4821,7 +4831,7 @@ static int convert_key(GHOST_TKey key)
 #endif
   }
 
-  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", (int)key);
+  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", int(key));
   return EVENT_NONE;
 }
 
@@ -4934,7 +4944,7 @@ void WM_event_tablet_data_default_set(wmTabletData *tablet_data)
 void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
 {
   if ((tablet_data != nullptr) && tablet_data->Active != GHOST_kTabletModeNone) {
-    wmtab->active = (int)tablet_data->Active;
+    wmtab->active = int(tablet_data->Active);
     wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
     wmtab->x_tilt = tablet_data->Xtilt;
     wmtab->y_tilt = tablet_data->Ytilt;
@@ -5461,7 +5471,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
          * special handling of Latin1 when building without UTF8 support.
          * Avoid regressions by adding this conversions, it should eventually be removed. */
         if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
-          const uint c = (uint)event.utf8_buf[0];
+          const uint c = uint(event.utf8_buf[0]);
           int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected non-ASCII single byte character '%u', converting to utf8 "
@@ -5475,10 +5485,29 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
-                     (int)(unsigned char)event.utf8_buf[0]);
+                     int(uchar(event.utf8_buf[0])));
           event.utf8_buf[0] = '\0';
         }
       }
+
+      /* NOTE(@campbellbarton): Setting the modifier state based on press/release
+       * is technically incorrect.
+       *
+       * - The user might hold both left/right modifier keys, then only release one.
+       *
+       *   This could be solved by storing a separate flag for the left/right modifiers,
+       *   and combine them into `event.modifiers`.
+       *
+       * - The user might have multiple keyboards (or keyboard + NDOF device)
+       *   where it's possible to press the same modifier key multiple times.
+       *
+       *   This could be solved by tracking the number of held modifier keys,
+       *   (this is in fact what LIBXKB does), however doing this relies on all GHOST
+       *   back-ends properly reporting every press/release as any mismatch could result
+       *   in modifier keys being stuck (which is very bad!).
+       *
+       * To my knowledge users never reported a bug relating to these limitations so
+       * it seems reasonable to keep the current logic. */
 
       switch (event.type) {
         case EVT_LEFTSHIFTKEY:

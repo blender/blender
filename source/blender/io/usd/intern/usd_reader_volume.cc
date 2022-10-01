@@ -65,10 +65,10 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
         filepathAttr.GetTimeSamples(&filePathTimes);
 
         if (!filePathTimes.empty()) {
-          int start = static_cast<int>(filePathTimes.front());
-          int end = static_cast<int>(filePathTimes.back());
+          int start = int(filePathTimes.front());
+          int end = int(filePathTimes.back());
 
-          volume->is_sequence = static_cast<char>(true);
+          volume->is_sequence = char(true);
           volume->frame_start = start;
           volume->frame_duration = (end - start) + 1;
         }

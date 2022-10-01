@@ -29,6 +29,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 #include "RNA_path.h"
 
@@ -395,6 +397,23 @@ static void text_id_remap(ScrArea *UNUSED(area),
   BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
+static void text_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+{
+  SpaceText *st = (SpaceText *)sl;
+  memset(&st->runtime, 0x0, sizeof(st->runtime));
+}
+
+static void text_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceText *st = (SpaceText *)sl;
+  BLO_read_id_address(reader, parent_id->lib, &st->text);
+}
+
+static void text_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceText, sl);
+}
+
 /********************* registration ********************/
 
 void ED_spacetype_text(void)
@@ -415,6 +434,9 @@ void ED_spacetype_text(void)
   st->context = text_context;
   st->dropboxes = text_dropboxes;
   st->id_remap = text_id_remap;
+  st->blend_read_data = text_blend_read_data;
+  st->blend_read_lib = text_blend_read_lib;
+  st->blend_write = text_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype text region");

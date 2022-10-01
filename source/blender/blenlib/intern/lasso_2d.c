@@ -12,9 +12,9 @@
 
 #include "BLI_lasso_2d.h" /* own include */
 
-void BLI_lasso_boundbox(rcti *rect, const int mcoords[][2], const unsigned int mcoords_len)
+void BLI_lasso_boundbox(rcti *rect, const int mcoords[][2], const uint mcoords_len)
 {
-  unsigned int a;
+  uint a;
 
   rect->xmin = rect->xmax = mcoords[0][0];
   rect->ymin = rect->ymax = mcoords[0][1];
@@ -36,7 +36,7 @@ void BLI_lasso_boundbox(rcti *rect, const int mcoords[][2], const unsigned int m
 }
 
 bool BLI_lasso_is_point_inside(const int mcoords[][2],
-                               const unsigned int mcoords_len,
+                               const uint mcoords_len,
                                const int sx,
                                const int sy,
                                const int error_value)
@@ -50,7 +50,7 @@ bool BLI_lasso_is_point_inside(const int mcoords[][2],
 }
 
 bool BLI_lasso_is_edge_inside(const int mcoords[][2],
-                              const unsigned int mcoords_len,
+                              const uint mcoords_len,
                               int x0,
                               int y0,
                               int x1,
@@ -77,7 +77,7 @@ bool BLI_lasso_is_edge_inside(const int mcoords[][2],
   if (isect_seg_seg_v2_int(mcoords[0], mcoords[mcoords_len - 1], v1, v2) > 0) {
     return true;
   }
-  for (unsigned int a = 0; a < mcoords_len - 1; a++) {
+  for (uint a = 0; a < mcoords_len - 1; a++) {
     if (isect_seg_seg_v2_int(mcoords[a], mcoords[a + 1], v1, v2) > 0) {
       return true;
     }

@@ -531,7 +531,7 @@ static Mathutils_Callback StrokeAttribute_mathutils_cb = {
     StrokeAttribute_mathutils_set_index,
 };
 
-static unsigned char StrokeAttribute_mathutils_cb_index = -1;
+static uchar StrokeAttribute_mathutils_cb_index = -1;
 
 void StrokeAttribute_mathutils_register_callback()
 {

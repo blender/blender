@@ -240,8 +240,6 @@ void DM_from_template(DerivedMesh *dm,
   CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
   CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
 
-  dm->cd_flag = source->cd_flag;
-
   dm->type = type;
   dm->numVertData = numVerts;
   dm->numEdgeData = numEdges;
@@ -281,8 +279,8 @@ bool DM_release(DerivedMesh *dm)
 
 void DM_ensure_looptri_data(DerivedMesh *dm)
 {
-  const unsigned int totpoly = dm->numPolyData;
-  const unsigned int totloop = dm->numLoopData;
+  const uint totpoly = dm->numPolyData;
+  const uint totloop = dm->numLoopData;
   const int looptris_num = poly_to_tri_count(totpoly, totloop);
 
   BLI_assert(dm->looptris.array_wip == nullptr);

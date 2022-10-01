@@ -777,10 +777,10 @@ bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
   return found;
 }
 
-unsigned int RNA_struct_count_properties(StructRNA *srna)
+uint RNA_struct_count_properties(StructRNA *srna)
 {
   PointerRNA struct_ptr;
-  unsigned int counter = 0;
+  uint counter = 0;
 
   RNA_pointer_create(NULL, srna, NULL, &struct_ptr);
 
@@ -1744,9 +1744,9 @@ int RNA_enum_from_value(const EnumPropertyItem *item, const int value)
   return -1;
 }
 
-unsigned int RNA_enum_items_count(const EnumPropertyItem *item)
+uint RNA_enum_items_count(const EnumPropertyItem *item)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   while (item->identifier) {
     item++;
@@ -3620,7 +3620,7 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-  if ((/*idprop=*/rna_idproperty_check(&prop, ptr))) {
+  if (/*idprop=*/rna_idproperty_check(&prop, ptr)) {
     /* already exists */
   }
   else if (prop->flag & PROP_IDPROPERTY) {
@@ -5951,7 +5951,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
   if (iter->valid) {
     iter->size = rna_parameter_size(iter->parm);
-    iter->data = (((char *)iter->parms->data)); /* +iter->offset, always 0 */
+    iter->data = ((char *)iter->parms->data); /* +iter->offset, always 0 */
   }
 }
 

@@ -7,6 +7,7 @@ endif()
 
 set(INC
   .
+  ..
   # ../blenkernel  # don't add this back!
   ../makesdna
   ../../../intern/atomic
@@ -86,6 +87,7 @@ set(SRC
   intern/kdtree_4d.c
   intern/lasso_2d.c
   intern/lockfree_mempool.cc
+  intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.c
   intern/math_base.c
@@ -338,7 +340,6 @@ set(SRC
   BLI_uuid.h
   BLI_uvproject.h
   BLI_vector.hh
-  BLI_vector_adaptor.hh
   BLI_vector_set.hh
   BLI_vector_set_slots.hh
   BLI_virtual_array.hh

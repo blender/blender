@@ -245,7 +245,7 @@ int BKE_lattice_index_flip(
 void BKE_lattice_bitmap_from_flag(
     Lattice *lt, BLI_bitmap *bitmap, const uint8_t flag, const bool clear, const bool respecthide)
 {
-  const unsigned int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+  const uint tot = lt->pntsu * lt->pntsv * lt->pntsw;
   BPoint *bp;
 
   bp = lt->def;

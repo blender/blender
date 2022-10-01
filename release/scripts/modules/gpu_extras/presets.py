@@ -78,7 +78,6 @@ def draw_texture_2d(texture, position, width, height):
         gpu.matrix.scale((width, height))
 
         shader = gpu.shader.from_builtin('IMAGE')
-        shader.bind()
 
         if isinstance(texture, int):
             # Call the legacy bgl to not break the existing API

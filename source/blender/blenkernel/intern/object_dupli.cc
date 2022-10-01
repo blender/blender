@@ -24,8 +24,10 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
@@ -44,6 +46,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -53,13 +56,15 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
-#include "BLI_strict_flags.h"
+
+#include "NOD_geometry_nodes_log.hh"
 
 using blender::Array;
 using blender::float3;
 using blender::float4x4;
 using blender::Span;
 using blender::Vector;
+namespace geo_log = blender::nodes::geo_eval_log;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Duplicate Context
@@ -75,6 +80,15 @@ struct DupliContext {
   Scene *scene;
   Object *object;
   float space_mat[4][4];
+  /**
+   * Index of the top-level instance that contains this context or -1 when unused.
+   * This is an index into the instances component of #preview_base_geometry.
+   */
+  int preview_instance_index;
+  /**
+   * Top level geometry set that is previewed.
+   */
+  const GeometrySet *preview_base_geometry;
 
   /**
    * A stack that contains all the "parent" objects of a particular instance when recursive
@@ -127,6 +141,8 @@ static void init_context(DupliContext *r_ctx,
   r_ctx->gen = get_dupli_generator(r_ctx);
 
   r_ctx->duplilist = nullptr;
+  r_ctx->preview_instance_index = -1;
+  r_ctx->preview_base_geometry = nullptr;
 }
 
 /**
@@ -139,7 +155,7 @@ static bool copy_dupli_context(
 
   /* XXX annoying, previously was done by passing an ID* argument,
    * this at least is more explicit. */
-  if (ctx->gen->type == OB_DUPLICOLLECTION) {
+  if (ctx->gen && ctx->gen->type == OB_DUPLICOLLECTION) {
     r_ctx->collection = ctx->object->instance_collection;
   }
 
@@ -183,7 +199,9 @@ static DupliObject *make_dupli(
   dob->ob = ob;
   dob->ob_data = const_cast<ID *>(object_data);
   mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
-  dob->type = ctx->gen->type;
+  dob->type = ctx->gen == nullptr ? 0 : ctx->gen->type;
+  dob->preview_base_geometry = ctx->preview_base_geometry;
+  dob->preview_instance_index = ctx->preview_instance_index;
 
   /* Set persistent id, which is an array with a persistent index for each level
    * (particle number, vertex number, ..). by comparing this we can find the same
@@ -211,7 +229,7 @@ static DupliObject *make_dupli(
 
   if (dob->persistent_id[0] != INT_MAX) {
     for (i = 0; i < MAX_DUPLI_RECUR; i++) {
-      dob->random_id = BLI_hash_int_2d(dob->random_id, (unsigned int)dob->persistent_id[i]);
+      dob->random_id = BLI_hash_int_2d(dob->random_id, uint(dob->persistent_id[i]));
     }
   }
   else {
@@ -311,12 +329,13 @@ static void make_child_duplis(const DupliContext *ctx,
     /* FIXME: using a mere counter to generate a 'persistent' dupli id is very weak. One possible
      * better solution could be to use `session_uuid` of ID's instead? */
     int persistent_dupli_id = 0;
+    DEGObjectIterSettings deg_iter_settings{};
+    deg_iter_settings.depsgraph = ctx->depsgraph;
     /* NOTE: this set of flags ensure we only iterate over objects that have a base in either the
      * current scene, or the set (background) scene. */
-    int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                                       DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
-
-    DEG_OBJECT_ITER_BEGIN (ctx->depsgraph, ob, deg_objects_visibility_flags) {
+    deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
       if ((ob != ctx->obedit) && is_child(ob, parent)) {
         DupliContext pctx;
         if (copy_dupli_context(&pctx, ctx, ctx->object, nullptr, persistent_dupli_id)) {
@@ -648,7 +667,7 @@ static const DupliGenerator gen_dupli_verts = {
  * \{ */
 
 static Object *find_family_object(
-    Main *bmain, const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
+    Main *bmain, const char *family, size_t family_len, uint ch, GHash *family_gh)
 {
   void *ch_key = POINTER_FROM_UINT(ch);
 
@@ -726,7 +745,7 @@ static void make_duplis_font(const DupliContext *ctx)
     /* XXX That G.main is *really* ugly, but not sure what to do here.
      * Definitively don't think it would be safe to put back `Main *bmain` pointer
      * in #DupliContext as done in 2.7x? */
-    ob = find_family_object(G.main, cu->family, family_len, (unsigned int)text[a], family_gh);
+    ob = find_family_object(G.main, cu->family, family_len, uint(text[a]), family_gh);
 
     if (is_eval_curve) {
       /* Workaround for the above hack. */
@@ -779,7 +798,8 @@ static const DupliGenerator gen_dupli_verts_font = {
 static void make_duplis_geometry_set_impl(const DupliContext *ctx,
                                           const GeometrySet &geometry_set,
                                           const float parent_transform[4][4],
-                                          bool geometry_set_is_instance)
+                                          bool geometry_set_is_instance,
+                                          bool use_new_curves_type)
 {
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
@@ -794,8 +814,15 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
     if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
-      if (const Curve *curve = component->get_curve_for_render()) {
-        make_dupli(ctx, ctx->object, &curve->id, parent_transform, component_index++);
+      if (use_new_curves_type) {
+        if (const Curves *curves = component->get_for_read()) {
+          make_dupli(ctx, ctx->object, &curves->id, parent_transform, component_index++);
+        }
+      }
+      else {
+        if (const Curve *curve = component->get_curve_for_render()) {
+          make_dupli(ctx, ctx->object, &curve->id, parent_transform, component_index++);
+        }
       }
     }
   }
@@ -831,17 +858,26 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
     const InstanceReference &reference = references[instance_reference_handles[i]];
     const int id = almost_unique_ids[i];
 
+    const DupliContext *ctx_for_instance = instances_ctx;
+    /* Set the #preview_instance_index when necessary. */
+    DupliContext tmp_ctx_for_instance;
+    if (instances_ctx->preview_base_geometry == &geometry_set) {
+      tmp_ctx_for_instance = *instances_ctx;
+      tmp_ctx_for_instance.preview_instance_index = i;
+      ctx_for_instance = &tmp_ctx_for_instance;
+    }
+
     switch (reference.type()) {
       case InstanceReference::Type::Object: {
         Object &object = reference.object();
         float matrix[4][4];
         mul_m4_m4m4(matrix, parent_transform, instance_offset_matrices[i].values);
-        make_dupli(instances_ctx, &object, matrix, id);
+        make_dupli(ctx_for_instance, &object, matrix, id);
 
         float space_matrix[4][4];
         mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.imat);
         mul_m4_m4_pre(space_matrix, parent_transform);
-        make_recursive_duplis(instances_ctx, &object, space_matrix, id);
+        make_recursive_duplis(ctx_for_instance, &object, space_matrix, id);
         break;
       }
       case InstanceReference::Type::Collection: {
@@ -853,14 +889,15 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4_pre(collection_matrix, parent_transform);
 
         DupliContext sub_ctx;
-        if (!copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id)) {
+        if (!copy_dupli_context(
+                &sub_ctx, ctx_for_instance, ctx_for_instance->object, nullptr, id)) {
           break;
         }
 
-        eEvaluationMode mode = DEG_get_mode(instances_ctx->depsgraph);
+        eEvaluationMode mode = DEG_get_mode(ctx_for_instance->depsgraph);
         int object_id = 0;
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (&collection, object, mode) {
-          if (object == instances_ctx->object) {
+          if (object == ctx_for_instance->object) {
             continue;
           }
 
@@ -878,8 +915,10 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].values);
 
         DupliContext sub_ctx;
-        if (copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id)) {
-          make_duplis_geometry_set_impl(&sub_ctx, reference.geometry_set(), new_transform, true);
+        if (copy_dupli_context(
+                &sub_ctx, ctx_for_instance, ctx_for_instance->object, nullptr, id)) {
+          make_duplis_geometry_set_impl(
+              &sub_ctx, reference.geometry_set(), new_transform, true, false);
         }
         break;
       }
@@ -893,7 +932,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 static void make_duplis_geometry_set(const DupliContext *ctx)
 {
   const GeometrySet *geometry_set = ctx->object->runtime.geometry_set_eval;
-  make_duplis_geometry_set_impl(ctx, *geometry_set, ctx->object->obmat, false);
+  make_duplis_geometry_set_impl(ctx, *geometry_set, ctx->object->obmat, false, false);
 }
 
 static const DupliGenerator gen_dupli_geometry_set = {
@@ -952,7 +991,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   for (const float3 &coord : coords) {
     location += coord;
   }
-  location *= 1.0f / (float)coords.size();
+  location *= 1.0f / float(coords.size());
 
   /* Rotation. */
   float quat[4];
@@ -963,7 +1002,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   /* Scale. */
   float scale;
   if (use_scale) {
-    const float area = area_poly_v3((const float(*)[3])coords.data(), (uint)coords.size());
+    const float area = area_poly_v3((const float(*)[3])coords.data(), uint(coords.size()));
     scale = sqrtf(area) * scale_fac;
   }
   else {
@@ -1093,7 +1132,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
     DupliObject *dob = face_dupli_from_mesh(
         fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, mp, loopstart, mvert);
 
-    const float w = 1.0f / (float)mp->totloop;
+    const float w = 1.0f / float(mp->totloop);
     if (orco) {
       for (int j = 0; j < mp->totloop; j++) {
         madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
@@ -1133,7 +1172,7 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
         fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, f, vert_coords);
 
     if (fdd->has_orco) {
-      const float w = 1.0f / (float)f->len;
+      const float w = 1.0f / float(f->len);
       BMLoop *l_first, *l_iter;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
@@ -1293,7 +1332,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       totpart = psys->totcached;
     }
 
-    RNG *rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
+    RNG *rng = BLI_rng_new_srandom(31415926u + uint(psys->seed));
 
     psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
@@ -1325,7 +1364,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
       }
 
-      oblist = (Object **)MEM_callocN((size_t)totcollection * sizeof(Object *),
+      oblist = (Object **)MEM_callocN(size_t(totcollection) * sizeof(Object *),
                                       "dupcollection object list");
 
       if (use_collection_count) {
@@ -1628,6 +1667,40 @@ ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob)
     ctx.gen->make_duplis(&ctx);
   }
 
+  return duplilist;
+}
+
+ListBase *object_duplilist_preview(Depsgraph *depsgraph,
+                                   Scene *sce,
+                                   Object *ob_eval,
+                                   const ViewerPath *viewer_path)
+{
+  ListBase *duplilist = MEM_cnew<ListBase>("duplilist");
+  DupliContext ctx;
+  Vector<Object *> instance_stack;
+  instance_stack.append(ob_eval);
+  init_context(&ctx, depsgraph, sce, ob_eval, nullptr, instance_stack);
+  ctx.duplilist = duplilist;
+
+  Object *ob_orig = DEG_get_original_object(ob_eval);
+
+  LISTBASE_FOREACH (ModifierData *, md_orig, &ob_orig->modifiers) {
+    if (md_orig->type != eModifierType_Nodes) {
+      continue;
+    }
+    NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(md_orig);
+    if (nmd_orig->runtime_eval_log == nullptr) {
+      continue;
+    }
+    geo_log::GeoModifierLog *log = static_cast<geo_log::GeoModifierLog *>(
+        nmd_orig->runtime_eval_log);
+    if (const geo_log::ViewerNodeLog *viewer_log = log->find_viewer_node_log_for_path(
+            *viewer_path)) {
+      ctx.preview_base_geometry = &viewer_log->geometry;
+      make_duplis_geometry_set_impl(
+          &ctx, viewer_log->geometry, ob_eval->obmat, true, ob_eval->type == OB_CURVES);
+    }
+  }
   return duplilist;
 }
 

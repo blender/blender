@@ -275,14 +275,14 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 }
 
 struct LassoFillData {
-  unsigned char *px;
+  uchar *px;
   int width;
 };
 
 static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
   struct LassoFillData *data = user_data;
-  unsigned char *col = &(data->px[(y * data->width) + x]);
+  uchar *col = &(data->px[(y * data->width) + x]);
   memset(col, 0x10, x_end - x);
 }
 
@@ -310,7 +310,7 @@ static void draw_filled_lasso(wmGesture *gt)
   if (BLI_rcti_is_empty(&rect) == false) {
     const int w = BLI_rcti_size_x(&rect);
     const int h = BLI_rcti_size_y(&rect);
-    unsigned char *pixel_buf = MEM_callocN(sizeof(*pixel_buf) * w * h, __func__);
+    uchar *pixel_buf = MEM_callocN(sizeof(*pixel_buf) * w * h, __func__);
     struct LassoFillData lasso_fill_data = {pixel_buf, w};
 
     BLI_bitmap_draw_2d_poly_v2i_n(rect.xmin,

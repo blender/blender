@@ -588,15 +588,18 @@ SamplerState PointSampler
 #  else
 #    define mad(a, b, c) (a * b + c)
 #  endif
-#  define float2 vec2
-#  define float3 vec3
-#  define float4 vec4
-#  define int2 ivec2
-#  define int3 ivec3
-#  define int4 ivec4
-#  define bool2 bvec2
-#  define bool3 bvec3
-#  define bool4 bvec4
+/* NOTE(Metal): Types already natively declared in MSL. */
+#  ifndef GPU_METAL
+#    define float2 vec2
+#    define float3 vec3
+#    define float4 vec4
+#    define int2 ivec2
+#    define int3 ivec3
+#    define int4 ivec4
+#    define bool2 bvec2
+#    define bool3 bvec3
+#    define bool4 bvec4
+#  endif
 #endif
 
 /* clang-format off */
@@ -658,7 +661,14 @@ void SMAAMovc(bool4 cond, inout float4 variable, float4 value)
 /**
  * Edge Detection Vertex Shader
  */
+#  ifdef GPU_METAL
+/* NOTE: Metal API requires explicit address space qualifiers for pointer types.
+ * Arrays in functions are passed as pointers, and thus require explicit address
+ * space. */
+void SMAAEdgeDetectionVS(float2 texcoord, thread float4 *offset)
+#  else
 void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
+#  endif
 {
   offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-1.0, 0.0, 0.0, -1.0), texcoord.xyxy);
   offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(1.0, 0.0, 0.0, 1.0), texcoord.xyxy);
@@ -668,7 +678,16 @@ void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
 /**
  * Blend Weight Calculation Vertex Shader
  */
+#  ifdef GPU_METAL
+/* NOTE: Metal API requires explicit address space qualifiers for pointer types.
+ * Arrays in functions are passed as pointers, and thus require explicit address
+ * space. */
+void SMAABlendingWeightCalculationVS(float2 texcoord,
+                                     thread float2 &pixcoord,
+                                     thread float4 *offset)
+#  else
 void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, out float4 offset[3])
+#  endif
 {
   pixcoord = texcoord * SMAA_RT_METRICS.zw;
 

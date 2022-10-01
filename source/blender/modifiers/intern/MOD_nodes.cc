@@ -33,6 +33,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -80,6 +81,7 @@
 #include "ED_screen.h"
 #include "ED_spreadsheet.h"
 #include "ED_undo.h"
+#include "ED_viewer_path.hh"
 
 #include "NOD_geometry.h"
 #include "NOD_geometry_nodes_lazy_function.hh"
@@ -114,7 +116,9 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
 using blender::bke::AttributeMetaData;
+using blender::bke::AttributeValidator;
 using blender::fn::Field;
+using blender::fn::FieldOperation;
 using blender::fn::GField;
 using blender::fn::ValueOrField;
 using blender::fn::ValueOrFieldCPPType;
@@ -201,6 +205,9 @@ static bool node_needs_own_transform_relation(const bNode &node)
     return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
   }
 
+  if (node.type == GEO_NODE_SELF_OBJECT) {
+    return true;
+  }
   if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
     return true;
   }
@@ -438,8 +445,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = (double)value->min;
-      ui_data->max = ui_data->soft_max = (double)value->max;
+      ui_data->min = ui_data->soft_min = double(value->min);
+      ui_data->max = ui_data->soft_max = double(value->max);
       ui_data->default_value = value->value;
       return property;
     }
@@ -461,8 +468,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
           socket.identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = (double)value->min;
-      ui_data->max = ui_data->soft_max = (double)value->max;
+      ui_data->min = ui_data->soft_min = double(value->min);
+      ui_data->max = ui_data->soft_max = double(value->max);
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
       ui_data->default_array_len = 3;
       for (const int i : IndexRange(3)) {
@@ -574,7 +581,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
         value = IDP_Float(&property);
       }
       else if (property.type == IDP_DOUBLE) {
-        value = (float)IDP_Double(&property);
+        value = float(IDP_Double(&property));
       }
       new (r_value) ValueOrField<float>(value);
       break;
@@ -823,25 +830,6 @@ static void initialize_group_input(NodesModifierData &nmd,
   }
 }
 
-static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
-{
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-  if (wm == nullptr) {
-    return {};
-  }
-  Vector<SpaceSpreadsheet *> spreadsheets;
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = (SpaceLink *)area->spacedata.first;
-      if (sl->spacetype == SPACE_SPREADSHEET) {
-        spreadsheets.append((SpaceSpreadsheet *)sl);
-      }
-    }
-  }
-  return spreadsheets;
-}
-
 static const lf::FunctionNode &find_viewer_lf_node(const bNode &viewer_bnode)
 {
   return *blender::nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree())
@@ -853,50 +841,33 @@ static const lf::FunctionNode &find_group_lf_node(const bNode &group_bnode)
               ->mapping.group_node_map.lookup(&group_bnode);
 }
 
-static void find_side_effect_nodes_for_spreadsheet(
-    const SpaceSpreadsheet &sspreadsheet,
+static void find_side_effect_nodes_for_viewer_path(
+    const ViewerPath &viewer_path,
     const NodesModifierData &nmd,
     const ModifierEvalContext &ctx,
-    const bNodeTree &root_tree,
     MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> &r_side_effect_nodes)
 {
-  Vector<SpreadsheetContext *> context_path = sspreadsheet.context_path;
-  if (context_path.size() < 3) {
+  const std::optional<blender::ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
+      blender::ed::viewer_path::parse_geometry_nodes_viewer(viewer_path);
+  if (!parsed_path.has_value()) {
     return;
   }
-  if (context_path[0]->type != SPREADSHEET_CONTEXT_OBJECT) {
+  if (parsed_path->object != DEG_get_original_object(ctx.object)) {
     return;
   }
-  if (context_path[1]->type != SPREADSHEET_CONTEXT_MODIFIER) {
+  if (parsed_path->modifier_name != nmd.modifier.name) {
     return;
-  }
-  SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context_path[0];
-  if (object_context->object != DEG_get_original_object(ctx.object)) {
-    return;
-  }
-  SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context_path[1];
-  if (StringRef(modifier_context->modifier_name) != nmd.modifier.name) {
-    return;
-  }
-  for (SpreadsheetContext *context : context_path.as_span().drop_front(2)) {
-    if (context->type != SPREADSHEET_CONTEXT_NODE) {
-      return;
-    }
   }
 
   blender::ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<blender::bke::ModifierComputeContext>(nmd.modifier.name);
+  compute_context_builder.push<blender::bke::ModifierComputeContext>(parsed_path->modifier_name);
 
-  const Span<SpreadsheetContextNode *> nested_group_contexts =
-      context_path.as_span().drop_front(2).drop_back(1).cast<SpreadsheetContextNode *>();
-  const SpreadsheetContextNode *last_context = (SpreadsheetContextNode *)context_path.last();
-
+  const bNodeTree *group = nmd.node_group;
   Stack<const bNode *> group_node_stack;
-  const bNodeTree *group = &root_tree;
-  for (SpreadsheetContextNode *node_context : nested_group_contexts) {
+  for (const StringRefNull group_node_name : parsed_path->group_node_names) {
     const bNode *found_node = nullptr;
     for (const bNode *node : group->group_nodes()) {
-      if (STREQ(node->name, node_context->node_name)) {
+      if (node->name == group_node_name) {
         found_node = node;
         break;
       }
@@ -908,13 +879,13 @@ static void find_side_effect_nodes_for_spreadsheet(
       return;
     }
     group_node_stack.push(found_node);
-    group = reinterpret_cast<const bNodeTree *>(found_node->id);
-    compute_context_builder.push<blender::bke::NodeGroupComputeContext>(node_context->node_name);
+    group = reinterpret_cast<bNodeTree *>(found_node->id);
+    compute_context_builder.push<blender::bke::NodeGroupComputeContext>(group_node_name);
   }
 
   const bNode *found_viewer_node = nullptr;
   for (const bNode *viewer_node : group->nodes_by_type("GeometryNodeViewer")) {
-    if (STREQ(viewer_node->name, last_context->node_name)) {
+    if (viewer_node->name == parsed_path->viewer_node_name) {
       found_viewer_node = viewer_node;
       break;
     }
@@ -938,16 +909,29 @@ static void find_side_effect_nodes_for_spreadsheet(
 static void find_side_effect_nodes(
     const NodesModifierData &nmd,
     const ModifierEvalContext &ctx,
-    const bNodeTree &tree,
     MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> &r_side_effect_nodes)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-
-  /* Based on every visible spreadsheet context path, get a list of sockets that need to have their
-   * intermediate geometries cached for display. */
-  Vector<SpaceSpreadsheet *> spreadsheets = find_spreadsheet_editors(bmain);
-  for (SpaceSpreadsheet *sspreadsheet : spreadsheets) {
-    find_side_effect_nodes_for_spreadsheet(*sspreadsheet, nmd, ctx, tree, r_side_effect_nodes);
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return;
+  }
+  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    const WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
+    find_side_effect_nodes_for_viewer_path(workspace->viewer_path, nmd, ctx, r_side_effect_nodes);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl->spacetype == SPACE_SPREADSHEET) {
+        const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
+        find_side_effect_nodes_for_viewer_path(
+            sspreadsheet.viewer_path, nmd, ctx, r_side_effect_nodes);
+      }
+      if (sl->spacetype == SPACE_VIEW3D) {
+        const View3D &v3d = *reinterpret_cast<const View3D *>(sl);
+        find_side_effect_nodes_for_viewer_path(v3d.viewer_path, nmd, ctx, r_side_effect_nodes);
+      }
+    }
   }
 }
 
@@ -1046,13 +1030,15 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
+        const AttributeValidator validator = attributes.lookup_validator(output_info.name);
         OutputAttributeToStore store{
             component_type,
             domain,
             output_info.name,
             GMutableSpan{
                 type, MEM_malloc_arrayN(domain_size, type.size(), __func__), domain_size}};
-        field_evaluator.add_with_destination(output_info.field, store.data);
+        GField field = validator.validate_field_if_necessary(output_info.field);
+        field_evaluator.add_with_destination(std::move(field), store.data);
         attributes_to_store.append(store);
       }
       field_evaluator.evaluate();
@@ -1155,7 +1141,7 @@ static GeometrySet compute_geometry(
     geo_nodes_modifier_data.eval_log = eval_log.get();
   }
   MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> r_side_effect_nodes;
-  find_side_effect_nodes(*nmd, *ctx, btree, r_side_effect_nodes);
+  find_side_effect_nodes(*nmd, *ctx, r_side_effect_nodes);
   geo_nodes_modifier_data.side_effect_nodes = &r_side_effect_nodes;
   blender::nodes::GeoNodesLFUserData user_data;
   user_data.modifier_data = &geo_nodes_modifier_data;
@@ -1760,7 +1746,7 @@ static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *p
   }
 
   tree_log->ensure_used_named_attributes();
-  const Map<std::string, NamedAttributeUsage> &usage_by_attribute =
+  const Map<StringRefNull, NamedAttributeUsage> &usage_by_attribute =
       tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {

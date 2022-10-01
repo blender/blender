@@ -16,7 +16,7 @@ void main()
   radii[3] = radius - outline_width - 1.0;
   radii /= sizeObjectCenter;
 
-  fillColor = color;
+  fillColor = ucolor;
   outlineColor = colorOutline;
 
   view_clipping_distances(world_pos);

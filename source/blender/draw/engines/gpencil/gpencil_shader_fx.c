@@ -98,7 +98,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   DRW_view_persmat_get(NULL, persmat, false);
   const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->obmat[3]));
 
-  if ((fx->flag & FX_BLUR_DOF_MODE)) {
+  if (fx->flag & FX_BLUR_DOF_MODE) {
     /* Compute circle of confusion size. */
     float coc = (iter->pd->dof_params[0] / -w) - iter->pd->dof_params[1];
     copy_v2_fl(blur_size, fabsf(coc));

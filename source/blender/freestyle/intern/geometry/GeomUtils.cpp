@@ -10,7 +10,7 @@
 namespace Freestyle::GeomUtils {
 
 // This internal procedure is defined below.
-bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n);
+bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, uint n);
 
 bool intersect2dSeg2dArea(const Vec2r &min, const Vec2r &max, const Vec2r &A, const Vec2r &B)
 {
@@ -607,9 +607,9 @@ void transformVertex(const Vec3r &vert, const Matrix44r &matrix, Vec3r &res)
 {
   HVec3r hvert(vert), res_tmp;
   real scale;
-  for (unsigned int j = 0; j < 4; j++) {
+  for (uint j = 0; j < 4; j++) {
     scale = hvert[j];
-    for (unsigned int i = 0; i < 4; i++) {
+    for (uint i = 0; i < 4; i++) {
       res_tmp[i] += matrix(i, j) * scale;
     }
   }
@@ -631,9 +631,9 @@ void transformVertices(const vector<Vec3r> &vertices, const Matrix44r &trans, ve
 Vec3r rotateVector(const Matrix44r &mat, const Vec3r &v)
 {
   Vec3r res;
-  for (unsigned int i = 0; i < 3; i++) {
+  for (uint i = 0; i < 3; i++) {
     res[i] = 0;
-    for (unsigned int j = 0; j < 3; j++) {
+    for (uint j = 0; j < 3; j++) {
       res[i] += mat(i, j) * v[j];
     }
   }
@@ -718,9 +718,9 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
       model_view_matrix[1][3],
       model_view_matrix[2][3],
   };
-  for (unsigned short i = 0; i < 3; i++) {
+  for (ushort i = 0; i < 3; i++) {
     q[i] = 0.0;
-    for (unsigned short j = 0; j < 3; j++) {
+    for (ushort j = 0; j < 3; j++) {
       q[i] += model_view_matrix[j][i] * (p[j] - translation[j]);
     }
   }
@@ -739,7 +739,7 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
 
 #define PERP(u, v) ((u)[0] * (v)[1] - (u)[1] * (v)[0])  // 2D perp product
 
-inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
+inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, uint n)
 {
   if (seg[0] == seg[1]) {
     return false;
@@ -751,7 +751,7 @@ inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
   Vec2r dseg = seg[1] - seg[0];  // the segment direction vector
   Vec2r e;                       // edge vector
 
-  for (unsigned int i = 0; i < n; i++) {  // process polygon edge poly[i]poly[i+1]
+  for (uint i = 0; i < n; i++) {  // process polygon edge poly[i]poly[i+1]
     e = poly[i + 1] - poly[i];
     N = PERP(e, seg[0] - poly[i]);
     D = -PERP(e, dseg);
@@ -790,7 +790,7 @@ inline bool overlapPlaneBox(Vec3r &normal, real d, Vec3r &maxbox)
 {
   Vec3r vmin, vmax;
 
-  for (unsigned int q = X; q <= Z; q++) {
+  for (uint q = X; q <= Z; q++) {
     if (normal[q] > 0.0f) {
       vmin[q] = -maxbox[q];
       vmax[q] = maxbox[q];
@@ -814,8 +814,8 @@ inline void fromCoordAToCoordB(const Vec3r &p, Vec3r &q, const real transform[4]
   HVec3r hp(p);
   HVec3r hq(0, 0, 0, 0);
 
-  for (unsigned int i = 0; i < 4; i++) {
-    for (unsigned int j = 0; j < 4; j++) {
+  for (uint i = 0; i < 4; i++) {
+    for (uint j = 0; j < 4; j++) {
       hq[i] += transform[i][j] * hp[j];
     }
   }
@@ -825,7 +825,7 @@ inline void fromCoordAToCoordB(const Vec3r &p, Vec3r &q, const real transform[4]
     return;
   }
 
-  for (unsigned int k = 0; k < 3; k++) {
+  for (uint k = 0; k < 3; k++) {
     q[k] = hq[k] / hq[3];
   }
 }

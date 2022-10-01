@@ -185,8 +185,8 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
           }
         }
         else {
-          if (abs(calculate_rate(vidmodes[i]) - (int)setting.frequency) <
-              abs(calculate_rate(vidmodes[best_fit]) - (int)setting.frequency)) {
+          if (abs(calculate_rate(vidmodes[i]) - int(setting.frequency)) <
+              abs(calculate_rate(vidmodes[best_fit]) - int(setting.frequency))) {
             best_fit = i;
           }
         }

@@ -115,7 +115,7 @@ static Mesh *create_circle_mesh(const float radius,
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   /* Assign vertex coordinates. */
-  const float angle_delta = 2.0f * (M_PI / static_cast<float>(verts_num));
+  const float angle_delta = 2.0f * (M_PI / float(verts_num));
   for (const int i : IndexRange(verts_num)) {
     const float angle = i * angle_delta;
     copy_v3_v3(verts[i].co, float3(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f));

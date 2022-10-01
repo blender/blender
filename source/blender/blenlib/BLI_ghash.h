@@ -401,6 +401,20 @@ int BLI_table_gset_len(TableGSet *ts);
   } \
   }
 
+#define TGSET_FOREACH_BEGIN(type, v, ts) \
+  { \
+    type v; \
+    int _i1; \
+    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
+      if (!(ts)->elems[_i1]) \
+        continue; \
+      v = (type)(ts)->elems[_i1];
+
+#define TGSET_FOREACH_END() \
+  } \
+  } \
+  while (0)
+
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;
 typedef GHashKeyFreeFP GSetKeyFreeFP;

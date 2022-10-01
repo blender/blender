@@ -154,8 +154,8 @@ float Light::attenuation_radius_get(const ::Light *la, float light_threshold, fl
 void Light::shape_parameters_set(const ::Light *la, const float scale[3])
 {
   if (la->type == LA_AREA) {
-    float area_size_y = (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) ? la->area_sizey :
-                                                                                la->area_size;
+    float area_size_y = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ? la->area_sizey :
+                                                                              la->area_size;
     _area_size_x = max_ff(0.003f, la->area_size * scale[0] * 0.5f);
     _area_size_y = max_ff(0.003f, area_size_y * scale[1] * 0.5f);
     /* For volume point lighting. */

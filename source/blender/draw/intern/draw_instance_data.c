@@ -410,12 +410,12 @@ typedef struct DRWSparseUniformBuf {
   BLI_bitmap *chunk_used;
 
   int num_chunks;
-  unsigned int item_size, chunk_size, chunk_bytes;
+  uint item_size, chunk_size, chunk_bytes;
 } DRWSparseUniformBuf;
 
 static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
-                                           unsigned int item_size,
-                                           unsigned int chunk_size)
+                                           uint item_size,
+                                           uint chunk_size)
 {
   buffer->chunk_buffers = NULL;
   buffer->chunk_used = NULL;
@@ -426,7 +426,7 @@ static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
   buffer->chunk_bytes = item_size * chunk_size;
 }
 
-DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsigned int chunk_size)
+DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(uint item_size, uint chunk_size)
 {
   DRWSparseUniformBuf *buf = MEM_mallocN(sizeof(DRWSparseUniformBuf), __func__);
   drw_sparse_uniform_buffer_init(buf, item_size, chunk_size);

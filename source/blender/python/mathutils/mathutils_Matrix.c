@@ -3321,8 +3321,7 @@ PyDoc_STRVAR(
     "   This object gives access to Matrices in Blender, supporting square and rectangular\n"
     "   matrices from 2x2 up to 4x4.\n"
     "\n"
-    "   :param rows: Sequence of rows.\n"
-    "      When omitted, a 4x4 identity matrix is constructed.\n"
+    "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
     "   :type rows: 2d number sequence\n");
 PyTypeObject matrix_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "Matrix", /*tp_name*/
@@ -3367,7 +3366,7 @@ PyTypeObject matrix_Type = {
     NULL,                                                          /*tp_alloc*/
     Matrix_new,                                                    /*tp_new*/
     NULL,                                                          /*tp_free*/
-    NULL,                                                          /*tp_is_gc*/
+    (inquiry)BaseMathObject_is_gc,                                 /*tp_is_gc*/
     NULL,                                                          /*tp_bases*/
     NULL,                                                          /*tp_mro*/
     NULL,                                                          /*tp_cache*/
@@ -3475,6 +3474,7 @@ PyObject *Matrix_CreatePyObject_cb(
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
   return (PyObject *)self;

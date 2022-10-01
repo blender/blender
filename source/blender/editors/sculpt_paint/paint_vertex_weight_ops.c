@@ -445,7 +445,6 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-  const MVert *verts = BKE_mesh_verts(me);
   const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
@@ -464,10 +463,15 @@ static bool weight_paint_set(Object *ob, float paintweight)
   struct WPaintPrev wpp;
   wpaint_prev_create(&wpp, dvert, me->totvert);
 
+  const bool *select_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".select_vert");
+  const bool *select_poly = (const bool *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_BOOL, ".select_poly");
+
   for (index = 0, mp = polys; index < me->totpoly; index++, mp++) {
     uint fidx = mp->totloop - 1;
 
-    if ((paint_selmode == SCE_SELECT_FACE) && !(mp->flag & ME_FACE_SEL)) {
+    if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[index])) {
       continue;
     }
 
@@ -475,7 +479,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
       uint vidx = loops[mp->loopstart + fidx].v;
 
       if (!dvert[vidx].flag) {
-        if ((paint_selmode == SCE_SELECT_VERTEX) && !(verts[vidx].flag & SELECT)) {
+        if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {
           continue;
         }
 

@@ -123,15 +123,17 @@ static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
       socket->runtime->directly_linked_links.clear();
       socket->runtime->directly_linked_sockets.clear();
     }
-    node->runtime->has_linked_inputs = false;
-    node->runtime->has_linked_outputs = false;
+    node->runtime->has_available_linked_inputs = false;
+    node->runtime->has_available_linked_outputs = false;
   }
   for (bNodeLink *link : tree_runtime.links) {
     link->fromsock->runtime->directly_linked_links.append(link);
     link->fromsock->runtime->directly_linked_sockets.append(link->tosock);
     link->tosock->runtime->directly_linked_links.append(link);
-    link->fromnode->runtime->has_linked_outputs = true;
-    link->tonode->runtime->has_linked_inputs = true;
+    if (link->is_available()) {
+      link->fromnode->runtime->has_available_linked_outputs = true;
+      link->tonode->runtime->has_available_linked_inputs = true;
+    }
   }
   for (bNodeSocket *socket : tree_runtime.input_sockets) {
     if (socket->flag & SOCK_MULTI_INPUT) {
@@ -168,7 +170,10 @@ static void find_logical_origins_for_socket_recursive(
     links_to_check = links_to_check.take_front(1);
   }
   for (bNodeLink *link : links_to_check) {
-    if (link->flag & NODE_LINK_MUTED) {
+    if (link->is_muted()) {
+      continue;
+    }
+    if (!link->is_available()) {
       continue;
     }
     bNodeSocket &origin_socket = *link->fromsock;
@@ -285,14 +290,20 @@ static void toposort_from_start_node(const ToposortDirection direction,
         break;
       }
       bNodeSocket &socket = *sockets[item.socket_index];
-      const Span<bNodeSocket *> linked_sockets = socket.runtime->directly_linked_sockets;
-      if (item.link_index == linked_sockets.size()) {
+      const Span<bNodeLink *> linked_links = socket.runtime->directly_linked_links;
+      if (item.link_index == linked_links.size()) {
         /* All links connected to this socket have already been visited. */
         item.socket_index++;
         item.link_index = 0;
         continue;
       }
-      bNodeSocket &linked_socket = *linked_sockets[item.link_index];
+      bNodeLink &link = *linked_links[item.link_index];
+      if (!link.is_available()) {
+        /* Ignore unavailable links. */
+        item.link_index++;
+        continue;
+      }
+      bNodeSocket &linked_socket = *socket.runtime->directly_linked_sockets[item.link_index];
       bNode &linked_node = *linked_socket.runtime->owner_node;
       ToposortNodeState &linked_node_state = node_states[linked_node.runtime->index_in_tree];
       if (linked_node_state.is_done) {
@@ -337,8 +348,9 @@ static void update_toposort(const bNodeTree &ntree,
       /* Ignore nodes that are done already. */
       continue;
     }
-    if ((direction == ToposortDirection::LeftToRight) ? node->runtime->has_linked_outputs :
-                                                        node->runtime->has_linked_inputs) {
+    if ((direction == ToposortDirection::LeftToRight) ?
+            node->runtime->has_available_linked_outputs :
+            node->runtime->has_available_linked_inputs) {
       /* Ignore non-start nodes. */
       continue;
     }
@@ -398,7 +410,7 @@ static void ensure_topology_cache(const bNodeTree &ntree)
                                      update_toposort(ntree,
                                                      ToposortDirection::LeftToRight,
                                                      tree_runtime.toposort_left_to_right,
-                                                     tree_runtime.has_link_cycle);
+                                                     tree_runtime.has_available_link_cycle);
                                    },
                                    [&]() {
                                      bool dummy;

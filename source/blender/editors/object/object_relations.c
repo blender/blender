@@ -2219,7 +2219,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
   }
 
-  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libs */
+  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libraries. */
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
   return OPERATOR_FINISHED;
@@ -2826,7 +2826,7 @@ static void drop_named_material_face_set_slots_update(bContext *C,
   const float mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
   const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
 
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_sets");
   int *mat_nr = CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
 
   if (!mat_nr) {
@@ -2834,27 +2834,30 @@ static void drop_named_material_face_set_slots_update(bContext *C,
     return;
   }
 
-  short face_set_nr = -1;
-  for (int i = 0; i < mesh->totpoly; i++) {
-    if (face_sets[i] != face_set_id) {
-      continue;
-    }
-    face_set_nr = mat_nr[i];
-    break;
-  }
-
   bool create_new_slot = false;
-  for (int i = 0; i < mesh->totpoly; i++) {
-    if (face_sets[i] == face_set_id) {
-      if (mat_nr[i] != face_set_nr) {
-        create_new_slot = true;
-        break;
+  short face_set_nr = -1;
+
+  if (face_sets) {
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] != face_set_id) {
+        continue;
       }
+      face_set_nr = mat_nr[i];
+      break;
     }
-    else {
-      if (mat_nr[i] == face_set_nr) {
-        create_new_slot = true;
-        break;
+
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] == face_set_id) {
+        if (mat_nr[i] != face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
+      }
+      else {
+        if (mat_nr[i] == face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
       }
     }
   }

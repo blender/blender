@@ -1084,23 +1084,23 @@ static void create_subd_mesh(Scene *scene,
 
   const int edges_num = b_mesh.edges.length();
 
-  if (edges_num != 0) {
+  if (edges_num != 0 && b_mesh.edge_creases.length() > 0) {
     size_t num_creases = 0;
-    const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+    const float *creases = static_cast<float *>(b_mesh.edge_creases[0].ptr.data);
 
     for (int i = 0; i < edges_num; i++) {
-      const MEdge &b_edge = edges[i];
-      if (b_edge.crease != 0) {
+      if (creases[i] != 0.0f) {
         num_creases++;
       }
     }
 
     mesh->reserve_subd_creases(num_creases);
 
+    const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
     for (int i = 0; i < edges_num; i++) {
-      const MEdge &b_edge = edges[i];
-      if (b_edge.crease != 0) {
-        mesh->add_edge_crease(b_edge.v1, b_edge.v2, float(b_edge.crease) / 255.0f);
+      if (creases[i] != 0.0f) {
+        const MEdge &b_edge = edges[i];
+        mesh->add_edge_crease(b_edge.v1, b_edge.v2, creases[i]);
       }
     }
 

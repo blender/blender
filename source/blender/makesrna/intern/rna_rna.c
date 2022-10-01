@@ -160,6 +160,7 @@ const EnumPropertyItem rna_enum_property_flag_items[] = {
      0,
      "Update on every keystroke in textedit 'mode'",
      ""},
+    {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -464,7 +465,7 @@ static void rna_Struct_property_tags_begin(CollectionPropertyIterator *iter, Poi
   /* here ptr->data should always be the same as iter->parent.type */
   StructRNA *srna = (StructRNA *)ptr->data;
   const EnumPropertyItem *tag_defines = RNA_struct_property_tag_defines(srna);
-  unsigned int tag_count = tag_defines ? RNA_enum_items_count(tag_defines) : 0;
+  uint tag_count = tag_defines ? RNA_enum_items_count(tag_defines) : 0;
 
   rna_iterator_array_begin(
       iter, (void *)tag_defines, sizeof(EnumPropertyItem), tag_count, 0, NULL);
@@ -727,6 +728,12 @@ static bool rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   return (prop->flag & PROP_LIB_EXCEPTION) != 0;
+}
+
+static bool rna_Property_is_path_output_flag_get(PointerRNA *ptr)
+{
+  PropertyRNA *prop = (PropertyRNA *)ptr->data;
+  return (prop->flag & PROP_PATH_OUTPUT) != 0;
 }
 
 static int rna_Property_tags_get(PointerRNA *ptr)
@@ -3022,6 +3029,12 @@ static void rna_def_property(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_Property_is_library_editable_flag_get", NULL);
   RNA_def_property_ui_text(
       prop, "Library Editable", "Property is editable from linked instances (changes not saved)");
+
+  prop = RNA_def_property(srna, "is_path_output", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_Property_is_path_output_flag_get", NULL);
+  RNA_def_property_ui_text(
+      prop, "Path Output", "Property is a filename, filepath or directory output");
 
   prop = RNA_def_property(srna, "tags", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -266,7 +266,7 @@ PyDoc_STRVAR(pygpu_matrix_multiply_matrix_doc,
              "\n"
              "   Multiply the current stack matrix.\n"
              "\n"
-             "   :param matrix: A 4x4 matrix.\n"
+             "   :arg matrix: A 4x4 matrix.\n"
              "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject *value)
 {
@@ -283,7 +283,7 @@ PyDoc_STRVAR(pygpu_matrix_scale_doc,
              "\n"
              "   Scale the current stack matrix.\n"
              "\n"
-             "   :param scale: Scale the current stack matrix.\n"
+             "   :arg scale: Scale the current stack matrix.\n"
              "   :type scale: sequence of 2 or 3 floats\n");
 static PyObject *pygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 {
@@ -305,7 +305,7 @@ static PyObject *pygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 PyDoc_STRVAR(pygpu_matrix_scale_uniform_doc,
              ".. function:: scale_uniform(scale)\n"
              "\n"
-             "   :param scale: Scale the current stack matrix.\n"
+             "   :arg scale: Scale the current stack matrix.\n"
              "   :type scale: float\n");
 static PyObject *pygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *value)
 {
@@ -323,7 +323,7 @@ PyDoc_STRVAR(pygpu_matrix_translate_doc,
              "\n"
              "   Scale the current stack matrix.\n"
              "\n"
-             "   :param offset: Translate the current stack matrix.\n"
+             "   :arg offset: Translate the current stack matrix.\n"
              "   :type offset: sequence of 2 or 3 floats\n");
 static PyObject *pygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value)
 {
@@ -373,7 +373,7 @@ PyDoc_STRVAR(pygpu_matrix_load_matrix_doc,
              "\n"
              "   Load a matrix into the stack.\n"
              "\n"
-             "   :param matrix: A 4x4 matrix.\n"
+             "   :arg matrix: A 4x4 matrix.\n"
              "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *value)
 {
@@ -390,7 +390,7 @@ PyDoc_STRVAR(pygpu_matrix_load_projection_matrix_doc,
              "\n"
              "   Load a projection matrix into the stack.\n"
              "\n"
-             "   :param matrix: A 4x4 matrix.\n"
+             "   :arg matrix: A 4x4 matrix.\n"
              "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_load_projection_matrix(PyObject *UNUSED(self), PyObject *value)
 {

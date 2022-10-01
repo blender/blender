@@ -125,7 +125,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
 
   const uiStyle *style = UI_style_get();
 
-  BLF_size(font_id, style->widget.points * U.pixelsize, U.dpi);
+  BLF_size(font_id, style->widget.points * U.dpi_fac);
 
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = BLI_memiter_iter_step(&it))) {

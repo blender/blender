@@ -89,8 +89,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeSwitch &storage = node_storage(*node);
   int index = 0;
-  bNodeSocket *field_switch = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *non_field_switch = (bNodeSocket *)field_switch->next;
+  bNodeSocket *field_switch = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *non_field_switch = static_cast<bNodeSocket *>(field_switch->next);
 
   const bool fields_type = ELEM(
       storage.input_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING);
@@ -222,7 +222,7 @@ template<typename T> void switch_no_fields(GeoNodeExecParams &params, const Stri
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeSwitch &storage = node_storage(params.node());
-  const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.input_type);
+  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
 
   switch (data_type) {
 

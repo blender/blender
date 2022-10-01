@@ -93,32 +93,32 @@ typedef struct MetaballBVHNode { /* BVH node */
   struct MetaballBVHNode *child[2];
 } MetaballBVHNode;
 
-typedef struct process {     /* parameters, storage */
-  float thresh, size;        /* mball threshold, single cube size */
-  float delta;               /* small delta for calculating normals */
-  unsigned int converge_res; /* converge procedure resolution (more = slower) */
+typedef struct process { /* parameters, storage */
+  float thresh, size;    /* mball threshold, single cube size */
+  float delta;           /* small delta for calculating normals */
+  uint converge_res;     /* converge procedure resolution (more = slower) */
 
-  MetaElem **mainb;          /* array of all metaelems */
-  unsigned int totelem, mem; /* number of metaelems */
+  MetaElem **mainb;  /* array of all metaelems */
+  uint totelem, mem; /* number of metaelems */
 
   MetaballBVHNode metaball_bvh; /* The simplest bvh */
   Box allbb;                    /* Bounding box of all metaelems */
 
   MetaballBVHNode **bvh_queue; /* Queue used during bvh traversal */
-  unsigned int bvh_queue_size;
+  uint bvh_queue_size;
 
   CUBES *cubes;         /* stack of cubes waiting for polygonization */
   CENTERLIST **centers; /* cube center hash table */
   CORNER **corners;     /* corner value hash table */
   EDGELIST **edges;     /* edge and vertex id hash table */
 
-  int (*indices)[4];     /* output indices */
-  unsigned int totindex; /* size of memory allocated for indices */
-  unsigned int curindex; /* number of currently added indices */
+  int (*indices)[4]; /* output indices */
+  uint totindex;     /* size of memory allocated for indices */
+  uint curindex;     /* number of currently added indices */
 
   float (*co)[3], (*no)[3]; /* surface vertices - positions and normals */
-  unsigned int totvertex;   /* memory size */
-  unsigned int curvertex;   /* currently added vertices */
+  uint totvertex;           /* memory size */
+  uint curvertex;           /* currently added vertices */
 
   /* memory allocation from common pool */
   MemArena *pgn_elements;
@@ -155,10 +155,9 @@ static void make_box_from_metaelem(Box *r, const MetaElem *ml)
  * where centroids of elements in the [start, i) segment lie "on the right side" of div,
  * and elements in the [i, end) segment lie "on the left"
  */
-static unsigned int partition_mainb(
-    MetaElem **mainb, unsigned int start, unsigned int end, unsigned int s, float div)
+static uint partition_mainb(MetaElem **mainb, uint start, uint end, uint s, float div)
 {
-  unsigned int i = start, j = end - 1;
+  uint i = start, j = end - 1;
   div *= 2.0f;
 
   while (1) {
@@ -188,13 +187,10 @@ static unsigned int partition_mainb(
 /**
  * Recursively builds a BVH, dividing elements along the middle of the longest axis of allbox.
  */
-static void build_bvh_spatial(PROCESS *process,
-                              MetaballBVHNode *node,
-                              unsigned int start,
-                              unsigned int end,
-                              const Box *allbox)
+static void build_bvh_spatial(
+    PROCESS *process, MetaballBVHNode *node, uint start, uint end, const Box *allbox)
 {
-  unsigned int part, j, s;
+  uint part, j, s;
   float dim[3], div;
 
   /* Maximum bvh queue size is number of nodes which are made, equals calls to this function. */
@@ -401,7 +397,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
 static float metaball(PROCESS *process, float x, float y, float z)
 {
   float dens = 0.0f;
-  unsigned int front = 0, back = 0;
+  uint front = 0, back = 0;
   MetaballBVHNode *node;
 
   process->bvh_queue[front++] = &process->metaball_bvh;
@@ -1080,7 +1076,7 @@ static void closest_latice(int r[3], const float pos[3], const float size)
 /**
  * Find at most 26 cubes to start polygonization from.
  */
-static void find_first_points(PROCESS *process, const unsigned int em)
+static void find_first_points(PROCESS *process, const uint em)
 {
   const MetaElem *ml;
   int center[3], lbn[3], rtf[3], it[3], dir[3], add[3];
@@ -1168,7 +1164,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   MetaBall *mb;
   const MetaElem *ml;
   float obinv[4][4], obmat[4][4];
-  unsigned int i;
+  uint i;
   int obnr, zero_size = 0;
   char obname[MAX_ID_NAME];
   SceneBaseIter iter;
@@ -1447,7 +1443,6 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   MVert *mvert = CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CONSTRUCT, NULL, mesh->totvert);
   for (int i = 0; i < mesh->totvert; i++) {
     copy_v3_v3(mvert[i].co, process.co[i]);
-    mvert->flag = 0;
   }
   MEM_freeN(process.co);
 

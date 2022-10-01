@@ -26,7 +26,7 @@ eGPUBackendType GPU_backend_get_type(void);
 /** Opaque type hiding blender::gpu::Context. */
 typedef struct GPUContext GPUContext;
 
-GPUContext *GPU_context_create(void *ghost_window);
+GPUContext *GPU_context_create(void *ghost_window, void *ghost_context);
 /**
  * To be called after #GPU_context_active_set(ctx_to_destroy).
  */

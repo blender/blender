@@ -1834,7 +1834,7 @@ static void uv_map_clip_correct(const Scene *scene,
 /** \name UV Unwrap Operator
  * \{ */
 
-/* Assumes UV Map exists, doesn't run update funcs. */
+/* Assumes UV Map exists, doesn't run update functions. */
 static void uvedit_unwrap(const Scene *scene,
                           Object *obedit,
                           const UnwrapOptions *options,
@@ -2421,7 +2421,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      .rotate = true,
                                      /* We could make this optional. */
                                      .rotate_align_axis = 1,
-                                     .only_selected_uvs = true,
+                                     .only_selected_uvs = only_selected_uvs,
                                      .only_selected_faces = true,
                                      .correct_aspect = correct_aspect,
                                      .use_seams = true,

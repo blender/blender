@@ -278,7 +278,7 @@ static PyObject *Interface1D_length_2d_get(BPy_Interface1D *self, void *UNUSED(c
   if (PyErr_Occurred()) {
     return nullptr;
   }
-  return PyFloat_FromDouble((double)length);
+  return PyFloat_FromDouble(double(length));
 }
 
 PyDoc_STRVAR(Interface1D_time_stamp_doc,

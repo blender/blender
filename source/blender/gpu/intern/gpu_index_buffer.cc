@@ -76,7 +76,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
 #if TRUST_NO_ONE
   assert(verts_per_prim != -1);
 #endif
-  GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len);
+  GPU_indexbuf_init_ex(builder, prim_type, prim_len * uint(verts_per_prim), vertex_len);
 }
 
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)

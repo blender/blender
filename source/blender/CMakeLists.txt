@@ -82,6 +82,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view2d_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_viewer_path_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_volume_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_windowmanager_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_workspace_types.h

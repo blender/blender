@@ -16,7 +16,7 @@ void CPUDevice::execute(WorkPackage *work_package)
 {
   switch (work_package->type) {
     case eWorkPackageType::Tile: {
-      const unsigned int chunk_number = work_package->chunk_number;
+      const uint chunk_number = work_package->chunk_number;
       ExecutionGroup *execution_group = work_package->execution_group;
 
       execution_group->get_output_operation()->execute_region(&work_package->rect, chunk_number);

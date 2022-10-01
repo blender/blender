@@ -68,7 +68,7 @@ float normal_quad_v3(
   return normalize_v3(n);
 }
 
-float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+float normal_poly_v3(float n[3], const float verts[][3], uint nr)
 {
   cross_poly_v3(n, verts, nr);
   return normalize_v3(n);
@@ -122,14 +122,14 @@ float area_tri_signed_v3(const float v1[3],
   return area;
 }
 
-float area_poly_v3(const float verts[][3], unsigned int nr)
+float area_poly_v3(const float verts[][3], uint nr)
 {
   float n[3];
   cross_poly_v3(n, verts, nr);
   return len_v3(n) * 0.5f;
 }
 
-float area_squared_poly_v3(const float verts[][3], unsigned int nr)
+float area_squared_poly_v3(const float verts[][3], uint nr)
 {
   float n[3];
 
@@ -138,9 +138,9 @@ float area_squared_poly_v3(const float verts[][3], unsigned int nr)
   return len_squared_v3(n);
 }
 
-float cross_poly_v2(const float verts[][2], unsigned int nr)
+float cross_poly_v2(const float verts[][2], uint nr)
 {
-  unsigned int a;
+  uint a;
   float cross;
   const float *co_curr, *co_prev;
 
@@ -157,11 +157,11 @@ float cross_poly_v2(const float verts[][2], unsigned int nr)
   return cross;
 }
 
-void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+void cross_poly_v3(float n[3], const float verts[][3], uint nr)
 {
   const float *v_prev = verts[nr - 1];
   const float *v_curr = verts[0];
-  unsigned int i;
+  uint i;
 
   zero_v3(n);
 
@@ -171,17 +171,17 @@ void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr)
   }
 }
 
-float area_poly_v2(const float verts[][2], unsigned int nr)
+float area_poly_v2(const float verts[][2], uint nr)
 {
   return fabsf(0.5f * cross_poly_v2(verts, nr));
 }
 
-float area_poly_signed_v2(const float verts[][2], unsigned int nr)
+float area_poly_signed_v2(const float verts[][2], uint nr)
 {
   return (0.5f * cross_poly_v2(verts, nr));
 }
 
-float area_squared_poly_v2(const float verts[][2], unsigned int nr)
+float area_squared_poly_v2(const float verts[][2], uint nr)
 {
   float area = area_poly_signed_v2(verts, nr);
   return area * area;
@@ -527,7 +527,7 @@ float dist_signed_squared_to_corner_v3v3v3(const float p[3],
 
   cross_v3_v3v3(axis, dir_a, dir_b);
 
-  if ((len_squared_v3(axis) < FLT_EPSILON)) {
+  if (len_squared_v3(axis) < FLT_EPSILON) {
     copy_v3_v3(axis, axis_ref);
   }
   else if (dot_v3v3(axis, axis_ref) < 0.0f) {
@@ -1458,12 +1458,12 @@ int isect_line_sphere_v2(const float l1[2],
 
 bool isect_point_poly_v2(const float pt[2],
                          const float verts[][2],
-                         const unsigned int nr,
+                         const uint nr,
                          const bool UNUSED(use_holes))
 {
   /* Keep in sync with #isect_point_poly_v2_int. */
 
-  unsigned int i, j;
+  uint i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
     if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&
@@ -1477,12 +1477,12 @@ bool isect_point_poly_v2(const float pt[2],
 }
 bool isect_point_poly_v2_int(const int pt[2],
                              const int verts[][2],
-                             const unsigned int nr,
+                             const uint nr,
                              const bool UNUSED(use_holes))
 {
   /* Keep in sync with #isect_point_poly_v2. */
 
-  unsigned int i, j;
+  uint i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
     if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&
@@ -2208,7 +2208,7 @@ bool isect_planes_v3_fn(
         int i_test;
         for (i_test = 0; i_test < planes_len; i_test++) {
           const float *np_test = planes[i_test];
-          if (((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect)) {
+          if ((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect) {
             /* For low epsilon values the point could intersect its own plane. */
             if (!ELEM(i_test, i, j, k)) {
               break;
@@ -2696,7 +2696,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     z = x + y - (a * c - b * b);
 
     if (z <= 0.0f && (x >= 0.0f && y >= 0.0f)) {
-      //(((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y))) & 0x80000000) {
+      //(((uint)z)& ~(((uint)x)|((uint)y))) & 0x80000000) {
       *r_lambda = t0;
       copy_v3_v3(ipoint, point);
       return true;
@@ -5803,10 +5803,10 @@ bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], 
   return (isect_seg_seg_v2(v1, v3, v2, v4) > 0);
 }
 
-bool is_poly_convex_v2(const float verts[][2], unsigned int nr)
+bool is_poly_convex_v2(const float verts[][2], uint nr)
 {
-  unsigned int sign_flag = 0;
-  unsigned int a;
+  uint sign_flag = 0;
+  uint a;
   const float *co_curr, *co_prev;
   float dir_curr[2], dir_prev[2];
 

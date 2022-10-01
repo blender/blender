@@ -11,11 +11,11 @@
 #include "PseudoNoise.h"
 #include "RandGen.h"
 
-static int modf_to_index(Freestyle::real x, unsigned int range)
+static int modf_to_index(Freestyle::real x, uint range)
 {
   if (isfinite(x)) {
     Freestyle::real tmp;
-    int i = abs((int)(modf(x, &tmp) * range));
+    int i = abs(int(modf(x, &tmp) * range));
     BLI_assert(i >= 0 && i < range);
     return i;
   }
@@ -30,7 +30,7 @@ real PseudoNoise::_values[];
 void PseudoNoise::init(long seed)
 {
   RandGen::srand48(seed);
-  for (unsigned int i = 0; i < NB_VALUE_NOISE; i++) {
+  for (uint i = 0; i < NB_VALUE_NOISE; i++) {
     _values[i] = -1.0 + 2.0 * RandGen::drand48();
   }
 }
@@ -79,22 +79,22 @@ real PseudoNoise::smoothNoise(real x)
   return (x0 * y0 + x1 * y1 + x2 * y2 + x3 * y3) / (y0 + y1 + y2 + y3);
 }
 
-real PseudoNoise::turbulenceSmooth(real x, unsigned nbOctave)
+real PseudoNoise::turbulenceSmooth(real x, uint nbOctave)
 {
   real y = 0;
   real k = 1.0;
-  for (unsigned int i = 0; i < nbOctave; i++) {
+  for (uint i = 0; i < nbOctave; i++) {
     y = y + k * smoothNoise(x * k);
     k = k / 2.0;
   }
   return y;
 }
 
-real PseudoNoise::turbulenceLinear(real x, unsigned nbOctave)
+real PseudoNoise::turbulenceLinear(real x, uint nbOctave)
 {
   real y = 0;
   real k = 1.0;
-  for (unsigned int i = 0; i < nbOctave; i++) {
+  for (uint i = 0; i < nbOctave; i++) {
     y = y + k * linearNoise(x * k);
     k = k / 2.0;
   }

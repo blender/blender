@@ -519,8 +519,8 @@ static void uilist_prepare(uiList *ui_list,
 
   int activei_row;
   if (columns > 1) {
-    dyn_data->height = (int)ceil((double)items->tot_items / (double)columns);
-    activei_row = (int)floor((double)items->active_item_idx / (double)columns);
+    dyn_data->height = int(ceil(double(items->tot_items) / double(columns)));
+    activei_row = int(floor(double(items->active_item_idx) / double(columns)));
   }
   else {
     dyn_data->height = items->tot_items;
@@ -567,8 +567,8 @@ static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
   uiListDyn *dyn_data = ui_list->dyn_data;
 
   /* This way we get diff in number of additional items to show (positive) or hide (negative). */
-  const int diff = round_fl_to_int((float)(dyn_data->resize - dyn_data->resize_prev) /
-                                   (float)UI_UNIT_Y);
+  const int diff = round_fl_to_int(float(dyn_data->resize - dyn_data->resize_prev) /
+                                   float(UI_UNIT_Y));
 
   if (diff != 0) {
     ui_list->list_grip += diff;
@@ -767,7 +767,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(col, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -916,7 +916,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(subrow, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -940,7 +940,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
       glob = uiLayoutColumn(box, true);
-      /* For scrollbar. */
+      /* For scroll-bar. */
       row = uiLayoutRow(glob, false);
 
       const bool show_names = (flags & UI_TEMPLATE_LIST_NO_NAMES) == 0;

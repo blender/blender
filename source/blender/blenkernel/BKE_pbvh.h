@@ -20,6 +20,8 @@
 
 //#define DEFRAGMENT_MEMORY
 
+#include "DNA_customdata_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,7 +104,6 @@ struct CCGKey;
 struct CustomData;
 struct TableGSet;
 struct DMFlagMat;
-struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
@@ -113,7 +114,9 @@ struct Mesh;
 struct MeshElemMap;
 struct PBVH;
 struct MEdge;
+struct PBVHBatches;
 struct PBVHNode;
+struct PBVH_GPU_Args;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -225,6 +228,12 @@ typedef struct PBVHPixelsNode {
    */
   void *node_data;
 } PBVHPixelsNode;
+
+typedef struct PBVHAttrReq {
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  eAttrDomain domain;
+  eCustomDataType type;
+} PBVHAttrReq;
 
 typedef enum {
   PBVH_Leaf = 1 << 0,
@@ -533,9 +542,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
+                      void (*draw_fn)(void *user_data,
+                                      struct PBVHBatches *batches,
+                                      struct PBVH_GPU_Args *args),
                       void *user_data,
-                      bool full_render);
+                      bool full_render,
+                      PBVHAttrReq *attrs,
+                      int attrs_num);
 
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(PBVHNode *node,
@@ -1292,8 +1305,6 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
 void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
 bool BKE_pbvh_pmap_release(SculptPMap *pmap);
 void BKE_pbvh_clear_cache(PBVH *preserve);
-
-void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state);
 
 #ifdef __cplusplus
 }

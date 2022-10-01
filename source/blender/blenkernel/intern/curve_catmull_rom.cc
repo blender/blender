@@ -17,7 +17,7 @@ int calculate_evaluated_num(const int points_num, const bool cyclic, const int r
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */
-void calculate_basis(const float parameter, float r_weights[4])
+void calculate_basis(const float parameter, float4 &r_weights)
 {
   const float t = parameter;
   const float s = 1.0f - parameter;
@@ -139,11 +139,7 @@ void interpolate_to_evaluated(const GSpan src,
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    /* TODO: Use DefaultMixer or other generic mixing in the basis evaluation function to simplify
-     * supporting more types. */
-    if constexpr (is_same_any_v<T, float, float2, float3, float4, int8_t, int, int64_t>) {
-      interpolate_to_evaluated(src.typed<T>(), cyclic, resolution, dst.typed<T>());
-    }
+    interpolate_to_evaluated(src.typed<T>(), cyclic, resolution, dst.typed<T>());
   });
 }
 
@@ -154,11 +150,7 @@ void interpolate_to_evaluated(const GSpan src,
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    /* TODO: Use DefaultMixer or other generic mixing in the basis evaluation function to simplify
-     * supporting more types. */
-    if constexpr (is_same_any_v<T, float, float2, float3, float4, int8_t, int, int64_t>) {
-      interpolate_to_evaluated(src.typed<T>(), cyclic, evaluated_offsets, dst.typed<T>());
-    }
+    interpolate_to_evaluated(src.typed<T>(), cyclic, evaluated_offsets, dst.typed<T>());
   });
 }
 

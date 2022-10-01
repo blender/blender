@@ -82,7 +82,9 @@ bool node_group_poll_instance(bNode *node, bNodeTree *nodetree, const char **dis
   return false;
 }
 
-bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_disabled_hint)
+bool nodeGroupPoll(const bNodeTree *nodetree,
+                   const bNodeTree *grouptree,
+                   const char **r_disabled_hint)
 {
   bool valid = true;
 
@@ -94,13 +96,16 @@ bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_dis
   }
 
   if (nodetree == grouptree) {
-    *r_disabled_hint = TIP_("Nesting a node group inside of itself is not allowed");
+    if (r_disabled_hint) {
+      *r_disabled_hint = TIP_("Nesting a node group inside of itself is not allowed");
+    }
     return false;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &grouptree->nodes) {
+  LISTBASE_FOREACH (const bNode *, node, &grouptree->nodes) {
     if (node->typeinfo->poll_instance &&
-        !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint)) {
+        !node->typeinfo->poll_instance(
+            const_cast<bNode *>(node), const_cast<bNodeTree *>(nodetree), r_disabled_hint)) {
       valid = false;
       break;
     }
@@ -216,7 +221,7 @@ void node_group_update(struct bNodeTree *ntree, struct bNode *node)
   if (node->id == nullptr) {
     nodeRemoveAllSockets(ntree, node);
   }
-  else if ((ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING))) {
+  else if (ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING)) {
     /* Missing data-block, leave sockets unchanged so that when it comes back
      * the links remain valid. */
   }

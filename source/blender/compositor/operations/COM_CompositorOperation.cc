@@ -113,7 +113,7 @@ void CompositorOperation::deinit_execution()
   depth_input_ = nullptr;
 }
 
-void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void CompositorOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   float color[8]; /* 7 is enough. */
   float *buffer = output_buffer_;

@@ -106,7 +106,7 @@ class MutableBitRef {
   MutableBitRef(uint8_t *byte_ptr, const int64_t bit_index)
   {
     byte_ptr_ = byte_ptr + (bit_index >> 3);
-    mask_ = 1 << static_cast<uint8_t>(bit_index & 7);
+    mask_ = 1 << uint8_t(bit_index & 7);
   }
 
   /**
@@ -211,7 +211,7 @@ class BitVector {
     data_ = inline_buffer_;
     size_in_bits_ = 0;
     capacity_in_bits_ = BitsInInlineBuffer;
-    uninitialized_fill_n(data_, BytesInInlineBuffer, static_cast<uint8_t>(0));
+    uninitialized_fill_n(data_, BytesInInlineBuffer, uint8_t(0));
   }
 
   BitVector(NoExceptConstructor, Allocator allocator = {}) noexcept : BitVector(allocator)
@@ -447,7 +447,7 @@ class BitVector {
     /* Fill entire bytes at once. */
     const int64_t start_fill_byte_index = aligned_ranges.aligned.start() / BitsPerByte;
     const int64_t bytes_to_fill = aligned_ranges.aligned.size() / BitsPerByte;
-    const uint8_t fill_value = value ? (uint8_t)0xff : (uint8_t)0x00;
+    const uint8_t fill_value = value ? uint8_t(0xff) : uint8_t(0x00);
     initialized_fill_n(data_ + start_fill_byte_index, bytes_to_fill, fill_value);
 
     /* Fill bits in the end that don't cover a full byte. */
@@ -505,7 +505,7 @@ class BitVector {
      * uninitialized byte. */
     uninitialized_fill_n(new_data + bytes_to_copy,
                          new_capacity_in_bytes - bytes_to_copy,
-                         (uint8_t)initial_value_for_new_bytes);
+                         uint8_t(initial_value_for_new_bytes));
 
     if (!this->is_inline()) {
       allocator_.deallocate(data_);

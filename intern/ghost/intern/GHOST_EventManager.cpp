@@ -31,7 +31,7 @@ GHOST_EventManager::~GHOST_EventManager()
 
 uint32_t GHOST_EventManager::getNumEvents()
 {
-  return (uint32_t)m_events.size();
+  return uint32_t(m_events.size());
 }
 
 uint32_t GHOST_EventManager::getNumEvents(GHOST_TEventType type)

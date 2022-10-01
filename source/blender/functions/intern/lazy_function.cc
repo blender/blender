@@ -63,4 +63,9 @@ void Params::set_default_remaining_outputs()
   }
 }
 
+bool Params::try_enable_multi_threading_impl()
+{
+  return false;
+}
+
 }  // namespace blender::fn::lazy_function

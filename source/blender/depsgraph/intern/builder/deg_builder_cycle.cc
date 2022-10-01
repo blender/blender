@@ -60,7 +60,7 @@ struct CyclesSolverState {
 
 inline void set_node_visited_state(Node *node, eCyclicCheckVisitedState state)
 {
-  node->custom_flags = (node->custom_flags & ~0x3) | (int)state;
+  node->custom_flags = (node->custom_flags & ~0x3) | int(state);
 }
 
 inline eCyclicCheckVisitedState get_node_visited_state(Node *node)

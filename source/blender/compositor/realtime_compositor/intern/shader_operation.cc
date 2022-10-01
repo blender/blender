@@ -273,7 +273,7 @@ static const char *get_store_function_name(ResultType type)
 
 void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPUMaterial *material)
 {
-  const unsigned int output_id = output_sockets_to_output_identifiers_map_.size();
+  const uint output_id = output_sockets_to_output_identifiers_map_.size();
   std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(output_socket.bsocket());

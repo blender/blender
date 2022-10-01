@@ -144,8 +144,7 @@ struct AddOperationExecutor {
     }
     surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
-    surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
-                              BKE_mesh_runtime_looptri_len(surface_eval_)};
+    surface_looptris_eval_ = surface_eval_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
@@ -206,8 +205,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    const Span<MLoopTri> surface_looptris_orig = {BKE_mesh_runtime_looptri_ensure(&surface_orig),
-                                                  BKE_mesh_runtime_looptri_len(&surface_orig)};
+    const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
 
     /* Find normals. */
     if (!CustomData_has_layer(&surface_orig.ldata, CD_NORMAL)) {

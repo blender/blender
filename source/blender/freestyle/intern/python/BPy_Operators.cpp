@@ -585,7 +585,7 @@ static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
                                                    PyObject *kwds)
 {
   static const char *kwlist[] = {"i", nullptr};
-  unsigned int i;
+  uint i;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return nullptr;
@@ -612,7 +612,7 @@ static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
                                                 PyObject *kwds)
 {
   static const char *kwlist[] = {"i", nullptr};
-  unsigned int i;
+  uint i;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return nullptr;
@@ -639,7 +639,7 @@ static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
                                                  PyObject *kwds)
 {
   static const char *kwlist[] = {"i", nullptr};
-  unsigned int i;
+  uint i;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return nullptr;

@@ -1477,7 +1477,7 @@ void compatible_eul(float eul[3], const float oldrot[3])
   const float pi_x2 = (2.0f * (float)M_PI);
 
   float deul[3];
-  unsigned int i;
+  uint i;
 
   /* correct differences of about 360 degrees first */
   for (i = 0; i < 3; i++) {
@@ -2178,8 +2178,8 @@ void quat_apply_track(float quat[4], short axis, short upflag)
    * up axis is used X->Y, Y->X, Z->X, if this first up axis isn't used then rotate 90d
    * the strange bit shift below just find the low axis {X:Y, Y:X, Z:X} */
   if (upflag != (2 - axis) >> 1) {
-    float q[4] = {sqrt_1_2, 0.0, 0.0, 0.0};             /* assign 90d rotation axis */
-    q[axis + 1] = ((axis == 1)) ? sqrt_1_2 : -sqrt_1_2; /* flip non Y axis */
+    float q[4] = {sqrt_1_2, 0.0, 0.0, 0.0};           /* assign 90d rotation axis */
+    q[axis + 1] = (axis == 1) ? sqrt_1_2 : -sqrt_1_2; /* flip non Y axis */
     mul_qt_qtqt(quat, quat, q);
   }
 }

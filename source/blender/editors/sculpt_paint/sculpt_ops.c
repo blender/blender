@@ -97,8 +97,10 @@
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
+#include "RNA_prototypes.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_path.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1618,6 +1620,167 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+typedef enum {
+  AUTOMASK_BAKE_MIX,
+  AUTOMASK_BAKE_MULTIPLY,
+  AUTOMASK_BAKE_DIVIDE,
+  AUTOMASK_BAKE_ADD,
+  AUTOMASK_BAKE_SUBTRACT,
+} CavityBakeMixMode;
+
+typedef struct AutomaskBakeTaskData {
+  SculptSession *ss;
+  AutomaskingCache *automasking;
+  PBVHNode **nodes;
+  CavityBakeMixMode mode;
+  float factor;
+  Object *ob;
+} AutomaskBakeTaskData;
+
+static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
+                                            const int n,
+                                            const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  AutomaskBakeTaskData *tdata = userdata;
+  SculptSession *ss = tdata->ss;
+  PBVHNode *node = tdata->nodes[n];
+  PBVHVertexIter vd;
+  const CavityBakeMixMode mode = tdata->mode;
+  const float factor = tdata->factor;
+
+  SCULPT_undo_push_node(tdata->ob, node, SCULPT_UNDO_MASK);
+
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(tdata->ob, ss, ss->cache->automasking, &automask_data, node);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
+    float automask = SCULPT_automasking_factor_get(
+        tdata->automasking, ss, vd.vertex, &automask_data);
+    float mask;
+
+    switch (mode) {
+      case AUTOMASK_BAKE_MIX:
+        mask = automask;
+        break;
+      case AUTOMASK_BAKE_MULTIPLY:
+        mask = *vd.mask * automask;
+        break;
+        break;
+      case AUTOMASK_BAKE_DIVIDE:
+        mask = automask > 0.00001f ? *vd.mask / automask : 0.0f;
+        break;
+        break;
+      case AUTOMASK_BAKE_ADD:
+        mask = *vd.mask + automask;
+        break;
+      case AUTOMASK_BAKE_SUBTRACT:
+        mask = *vd.mask - automask;
+        break;
+    }
+
+    mask = *vd.mask + (mask - *vd.mask) * factor;
+    CLAMP(mask, 0.0f, 1.0f);
+
+    *vd.mask = mask;
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update_mask(node);
+}
+
+static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(ob, mmd);
+
+  SCULPT_undo_push_begin(ob, op);
+
+  CavityBakeMixMode mode = RNA_enum_get(op->ptr, "mix_mode");
+  float factor = RNA_float_get(op->ptr, "mix_factor");
+
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+  AutomaskBakeTaskData tdata;
+
+  /* Set up automasking settings.
+   */
+  Sculpt sd2 = *sd;
+
+  /* Override cavity mask settings if use_automask_settings is false. */
+  if (!RNA_boolean_get(op->ptr, "use_automask_settings")) {
+    if (RNA_boolean_get(op->ptr, "invert")) {
+      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
+    }
+    else {
+      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_NORMAL;
+    }
+
+    if (RNA_boolean_get(op->ptr, "use_curve")) {
+      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+    }
+
+    sd2.automasking_cavity_blur_steps = RNA_int_get(op->ptr, "blur_steps");
+    sd2.automasking_cavity_factor = RNA_float_get(op->ptr, "factor");
+
+    sd2.automasking_cavity_curve = sd->automasking_cavity_curve_op;
+  }
+  else {
+    sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+
+    /* Ensure cavity mask is actually enabled. */
+    if (!(sd2.automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
+      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
+    }
+  }
+
+  /* Create copy of brush with cleared automasking settings. */
+  Brush brush2 = *brush;
+  brush2.automasking_flags = 0;
+  brush2.automasking_boundary_edges_propagation_steps = 1;
+  brush2.automasking_cavity_curve = sd2.automasking_cavity_curve;
+
+  tdata.ob = ob;
+  tdata.mode = mode;
+  tdata.factor = factor;
+  tdata.ss = ss;
+  tdata.nodes = nodes;
+  tdata.automasking = SCULPT_automasking_cache_init(&sd2, &brush2, ob);
+
+  SCULPT_stroke_id_next(ob);
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &tdata, sculpt_bake_cavity_exec_task_cb, &settings);
+
+  MEM_SAFE_FREE(nodes);
+  SCULPT_automasking_cache_free(ss, ob, tdata.automasking);
+
+  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  SCULPT_undo_push_end(ob);
+
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+
+  /* Unlike other operators we do not tag the ID for update here;
+   * it triggers a PBVH rebuild which is too slow and ruins
+   * the interactivity of the tool. */
+
+  return OPERATOR_FINISHED;
+}
+
 void SCULPT_OT_regularize_rake_directions(wmOperatorType *ot)
 {
   ot->name = "Regularize Rake Directions";
@@ -1628,6 +1791,112 @@ void SCULPT_OT_regularize_rake_directions(wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
   ot->exec = sculpt_regularize_rake_exec;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static void cavity_bake_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  Scene *scene = CTX_data_scene(C);
+  Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : NULL;
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  bool use_curve;
+
+  if (!sd || !RNA_boolean_get(op->ptr, "use_automask_settings")) {
+    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
+
+    use_curve = RNA_boolean_get(op->ptr, "use_curve");
+  }
+  else {
+    PointerRNA sculpt_ptr;
+
+    RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
+    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
+
+    use_curve = RNA_boolean_get(&sculpt_ptr, "use_automasking_custom_cavity_curve");
+  }
+
+  if (use_curve) {
+    PointerRNA sculpt_ptr;
+
+    const char *curve_prop;
+
+    if (RNA_boolean_get(op->ptr, "use_automask_settings")) {
+      curve_prop = "automasking_cavity_curve";
+    }
+    else {
+      curve_prop = "automasking_cavity_curve_op";
+    }
+
+    if (scene->toolsettings && scene->toolsettings->sculpt) {
+      RNA_pointer_create(&scene->id, &RNA_Sculpt, scene->toolsettings->sculpt, &sculpt_ptr);
+      uiTemplateCurveMapping(layout, &sculpt_ptr, curve_prop, 'v', false, false, false, false);
+    }
+  }
+}
+
+static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Mask From Cavity";
+  ot->idname = "SCULPT_OT_mask_from_cavity";
+  ot->description = "Creates a mask based on the curvature of the surface";
+  ot->ui = cavity_bake_ui;
+
+  static EnumPropertyItem mix_modes[] = {
+      {AUTOMASK_BAKE_MIX, "MIX", ICON_NONE, "Mix", ""},
+      {AUTOMASK_BAKE_MULTIPLY, "MULTIPLY", ICON_NONE, "Multiply", ""},
+      {AUTOMASK_BAKE_DIVIDE, "DIVIDE", ICON_NONE, "Divide", ""},
+      {AUTOMASK_BAKE_ADD, "ADD", ICON_NONE, "Add", ""},
+      {AUTOMASK_BAKE_SUBTRACT, "SUBTRACT", ICON_NONE, "Subtract", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* api callbacks */
+  ot->exec = sculpt_bake_cavity_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "mix_mode", mix_modes, AUTOMASK_BAKE_MIX, "Mode", "Mix mode");
+  RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 5.0f, "Mix Factor", "", 0.0f, 1.0f);
+
+  RNA_def_boolean(ot->srna,
+                  "use_automask_settings",
+                  false,
+                  "Use Automask Settings",
+                  "Use default settings from Options panel in sculpt mode");
+
+  RNA_def_float(ot->srna,
+                "factor",
+                0.5f,
+                0.0f,
+                5.0f,
+                "Cavity Factor",
+                "The contrast of the cavity mask",
+                0.0f,
+                1.0f);
+  RNA_def_int(ot->srna,
+              "blur_steps",
+              2,
+              0,
+              25,
+              "Cavity Blur",
+              "The number of times the cavity mask is blurred",
+              0,
+              25);
+  RNA_def_boolean(ot->srna, "use_curve", false, "Use Curve", "");
+
+  RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }
 
 void ED_operatortypes_sculpt(void)
@@ -1644,7 +1913,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_set_detail_size);
   WM_operatortype_append(SCULPT_OT_mesh_filter);
   WM_operatortype_append(SCULPT_OT_mask_filter);
-  WM_operatortype_append(SCULPT_OT_dirty_mask);
   WM_operatortype_append(SCULPT_OT_mask_expand);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
   WM_operatortype_append(SCULPT_OT_face_sets_create);
@@ -1674,5 +1942,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_spatial_sort_mesh);
 
   WM_operatortype_append(SCULPT_OT_expand);
+  WM_operatortype_append(SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
 }

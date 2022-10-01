@@ -54,7 +54,7 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_HEIGHT ((0.45f * U.widget_unit) + (2.0f * U.pixelsize))
 #define V2D_SCROLL_WIDTH ((0.45f * U.widget_unit) + (2.0f * U.pixelsize))
 
-/* Alpha of scrollbar when at minimum size. */
+/* Alpha of scroll-bar when at minimum size. */
 #define V2D_SCROLL_MIN_ALPHA (0.4f)
 
 /* Minimum size needs to include outline which varies with line width. */
@@ -84,7 +84,7 @@ enum eView2D_CommonViewTypes {
 /* ------------------------------------------ */
 /* Macros:                                    */
 
-/* test if mouse in a scrollbar (assume that scroller availability has been tested) */
+/* Test if mouse in a scroll-bar (assume that scroller availability has been tested). */
 #define IN_2D_VERT_SCROLL(v2d, co) (BLI_rcti_isect_pt_v(&v2d->vert, co))
 #define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_rcti_isect_pt_v(&v2d->hor, co))
 
@@ -350,8 +350,8 @@ struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 
 /**
- * Get scrollbar sizes of the current 2D view.
- * The size will be zero if the view has its scrollbars disabled.
+ * Get scroll-bar sizes of the current 2D view.
+ * The size will be zero if the view has its scroll-bars disabled.
  *
  * \param mapped: whether to use view2d_scroll_mapped which changes flags
  */

@@ -72,14 +72,14 @@ enum {
 #  define BUILD_DATE
 #endif
 
-/* from buildinfo.c */
+/* From `buildinfo.c`. */
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
 extern char build_hash[];
 extern unsigned long build_commit_timestamp;
 
-/* TODO(sergey): ideally size need to be in sync with buildinfo.c */
+/* TODO(@sergey): ideally size need to be in sync with `buildinfo.c`. */
 extern char build_commit_date[16];
 extern char build_commit_time[16];
 

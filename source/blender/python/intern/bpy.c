@@ -655,7 +655,7 @@ void BPy_init_modules(struct bContext *C)
     PyModule_AddObject(mod, m->ml_name, (PyObject *)PyCFunction_New(m, NULL));
   }
 
-  /* register funcs (bpy_rna.c) */
+  /* Register functions (`bpy_rna.c`). */
   PyModule_AddObject(mod,
                      meth_bpy_register_class.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));

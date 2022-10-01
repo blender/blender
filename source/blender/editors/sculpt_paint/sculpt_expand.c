@@ -633,7 +633,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
 
     for (int i = 0; i < boundary->verts_num; i++) {
       BLI_gsqueue_push(queue, &boundary->verts[i]);
-      BLI_BITMAP_ENABLE(visited_verts, boundary->verts_i[i]);
+      BLI_BITMAP_ENABLE(visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i]));
     }
     SCULPT_boundary_data_free(boundary);
   }
@@ -2389,6 +2389,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
+  SCULPT_stroke_id_next(ob);
 
   /* Create and configure the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");

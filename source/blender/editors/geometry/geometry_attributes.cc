@@ -612,8 +612,7 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 
   PropertyRNA *prop;
 
-  RNA_def_enum(
-      ot->srna, "mode", mode_items, static_cast<int>(ConvertAttributeMode::Generic), "Mode", "");
+  RNA_def_enum(ot->srna, "mode", mode_items, int(ConvertAttributeMode::Generic), "Mode", "");
 
   prop = RNA_def_enum(ot->srna,
                       "domain",

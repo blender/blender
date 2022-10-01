@@ -120,11 +120,11 @@ void *TonemapOperation::initialize_tile_data(rcti *rect)
     }
     data->lav = Lav * sc;
     mul_v3_v3fl(data->cav, cav, sc);
-    maxl = log((double)maxl + 1e-5);
-    minl = log((double)minl + 1e-5);
+    maxl = log(double(maxl) + 1e-5);
+    minl = log(double(minl) + 1e-5);
     avl = lsum * sc;
     data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.0f;
-    float al = exp((double)avl);
+    float al = exp(double(avl));
     data->al = (al == 0.0f) ? 0.0f : (data_->key / al);
     data->igm = (data_->gamma == 0.0f) ? 1 : (1.0f / data_->gamma);
     cached_instance_ = data;
@@ -193,11 +193,11 @@ void TonemapOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output)
     AvgLogLum *avg = new AvgLogLum();
     avg->lav = lum.sum / lum.num_pixels;
     mul_v3_v3fl(avg->cav, lum.color_sum, 1.0f / lum.num_pixels);
-    const float max_log = log((double)lum.max + 1e-5);
-    const float min_log = log((double)lum.min + 1e-5);
+    const float max_log = log(double(lum.max) + 1e-5);
+    const float min_log = log(double(lum.min) + 1e-5);
     const float avg_log = lum.log_sum / lum.num_pixels;
     avg->auto_key = (max_log > min_log) ? ((max_log - avg_log) / (max_log - min_log)) : 1.0f;
-    const float al = exp((double)avg_log);
+    const float al = exp(double(avg_log));
     avg->al = (al == 0.0f) ? 0.0f : (data_->key / al);
     avg->igm = (data_->gamma == 0.0f) ? 1 : (1.0f / data_->gamma);
     cached_instance_ = avg;

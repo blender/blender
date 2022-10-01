@@ -280,7 +280,7 @@ static bool console_line_column_from_index(
   return false;
 }
 
-/* static funcs for text editing */
+/* Static functions for text editing. */
 
 /* similar to the text editor, with some not used. keep compatible */
 static const EnumPropertyItem console_move_type_items[] = {

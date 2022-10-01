@@ -22,8 +22,7 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const MutableSpan<T> dst)
 {
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : mask) {
     const int looptri_index = looptri_indices[i];
@@ -69,8 +68,7 @@ BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
                                                  const IndexMask mask,
                                                  const MutableSpan<T> dst)
 {
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : mask) {
     const int looptri_index = looptri_indices[i];
@@ -115,8 +113,7 @@ void sample_face_attribute(const Mesh &mesh,
                            const IndexMask mask,
                            const MutableSpan<T> dst)
 {
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : mask) {
     const int looptri_index = looptri_indices[i];
@@ -161,8 +158,7 @@ Span<float3> MeshAttributeInterpolator::ensure_barycentric_coords()
 
   const Span<MVert> verts = mesh_->verts();
   const Span<MLoop> loops = mesh_->loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
-                                BKE_mesh_runtime_looptri_len(mesh_)};
+  const Span<MLoopTri> looptris = mesh_->looptris();
 
   for (const int i : mask_) {
     const int looptri_index = looptri_indices_[i];
@@ -191,8 +187,7 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
 
   const Span<MVert> verts = mesh_->verts();
   const Span<MLoop> loops = mesh_->loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
-                                BKE_mesh_runtime_looptri_len(mesh_)};
+  const Span<MLoopTri> looptris = mesh_->looptris();
 
   for (const int i : mask_) {
     const int looptri_index = looptri_indices_[i];
@@ -265,8 +260,7 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
 {
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   const float sample_radius_sq = pow2f(sample_radius);
   const float sample_plane_area = M_PI * sample_radius_sq;
@@ -363,8 +357,7 @@ int sample_surface_points_projected(
 {
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   int point_count = 0;
   for ([[maybe_unused]] const int _ : IndexRange(tries_num)) {

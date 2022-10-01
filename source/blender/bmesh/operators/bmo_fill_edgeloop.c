@@ -114,7 +114,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
         v = BM_edge_other_vert(e_next, v);
         e_prev = e_next;
         i++;
-      } while ((v != f_verts[0]));
+      } while (v != f_verts[0]);
 
       if (!BM_face_exists(f_verts, i)) {
         BMFace *f;

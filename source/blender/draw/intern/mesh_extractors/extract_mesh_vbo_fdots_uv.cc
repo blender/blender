@@ -62,7 +62,7 @@ static void extract_fdots_uv_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    float w = 1.0f / (float)f->len;
+    float w = 1.0f / float(f->len);
     const MLoopUV *luv = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, data->cd_ofs);
     madd_v2_v2fl(data->vbo_data[BM_elem_index_get(f)], luv->uv, w);
   } while ((l_iter = l_iter->next) != l_first);
@@ -86,7 +86,7 @@ static void extract_fdots_uv_iter_poly_mesh(const MeshRenderData *mr,
       }
     }
     else {
-      float w = 1.0f / (float)mp->totloop;
+      float w = 1.0f / float(mp->totloop);
       madd_v2_v2fl(data->vbo_data[mp_index], data->uv_data[ml_index].uv, w);
     }
   }

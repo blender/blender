@@ -223,7 +223,7 @@ using DefaultProbingStrategy = PythonProbingStrategy<>;
     int64_t linear_offset = 0; \
     uint64_t current_hash = probing_strategy.get(); \
     do { \
-      int64_t R_SLOT_INDEX = static_cast<int64_t>((current_hash + static_cast<uint64_t>(linear_offset)) & MASK);
+      int64_t R_SLOT_INDEX = int64_t((current_hash + uint64_t(linear_offset)) & MASK);
 
 #define SLOT_PROBING_END() \
     } while (++linear_offset < probing_strategy.linear_steps()); \

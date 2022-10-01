@@ -1492,7 +1492,7 @@ static void icu_to_fcurves(ID *id,
      * 3) filter the keyframes for the flag of interest
      */
     for (b = 0; b < totbits; b++, abp++) {
-      unsigned int i = 0;
+      uint i = 0;
 
       /* make a copy of existing base-data if not the last curve */
       if (b < (totbits - 1)) {
@@ -1562,7 +1562,7 @@ static void icu_to_fcurves(ID *id,
     }
   }
   else {
-    unsigned int i = 0;
+    uint i = 0;
 
     /* get rna-path
      * - we will need to set the 'disabled' flag if no path is able to be made (for now)

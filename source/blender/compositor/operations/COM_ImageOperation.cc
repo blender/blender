@@ -120,7 +120,7 @@ static void sample_image_at_location(
     }
   }
   else {
-    unsigned char byte_color[4];
+    uchar byte_color[4];
     switch (sampler) {
       case PixelSampler::Nearest:
         nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);

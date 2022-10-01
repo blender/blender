@@ -585,13 +585,13 @@ static void draw_primitive_view_impl(const struct bContext *C,
   }
   else if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CYLINDER) {
     draw_circle_in_quad(UNPACK4(bounds.vec), 32, color);
-    draw_circle_in_quad(UNPACK4((&bounds.vec[4])), 32, color);
+    draw_circle_in_quad(UNPACK4(&bounds.vec[4]), 32, color);
   }
   else if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CONE) {
     draw_circle_in_quad(UNPACK4(bounds.vec), 32, color);
 
     float center[3];
-    mid_v3_v3v3v3v3(center, UNPACK4((&bounds.vec[4])));
+    mid_v3_v3v3v3v3(center, UNPACK4(&bounds.vec[4]));
 
     float coords_a[4][3];
     float coords_b[4][3];

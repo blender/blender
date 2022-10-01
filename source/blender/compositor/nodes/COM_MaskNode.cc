@@ -41,7 +41,7 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
 
   operation->set_mask(mask);
   operation->set_framenumber(context.get_framenumber());
-  operation->set_feather((bool)(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+  operation->set_feather(bool(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
   if ((editor_node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) && (editor_node->custom2 > 1) &&
       (editor_node->custom3 > FLT_EPSILON)) {

@@ -596,7 +596,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
+  const short id_type = short(RNA_enum_get(op->ptr, "id_type"));
   ID *old_id = static_cast<ID *>(
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
   ID *new_id = static_cast<ID *>(
@@ -692,7 +692,7 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
   int totitem = 0;
   int i = 0;
 
-  short id_type = (short)RNA_enum_get(ptr, "id_type");
+  short id_type = short(RNA_enum_get(ptr, "id_type"));
   ID *id = static_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
 
   for (; id; id = static_cast<ID *>(id->next)) {
@@ -1233,12 +1233,12 @@ void OUTLINER_OT_select_all(wmOperatorType *ot)
 
 void outliner_set_coordinates(const ARegion *region, const SpaceOutliner *space_outliner)
 {
-  int starty = (int)(region->v2d.tot.ymax) - UI_UNIT_Y;
+  int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y;
 
   tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
     /* store coord and continue, we need coordinates for elements outside view too */
     te->xs = 0;
-    te->ys = (float)starty;
+    te->ys = float(starty);
     starty -= UI_UNIT_Y;
   });
 }

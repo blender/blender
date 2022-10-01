@@ -97,7 +97,7 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_2((int)mode_, (int)type_);
+    return get_default_hash_2(int(mode_), int(type_));
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
@@ -107,6 +107,11 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
       return mode_ == other_handle_selection->mode_ && type_ == other_handle_selection->type_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

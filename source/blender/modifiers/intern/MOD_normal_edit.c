@@ -509,7 +509,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   Mesh *result;
-  if (BKE_mesh_edges(mesh) == BKE_mesh_edges(((Mesh *)ob->data))) {
+  if (BKE_mesh_edges(mesh) == BKE_mesh_edges((Mesh *)ob->data)) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
      * modify original mesh, see T43671. */

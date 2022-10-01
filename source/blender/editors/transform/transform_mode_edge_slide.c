@@ -360,7 +360,7 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
 }
 
 /**
- * Calculate screenspace `mval_start` / `mval_end`, optionally slide direction.
+ * Calculate screen-space `mval_start` / `mval_end`, optionally slide direction.
  */
 static void calcEdgeSlide_mval_range(TransInfo *t,
                                      TransDataContainer *tc,

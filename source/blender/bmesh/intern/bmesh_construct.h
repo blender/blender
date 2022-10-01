@@ -169,9 +169,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old);
 char BM_face_flag_from_mflag(char mflag);
 char BM_edge_flag_from_mflag(short mflag);
 /* ME -> BM */
-char BM_vert_flag_from_mflag(char mflag);
 char BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
 /* BM -> ME */
-char BM_vert_flag_to_mflag(BMVert *v);
 void BM_sort_disk_cycle(BMVert *v);

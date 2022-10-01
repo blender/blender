@@ -36,7 +36,7 @@ std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSoc
 
 std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
 {
-  return node_data_type_to_custom_data_type(static_cast<eNodeSocketDatatype>(socket.type));
+  return node_data_type_to_custom_data_type(eNodeSocketDatatype(socket.type));
 }
 
 }  // namespace blender::nodes

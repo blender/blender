@@ -28,6 +28,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "WM_api.h"
@@ -282,6 +284,11 @@ static void undo_history_menu_register(void)
   WM_menutype_add(mt);
 }
 
+static void topbar_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceTopBar, sl);
+}
+
 void ED_spacetype_topbar(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype topbar");
@@ -296,6 +303,7 @@ void ED_spacetype_topbar(void)
   st->duplicate = topbar_duplicate;
   st->operatortypes = topbar_operatortypes;
   st->keymap = topbar_keymap;
+  st->blend_write = topbar_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype topbar main region");

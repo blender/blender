@@ -16,7 +16,7 @@ namespace blender::compositor {
 BaseScaleOperation::BaseScaleOperation()
 {
 #ifdef USE_FORCE_BILINEAR
-  sampler_ = (int)PixelSampler::Bilinear;
+  sampler_ = int(PixelSampler::Bilinear);
 #else
   sampler_ = -1;
 #endif
@@ -372,8 +372,8 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
 {
   const int input_width = BLI_rcti_size_x(&input_canvas);
   const int input_height = BLI_rcti_size_y(&input_canvas);
-  rel_x_ = input_width / (float)new_width_;
-  rel_y_ = input_height / (float)new_height_;
+  rel_x_ = input_width / float(new_width_);
+  rel_y_ = input_height / float(new_height_);
 
   /* *** all the options below are for a fairly special case - camera framing *** */
   if (offset_x_ != 0.0f || offset_y_ != 0.0f) {

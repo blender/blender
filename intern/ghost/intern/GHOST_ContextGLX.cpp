@@ -264,7 +264,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
   GHOST_TSuccess success;
 
   if (m_context != nullptr) {
-    const unsigned char *version;
+    const uchar *version;
 
     if (!s_sharedContext) {
       s_sharedContext = m_context;
@@ -316,11 +316,11 @@ GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 GHOST_TSuccess GHOST_ContextGLX::getSwapInterval(int &intervalOut)
 {
   if (epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
-    unsigned int interval = 0;
+    uint interval = 0;
 
     ::glXQueryDrawable(m_display, m_window, GLX_SWAP_INTERVAL_EXT, &interval);
 
-    intervalOut = static_cast<int>(interval);
+    intervalOut = int(interval);
 
     return GHOST_kSuccess;
   }

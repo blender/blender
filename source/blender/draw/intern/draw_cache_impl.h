@@ -100,6 +100,7 @@ void DRW_curve_batch_cache_create_requested(struct Object *ob, const struct Scen
 int DRW_curve_material_count_get(struct Curve *cu);
 
 struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu);
@@ -148,6 +149,7 @@ int DRW_pointcloud_material_count_get(struct PointCloud *pointcloud);
 
 struct GPUBatch *DRW_pointcloud_batch_cache_get_dots(struct Object *ob);
 struct GPUBatch *DRW_pointcloud_batch_cache_get_surface(struct Object *ob);
+struct GPUBatch *DRW_pointcloud_batch_cache_get_surface_viewer_attribute(struct Object *ob);
 struct GPUBatch **DRW_cache_pointcloud_surface_shaded_get(struct Object *ob,
                                                           struct GPUMaterial **gpumat_array,
                                                           uint gpumat_array_len);
@@ -189,6 +191,7 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(struct Object *object,
                                                           struct Mesh *me,
                                                           struct GPUMaterial **gpumat_array,
                                                           uint gpumat_array_len);
+
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Object *object,
                                                             struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Object *object,
@@ -198,6 +201,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Object *objec
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(struct Object *object, struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(struct Mesh *me);
 
 /** \} */
 

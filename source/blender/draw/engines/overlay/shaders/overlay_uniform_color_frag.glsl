@@ -1,4 +1,4 @@
 void main()
 {
-  fragColor = color;
+  fragColor = ucolor;
 }

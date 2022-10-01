@@ -44,6 +44,7 @@ Topology rake:
 #include "atomic_ops.h"
 
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
@@ -52,7 +53,7 @@ Topology rake:
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
-#include "GPU_buffers.h"
+#include "DRW_pbvh.h"
 
 #include "atomic_ops.h"
 #include "bmesh.h"
@@ -506,8 +507,8 @@ static void pbvh_bmesh_node_split(
   n->bm_other_verts = NULL;
   n->layer_disp = NULL;
 
-  if (n->draw_buffers) {
-    pbvh_free_draw_buffers(pbvh, n);
+  if (n->draw_batches) {
+    DRW_pbvh_node_free(n->draw_batches);
   }
   n->flag &= ~PBVH_Leaf;
 
@@ -2004,14 +2005,15 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
   BMEdge *e;
   BMVert *v;
 
-  const int cd_fset = CustomData_get_offset(&pbvh->header.bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_fset = CustomData_get_offset_named(
+      &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
     mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
                   SCULPTVERT_VERT_FSET_HIDDEN);
 
-    if (cd_fset >= 0 && v->e && v->e->l) {
+    if (cd_fset != -1 && v->e && v->e->l) {
       mv->flag |= SCULPTVERT_VERT_FSET_HIDDEN;
     }
   }
@@ -2029,7 +2031,7 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
       continue;
     }
 
-    if (cd_fset < 0) {
+    if (cd_fset == -1) {
       MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
       MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
 
@@ -2051,9 +2053,9 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
 
     BMLoop *l = e->l;
-    int lastfset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+    int lastfset = cd_fset != -1 ? BM_ELEM_CD_GET_INT(l->f, cd_fset) : 0;
     do {
-      int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+      int fset = cd_fset != -1 ? BM_ELEM_CD_GET_INT(l->f, cd_fset) : 0;
 
       if (l->f->len > 3) {
         mv1->flag |= SCULPTVERT_NEED_TRIANGULATE;
@@ -2222,17 +2224,17 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
 }
 
 /* Build a PBVH from a BMesh */
-ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                                      struct Mesh *me,
-                                      BMesh *bm,
-                                      bool smooth_shading,
-                                      BMLog *log,
-                                      const int cd_vert_node_offset,
-                                      const int cd_face_node_offset,
-                                      const int cd_sculpt_vert,
-                                      const int cd_face_areas,
-                                      bool fast_draw,
-                                      bool update_sculptverts)
+void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          Mesh *me,
+                          BMesh *bm,
+                          bool smooth_shading,
+                          BMLog *log,
+                          const int cd_vert_node_offset,
+                          const int cd_face_node_offset,
+                          const int cd_sculpt_vert,
+                          const int cd_face_areas,
+                          bool fast_draw,
+                          bool update_sculptverts)
 {
   // coalese_pbvh(pbvh, bm);
 
@@ -2242,6 +2244,8 @@ ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
 
+  pbvh->mesh = me;
+
   smooth_shading |= fast_draw;
 
   pbvh->header.bm = bm;
@@ -2250,7 +2254,8 @@ ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
-  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_faceset_offset = CustomData_get_offset_named(
+      &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   pbvh->depth_limit = 28;
 
@@ -3975,7 +3980,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
-  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->header.bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_faceset_offset = CustomData_get_offset_named(
+      &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_MLOOPUV);
 }
@@ -5464,7 +5470,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
   BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
-  BM_data_layer_add(bm, &bm->pdata, CD_SCULPT_FACE_SETS);
+  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   BM_data_layer_add(bm, &bm->vdata, CD_PAINT_MASK);
   BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
@@ -6010,7 +6016,8 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
   pbvh->cd_face_area = bm->pdata.layers[idx].offset;
 
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_faceset_offset = CustomData_get_offset_named(
+      &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
 }
 

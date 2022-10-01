@@ -46,7 +46,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_name)
+void ED_sculpt_init_transform(struct bContext *C,
+                              Object *ob,
+                              const int mval[2],
+                              const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -69,7 +72,8 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_n
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
+
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0);
 
   switch (sd->transform_deform_target) {
     case SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY:

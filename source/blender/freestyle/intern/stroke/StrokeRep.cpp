@@ -360,7 +360,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     }
   }
 
-  if (i != 2 * (int)iStrokeVertices.size()) {
+  if (i != 2 * int(iStrokeVertices.size())) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Warning: problem with stripe size\n";
     }

@@ -59,5 +59,5 @@ if(NOT APPLE)
 endif()
 
 if(WITH_GTESTS)
-  BLENDER_SRC_GTEST(cycles "${SRC}" "${LIB}")
+  blender_src_gtest(cycles "${SRC}" "${LIB}")
 endif()

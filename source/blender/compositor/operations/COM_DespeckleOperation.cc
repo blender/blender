@@ -99,7 +99,7 @@ void DespeckleOperation::execute_pixel(float output[4], int x, int y, void * /*d
   input_operation_->read(in1, x3, y3, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
 
-  mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
+  mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * float(M_SQRT1_2))));
   // mul_v4_fl(color_mid, 1.0f / w);
 
   if ((w != 0.0f) && ((w / WTOT) > (threshold_neighbor_)) &&
@@ -214,7 +214,7 @@ void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
     in1 = image->get_elem(x3, y3);
     COLOR_ADD(TOT_DIV_CNR)
 
-    mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
+    mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * float(M_SQRT1_2))));
     // mul_v4_fl(color_mid, 1.0f / w);
 
     if ((w != 0.0f) && ((w / WTOT) > (threshold_neighbor_)) &&

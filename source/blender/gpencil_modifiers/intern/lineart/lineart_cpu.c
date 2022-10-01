@@ -1397,7 +1397,7 @@ void lineart_main_discard_out_of_frame_edges(LineartData *ld)
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.line_buffer_pointers) {
     e = (LineartEdge *)eln->pointer;
     for (i = 0; i < eln->element_count; i++) {
-      if ((LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2))) {
+      if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
         e[i].flags = LRT_EDGE_FLAG_CHAIN_PICKED;
       }
     }
@@ -1905,8 +1905,10 @@ static void lineart_load_tri_task(void *__restrict userdata,
   if (ob_info->usage == OBJECT_LRT_INTERSECTION_ONLY) {
     tri->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
   }
-  else if (ob_info->usage == OBJECT_LRT_NO_INTERSECTION ||
-           ob_info->usage == OBJECT_LRT_OCCLUSION_ONLY) {
+  else if (ob_info->usage == OBJECT_LRT_FORCE_INTERSECTION) {
+    tri->flags |= LRT_TRIANGLE_FORCE_INTERSECTION;
+  }
+  else if (ELEM(ob_info->usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
     tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
   }
 
@@ -2251,8 +2253,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
         }
       }
 
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
       }
 
@@ -2280,8 +2285,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
       la_edge->object_ref = orig_ob;
       la_edge->edge_identifier = LRT_EDGE_IDENTIFIER(ob_info, la_edge);
       BLI_addtail(&la_edge->segments, la_seg);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
         if (shadow_eln) {
           LineartEdge *shadow_e = lineart_find_matching_edge(shadow_eln, la_edge->edge_identifier);
@@ -2382,6 +2390,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
             return OBJECT_LRT_INTERSECTION_ONLY;
           case COLLECTION_LRT_NO_INTERSECTION:
             return OBJECT_LRT_NO_INTERSECTION;
+          case COLLECTION_LRT_FORCE_INTERSECTION:
+            return OBJECT_LRT_FORCE_INTERSECTION;
         }
         return OBJECT_LRT_INHERIT;
       }
@@ -2597,9 +2607,13 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     flags |= DEG_ITER_OBJECT_FLAG_DUPLI;
   }
 
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = flags;
+
   /* XXX(@Yiming): Temporary solution, this iterator is technically unsafe to use *during*
    * depsgraph evaluation, see D14997 for detailed explanations. */
-  DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
 
     obindex++;
 
@@ -3410,10 +3424,11 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
     }
     tt->testing_e[th->thread_id] = (LineartEdge *)tri;
 
-    if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
-        ((testing_triangle->flags & LRT_TRIANGLE_INTERSECTION_ONLY) &&
-         (tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY))) {
-      continue;
+    if (!((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_FORCE_INTERSECTION)) {
+      if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
+          (testing_triangle->flags & tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY)) {
+        continue;
+      }
     }
 
     double *RG0 = testing_triangle->v[0]->gloc, *RG1 = testing_triangle->v[1]->gloc,
@@ -4535,14 +4550,8 @@ static void lineart_add_triangles_worker(TaskPool *__restrict UNUSED(pool), Line
           _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
-              lineart_bounding_area_link_triangle(ld,
-                                                  &ld->qtree.initials[r * ld->qtree.count_x + co],
-                                                  tri,
-                                                  0,
-                                                  1,
-                                                  0,
-                                                  (!(tri->flags & LRT_TRIANGLE_NO_INTERSECTION)),
-                                                  th);
+              lineart_bounding_area_link_triangle(
+                  ld, &ld->qtree.initials[r * ld->qtree.count_x + co], tri, 0, 1, 0, 1, th);
             }
           }
         } /* Else throw away. */
@@ -5246,12 +5255,12 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
         /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
-        if ((shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
+            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED))) {
           continue;
         }
-        if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
+            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED))) {
           continue;
         }
         if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
@@ -5317,7 +5326,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (source_vgname && vgname) {
       Object *eval_ob = DEG_get_evaluated_object(depsgraph, ec->object_ref);
       int gpdg = -1;
-      if ((match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0)) {
+      if (match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0) {
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
           Mesh *me = BKE_object_get_evaluated_mesh(eval_ob);

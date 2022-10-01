@@ -178,7 +178,7 @@ static bool are_guiding_passes_noise_free(const NodeDenoise *settings)
 void DenoiseOperation::hash_output_params()
 {
   if (settings_) {
-    hash_params((int)settings_->hdr, are_guiding_passes_noise_free(settings_));
+    hash_params(int(settings_->hdr), are_guiding_passes_noise_free(settings_));
   }
 }
 

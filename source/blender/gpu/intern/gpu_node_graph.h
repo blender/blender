@@ -179,6 +179,7 @@ typedef struct GPUNodeGraph {
 
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph);
 void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph);
+
 /**
  * Free intermediate node graph.
  */

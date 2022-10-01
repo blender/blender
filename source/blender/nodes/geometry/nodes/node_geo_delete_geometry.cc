@@ -1163,7 +1163,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
@@ -1192,7 +1192,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<Field<bool>>("Selection"));
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
   if (domain == ATTR_DOMAIN_INSTANCE) {

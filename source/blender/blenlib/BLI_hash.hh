@@ -85,7 +85,7 @@ template<typename T> struct DefaultHash {
   {
     if constexpr (std::is_enum_v<T>) {
       /* For enums use the value as hash directly. */
-      return (uint64_t)value;
+      return uint64_t(value);
     }
     else {
       /* Try to call the `hash()` function on the value. */
@@ -119,7 +119,7 @@ template<typename T> struct DefaultHash<const T> {
   template<> struct DefaultHash<TYPE> { \
     uint64_t operator()(TYPE value) const \
     { \
-      return static_cast<uint64_t>(value); \
+      return uint64_t(value); \
     } \
   }
 
@@ -158,7 +158,7 @@ template<> struct DefaultHash<double> {
 template<> struct DefaultHash<bool> {
   uint64_t operator()(bool value) const
   {
-    return static_cast<uint64_t>((value != false) * 1298191);
+    return uint64_t((value != false) * 1298191);
   }
 };
 
@@ -209,8 +209,8 @@ template<> struct DefaultHash<std::string_view> {
 template<typename T> struct DefaultHash<T *> {
   uint64_t operator()(const T *value) const
   {
-    uintptr_t ptr = reinterpret_cast<uintptr_t>(value);
-    uint64_t hash = static_cast<uint64_t>(ptr >> 4);
+    uintptr_t ptr = uintptr_t(value);
+    uint64_t hash = uint64_t(ptr >> 4);
     return hash;
   }
 };

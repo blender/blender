@@ -70,6 +70,9 @@ typedef struct CurvesEvalCache {
   GPUVertBuf *proc_point_buf;
   GPUTexture *point_tex;
 
+  /* Editmode data (such as selection flags) used by overlay_edit_curve_point.glsl */
+  GPUVertBuf *data_edit_points;
+
   /** Info of control points strands (segment count and base index) */
   GPUVertBuf *proc_strand_buf;
   GPUTexture *strand_tex;

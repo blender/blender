@@ -14,7 +14,7 @@ BasicParams::BasicParams(const LazyFunction &fn,
                          MutableSpan<std::optional<ValueUsage>> input_usages,
                          Span<ValueUsage> output_usages,
                          MutableSpan<bool> set_outputs)
-    : Params(fn),
+    : Params(fn, true),
       inputs_(inputs),
       outputs_(outputs),
       input_usages_(input_usages),
@@ -60,6 +60,11 @@ ValueUsage BasicParams::get_output_usage_impl(const int index) const
 void BasicParams::set_input_unused_impl(const int index)
 {
   input_usages_[index] = ValueUsage::Unused;
+}
+
+bool BasicParams::try_enable_multi_threading_impl()
+{
+  return true;
 }
 
 }  // namespace blender::fn::lazy_function

@@ -127,8 +127,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   vpd->v2d = &vpd->region->v2d;
 
   /* calculate translation factor - based on size of view */
-  const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
-  const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
+  const float winx = float(BLI_rcti_size_x(&vpd->region->winrct) + 1);
+  const float winy = float(BLI_rcti_size_y(&vpd->region->winrct) + 1);
   vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
 
@@ -712,7 +712,7 @@ static void view_zoomstep_apply_ex(bContext *C,
       if (vzd->zoom_to_mouse_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
-        const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+        const float zoomx = float(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
@@ -747,7 +747,7 @@ static void view_zoomstep_apply_ex(bContext *C,
       if (vzd->zoom_to_mouse_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
-        const float zoomy = (float)(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
+        const float zoomy = float(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
@@ -958,7 +958,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
   if ((U.viewzoom == USER_ZOOM_CONTINUE) && vzd->timer) { /* XXX store this setting as RNA prop? */
     const double time = PIL_check_seconds_timer();
-    const float time_step = (float)(time - vzd->timer_lastdraw);
+    const float time_step = float(time - vzd->timer_lastdraw);
 
     dx *= time_step * 5.0f;
     dy *= time_step * 5.0f;
@@ -1583,10 +1583,10 @@ void UI_view2d_smooth_view(const bContext *C,
     if (changed) {
       sms.orig_cur = v2d->cur;
 
-      sms.time_allowed = (double)smooth_viewtx / 1000.0;
+      sms.time_allowed = double(smooth_viewtx) / 1000.0;
 
       /* scale the time allowed the change in view */
-      sms.time_allowed *= (double)fac;
+      sms.time_allowed *= double(fac);
 
       /* keep track of running timer! */
       if (v2d->sms == nullptr) {
@@ -1821,11 +1821,11 @@ static bool scroller_activate_poll(bContext *C)
   View2D *v2d = &region->v2d;
   wmEvent *event = win->eventstate;
 
-  /* check if mouse in scrollbars, if they're enabled */
+  /* Check if mouse in scroll-bars, if they're enabled. */
   return (UI_view2d_mouse_in_scrollers(region, v2d, event->xy) != 0);
 }
 
-/* initialize customdata for scroller manipulation operator */
+/* Initialize #wmOperator.customdata for scroller manipulation operator. */
 static void scroller_activate_init(bContext *C,
                                    wmOperator *op,
                                    const wmEvent *event,
@@ -2065,7 +2065,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
 
-  /* check if mouse in scrollbars, if they're enabled */
+  /* check if mouse in scroll-bars, if they're enabled */
   const char in_scroller = UI_view2d_mouse_in_scrollers(region, v2d, event->xy);
 
   /* if in a scroller, init customdata then set modal handler which will

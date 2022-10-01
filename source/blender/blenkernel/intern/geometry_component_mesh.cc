@@ -14,6 +14,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 
+#include "FN_multi_function_builder.hh"
+
 #include "attribute_access_intern.hh"
 
 extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
@@ -902,14 +904,14 @@ static void set_loop_uv(MLoopUV &uv, float2 co)
   copy_v2_v2(uv.uv, co);
 }
 
-static float get_crease(const MEdge &edge)
+static float get_crease(const float &crease)
 {
-  return edge.crease / 255.0f;
+  return crease;
 }
 
-static void set_crease(MEdge &edge, float value)
+static void set_crease(float &crease, const float value)
 {
-  edge.crease = round_fl_to_uchar_clamp(value * 255.0f);
+  crease = std::clamp(value, 0.0f, 1.0f);
 }
 
 class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
@@ -1217,6 +1219,13 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                            make_array_write_attribute<int>,
                                            nullptr);
 
+  static const fn::CustomMF_SI_SO<int, int> material_index_clamp{
+      "Material Index Validate",
+      [](int value) {
+        /* Use #short for the maximum since many areas still use that type for indices. */
+        return std::clamp<int>(value, 0, std::numeric_limits<short>::max());
+      },
+      fn::CustomMF_presets::AllSpanOrSingle()};
   static BuiltinCustomDataLayerProvider material_index("material_index",
                                                        ATTR_DOMAIN_FACE,
                                                        CD_PROP_INT32,
@@ -1227,7 +1236,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        face_access,
                                                        make_array_read_attribute<int>,
                                                        make_array_write_attribute<int>,
-                                                       nullptr);
+                                                       nullptr,
+                                                       AttributeValidator{&material_index_clamp});
 
   static BuiltinCustomDataLayerProvider shade_smooth(
       "shade_smooth",
@@ -1246,13 +1256,13 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       "crease",
       ATTR_DOMAIN_EDGE,
       CD_PROP_FLOAT,
-      CD_MEDGE,
-      BuiltinAttributeProvider::NonCreatable,
+      CD_CREASE,
+      BuiltinAttributeProvider::Creatable,
       BuiltinAttributeProvider::Writable,
-      BuiltinAttributeProvider::NonDeletable,
+      BuiltinAttributeProvider::Deletable,
       edge_access,
-      make_derived_read_attribute<MEdge, float, get_crease>,
-      make_derived_write_attribute<MEdge, float, get_crease, set_crease>,
+      make_array_read_attribute<float>,
+      make_derived_write_attribute<float, float, get_crease, set_crease>,
       nullptr);
 
   static NamedLegacyCustomDataProvider uvs(

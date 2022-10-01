@@ -65,8 +65,8 @@ void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform &UNUSED(transform)
 
 bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
 {
-  unsigned int vsize = ifs.vsize();
-  unsigned int nsize = ifs.nsize();
+  uint vsize = ifs.vsize();
+  uint nsize = ifs.nsize();
   // soc unused - unsigned tsize = ifs.tsize();
 
   const float *vertices = ifs.vertices();
@@ -94,7 +94,7 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   vector<FrsMaterial> frs_materials;
   if (ifs.msize()) {
     const FrsMaterial *const *mats = ifs.frs_materials();
-    for (unsigned i = 0; i < ifs.msize(); ++i) {
+    for (uint i = 0; i < ifs.msize(); ++i) {
       frs_materials.push_back(*(mats[i]));
     }
     shape.setFrsMaterials(frs_materials);
@@ -117,21 +117,21 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   // create a WVertex for each vertex
   buildWVertices(shape, new_vertices, vsize);
 
-  const unsigned int *vindices = ifs.vindices();
-  const unsigned int *nindices = ifs.nindices();
-  const unsigned int *tindices = nullptr;
+  const uint *vindices = ifs.vindices();
+  const uint *nindices = ifs.nindices();
+  const uint *tindices = nullptr;
   if (ifs.tsize()) {
     tindices = ifs.tindices();
   }
 
-  const unsigned int *mindices = nullptr;
+  const uint *mindices = nullptr;
   if (ifs.msize()) {
     mindices = ifs.mindices();
   }
-  const unsigned int *numVertexPerFace = ifs.numVertexPerFaces();
-  const unsigned int numfaces = ifs.numFaces();
+  const uint *numVertexPerFace = ifs.numVertexPerFaces();
+  const uint numfaces = ifs.numFaces();
 
-  for (unsigned int index = 0; index < numfaces; index++) {
+  for (uint index = 0; index < numfaces; index++) {
     switch (faceStyle[index]) {
       case IndexedFaceSet::TRIANGLE_STRIP:
         buildTriangleStrip(new_vertices,
@@ -228,10 +228,10 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   return true;
 }
 
-void WingedEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)
+void WingedEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, uint vsize)
 {
   WVertex *vertex;
-  for (unsigned int i = 0; i < vsize; i += 3) {
+  for (uint i = 0; i < vsize; i += 3) {
     vertex = new WVertex(Vec3f(vertices[i], vertices[i + 1], vertices[i + 2]));
     vertex->setId(i / 3);
     shape.AddVertex(vertex);
@@ -243,15 +243,15 @@ void WingedEdgeBuilder::buildTriangleStrip(const float * /*vertices*/,
                                            vector<FrsMaterial> & /*iMaterials*/,
                                            const float *texCoords,
                                            const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                                           const unsigned *vindices,
-                                           const unsigned *nindices,
-                                           const unsigned *mindices,
-                                           const unsigned *tindices,
-                                           const unsigned nvertices)
+                                           const uint *vindices,
+                                           const uint *nindices,
+                                           const uint *mindices,
+                                           const uint *tindices,
+                                           const uint nvertices)
 {
-  unsigned nDoneVertices = 2;  // number of vertices already treated
-  unsigned nTriangle = 0;      // number of the triangle currently being treated
-  // int nVertex = 0;            // vertex number
+  uint nDoneVertices = 2; /* Number of vertices already treated. */
+  uint nTriangle = 0;     /* Number of the triangle currently being treated. */
+  // int nVertex = 0;        /* Vertex number. */
 
   WShape *currentShape = _current_wshape;  // the current shape being built
   vector<WVertex *> triangleVertices;
@@ -340,11 +340,11 @@ void WingedEdgeBuilder::buildTriangleFan(const float * /*vertices*/,
                                          vector<FrsMaterial> & /*iMaterials*/,
                                          const float * /*texCoords*/,
                                          const IndexedFaceSet::FaceEdgeMark * /*iFaceEdgeMarks*/,
-                                         const unsigned * /*vindices*/,
-                                         const unsigned * /*nindices*/,
-                                         const unsigned * /*mindices*/,
-                                         const unsigned * /*tindices*/,
-                                         const unsigned /*nvertices*/)
+                                         const uint * /*vindices*/,
+                                         const uint * /*nindices*/,
+                                         const uint * /*mindices*/,
+                                         const uint * /*tindices*/,
+                                         const uint /*nvertices*/)
 {
   // Nothing to be done
 }
@@ -354,11 +354,11 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
                                        vector<FrsMaterial> & /*iMaterials*/,
                                        const float *texCoords,
                                        const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                                       const unsigned *vindices,
-                                       const unsigned *nindices,
-                                       const unsigned *mindices,
-                                       const unsigned *tindices,
-                                       const unsigned nvertices)
+                                       const uint *vindices,
+                                       const uint *nindices,
+                                       const uint *mindices,
+                                       const uint *tindices,
+                                       const uint nvertices)
 {
   WShape *currentShape = _current_wshape;  // the current shape begin built
   vector<WVertex *> triangleVertices;
@@ -367,7 +367,7 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
   vector<bool> triangleFaceEdgeMarks;
 
   // Each triplet of vertices is considered as an independent triangle
-  for (unsigned int i = 0; i < nvertices / 3; i++) {
+  for (uint i = 0; i < nvertices / 3; i++) {
     triangleVertices.push_back(currentShape->getVertexList()[vindices[3 * i] / 3]);
     triangleVertices.push_back(currentShape->getVertexList()[vindices[3 * i + 1] / 3]);
     triangleVertices.push_back(currentShape->getVertexList()[vindices[3 * i + 2] / 3]);
@@ -405,17 +405,17 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
 }
 
 void WingedEdgeBuilder::transformVertices(const float *vertices,
-                                          unsigned vsize,
+                                          uint vsize,
                                           const Matrix44r &transform,
                                           float *res)
 {
   const float *v = vertices;
   float *pv = res;
 
-  for (unsigned int i = 0; i < vsize / 3; i++) {
+  for (uint i = 0; i < vsize / 3; i++) {
     HVec3r hv_tmp(v[0], v[1], v[2]);
     HVec3r hv(transform * hv_tmp);
-    for (unsigned int j = 0; j < 3; j++) {
+    for (uint j = 0; j < 3; j++) {
       pv[j] = hv[j] / hv[3];
     }
     v += 3;
@@ -424,17 +424,17 @@ void WingedEdgeBuilder::transformVertices(const float *vertices,
 }
 
 void WingedEdgeBuilder::transformNormals(const float *normals,
-                                         unsigned nsize,
+                                         uint nsize,
                                          const Matrix44r &transform,
                                          float *res)
 {
   const float *n = normals;
   float *pn = res;
 
-  for (unsigned int i = 0; i < nsize / 3; i++) {
+  for (uint i = 0; i < nsize / 3; i++) {
     Vec3r hn(n[0], n[1], n[2]);
     hn = GeomUtils::rotateVector(transform, hn);
-    for (unsigned int j = 0; j < 3; j++) {
+    for (uint j = 0; j < 3; j++) {
       pn[j] = hn[j];
     }
     n += 3;

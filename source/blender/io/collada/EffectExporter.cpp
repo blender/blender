@@ -217,7 +217,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
   create_image_samplers(ep, material_image_map, active_uv);
 
 #if 0
-  unsigned int a, b;
+  uint a, b;
   for (a = 0, b = 0; a < tex_indices.size(); a++) {
     MTex *t = ma->mtex[tex_indices[a]];
     Image *ima = t->tex->ima;

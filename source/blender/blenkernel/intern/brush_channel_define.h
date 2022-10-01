@@ -164,8 +164,8 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   MAKE_FLAGS_EX(automasking,"Automasking","",0,BRUSH_CHANNEL_INHERIT_IF_UNSET,{\
          {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", "NONE", "Boundary Edges", ""},
          {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "BOUNDARY_FACE_SETS", "NONE", "Boundary Face Sets", ""},
-         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", "NONE", "Cavity", ""},
-         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", "NONE", "Invert Cavity", "Invert Cavity Map"},
+         {BRUSH_AUTOMASKING_CAVITY_NORMAL, "CAVITY", "NONE", "Cavity", ""},
+         {BRUSH_AUTOMASKING_CAVITY_INVERTED, "CAVITY_INVERTED", "NONE", "Invert Cavity", "Invert Cavity Map"},
          {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", "NONE", "Face Sets", ""},
          {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", "NONE", "Topology", ""},
          {BRUSH_AUTOMASKING_BRUSH_NORMAL, "BRUSH_NORMAL", "NONE", "Brush Normal", "Mask using normal at center of brush"},
@@ -173,11 +173,13 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
          {-1},
     })
 
-  MAKE_FLOAT(normal_mask_limit, "Brush Normal Limit", "", M_PI*0.5f, 0.0001f, M_PI)
-  MAKE_FLOAT(normal_mask_falloff, "Brush Normal Falloff", "", 0.1, 0.0, 1.0)
+  MAKE_FLOAT(automasking_start_normal_limit, "Brush Normal Limit", "", M_PI*0.5f, 0.0001f, M_PI)
+  MAKE_FLOAT(automasking_start_normal_falloff, "Brush Normal Falloff", "", 0.1, 0.0, 1.0)
 
-  MAKE_FLOAT(view_normal_mask_limit, "View Limit", "", M_PI*0.5f, 0.0001f, M_PI)
-  MAKE_FLOAT(view_normal_mask_falloff, "View Falloff", "", 0.1, 0.0, 1.0)
+  MAKE_FLOAT(automasking_view_normal_limit, "View Limit", "", M_PI*0.5f, 0.0001f, M_PI)
+  MAKE_FLOAT(automasking_view_normal_falloff, "View Falloff", "", 0.1, 0.0, 1.0)
+
+  MAKE_CURVE_EX(automasking_cavity_curve,"Cavity Curve","Falloff curve",BRUSH_CURVE_LIN, 0, true)
 
   MAKE_BOOL_EX(automasking_use_original_normal, "Original Normal", "Use original normal for automasking", true, BRUSH_CHANNEL_NO_MAPPINGS)
 
@@ -257,7 +259,9 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
       {-1}
     })
 
-  MAKE_FLOAT(concave_mask_factor,"Cavity Factor","",0.35f,0.0f,1.0f)
+  MAKE_FLOAT(automasking_cavity_factor,"Cavity Factor","",0.35f,0.0f,1.0f)
+  MAKE_INT(automasking_cavity_blur_steps, "Blur Steps", "The number of times the cavity mask is blurred", 0, 0, 25)
+
   MAKE_INT_EX(automasking_boundary_edges_propagation_steps,"Propagation Steps",
     "Distance where boundary edge automasking is going to protect vertices "
     "from the fully masked edge",1,1,20,1,10)

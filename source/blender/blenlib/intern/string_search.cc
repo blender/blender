@@ -18,7 +18,7 @@ namespace blender::string_search {
 
 static int64_t count_utf8_code_points(StringRef str)
 {
-  return static_cast<int64_t>(BLI_strnlen_utf8(str.data(), static_cast<size_t>(str.size())));
+  return int64_t(BLI_strnlen_utf8(str.data(), size_t(str.size())));
 }
 
 int damerau_levenshtein_distance(StringRef a, StringRef b)
@@ -205,7 +205,7 @@ static bool match_word_initials(StringRef query,
 
       StringRef word = words[word_index];
       /* Try to match the current character with the current word. */
-      if (static_cast<int>(char_index) < word.size()) {
+      if (int(char_index) < word.size()) {
         const uint32_t char_unicode = BLI_str_utf8_as_unicode_step(
             word.data(), word.size(), &char_index);
         if (query_unicode == char_unicode) {
@@ -345,7 +345,7 @@ void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words)
 {
-  const uint32_t unicode_space = (uint32_t)' ';
+  const uint32_t unicode_space = uint32_t(' ');
   const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
 
   BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
@@ -358,7 +358,7 @@ void extract_normalized_words(StringRef str,
   /* Make a copy of the string so that we can edit it. */
   StringRef str_copy = allocator.copy_string(str);
   char *mutable_copy = const_cast<char *>(str_copy.data());
-  const size_t str_size_in_bytes = static_cast<size_t>(str.size());
+  const size_t str_size_in_bytes = size_t(str.size());
   BLI_str_tolower_ascii(mutable_copy, str_size_in_bytes);
 
   /* Iterate over all unicode code points to split individual words. */
@@ -371,8 +371,7 @@ void extract_normalized_words(StringRef str,
     size -= offset;
     if (is_separator(unicode)) {
       if (is_in_word) {
-        r_words.append(
-            str_copy.substr(static_cast<int>(word_start), static_cast<int>(offset - word_start)));
+        r_words.append(str_copy.substr(int(word_start), int(offset - word_start)));
         is_in_word = false;
       }
     }
@@ -386,7 +385,7 @@ void extract_normalized_words(StringRef str,
   }
   /* If the last word is not followed by a separator, it has to be handled separately. */
   if (is_in_word) {
-    r_words.append(str_copy.drop_prefix(static_cast<int>(word_start)));
+    r_words.append(str_copy.drop_prefix(int(word_start)));
   }
 }
 
@@ -419,7 +418,7 @@ void BLI_string_search_add(StringSearch *search,
   StringRef str_ref{str};
   string_search::extract_normalized_words(str_ref, search->allocator, words);
   search->items.append({search->allocator.construct_array_copy(words.as_span()),
-                        (int)str_ref.size(),
+                        int(str_ref.size()),
                         user_data,
                         weight});
 }
@@ -458,7 +457,7 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
     if (score == found_scores[0] && !query_str.is_empty()) {
       /* Sort items with best score by length. Shorter items are more likely the ones you are
        * looking for. This also ensures that exact matches will be at the top, even if the query is
-       * a substring of another item. */
+       * a sub-string of another item. */
       std::sort(indices.begin(), indices.end(), [&](int a, int b) {
         return search->items[a].length < search->items[b].length;
       });
@@ -472,7 +471,7 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
   }
 
   void **sorted_data = static_cast<void **>(
-      MEM_malloc_arrayN(static_cast<size_t>(sorted_result_indices.size()), sizeof(void *), AT));
+      MEM_malloc_arrayN(size_t(sorted_result_indices.size()), sizeof(void *), AT));
   for (const int i : sorted_result_indices.index_range()) {
     const int result_index = sorted_result_indices[i];
     SearchItem &item = search->items[result_index];

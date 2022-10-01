@@ -580,7 +580,7 @@ bool BM_vert_is_edge_pair_manifold(const BMVert *v)
   const BMEdge *e = v->e;
   if (e) {
     BMEdge *e_other = BM_DISK_EDGE_NEXT(e, v);
-    if (((e_other != e) && (BM_DISK_EDGE_NEXT(e_other, v) == e))) {
+    if ((e_other != e) && (BM_DISK_EDGE_NEXT(e_other, v) == e)) {
       return BM_edge_is_manifold(e) && BM_edge_is_manifold(e_other);
     }
   }

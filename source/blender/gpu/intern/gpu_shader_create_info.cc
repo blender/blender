@@ -305,6 +305,31 @@ void gpu_shader_create_info_init()
     draw_resource_id_new = draw_resource_id_fallback;
   }
 
+  /* Metal-specific alternatives for Geometry shaders. */
+  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
+
+    /* 3D polyline. */
+    gpu_shader_3D_polyline_uniform_color = gpu_shader_3D_polyline_uniform_color_no_geom;
+    gpu_shader_3D_polyline_flat_color = gpu_shader_3D_polyline_flat_color_no_geom;
+    gpu_shader_3D_polyline_smooth_color = gpu_shader_3D_polyline_smooth_color_no_geom;
+    gpu_shader_3D_polyline_uniform_color_clipped =
+        gpu_shader_3D_polyline_uniform_color_clipped_no_geom;
+
+    /* Overlay Edit Mesh. */
+    overlay_edit_mesh_edge = overlay_edit_mesh_edge_no_geom;
+    overlay_edit_mesh_edge_flat = overlay_edit_mesh_edge_flat_no_geom;
+    overlay_edit_mesh_edge_clipped = overlay_edit_mesh_edge_clipped_no_geom;
+    overlay_edit_mesh_edge_flat_clipped = overlay_edit_mesh_edge_flat_clipped_no_geom;
+
+    /* Overlay Armature Shape outline. */
+    overlay_armature_shape_outline = overlay_armature_shape_outline_no_geom;
+    overlay_armature_shape_outline_clipped = overlay_armature_shape_outline_clipped_no_geom;
+
+    /* Overlay Motion Path Line. */
+    overlay_motion_path_line = overlay_motion_path_line_no_geom;
+    overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
+  }
+
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
       info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);

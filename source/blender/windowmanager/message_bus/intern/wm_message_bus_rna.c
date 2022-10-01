@@ -29,7 +29,7 @@
 BLI_INLINE uint void_hash_uint(const void *key)
 {
   size_t y = (size_t)key >> (sizeof(void *));
-  return (unsigned int)y;
+  return (uint)y;
 }
 
 static uint wm_msg_rna_gset_hash(const void *key_p)

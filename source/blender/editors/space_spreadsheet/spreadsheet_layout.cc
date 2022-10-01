@@ -283,7 +283,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   void draw_float_vector(const CellDrawParams &params, const Span<float> values) const
   {
     BLI_assert(!values.is_empty());
-    const float segment_width = (float)params.width / values.size();
+    const float segment_width = float(params.width) / values.size();
     for (const int i : values.index_range()) {
       std::stringstream ss;
       const float value = values[i];
@@ -314,7 +314,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   {
     const ColorGeometry4f float_color = color.decode();
     Span<float> values(&float_color.r, 4);
-    const float segment_width = (float)params.width / values.size();
+    const float segment_width = float(params.width) / values.size();
     for (const int i : values.index_range()) {
       std::stringstream ss;
       const float value = values[i];

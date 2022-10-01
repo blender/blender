@@ -557,6 +557,15 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
       this->curve_types(), this->curve_type_counts(), type, selection, r_indices);
 }
 
+Array<int> CurvesGeometry::point_to_curve_map() const
+{
+  Array<int> map(this->points_num());
+  for (const int i : this->curves_range()) {
+    map.as_mutable_span().slice(this->points_for_curve(i)).fill(i);
+  }
+  return map;
+}
+
 void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
   if (!this->runtime->nurbs_basis_cache_dirty) {
@@ -1557,6 +1566,11 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
   }
   if (from == to) {
     return varray;
+  }
+  if (varray.is_single()) {
+    BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
+    varray.get_internal_single(value);
+    return GVArray::ForSingle(varray.type(), this->attributes().domain_size(to), value);
   }
 
   if (from == ATTR_DOMAIN_POINT && to == ATTR_DOMAIN_CURVE) {

@@ -12,8 +12,10 @@
 /* XXX(@campbellbarton): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
-/* check for cyclic set-scene,
- * libs can cause this case which is normally prevented, see (T#####) */
+/**
+ * Check for cyclic set-scene.
+ * Libraries can cause this case which is normally prevented, see (T42009).
+ */
 #define USE_SETSCENE_CHECK
 
 #include "DNA_ID.h"
@@ -401,7 +403,7 @@ typedef struct ImageFormatData {
 
   /** R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA. */
   char planes;
-  /** Generic options for all image types, alpha zbuffer. */
+  /** Generic options for all image types, alpha Z-buffer. */
   char flag;
 
   /** (0 - 100), eg: JPEG quality. */
@@ -1028,8 +1030,15 @@ typedef struct Sculpt {
   int dyntopo_spacing;
 
   float dyntopo_radius_scale;
-  int _pad1[1];
+  int automasking_cavity_blur_steps;
+  float automasking_cavity_factor;
+  char _pad[4];
 
+  float automasking_start_normal_limit, automasking_start_normal_falloff;
+  float automasking_view_normal_limit, automasking_view_normal_falloff;
+
+  struct CurveMapping *automasking_cavity_curve;
+  struct CurveMapping *automasking_cavity_curve_op; /* For use by operators */
   struct Object *gravity_object;
   struct BrushChannelSet *channels;
 } Sculpt;

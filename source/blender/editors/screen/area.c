@@ -3794,7 +3794,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
   float font_dims[2] = {0.0f, 0.0f};
 
   /* frame number */
-  BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(fontid, 11.0f * U.dpi_fac);
   BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);

@@ -1465,12 +1465,12 @@ class VIEW3D_PT_sculpt_automasking(Panel, View3DPaintPanel):
             UnifiedPaintPanel.channel_unified(layout.column(),
                 context,
                 brush,
-                "normal_mask_limit",
+                "automasking_start_normal_limit",
                 ui_editing=False, slider=True, show_mappings=True)
             UnifiedPaintPanel.channel_unified(layout.column(),
                 context,
                 brush,
-                "normal_mask_falloff",
+                "automasking_start_normal_falloff",
                 ui_editing=False, slider=True, show_mappings=True)
             enable_orig_normal = True
 
@@ -1478,12 +1478,12 @@ class VIEW3D_PT_sculpt_automasking(Panel, View3DPaintPanel):
             UnifiedPaintPanel.channel_unified(layout.column(),
                 context,
                 brush,
-                "view_normal_mask_limit",
+                "automasking_view_normal_limit",
                 ui_editing=False, slider=True, show_mappings=True)
             UnifiedPaintPanel.channel_unified(layout.column(),
                 context,
                 brush,
-                "view_normal_mask_falloff",
+                "automasking_view_normal_falloff",
                 ui_editing=False, slider=True, show_mappings=True)
             enable_orig_normal = True
 
@@ -2133,17 +2133,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 row.prop(gp_settings, "fill_layer_mode", text="Layers")
 
                 col.separator()
-                row = col.row(align=True)
-                row.prop(gp_settings, "extend_stroke_factor")
-                row.prop(gp_settings,
-                    "show_fill_extend",
-                    icon='HIDE_OFF' if gp_settings.show_fill_extend else 'HIDE_ON',
-                    text="",)
-
-                col.separator()
-                col.prop(gp_settings, "fill_leak", text="Leak Size")
-
-                col.separator()
                 col.prop(gp_settings, "fill_simplify_level", text="Simplify")
                 if gp_settings.fill_draw_mode != 'STROKE':
                     col = layout.column(align=False, heading="Ignore Transparent")
@@ -2401,6 +2390,41 @@ class VIEW3D_PT_tools_grease_pencil_brush_paint_falloff(GreasePencilBrushFalloff
         gptool = brush.gpencil_tool
 
         return (settings and settings.brush and settings.brush.curve and gptool == 'TINT')
+
+
+class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_advanced'
+    bl_label = "Gap Closure"
+    bl_category = "Tool"
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool == 'FILL'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        brush = tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column()
+
+        col.prop(gp_settings, "extend_stroke_factor", text="Size")
+        row = col.row(align=True)
+        row.prop(gp_settings, "fill_extend_mode", text="Mode")
+        row = col.row(align=True)
+        row.prop(gp_settings, "show_fill_extend", text="Visual Aids")
+
+        if gp_settings.fill_extend_mode == 'EXTEND':
+            row = col.row(align=True)
+            row.prop(gp_settings, "use_collide_strokes")
+            row = col.row(align=True)
+            row.prop(gp_settings, "use_collide_only")
 
 
 # Grease Pencil stroke sculpting tools
@@ -2959,6 +2983,7 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_tools_grease_pencil_brush_post_processing,
     VIEW3D_PT_tools_grease_pencil_brush_random,
     VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
+    VIEW3D_PT_tools_grease_pencil_brush_gap_closure,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
     VIEW3D_PT_tools_grease_pencil_sculpt_select,
     VIEW3D_PT_tools_grease_pencil_sculpt_settings,

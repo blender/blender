@@ -455,7 +455,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
 static bNode *find_bsdf_node(Material *material)
 {
   LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
-    if (node->type == SH_NODE_BSDF_PRINCIPLED || node->type == SH_NODE_BSDF_DIFFUSE) {
+    if (ELEM(node->type, SH_NODE_BSDF_PRINCIPLED, SH_NODE_BSDF_DIFFUSE)) {
       return node;
     }
   }
@@ -707,7 +707,7 @@ static void export_texture(bNode *node,
                            const pxr::UsdStageRefPtr stage,
                            const bool allow_overwrite)
 {
-  if (node->type != SH_NODE_TEX_IMAGE && node->type != SH_NODE_TEX_ENVIRONMENT) {
+  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
   }
 

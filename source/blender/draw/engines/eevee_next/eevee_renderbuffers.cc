@@ -43,10 +43,10 @@ void RenderBuffers::acquire(int2 extent)
   bool do_vector_render_pass = (enabled_passes & EEVEE_RENDER_PASS_VECTOR) ||
                                (inst_.motion_blur.postfx_enabled() && !inst_.is_viewport());
   uint32_t max_light_color_layer = max_ii(enabled_passes & EEVEE_RENDER_PASS_DIFFUSE_LIGHT ?
-                                              (int)RENDER_PASS_LAYER_DIFFUSE_LIGHT :
+                                              int(RENDER_PASS_LAYER_DIFFUSE_LIGHT) :
                                               -1,
                                           enabled_passes & EEVEE_RENDER_PASS_SPECULAR_LIGHT ?
-                                              (int)RENDER_PASS_LAYER_SPECULAR_LIGHT :
+                                              int(RENDER_PASS_LAYER_SPECULAR_LIGHT) :
                                               -1) +
                                    1;
   /* Only RG16F when only doing only reprojection or motion blur. */

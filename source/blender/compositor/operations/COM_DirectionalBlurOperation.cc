@@ -30,7 +30,7 @@ void DirectionalBlurOperation::init_execution()
   const float height = get_height();
 
   const float a = angle;
-  const float itsc = 1.0f / powf(2.0f, (float)iterations);
+  const float itsc = 1.0f / powf(2.0f, float(iterations));
   float D;
 
   D = distance * sqrtf(width * width + height * height);

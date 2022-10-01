@@ -47,6 +47,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_asset.h"
 #include "BKE_bpath.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -54,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.h"
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
@@ -372,7 +374,7 @@ static void node_foreach_cache(ID *id,
   if (nodetree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
       if (node->type == CMP_NODE_MOVIEDISTORTION) {
-        key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(node->name);
+        key.offset_in_ID = size_t(BLI_ghashutil_strhash_p(node->name));
         function_callback(id, &key, (void **)&node->storage, 0, user_data);
       }
     }
@@ -1026,6 +1028,33 @@ static void ntree_blend_read_expand(BlendExpander *expander, ID *id)
   ntreeBlendReadExpand(expander, ntree);
 }
 
+namespace blender::bke {
+
+static void node_tree_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_data)
+{
+  bNodeTree &node_tree = *static_cast<bNodeTree *>(asset_ptr);
+
+  BKE_asset_metadata_idprop_ensure(asset_data, idprop::create("type", node_tree.type).release());
+  auto inputs = idprop::create_group("inputs");
+  auto outputs = idprop::create_group("outputs");
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &node_tree.inputs) {
+    auto property = idprop::create(socket->name, socket->typeinfo->idname);
+    IDP_AddToGroup(inputs.get(), property.release());
+  }
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &node_tree.outputs) {
+    auto property = idprop::create(socket->name, socket->typeinfo->idname);
+    IDP_AddToGroup(outputs.get(), property.release());
+  }
+  BKE_asset_metadata_idprop_ensure(asset_data, inputs.release());
+  BKE_asset_metadata_idprop_ensure(asset_data, outputs.release());
+}
+
+}  // namespace blender::bke
+
+static AssetTypeInfo AssetType_NT = {
+    /* pre_save_fn */ blender::bke::node_tree_asset_pre_save,
+};
+
 IDTypeInfo IDType_ID_NT = {
     /* id_code */ ID_NT,
     /* id_filter */ FILTER_ID_NT,
@@ -1035,7 +1064,7 @@ IDTypeInfo IDType_ID_NT = {
     /* name_plural */ "node_groups",
     /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /* asset_type_info */ &AssetType_NT,
 
     /* init_data */ ntree_init_data,
     /* copy_data */ ntree_copy_data,
@@ -1388,8 +1417,8 @@ void nodeUnregisterType(bNodeType *nt)
 bool nodeTypeUndefined(const bNode *node)
 {
   return (node->typeinfo == &NodeTypeUndefined) ||
-         ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id &&
-          ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING));
+         (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id && ID_IS_LINKED(node->id) &&
+          (node->id->tag & LIB_TAG_MISSING));
 }
 
 GHashIterator *nodeTypeGetIterator()
@@ -2149,7 +2178,7 @@ bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idnam
 
   BKE_ntree_update_tag_node_new(ntree, node);
 
-  if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
+  if (ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT)) {
     DEG_relations_tag_update(CTX_data_main(C));
   }
 
@@ -2687,8 +2716,8 @@ bNodePreview *BKE_node_preview_verify(bNodeInstanceHash *previews,
   }
 
   if (preview->rect == nullptr) {
-    preview->rect = (unsigned char *)MEM_callocN(4 * xsize + xsize * ysize * sizeof(char[4]),
-                                                 "node preview rect");
+    preview->rect = (uchar *)MEM_callocN(4 * xsize + xsize * ysize * sizeof(char[4]),
+                                         "node preview rect");
     preview->xsize = xsize;
     preview->ysize = ysize;
   }
@@ -2701,7 +2730,7 @@ bNodePreview *BKE_node_preview_copy(bNodePreview *preview)
 {
   bNodePreview *new_preview = (bNodePreview *)MEM_dupallocN(preview);
   if (preview->rect) {
-    new_preview->rect = (unsigned char *)MEM_dupallocN(preview->rect);
+    new_preview->rect = (uchar *)MEM_dupallocN(preview->rect);
   }
   return new_preview;
 }
@@ -2992,7 +3021,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 
   /* Also update relations for the scene time node, which causes a dependency
    * on time that users expect to be removed when the node is removed. */
-  if (node_has_id || node->type == GEO_NODE_INPUT_SCENE_TIME) {
+  if (node_has_id || ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT)) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
@@ -3085,7 +3114,7 @@ void ntreeSetOutput(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
       /* we need a check for which output node should be tagged like this, below an exception */
-      if (node->type == CMP_NODE_OUTPUT_FILE) {
+      if (ELEM(node->type, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
         continue;
       }
 
@@ -3096,8 +3125,8 @@ void ntreeSetOutput(bNodeTree *ntree)
           if (ntree->type == NTREE_COMPOSIT) {
             /* same type, exception for viewer */
             if (tnode->type == node->type ||
-                (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER) &&
-                 ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER))) {
+                (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
+                 ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
               if (tnode->flag & NODE_DO_OUTPUT) {
                 output++;
                 if (output > 1) {
@@ -3870,15 +3899,15 @@ bNodeInstanceKey BKE_node_instance_key(bNodeInstanceKey parent_key,
   return key;
 }
 
-static unsigned int node_instance_hash_key(const void *key)
+static uint node_instance_hash_key(const void *key)
 {
   return ((const bNodeInstanceKey *)key)->value;
 }
 
 static bool node_instance_hash_key_cmp(const void *a, const void *b)
 {
-  unsigned int value_a = ((const bNodeInstanceKey *)a)->value;
-  unsigned int value_b = ((const bNodeInstanceKey *)b)->value;
+  uint value_a = ((const bNodeInstanceKey *)a)->value;
+  uint value_b = ((const bNodeInstanceKey *)b)->value;
 
   return (value_a != value_b);
 }
@@ -4699,9 +4728,12 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_to_points();
+  register_node_type_geo_curve_topology_curve_of_point();
+  register_node_type_geo_curve_topology_points_of_curve();
   register_node_type_geo_curve_trim();
   register_node_type_geo_deform_curves_on_surface();
   register_node_type_geo_delete_geometry();
+  register_node_type_geo_distribute_points_in_volume();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
   register_node_type_geo_duplicate_elements();
@@ -4712,6 +4744,7 @@ static void registerGeometryNodes()
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
+  register_node_type_geo_input_control_point_neighbors();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -4747,6 +4780,7 @@ static void registerGeometryNodes()
   register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
   register_node_type_geo_merge_by_distance();
+  register_node_type_geo_mesh_face_set_boundaries();
   register_node_type_geo_mesh_primitive_circle();
   register_node_type_geo_mesh_primitive_cone();
   register_node_type_geo_mesh_primitive_cube();
@@ -4759,6 +4793,13 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_volume();
+  register_node_type_geo_mesh_topology_offset_corner_in_face();
+  register_node_type_geo_mesh_topology_corners_of_face();
+  register_node_type_geo_mesh_topology_corners_of_vertex();
+  register_node_type_geo_mesh_topology_edges_of_corner();
+  register_node_type_geo_mesh_topology_edges_of_vertex();
+  register_node_type_geo_mesh_topology_face_of_corner();
+  register_node_type_geo_mesh_topology_vertex_of_corner();
   register_node_type_geo_object_info();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
@@ -4768,10 +4809,14 @@ static void registerGeometryNodes()
   register_node_type_geo_realize_instances();
   register_node_type_geo_remove_attribute();
   register_node_type_geo_rotate_instances();
+  register_node_type_geo_sample_index();
+  register_node_type_geo_sample_nearest_surface();
+  register_node_type_geo_sample_nearest();
   register_node_type_geo_scale_elements();
   register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();
   register_node_type_geo_separate_geometry();
+  register_node_type_geo_self_object();
   register_node_type_geo_set_curve_handles();
   register_node_type_geo_set_curve_radius();
   register_node_type_geo_set_curve_tilt();
@@ -4788,7 +4833,6 @@ static void registerGeometryNodes()
   register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
-  register_node_type_geo_transfer_attribute();
   register_node_type_geo_transform();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();

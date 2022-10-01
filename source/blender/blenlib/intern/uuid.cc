@@ -136,10 +136,10 @@ bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
   const auto *field_iter = field_values.begin();
 
   this->time_low = *field_iter++;
-  this->time_mid = static_cast<uint16_t>(*field_iter++);
-  this->time_hi_and_version = static_cast<uint16_t>(*field_iter++);
-  this->clock_seq_hi_and_reserved = static_cast<uint8_t>(*field_iter++);
-  this->clock_seq_low = static_cast<uint8_t>(*field_iter++);
+  this->time_mid = uint16_t(*field_iter++);
+  this->time_hi_and_version = uint16_t(*field_iter++);
+  this->clock_seq_hi_and_reserved = uint8_t(*field_iter++);
+  this->clock_seq_low = uint8_t(*field_iter++);
 
   std::copy(field_iter, field_values.end(), this->node);
 }

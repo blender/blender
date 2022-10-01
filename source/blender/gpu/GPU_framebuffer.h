@@ -189,6 +189,12 @@ void GPU_framebuffer_texture_layer_attach(
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip);
 
+/**
+ * Default size is used if the framebuffer contains no attachments.
+ * It needs to be re-specified each time an attachment is added.
+ */
+void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height);
+
 /* Frame-buffer operations. */
 
 /**

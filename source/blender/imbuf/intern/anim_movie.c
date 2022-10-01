@@ -1406,6 +1406,10 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
 
   ffmpeg_decode_video_frame_scan(anim, pts_to_search);
 
+  /* Update resolution as it can change per-frame with WebM. See T100741 & T100081. */
+  anim->x = anim->pCodecCtx->width;
+  anim->y = anim->pCodecCtx->height;
+
   IMB_freeImBuf(anim->cur_frame_final);
 
   /* Certain versions of FFmpeg have a bug in libswscale which ends up in crash

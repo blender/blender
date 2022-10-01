@@ -22,13 +22,7 @@
 /* Utility file for secondary functionality which supports mtl_texture.mm. */
 
 extern char datatoc_compute_texture_update_msl[];
-extern char datatoc_depth_2d_update_vert_glsl[];
-extern char datatoc_depth_2d_update_float_frag_glsl[];
-extern char datatoc_depth_2d_update_int24_frag_glsl[];
-extern char datatoc_depth_2d_update_int32_frag_glsl[];
 extern char datatoc_compute_texture_read_msl[];
-extern char datatoc_gpu_shader_fullscreen_blit_vert_glsl[];
-extern char datatoc_gpu_shader_fullscreen_blit_frag_glsl[];
 
 namespace blender::gpu {
 
@@ -447,42 +441,34 @@ GPUShader *gpu::MTLTexture::depth_2d_update_sh_get(
     return *result;
   }
 
-  const char *fragment_source = nullptr;
+  const char *depth_2d_info_variant = nullptr;
   switch (specialization.data_mode) {
     case MTL_DEPTH_UPDATE_MODE_FLOAT:
-      fragment_source = datatoc_depth_2d_update_float_frag_glsl;
+      depth_2d_info_variant = "depth_2d_update_float";
       break;
     case MTL_DEPTH_UPDATE_MODE_INT24:
-      fragment_source = datatoc_depth_2d_update_int24_frag_glsl;
+      depth_2d_info_variant = "depth_2d_update_int24";
       break;
     case MTL_DEPTH_UPDATE_MODE_INT32:
-      fragment_source = datatoc_depth_2d_update_int32_frag_glsl;
+      depth_2d_info_variant = "depth_2d_update_int32";
       break;
     default:
       BLI_assert(false && "Invalid format mode\n");
       return nullptr;
   }
 
-  GPUShader *shader = GPU_shader_create(datatoc_depth_2d_update_vert_glsl,
-                                        fragment_source,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        "depth_2d_update_sh_get");
+  GPUShader *shader = GPU_shader_create_from_info_name(depth_2d_info_variant);
   mtl_context->get_texture_utils().depth_2d_update_shaders.add_new(specialization, shader);
   return shader;
 }
 
 GPUShader *gpu::MTLTexture::fullscreen_blit_sh_get()
 {
-
   MTLContext *mtl_context = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(mtl_context != nullptr);
   if (mtl_context->get_texture_utils().fullscreen_blit_shader == nullptr) {
-    const char *vertex_source = datatoc_gpu_shader_fullscreen_blit_vert_glsl;
-    const char *fragment_source = datatoc_gpu_shader_fullscreen_blit_frag_glsl;
-    GPUShader *shader = GPU_shader_create(
-        vertex_source, fragment_source, nullptr, nullptr, nullptr, "fullscreen_blit");
+    GPUShader *shader = GPU_shader_create_from_info_name("fullscreen_blit");
+
     mtl_context->get_texture_utils().fullscreen_blit_shader = shader;
   }
   return mtl_context->get_texture_utils().fullscreen_blit_shader;
@@ -614,7 +600,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
         stringWithUTF8String:datatoc_compute_texture_read_msl];
 
     /* Defensive Debug Checks. */
-    long long int depth_scale_factor = 1;
+    int64_t depth_scale_factor = 1;
     if (specialization_params.depth_format_mode > 0) {
       BLI_assert(specialization_params.component_count_input == 1);
       BLI_assert(specialization_params.component_count_output == 1);

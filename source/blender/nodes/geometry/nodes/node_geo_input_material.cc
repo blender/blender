@@ -19,7 +19,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Material *material = (Material *)params.node().id;
+  Material *material = reinterpret_cast<Material *>(params.node().id);
   params.set_output("Material", material);
 }
 

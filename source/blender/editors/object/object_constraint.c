@@ -114,7 +114,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
   }
 
   /* try object constraints first */
-  if ((BLI_findindex(&ob->constraints, con) != -1)) {
+  if (BLI_findindex(&ob->constraints, con) != -1) {
     return &ob->constraints;
   }
 
@@ -126,7 +126,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
      * NOTE: it's not possible to directly look up the active bone yet, so this will have to do
      */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if ((BLI_findindex(&pchan->constraints, con) != -1)) {
+      if (BLI_findindex(&pchan->constraints, con) != -1) {
 
         if (r_pchan) {
           *r_pchan = pchan;
@@ -297,10 +297,9 @@ static void test_constraint(
   if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
     bKinematicConstraint *data = con->data;
 
-    /* bad: we need a separate set of checks here as poletarget is
-     * optional... otherwise poletarget must exist too or else
-     * the constraint is deemed invalid
-     */
+    /* Bad: we need a separate set of checks here as pole-target is optional...
+     * otherwise pole-target must exist too or else the constraint is deemed invalid. */
+
     /* default IK check ... */
     if (BKE_object_exists_check(bmain, data->tar) == 0) {
       data->tar = NULL;

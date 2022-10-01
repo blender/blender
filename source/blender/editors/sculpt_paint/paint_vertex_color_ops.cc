@@ -49,7 +49,7 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *me = BKE_mesh_from_object(ob);
-  return (ob && (ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT))) &&
+  return (ob && ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
          (me && me->totpoly && !me->deform_verts().is_empty());
 }
 
@@ -73,8 +73,7 @@ static bool vertex_paint_from_weight(Object *ob)
   using namespace blender;
 
   Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr ||
-       (ED_mesh_color_ensure(me, nullptr)) == false)) {
+  if ((me = BKE_mesh_from_object(ob)) == nullptr || (ED_mesh_color_ensure(me, nullptr)) == false) {
     return false;
   }
 
@@ -159,29 +158,19 @@ static IndexMask get_selected_indices(const Mesh &mesh,
                                       Vector<int64_t> &indices)
 {
   using namespace blender;
-  const Span<MVert> verts = mesh.verts();
-  const Span<MPoly> polys = mesh.polys();
-
-  bke::AttributeAccessor attributes = mesh.attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(polys.size(),
-                              [&](const int i) { return polys[i].flag & ME_FACE_SEL; }),
-        ATTR_DOMAIN_FACE,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_poly", ATTR_DOMAIN_FACE, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(verts.size(), [&](const int i) { return verts[i].flag & SELECT; }),
-        ATTR_DOMAIN_POINT,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_vert", ATTR_DOMAIN_POINT, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   return IndexMask(attributes.domain_size(domain));
 }
@@ -320,7 +309,7 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     /*
      * The algorithm is by Werner D. Streidt
      * (http://visca.com/ffactory/archives/5-99/msg00021.html)
-     * Extracted of OpenCV demhist.c
+     * Extracted of OpenCV `demhist.c`.
      */
     if (contrast > 0) {
       gain = 1.0f - delta * 2.0f;

@@ -59,6 +59,7 @@ struct Palette;
 struct PaletteColor;
 struct Scene;
 struct StrokeCache;
+struct Sculpt;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -511,7 +512,6 @@ typedef struct StoredCotangentW {
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *verts;
-  int *verts_i;
   int verts_capacity;
   int verts_num;
 
@@ -708,6 +708,9 @@ typedef struct SculptAttributePointers {
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #SCULPT_automasking_cache_init when needed. */
   SculptAttribute *automasking_factor;
+  SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
+  SculptAttribute *automasking_stroke_id;
+  SculptAttribute *automasking_cavity;
 
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
@@ -798,6 +801,8 @@ typedef struct SculptSession {
    * May be null.
    */
   bool *hide_poly;
+
+  bool *select_poly;
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
@@ -945,7 +950,7 @@ typedef struct SculptSession {
 
   // id of current stroke, used to detect
   // if vertex original data needs to be updated
-  int stroke_id, boundary_symmetry;
+  int boundary_symmetry;
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
   struct MSculptVert *msculptverts;  // for non-bmesh
@@ -967,16 +972,22 @@ typedef struct SculptSession {
    */
   bool sticky_shading_color;
 
+  uchar stroke_id;
+
   /**
    * Last used painting canvas key.
    */
   char *last_paint_canvas_key;
+  float last_normal[3];
 
   /* Used to derive initial tip rotation. */
   float last_grab_delta[3];
 
   bool save_temp_layers;
   const float (*vert_normals)[3];
+
+  int last_automasking_settings_hash;
+  uchar last_automask_stroke_id;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -1160,6 +1171,8 @@ bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
                                 struct ImageUser **r_image_user);
 int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
                                            struct Object *ob);
+void BKE_sculpt_check_cavity_curves(struct Sculpt *sd);
+struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
 
 #ifdef __cplusplus
 }

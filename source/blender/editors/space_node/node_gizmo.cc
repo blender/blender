@@ -252,7 +252,7 @@ static void gizmo_node_crop_prop_matrix_get(const wmGizmo *gz,
   const float *dims = crop_group->state.dims;
   const bNode *node = (const bNode *)gz_prop->custom_func.user_data;
   const NodeTwoXYs *nxy = (const NodeTwoXYs *)node->storage;
-  bool is_relative = (bool)node->custom2;
+  bool is_relative = bool(node->custom2);
   rctf rct;
   two_xy_to_rect(nxy, &rct, dims, is_relative);
   matrix[0][0] = fabsf(BLI_rctf_size_x(&rct));
@@ -271,7 +271,7 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   const float *dims = crop_group->state.dims;
   bNode *node = (bNode *)gz_prop->custom_func.user_data;
   NodeTwoXYs *nxy = (NodeTwoXYs *)node->storage;
-  bool is_relative = (bool)node->custom2;
+  bool is_relative = bool(node->custom2);
   rctf rct;
   two_xy_to_rect(nxy, &rct, dims, is_relative);
   const bool nx = rct.xmin > rct.xmax;

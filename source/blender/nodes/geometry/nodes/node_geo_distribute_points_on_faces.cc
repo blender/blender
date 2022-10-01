@@ -69,8 +69,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock_distance_min = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
-  bNodeSocket *sock_density_max = (bNodeSocket *)sock_distance_min->next;
+  bNodeSocket *sock_distance_min = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
+  bNodeSocket *sock_density_max = static_cast<bNodeSocket *>(sock_distance_min->next);
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
   nodeSetSocketAvailability(ntree,
@@ -107,8 +107,7 @@ static void sample_mesh_surface(const Mesh &mesh,
 {
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
@@ -204,8 +203,7 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const Span<int> looptri_indices,
     const MutableSpan<bool> elimination_mask)
 {
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
   for (const int i : bary_coords.index_range()) {
     if (elimination_mask[i]) {
       continue;
@@ -352,8 +350,7 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
 
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : bary_coords.index_range()) {
     const int looptri_index = looptri_indices[i];
@@ -382,13 +379,8 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
   }
 
   ids.finish();
-
-  if (normals) {
-    normals.finish();
-  }
-  if (rotations) {
-    rotations.finish();
-  }
+  normals.finish();
+  rotations.finish();
 }
 
 static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
@@ -519,8 +511,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
-  const GeometryNodeDistributePointsOnFacesMode method =
-      static_cast<GeometryNodeDistributePointsOnFacesMode>(params.node().custom1);
+  const GeometryNodeDistributePointsOnFacesMode method = GeometryNodeDistributePointsOnFacesMode(
+      params.node().custom1);
 
   const int seed = params.get_input<int>("Seed") * 5383843;
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -532,6 +524,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (params.output_is_required("Rotation")) {
     attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
   }
+
+  lazy_threading::send_hint();
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     point_distribution_calculate(

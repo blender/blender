@@ -493,6 +493,24 @@ class Set {
   }
 
   /**
+   * Remove all values for which the given predicate is true.
+   *
+   * This is similar to std::erase_if.
+   */
+  template<typename Predicate> void remove_if(Predicate &&predicate)
+  {
+    for (Slot &slot : slots_) {
+      if (slot.is_occupied()) {
+        const Key &key = *slot.key();
+        if (predicate(key)) {
+          slot.remove();
+          removed_slots_++;
+        }
+      }
+    }
+  }
+
+  /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
   void print_stats(StringRef name = "") const
@@ -626,7 +644,7 @@ class Set {
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     BLI_assert(total_slots >= 1);
-    const uint64_t new_slot_mask = static_cast<uint64_t>(total_slots) - 1;
+    const uint64_t new_slot_mask = uint64_t(total_slots) - 1;
 
     /**
      * Optimize the case when the set was empty beforehand. We can avoid some copies here.
@@ -854,7 +872,7 @@ template<typename Key> class StdUnorderedSetWrapper {
  public:
   int64_t size() const
   {
-    return static_cast<int64_t>(set_.size());
+    return int64_t(set_.size());
   }
 
   bool is_empty() const
@@ -899,7 +917,7 @@ template<typename Key> class StdUnorderedSetWrapper {
 
   bool remove(const Key &key)
   {
-    return (bool)set_.erase(key);
+    return bool(set_.erase(key));
   }
 
   void remove_contained(const Key &key)

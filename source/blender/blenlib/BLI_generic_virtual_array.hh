@@ -315,7 +315,7 @@ template<typename T> class GVArrayImpl_For_VArray : public GVArrayImpl {
  protected:
   void get(const int64_t index, void *r_value) const override
   {
-    *(T *)r_value = varray_[index];
+    *static_cast<T *>(r_value) = varray_[index];
   }
 
   void get_to_uninitialized(const int64_t index, void *r_value) const override
@@ -325,22 +325,24 @@ template<typename T> class GVArrayImpl_For_VArray : public GVArrayImpl {
 
   void materialize(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize(mask, MutableSpan((T *)dst, mask.min_array_size()));
+    varray_.materialize(mask, MutableSpan(static_cast<T *>(dst), mask.min_array_size()));
   }
 
   void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_to_uninitialized(mask, MutableSpan((T *)dst, mask.min_array_size()));
+    varray_.materialize_to_uninitialized(
+        mask, MutableSpan(static_cast<T *>(dst), mask.min_array_size()));
   }
 
   void materialize_compressed(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_compressed(mask, MutableSpan((T *)dst, mask.size()));
+    varray_.materialize_compressed(mask, MutableSpan(static_cast<T *>(dst), mask.size()));
   }
 
   void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_compressed_to_uninitialized(mask, MutableSpan((T *)dst, mask.size()));
+    varray_.materialize_compressed_to_uninitialized(
+        mask, MutableSpan(static_cast<T *>(dst), mask.size()));
   }
 
   bool try_assign_VArray(void *varray) const override
@@ -422,7 +424,7 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
  protected:
   void get(const int64_t index, void *r_value) const override
   {
-    *(T *)r_value = varray_[index];
+    *static_cast<T *>(r_value) = varray_[index];
   }
 
   void get_to_uninitialized(const int64_t index, void *r_value) const override
@@ -443,40 +445,42 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
 
   void set_by_relocate(const int64_t index, void *value) override
   {
-    T &value_ = *(T *)value;
+    T &value_ = *static_cast<T *>(value);
     varray_.set(index, std::move(value_));
     value_.~T();
   }
 
   void set_by_move(const int64_t index, void *value) override
   {
-    T &value_ = *(T *)value;
+    T &value_ = *static_cast<T *>(value);
     varray_.set(index, std::move(value_));
   }
 
   void set_all(const void *src) override
   {
-    varray_.set_all(Span((T *)src, size_));
+    varray_.set_all(Span(static_cast<const T *>(src), size_));
   }
 
   void materialize(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize(mask, MutableSpan((T *)dst, mask.min_array_size()));
+    varray_.materialize(mask, MutableSpan(static_cast<T *>(dst), mask.min_array_size()));
   }
 
   void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_to_uninitialized(mask, MutableSpan((T *)dst, mask.min_array_size()));
+    varray_.materialize_to_uninitialized(
+        mask, MutableSpan(static_cast<T *>(dst), mask.min_array_size()));
   }
 
   void materialize_compressed(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_compressed(mask, MutableSpan((T *)dst, mask.size()));
+    varray_.materialize_compressed(mask, MutableSpan(static_cast<T *>(dst), mask.size()));
   }
 
   void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override
   {
-    varray_.materialize_compressed_to_uninitialized(mask, MutableSpan((T *)dst, mask.size()));
+    varray_.materialize_compressed_to_uninitialized(
+        mask, MutableSpan(static_cast<T *>(dst), mask.size()));
   }
 
   bool try_assign_VArray(void *varray) const override
@@ -709,7 +713,7 @@ inline bool GVMutableArray::try_assign_VMutableArray(VMutableArray<T> &varray) c
 
 inline GVMutableArrayImpl *GVMutableArray::get_impl() const
 {
-  return (GVMutableArrayImpl *)impl_;
+  return const_cast<GVMutableArrayImpl *>(static_cast<const GVMutableArrayImpl *>(impl_));
 }
 
 /** \} */

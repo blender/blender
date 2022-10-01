@@ -434,8 +434,8 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
      * but oldmain itself shall *never* be 'transferred' to new mainlist! */
     BLI_assert(old_mainlist.first == oldmain);
 
-    /* That way, libs (aka mains) we did not reuse in new undone/redone state
-     * will be cleared together with oldmain... */
+    /* That way, libraries (aka mains) we did not reuse in new undone/redone state
+     * will be cleared together with `oldmain`. */
     blo_join_main(&old_mainlist);
 
     blo_filedata_free(fd);

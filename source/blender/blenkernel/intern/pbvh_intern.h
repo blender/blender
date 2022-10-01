@@ -47,11 +47,7 @@ struct MeshElemMap;
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  struct GPU_PBVH_Buffers *draw_buffers;
-  struct GPU_PBVH_Buffers **mat_draw_buffers;  // currently only used by pbvh_bmesh
-  int tot_mat_draw_buffers;
-
-  int id;
+  struct PBVHBatches *draw_batches;
 
   /* Voxel bounds */
   BB vb;
@@ -151,6 +147,7 @@ struct PBVHNode {
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
    */
   int debug_draw_gen;
+  int id;
 };
 
 typedef enum {

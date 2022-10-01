@@ -387,7 +387,7 @@ class DrawCommandBuf {
     instance_len = instance_len != -1 ? instance_len : 1;
 
     int64_t index = commands.append_and_get_index({});
-    headers.append({Type::Draw, static_cast<uint>(index)});
+    headers.append({Type::Draw, uint(index)});
     commands[index].draw = {batch, instance_len, vertex_len, vertex_first, handle};
   }
 
@@ -489,11 +489,11 @@ class DrawMultiBuf {
 
     DrawMulti &cmd = commands.last().draw_multi;
 
-    uint &group_id = group_ids_.lookup_or_add(DrawGroupKey(cmd.uuid, batch), (uint)-1);
+    uint &group_id = group_ids_.lookup_or_add(DrawGroupKey(cmd.uuid, batch), uint(-1));
 
     bool inverted = handle.has_inverted_handedness();
 
-    if (group_id == (uint)-1) {
+    if (group_id == uint(-1)) {
       uint new_group_id = group_count_++;
 
       DrawGroup &group = group_buf_.get_or_resize(new_group_id);

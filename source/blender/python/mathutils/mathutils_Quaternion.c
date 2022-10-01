@@ -1177,7 +1177,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
     }
   }
   else if (quat1) { /* QUAT * FLOAT */
-    if ((((scalar = PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred()) == 0)) {
+    if (((scalar = PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred()) == 0) {
       return quat_mul_float(quat1, scalar);
     }
   }
@@ -1662,9 +1662,9 @@ PyDoc_STRVAR(quaternion_doc,
              "\n"
              "   This object gives access to Quaternions in Blender.\n"
              "\n"
-             "   :param seq: size 3 or 4\n"
+             "   :arg seq: size 3 or 4\n"
              "   :type seq: :class:`Vector`\n"
-             "   :param angle: rotation angle, in radians\n"
+             "   :arg angle: rotation angle, in radians\n"
              "   :type angle: float\n"
              "\n"
              "   The constructor takes arguments in various forms:\n"
@@ -1724,7 +1724,7 @@ PyTypeObject quaternion_Type = {
     NULL,                                                          /* tp_alloc */
     Quaternion_new,                                                /* tp_new */
     NULL,                                                          /* tp_free */
-    NULL,                                                          /* tp_is_gc */
+    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
     NULL,                                                          /* tp_bases */
     NULL,                                                          /* tp_mro */
     NULL,                                                          /* tp_cache */
@@ -1800,6 +1800,7 @@ PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar c
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

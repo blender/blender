@@ -71,7 +71,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
   sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (i = -size; i <= size; i++) {
-    val = RE_filter_value(data_.filtertype, (float)i * fac);
+    val = RE_filter_value(data_.filtertype, float(i) * fac);
     sum += val;
     gausstab[i + size] = val;
   }
@@ -107,7 +107,7 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (i = -size; i <= size; i++) {
-    val = 1.0f - fabsf((float)i * fac);
+    val = 1.0f - fabsf(float(i) * fac);
 
     /* keep in sync with rna_enum_proportional_falloff_curve_only_items */
     switch (falloff) {

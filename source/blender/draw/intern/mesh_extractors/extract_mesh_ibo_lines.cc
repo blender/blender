@@ -231,8 +231,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
   }
 
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
-  draw_subdiv_build_lines_loose_buffer(
-      subdiv_cache, ibo, flags, static_cast<uint>(loose_geom.edge_len));
+  draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, flags, uint(loose_geom.edge_len));
 
   GPU_vertbuf_discard(flags);
 }

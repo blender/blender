@@ -77,7 +77,7 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
 
   void **args = const_cast<void **>(_args.values);
 
-  debug_enqueue(kernel, signed_kernel_work_size);
+  debug_enqueue_begin(kernel, signed_kernel_work_size);
   assert(signed_kernel_work_size >= 0);
   size_t kernel_work_size = (size_t)signed_kernel_work_size;
 
@@ -96,6 +96,8 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
                               "\" execution error: got runtime exception \"" +
                               oneapi_device_->oneapi_error_message() + "\"");
   }
+
+  debug_enqueue_end();
 
   return is_finished_ok;
 }

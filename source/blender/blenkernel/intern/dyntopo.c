@@ -5574,7 +5574,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 
   BMCustomLayerReq flayers[] = {
       {CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_SCULPT_FACE_SETS, NULL, 0},
+      {CD_PROP_INT32, ".sculpt_face_set", 0},
       {CD_PROP_INT32,
        SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face),
        CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
@@ -5597,7 +5597,8 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_faceset_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   pbvh->cd_vcol_offset = -1;
 
   if (isfake) {

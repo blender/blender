@@ -43,13 +43,13 @@ def complete(line, cursor, namespace, private):
     * index completion for lists and dictionaries
     * module completion (from/import)
 
-    :param line: incomplete text line
+    :arg line: incomplete text line
     :type line: str
-    :param cursor: current character position
+    :arg cursor: current character position
     :type cursor: int
-    :param namespace: namespace
+    :arg namespace: namespace
     :type namespace: dict
-    :param private: whether private variables should be listed
+    :arg private: whether private variables should be listed
     :type private: bool
     :returns: list of completions, word
     :rtype: list, str
@@ -82,13 +82,13 @@ def expand(line, cursor, namespace, *, private=True):
     """This method is invoked when the user asks autocompletion,
     e.g. when Ctrl+Space is clicked.
 
-    :param line: incomplete text line
+    :arg line: incomplete text line
     :type line: str
-    :param cursor: current character position
+    :arg cursor: current character position
     :type cursor: int
-    :param namespace: namespace
+    :arg namespace: namespace
     :type namespace: dict
-    :param private: whether private variables should be listed
+    :arg private: whether private variables should be listed
     :type private: bool
     :returns:
 

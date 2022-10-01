@@ -2753,7 +2753,7 @@ void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, co
     return;
   }
 
-  if ((/* dp= */ rna_def_property_sdna(prop, structname, propname))) {
+  if (/* dp= */ rna_def_property_sdna(prop, structname, propname)) {
     if (prop->arraydimension) {
       prop->arraydimension = 0;
       prop->totarraylength = 0;

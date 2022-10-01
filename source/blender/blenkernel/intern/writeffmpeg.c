@@ -425,7 +425,7 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
 
   /* Calculate the precision of the initial floating point number. */
   if (num > 1.0) {
-    const uint num_integer_bits = log2_floor_u((unsigned int)num);
+    const uint num_integer_bits = log2_floor_u((uint)num);
 
     /* Formula for calculating the epsilon value: (power of two range) / (pow mantissa bits)
      * For example, a float has 23 mantissa bits and the float value 3.5f as a pow2 range of
@@ -1282,7 +1282,7 @@ int BKE_ffmpeg_append(void *context_v,
   PRINT("Writing frame %i, render width=%d, render height=%d\n", frame, rectx, recty);
 
   if (context->video_stream) {
-    avframe = generate_video_frame(context, (unsigned char *)pixels);
+    avframe = generate_video_frame(context, (uchar *)pixels);
     success = (avframe && write_video_frame(context, avframe, reports));
 #  ifdef WITH_AUDASPACE
     /* Add +1 frame because we want to encode audio up until the next video frame. */

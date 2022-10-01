@@ -140,6 +140,10 @@ class IndexRange {
   {
     return (a.size_ == b.size_) && (a.start_ == b.start_ || a.size_ == 0);
   }
+  constexpr friend bool operator!=(IndexRange a, IndexRange b)
+  {
+    return !(a == b);
+  }
 
   /**
    * Get the amount of numbers in the range.
@@ -245,6 +249,19 @@ class IndexRange {
   constexpr IndexRange slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
+  }
+
+  /**
+   * Returns a new IndexRange that contains the intersection of the current one with the given
+   * range. Returns empty range if there are no overlapping indices. The returned range is always
+   * a valid slice of this range.
+   */
+  constexpr IndexRange intersect(IndexRange other) const
+  {
+    const int64_t old_end = start_ + size_;
+    const int64_t new_start = std::min(old_end, std::max(start_, other.start_));
+    const int64_t new_end = std::max(new_start, std::min(old_end, other.start_ + other.size_));
+    return IndexRange(new_start, new_end - new_start);
   }
 
   /**

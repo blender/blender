@@ -1490,7 +1490,7 @@ bool BM_mesh_intersect(BMesh *bm,
   (void)use_separate;
 #endif /* USE_SEPARATE */
 
-  if ((boolean_mode != BMESH_ISECT_BOOLEAN_NONE)) {
+  if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
     BVHTree *tree_pair[2] = {tree_a, tree_b};
 
     /* group vars */

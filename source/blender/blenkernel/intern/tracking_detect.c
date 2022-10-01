@@ -121,7 +121,7 @@ static void run_configured_detector(MovieTracking *tracking,
     features = libmv_detectFeaturesFloat(ibuf->rect_float, ibuf->x, ibuf->y, 4, options);
   }
   else if (ibuf->rect) {
-    features = libmv_detectFeaturesByte((unsigned char *)ibuf->rect, ibuf->x, ibuf->y, 4, options);
+    features = libmv_detectFeaturesByte((uchar *)ibuf->rect, ibuf->x, ibuf->y, 4, options);
   }
 
   if (features != NULL) {

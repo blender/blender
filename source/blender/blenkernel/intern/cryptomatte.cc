@@ -311,7 +311,7 @@ static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
 
 static uint32_t cryptomatte_determine_identifier(const blender::StringRef name)
 {
-  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.data()), name.size(), 0);
+  return BLI_hash_mm3(reinterpret_cast<const uchar *>(name.data()), name.size(), 0);
 }
 
 static void add_render_result_meta_data(RenderResult *render_result,

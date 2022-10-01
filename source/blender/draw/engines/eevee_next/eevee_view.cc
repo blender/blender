@@ -39,7 +39,7 @@ void ShadingView::sync()
   int2 render_extent = inst_.film.render_extent_get();
 
   if (false /* inst_.camera.is_panoramic() */) {
-    int64_t render_pixel_count = render_extent.x * (int64_t)render_extent.y;
+    int64_t render_pixel_count = render_extent.x * int64_t(render_extent.y);
     /* Divide pixel count between the 6 views. Rendering to a square target. */
     extent_[0] = extent_[1] = ceilf(sqrtf(1 + (render_pixel_count / 6)));
     /* TODO(@fclem): Clip unused views here. */

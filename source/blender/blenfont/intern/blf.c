@@ -63,8 +63,6 @@ int BLF_init(void)
     global_font[i] = NULL;
   }
 
-  BLF_default_dpi(72);
-
   return blf_font_init();
 }
 
@@ -119,7 +117,7 @@ static int blf_search_available(void)
   return -1;
 }
 
-bool BLF_has_glyph(int fontid, unsigned int unicode)
+bool BLF_has_glyph(int fontid, uint unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
@@ -176,7 +174,7 @@ int BLF_load_unique(const char *name)
   return i;
 }
 
-void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
+void BLF_metrics_attach(int fontid, uchar *mem, int mem_size)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -185,7 +183,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
   }
 }
 
-int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
+int BLF_load_mem(const char *name, const uchar *mem, int mem_size)
 {
   int i = blf_search(name);
   if (i >= 0) {
@@ -195,7 +193,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
   return BLF_load_mem_unique(name, mem, mem_size);
 }
 
-int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
+int BLF_load_mem_unique(const char *name, const uchar *mem, int mem_size)
 {
   /*
    * Don't search in the cache, make a new object font!
@@ -361,12 +359,12 @@ void BLF_position(int fontid, float x, float y, float z)
   }
 }
 
-void BLF_size(int fontid, float size, int dpi)
+void BLF_size(int fontid, float size)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    blf_font_size(font, size, dpi);
+    blf_font_size(font, size);
   }
 }
 
@@ -381,7 +379,7 @@ void BLF_blur(int fontid, int size)
 }
 #endif
 
-void BLF_color4ubv(int fontid, const unsigned char rgba[4])
+void BLF_color4ubv(int fontid, const uchar rgba[4])
 {
   FontBLF *font = blf_get(fontid);
 
@@ -393,7 +391,7 @@ void BLF_color4ubv(int fontid, const unsigned char rgba[4])
   }
 }
 
-void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char alpha)
+void BLF_color3ubv_alpha(int fontid, const uchar rgb[3], uchar alpha)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -405,13 +403,12 @@ void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char a
   }
 }
 
-void BLF_color3ubv(int fontid, const unsigned char rgb[3])
+void BLF_color3ubv(int fontid, const uchar rgb[3])
 {
   BLF_color3ubv_alpha(fontid, rgb, 255);
 }
 
-void BLF_color4ub(
-    int fontid, unsigned char r, unsigned char g, unsigned char b, unsigned char alpha)
+void BLF_color4ub(int fontid, uchar r, uchar g, uchar b, uchar alpha)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -423,7 +420,7 @@ void BLF_color4ub(
   }
 }
 
-void BLF_color3ub(int fontid, unsigned char r, unsigned char g, unsigned char b)
+void BLF_color3ub(int fontid, uchar r, uchar g, uchar b)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -566,16 +563,10 @@ int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth)
   return columns;
 }
 
-void BLF_boundbox_foreach_glyph_ex(int fontid,
-                                   const char *str,
-                                   size_t str_len,
-                                   BLF_GlyphBoundsFn user_fn,
-                                   void *user_data,
-                                   struct ResultBLF *r_info)
+void BLF_boundbox_foreach_glyph(
+    int fontid, const char *str, size_t str_len, BLF_GlyphBoundsFn user_fn, void *user_data)
 {
   FontBLF *font = blf_get(fontid);
-
-  BLF_RESULT_CHECK_INIT(r_info);
 
   if (font) {
     if (font->flags & BLF_WORD_WRAP) {
@@ -583,15 +574,34 @@ void BLF_boundbox_foreach_glyph_ex(int fontid,
       BLI_assert(0);
     }
     else {
-      blf_font_boundbox_foreach_glyph(font, str, str_len, user_fn, user_data, r_info);
+      blf_font_boundbox_foreach_glyph(font, str, str_len, user_fn, user_data);
     }
   }
 }
 
-void BLF_boundbox_foreach_glyph(
-    int fontid, const char *str, const size_t str_len, BLF_GlyphBoundsFn user_fn, void *user_data)
+size_t BLF_str_offset_from_cursor_position(int fontid,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x)
 {
-  BLF_boundbox_foreach_glyph_ex(fontid, str, str_len, user_fn, user_data, NULL);
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    return blf_str_offset_from_cursor_position(font, str, str_len, location_x);
+  }
+  return 0;
+}
+
+bool BLF_str_offset_to_glyph_bounds(int fontid,
+                                    const char *str,
+                                    size_t str_offset,
+                                    rcti *glyph_bounds)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, glyph_bounds);
+    return true;
+  }
+  return false;
 }
 
 size_t BLF_width_to_strlen(
@@ -816,7 +826,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
 
 void BLF_buffer(int fontid,
                 float *fbuf,
-                unsigned char *cbuf,
+                uchar *cbuf,
                 int w,
                 int h,
                 int nch,
@@ -912,7 +922,6 @@ void BLF_state_print(int fontid)
     printf("fontid %d %p\n", fontid, (void *)font);
     printf("  name:    '%s'\n", font->name);
     printf("  size:     %f\n", font->size);
-    printf("  dpi:      %u\n", font->dpi);
     printf("  pos:      %d %d %d\n", UNPACK3(font->pos));
     printf("  aspect:   (%d) %.6f %.6f %.6f\n",
            (font->flags & BLF_ROTATION) != 0,

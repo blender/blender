@@ -1445,11 +1445,18 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertR
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
 
+  AutomaskingNodeData automask_data = {0};
+  automask_data.have_orig_data = true;
+  automask_data.orig_data.co = SCULPT_vertex_origco_get(ss, vertex);
+  automask_data.orig_data.no = SCULPT_vertex_origno_get(ss, vertex);
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     float tmp[4] = {0};
 
-    float w = automasking ? SCULPT_automasking_factor_get(automasking, ss, ni.vertex) : 1.0f;
+    float w = automasking ?
+                  SCULPT_automasking_factor_get(automasking, ss, ni.vertex, &automask_data) :
+                  1.0f;
 
     SCULPT_vertex_color_get(ss, ni.vertex, tmp);
 
@@ -1485,10 +1492,16 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -1498,7 +1511,8 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     float disp[3];
     float *dir = SCULPT_vertex_attr_get(vd.vertex, data->scl);
@@ -1826,6 +1840,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
   const bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   if (weighted || ss->cache->brush->boundary_smooth_factor > 0.0f) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
   }
@@ -1858,6 +1876,8 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
       modified = true;
 
+      SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
       // check origdata to be sure we don't mess it up
       SCULPT_vertex_check_origdata(ss, vd.vertex);
 
@@ -1870,7 +1890,8 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.vertex,
-                                         thread_id);
+                                         thread_id,
+                                         &automask_data);
       if (smooth_mask) {
         float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
         val *= fade * bstrength;
@@ -2237,6 +2258,9 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
 
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   bool do_reproject = SCULPT_need_reproject(ss);
 
@@ -2246,6 +2270,9 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
                                                                 vd.co,
@@ -2254,7 +2281,8 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     float disp[3];
     float oldco[3], oldno[3];
@@ -2305,11 +2333,17 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
                                                                 vd.co,
@@ -2318,7 +2352,8 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
     SCULPT_surface_smooth_displace_step(ss, vd.co, data->scl, vd.vertex, beta, fade);
   }
   BKE_pbvh_vertex_iter_end;
@@ -2372,10 +2407,16 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
                                                                 vd.co,
@@ -2384,7 +2425,8 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     float stroke_disp[3];
     sub_v3_v3v3(stroke_disp, ss->cache->location, ss->cache->last_location);
@@ -2474,11 +2516,16 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   bool do_reproject = SCULPT_need_reproject(ss);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
                                                                 vd.co,
@@ -2487,7 +2534,8 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     float len_accum = 0;
     int tot_neighbors = 0;
@@ -2588,6 +2636,10 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float tot = 0.0f;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -2596,6 +2648,8 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
 
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
       const float fade = bstrength * SCULPT_brush_strength_factor(
                                          ss,
                                          brush,
@@ -2605,7 +2659,8 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.vertex,
-                                         thread_id);
+                                         thread_id,
+                                         &automask_data);
 
       madd_v3_v3fl(avg, vcolor, fade);
       tot += fade;
@@ -2627,8 +2682,13 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
     exp = 1.0f;
   }
 
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
       const float fade = bstrength * SCULPT_brush_strength_factor(
                                          ss,
                                          brush,
@@ -2638,7 +2698,8 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.vertex,
-                                         thread_id);
+                                         thread_id,
+                                         &automask_data);
 
       float vcolor[4];
 

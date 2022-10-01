@@ -395,7 +395,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
     cu->flag |= CU_FRONT | CU_BACK;
     cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_get();
     cu->vfont->id.us += 4;
-    cu->str = (char *)MEM_malloc_arrayN(12, sizeof(unsigned char), "str");
+    cu->str = (char *)MEM_malloc_arrayN(12, sizeof(uchar), "str");
     BLI_strncpy(cu->str, "Text", 12);
     cu->len = cu->len_char32 = cu->pos = 4;
     cu->strinfo = (CharInfo *)MEM_calloc_arrayN(12, sizeof(CharInfo), "strinfo new");
@@ -1499,7 +1499,7 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
     }
     u += ustep;
     if (rowstride != 0) {
-      in = (float *)(((unsigned char *)in) + (rowstride - 3 * totv * sizeof(*in)));
+      in = (float *)(((uchar *)in) + (rowstride - 3 * totv * sizeof(*in)));
     }
   }
 
@@ -1647,35 +1647,34 @@ void BKE_nurb_makeCurve(const Nurb *nu,
   MEM_freeN(basisu);
 }
 
-unsigned int BKE_curve_calc_coords_axis_len(const unsigned int bezt_array_len,
-                                            const unsigned int resolu,
-                                            const bool is_cyclic,
-                                            const bool use_cyclic_duplicate_endpoint)
+uint BKE_curve_calc_coords_axis_len(const uint bezt_array_len,
+                                    const uint resolu,
+                                    const bool is_cyclic,
+                                    const bool use_cyclic_duplicate_endpoint)
 {
-  const unsigned int segments = bezt_array_len - (is_cyclic ? 0 : 1);
-  const unsigned int points_len = (segments * resolu) +
-                                  (is_cyclic ? (use_cyclic_duplicate_endpoint) : 1);
+  const uint segments = bezt_array_len - (is_cyclic ? 0 : 1);
+  const uint points_len = (segments * resolu) + (is_cyclic ? (use_cyclic_duplicate_endpoint) : 1);
   return points_len;
 }
 
 void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
-                                const unsigned int bezt_array_len,
-                                const unsigned int resolu,
+                                const uint bezt_array_len,
+                                const uint resolu,
                                 const bool is_cyclic,
                                 const bool use_cyclic_duplicate_endpoint,
                                 /* array params */
-                                const unsigned int axis,
-                                const unsigned int stride,
+                                const uint axis,
+                                const uint stride,
                                 float *r_points)
 {
-  const unsigned int points_len = BKE_curve_calc_coords_axis_len(
+  const uint points_len = BKE_curve_calc_coords_axis_len(
       bezt_array_len, resolu, is_cyclic, use_cyclic_duplicate_endpoint);
   float *r_points_offset = r_points;
 
-  const unsigned int resolu_stride = resolu * stride;
-  const unsigned int bezt_array_last = bezt_array_len - 1;
+  const uint resolu_stride = resolu * stride;
+  const uint bezt_array_last = bezt_array_len - 1;
 
-  for (unsigned int i = 0; i < bezt_array_last; i++) {
+  for (uint i = 0; i < bezt_array_last; i++) {
     const BezTriple *bezt_curr = &bezt_array[i];
     const BezTriple *bezt_next = &bezt_array[i + 1];
     BKE_curve_forward_diff_bezier(bezt_curr->vec[1][axis],
@@ -1683,7 +1682,7 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                   bezt_next->vec[0][axis],
                                   bezt_next->vec[1][axis],
                                   r_points_offset,
-                                  (int)resolu,
+                                  int(resolu),
                                   stride);
     r_points_offset = (float *)POINTER_OFFSET(r_points_offset, resolu_stride);
   }
@@ -1696,7 +1695,7 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                   bezt_next->vec[0][axis],
                                   bezt_next->vec[1][axis],
                                   r_points_offset,
-                                  (int)resolu,
+                                  int(resolu),
                                   stride);
     r_points_offset = (float *)POINTER_OFFSET(r_points_offset, resolu_stride);
     if (use_cyclic_duplicate_endpoint) {
@@ -1720,7 +1719,7 @@ void BKE_curve_forward_diff_bezier(
   float rt0, rt1, rt2, rt3, f;
   int a;
 
-  f = (float)it;
+  f = float(it);
   rt0 = q0;
   rt1 = 3.0f * (q1 - q0) / f;
   f *= f;
@@ -1748,7 +1747,7 @@ void BKE_curve_forward_diff_tangent_bezier(
   float rt0, rt1, rt2, f;
   int a;
 
-  f = 1.0f / (float)it;
+  f = 1.0f / float(it);
 
   rt0 = 3.0f * (q1 - q0);
   rt1 = f * (3.0f * (q3 - q0) + 9.0f * (q1 - q2));
@@ -1779,7 +1778,7 @@ static void forward_diff_bezier_cotangent(const float p0[3],
    *
    * This could also be optimized like BKE_curve_forward_diff_bezier */
   for (int a = 0; a <= it; a++) {
-    float t = (float)a / (float)it;
+    float t = float(a) / float(it);
 
     for (int i = 0; i < 3; i++) {
       p[i] = (-6.0f * t + 6.0f) * p0[i] + (18.0f * t - 12.0f) * p1[i] +
@@ -2006,7 +2005,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
   }
 
   fac = 0.0;
-  dfac = 1.0f / (float)resolu;
+  dfac = 1.0f / float(resolu);
 
   for (a = 0; a < resolu; a++, fac += dfac) {
     if (tilt_array) {
@@ -2247,7 +2246,7 @@ static void minimum_twist_between_two_points(BevPoint *current_point, BevPoint *
 
 static void make_bevel_list_3D_minimum_twist(BevList *bl)
 {
-  BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+  BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
   float q[4];
 
@@ -2329,7 +2328,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 
     nr = bl->nr;
     while (nr--) {
-      ang_fac = angle * (1.0f - ((float)nr / bl->nr)); /* also works */
+      ang_fac = angle * (1.0f - (float(nr) / bl->nr)); /* also works */
 
       axis_angle_to_quat(q, bevp1->dir, ang_fac);
       mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
@@ -2358,7 +2357,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 
 static void make_bevel_list_3D_tangent(BevList *bl)
 {
-  BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+  BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
 
   float bevp0_tan[3];
@@ -2516,7 +2515,7 @@ static void make_bevel_list_2D(BevList *bl)
 
     /* first */
     bevp = bl->bevpoints;
-    angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)M_PI_2;
+    angle = atan2f(bevp->dir[0], bevp->dir[1]) - float(M_PI_2);
     bevp->sina = sinf(angle);
     bevp->cosa = cosf(angle);
     vec_to_quat(bevp->quat, bevp->dir, 5, 1);
@@ -2524,7 +2523,7 @@ static void make_bevel_list_2D(BevList *bl)
     /* last */
     bevp = bl->bevpoints;
     bevp += (bl->nr - 1);
-    angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)M_PI_2;
+    angle = atan2f(bevp->dir[0], bevp->dir[1]) - float(M_PI_2);
     bevp->sina = sinf(angle);
     bevp->cosa = cosf(angle);
     vec_to_quat(bevp->quat, bevp->dir, 5, 1);
@@ -5154,7 +5153,7 @@ bool BKE_curve_center_median(Curve *cu, float cent[3])
   }
 
   if (total) {
-    mul_v3_fl(cent, 1.0f / (float)total);
+    mul_v3_fl(cent, 1.0f / float(total));
   }
 
   return (total != 0);
@@ -5390,10 +5389,10 @@ bool BKE_curve_material_index_validate(Curve *cu)
   return false;
 }
 
-void BKE_curve_material_remap(Curve *cu, const unsigned int *remap, unsigned int remap_len)
+void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
 {
   const int curvetype = BKE_curve_type_get(cu);
-  const short remap_len_short = (short)remap_len;
+  const short remap_len_short = short(remap_len);
 
 #define MAT_NR_REMAP(n) \
   if (n < remap_len_short) { \

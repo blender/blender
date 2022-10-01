@@ -57,7 +57,7 @@ void StereoProjection(float left,
 
 static void testTimerProc(GHOST_ITimerTask * /*task*/, uint64_t time)
 {
-  std::cout << "timer1, time=" << (int)time << "\n";
+  std::cout << "timer1, time=" << int(time) << "\n";
 }
 
 static void gearGL(

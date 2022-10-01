@@ -16,6 +16,10 @@
 
 struct Mesh;
 struct PointCloud;
+namespace blender::fn {
+class MultiFunction;
+class GField;
+}  // namespace blender::fn
 
 namespace blender::bke {
 
@@ -163,6 +167,27 @@ template<typename T> struct AttributeReader {
 };
 
 /**
+ * A utility to make sure attribute values are valid, for attributes like "material_index" which
+ * can only be positive, or attributes that represent enum options. This is usually only necessary
+ * when writing attributes from an untrusted/arbitrary user input.
+ */
+struct AttributeValidator {
+  /**
+   * Single input, single output function that corrects attribute values if necessary.
+   */
+  const fn::MultiFunction *function;
+
+  operator bool() const
+  {
+    return this->function != nullptr;
+  }
+  /**
+   * Return a field that creates corrected attribute values.
+   */
+  fn::GField validate_field_if_necessary(const fn::GField &field) const;
+};
+
+/**
  * Result when looking up an attribute from some geometry with read and write access. After writing
  * to the attribute, the #finish method has to be called. This may invalidate caches based on this
  * attribute.
@@ -239,7 +264,9 @@ template<typename T> struct SpanAttributeWriter {
    */
   void finish()
   {
-    this->span.save();
+    if (this->span.varray()) {
+      this->span.save();
+    }
     if (this->tag_modified_fn) {
       this->tag_modified_fn();
     }
@@ -314,7 +341,9 @@ struct GSpanAttributeWriter {
 
   void finish()
   {
-    this->span.save();
+    if (this->span.varray()) {
+      this->span.save();
+    }
     if (this->tag_modified_fn) {
       this->tag_modified_fn();
     }
@@ -343,7 +372,7 @@ struct AttributeAccessorFunctions {
                           eAttrDomain to_domain);
   bool (*for_all)(const void *owner,
                   FunctionRef<bool(const AttributeIDRef &, const AttributeMetaData &)> fn);
-
+  AttributeValidator (*lookup_validator)(const void *owner, const AttributeIDRef &attribute_id);
   GAttributeWriter (*lookup_for_write)(void *owner, const AttributeIDRef &attribute_id);
   bool (*remove)(void *owner, const AttributeIDRef &attribute_id);
   bool (*add)(void *owner,
@@ -495,6 +524,14 @@ class AttributeAccessor {
       return varray;
     }
     return VArray<T>::ForSingle(default_value, this->domain_size(domain));
+  }
+
+  /**
+   * Same as the generic version above, but should be used when the type is known at compile time.
+   */
+  AttributeValidator lookup_validator(const AttributeIDRef &attribute_id) const
+  {
+    return fn_->lookup_validator(owner_, attribute_id);
   }
 
   /**
@@ -659,6 +696,8 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * The "only" in the name indicates that the caller should not read existing values from the
    * span. If the attribute is not stored as span internally, the existing values won't be copied
    * over to the span.
+   *
+   * For trivial types, the values in a newly created attribute will not be initialized.
    */
   GSpanAttributeWriter lookup_or_add_for_write_only_span(const AttributeIDRef &attribute_id,
                                                          const eAttrDomain domain,
@@ -671,7 +710,9 @@ class MutableAttributeAccessor : public AttributeAccessor {
   SpanAttributeWriter<T> lookup_or_add_for_write_only_span(const AttributeIDRef &attribute_id,
                                                            const eAttrDomain domain)
   {
-    AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(attribute_id, domain);
+    AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(
+        attribute_id, domain, AttributeInitConstruct());
+
     if (attribute) {
       return SpanAttributeWriter<T>{std::move(attribute), false};
     }

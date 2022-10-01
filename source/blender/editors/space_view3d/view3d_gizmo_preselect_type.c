@@ -129,7 +129,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
-    if (((gz_ele->bases)) == NULL ||
+    if ((gz_ele->bases) == NULL ||
         (gz_ele->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
       MEM_SAFE_FREE(gz_ele->bases);
       gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(
@@ -358,7 +358,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
-    if (((gz_ring->bases)) == NULL ||
+    if ((gz_ring->bases) == NULL ||
         (gz_ring->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
       MEM_SAFE_FREE(gz_ring->bases);
       gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(
