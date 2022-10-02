@@ -257,6 +257,8 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int layer_len,
                                     bool cube_as_array);
 
+GPUTexture *GPU_texture_create_single_layer_view(const char *name, const GPUTexture *src);
+
 /**
  * Create an alias of the source texture as a texture array with only one layer.
  * Works for 1D, 2D and cube-map source texture.
