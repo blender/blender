@@ -75,14 +75,16 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 /* Clipping Projection Functions
  * ***************************** */
 
-eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base)
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
+                                      struct Base *base,
+                                      short r_co[2])
 {
   eV3DProjStatus ret = ED_view3d_project_short_global(
-      region, base->object->obmat[3], &base->sx, V3D_PROJ_TEST_CLIP_DEFAULT);
+      region, base->object->obmat[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
 
   if (ret != V3D_PROJ_RET_OK) {
-    base->sx = IS_CLIPPED;
-    base->sy = 0;
+    r_co[0] = IS_CLIPPED;
+    r_co[1] = 0;
   }
 
   return ret;

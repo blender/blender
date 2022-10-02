@@ -457,7 +457,9 @@ void ED_view3d_project_float_v3_m4(const struct ARegion *region,
                                    float r_co[3],
                                    const float mat[4][4]);
 
-eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base);
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
+                                      struct Base *base,
+                                      short r_co[2]);
 
 /* *** short *** */
 eV3DProjStatus ED_view3d_project_short_ex(const struct ARegion *region,

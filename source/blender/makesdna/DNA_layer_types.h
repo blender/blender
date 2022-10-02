@@ -80,8 +80,7 @@ typedef struct Base {
   short flag;
 
   unsigned short local_view_bits;
-  short sx, sy;
-  char _pad1[6];
+  char _pad1[10];
   struct Object *object;
   unsigned int lay DNA_DEPRECATED;
   int flag_legacy;
