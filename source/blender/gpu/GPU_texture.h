@@ -257,6 +257,13 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int layer_len,
                                     bool cube_as_array);
 
+/**
+ * Create an alias of the source texture as a texture array with only one layer.
+ * Works for 1D, 2D and cube-map source texture.
+ * If \a src is freed, the texture view will continue to be valid.
+ */
+GPUTexture *GPU_texture_create_single_layer_array_view(const char *name, const GPUTexture *src);
+
 void GPU_texture_update_mipmap(GPUTexture *tex,
                                int miplvl,
                                eGPUDataFormat gpu_data_format,

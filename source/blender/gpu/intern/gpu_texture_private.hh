@@ -108,6 +108,7 @@ class Texture {
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
   bool init_view(const GPUTexture *src,
                  eGPUTextureFormat format,
+                 eGPUTextureType type,
                  int mip_start,
                  int mip_len,
                  int layer_start,

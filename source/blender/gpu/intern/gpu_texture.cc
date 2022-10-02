@@ -132,6 +132,7 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
 
 bool Texture::init_view(const GPUTexture *src_,
                         eGPUTextureFormat format,
+                        eGPUTextureType type,
                         int mip_start,
                         int mip_len,
                         int layer_start,
@@ -144,7 +145,7 @@ bool Texture::init_view(const GPUTexture *src_,
   d_ = src->d_;
   layer_start = min_ii(layer_start, src->layer_count() - 1);
   layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
-  switch (src->type_) {
+  switch (type) {
     case GPU_TEXTURE_1D_ARRAY:
       h_ = layer_len;
       break;
@@ -163,8 +164,7 @@ bool Texture::init_view(const GPUTexture *src_,
   mipmaps_ = mip_len;
   format_ = format;
   format_flag_ = to_format_flag(format);
-  /* For now always copy the target. Target aliasing could be exposed later. */
-  type_ = src->type_;
+  type_ = type;
   if (cube_as_array) {
     BLI_assert(type_ & GPU_TEXTURE_CUBE);
     type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
@@ -404,7 +404,26 @@ GPUTexture *GPU_texture_create_view(const char *name,
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
   Texture *view = GPUBackend::get()->texture_alloc(name);
-  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len, cube_as_array);
+  view->init_view(src,
+                  format,
+                  unwrap(src)->type_get(),
+                  mip_start,
+                  mip_len,
+                  layer_start,
+                  layer_len,
+                  cube_as_array);
+  return wrap(view);
+}
+
+GPUTexture *GPU_texture_create_single_layer_view(const char *name, const GPUTexture *src)
+{
+  eGPUTextureFormat format = unwrap(src)->format_get();
+  eGPUTextureType type = unwrap(src)->type_get();
+  BLI_assert(ELEM(type, GPU_TEXTURE_1D, GPU_TEXTURE_2D, GPU_TEXTURE_CUBE));
+  type |= GPU_TEXTURE_ARRAY;
+
+  Texture *view = GPUBackend::get()->texture_alloc(name);
+  view->init_view(src, format, type, 0, 9999, 0, 1, false);
   return wrap(view);
 }
 
