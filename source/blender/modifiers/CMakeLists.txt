@@ -43,7 +43,7 @@ set(SRC
   intern/MOD_collision.c
   intern/MOD_correctivesmooth.c
   intern/MOD_curve.c
-  intern/MOD_datatransfer.c
+  intern/MOD_datatransfer.cc
   intern/MOD_decimate.c
   intern/MOD_displace.c
   intern/MOD_dynamicpaint.c
@@ -66,7 +66,7 @@ set(SRC
   intern/MOD_multires.c
   intern/MOD_nodes.cc
   intern/MOD_none.c
-  intern/MOD_normal_edit.c
+  intern/MOD_normal_edit.cc
   intern/MOD_ocean.c
   intern/MOD_particleinstance.c
   intern/MOD_particlesystem.cc
@@ -81,7 +81,7 @@ set(SRC
   intern/MOD_solidify.c
   intern/MOD_solidify_extrude.c
   intern/MOD_solidify_nonmanifold.c
-  intern/MOD_subsurf.c
+  intern/MOD_subsurf.cc
   intern/MOD_surface.c
   intern/MOD_surfacedeform.c
   intern/MOD_triangulate.c

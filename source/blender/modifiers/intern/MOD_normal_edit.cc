@@ -56,15 +56,15 @@ static void generate_vert_coordinates(Mesh *mesh,
   const MVert *mv = BKE_mesh_verts(mesh);
   for (int i = 0; i < mesh->totvert; i++, mv++) {
     copy_v3_v3(r_cos[i], mv->co);
-    if (r_size != NULL && ob_center == NULL) {
+    if (r_size != nullptr && ob_center == nullptr) {
       minmax_v3v3_v3(min_co, max_co, r_cos[i]);
     }
   }
 
   /* Get size (i.e. deformation of the spheroid generating normals),
    * either from target object, or own geometry. */
-  if (r_size != NULL) {
-    if (ob_center != NULL) {
+  if (r_size != nullptr) {
+    if (ob_center != nullptr) {
       /* Using 'scale' as 'size' here. The input object is typically an empty
        * who's scale is used to define an ellipsoid instead of a simple sphere. */
 
@@ -88,7 +88,7 @@ static void generate_vert_coordinates(Mesh *mesh,
     }
   }
 
-  if (ob_center != NULL) {
+  if (ob_center != nullptr) {
     float inv_obmat[4][4];
 
     /* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
@@ -100,7 +100,7 @@ static void generate_vert_coordinates(Mesh *mesh,
 
     do_diff = true;
   }
-  else if (offset != NULL && !is_zero_v3(offset)) {
+  else if (offset != nullptr && !is_zero_v3(offset)) {
     negate_v3_v3(diff, offset);
 
     do_diff = true;
@@ -129,12 +129,12 @@ static void mix_normals(const float mix_factor,
                         const int loops_num)
 {
   /* Mix with org normals... */
-  float *facs = NULL, *wfac;
+  float *facs = nullptr, *wfac;
   float(*no_new)[3], (*no_old)[3];
   int i;
 
   if (dvert) {
-    facs = MEM_malloc_arrayN((size_t)loops_num, sizeof(*facs), __func__);
+    facs = static_cast<float *>(MEM_malloc_arrayN((size_t)loops_num, sizeof(*facs), __func__));
     BKE_defvert_extract_vgroup_to_loopweights(
         dvert, defgrp_index, verts_num, mloop, loops_num, use_invert_vgroup, facs);
   }
@@ -180,7 +180,7 @@ static bool polygons_check_flip(MLoop *mloop,
                                 const int polys_num)
 {
   const MPoly *mp;
-  MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
+  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer(ldata, CD_MDISPS));
   int i;
   bool flipped = false;
 
@@ -235,8 +235,10 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   const bool do_polynors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
   int i;
 
-  float(*cos)[3] = MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__);
-  float(*nos)[3] = MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__);
+  float(*cos)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__));
+  float(*nos)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__));
   float size[3];
 
   BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)verts_num, __func__);
@@ -372,7 +374,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   const bool do_polynors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
   const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
-  float(*nos)[3] = MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__);
+  float(*nos)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__));
 
   float target_co[3];
   int i;
@@ -395,8 +398,9 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     }
   }
   else {
-    float(*cos)[3] = MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__);
-    generate_vert_coordinates(mesh, ob, ob_target, NULL, verts_num, cos, NULL);
+    float(*cos)[3] = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__));
+    generate_vert_coordinates(mesh, ob, ob_target, nullptr, verts_num, cos, nullptr);
 
     BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)verts_num, __func__);
     const MLoop *ml;
@@ -513,7 +517,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
      * modify original mesh, see T43671. */
-    result = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);
+    result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {
     result = mesh;
@@ -531,17 +535,19 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   int defgrp_index;
   const MDeformVert *dvert;
 
-  float(*loopnors)[3] = NULL;
+  float(*loopnors)[3] = nullptr;
 
   CustomData *ldata = &result->ldata;
 
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(result);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(result);
 
-  short(*clnors)[2] = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
+  short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL));
   if (use_current_clnors) {
-    clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num);
-    loopnors = MEM_malloc_arrayN((size_t)loops_num, sizeof(*loopnors), __func__);
+    clnors = static_cast<short(*)[2]>(
+        CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
+    loopnors = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN((size_t)loops_num, sizeof(*loopnors), __func__));
 
     BKE_mesh_normals_loop_split(verts,
                                 vert_normals,
@@ -556,13 +562,14 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                 polys_num,
                                 true,
                                 result->smoothresh,
-                                NULL,
+                                nullptr,
                                 clnors,
-                                NULL);
+                                nullptr);
   }
 
-  if (clnors == NULL) {
-    clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, NULL, loops_num);
+  if (clnors == nullptr) {
+    clnors = static_cast<short(*)[2]>(
+        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops_num));
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -687,15 +694,15 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "target", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "target", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
-  uiItemR(col, ptr, "use_direction_parallel", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_direction_parallel", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -711,13 +718,13 @@ static void mix_mode_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mix_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "mix_factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix_factor", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "mix_limit", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "mix_limit", 0, nullptr, ICON_NONE);
   uiItemR(row,
           ptr,
           "no_polynors_fix",
@@ -730,7 +737,7 @@ static void offset_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
   PointerRNA target_ptr = RNA_pointer_get(ptr, "target");
@@ -742,15 +749,16 @@ static void offset_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, needs_object_offset);
-  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_NormalEdit, panel_draw);
-  modifier_subpanel_register(region_type, "mix", "Mix", NULL, mix_mode_panel_draw, panel_type);
-  modifier_subpanel_register(region_type, "offset", "Offset", NULL, offset_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "mix", "Mix", nullptr, mix_mode_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "offset", "Offset", nullptr, offset_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
@@ -765,24 +773,24 @@ ModifierTypeInfo modifierType_NormalEdit = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
+    /* freeData */ nullptr,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
+    /* dependsOnTime */ nullptr,
     /* dependsOnNormals */ dependsOnNormals,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };
