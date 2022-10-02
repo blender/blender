@@ -86,7 +86,7 @@ static const UnicodeSample unicode_samples[] = {
     {U"\ua188\ua320\ua4bf", 3, TT_UCR_YI},
     {U"\u1900\u1901\u1902", 3, TT_UCR_LIMBU},
     {U"\u1950\u1951\u1952", 3, TT_UCR_TAI_LE},
-    {U"\u1980\u1982\u1986", 3, TT_UCR_NEW_TAI_LUE},
+    {U"\u1980\u1982\u1986", 3, (FT_ULong)TT_UCR_NEW_TAI_LUE},
     {U"\u1A00\u1A01\u1A02", 4, TT_UCR_BUGINESE},
     {U"\u2c01\u2c05\u2c0c", 4, TT_UCR_GLAGOLITIC},
     {U"\u2d31\u2d33\u2d37", 4, TT_UCR_TIFINAGH},
