@@ -226,7 +226,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
     }
     else {
       /* XXX Is this piece of code ever used now? Simple loop select is now
-       *     in editmesh_select.c (around line 1000)... */
+       *     in editmesh_select.cc (around line 1000)... */
       /* sets as active, useful for other tools */
       if (em->selectmode & SCE_SELECT_VERTEX) {
         /* low priority TODO: get vertrex close to mouse. */

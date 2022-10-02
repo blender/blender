@@ -220,7 +220,8 @@ static void build_bvh_spatial(
       make_box_union(process->mainb[j]->bb, &node->bb[0], &node->bb[0]);
     }
 
-    node->child[0] = BLI_memarena_alloc(process->pgn_elements, sizeof(MetaballBVHNode));
+    node->child[0] = static_cast<MetaballBVHNode *>(
+        BLI_memarena_alloc(process->pgn_elements, sizeof(MetaballBVHNode)));
     build_bvh_spatial(process, node->child[0], start, part, &node->bb[0]);
   }
 
@@ -233,7 +234,8 @@ static void build_bvh_spatial(
         make_box_union(process->mainb[j]->bb, &node->bb[1], &node->bb[1]);
       }
 
-      node->child[1] = BLI_memarena_alloc(process->pgn_elements, sizeof(MetaballBVHNode));
+      node->child[1] = static_cast<MetaballBVHNode *>(
+          BLI_memarena_alloc(process->pgn_elements, sizeof(MetaballBVHNode)));
       build_bvh_spatial(process, node->child[1], part, end, &node->bb[1]);
     }
   }
@@ -432,7 +434,8 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 
   if (UNLIKELY(process->totindex == process->curindex)) {
     process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
-    process->indices = MEM_reallocN(process->indices, sizeof(int[4]) * process->totindex);
+    process->indices = static_cast<int(*)[4]>(
+        MEM_reallocN(process->indices, sizeof(int[4]) * process->totindex));
   }
 
   int *cur = process->indices[process->curindex++];
@@ -671,7 +674,7 @@ static CORNER *setcorner(PROCESS *process, int i, int j, int k)
     }
   }
 
-  c = BLI_memarena_alloc(process->pgn_elements, sizeof(CORNER));
+  c = static_cast<CORNER *>(BLI_memarena_alloc(process->pgn_elements, sizeof(CORNER)));
 
   c->i = i;
   c->co[0] = ((float)i - 0.5f) * process->size;
@@ -754,7 +757,7 @@ static void makecubetable(void)
     for (e = 0; e < 12; e++) {
       if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
         INTLIST *ints = NULL;
-        INTLISTS *lists = MEM_callocN(sizeof(INTLISTS), "mball_intlist");
+        INTLISTS *lists = static_cast<INTLISTS *>(MEM_callocN(sizeof(INTLISTS), "mball_intlist"));
         int start = e, edge = e;
 
         /* get face that is to right of edge from pos to neg corner: */
@@ -766,7 +769,7 @@ static void makecubetable(void)
           if (pos[corner1[edge]] != pos[corner2[edge]]) {
             INTLIST *tmp = ints;
 
-            ints = MEM_callocN(sizeof(INTLIST), "mball_intlist");
+            ints = static_cast<INTLIST *>(MEM_callocN(sizeof(INTLIST), "mball_intlist"));
             ints->i = edge;
             ints->next = tmp; /* add edge to head of list */
 
@@ -853,7 +856,7 @@ static int setcenter(PROCESS *process, CENTERLIST *table[], const int i, const i
     }
   }
 
-  newc = BLI_memarena_alloc(process->pgn_elements, sizeof(CENTERLIST));
+  newc = static_cast<CENTERLIST *>(BLI_memarena_alloc(process->pgn_elements, sizeof(CENTERLIST)));
   newc->i = i;
   newc->j = j;
   newc->k = k;
@@ -883,7 +886,7 @@ static void setedge(PROCESS *process, int i1, int j1, int k1, int i2, int j2, in
     k2 = t;
   }
   index = HASH(i1, j1, k1) + HASH(i2, j2, k2);
-  newe = BLI_memarena_alloc(process->pgn_elements, sizeof(EDGELIST));
+  newe = static_cast<EDGELIST *>(BLI_memarena_alloc(process->pgn_elements, sizeof(EDGELIST)));
 
   newe->i1 = i1;
   newe->j1 = j1;
@@ -930,8 +933,10 @@ static void addtovertices(PROCESS *process, const float v[3], const float no[3])
 {
   if (UNLIKELY(process->curvertex == process->totvertex)) {
     process->totvertex = process->totvertex ? process->totvertex * 2 : MBALL_ARRAY_LEN_INIT;
-    process->co = MEM_reallocN(process->co, process->totvertex * sizeof(float[3]));
-    process->no = MEM_reallocN(process->no, process->totvertex * sizeof(float[3]));
+    process->co = static_cast<float(*)[3]>(
+        MEM_reallocN(process->co, process->totvertex * sizeof(float[3])));
+    process->no = static_cast<float(*)[3]>(
+        MEM_reallocN(process->no, process->totvertex * sizeof(float[3])));
   }
 
   copy_v3_v3(process->co[process->curvertex], v);
@@ -1037,7 +1042,7 @@ static void add_cube(PROCESS *process, int i, int j, int k)
   /* test if cube has been found before */
   if (setcenter(process, process->centers, i, j, k) == 0) {
     /* push cube on stack: */
-    ncube = BLI_memarena_alloc(process->pgn_elements, sizeof(CUBES));
+    ncube = static_cast<CUBES *>(BLI_memarena_alloc(process->pgn_elements, sizeof(CUBES)));
     ncube->next = process->cubes;
     process->cubes = ncube;
 
@@ -1131,11 +1136,14 @@ static void polygonize(PROCESS *process)
 {
   CUBE c;
 
-  process->centers = MEM_callocN(HASHSIZE * sizeof(CENTERLIST *), "mbproc->centers");
-  process->corners = MEM_callocN(HASHSIZE * sizeof(CORNER *), "mbproc->corners");
-  process->edges = MEM_callocN(2 * HASHSIZE * sizeof(EDGELIST *), "mbproc->edges");
-  process->bvh_queue = MEM_callocN(sizeof(MetaballBVHNode *) * process->bvh_queue_size,
-                                   "Metaball BVH Queue");
+  process->centers = static_cast<CENTERLIST **>(
+      MEM_callocN(HASHSIZE * sizeof(CENTERLIST *), "mbproc->centers"));
+  process->corners = static_cast<CORNER **>(
+      MEM_callocN(HASHSIZE * sizeof(CORNER *), "mbproc->corners"));
+  process->edges = static_cast<EDGELIST **>(
+      MEM_callocN(2 * HASHSIZE * sizeof(EDGELIST *), "mbproc->edges"));
+  process->bvh_queue = static_cast<MetaballBVHNode **>(
+      MEM_callocN(sizeof(MetaballBVHNode *) * process->bvh_queue_size, "Metaball BVH Queue"));
 
   makecubetable();
 
@@ -1192,13 +1200,13 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       }
 
       if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
-        mb = ob->data;
+        mb = static_cast<MetaBall *>(ob->data);
 
         if (mb->editelems) {
-          ml = mb->editelems->first;
+          ml = static_cast<const MetaElem *>(mb->editelems->first);
         }
         else {
-          ml = mb->elems.first;
+          ml = static_cast<const MetaElem *>(mb->elems.first);
         }
       }
       else {
@@ -1207,13 +1215,13 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
         BLI_split_name_num(name, &nr, bob->id.name + 2, '.');
         if (STREQ(obname, name)) {
-          mb = bob->data;
+          mb = static_cast<MetaBall *>(bob->data);
 
           if (mb->editelems) {
-            ml = mb->editelems->first;
+            ml = static_cast<const MetaElem *>(mb->editelems->first);
           }
           else {
-            ml = mb->elems.first;
+            ml = static_cast<const MetaElem *>(mb->elems.first);
           }
         }
       }
@@ -1249,11 +1257,15 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             MetaElem *new_ml;
 
             /* make a copy because of duplicates */
-            new_ml = BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem));
+            new_ml = static_cast<MetaElem *>(
+                BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem)));
             *(new_ml) = *ml;
-            new_ml->bb = BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox));
-            new_ml->mat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
-            new_ml->imat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
+            new_ml->bb = static_cast<BoundBox *>(
+                BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox)));
+            new_ml->mat = static_cast<float *>(
+                BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
+            new_ml->imat = static_cast<float *>(
+                BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
 
             /* too big stiffness seems only ugly due to linear interpolation
              * no need to have possibility for too big stiffness */
@@ -1347,7 +1359,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             /* add new_ml to mainb[] */
             if (UNLIKELY(process->totelem == process->mem)) {
               process->mem = process->mem * 2 + 10;
-              process->mainb = MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem);
+              process->mainb = static_cast<MetaElem **>(
+                  MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem));
             }
             process->mainb[process->totelem++] = new_ml;
           }
@@ -1372,7 +1385,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   PROCESS process = {0};
   const bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
-  MetaBall *mb = ob->data;
+  MetaBall *mb = static_cast<MetaBall *>(ob->data);
 
   process.thresh = mb->thresh;
 
@@ -1440,16 +1453,18 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
 
   mesh->totvert = (int)process.curvertex;
-  MVert *mvert = CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CONSTRUCT, NULL, mesh->totvert);
+  MVert *mvert = static_cast<MVert *>(
+      CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CONSTRUCT, NULL, mesh->totvert));
   for (int i = 0; i < mesh->totvert; i++) {
     copy_v3_v3(mvert[i].co, process.co[i]);
   }
   MEM_freeN(process.co);
 
   mesh->totpoly = (int)process.curindex;
-  MPoly *mpoly = CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, NULL, mesh->totpoly);
-  MLoop *mloop = CustomData_add_layer(
-      &mesh->ldata, CD_MLOOP, CD_CONSTRUCT, NULL, mesh->totpoly * 4);
+  MPoly *mpoly = static_cast<MPoly *>(
+      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, NULL, mesh->totpoly));
+  MLoop *mloop = static_cast<MLoop *>(
+      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, NULL, mesh->totpoly * 4));
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->totpoly; i++) {

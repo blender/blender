@@ -191,7 +191,7 @@ set(SRC
   intern/mask_rasterize.c
   intern/material.c
   intern/mball.cc
-  intern/mball_tessellate.c
+  intern/mball_tessellate.cc
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
