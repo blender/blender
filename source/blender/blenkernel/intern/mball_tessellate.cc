@@ -46,44 +46,52 @@
 
 /* Data types */
 
-typedef struct corner { /* corner of a cube */
-  int i, j, k;          /* (i, j, k) is index within lattice */
-  float co[3], value;   /* location and function value */
+/** Corner of a cube. */
+typedef struct corner {
+  int i, j, k;        /* (i, j, k) is index within lattice */
+  float co[3], value; /* location and function value */
   struct corner *next;
 } CORNER;
 
-typedef struct cube { /* partitioning cell (cube) */
+/** Partitioning cell (cube). */
+typedef struct cube {
   int i, j, k;        /* lattice location of cube */
   CORNER *corners[8]; /* eight corners */
 } CUBE;
 
-typedef struct cubes { /* linked list of cubes acting as stack */
-  CUBE cube;           /* a single cube */
-  struct cubes *next;  /* remaining elements */
+/** Linked list of cubes acting as stack. */
+typedef struct cubes {
+  CUBE cube;          /* a single cube */
+  struct cubes *next; /* remaining elements */
 } CUBES;
 
-typedef struct centerlist { /* list of cube locations */
-  int i, j, k;              /* cube location */
-  struct centerlist *next;  /* remaining elements */
+/** List of cube locations. */
+typedef struct centerlist {
+  int i, j, k;             /* cube location */
+  struct centerlist *next; /* remaining elements */
 } CENTERLIST;
 
-typedef struct edgelist {     /* list of edges */
+/** List of edges. */
+typedef struct edgelist {
   int i1, j1, k1, i2, j2, k2; /* edge corner ids */
   int vid;                    /* vertex id */
   struct edgelist *next;      /* remaining elements */
 } EDGELIST;
 
-typedef struct intlist { /* list of integers */
-  int i;                 /* an integer */
-  struct intlist *next;  /* remaining elements */
+/** List of integers. */
+typedef struct intlist {
+  int i;                /* an integer */
+  struct intlist *next; /* remaining elements */
 } INTLIST;
 
-typedef struct intlists { /* list of list of integers */
-  INTLIST *list;          /* a list of integers */
-  struct intlists *next;  /* remaining elements */
+/** List of list of integers. */
+typedef struct intlists {
+  INTLIST *list;         /* a list of integers */
+  struct intlists *next; /* remaining elements */
 } INTLISTS;
 
-typedef struct Box { /* an AABB with pointer to metalelem */
+/** An AABB with pointer to metal-elem. */
+typedef struct Box {
   float min[3], max[3];
   const MetaElem *ml;
 } Box;
@@ -93,16 +101,17 @@ typedef struct MetaballBVHNode { /* BVH node */
   struct MetaballBVHNode *child[2];
 } MetaballBVHNode;
 
-typedef struct process { /* parameters, storage */
-  float thresh, size;    /* mball threshold, single cube size */
-  float delta;           /* small delta for calculating normals */
-  uint converge_res;     /* converge procedure resolution (more = slower) */
+/** Parameters, storage. */
+typedef struct process {
+  float thresh, size; /* mball threshold, single cube size */
+  float delta;        /* small delta for calculating normals */
+  uint converge_res;  /* converge procedure resolution (more = slower) */
 
-  MetaElem **mainb;  /* array of all metaelems */
-  uint totelem, mem; /* number of metaelems */
+  MetaElem **mainb;  /* array of all meta-elems. */
+  uint totelem, mem; /* number of meta-elems. */
 
   MetaballBVHNode metaball_bvh; /* The simplest bvh */
-  Box allbb;                    /* Bounding box of all metaelems */
+  Box allbb;                    /* Bounding box of all meta-elems */
 
   MetaballBVHNode **bvh_queue; /* Queue used during bvh traversal */
   uint bvh_queue_size;
@@ -1127,8 +1136,8 @@ static void find_first_points(PROCESS *process, const uint em)
 }
 
 /**
- * The main polygonization proc.
- * Allocates memory, makes cubetable,
+ * The main polygonization processing function.
+ * Allocates memory, makes cube-table,
  * finds starting surface points
  * and processes cubes on the stack until none left.
  */
@@ -1341,18 +1350,18 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             copy_v3_fl3(new_ml->bb->vec[6], +expx, +expy, +expz); /* 6 */
             copy_v3_fl3(new_ml->bb->vec[7], -expx, +expy, +expz); /* 7 */
 
-            /* transformation of Metalem bb */
+            /* Transformation of meta-elem bounding-box. */
             for (i = 0; i < 8; i++) {
               mul_m4_v3((float(*)[4])new_ml->mat, new_ml->bb->vec[i]);
             }
 
-            /* find max and min of transformed bb */
+            /* Find max and min of transformed bounding-box. */
             INIT_MINMAX(tempmin, tempmax);
             for (i = 0; i < 8; i++) {
               DO_MINMAX(new_ml->bb->vec[i], tempmin, tempmax);
             }
 
-            /* set only point 0 and 6 - AABB of Metaelem */
+            /* Set only point 0 and 6 - AABB of meta-elem. */
             copy_v3_v3(new_ml->bb->vec[0], tempmin);
             copy_v3_v3(new_ml->bb->vec[6], tempmax);
 
@@ -1370,7 +1379,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
     }
   }
 
-  /* compute AABB of all Metaelems */
+  /* Compute AABB of all meta-elems. */
   if (process->totelem > 0) {
     copy_v3_v3(process->allbb.min, process->mainb[0]->bb->vec[0]);
     copy_v3_v3(process->allbb.max, process->mainb[0]->bb->vec[6]);
@@ -1432,8 +1441,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
 
-  /* Don't polygonize meta-balls with too high resolution (base mball too small)
-   * NOTE: Eps was 0.0001f but this was giving problems for blood animation for
+  /* Don't polygonize meta-balls with too high resolution (base meta-ball too small).
+   * NOTE: Epsilon was 0.0001f but this was giving problems for blood animation for
    * the open movie "Sintel", using 0.00001f. */
   if (ob->scale[0] < 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
       ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||

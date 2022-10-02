@@ -473,7 +473,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* When accessed as a tool, get the active edge from the preselection gizmo. */
+  /* When accessed as a tool, get the active edge from the pre-selection gizmo. */
   {
     ARegion *region = CTX_wm_region(C);
     wmGizmoMap *gzmap = region->gizmo_map;

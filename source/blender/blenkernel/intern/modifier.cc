@@ -253,7 +253,7 @@ bool BKE_modifier_is_preview(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  /* Constructive modifiers are highly likely to also modify data like vgroups or vcol! */
+  /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
   if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
         (mti->type == eModifierTypeType_Constructive))) {
     return false;
@@ -340,8 +340,8 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_src->type));
 
-  /* md_dst may have already be fully initialized with some extra allocated data,
-   * we need to free it now to avoid memleak. */
+  /* `md_dst` may have already be fully initialized with some extra allocated data,
+   * we need to free it now to avoid a memory leak. */
   if (mti->freeData) {
     mti->freeData(md_dst);
   }

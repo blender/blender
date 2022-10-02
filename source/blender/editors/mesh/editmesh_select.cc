@@ -269,7 +269,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
     uint index;
     BMVert *eve;
 
-    /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
+    /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_VERTEX);
 
@@ -495,7 +495,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
     uint index;
     BMEdge *eed;
 
-    /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
+    /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_EDGE);
 
@@ -877,7 +877,7 @@ static bool unified_findnearest(ViewContext *vc,
     } f, f_zbuf;
   } hit = {{nullptr}};
 
-  /* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+  /* No after-queue (yet), so we check it now, otherwise the em_xxxofs indices are bad. */
 
   if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_FACE)) {
     float dist_center = 0.0f;
@@ -3225,7 +3225,7 @@ static void select_linked_delimit_begin(BMesh *bm, int delimit)
     }
   }
 
-  /* grr, shouldn't need to alloc BMO flags here */
+  /* Shouldn't need to allocated BMO flags here (sigh). */
   BM_mesh_elem_toolflags_ensure(bm);
 
   {
@@ -4199,7 +4199,7 @@ static void walker_deselect_nth(BMEditMesh *em,
       break;
   }
 
-  /* grr, shouldn't need to alloc BMO flags here */
+  /* Shouldn't need to allocate BMO flags here (sigh). */
   BM_mesh_elem_toolflags_ensure(bm);
 
   /* Walker restrictions uses BMO flags, not header flags,
@@ -4218,7 +4218,7 @@ static void walker_deselect_nth(BMEditMesh *em,
            mask_vert,
            mask_edge,
            mask_face,
-           BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
+           BMW_FLAG_NOP, /* Don't use #BMW_FLAG_TEST_HIDDEN here since we want to deselect all. */
            BMW_NIL_LAY);
 
   /* use tag to avoid touching the same verts twice */

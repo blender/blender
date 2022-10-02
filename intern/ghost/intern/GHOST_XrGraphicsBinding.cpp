@@ -85,7 +85,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     XrGraphicsRequirementsOpenGLKHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR};
     const XrVersion gl_version = XR_MAKE_VERSION(gl_major_version, gl_minor_version, 0);
 
-    /* Although it would seem reasonable that the proc address would not change if the instance was
+    /* Although it would seem reasonable that the PROC address would not change if the instance was
      * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
      * can still result in changes so the workaround is to simply set the function pointer every
      * time (trivializing its 'static' designation). */
@@ -343,7 +343,7 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
     // static XrInstance s_instance = XR_NULL_HANDLE;
     XrGraphicsRequirementsD3D11KHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
 
-    /* Although it would seem reasonable that the proc address would not change if the instance was
+    /* Although it would seem reasonable that the PROC address would not change if the instance was
      * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
      * can still result in changes so the workaround is to simply set the function pointer every
      * time (trivializing its 'static' designation). */

@@ -123,7 +123,7 @@ static void deformVerts(ModifierData *md,
     }
   }
 
-  /* clear old dm */
+  /* Clear old evaluated mesh. */
   bool had_mesh_final = (psmd->mesh_final != nullptr);
   if (psmd->mesh_final) {
     BKE_id_free(nullptr, psmd->mesh_final);

@@ -3,7 +3,7 @@
 /** \file
  * \ingroup wm
  *
- * \name Preselection Gizmo
+ * \name Pre-selection Gizmo
  *
  * Use for tools to hover over data before activation.
  *

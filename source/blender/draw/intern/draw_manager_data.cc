@@ -64,7 +64,7 @@
 
 static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_len)
 {
-  /* Count unique batches. Tt's not really important if
+  /* Count unique batches. It's not really important if
    * there is collisions. If there is a lot of different batches,
    * the sorting benefit will be negligible.
    * So at least sort fast! */
@@ -1527,7 +1527,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
   callbuf->count = 0;
 
   if (G.f & G_FLAG_PICKSEL) {
-    /* Not actually used for rendering but alloced in one chunk. */
+    /* Not actually used for rendering but allocated in one chunk. */
     if (inst_select_format.attr_len == 0) {
       GPU_vertformat_attr_add(&inst_select_format, "selectId", GPU_COMP_I32, 1, GPU_FETCH_INT);
     }
@@ -1557,7 +1557,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
   callbuf->count = 0;
 
   if (G.f & G_FLAG_PICKSEL) {
-    /* Not actually used for rendering but alloced in one chunk. */
+    /* Not actually used for rendering but allocated in one chunk. */
     if (inst_select_format.attr_len == 0) {
       GPU_vertformat_attr_add(&inst_select_format, "selectId", GPU_COMP_I32, 1, GPU_FETCH_INT);
     }
@@ -2177,13 +2177,15 @@ static void draw_view_matrix_state_update(ViewInfos *storage,
   }
 
   /**
-   * If ortho : view_vecs[0] is the near-bottom-left corner of the frustum and
-   *            view_vecs[1] is the vector going from the near-bottom-left corner to
-   *            the far-top-right corner.
-   * If Persp : view_vecs[0].xy and view_vecs[1].xy are respectively the bottom-left corner
-   *            when Z = 1, and top-left corner if Z = 1.
-   *            view_vecs[0].z the near clip distance and view_vecs[1].z is the (signed)
-   *            distance from the near plane to the far clip plane.
+   * - When orthographic:
+   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
+   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
+   *   the far-top-right corner.
+   * - When perspective:
+   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
+   *   when Z = 1, and top-left corner if `Z = 1`.
+   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
+   *   distance from the near plane to the far clip plane.
    */
   copy_v3_v3(storage->viewvecs[0], view_vecs[0]);
 

@@ -563,7 +563,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
           CustomData_data_multiply(type, &max, 0.5f);
           CustomData_data_add(type, &min, &max);
 
-          /* snap CD (uv, vcol) points to their centroid */
+          /* Snap custom-data (UV, vertex-colors) points to their centroid. */
           while (!BLI_stack_is_empty(block_stack)) {
             void *block;
             BLI_stack_pop(block_stack, &block);
