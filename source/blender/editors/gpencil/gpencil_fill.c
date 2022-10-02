@@ -429,7 +429,7 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
         for (int i = 0; i < gps->totpoints; i++) {
           bGPDspoint *pt = &gps->points[i];
           bGPDspoint pt2;
-          gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+          gpencil_point_to_world_space(pt, diff_mat, &pt2);
           gpencil_point_to_xy_fl(
               &tgpf->gsc, gps, &pt2, &stroke->points2d[i][0], &stroke->points2d[i][1]);
         }
@@ -597,11 +597,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
 
       /* First stroke. */
       bGPDspoint *pt = &gps_a->points[0];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a1xy[0], &a1xy[1]);
 
       pt = &gps_a->points[1];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a2xy[0], &a2xy[1]);
       bGPDspoint *extreme_a = &gps_a->points[1];
 
@@ -624,11 +624,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
         }
 
         pt = &gps_b->points[0];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b1xy[0], &b1xy[1]);
 
         pt = &gps_b->points[1];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b2xy[0], &b2xy[1]);
         bGPDspoint *extreme_b = &gps_b->points[1];
 

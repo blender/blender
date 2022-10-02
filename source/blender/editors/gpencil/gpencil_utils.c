@@ -612,9 +612,9 @@ void gpencil_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
   }
 }
 
-void gpencil_point_to_parent_space(const bGPDspoint *pt,
-                                   const float diff_mat[4][4],
-                                   bGPDspoint *r_pt)
+void gpencil_point_to_world_space(const bGPDspoint *pt,
+                                  const float diff_mat[4][4],
+                                  bGPDspoint *r_pt)
 {
   mul_v3_m4v3(&r_pt->x, diff_mat, &pt->x);
 }
@@ -937,7 +937,7 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
     float xy[2];
 
     bGPDspoint pt2;
-    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_world_space(pt, diff_mat, &pt2);
     gpencil_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
     /* Planar - All on same plane parallel to the viewplane */
@@ -1083,7 +1083,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
      * artifacts in the final points. */
 
     bGPDspoint pt2;
-    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_world_space(pt, diff_mat, &pt2);
     gpencil_point_to_xy_fl(gsc, gps_active, &pt2, &xy[0], &xy[1]);
 
     /* Project stroke in one axis */
@@ -2943,7 +2943,7 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
   for (int i = 0; i < 8; i++) {
     bGPDspoint pt_dummy, pt_dummy_ps;
     copy_v3_v3(&pt_dummy.x, bb.vec[i]);
-    gpencil_point_to_parent_space(&pt_dummy, diff_mat, &pt_dummy_ps);
+    gpencil_point_to_world_space(&pt_dummy, diff_mat, &pt_dummy_ps);
     gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &bounds[i][0], &bounds[i][1]);
   }
 
@@ -3007,7 +3007,7 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
   int i;
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
     bGPDspoint pt2;
-    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_world_space(pt, diff_mat, &pt2);
     gpencil_point_to_xy(gsc, gps, &pt2, &mcoords[i][0], &mcoords[i][1]);
   }
 
@@ -3033,9 +3033,9 @@ void ED_gpencil_stroke_extremes_to2d(const GP_SpaceConversion *gsc,
 {
   bGPDspoint pt_dummy_ps;
 
-  gpencil_point_to_parent_space(&gps->points[0], diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(&gps->points[0], diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &r_ctrl1[0], &r_ctrl1[1]);
-  gpencil_point_to_parent_space(&gps->points[gps->totpoints - 1], diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(&gps->points[gps->totpoints - 1], diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &r_ctrl2[0], &r_ctrl2[1]);
 }
 
@@ -3063,11 +3063,11 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
   float pt2d_start[2], pt2d_end[2];
 
   bGPDspoint *pt = &gps->points[0];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_parent);
   gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_start[0], &pt2d_start[1]);
 
   pt = &gps->points[gps->totpoints - 1];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_parent);
   gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_end[0], &pt2d_end[1]);
 
   /* Loop all strokes of the active frame. */
@@ -3093,11 +3093,11 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     float pt2d_target_start[2], pt2d_target_end[2];
 
     pt = &gps_target->points[0];
-    gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+    gpencil_point_to_world_space(pt, diff_mat, &pt_parent);
     gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_start[0], &pt2d_target_start[1]);
 
     pt = &gps_target->points[gps_target->totpoints - 1];
-    gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+    gpencil_point_to_world_space(pt, diff_mat, &pt_parent);
     gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_end[0], &pt2d_target_end[1]);
 
     /* If the distance to the original stroke extremes is too big, the stroke must not be joined.
@@ -3121,7 +3121,7 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     for (i = 0, pt = gps_target->points; i < gps_target->totpoints; i++, pt++) {
       /* Convert point to 2D. */
       float pt2d[2];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+      gpencil_point_to_world_space(pt, diff_mat, &pt_parent);
       gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d[0], &pt2d[1]);
 
       /* Check with Start point. */

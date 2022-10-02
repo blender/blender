@@ -276,15 +276,15 @@ void gpencil_point_to_xy_fl(const GP_SpaceConversion *gsc,
                             float *r_y);
 
 /**
- * Convert point to parent space
+ * Convert point to world space
  *
  * \param pt: Original point
- * \param diff_mat: Matrix with the difference between original parent matrix
+ * \param diff_mat: Matrix with the transformation
  * \param[out] r_pt: Pointer to new point after apply matrix
  */
-void gpencil_point_to_parent_space(const bGPDspoint *pt,
-                                   const float diff_mat[4][4],
-                                   bGPDspoint *r_pt);
+void gpencil_point_to_world_space(const bGPDspoint *pt,
+                                  const float diff_mat[4][4],
+                                  bGPDspoint *r_pt);
 /**
  * Change points position relative to parent object
  */
