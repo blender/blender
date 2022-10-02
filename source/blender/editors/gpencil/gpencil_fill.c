@@ -2228,7 +2228,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   /* if parented change position relative to parent object */
   for (int a = 0; a < tgpf->sbuffer_used; a++) {
     pt = &gps->points[a];
-    gpencil_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
+    gpencil_world_to_object_space_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
   }
 
   /* If camera view or view projection, reproject flat to view to avoid perspective effect. */

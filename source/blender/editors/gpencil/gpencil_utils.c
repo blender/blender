@@ -616,13 +616,13 @@ void gpencil_point_to_parent_space(const bGPDspoint *pt,
                                    const float diff_mat[4][4],
                                    bGPDspoint *r_pt)
 {
-  float fpt[3];
-
-  mul_v3_m4v3(fpt, diff_mat, &pt->x);
-  copy_v3_v3(&r_pt->x, fpt);
+  mul_v3_m4v3(&r_pt->x, diff_mat, &pt->x);
 }
 
-void gpencil_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, bGPDstroke *gps)
+void gpencil_world_to_object_space(Depsgraph *depsgraph,
+                                   Object *obact,
+                                   bGPDlayer *gpl,
+                                   bGPDstroke *gps)
 {
   bGPDspoint *pt;
   int i;
@@ -630,34 +630,29 @@ void gpencil_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, b
   /* undo matrix */
   float diff_mat[4][4];
   float inverse_diff_mat[4][4];
-  float fpt[3];
 
   BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   for (i = 0; i < gps->totpoints; i++) {
     pt = &gps->points[i];
-    mul_v3_m4v3(fpt, inverse_diff_mat, &pt->x);
-    copy_v3_v3(&pt->x, fpt);
+    mul_m4_v3(inverse_diff_mat, &pt->x);
   }
 }
 
-void gpencil_apply_parent_point(Depsgraph *depsgraph,
-                                Object *obact,
-                                bGPDlayer *gpl,
-                                bGPDspoint *pt)
+void gpencil_world_to_object_space_point(Depsgraph *depsgraph,
+                                         Object *obact,
+                                         bGPDlayer *gpl,
+                                         bGPDspoint *pt)
 {
   /* undo matrix */
   float diff_mat[4][4];
   float inverse_diff_mat[4][4];
-  float fpt[3];
 
   BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
-  mul_v3_m4v3(fpt, inverse_diff_mat, &pt->x);
-
-  copy_v3_v3(&pt->x, fpt);
+  mul_m4_v3(inverse_diff_mat, &pt->x);
 }
 
 void gpencil_point_to_xy(
@@ -1122,7 +1117,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
       copy_v3_v3(&pt->x, &pt2.x);
 
       /* apply parent again */
-      gpencil_apply_parent_point(depsgraph, gsc->ob, gpl, pt);
+      gpencil_world_to_object_space_point(depsgraph, gsc->ob, gpl, pt);
     }
     /* Project screen-space back to 3D space (from current perspective)
      * so that all points have been treated the same way. */

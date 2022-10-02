@@ -291,20 +291,20 @@ void gpencil_point_to_parent_space(const bGPDspoint *pt,
 /**
  * Change position relative to parent object
  */
-void gpencil_apply_parent(struct Depsgraph *depsgraph,
-                          struct Object *obact,
-                          bGPDlayer *gpl,
-                          bGPDstroke *gps);
+void gpencil_world_to_object_space(struct Depsgraph *depsgraph,
+                                   struct Object *obact,
+                                   bGPDlayer *gpl,
+                                   bGPDstroke *gps);
 /**
  * Change point position relative to parent object
  */
 /**
  * Change point position relative to parent object
  */
-void gpencil_apply_parent_point(struct Depsgraph *depsgraph,
-                                struct Object *obact,
-                                bGPDlayer *gpl,
-                                bGPDspoint *pt);
+void gpencil_world_to_object_space_point(struct Depsgraph *depsgraph,
+                                         struct Object *obact,
+                                         bGPDlayer *gpl,
+                                         bGPDspoint *pt);
 
 /**
  * generic based on gpencil_point_to_xy_fl

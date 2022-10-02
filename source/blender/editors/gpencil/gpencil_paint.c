@@ -1137,7 +1137,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     pt = gps->points;
     for (int i = 0; i < gps->totpoints; i++, pt++) {
       /* if parented change position relative to parent object */
-      gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
+      gpencil_world_to_object_space_point(depsgraph, obact, gpl, pt);
     }
 
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
@@ -1302,7 +1302,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* reproject to plane (only in 3d space) */
     gpencil_reproject_toplane(p, gps);
     /* change position relative to parent object */
-    gpencil_apply_parent(depsgraph, obact, gpl, gps);
+    gpencil_world_to_object_space(depsgraph, obact, gpl, gps);
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
     if ((!is_depth) && (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera)) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
