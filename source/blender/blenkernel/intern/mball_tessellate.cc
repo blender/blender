@@ -281,7 +281,7 @@ static void build_bvh_spatial(
 
 #define HASHBIT (5)
 /** Hash table size (32768). */
-#define HASHSIZE (size_t)(1 << (3 * HASHBIT))
+#define HASHSIZE size_t(1 << (3 * HASHBIT))
 
 #define HASH(i, j, k) ((((((i)&31) << 5) | ((j)&31)) << 5) | ((k)&31))
 
@@ -677,11 +677,11 @@ static CORNER *setcorner(PROCESS *process, int i, int j, int k)
   c = static_cast<CORNER *>(BLI_memarena_alloc(process->pgn_elements, sizeof(CORNER)));
 
   c->i = i;
-  c->co[0] = ((float)i - 0.5f) * process->size;
+  c->co[0] = (float(i) - 0.5f) * process->size;
   c->j = j;
-  c->co[1] = ((float)j - 0.5f) * process->size;
+  c->co[1] = (float(j) - 0.5f) * process->size;
   c->k = k;
-  c->co[2] = ((float)k - 0.5f) * process->size;
+  c->co[2] = (float(k) - 0.5f) * process->size;
 
   c->value = metaball(process, c->co[0], c->co[1], c->co[2]);
 
@@ -985,7 +985,7 @@ static int vertid(PROCESS *process, const CORNER *c1, const CORNER *c2)
 #endif
 
   addtovertices(process, v, no); /* save vertex */
-  vid = (int)process->curvertex - 1;
+  vid = int(process->curvertex) - 1;
   setedge(process, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k, vid);
 
   return vid;
@@ -1060,9 +1060,9 @@ static void add_cube(PROCESS *process, int i, int j, int k)
 
 static void next_lattice(int r[3], const float pos[3], const float size)
 {
-  r[0] = (int)ceil((pos[0] / size) + 0.5f);
-  r[1] = (int)ceil((pos[1] / size) + 0.5f);
-  r[2] = (int)ceil((pos[2] / size) + 0.5f);
+  r[0] = int(ceil((pos[0] / size) + 0.5f));
+  r[1] = int(ceil((pos[1] / size) + 0.5f));
+  r[2] = int(ceil((pos[2] / size) + 0.5f));
 }
 static void prev_lattice(int r[3], const float pos[3], const float size)
 {
@@ -1073,9 +1073,9 @@ static void prev_lattice(int r[3], const float pos[3], const float size)
 }
 static void closest_latice(int r[3], const float pos[3], const float size)
 {
-  r[0] = (int)floorf(pos[0] / size + 1.0f);
-  r[1] = (int)floorf(pos[1] / size + 1.0f);
-  r[2] = (int)floorf(pos[2] / size + 1.0f);
+  r[0] = int(floorf(pos[0] / size + 1.0f));
+  r[1] = int(floorf(pos[1] / size + 1.0f));
+  r[2] = int(floorf(pos[2] / size + 1.0f));
 }
 
 /**
@@ -1452,7 +1452,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
 
-  mesh->totvert = (int)process.curvertex;
+  mesh->totvert = int(process.curvertex);
   MVert *mvert = static_cast<MVert *>(
       CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CONSTRUCT, NULL, mesh->totvert));
   for (int i = 0; i < mesh->totvert; i++) {
@@ -1460,7 +1460,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
   MEM_freeN(process.co);
 
-  mesh->totpoly = (int)process.curindex;
+  mesh->totpoly = int(process.curindex);
   MPoly *mpoly = static_cast<MPoly *>(
       CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, NULL, mesh->totpoly));
   MLoop *mloop = static_cast<MLoop *>(
@@ -1475,11 +1475,11 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
     mpoly[i].totloop = count;
     mpoly[i].flag = ME_SMOOTH;
 
-    mloop[loop_offset].v = (uint32_t)indices[0];
-    mloop[loop_offset + 1].v = (uint32_t)indices[1];
-    mloop[loop_offset + 2].v = (uint32_t)indices[2];
+    mloop[loop_offset].v = uint32_t(indices[0]);
+    mloop[loop_offset + 1].v = uint32_t(indices[1]);
+    mloop[loop_offset + 2].v = uint32_t(indices[2]);
     if (count == 4) {
-      mloop[loop_offset + 3].v = (uint32_t)indices[3];
+      mloop[loop_offset + 3].v = uint32_t(indices[3]);
     }
 
     loop_offset += count;

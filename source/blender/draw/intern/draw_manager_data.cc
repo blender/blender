@@ -70,7 +70,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
    * So at least sort fast! */
   uchar idx[128] = {0};
   /* Shift by 6 positions knowing each GPUBatch is > 64 bytes */
-#define KEY(a) ((((size_t)((a).draw.batch)) >> 6) % ARRAY_SIZE(idx))
+#define KEY(a) ((size_t((a).draw.batch) >> 6) % ARRAY_SIZE(idx))
   BLI_assert(array_len <= ARRAY_SIZE(idx));
 
   for (int i = 0; i < array_len; i++) {
@@ -699,7 +699,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
-  ob_infos->ob_random = random * (1.0f / (float)0xFFFFFFFF);
+  ob_infos->ob_random = random * (1.0f / float(0xFFFFFFFF));
   /* Object State. */
   ob_infos->ob_flag = 1.0f; /* Required to have a correct sign */
   ob_infos->ob_flag += (ob->base_flag & BASE_SELECTED) ? (1 << 1) : 0;
@@ -819,7 +819,7 @@ static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
 
 static void command_type_set(uint64_t *command_type_bits, int index, eDRWCommandType type)
 {
-  command_type_bits[index / 16] |= ((uint64_t)type) << ((index % 16) * 4);
+  command_type_bits[index / 16] |= uint64_t(type) << ((index % 16) * 4);
 }
 
 eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index)

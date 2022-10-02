@@ -1678,8 +1678,8 @@ static bool mouse_mesh_loop(
   float mvalf[2];
 
   em_setup_viewcontext(C, &vc);
-  mvalf[0] = (float)(vc.mval[0] = mval[0]);
-  mvalf[1] = (float)(vc.mval[1] = mval[1]);
+  mvalf[0] = float(vc.mval[0] = mval[0]);
+  mvalf[1] = float(vc.mval[1] = mval[1]);
 
   BMEditMesh *em_original = vc.em;
   const short selectmode = em_original->selectmode;
@@ -3702,8 +3702,8 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
     const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     /* Intentionally wrap negative values so the lookup fails. */
-    const uint object_index = (uint)RNA_int_get(op->ptr, "object_index");
-    const uint index = (uint)RNA_int_get(op->ptr, "index");
+    const uint object_index = uint(RNA_int_get(op->ptr, "object_index"));
+    const uint index = uint(RNA_int_get(op->ptr, "index"));
     ele = EDBM_elem_from_index_any_multi(scene, view_layer, object_index, index, &obedit);
   }
 

@@ -134,7 +134,7 @@ static void mix_normals(const float mix_factor,
   int i;
 
   if (dvert) {
-    facs = static_cast<float *>(MEM_malloc_arrayN((size_t)loops_num, sizeof(*facs), __func__));
+    facs = static_cast<float *>(MEM_malloc_arrayN(size_t(loops_num), sizeof(*facs), __func__));
     BKE_defvert_extract_vgroup_to_loopweights(
         dvert, defgrp_index, verts_num, mloop, loops_num, use_invert_vgroup, facs);
   }
@@ -164,7 +164,7 @@ static void mix_normals(const float mix_factor,
         *no_new,
         *no_old,
         *no_new,
-        (mix_limit < (float)M_PI) ? min_ff(fac, mix_limit / angle_v3v3(*no_new, *no_old)) : fac);
+        (mix_limit < float(M_PI)) ? min_ff(fac, mix_limit / angle_v3v3(*no_new, *no_old)) : fac);
   }
 
   MEM_SAFE_FREE(facs);
@@ -236,12 +236,12 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   int i;
 
   float(*cos)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__));
+      MEM_malloc_arrayN(size_t(verts_num), sizeof(*cos), __func__));
   float(*nos)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*nos), __func__));
   float size[3];
 
-  BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)verts_num, __func__);
+  BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(verts_num), __func__);
 
   generate_vert_coordinates(mesh, ob, ob_target, enmd->offset, verts_num, cos, size);
 
@@ -375,7 +375,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
   float(*nos)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*nos), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*nos), __func__));
 
   float target_co[3];
   int i;
@@ -399,10 +399,10 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   }
   else {
     float(*cos)[3] = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN((size_t)verts_num, sizeof(*cos), __func__));
+        MEM_malloc_arrayN(size_t(verts_num), sizeof(*cos), __func__));
     generate_vert_coordinates(mesh, ob, ob_target, nullptr, verts_num, cos, nullptr);
 
-    BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)verts_num, __func__);
+    BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(verts_num), __func__);
     const MLoop *ml;
     float(*no)[3];
 
@@ -489,7 +489,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   const bool use_invert_vgroup = ((enmd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
   const bool use_current_clnors = !((enmd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
                                     (enmd->mix_factor == 1.0f) && (enmd->defgrp_name[0] == '\0') &&
-                                    (enmd->mix_limit == (float)M_PI));
+                                    (enmd->mix_limit == float(M_PI)));
 
   /* Do not run that modifier at all if autosmooth is disabled! */
   if (!is_valid_target_with_error(ctx->object, enmd) || mesh->totloop == 0) {
@@ -547,7 +547,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     clnors = static_cast<short(*)[2]>(
         CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
     loopnors = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN((size_t)loops_num, sizeof(*loopnors), __func__));
+        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loopnors), __func__));
 
     BKE_mesh_normals_loop_split(verts,
                                 vert_normals,
