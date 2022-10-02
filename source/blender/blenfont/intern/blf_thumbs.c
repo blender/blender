@@ -37,8 +37,8 @@
 
 typedef struct UnicodeSample {
   char32_t sample[BLF_SAMPLE_LEN];
-  char field; /* ‘OS/2’ table ulUnicodeRangeX field (1-4). */
-  long mask;  /* ‘OS/2’ table ulUnicodeRangeX bit mask. */
+  int field;     /* ‘OS/2’ table ulUnicodeRangeX field (1-4). */
+  FT_ULong mask; /* ‘OS/2’ table ulUnicodeRangeX bit mask. */
 } UnicodeSample;
 
 /* The seemingly arbitrary order that follows is to help quickly find the most-likely designed
@@ -262,9 +262,9 @@ static const char32_t *blf_get_sample_text(FT_Face face)
     if (os2_table && s->field && s->mask) {
       /* OS/2 Table contains 4 contiguous integers of script coverage bit flags. */
       const FT_ULong *unicode_range = &os2_table->ulUnicodeRange1;
-      const size_t index = (s->field - 1);
+      const int index = (s->field - 1);
       BLI_assert(index < 4);
-      if (!(unicode_range[index] & (FT_ULong)s->mask)) {
+      if (!(unicode_range[index] & s->mask)) {
         continue;
       }
     }
