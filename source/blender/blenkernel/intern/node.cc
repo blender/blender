@@ -4820,6 +4820,7 @@ static void registerGeometryNodes()
   register_node_type_geo_separate_geometry();
   register_node_type_geo_self_object();
   register_node_type_geo_set_curve_handles();
+  register_node_type_geo_set_curve_normal();
   register_node_type_geo_set_curve_radius();
   register_node_type_geo_set_curve_tilt();
   register_node_type_geo_set_id();

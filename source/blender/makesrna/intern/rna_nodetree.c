@@ -13,6 +13,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_curves_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -9696,6 +9697,17 @@ static void def_geo_curve_set_handle_positions(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_side_items);
   RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_set_curve_normal(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_curve_normal_modes);
+  RNA_def_property_ui_text(prop, "Mode", "Mode for curve normal evaluation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_geo_curve_handle_type_selection(StructRNA *srna)

@@ -398,6 +398,7 @@ DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS",Sep
 DefNode(GeometryNode, GEO_NODE_SEPARATE_GEOMETRY, def_geo_separate_geometry,"SEPARATE_GEOMETRY", SeparateGeometry, "Separate Geometry", "Split a geometry into two geometry outputs based on a selection")
 DefNode(GeometryNode, GEO_NODE_SELF_OBJECT, 0, "SELF_OBJECT", SelfObject, "Self Object", "Retrieve the object that contains the geometry nodes modifier currently being executed")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_HANDLES, def_geo_curve_set_handle_positions, "SET_CURVE_HANDLES", SetCurveHandlePositions, "Set Handle Positions", "Set the positions for the handles of Bézier curves")
+DefNode(GeometryNode, GEO_NODE_SET_CURVE_NORMAL, def_geo_set_curve_normal, "SET_CURVE_NORMAL", SetCurveNormal, "Set Curve Normal", "Set the evaluation mode for curve normals")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_RADIUS, 0, "SET_CURVE_RADIUS", SetCurveRadius, "Set Curve Radius", "Set the radius of the curve at each control point")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_TILT, 0, "SET_CURVE_TILT", SetCurveTilt, "Set Curve Tilt", "Set the tilt angle at each curve control point")
 DefNode(GeometryNode, GEO_NODE_SET_ID, 0, "SET_ID", SetID, "Set ID", "Set the id attribute on the input geometry, mainly used internally for randomizing")

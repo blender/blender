@@ -139,6 +139,7 @@ void register_node_type_geo_separate_components(void);
 void register_node_type_geo_separate_geometry(void);
 void register_node_type_geo_self_object(void);
 void register_node_type_geo_set_curve_handles(void);
+void register_node_type_geo_set_curve_normal(void);
 void register_node_type_geo_set_curve_radius(void);
 void register_node_type_geo_set_curve_tilt(void);
 void register_node_type_geo_set_id(void);

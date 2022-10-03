@@ -26,6 +26,12 @@ const EnumPropertyItem rna_enum_curves_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_curve_normal_modes[] = {
+    {NORMAL_MODE_MINIMUM_TWIST, "MINIMUM_TWIST", ICON_NONE, "Minimum Twist", ""},
+    {NORMAL_MODE_Z_UP, "Z_UP", ICON_NONE, "Z Up", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"

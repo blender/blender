@@ -62,6 +62,7 @@ class NODE_MT_geometry_node_GEO_CURVE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSplineParameter")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSplineResolution")
         layout.separator()
+        node_add_menu.add_node_type(layout, "GeometryNodeSetCurveNormal")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveRadius")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveTilt")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveHandlePositions")
