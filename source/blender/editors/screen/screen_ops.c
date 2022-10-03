@@ -5032,7 +5032,14 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 /** \name Show User Preferences Operator
  * \{ */
 
-static int userpref_show_exec(bContext *C, wmOperator *op)
+/**
+ * Shared window opening logic for preferences and project settings.
+ * \return True on success.
+ */
+static bool settings_window_show(bContext *C,
+                                 eSpace_Type space_type,
+                                 const char *window_title,
+                                 ReportList *reports)
 {
   wmWindow *win_cur = CTX_wm_window(C);
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
@@ -5040,6 +5047,43 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
   int sizey = 520 * UI_DPI_FAC;
 
+  /* changes context! */
+  if (WM_window_open(C,
+                     window_title,
+                     event->xy[0],
+                     event->xy[1],
+                     sizex,
+                     sizey,
+                     space_type,
+                     false,
+                     false,
+                     true,
+                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
+    /* The header only contains the editor switcher and looks empty.
+     * So hiding in the temp window makes sense. */
+    ScrArea *area = CTX_wm_area(C);
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+    if (region) {
+      region->flag |= RGN_FLAG_HIDDEN;
+      ED_region_visibility_change_update(C, area, region);
+    }
+
+    /* And also show the region with "Load & Save" buttons. */
+    region = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
+    if (region) {
+      region->flag &= ~RGN_FLAG_HIDDEN;
+      ED_region_visibility_change_update(C, area, region);
+    }
+
+    return true;
+  }
+
+  BKE_report(reports, RPT_ERROR, "Failed to open window!");
+  return false;
+}
+
+static int userpref_show_exec(bContext *C, wmOperator *op)
+{
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
   if (prop && RNA_property_is_set(op->ptr, prop)) {
     /* Set active section via RNA, so it can fail properly. */
@@ -5052,34 +5096,10 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
     RNA_property_update(C, &pref_ptr, active_section_prop);
   }
 
-  /* changes context! */
-  if (WM_window_open(C,
-                     IFACE_("Blender Preferences"),
-                     event->xy[0],
-                     event->xy[1],
-                     sizex,
-                     sizey,
-                     SPACE_USERPREF,
-                     false,
-                     false,
-                     true,
-                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
-    /* The header only contains the editor switcher and looks empty.
-     * So hiding in the temp window makes sense. */
-    ScrArea *area = CTX_wm_area(C);
-    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
-
-    region->flag |= RGN_FLAG_HIDDEN;
-    ED_region_visibility_change_update(C, area, region);
-
-    /* And also show the region with "Load & Save" buttons. */
-    region = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
-    region->flag &= ~RGN_FLAG_HIDDEN;
-    ED_region_visibility_change_update(C, area, region);
-
+  if (settings_window_show(C, SPACE_USERPREF, IFACE_("Blender Preferences"), op->reports)) {
     return OPERATOR_FINISHED;
   }
-  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+
   return OPERATOR_CANCELLED;
 }
 
@@ -5103,6 +5123,34 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
                       "",
                       "Section to activate in the Preferences");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Show Project Settings Operator
+ * \{ */
+
+static int project_settings_show_exec(bContext *C, wmOperator *op)
+{
+  if (settings_window_show(
+          C, SPACE_PROJECT_SETTINGS, IFACE_("Blender Project Settings"), op->reports)) {
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+static void SCREEN_OT_project_settings_show(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Open Project Settings...";
+  ot->description = "Edit configuration for the active Blender project";
+  ot->idname = "SCREEN_OT_project_settings_show";
+
+  /* api callbacks */
+  ot->exec = project_settings_show_exec;
+  ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
 }
 
 /** \} */
@@ -5695,6 +5743,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_screenshot);
   WM_operatortype_append(SCREEN_OT_screenshot_area);
   WM_operatortype_append(SCREEN_OT_userpref_show);
+  WM_operatortype_append(SCREEN_OT_project_settings_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);
   WM_operatortype_append(SCREEN_OT_region_blend);
