@@ -171,9 +171,9 @@ set(SRC
   BLI_asan.h
   BLI_assert.h
   BLI_astar.h
+  BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
-  BLI_bit_vector.hh
   BLI_blenlib.h
   BLI_bounds.hh
   BLI_boxpack_2d.h

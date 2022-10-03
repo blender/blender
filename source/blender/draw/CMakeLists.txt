@@ -207,8 +207,8 @@ set(SRC
   engines/overlay/overlay_wireframe.cc
 
   DRW_engine.h
-  DRW_select_buffer.h
   DRW_pbvh.h
+  DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
   intern/draw_attributes.h
@@ -231,8 +231,8 @@ set(SRC
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
-  intern/draw_pbvh.h
   intern/draw_pass.hh
+  intern/draw_pbvh.h
   intern/draw_resource.cc
   intern/draw_resource.hh
   intern/draw_shader.h
