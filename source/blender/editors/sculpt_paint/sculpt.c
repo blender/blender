@@ -419,8 +419,15 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
         ss->hide_poly[i] = !ss->hide_poly[i];
       }
       break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        BM_elem_flag_toggle(f, BM_ELEM_HIDDEN);
+      }
       break;
+    }
   }
 }
 
@@ -432,8 +439,15 @@ void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
       BLI_assert(ss->hide_poly != NULL);
       memset(ss->hide_poly, !visible, sizeof(bool) * ss->totfaces);
       break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        BM_elem_flag_set(f, BM_ELEM_HIDDEN, !visible);
+      }
       break;
+    }
   }
 }
 
@@ -475,8 +489,30 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       }
       return true;
     }
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      BMEdge *e = v->e;
+
+      if (!e) {
+        return true;
+      }
+
+      do {
+        BMLoop *l = e->l;
+
+        if (!l) {
+          continue;
+        }
+
+        do {
+          if (BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
+            return false;
+          }
+        } while ((l = l->radial_next) != e->l);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
       return true;
+    }
     case PBVH_GRIDS: {
       if (!ss->hide_poly) {
         return true;
@@ -603,8 +639,34 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
       BKE_sculpt_sync_face_visibility_to_grids(mesh, ss->subdiv_ccg);
       break;
     }
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMVert *v;
+      BMFace *f;
+
+      /* Hide all verts and edges attached to faces.*/
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
+      }
+
+      /* Unhide verts and edges attached to visible faces. */
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        if (!(BM_elem_flag_test(f, BM_ELEM_HIDDEN))) {
+          continue;
+        }
+
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
+      }
       break;
+    }
   }
 }
 

@@ -833,18 +833,57 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  /* Dyntopo not supported. */
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  /* Dyntopo not supported except for SCULPT_FACE_SET_VISIBILITY_SHOW_ALL. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    if (ss->pbvh && ss->bm &&
+        RNA_enum_get(op->ptr, "mode") == SCULPT_FACE_SET_VISIBILITY_SHOW_ALL) {
+      PBVHNode **nodes;
+      int totnode;
+
+      BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+
+      if (!totnode) {
+        return OPERATOR_CANCELLED;
+      }
+
+      SCULPT_undo_push_begin(ob, op);
+      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_COORDS);
+
+      for (int i = 0; i < totnode; i++) {
+        BKE_pbvh_node_mark_update_visibility(nodes[i]);
+      }
+
+      BMIter iter;
+      BMFace *f;
+      BMVert *v;
+      const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+
+      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        BM_log_vert_before_modified(ss->bm_log, v, cd_mask);
+      }
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        BM_log_face_modified(ss->bm_log, f);
+      }
+
+      SCULPT_face_visibility_all_set(ss, true);
+      SCULPT_visibility_sync_all_from_faces(ob);
+
+      SCULPT_undo_push_end(ob);
+      MEM_SAFE_FREE(nodes);
+
+      return OPERATOR_FINISHED;
+    }
+
     return OPERATOR_CANCELLED;
   }
 
   if (!ss->face_sets) {
     return OPERATOR_CANCELLED;
   }
-
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   const int mode = RNA_enum_get(op->ptr, "mode");
