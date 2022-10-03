@@ -476,6 +476,20 @@ const EnumPropertyItem rna_enum_bake_save_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_bake_view_from_items[] = {
+    {R_BAKE_VIEW_FROM_ABOVE_SURFACE,
+     "ABOVE_SURFACE",
+     0,
+     "Above Surface",
+     "Cast rays from above the surface"},
+    {R_BAKE_VIEW_FROM_ACTIVE_CAMERA,
+     "ACTIVE_CAMERA",
+     0,
+     "Active Camera",
+     "Use the active camera's position to cast rays"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #define R_IMF_VIEWS_ENUM_IND \
   {R_IMF_VIEWS_INDIVIDUAL, \
    "INDIVIDUAL", \
@@ -5411,6 +5425,11 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "save_mode");
   RNA_def_property_enum_items(prop, rna_enum_bake_save_mode_items);
   RNA_def_property_ui_text(prop, "Save Mode", "Where to save baked image textures");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "view_from", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_bake_view_from_items);
+  RNA_def_property_ui_text(prop, "View From", "Source of reflection ray directions");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* flags */

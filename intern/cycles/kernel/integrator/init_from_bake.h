@@ -210,8 +210,51 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
     /* Setup ray. */
     Ray ray ccl_optional_struct_init;
-    ray.P = P + N;
-    ray.D = -N;
+
+    if (kernel_data.bake.use_camera) {
+      float3 D = camera_direction_from_point(kg, P);
+
+      const float DN = dot(D, N);
+
+      /* Nudge camera direction, so that the faces facing away from the camera still have
+       * somewhat usable shading. (Otherwise, glossy faces would be simply black.)
+       *
+       * The surface normal offset affects smooth surfaces. Lower values will make
+       * smooth surfaces more faceted, but higher values may show up from the camera
+       * at grazing angles.
+       *
+       * This value can actually be pretty high before it's noticeably wrong. */
+      const float surface_normal_offset = 0.2f;
+
+      /* Keep the ray direction at least `surface_normal_offset` "above" the smooth normal. */
+      if (DN <= surface_normal_offset) {
+        D -= N * (DN - surface_normal_offset);
+        D = normalize(D);
+      }
+
+      /* On the backside, just lerp towards the surface normal for the ray direction,
+       * as DN goes from 0.0 to -1.0. */
+      if (DN <= 0.0f) {
+        D = normalize(mix(D, N, -DN));
+      }
+
+      /* We don't want to bake the back face, so make sure the ray direction never
+       * goes behind the geometry (flat) normal. This is a failsafe, and should rarely happen. */
+      const float true_normal_epsilon = 0.00001f;
+
+      if (dot(D, Ng) <= true_normal_epsilon) {
+        D -= Ng * (dot(D, Ng) - true_normal_epsilon);
+        D = normalize(D);
+      }
+
+      ray.P = P + D;
+      ray.D = -D;
+    }
+    else {
+      ray.P = P + N;
+      ray.D = -N;
+    }
+
     ray.tmin = 0.0f;
     ray.tmax = FLT_MAX;
     ray.time = 0.5f;

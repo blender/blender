@@ -2,6 +2,7 @@
  * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/camera.h"
+#include "scene/bake.h"
 #include "scene/scene.h"
 
 #include "blender/sync.h"
@@ -592,6 +593,11 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
     blender_camera_from_object(&bcam, b_engine, b_ob);
     b_engine.camera_model_matrix(b_ob, bcam.use_spherical_stereo, b_ob_matrix);
     bcam.matrix = get_transform(b_ob_matrix);
+    scene->bake_manager->set_use_camera(b_render.bake().view_from() ==
+                                        BL::BakeSettings::view_from_ACTIVE_CAMERA);
+  }
+  else {
+    scene->bake_manager->set_use_camera(false);
   }
 
   /* sync */
