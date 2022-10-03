@@ -28,18 +28,17 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Point Index"))
       .implicit_field(implicit_field_inputs::index)
-      .hide_value()
       .description(
           N_("The index of the control point to evaluate. Defaults to the current index"));
   b.add_input<decl::Int>(N_("Offset"))
-      .dependent_field()
+      .supports_field()
       .description(N_("The number of control points along the curve to traverse"));
   b.add_output<decl::Bool>(N_("Is Valid Offset"))
-      .field_source()
+      .dependent_field()
       .description(N_("Outputs true if the evaluated control point plus the offset "
                       "is a valid index of the original curve"));
   b.add_output<decl::Int>(N_("Point Index"))
-      .field_source()
+      .dependent_field()
       .description(N_("The index of the control point plus the offset within the entire "
                       "curves data-block"));
 }
