@@ -98,6 +98,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
+    btheme->space_project_settings = btheme->space_preferences;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

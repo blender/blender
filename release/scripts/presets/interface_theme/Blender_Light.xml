@@ -1135,6 +1135,40 @@
         </space>
       </ThemePreferences>
     </preferences>
+    <project_settings>
+      <ThemeProjectSettings>
+        <space>
+          <ThemeSpaceGeneric
+            back="#b3b3b3"
+            title="#181818"
+            text="#000000"
+            text_hi="#ffffff"
+            header="#b3b3b3ff"
+            header_text="#000000"
+            header_text_hi="#ffffff"
+            button="#7272727f"
+            button_title="#000000"
+            button_text="#000000"
+            button_text_hi="#000000"
+            navigation_bar="#b3b3b3ff"
+            execution_buts="#b3b3b3ff"
+            tab_active="#6697e6"
+            tab_inactive="#535353"
+            tab_back="#404040ff"
+            tab_outline="#3c3c3c"
+            >
+            <panelcolors>
+              <ThemePanelColors
+                header="#b3b3b300"
+                back="#a3a3a3cc"
+                sub_back="#00000024"
+                >
+              </ThemePanelColors>
+            </panelcolors>
+          </ThemeSpaceGeneric>
+        </space>
+      </ThemeProjectSettings>
+    </project_settings>
     <console>
       <ThemeConsole
         line_output="#6080ff"

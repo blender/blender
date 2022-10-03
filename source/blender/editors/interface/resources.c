@@ -129,6 +129,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case SPACE_USERPREF:
           ts = &btheme->space_preferences;
           break;
+        case SPACE_PROJECT_SETTINGS:
+          ts = &btheme->space_project_settings;
+          break;
         case SPACE_CONSOLE:
           ts = &btheme->space_console;
           break;
