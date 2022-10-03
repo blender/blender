@@ -150,7 +150,7 @@ void node_bsdf_principled(vec4 base_color,
   refraction_data.ior = ior;
 
   /* Ref. T98190: Defines are optimizations for old compilers.
-   * Might become unecessary with EEVEE-Next. */
+   * Might become unnecessary with EEVEE-Next. */
   if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat != 0.0) {
 #ifdef PRINCIPLED_CLEARCOAT
     /* Metallic & Clearcoat case. */

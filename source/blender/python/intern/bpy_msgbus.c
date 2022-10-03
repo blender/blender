@@ -42,7 +42,7 @@
   "      - :class:`bpy.types.Property` instance.\n" \
   "      - :class:`bpy.types.Struct` type.\n" \
   "      - (:class:`bpy.types.Struct`, str) type and property name.\n" \
-  "   :type key: Muliple\n"
+  "   :type key: Multiple\n"
 
 /**
  * There are multiple ways we can get RNA from Python,
