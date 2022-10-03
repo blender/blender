@@ -34,9 +34,9 @@ class IndexFieldInput final : public FieldInput {
   {
   }
 
-  GVArray get_varray_for_context(const FieldContext &UNUSED(context),
+  GVArray get_varray_for_context(const FieldContext & /*context*/,
                                  IndexMask mask,
-                                 ResourceScope &UNUSED(scope)) const final
+                                 ResourceScope & /*scope*/) const final
   {
     auto index_func = [](int i) { return i; };
     return VArray<int>::ForFunc(mask.min_array_size(), index_func);
@@ -171,7 +171,7 @@ class TwoOutputFunction : public MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
     const VArray<int> &in1 = params.readonly_single_input<int>(0, "In1");
     const VArray<int> &in2 = params.readonly_single_input<int>(1, "In2");

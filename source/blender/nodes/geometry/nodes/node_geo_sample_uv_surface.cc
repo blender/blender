@@ -46,12 +46,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("Whether the node could find a single face to sample at the UV coordinate"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
 }
@@ -147,7 +147,7 @@ class SampleUVSurfaceFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float2> &sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
     GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Value");

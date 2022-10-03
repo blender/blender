@@ -155,7 +155,7 @@ PyDoc_STRVAR(BinaryPredicate1D_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void *UNUSED(closure))
+static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }

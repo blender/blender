@@ -767,7 +767,7 @@ static DRWResourceHandle drw_resource_handle_new(float (*obmat)[4], Object *ob)
   return handle;
 }
 
-uint32_t DRW_object_resource_id_get(Object *UNUSED(ob))
+uint32_t DRW_object_resource_id_get(Object * /*ob*/)
 {
   DRWResourceHandle handle = DST.ob_handle;
   if (handle == 0) {

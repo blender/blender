@@ -500,7 +500,7 @@ static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   }
 }
 
-static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int parent_clear_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -555,7 +555,7 @@ static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return (ob && (outliner_ID_drop_find(C, event, ID_SCE) != nullptr));
 }
 
-static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int scene_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = (Scene *)outliner_ID_drop_find(C, event, ID_SCE);
@@ -625,7 +625,7 @@ static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return (ma && (outliner_ID_drop_find(C, event, ID_OB) != nullptr));
 }
 
-static int material_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int material_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = (Object *)outliner_ID_drop_find(C, event, ID_OB);
@@ -886,10 +886,10 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return true;
 }
 
-static char *datastack_drop_tooltip(bContext *UNUSED(C),
+static char *datastack_drop_tooltip(bContext * /*C*/,
                                     wmDrag *drag,
                                     const int UNUSED(xy[2]),
-                                    struct wmDropBox *UNUSED(drop))
+                                    struct wmDropBox * /*drop*/)
 {
   StackDropData *drop_data = static_cast<StackDropData *>(drag->poin);
   switch (drop_data->drop_action) {
@@ -1224,7 +1224,7 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 static char *collection_drop_tooltip(bContext *C,
                                      wmDrag *drag,
                                      const int xy[2],
-                                     wmDropBox *UNUSED(drop))
+                                     wmDropBox * /*drop*/)
 {
   wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win ? win->eventstate : nullptr;
@@ -1290,7 +1290,7 @@ static char *collection_drop_tooltip(bContext *C,
   return nullptr;
 }
 
-static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int collection_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1404,9 +1404,7 @@ static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outline
   return outliner_find_item_at_y(space_outliner, &space_outliner->tree, my);
 }
 
-static int outliner_item_drag_drop_invoke(bContext *C,
-                                          wmOperator *UNUSED(op),
-                                          const wmEvent *event)
+static int outliner_item_drag_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);

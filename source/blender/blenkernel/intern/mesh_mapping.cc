@@ -262,12 +262,12 @@ void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
 
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
-                                      const MVert *UNUSED(mvert),
+                                      const MVert * /*mvert*/,
                                       const int totvert,
                                       const MLoopTri *mlooptri,
                                       const int totlooptri,
                                       const MLoop *mloop,
-                                      const int UNUSED(totloop))
+                                      const int /*totloop*/)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
   int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totlooptri) * 3, __func__));
@@ -384,7 +384,7 @@ void BKE_mesh_vert_edge_vert_map_create(
 
 void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MEdge *UNUSED(medge),
+                                   const MEdge * /*medge*/,
                                    const int totedge,
                                    const MPoly *mpoly,
                                    const int totpoly,
@@ -437,7 +437,7 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
 
 void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MEdge *UNUSED(medge),
+                                   const MEdge * /*medge*/,
                                    const int totedge,
                                    const MPoly *mpoly,
                                    const int totpoly,
@@ -802,12 +802,12 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
 }
 
 static bool poly_is_island_boundary_smooth_cb(const MPoly *mp,
-                                              const MLoop *UNUSED(ml),
+                                              const MLoop * /*ml*/,
                                               const MEdge *me,
                                               const int edge_user_count,
                                               const MPoly *mpoly_array,
                                               const MeshElemMap *edge_poly_map,
-                                              void *UNUSED(user_data))
+                                              void * /*user_data*/)
 {
   /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
    * or edge is not used by exactly two polygons. */
@@ -977,12 +977,12 @@ struct MeshCheckIslandBoundaryUv {
   const MeshElemMap *edge_loop_map;
 };
 
-static bool mesh_check_island_boundary_uv(const MPoly *UNUSED(mp),
+static bool mesh_check_island_boundary_uv(const MPoly * /*mp*/,
                                           const MLoop *ml,
                                           const MEdge *me,
-                                          const int UNUSED(edge_user_count),
-                                          const MPoly *UNUSED(mpoly_array),
-                                          const MeshElemMap *UNUSED(edge_poly_map),
+                                          const int /*edge_user_count*/,
+                                          const MPoly * /*mpoly_array*/,
+                                          const MeshElemMap * /*edge_poly_map*/,
                                           void *user_data)
 {
   if (user_data) {
@@ -1021,8 +1021,8 @@ static bool mesh_check_island_boundary_uv(const MPoly *UNUSED(mp),
   return (me->flag & ME_SEAM) != 0;
 }
 
-static bool mesh_calc_islands_loop_poly_uv(const MVert *UNUSED(verts),
-                                           const int UNUSED(totvert),
+static bool mesh_calc_islands_loop_poly_uv(const MVert * /*verts*/,
+                                           const int /*totvert*/,
                                            const MEdge *edges,
                                            const int totedge,
                                            const MPoly *polys,

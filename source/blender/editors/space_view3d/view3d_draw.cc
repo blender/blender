@@ -1144,7 +1144,7 @@ static void view3d_draw_border(const bContext *C, ARegion *region)
 /**
  * Draw Info
  */
-static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
+static void view3d_draw_grease_pencil(const bContext * /*C*/)
 {
   /* TODO: viewport. */
 }
@@ -2406,7 +2406,7 @@ void ED_view3d_depths_free(ViewDepths *depths)
  * \{ */
 
 void ED_view3d_datamask(const bContext *C,
-                        const Scene *UNUSED(scene),
+                        const Scene * /*scene*/,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {

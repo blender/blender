@@ -1132,17 +1132,17 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
     return VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(mesh), mesh->totpoly});
   }
 
-  GAttributeWriter try_get_for_write(void *UNUSED(owner)) const final
+  GAttributeWriter try_get_for_write(void * /*owner*/) const final
   {
     return {};
   }
 
-  bool try_delete(void *UNUSED(owner)) const final
+  bool try_delete(void * /*owner*/) const final
   {
     return false;
   }
 
-  bool try_create(void *UNUSED(owner), const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(void * /*owner*/, const AttributeInit & /*initializer*/) const final
   {
     return false;
   }
@@ -1312,7 +1312,7 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
         return 0;
     }
   };
-  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+  fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
     return ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
   };
   fn.adapt_domain = [](const void *owner,

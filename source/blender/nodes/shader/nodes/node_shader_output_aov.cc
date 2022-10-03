@@ -16,12 +16,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Value")).default_value(0.0f).min(0.0f).max(1.0f);
 }
 
-static void node_shader_buts_output_aov(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_output_aov(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-static void node_shader_init_output_aov(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_output_aov(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderOutputAOV *aov = MEM_cnew<NodeShaderOutputAOV>("NodeShaderOutputAOV");
   node->storage = aov;
@@ -29,7 +29,7 @@ static void node_shader_init_output_aov(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_output_aov(GPUMaterial *mat,
                                       bNode *node,
-                                      bNodeExecData *UNUSED(execdata),
+                                      bNodeExecData * /*execdata*/,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {

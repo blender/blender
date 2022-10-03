@@ -27,12 +27,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Distance")).dependent_field();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target_element", 0, "", ICON_NONE);
 }
 
-static void geo_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryProximity *node_storage = MEM_cnew<NodeGeometryProximity>(__func__);
   node_storage->target_element = GEO_NODE_PROX_TARGET_FACES;
@@ -151,7 +151,7 @@ class ProximityFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
                                                                                "Source Position");

@@ -169,7 +169,7 @@ void RenderLayersProg::deinit_execution()
   }
 }
 
-void RenderLayersProg::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void RenderLayersProg::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   Scene *sce = this->get_scene();
   Render *re = (sce) ? RE_GetSceneRender(sce) : nullptr;
@@ -235,7 +235,7 @@ std::unique_ptr<MetaData> RenderLayersProg::get_meta_data()
 
 void RenderLayersProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                     const rcti &area,
-                                                    Span<MemoryBuffer *> UNUSED(inputs))
+                                                    Span<MemoryBuffer *> /*inputs*/)
 {
   BLI_assert(output->get_num_channels() >= elementsize_);
   if (layer_buffer_) {
@@ -266,7 +266,7 @@ void RenderLayersAOOperation::execute_pixel_sampled(float output[4],
 
 void RenderLayersAOOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
-                                                           Span<MemoryBuffer *> UNUSED(inputs))
+                                                           Span<MemoryBuffer *> /*inputs*/)
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_COLOR_CHANNELS);
   BLI_assert(elementsize_ == COM_DATA_TYPE_COLOR_CHANNELS);
@@ -300,7 +300,7 @@ void RenderLayersAlphaProg::execute_pixel_sampled(float output[4],
 
 void RenderLayersAlphaProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                          const rcti &area,
-                                                         Span<MemoryBuffer *> UNUSED(inputs))
+                                                         Span<MemoryBuffer *> /*inputs*/)
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_VALUE_CHANNELS);
   BLI_assert(elementsize_ == COM_DATA_TYPE_COLOR_CHANNELS);
@@ -335,7 +335,7 @@ void RenderLayersDepthProg::execute_pixel_sampled(float output[4],
 
 void RenderLayersDepthProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                          const rcti &area,
-                                                         Span<MemoryBuffer *> UNUSED(inputs))
+                                                         Span<MemoryBuffer *> /*inputs*/)
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_VALUE_CHANNELS);
   BLI_assert(elementsize_ == COM_DATA_TYPE_VALUE_CHANNELS);

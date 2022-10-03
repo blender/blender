@@ -696,7 +696,7 @@ static bool do_lasso_select_pose(ViewContext *vc,
 static void do_lasso_select_mesh__doSelectVert(void *userData,
                                                BMVert *eve,
                                                const float screen_co[2],
-                                               int UNUSED(index))
+                                               int /*index*/)
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(userData);
   const bool is_select = BM_elem_flag_test(eve, BM_ELEM_SELECT);
@@ -775,7 +775,7 @@ static void do_lasso_select_mesh__doSelectEdge_pass1(void *user_data,
 static void do_lasso_select_mesh__doSelectFace(void *userData,
                                                BMFace *efa,
                                                const float screen_co[2],
-                                               int UNUSED(index))
+                                               int /*index*/)
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(userData);
   const bool is_select = BM_elem_flag_test(efa, BM_ELEM_SELECT);
@@ -883,7 +883,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
 }
 
 static void do_lasso_select_curve__doSelect(void *userData,
-                                            Nurb *UNUSED(nu),
+                                            Nurb * /*nu*/,
                                             BPoint *bp,
                                             BezTriple *bezt,
                                             int beztindex,
@@ -1443,8 +1443,8 @@ static SelMenuItemF object_mouse_select_menu_data[SEL_MENU_SIZE];
 
 /* special (crappy) operator only for menu select */
 static const EnumPropertyItem *object_select_menu_enum_itemf(bContext *C,
-                                                             PointerRNA *UNUSED(ptr),
-                                                             PropertyRNA *UNUSED(prop),
+                                                             PointerRNA * /*ptr*/,
+                                                             PropertyRNA * /*prop*/,
                                                              bool *r_free)
 {
   EnumPropertyItem *item = nullptr, item_tmp = {0};
@@ -1917,7 +1917,7 @@ static bool selectbuffer_has_bones(const GPUSelectResult *buffer, const uint hit
 }
 
 /* utility function for mixed_bones_object_selectbuffer */
-static int selectbuffer_ret_hits_15(GPUSelectResult *UNUSED(buffer), const int hits15)
+static int selectbuffer_ret_hits_15(GPUSelectResult * /*buffer*/, const int hits15)
 {
   return hits15;
 }
@@ -3262,7 +3262,7 @@ static bool do_paintface_box_select(ViewContext *vc,
 }
 
 static void do_nurbs_box_select__doSelect(void *userData,
-                                          Nurb *UNUSED(nu),
+                                          Nurb * /*nu*/,
                                           BPoint *bp,
                                           BezTriple *bezt,
                                           int beztindex,
@@ -3362,7 +3362,7 @@ static bool do_lattice_box_select(ViewContext *vc, rcti *rect, const eSelectOp s
 static void do_mesh_box_select__doSelectVert(void *userData,
                                              BMVert *eve,
                                              const float screen_co[2],
-                                             int UNUSED(index))
+                                             int /*index*/)
 {
   BoxSelectUserData *data = static_cast<BoxSelectUserData *>(userData);
   const bool is_select = BM_elem_flag_test(eve, BM_ELEM_SELECT);
@@ -3429,7 +3429,7 @@ static void do_mesh_box_select__doSelectEdge_pass1(
 static void do_mesh_box_select__doSelectFace(void *userData,
                                              BMFace *efa,
                                              const float screen_co[2],
-                                             int UNUSED(index))
+                                             int /*index*/)
 {
   BoxSelectUserData *data = static_cast<BoxSelectUserData *>(userData);
   const bool is_select = BM_elem_flag_test(efa, BM_ELEM_SELECT);
@@ -3997,7 +3997,7 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
 static void mesh_circle_doSelectVert(void *userData,
                                      BMVert *eve,
                                      const float screen_co[2],
-                                     int UNUSED(index))
+                                     int /*index*/)
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(userData);
 
@@ -4010,7 +4010,7 @@ static void mesh_circle_doSelectEdge(void *userData,
                                      BMEdge *eed,
                                      const float screen_co_a[2],
                                      const float screen_co_b[2],
-                                     int UNUSED(index))
+                                     int /*index*/)
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(userData);
 
@@ -4022,7 +4022,7 @@ static void mesh_circle_doSelectEdge(void *userData,
 static void mesh_circle_doSelectFace(void *userData,
                                      BMFace *efa,
                                      const float screen_co[2],
-                                     int UNUSED(index))
+                                     int /*index*/)
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(userData);
 
@@ -4243,11 +4243,11 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
 }
 
 static void nurbscurve_circle_doSelect(void *userData,
-                                       Nurb *UNUSED(nu),
+                                       Nurb * /*nu*/,
                                        BPoint *bp,
                                        BezTriple *bezt,
                                        int beztindex,
-                                       bool UNUSED(handles_visible),
+                                       bool /*handles_visible*/,
                                        const float screen_co[2])
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(userData);

@@ -57,7 +57,7 @@ uint64_t IDNode::ComponentIDKey::hash() const
                                     BLI_ghashutil_strhash_p(name));
 }
 
-void IDNode::init(const ID *id, const char *UNUSED(subdata))
+void IDNode::init(const ID *id, const char * /*subdata*/)
 {
   BLI_assert(id != nullptr);
   /* Store ID-pointer. */

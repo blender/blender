@@ -364,8 +364,8 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
   }
 }
 
-static void overlay_gpencil_draw_stroke_color_name(bGPDlayer *UNUSED(gpl),
-                                                   bGPDframe *UNUSED(gpf),
+static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
+                                                   bGPDframe * /*gpf*/,
                                                    bGPDstroke *gps,
                                                    void *thunk)
 {

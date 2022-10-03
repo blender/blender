@@ -35,7 +35,7 @@ static void cmp_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_colorband_add(true);
 }

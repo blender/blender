@@ -129,8 +129,8 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
 }
 
 static void node_composit_buts_switch_view_ex(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *UNUSED(ptr))
+                                              bContext * /*C*/,
+                                              PointerRNA * /*ptr*/)
 {
   uiItemFullO(layout,
               "NODE_OT_switch_view_update",

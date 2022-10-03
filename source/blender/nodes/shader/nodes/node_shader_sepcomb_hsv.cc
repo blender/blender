@@ -21,7 +21,7 @@ static void node_declare_sephsv(NodeDeclarationBuilder &b)
 
 static int gpu_shader_sephsv(GPUMaterial *mat,
                              bNode *node,
-                             bNodeExecData *UNUSED(execdata),
+                             bNodeExecData * /*execdata*/,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
@@ -58,7 +58,7 @@ static void node_declare_combhsv(NodeDeclarationBuilder &b)
 
 static int gpu_shader_combhsv(GPUMaterial *mat,
                               bNode *node,
-                              bNodeExecData *UNUSED(execdata),
+                              bNodeExecData * /*execdata*/,
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {

@@ -33,12 +33,12 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1; /* Bilinear Filter. */
 }
 
-static void node_composit_buts_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }

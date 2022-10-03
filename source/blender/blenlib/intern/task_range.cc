@@ -132,7 +132,7 @@ void BLI_task_parallel_range(const int start,
   }
 }
 
-int BLI_task_parallel_thread_id(const TaskParallelTLS *UNUSED(tls))
+int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
 {
 #ifdef WITH_TBB
   /* Get a unique thread ID for texture nodes. In the future we should get rid

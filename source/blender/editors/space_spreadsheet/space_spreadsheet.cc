@@ -45,7 +45,7 @@
 using namespace blender;
 using namespace blender::ed::spreadsheet;
 
-static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   SpaceSpreadsheet *spreadsheet_space = MEM_cnew<SpaceSpreadsheet>("spreadsheet space");
   spreadsheet_space->spacetype = SPACE_SPREADSHEET;
@@ -110,7 +110,7 @@ static void spreadsheet_free(SpaceLink *sl)
   BKE_viewer_path_clear(&sspreadsheet->viewer_path);
 }
 
-static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
+static void spreadsheet_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)area->spacedata.first;
   if (sspreadsheet->runtime == nullptr) {
@@ -152,9 +152,7 @@ static void spreadsheet_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Spreadsheet Generic", SPACE_SPREADSHEET, 0);
 }
 
-static void spreadsheet_id_remap(ScrArea *UNUSED(area),
-                                 SpaceLink *slink,
-                                 const IDRemapper *mappings)
+static void spreadsheet_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
   BKE_viewer_path_id_remap(&sspreadsheet->viewer_path, mappings);
@@ -510,7 +508,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
   }
 }
 
-static void spreadsheet_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void spreadsheet_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -521,7 +519,7 @@ static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void spreadsheet_header_region_free(ARegion *UNUSED(region))
+static void spreadsheet_header_region_free(ARegion * /*region*/)
 {
 }
 
@@ -565,7 +563,7 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
   }
 }
 
-static void spreadsheet_footer_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void spreadsheet_footer_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -608,11 +606,11 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   UI_block_draw(C, block);
 }
 
-static void spreadsheet_footer_region_free(ARegion *UNUSED(region))
+static void spreadsheet_footer_region_free(ARegion * /*region*/)
 {
 }
 
-static void spreadsheet_footer_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void spreadsheet_footer_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 
@@ -654,11 +652,11 @@ static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void spreadsheet_right_region_free(ARegion *UNUSED(region))
+static void spreadsheet_right_region_free(ARegion * /*region*/)
 {
 }
 
-static void spreadsheet_right_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void spreadsheet_right_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 

@@ -33,13 +33,13 @@ static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_despeckle(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom3 = 0.5f;
   node->custom4 = 0.5f;
 }
 
-static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_despeckle(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

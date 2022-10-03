@@ -90,7 +90,7 @@ void BaseImageOperation::deinit_execution()
   }
 }
 
-void BaseImageOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void BaseImageOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   ImBuf *stackbuf = get_im_buf();
 
@@ -155,7 +155,7 @@ void ImageOperation::execute_pixel_sampled(float output[4], float x, float y, Pi
 
 void ImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
-                                                  Span<MemoryBuffer *> UNUSED(inputs))
+                                                  Span<MemoryBuffer *> /*inputs*/)
 {
   output->copy_from(buffer_, area, true);
 }
@@ -179,7 +179,7 @@ void ImageAlphaOperation::execute_pixel_sampled(float output[4],
 
 void ImageAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
-                                                       Span<MemoryBuffer *> UNUSED(inputs))
+                                                       Span<MemoryBuffer *> /*inputs*/)
 {
   output->copy_from(buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
 }
@@ -205,7 +205,7 @@ void ImageDepthOperation::execute_pixel_sampled(float output[4],
 
 void ImageDepthOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
-                                                       Span<MemoryBuffer *> UNUSED(inputs))
+                                                       Span<MemoryBuffer *> /*inputs*/)
 {
   if (depth_buffer_) {
     output->copy_from(depth_buffer_, area);

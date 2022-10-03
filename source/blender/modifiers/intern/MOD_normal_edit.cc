@@ -209,7 +209,7 @@ static bool polygons_check_flip(MLoop *mloop,
 }
 
 static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
-                                         const ModifierEvalContext *UNUSED(ctx),
+                                         const ModifierEvalContext * /*ctx*/,
                                          Object *ob,
                                          Mesh *mesh,
                                          short (*clnors)[2],
@@ -348,7 +348,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 }
 
 static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
-                                              const ModifierEvalContext *UNUSED(ctx),
+                                              const ModifierEvalContext * /*ctx*/,
                                               Object *ob,
                                               Mesh *mesh,
                                               short (*clnors)[2],
@@ -649,7 +649,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *UNUSED(md))
+static bool dependsOnNormals(ModifierData * /*md*/)
 {
   return true;
 }
@@ -661,9 +661,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   walk(userData, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
@@ -684,7 +682,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -708,7 +706,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 }
 
 /* This panel could be open by default, but it isn't currently. */
-static void mix_mode_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void mix_mode_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -733,7 +731,7 @@ static void mix_mode_panel_draw(const bContext *UNUSED(C), Panel *panel)
           (RNA_boolean_get(ptr, "no_polynors_fix") ? ICON_LOCKED : ICON_UNLOCKED));
 }
 
-static void offset_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 

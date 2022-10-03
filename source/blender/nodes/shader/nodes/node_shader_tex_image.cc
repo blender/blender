@@ -13,7 +13,7 @@ static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
 }
 
-static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_image(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexImage *tex = MEM_cnew<NodeTexImage>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -25,7 +25,7 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_image(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {

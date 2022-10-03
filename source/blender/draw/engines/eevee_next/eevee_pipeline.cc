@@ -201,7 +201,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
 void ForwardPipeline::render(View &view,
                              Framebuffer &prepass_fb,
                              Framebuffer &combined_fb,
-                             GPUTexture *UNUSED(combined_tx))
+                             GPUTexture * /*combined_tx*/)
 {
   UNUSED_VARS(view);
 

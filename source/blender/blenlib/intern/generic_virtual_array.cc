@@ -51,7 +51,7 @@ CommonVArrayInfo GVArrayImpl::common_info() const
   return {};
 }
 
-bool GVArrayImpl::try_assign_VArray(void *UNUSED(varray)) const
+bool GVArrayImpl::try_assign_VArray(void * /*varray*/) const
 {
   return false;
 }
@@ -102,7 +102,7 @@ void GVMutableArray::fill(const void *value)
   }
 }
 
-bool GVMutableArrayImpl::try_assign_VMutableArray(void *UNUSED(varray)) const
+bool GVMutableArrayImpl::try_assign_VMutableArray(void * /*varray*/) const
 {
   return false;
 }
@@ -172,11 +172,11 @@ void GVArrayImpl_For_GSpan::materialize_compressed_to_uninitialized(const IndexM
 
 /* Generic virtual array where each element has the same value. The value is not owned. */
 
-void GVArrayImpl_For_SingleValueRef::get(const int64_t UNUSED(index), void *r_value) const
+void GVArrayImpl_For_SingleValueRef::get(const int64_t /*index*/, void *r_value) const
 {
   type_->copy_assign(value_, r_value);
 }
-void GVArrayImpl_For_SingleValueRef::get_to_uninitialized(const int64_t UNUSED(index),
+void GVArrayImpl_For_SingleValueRef::get_to_uninitialized(const int64_t /*index*/,
                                                           void *r_value) const
 {
   type_->copy_construct(value_, r_value);
@@ -261,11 +261,11 @@ template<int BufferSize> class GVArrayImpl_For_SmallTrivialSingleValue : public 
   }
 
  private:
-  void get(const int64_t UNUSED(index), void *r_value) const override
+  void get(const int64_t /*index*/, void *r_value) const override
   {
     this->copy_value_to(r_value);
   }
-  void get_to_uninitialized(const int64_t UNUSED(index), void *r_value) const override
+  void get_to_uninitialized(const int64_t /*index*/, void *r_value) const override
   {
     this->copy_value_to(r_value);
   }

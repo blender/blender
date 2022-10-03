@@ -213,7 +213,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   ED_undo_push(C, "Assign Attribute Name");
 }
 
-void node_geometry_add_attribute_search_button(const bContext &UNUSED(C),
+void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                                const bNode &node,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout)

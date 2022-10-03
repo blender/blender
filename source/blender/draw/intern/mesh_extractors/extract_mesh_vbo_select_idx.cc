@@ -14,7 +14,7 @@ namespace blender::draw {
 /** \name Extract Selection Index
  * \{ */
 
-static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
+static void extract_select_idx_init_impl(const MeshRenderData * /*mr*/,
                                          const int len,
                                          void *buf,
                                          void *tls_data)
@@ -30,7 +30,7 @@ static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_select_idx_init(const MeshRenderData *mr,
-                                    MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache * /*cache*/,
                                     void *buf,
                                     void *tls_data)
 {
@@ -42,7 +42,7 @@ static void extract_select_idx_init(const MeshRenderData *mr,
  * index VBO's. We could upload the p/e/v_origindex as a buffer texture and sample it inside the
  * shader to output original index. */
 
-static void extract_poly_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_poly_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
                                           const BMFace *f,
                                           const int f_index,
                                           void *data)
@@ -55,9 +55,9 @@ static void extract_poly_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edge_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_edge_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
                                           const BMFace *f,
-                                          const int UNUSED(f_index),
+                                          const int /*f_index*/,
                                           void *data)
 {
   BMLoop *l_iter, *l_first;
@@ -68,9 +68,9 @@ static void extract_edge_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_vert_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_vert_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
                                           const BMFace *f,
-                                          const int UNUSED(f_index),
+                                          const int /*f_index*/,
                                           void *data)
 {
   BMLoop *l_iter, *l_first;
@@ -122,7 +122,7 @@ static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
                                             const MPoly *mp,
-                                            const int UNUSED(mp_index),
+                                            const int /*mp_index*/,
                                             void *data)
 {
   const MLoop *mloop = mr->mloop;
@@ -135,7 +135,7 @@ static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
                                             const MPoly *mp,
-                                            const int UNUSED(mp_index),
+                                            const int /*mp_index*/,
                                             void *data)
 {
   const MLoop *mloop = mr->mloop;
@@ -147,7 +147,7 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge *UNUSED(med),
+                                             const MEdge * /*med*/,
                                              const int ledge_index,
                                              void *data)
 {
@@ -169,7 +169,7 @@ static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
-                                             const MVert *UNUSED(mv),
+                                             const MVert * /*mv*/,
                                              const int lvert_index,
                                              void *data)
 {
@@ -182,9 +182,9 @@ static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
 
 static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                          const MeshRenderData *mr,
-                                         MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache * /*cache*/,
                                          void *buf,
-                                         void *UNUSED(data))
+                                         void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
@@ -213,7 +213,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                                const MeshRenderData *mr,
                                                void *buffer,
-                                               void *UNUSED(data))
+                                               void * /*data*/)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   if (loose_geom.loop_len == 0) {
@@ -254,10 +254,10 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 }
 
 static void extract_edge_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                         const MeshRenderData *UNUSED(mr),
-                                         MeshBatchCache *UNUSED(cache),
+                                         const MeshRenderData * /*mr*/,
+                                         MeshBatchCache * /*cache*/,
                                          void *buf,
-                                         void *UNUSED(data))
+                                         void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
@@ -271,7 +271,7 @@ static void extract_edge_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                                const MeshRenderData *mr,
                                                void *buffer,
-                                               void *UNUSED(data))
+                                               void * /*data*/)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   if (loose_geom.edge_len == 0) {
@@ -294,9 +294,9 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 
 static void extract_poly_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                          const MeshRenderData *mr,
-                                         MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache * /*cache*/,
                                          void *buf,
-                                         void *UNUSED(data))
+                                         void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   draw_subdiv_init_origindex_buffer(
@@ -366,15 +366,15 @@ constexpr MeshExtract create_extractor_vert_idx()
 }
 
 static void extract_fdot_idx_init(const MeshRenderData *mr,
-                                  MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache * /*cache*/,
                                   void *buf,
                                   void *tls_data)
 {
   extract_select_idx_init_impl(mr, mr->poly_len, buf, tls_data);
 }
 
-static void extract_fdot_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          const BMFace *UNUSED(f),
+static void extract_fdot_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
+                                          const BMFace * /*f*/,
                                           const int f_index,
                                           void *data)
 {
@@ -382,7 +382,7 @@ static void extract_fdot_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *UNUSED(mp),
+                                            const MPoly * /*mp*/,
                                             const int mp_index,
                                             void *data)
 {

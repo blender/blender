@@ -181,7 +181,7 @@ struct MeshCalcNormalsData_Poly {
 
 static void mesh_calc_normals_poly_fn(void *__restrict userdata,
                                       const int pidx,
-                                      const TaskParallelTLS *__restrict UNUSED(tls))
+                                      const TaskParallelTLS *__restrict /*tls*/)
 {
   const MeshCalcNormalsData_Poly *data = (MeshCalcNormalsData_Poly *)userdata;
   const MPoly *mp = &data->mpoly[pidx];
@@ -189,9 +189,9 @@ static void mesh_calc_normals_poly_fn(void *__restrict userdata,
 }
 
 void BKE_mesh_calc_normals_poly(const MVert *mvert,
-                                int UNUSED(mvert_len),
+                                int /*mvert_len*/,
                                 const MLoop *mloop,
-                                int UNUSED(mloop_len),
+                                int /*mloop_len*/,
                                 const MPoly *mpoly,
                                 int mpoly_len,
                                 float (*r_poly_normals)[3])
@@ -231,8 +231,9 @@ struct MeshCalcNormalsData_PolyAndVertex {
   float (*vnors)[3];
 };
 
-static void mesh_calc_normals_poly_and_vertex_accum_fn(
-    void *__restrict userdata, const int pidx, const TaskParallelTLS *__restrict UNUSED(tls))
+static void mesh_calc_normals_poly_and_vertex_accum_fn(void *__restrict userdata,
+                                                       const int pidx,
+                                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   const MeshCalcNormalsData_PolyAndVertex *data = (MeshCalcNormalsData_PolyAndVertex *)userdata;
   const MPoly *mp = &data->mpoly[pidx];
@@ -294,7 +295,7 @@ static void mesh_calc_normals_poly_and_vertex_accum_fn(
 }
 
 static void mesh_calc_normals_poly_and_vertex_finalize_fn(
-    void *__restrict userdata, const int vidx, const TaskParallelTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int vidx, const TaskParallelTLS *__restrict /*tls*/)
 {
   MeshCalcNormalsData_PolyAndVertex *data = (MeshCalcNormalsData_PolyAndVertex *)userdata;
 
@@ -310,7 +311,7 @@ static void mesh_calc_normals_poly_and_vertex_finalize_fn(
 void BKE_mesh_calc_normals_poly_and_vertex(const MVert *mvert,
                                            const int mvert_len,
                                            const MLoop *mloop,
-                                           const int UNUSED(mloop_len),
+                                           const int /*mloop_len*/,
                                            const MPoly *mpoly,
                                            const int mpoly_len,
                                            float (*r_poly_normals)[3],
@@ -945,7 +946,7 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
 }
 
 void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
-                                    const int UNUSED(numVerts),
+                                    const int /*numVerts*/,
                                     struct MEdge *medges,
                                     const int numEdges,
                                     const struct MLoop *mloops,
@@ -1606,7 +1607,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
 void BKE_mesh_normals_loop_split(const MVert *mverts,
                                  const float (*vert_normals)[3],
-                                 const int UNUSED(numVerts),
+                                 const int /*numVerts*/,
                                  const MEdge *medges,
                                  const int numEdges,
                                  const MLoop *mloops,

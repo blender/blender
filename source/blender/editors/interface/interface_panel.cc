@@ -1804,7 +1804,7 @@ static void panels_layout_begin_clear_flags(ListBase *lb)
   }
 }
 
-void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
+void UI_panels_begin(const bContext * /*C*/, ARegion *region)
 {
   /* Set all panels as inactive, so that at the end we know which ones were used. Also
    * clear other flags so we know later that their values were set for the current redraw. */
@@ -1924,7 +1924,7 @@ struct uiPanelDragCollapseHandle {
   int xy_init[2];
 };
 
-static void ui_panel_drag_collapse_handler_remove(bContext *UNUSED(C), void *userdata)
+static void ui_panel_drag_collapse_handler_remove(bContext * /*C*/, void *userdata)
 {
   uiPanelDragCollapseHandle *dragcol_data = static_cast<uiPanelDragCollapseHandle *>(userdata);
   MEM_freeN(dragcol_data);

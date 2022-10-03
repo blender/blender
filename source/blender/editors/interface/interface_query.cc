@@ -424,7 +424,7 @@ uiBut *ui_list_find_from_row(const ARegion *region, const uiBut *row_but)
   return ui_but_find(region, ui_but_is_listbox_with_row, row_but);
 }
 
-static bool ui_but_is_listrow(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_listrow(const uiBut *but, const void * /*customdata*/)
 {
   return but->type == UI_BTYPE_LISTROW;
 }
@@ -456,7 +456,7 @@ uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut
   return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
-static bool ui_but_is_view_item_fn(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_view_item_fn(const uiBut *but, const void * /*customdata*/)
 {
   return but->type == UI_BTYPE_VIEW_ITEM;
 }
@@ -466,7 +466,7 @@ uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2])
   return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_view_item_fn, nullptr);
 }
 
-static bool ui_but_is_active_view_item(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customdata*/)
 {
   if (but->type != UI_BTYPE_VIEW_ITEM) {
     return false;

@@ -733,7 +733,7 @@ static bool is_filtered_file_type(const FileListInternEntry *file, const FileLis
 
 /** \return true when the file should be in the result set, false if it should be filtered out. */
 static bool is_filtered_file(FileListInternEntry *file,
-                             const char *UNUSED(root),
+                             const char * /*root*/,
                              FileListFilter *filter)
 {
   return is_filtered_file_type(file, filter) &&
@@ -858,14 +858,14 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
 }
 
 static bool is_filtered_main(FileListInternEntry *file,
-                             const char *UNUSED(dir),
+                             const char * /*dir*/,
                              FileListFilter *filter)
 {
   return !is_filtered_hidden(file->relpath, filter, file);
 }
 
 static bool is_filtered_main_assets(FileListInternEntry *file,
-                                    const char *UNUSED(dir),
+                                    const char * /*dir*/,
                                     FileListFilter *filter)
 {
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
@@ -1308,7 +1308,7 @@ static void parent_dir_until_exists_or_default_root(char *dir)
   }
 }
 
-static bool filelist_checkdir_dir(struct FileList *UNUSED(filelist),
+static bool filelist_checkdir_dir(struct FileList * /*filelist*/,
                                   char *r_dir,
                                   const bool do_change)
 {
@@ -1319,7 +1319,7 @@ static bool filelist_checkdir_dir(struct FileList *UNUSED(filelist),
   return BLI_is_dir(r_dir);
 }
 
-static bool filelist_checkdir_lib(struct FileList *UNUSED(filelist),
+static bool filelist_checkdir_lib(struct FileList * /*filelist*/,
                                   char *r_dir,
                                   const bool do_change)
 {
@@ -1344,9 +1344,9 @@ static bool filelist_checkdir_main(struct FileList *filelist, char *r_dir, const
   return filelist_checkdir_lib(filelist, r_dir, do_change);
 }
 
-static bool filelist_checkdir_main_assets(struct FileList *UNUSED(filelist),
-                                          char *UNUSED(r_dir),
-                                          const bool UNUSED(do_change))
+static bool filelist_checkdir_main_assets(struct FileList * /*filelist*/,
+                                          char * /*r_dir*/,
+                                          const bool /*do_change*/)
 {
   /* Main is always valid. */
   return true;
@@ -1491,7 +1491,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   //  printf("%s: End (%d)...\n", __func__, threadid);
 }
 
-static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void *taskdata)
+static void filelist_cache_preview_freef(TaskPool *__restrict /*pool*/, void *taskdata)
 {
   FileListEntryPreviewTaskData *preview_taskdata = static_cast<FileListEntryPreviewTaskData *>(
       taskdata);
@@ -3641,9 +3641,9 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
 }
 
 static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
-                                                   short *UNUSED(stop),
+                                                   short * /*stop*/,
                                                    short *do_update,
-                                                   float *UNUSED(progress))
+                                                   float * /*progress*/)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 

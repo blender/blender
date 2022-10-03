@@ -26,23 +26,23 @@ SpreadsheetDrawer::SpreadsheetDrawer()
 
 SpreadsheetDrawer::~SpreadsheetDrawer() = default;
 
-void SpreadsheetDrawer::draw_top_row_cell(int UNUSED(column_index),
-                                          const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_top_row_cell(int /*column_index*/,
+                                          const CellDrawParams & /*params*/) const
 {
 }
 
-void SpreadsheetDrawer::draw_left_column_cell(int UNUSED(row_index),
-                                              const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_left_column_cell(int /*row_index*/,
+                                              const CellDrawParams & /*params*/) const
 {
 }
 
-void SpreadsheetDrawer::draw_content_cell(int UNUSED(row_index),
-                                          int UNUSED(column_index),
-                                          const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_content_cell(int /*row_index*/,
+                                          int /*column_index*/,
+                                          const CellDrawParams & /*params*/) const
 {
 }
 
-int SpreadsheetDrawer::column_width(int UNUSED(column_index)) const
+int SpreadsheetDrawer::column_width(int /*column_index*/) const
 {
   return 5 * UI_UNIT_X;
 }

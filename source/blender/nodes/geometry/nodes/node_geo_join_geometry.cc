@@ -125,12 +125,11 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
   join_attributes(to_base_components(src_components), dst_component, {"position"});
 }
 
-static void join_components(Span<const VolumeComponent *> src_components, GeometrySet &result)
+static void join_components(Span<const VolumeComponent *> /*src_components*/,
+                            GeometrySet & /*result*/)
 {
   /* Not yet supported. Joining volume grids with the same name requires resampling of at least one
    * of the grids. The cell size of the resulting volume has to be determined somehow. */
-  VolumeComponent &dst_component = result.get_component_for_write<VolumeComponent>();
-  UNUSED_VARS(src_components, dst_component);
 }
 
 template<typename Component>

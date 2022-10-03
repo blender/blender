@@ -29,12 +29,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSSRDF"));
 }
 
-static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_subsurface(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_subsurface_scattering(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
   node->custom2 = true;
@@ -42,7 +42,7 @@ static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNo
 
 static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
                                                  bNode *node,
-                                                 bNodeExecData *UNUSED(execdata),
+                                                 bNodeExecData * /*execdata*/,
                                                  GPUNodeStack *in,
                                                  GPUNodeStack *out)
 {

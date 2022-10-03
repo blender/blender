@@ -167,8 +167,8 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
-void BKE_simulation_data_update(Depsgraph *UNUSED(depsgraph),
-                                Scene *UNUSED(scene),
-                                Simulation *UNUSED(simulation))
+void BKE_simulation_data_update(Depsgraph * /*depsgraph*/,
+                                Scene * /*scene*/,
+                                Simulation * /*simulation*/)
 {
 }

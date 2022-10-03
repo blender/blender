@@ -921,7 +921,7 @@ BHead *blo_bhead_first(FileData *fd)
   return bhead;
 }
 
-BHead *blo_bhead_prev(FileData *UNUSED(fd), BHead *thisblock)
+BHead *blo_bhead_prev(FileData * /*fd*/, BHead *thisblock)
 {
   BHeadN *bheadn = BHEADN_FROM_BHEAD(thisblock);
   BHeadN *prev = bheadn->prev;
@@ -1711,7 +1711,7 @@ typedef struct BLOCacheStorageValue {
 
 /** Register a cache data entry to be preserved when reading some undo memfile. */
 static void blo_cache_storage_entry_register(
-    ID *id, const IDCacheKey *key, void **cache_p, uint UNUSED(flags), void *cache_storage_v)
+    ID *id, const IDCacheKey *key, void **cache_p, uint /*flags*/, void *cache_storage_v)
 {
   BLI_assert(key->id_session_uuid == id->session_uuid);
   UNUSED_VARS_NDEBUG(id);
@@ -1731,7 +1731,7 @@ static void blo_cache_storage_entry_register(
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
 static void blo_cache_storage_entry_restore_in_new(
-    ID *UNUSED(id), const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
+    ID * /*id*/, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
 
@@ -1756,11 +1756,8 @@ static void blo_cache_storage_entry_restore_in_new(
 }
 
 /** Clear as needed a cache data entry from old ID, when reading some undo memfile. */
-static void blo_cache_storage_entry_clear_in_old(ID *UNUSED(id),
-                                                 const IDCacheKey *key,
-                                                 void **cache_p,
-                                                 uint UNUSED(flags),
-                                                 void *cache_storage_v)
+static void blo_cache_storage_entry_clear_in_old(
+    ID * /*id*/, const IDCacheKey *key, void **cache_p, uint /*flags*/, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
 
@@ -2887,7 +2884,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   id_us_ensure_real(&lib->id);
 }
 
-static void lib_link_library(BlendLibReader *UNUSED(reader), Library *UNUSED(lib))
+static void lib_link_library(BlendLibReader * /*reader*/, Library * /*lib*/)
 {
 }
 
@@ -3230,7 +3227,7 @@ static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID
 
 /* For undo, restore unchanged datablock from old main. */
 static void read_libblock_undo_restore_identical(
-    FileData *fd, Main *main, const ID *UNUSED(id), ID *id_old, const int tag)
+    FileData *fd, Main *main, const ID * /*id*/, ID *id_old, const int tag)
 {
   BLI_assert((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0);
   BLI_assert(id_old != nullptr);
@@ -3597,7 +3594,7 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 /** \name Versioning
  * \{ */
 
-static void do_versions_userdef(FileData *UNUSED(fd), BlendFileData *bfd)
+static void do_versions_userdef(FileData * /*fd*/, BlendFileData *bfd)
 {
   UserDef *user = bfd->user;
 
@@ -5121,7 +5118,7 @@ static void convert_pointer_array_64_to_32(BlendDataReader *reader,
   }
 }
 
-static void convert_pointer_array_32_to_64(BlendDataReader *UNUSED(reader),
+static void convert_pointer_array_32_to_64(BlendDataReader * /*reader*/,
                                            uint array_size,
                                            const uint32_t *src,
                                            uint64_t *dst)

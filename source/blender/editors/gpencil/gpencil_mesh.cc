@@ -43,8 +43,8 @@
 #include "gpencil_intern.h"
 
 /* Check frame_end is always > start frame! */
-static void gpencil_bake_set_frame_end(struct Main *UNUSED(main),
-                                       struct Scene *UNUSED(scene),
+static void gpencil_bake_set_frame_end(struct Main * /*main*/,
+                                       struct Scene * /*scene*/,
                                        struct PointerRNA *ptr)
 {
   int frame_start = RNA_int_get(ptr, "frame_start");
@@ -380,7 +380,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
 
 static int gpencil_bake_mesh_animation_invoke(bContext *C,
                                               wmOperator *op,
-                                              const wmEvent *UNUSED(event))
+                                              const wmEvent * /*event*/)
 {
   /* Show popup dialog to allow editing. */
   /* FIXME: hard-coded dimensions here are just arbitrary. */

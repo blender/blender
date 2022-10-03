@@ -715,7 +715,7 @@ static const EnumPropertyItem WT_vertex_group_select_item[] = {
 };
 
 const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *C,
-                                                                PointerRNA *UNUSED(ptr),
+                                                                PointerRNA * /*ptr*/,
                                                                 PropertyRNA *prop,
                                                                 bool *r_free,
                                                                 const uint selection_mask)
@@ -1340,7 +1340,7 @@ static void getVerticalAndHorizontalChange(const float norm[3],
  * `coord` is a point on the plane.
  */
 static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
-                                          Scene *UNUSED(scene),
+                                          Scene * /*scene*/,
                                           Object *ob,
                                           Mesh *me,
                                           int index,
@@ -1522,7 +1522,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
 /* this is used to try to smooth a surface by only adjusting the nonzero weights of a vertex
  * but it could be used to raise or lower an existing 'bump.' */
 static void vgroup_fix(
-    const bContext *C, Scene *UNUSED(scene), Object *ob, float distToBe, float strength, float cp)
+    const bContext *C, Scene * /*scene*/, Object *ob, float distToBe, float strength, float cp)
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1580,7 +1580,7 @@ static void vgroup_fix(
 static void vgroup_levels_subset(Object *ob,
                                  const bool *vgroup_validmap,
                                  const int vgroup_tot,
-                                 const int UNUSED(subset_count),
+                                 const int /*subset_count*/,
                                  const float offset,
                                  const float gain)
 {
@@ -1841,7 +1841,7 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
 static void vgroup_invert_subset(Object *ob,
                                  const bool *vgroup_validmap,
                                  const int vgroup_tot,
-                                 const int UNUSED(subset_count),
+                                 const int /*subset_count*/,
                                  const bool auto_assign,
                                  const bool auto_remove)
 {
@@ -2227,7 +2227,7 @@ static int vgroup_limit_total_subset(Object *ob,
 static void vgroup_clean_subset(Object *ob,
                                 const bool *vgroup_validmap,
                                 const int vgroup_tot,
-                                const int UNUSED(subset_count),
+                                const int /*subset_count*/,
                                 const float epsilon,
                                 const bool keep_single)
 {
@@ -2258,7 +2258,7 @@ static void vgroup_clean_subset(Object *ob,
 static void vgroup_quantize_subset(Object *ob,
                                    const bool *vgroup_validmap,
                                    const int vgroup_tot,
-                                   const int UNUSED(subset_count),
+                                   const int /*subset_count*/,
                                    const int steps)
 {
   MDeformVert **dvert_array = nullptr;
@@ -2879,7 +2879,7 @@ static bool vertex_group_vert_select_mesh_poll(bContext *C)
 /** \name Vertex Group Add Operator
  * \{ */
 
-static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
 
@@ -2966,7 +2966,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 /** \name Vertex Group Assign Operator
  * \{ */
 
-static int vertex_group_assign_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_assign_exec(bContext *C, wmOperator * /*op*/)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = ED_object_context(C);
@@ -3097,7 +3097,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 /** \name Vertex Group Select Operator
  * \{ */
 
-static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_select_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
 
@@ -3133,7 +3133,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 /** \name Vertex Group Deselect Operator
  * \{ */
 
-static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_deselect_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
 
@@ -3165,7 +3165,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 /** \name Vertex Group Copy Operator
  * \{ */
 
-static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
 
@@ -3250,7 +3250,7 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 /** \name Vertex Group Normalize Operator
  * \{ */
 
-static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_normalize_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   bool changed;
@@ -3443,8 +3443,8 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *vertex_group_lock_description(bContext *UNUSED(C),
-                                           wmOperatorType *UNUSED(op),
+static char *vertex_group_lock_description(bContext * /*C*/,
+                                           wmOperatorType * /*op*/,
                                            PointerRNA *params)
 {
   int action = RNA_enum_get(params, "action");
@@ -3967,8 +3967,8 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 }
 
 static const EnumPropertyItem *vgroup_itemf(bContext *C,
-                                            PointerRNA *UNUSED(ptr),
-                                            PropertyRNA *UNUSED(prop),
+                                            PointerRNA * /*ptr*/,
+                                            PropertyRNA * /*prop*/,
                                             bool *r_free)
 {
   if (C == nullptr) {
@@ -4558,7 +4558,7 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 /** \name Vertex Group Normalize Active Vertex Operator
  * \{ */
 
-static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4597,7 +4597,7 @@ void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)
 /** \name Vertex Group Copy Weights from Active Operator
  * \{ */
 
-static int vertex_weight_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_weight_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   ToolSettings *ts = CTX_data_tool_settings(C);

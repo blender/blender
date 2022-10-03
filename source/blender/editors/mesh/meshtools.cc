@@ -877,7 +877,7 @@ void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *me_eval)
   ED_mesh_mirrtopo_init(em_mirror, me_mirror, &mesh_topo_store, false);
 }
 
-void ED_mesh_mirror_topo_table_end(Object *UNUSED(ob))
+void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
 {
   /* TODO: store this in object/object-data (keep unused argument for now). */
   ED_mesh_mirrtopo_free(&mesh_topo_store);

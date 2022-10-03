@@ -125,7 +125,7 @@ PyDoc_STRVAR(FEdge_first_svertex_doc,
              "\n"
              ":type: :class:`SVertex`");
 
-static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
   SVertex *A = self->fe->vertexA();
   if (A) {
@@ -134,7 +134,7 @@ static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void *UNUSED(closure))
   Py_RETURN_NONE;
 }
 
-static int FEdge_first_svertex_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_first_svertex_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_SVertex_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
@@ -149,7 +149,7 @@ PyDoc_STRVAR(FEdge_second_svertex_doc,
              "\n"
              ":type: :class:`SVertex`");
 
-static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
   SVertex *B = self->fe->vertexB();
   if (B) {
@@ -158,7 +158,7 @@ static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void *UNUSED(closure)
   Py_RETURN_NONE;
 }
 
-static int FEdge_second_svertex_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_second_svertex_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_SVertex_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
@@ -174,7 +174,7 @@ PyDoc_STRVAR(FEdge_next_fedge_doc,
              "\n"
              ":type: :class:`FEdge`");
 
-static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   FEdge *fe = self->fe->nextEdge();
   if (fe) {
@@ -183,7 +183,7 @@ static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void *UNUSED(closure))
   Py_RETURN_NONE;
 }
 
-static int FEdge_next_fedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_next_fedge_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_FEdge_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an FEdge");
@@ -199,7 +199,7 @@ PyDoc_STRVAR(FEdge_previous_fedge_doc,
              "\n"
              ":type: :class:`FEdge`");
 
-static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   FEdge *fe = self->fe->previousEdge();
   if (fe) {
@@ -208,7 +208,7 @@ static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void *UNUSED(closure)
   Py_RETURN_NONE;
 }
 
-static int FEdge_previous_fedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_previous_fedge_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_FEdge_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an FEdge");
@@ -223,7 +223,7 @@ PyDoc_STRVAR(FEdge_viewedge_doc,
              "\n"
              ":type: :class:`ViewEdge`");
 
-static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   ViewEdge *ve = self->fe->viewedge();
   if (ve) {
@@ -232,7 +232,7 @@ static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void *UNUSED(closure))
   Py_RETURN_NONE;
 }
 
-static int FEdge_viewedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_viewedge_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_ViewEdge_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an ViewEdge");
@@ -247,12 +247,12 @@ PyDoc_STRVAR(FEdge_is_smooth_doc,
              "\n"
              ":type: bool");
 
-static PyObject *FEdge_is_smooth_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_is_smooth_get(BPy_FEdge *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->fe->isSmooth());
 }
 
-static int FEdge_is_smooth_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_is_smooth_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!PyBool_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be boolean");
@@ -267,13 +267,13 @@ PyDoc_STRVAR(FEdge_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *FEdge_id_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_id_get(BPy_FEdge *self, void * /*closure*/)
 {
   Id id(self->fe->getId());
   return BPy_Id_from_Id(id);  // return a copy
 }
 
-static int FEdge_id_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_id_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Id_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an Id");
@@ -288,12 +288,12 @@ PyDoc_STRVAR(FEdge_nature_doc,
              "\n"
              ":type: :class:`Nature`");
 
-static PyObject *FEdge_nature_get(BPy_FEdge *self, void *UNUSED(closure))
+static PyObject *FEdge_nature_get(BPy_FEdge *self, void * /*closure*/)
 {
   return BPy_Nature_from_Nature(self->fe->getNature());
 }
 
-static int FEdge_nature_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+static int FEdge_nature_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Nature_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a Nature");

@@ -118,7 +118,7 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo);
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag);
 static void free_localized_node_groups(bNodeTree *ntree);
 static void node_free_node(bNodeTree *ntree, bNode *node);
-static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
+static void node_socket_interface_free(bNodeTree * /*ntree*/,
                                        bNodeSocket *sock,
                                        const bool do_id_user);
 
@@ -129,7 +129,7 @@ static void ntree_init_data(ID *id)
   ntree_set_typeinfo(ntree, nullptr);
 }
 
-static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   bNodeTree *ntree_dst = (bNodeTree *)id_dst;
   const bNodeTree *ntree_src = (const bNodeTree *)id_src;
@@ -1533,7 +1533,7 @@ static bool unique_identifier_check(void *arg, const char *identifier)
 }
 
 static bNodeSocket *make_socket(bNodeTree *ntree,
-                                bNode *UNUSED(node),
+                                bNode * /*node*/,
                                 int in_out,
                                 ListBase *lb,
                                 const char *idname,
@@ -1676,7 +1676,7 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
 }
 
 void nodeModifySocketType(bNodeTree *ntree,
-                          bNode *UNUSED(node),
+                          bNode * /*node*/,
                           bNodeSocket *sock,
                           const char *idname)
 {
@@ -1895,7 +1895,7 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
   return nullptr;
 }
 
-const char *nodeStaticSocketLabel(int type, int UNUSED(subtype))
+const char *nodeStaticSocketLabel(int type, int /*subtype*/)
 {
   switch (type) {
     case SOCK_FLOAT:
@@ -2652,7 +2652,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
   return ntreeAddTree_do(bmain, nullptr, false, name, idname);
 }
 
-bNodeTree *ntreeAddTreeEmbedded(Main *UNUSED(bmain),
+bNodeTree *ntreeAddTreeEmbedded(Main * /*bmain*/,
                                 ID *owner_id,
                                 const char *name,
                                 const char *idname)
@@ -3034,7 +3034,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   node_free_node(ntree, node);
 }
 
-static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
+static void node_socket_interface_free(bNodeTree * /*ntree*/,
                                        bNodeSocket *sock,
                                        const bool do_id_user)
 {
@@ -3405,7 +3405,7 @@ static void ntree_interface_identifier_base(bNodeTree *ntree, char *base)
 }
 
 /* check if the identifier is already in use */
-static bool ntree_interface_unique_identifier_check(void *UNUSED(data), const char *identifier)
+static bool ntree_interface_unique_identifier_check(void * /*data*/, const char *identifier)
 {
   return (RNA_struct_find(identifier) != nullptr);
 }
@@ -3679,7 +3679,7 @@ void nodeSocketDeclarationsUpdate(bNode *node)
   update_socket_declarations(&node->outputs, node->runtime->declaration->outputs());
 }
 
-bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *UNUSED(ntree), bNode *node)
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)
 {
   if (node->runtime->declaration != nullptr) {
     return false;
@@ -3978,7 +3978,7 @@ void BKE_node_instance_hash_clear_tags(bNodeInstanceHash *hash)
   }
 }
 
-void BKE_node_instance_hash_tag(bNodeInstanceHash *UNUSED(hash), void *value)
+void BKE_node_instance_hash_tag(bNodeInstanceHash * /*hash*/, void *value)
 {
   bNodeInstanceHashEntry *entry = (bNodeInstanceHashEntry *)value;
   entry->tag = 1;
@@ -4184,9 +4184,9 @@ static void node_type_base_defaults(bNodeType *ntype)
 }
 
 /* allow this node for any tree type */
-static bool node_poll_default(bNodeType *UNUSED(ntype),
-                              bNodeTree *UNUSED(ntree),
-                              const char **UNUSED(disabled_hint))
+static bool node_poll_default(bNodeType * /*ntype*/,
+                              bNodeTree * /*ntree*/,
+                              const char ** /*disabled_hint*/)
 {
   return true;
 }
@@ -4392,9 +4392,9 @@ void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn)
 
 /* callbacks for undefined types */
 
-static bool node_undefined_poll(bNodeType *UNUSED(ntype),
-                                bNodeTree *UNUSED(nodetree),
-                                const char **UNUSED(r_disabled_hint))
+static bool node_undefined_poll(bNodeType * /*ntype*/,
+                                bNodeTree * /*nodetree*/,
+                                const char ** /*r_disabled_hint*/)
 {
   /* this type can not be added deliberately, it's just a placeholder */
   return false;

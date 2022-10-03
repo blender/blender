@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_particle_info(GPUMaterial *mat,
                                     bNode *node,
-                                    bNodeExecData *UNUSED(execdata),
+                                    bNodeExecData * /*execdata*/,
                                     GPUNodeStack *in,
                                     GPUNodeStack *out)
 {

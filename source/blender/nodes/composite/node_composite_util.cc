@@ -9,9 +9,7 @@
 
 #include "node_composite_util.hh"
 
-bool cmp_node_poll_default(bNodeType *UNUSED(ntype),
-                           bNodeTree *ntree,
-                           const char **r_disabled_hint)
+bool cmp_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
     *r_disabled_hint = TIP_("Not a compositor node tree");
@@ -20,7 +18,7 @@ bool cmp_node_poll_default(bNodeType *UNUSED(ntype),
   return true;
 }
 
-void cmp_node_update_default(bNodeTree *UNUSED(ntree), bNode *node)
+void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
     if (sock->cache) {

@@ -33,14 +33,14 @@ static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_setalpha(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeSetAlpha *settings = MEM_cnew<NodeSetAlpha>(__func__);
   node->storage = settings;
   settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
 }
 
-static void node_composit_buts_set_alpha(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_set_alpha(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }

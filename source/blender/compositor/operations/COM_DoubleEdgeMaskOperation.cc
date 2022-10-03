@@ -1354,15 +1354,15 @@ void DoubleEdgeMaskOperation::deinit_execution()
   }
 }
 
-void DoubleEdgeMaskOperation::get_area_of_interest(int UNUSED(input_idx),
-                                                   const rcti &UNUSED(output_area),
+void DoubleEdgeMaskOperation::get_area_of_interest(int /*input_idx*/,
+                                                   const rcti & /*output_area*/,
                                                    rcti &r_input_area)
 {
   r_input_area = this->get_canvas();
 }
 
 void DoubleEdgeMaskOperation::update_memory_buffer(MemoryBuffer *output,
-                                                   const rcti &UNUSED(area),
+                                                   const rcti & /*area*/,
                                                    Span<MemoryBuffer *> inputs)
 {
   if (!is_output_rendered_) {

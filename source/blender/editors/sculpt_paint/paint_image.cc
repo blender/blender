@@ -546,7 +546,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void grab_clone_cancel(bContext *UNUSED(C), wmOperator *op)
+static void grab_clone_cancel(bContext * /*C*/, wmOperator *op)
 {
   GrabClone *cmv = static_cast<GrabClone *>(op->customdata);
   MEM_delete(cmv);
@@ -911,7 +911,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;

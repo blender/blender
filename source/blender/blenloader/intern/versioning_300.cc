@@ -465,13 +465,13 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
-static bool do_versions_sequencer_color_tags(Sequence *seq, void *UNUSED(user_data))
+static bool do_versions_sequencer_color_tags(Sequence *seq, void * /*user_data*/)
 {
   seq->color_tag = SEQUENCE_COLOR_NONE;
   return true;
 }
 
-static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void *UNUSED(user_data))
+static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->type == seqModifierType_ColorBalance) {
@@ -670,7 +670,7 @@ static bool seq_speed_factor_set(Sequence *seq, void *user_data)
   return true;
 }
 
-void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
+void do_versions_after_linking_300(Main *bmain, ReportList * /*reports*/)
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set zero user text objects to have a fake user. */
@@ -1028,9 +1028,9 @@ static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
   replace_bbone_len_scale_rnapath(&fcu->rna_path, &fcu->array_index);
 }
 
-static void do_version_bbone_len_scale_animdata_cb(ID *UNUSED(id),
+static void do_version_bbone_len_scale_animdata_cb(ID * /*id*/,
                                                    AnimData *adt,
-                                                   void *UNUSED(wrapper_data))
+                                                   void * /*wrapper_data*/)
 {
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &adt->drivers) {
     do_version_bbone_len_scale_fcurve_fix(fcu);
@@ -1078,7 +1078,7 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   return new_socket;
 }
 
-static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
+static bool seq_transform_origin_set(Sequence *seq, void * /*user_data*/)
 {
   StripTransform *transform = seq->strip->transform;
   if (seq->strip->transform != nullptr) {
@@ -1087,7 +1087,7 @@ static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
   return true;
 }
 
-static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
+static bool seq_transform_filter_set(Sequence *seq, void * /*user_data*/)
 {
   StripTransform *transform = seq->strip->transform;
   if (seq->strip->transform != nullptr) {
@@ -1096,7 +1096,7 @@ static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
   return true;
 }
 
-static bool seq_meta_channels_ensure(Sequence *seq, void *UNUSED(user_data))
+static bool seq_meta_channels_ensure(Sequence *seq, void * /*user_data*/)
 {
   if (seq->type == SEQ_TYPE_META) {
     SEQ_channels_ensure(&seq->channels);
@@ -1341,7 +1341,7 @@ static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
   return true;
 }
 
-static bool version_merge_still_offsets(Sequence *seq, void *UNUSED(user_data))
+static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
 {
   seq->startofs -= seq->startstill;
   seq->endofs -= seq->endstill;
@@ -1933,7 +1933,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
+void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
    * snap_flag member individually. */

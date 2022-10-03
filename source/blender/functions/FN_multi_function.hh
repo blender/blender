@@ -60,7 +60,7 @@ class MultiFunction {
     return get_default_hash(this);
   }
 
-  virtual bool equals(const MultiFunction &UNUSED(other)) const
+  virtual bool equals(const MultiFunction & /*other*/) const
   {
     return false;
   }

@@ -413,17 +413,17 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
             domain_};
   }
 
-  bool try_delete(void *UNUSED(owner)) const final
+  bool try_delete(void * /*owner*/) const final
   {
     return false;
   }
 
-  bool try_create(void *UNUSED(owner), const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(void * /*owner*/, const AttributeInit & /*initializer*/) const final
   {
     return false;
   }
 
-  bool exists(const void *UNUSED(owner)) const final
+  bool exists(const void * /*owner*/) const final
   {
     return true;
   }
@@ -487,10 +487,10 @@ static AttributeAccessorFunctions get_instances_accessor_functions()
         return 0;
     }
   };
-  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+  fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
     return domain == ATTR_DOMAIN_INSTANCE;
   };
-  fn.adapt_domain = [](const void *UNUSED(owner),
+  fn.adapt_domain = [](const void * /*owner*/,
                        const blender::GVArray &varray,
                        const eAttrDomain from_domain,
                        const eAttrDomain to_domain) {

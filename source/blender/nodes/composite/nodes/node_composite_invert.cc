@@ -32,12 +32,12 @@ static void cmp_node_invert_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_invert(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 |= CMP_CHAN_RGB;
 }
 
-static void node_composit_buts_invert(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_invert(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

@@ -373,7 +373,7 @@ static void find_nearest_edge_center__doZBuf(void *userData,
                                              BMEdge *eed,
                                              const float screen_co_a[2],
                                              const float screen_co_b[2],
-                                             int UNUSED(index))
+                                             int /*index*/)
 {
   NearestEdgeUserData_ZBuf *data = static_cast<NearestEdgeUserData_ZBuf *>(userData);
 
@@ -628,7 +628,7 @@ struct NearestFaceUserData_ZBuf {
 static void find_nearest_face_center__doZBuf(void *userData,
                                              BMFace *efa,
                                              const float screen_co[2],
-                                             int UNUSED(index))
+                                             int /*index*/)
 {
   NearestFaceUserData_ZBuf *data = static_cast<NearestFaceUserData_ZBuf *>(userData);
 
@@ -1378,8 +1378,8 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return edbm_select_mode_exec(C, op);
 }
 
-static char *edbm_select_mode_get_description(bContext *UNUSED(C),
-                                              wmOperatorType *UNUSED(op),
+static char *edbm_select_mode_get_description(bContext * /*C*/,
+                                              wmOperatorType * /*op*/,
                                               PointerRNA *values)
 {
   const int type = RNA_enum_get(values, "type");
@@ -1976,7 +1976,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 /** \name Select Interior Faces Operator
  * \{ */
 
-static int edbm_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
+static int edbm_faces_select_interior_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2797,7 +2797,7 @@ struct BMFaceLink {
   float area;
 };
 
-static bool bm_interior_loop_filter_fn(const BMLoop *l, void *UNUSED(user_data))
+static bool bm_interior_loop_filter_fn(const BMLoop *l, void * /*user_data*/)
 {
   if (BM_elem_flag_test(l->e, BM_ELEM_TAG)) {
     return false;
@@ -5054,7 +5054,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 /** \name Select Region to Loop Operator
  * \{ */
 
-static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
+static int edbm_region_to_loop_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

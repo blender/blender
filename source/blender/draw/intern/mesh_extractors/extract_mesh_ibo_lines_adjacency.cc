@@ -42,8 +42,8 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
 }
 
 static void extract_lines_adjacency_init(const MeshRenderData *mr,
-                                         MeshBatchCache *UNUSED(cache),
-                                         void *UNUSED(buf),
+                                         MeshBatchCache * /*cache*/,
+                                         void * /*buf*/,
                                          void *tls_data)
 {
   /* Similar to poly_to_tri_count().
@@ -96,9 +96,9 @@ BLI_INLINE void lines_adjacency_triangle(
   }
 }
 
-static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData *UNUSED(mr),
+static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData * /*mr*/,
                                                     BMLoop **elt,
-                                                    const int UNUSED(elt_index),
+                                                    const int /*elt_index*/,
                                                     void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
@@ -115,7 +115,7 @@ static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData *UNUSED
 
 static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
                                                       const MLoopTri *mlt,
-                                                      const int UNUSED(elt_index),
+                                                      const int /*elt_index*/,
                                                       void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
@@ -132,7 +132,7 @@ static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
                            data);
 }
 
-static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
+static void extract_lines_adjacency_finish(const MeshRenderData * /*mr*/,
                                            MeshBatchCache *cache,
                                            void *buf,
                                            void *_data)
@@ -166,9 +166,9 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                                const MeshRenderData *UNUSED(mr),
-                                                MeshBatchCache *UNUSED(cache),
-                                                void *UNUSED(buf),
+                                                const MeshRenderData * /*mr*/,
+                                                MeshBatchCache * /*cache*/,
+                                                void * /*buf*/,
                                                 void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
@@ -182,7 +182,7 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cac
 }
 
 static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
-                                                const MeshRenderData *UNUSED(mr),
+                                                const MeshRenderData * /*mr*/,
                                                 void *_data,
                                                 uint subdiv_quad_index)
 {
@@ -207,7 +207,7 @@ static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache *subdiv_
                                                    const MeshRenderData *mr,
                                                    void *_data,
                                                    uint subdiv_quad_index,
-                                                   const BMFace *UNUSED(coarse_quad))
+                                                   const BMFace * /*coarse_quad*/)
 {
   extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
 }
@@ -216,12 +216,12 @@ static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache *subdi
                                                      const MeshRenderData *mr,
                                                      void *_data,
                                                      uint subdiv_quad_index,
-                                                     const MPoly *UNUSED(coarse_quad))
+                                                     const MPoly * /*coarse_quad*/)
 {
   extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
 }
 
-static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
+static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                   const MeshRenderData *mr,
                                                   MeshBatchCache *cache,
                                                   void *buf,

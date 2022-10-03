@@ -995,7 +995,7 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
                "");
 }
 
-static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 {
 
   Object *ob = CTX_data_active_object(C);

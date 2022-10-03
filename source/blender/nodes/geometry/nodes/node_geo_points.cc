@@ -43,7 +43,7 @@ class PointsFieldContext : public FieldContext {
 
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask mask,
-                               ResourceScope &UNUSED(scope)) const
+                               ResourceScope & /*scope*/) const
   {
     const bke::IDAttributeFieldInput *id_field_input =
         dynamic_cast<const bke::IDAttributeFieldInput *>(&field_input);

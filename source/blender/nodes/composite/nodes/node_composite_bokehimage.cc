@@ -29,7 +29,7 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_bokehimage(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBokehImage *data = MEM_cnew<NodeBokehImage>(__func__);
   data->angle = 0.0f;
@@ -40,7 +40,7 @@ static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_bokehimage(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "flaps", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);

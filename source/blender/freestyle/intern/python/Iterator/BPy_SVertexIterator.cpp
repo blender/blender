@@ -99,7 +99,7 @@ PyDoc_STRVAR(SVertexIterator_object_doc,
              "\n"
              ":type: :class:`SVertex`");
 
-static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void *UNUSED(closure))
+static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void * /*closure*/)
 {
   if (self->sv_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
@@ -117,7 +117,7 @@ PyDoc_STRVAR(SVertexIterator_t_doc,
              "\n"
              ":type: float");
 
-static PyObject *SVertexIterator_t_get(BPy_SVertexIterator *self, void *UNUSED(closure))
+static PyObject *SVertexIterator_t_get(BPy_SVertexIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv_it->t());
 }
@@ -127,7 +127,7 @@ PyDoc_STRVAR(SVertexIterator_u_doc,
              "\n"
              ":type: float");
 
-static PyObject *SVertexIterator_u_get(BPy_SVertexIterator *self, void *UNUSED(closure))
+static PyObject *SVertexIterator_u_get(BPy_SVertexIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv_it->u());
 }

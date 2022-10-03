@@ -506,11 +506,11 @@ class TypeConstructMock {
   {
   }
 
-  TypeConstructMock(const TypeConstructMock &UNUSED(other)) : copy_constructed(true)
+  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true)
   {
   }
 
-  TypeConstructMock(TypeConstructMock &&UNUSED(other)) noexcept : move_constructed(true)
+  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true)
   {
   }
 

@@ -159,7 +159,7 @@ PyDoc_STRVAR(Interface0D_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *Interface0D_name_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_name_get(BPy_Interface0D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
@@ -169,7 +169,7 @@ PyDoc_STRVAR(Interface0D_point_3d_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *Interface0D_point_3d_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_point_3d_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Vec3f p(self->if0D->getPoint3D());
   if (PyErr_Occurred()) {
@@ -183,7 +183,7 @@ PyDoc_STRVAR(Interface0D_projected_x_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface0D_projected_x_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_projected_x_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real x = self->if0D->getProjectedX();
   if (PyErr_Occurred()) {
@@ -197,7 +197,7 @@ PyDoc_STRVAR(Interface0D_projected_y_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface0D_projected_y_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_projected_y_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real y = self->if0D->getProjectedY();
   if (PyErr_Occurred()) {
@@ -211,7 +211,7 @@ PyDoc_STRVAR(Interface0D_projected_z_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface0D_projected_z_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_projected_z_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real z = self->if0D->getProjectedZ();
   if (PyErr_Occurred()) {
@@ -225,7 +225,7 @@ PyDoc_STRVAR(Interface0D_point_2d_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *Interface0D_point_2d_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_point_2d_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Vec2f p(self->if0D->getPoint2D());
   if (PyErr_Occurred()) {
@@ -239,7 +239,7 @@ PyDoc_STRVAR(Interface0D_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *Interface0D_id_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_id_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Id id(self->if0D->getId());
   if (PyErr_Occurred()) {
@@ -253,7 +253,7 @@ PyDoc_STRVAR(Interface0D_nature_doc,
              "\n"
              ":type: :class:`Nature`");
 
-static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Nature::VertexNature nature = self->if0D->getNature();
   if (PyErr_Occurred()) {

@@ -17,9 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Density"));
 }
 
-static void node_shader_buts_tex_pointdensity(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   NodeShaderTexPointDensity *shader_point_density = (NodeShaderTexPointDensity *)node->storage;
@@ -63,7 +61,7 @@ static void node_shader_buts_tex_pointdensity(uiLayout *layout,
   }
 }
 
-static void node_shader_init_tex_pointdensity(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_pointdensity(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderTexPointDensity *point_density = MEM_new<NodeShaderTexPointDensity>("new pd node");
   point_density->resolution = 100;
@@ -83,7 +81,7 @@ static void node_shader_free_tex_pointdensity(bNode *node)
   MEM_freeN(point_density);
 }
 
-static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
+static void node_shader_copy_tex_pointdensity(bNodeTree * /*dst_ntree*/,
                                               bNode *dest_node,
                                               const bNode *src_node)
 {

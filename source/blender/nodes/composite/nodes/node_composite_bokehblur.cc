@@ -43,13 +43,13 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_bokehblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_bokehblur(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom3 = 4.0f;
   node->custom4 = 16.0f;
 }
 
-static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_bokehblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   // uiItemR(layout, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE); /* UNUSED */

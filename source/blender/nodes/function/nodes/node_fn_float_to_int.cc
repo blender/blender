@@ -21,12 +21,12 @@ static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Integer"));
 }
 
-static void fn_node_float_to_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_float_to_int_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "rounding_mode", 0, "", ICON_NONE);
 }
 
-static void node_float_to_int_label(const bNodeTree *UNUSED(ntree),
+static void node_float_to_int_label(const bNodeTree * /*tree*/,
                                     const bNode *node,
                                     char *label,
                                     int maxlen)

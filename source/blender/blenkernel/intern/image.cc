@@ -153,7 +153,7 @@ static void image_init_data(ID *id)
   }
 }
 
-static void image_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void image_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   Image *image_dst = (Image *)id_dst;
   const Image *image_src = (const Image *)id_src;
@@ -410,7 +410,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   image_runtime_reset(ima);
 }
 
-static void image_blend_read_lib(BlendLibReader *UNUSED(reader), ID *id)
+static void image_blend_read_lib(BlendLibReader * /*reader*/, ID *id)
 {
   Image *ima = (Image *)id;
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
@@ -1546,7 +1546,7 @@ void BKE_image_print_memlist(Main *bmain)
   }
 }
 
-static bool imagecache_check_dirty(ImBuf *ibuf, void *UNUSED(userkey), void *UNUSED(userdata))
+static bool imagecache_check_dirty(ImBuf *ibuf, void * /*userkey*/, void * /*userdata*/)
 {
   if (ibuf == nullptr) {
     return false;
@@ -1595,7 +1595,7 @@ void BKE_image_free_all_textures(Main *bmain)
 #endif
 }
 
-static bool imagecache_check_free_anim(ImBuf *ibuf, void *UNUSED(userkey), void *userdata)
+static bool imagecache_check_free_anim(ImBuf *ibuf, void * /*userkey*/, void *userdata)
 {
   if (ibuf == nullptr) {
     return true;
@@ -2470,7 +2470,7 @@ void BKE_stamp_data_free(StampData *stamp_data)
 }
 
 /* wrap for callback only */
-static void metadata_set_field(void *data, const char *propname, char *propvalue, int UNUSED(len))
+static void metadata_set_field(void *data, const char *propname, char *propvalue, int /*len*/)
 {
   /* We know it is an ImBuf* because that's what we pass to BKE_stamp_info_callback. */
   ImBuf *imbuf = static_cast<ImBuf *>(data);
@@ -3876,7 +3876,7 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 #endif /* WITH_OPENEXR */
 
 /** Common stuff to do with images after loading. */
-static void image_init_after_load(Image *ima, ImageUser *iuser, ImBuf *UNUSED(ibuf))
+static void image_init_after_load(Image *ima, ImageUser *iuser, ImBuf * /*ibuf*/)
 {
   /* Preview is null when it has never been used as an icon before.
    * Never handle previews/icons outside of main thread. */
@@ -5024,7 +5024,7 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
 static void image_editors_update_frame(Image *ima,
-                                       ID *UNUSED(iuser_id),
+                                       ID * /*iuser_id*/,
                                        ImageUser *iuser,
                                        void *customdata)
 {
@@ -5046,8 +5046,8 @@ void BKE_image_editors_update_frame(const Main *bmain, int cfra)
 }
 
 static void image_user_id_has_animation(Image *ima,
-                                        ID *UNUSED(iuser_id),
-                                        ImageUser *UNUSED(iuser),
+                                        ID * /*iuser_id*/,
+                                        ImageUser * /*iuser*/,
                                         void *customdata)
 {
   if (ima && BKE_image_is_animated(ima)) {
@@ -5066,7 +5066,7 @@ bool BKE_image_user_id_has_animation(ID *id)
 }
 
 static void image_user_id_eval_animation(Image *ima,
-                                         ID *UNUSED(iduser_id),
+                                         ID * /*iduser_id*/,
                                          ImageUser *iuser,
                                          void *customdata)
 {
@@ -5330,7 +5330,7 @@ bool BKE_image_is_dirty(Image *image)
   return BKE_image_is_dirty_writable(image, nullptr);
 }
 
-void BKE_image_mark_dirty(Image *UNUSED(image), ImBuf *ibuf)
+void BKE_image_mark_dirty(Image * /*image*/, ImBuf *ibuf)
 {
   ibuf->userflags |= IB_BITMAPDIRTY;
 }

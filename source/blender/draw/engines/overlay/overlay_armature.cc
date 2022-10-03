@@ -1053,7 +1053,7 @@ static void bone_locked_color_shade(float color[4])
 }
 
 static const float *get_bone_solid_color(const ArmatureDrawContext *ctx,
-                                         const EditBone *UNUSED(eBone),
+                                         const EditBone * /*eBone*/,
                                          const bPoseChannel *pchan,
                                          const bArmature *arm,
                                          const int boneflag,

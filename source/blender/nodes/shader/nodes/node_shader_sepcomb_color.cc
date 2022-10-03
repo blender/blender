@@ -10,7 +10,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static void node_combsep_color_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_combsep_color_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeCombSepColor *data = MEM_cnew<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
@@ -31,7 +31,7 @@ static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Blue"));
 }
 
-static void node_sepcolor_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_sepcolor_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
@@ -53,7 +53,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_sepcolor(GPUMaterial *mat,
                                bNode *node,
-                               bNodeExecData *UNUSED(execdata),
+                               bNodeExecData * /*execdata*/,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
@@ -107,7 +107,7 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_combcolor_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_combcolor_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)storage.mode);
@@ -129,7 +129,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_combcolor(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {

@@ -131,7 +131,7 @@ void MaskOperation::execute_pixel_sampled(float output[4],
 
 void MaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  const rcti &area,
-                                                 Span<MemoryBuffer *> UNUSED(inputs))
+                                                 Span<MemoryBuffer *> /*inputs*/)
 {
   Vector<MaskRasterHandle *> handles = get_non_null_handles();
   if (handles.size() == 0) {

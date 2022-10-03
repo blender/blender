@@ -77,12 +77,12 @@ struct BKEMeshToTangent {
 };
 
 void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
-                                          const int UNUSED(numVerts),
+                                          const int /*numVerts*/,
                                           const MLoop *mloops,
                                           float (*r_looptangent)[4],
                                           const float (*loopnors)[3],
                                           const MLoopUV *loopuvs,
-                                          const int UNUSED(numLoops),
+                                          const int /*numLoops*/,
                                           const MPoly *mpolys,
                                           const int numPolys,
                                           ReportList *reports)
@@ -298,7 +298,7 @@ struct SGLSLMeshToTangent {
 #endif
 };
 
-static void DM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), void *taskdata)
+static void DM_calc_loop_tangents_thread(TaskPool *__restrict /*pool*/, void *taskdata)
 {
   SGLSLMeshToTangent *mesh_data = static_cast<SGLSLMeshToTangent *>(taskdata);
 

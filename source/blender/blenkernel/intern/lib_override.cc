@@ -3131,7 +3131,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
-void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
+void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *reports)
 {
   if (id->override_library == nullptr) {
     return;
@@ -3938,8 +3938,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-void BKE_lib_override_library_operations_store_end(
-    OverrideLibraryStorage *UNUSED(override_storage), ID *local)
+void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage * /*override_storage*/,
+                                                   ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 

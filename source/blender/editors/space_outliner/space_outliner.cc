@@ -92,7 +92,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
-static void outliner_main_region_free(ARegion *UNUSED(region))
+static void outliner_main_region_free(ARegion * /*region*/)
 {
 }
 
@@ -285,7 +285,7 @@ static void outliner_main_region_message_subscribe(const wmRegionMessageSubscrib
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void outliner_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void outliner_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -295,7 +295,7 @@ static void outliner_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void outliner_header_region_free(ARegion *UNUSED(region))
+static void outliner_header_region_free(ARegion * /*region*/)
 {
 }
 
@@ -321,7 +321,7 @@ static void outliner_header_region_listener(const wmRegionListenerParams *params
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceOutliner *space_outliner;
@@ -365,7 +365,7 @@ static void outliner_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
+static void outliner_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
@@ -477,7 +477,7 @@ static void outliner_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   space_outliner->runtime = nullptr;
 }
 
-static void outliner_blend_read_lib(BlendLibReader *reader, ID *UNUSED(parent_id), SpaceLink *sl)
+static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 

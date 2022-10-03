@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static int node_shader_gpu_hair_info(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {

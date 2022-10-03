@@ -8,7 +8,7 @@
 
 #include "node_composite_util.hh"
 
-static void node_cmp_combsep_color_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCMPCombSepColor *data = MEM_cnew<NodeCMPCombSepColor>(__func__);
   data->mode = CMP_NODE_COMBSEP_COLOR_RGB;
@@ -75,7 +75,7 @@ static void cmp_node_separate_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-static void cmp_node_separate_color_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
   node_cmp_combsep_color_label(&node->outputs, (CMPNodeCombSepColorMode)storage->mode);
@@ -181,7 +181,7 @@ static void cmp_node_combine_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void cmp_node_combine_color_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
   node_cmp_combsep_color_label(&node->inputs, (CMPNodeCombSepColorMode)storage->mode);

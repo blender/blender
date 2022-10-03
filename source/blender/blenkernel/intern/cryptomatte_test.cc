@@ -88,10 +88,10 @@ TEST(cryptomatte, extract_layer_hash_from_metadata_key)
                 "cryptomatte/"));
 }
 
-static void validate_cryptomatte_session_from_stamp_data(void *UNUSED(data),
+static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
                                                          const char *propname,
                                                          char *propvalue,
-                                                         int UNUSED(len))
+                                                         int /*len*/)
 {
   blender::StringRefNull prop_name(propname);
   if (!prop_name.startswith("cryptomatte/")) {

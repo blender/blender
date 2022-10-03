@@ -240,8 +240,8 @@ CryptomatteOperation *CryptomatteNode::create_cryptomatte_operation(
 
 CryptomatteOperation *CryptomatteLegacyNode::create_cryptomatte_operation(
     NodeConverter &converter,
-    const CompositorContext &UNUSED(context),
-    const bNode &UNUSED(node),
+    const CompositorContext & /*context*/,
+    const bNode & /*node*/,
     const NodeCryptomatte *cryptomatte_settings) const
 {
   const int num_inputs = inputs_.size() - 1;

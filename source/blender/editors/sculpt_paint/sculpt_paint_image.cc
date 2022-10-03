@@ -431,7 +431,7 @@ static void push_undo(const NodeData &node_data,
 
 static void do_push_undo_tile(void *__restrict userdata,
                               const int n,
-                              const TaskParallelTLS *__restrict UNUSED(tls))
+                              const TaskParallelTLS *__restrict /*tls*/)
 {
   TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   PBVHNode *node = data->nodes[n];
@@ -460,7 +460,7 @@ static void do_push_undo_tile(void *__restrict userdata,
 
 static void do_mark_dirty_regions(void *__restrict userdata,
                                   const int n,
-                                  const TaskParallelTLS *__restrict UNUSED(tls))
+                                  const TaskParallelTLS *__restrict /*tls*/)
 {
   TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   PBVHNode *node = data->nodes[n];

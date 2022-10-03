@@ -25,7 +25,7 @@ ConvertColorSpaceNode::ConvertColorSpaceNode(bNode *editorNode) : Node(editorNod
 }
 
 void ConvertColorSpaceNode::convert_to_operations(NodeConverter &converter,
-                                                  const CompositorContext &UNUSED(context)) const
+                                                  const CompositorContext & /*context*/) const
 {
   const bNode *b_node = get_bnode();
 

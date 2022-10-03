@@ -41,7 +41,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
   }
 }
 
-static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tangent(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderTangent *attr = MEM_cnew<NodeShaderTangent>("NodeShaderTangent");
   attr->axis = SHD_TANGENT_AXIS_Z;
@@ -50,7 +50,7 @@ static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tangent(GPUMaterial *mat,
                                    bNode *node,
-                                   bNodeExecData *UNUSED(execdata),
+                                   bNodeExecData * /*execdata*/,
                                    GPUNodeStack *in,
                                    GPUNodeStack *out)
 {

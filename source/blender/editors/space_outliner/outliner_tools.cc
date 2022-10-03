@@ -215,25 +215,25 @@ static bool outliner_operation_tree_element_poll(bContext *C)
 }
 
 static void unlink_action_fn(bContext *C,
-                             ReportList *UNUSED(reports),
-                             Scene *UNUSED(scene),
-                             TreeElement *UNUSED(te),
+                             ReportList * /*reports*/,
+                             Scene * /*scene*/,
+                             TreeElement * /*te*/,
                              TreeStoreElem *tsep,
-                             TreeStoreElem *UNUSED(tselem),
-                             void *UNUSED(user_data))
+                             TreeStoreElem * /*tselem*/,
+                             void * /*user_data*/)
 {
   /* just set action to nullptr */
   BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, nullptr);
   DEG_id_tag_update(tsep->id, ID_RECALC_ANIMATION);
 }
 
-static void unlink_material_fn(bContext *UNUSED(C),
+static void unlink_material_fn(bContext * /*C*/,
                                ReportList *reports,
-                               Scene *UNUSED(scene),
+                               Scene * /*scene*/,
                                TreeElement *te,
                                TreeStoreElem *tsep,
                                TreeStoreElem *tselem,
-                               void *UNUSED(user_data))
+                               void * /*user_data*/)
 {
   const bool te_is_material = TSE_IS_REAL_ID(tselem) && (GS(tselem->id->name) == ID_MA);
 
@@ -315,13 +315,13 @@ static void unlink_material_fn(bContext *UNUSED(C),
   }
 }
 
-static void unlink_texture_fn(bContext *UNUSED(C),
-                              ReportList *UNUSED(reports),
-                              Scene *UNUSED(scene),
+static void unlink_texture_fn(bContext * /*C*/,
+                              ReportList * /*reports*/,
+                              Scene * /*scene*/,
                               TreeElement *te,
                               TreeStoreElem *tsep,
-                              TreeStoreElem *UNUSED(tselem),
-                              void *UNUSED(user_data))
+                              TreeStoreElem * /*tselem*/,
+                              void * /*user_data*/)
 {
   MTex **mtex = nullptr;
   int a;
@@ -345,12 +345,12 @@ static void unlink_texture_fn(bContext *UNUSED(C),
 }
 
 static void unlink_collection_fn(bContext *C,
-                                 ReportList *UNUSED(reports),
-                                 Scene *UNUSED(scene),
-                                 TreeElement *UNUSED(te),
+                                 ReportList * /*reports*/,
+                                 Scene * /*scene*/,
+                                 TreeElement * /*te*/,
                                  TreeStoreElem *tsep,
                                  TreeStoreElem *tselem,
-                                 void *UNUSED(user_data))
+                                 void * /*user_data*/)
 {
   Main *bmain = CTX_data_main(C);
   Collection *collection = (Collection *)tselem->id;
@@ -381,12 +381,12 @@ static void unlink_collection_fn(bContext *C,
 }
 
 static void unlink_object_fn(bContext *C,
-                             ReportList *UNUSED(reports),
-                             Scene *UNUSED(scene),
+                             ReportList * /*reports*/,
+                             Scene * /*scene*/,
                              TreeElement *te,
                              TreeStoreElem *tsep,
                              TreeStoreElem *tselem,
-                             void *UNUSED(user_data))
+                             void * /*user_data*/)
 {
   if (tsep && tsep->id) {
     Main *bmain = CTX_data_main(C);
@@ -419,13 +419,13 @@ static void unlink_object_fn(bContext *C,
   }
 }
 
-static void unlink_world_fn(bContext *UNUSED(C),
-                            ReportList *UNUSED(reports),
-                            Scene *UNUSED(scene),
-                            TreeElement *UNUSED(te),
+static void unlink_world_fn(bContext * /*C*/,
+                            ReportList * /*reports*/,
+                            Scene * /*scene*/,
+                            TreeElement * /*te*/,
                             TreeStoreElem *tsep,
                             TreeStoreElem *tselem,
-                            void *UNUSED(user_data))
+                            void * /*user_data*/)
 {
   Scene *parscene = (Scene *)tsep->id;
   World *wo = (World *)tselem->id;
@@ -584,7 +584,7 @@ static bool outliner_do_scene_operation(
 
 static bool scene_fn(bContext *C,
                      eOutliner_PropSceneOps event,
-                     TreeElement *UNUSED(te),
+                     TreeElement * /*te*/,
                      TreeStoreElem *tselem)
 {
   Scene *scene = (Scene *)tselem->id;
@@ -684,11 +684,11 @@ static void merged_element_search_fn_recursive(
 }
 
 /* Get a list of elements that match the search string */
-static void merged_element_search_update_fn(const bContext *UNUSED(C),
+static void merged_element_search_update_fn(const bContext * /*C*/,
                                             void *data,
                                             const char *str,
                                             uiSearchItems *items,
-                                            const bool UNUSED(is_first))
+                                            const bool /*is_first*/)
 {
   MergedSearchData *search_data = (MergedSearchData *)data;
   TreeElement *parent = search_data->parent_element;
@@ -700,7 +700,7 @@ static void merged_element_search_update_fn(const bContext *UNUSED(C),
 }
 
 /* Activate an element from the merged element search menu */
-static void merged_element_search_exec_fn(struct bContext *C, void *UNUSED(arg1), void *element)
+static void merged_element_search_exec_fn(struct bContext *C, void * /*arg1*/, void *element)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   TreeElement *te = (TreeElement *)element;
@@ -775,12 +775,12 @@ void merged_element_search_menu_invoke(bContext *C,
 }
 
 static void object_select_fn(bContext *C,
-                             ReportList *UNUSED(reports),
-                             Scene *UNUSED(scene),
-                             TreeElement *UNUSED(te),
-                             TreeStoreElem *UNUSED(tsep),
+                             ReportList * /*reports*/,
+                             Scene * /*scene*/,
+                             TreeElement * /*te*/,
+                             TreeStoreElem * /*tsep*/,
                              TreeStoreElem *tselem,
-                             void *UNUSED(user_data))
+                             void * /*user_data*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -800,12 +800,12 @@ static void object_select_fn(bContext *C,
  * \{ */
 
 static void object_select_hierarchy_fn(bContext *C,
-                                       ReportList *UNUSED(reports),
-                                       Scene *UNUSED(scene),
+                                       ReportList * /*reports*/,
+                                       Scene * /*scene*/,
                                        TreeElement *te,
-                                       TreeStoreElem *UNUSED(tsep),
-                                       TreeStoreElem *UNUSED(tselem),
-                                       void *UNUSED(user_data))
+                                       TreeStoreElem * /*tsep*/,
+                                       TreeStoreElem * /*tselem*/,
+                                       void * /*user_data*/)
 {
   /* Don't extend because this toggles, which is nice for Ctrl-Click but not for a menu item.
    * it's especially confusing when multiple items are selected since some toggle on/off. */
@@ -815,12 +815,12 @@ static void object_select_hierarchy_fn(bContext *C,
 }
 
 static void object_deselect_fn(bContext *C,
-                               ReportList *UNUSED(reports),
-                               Scene *UNUSED(scene),
-                               TreeElement *UNUSED(te),
-                               TreeStoreElem *UNUSED(tsep),
+                               ReportList * /*reports*/,
+                               Scene * /*scene*/,
+                               TreeElement * /*te*/,
+                               TreeStoreElem * /*tsep*/,
                                TreeStoreElem *tselem,
-                               void *UNUSED(user_data))
+                               void * /*user_data*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -862,12 +862,12 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
 }
 
 static void id_local_fn(bContext *C,
-                        ReportList *UNUSED(reports),
-                        Scene *UNUSED(scene),
-                        TreeElement *UNUSED(te),
-                        TreeStoreElem *UNUSED(tsep),
+                        ReportList * /*reports*/,
+                        Scene * /*scene*/,
+                        TreeElement * /*te*/,
+                        TreeStoreElem * /*tsep*/,
                         TreeStoreElem *tselem,
-                        void *UNUSED(user_data))
+                        void * /*user_data*/)
 {
   if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
@@ -960,7 +960,7 @@ struct OutlinerLibOverrideData {
  * hierarchy. */
 static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
                                                                 ReportList *reports,
-                                                                Scene *UNUSED(scene),
+                                                                Scene * /*scene*/,
                                                                 TreeElement *te,
                                                                 TreeStoreElem *tsep,
                                                                 TreeStoreElem *tselem,
@@ -1267,10 +1267,10 @@ static void id_override_library_create_hierarchy_process(bContext *C,
 }
 
 static void id_override_library_reset_fn(bContext *C,
-                                         ReportList *UNUSED(reports),
-                                         Scene *UNUSED(scene),
-                                         TreeElement *UNUSED(te),
-                                         TreeStoreElem *UNUSED(tsep),
+                                         ReportList * /*reports*/,
+                                         Scene * /*scene*/,
+                                         TreeElement * /*te*/,
+                                         TreeStoreElem * /*tsep*/,
                                          TreeStoreElem *tselem,
                                          void *user_data)
 {
@@ -1297,10 +1297,10 @@ static void id_override_library_reset_fn(bContext *C,
 static void id_override_library_clear_single_fn(bContext *C,
                                                 ReportList *reports,
                                                 Scene *scene,
-                                                TreeElement *UNUSED(te),
-                                                TreeStoreElem *UNUSED(tsep),
+                                                TreeElement * /*te*/,
+                                                TreeStoreElem * /*tsep*/,
                                                 TreeStoreElem *tselem,
-                                                void *UNUSED(user_data))
+                                                void * /*user_data*/)
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   Main *bmain = CTX_data_main(C);
@@ -1344,11 +1344,11 @@ static void id_override_library_clear_single_fn(bContext *C,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
 }
 
-static void id_override_library_resync_fn(bContext *UNUSED(C),
-                                          ReportList *UNUSED(reports),
-                                          Scene *UNUSED(scene),
-                                          TreeElement *UNUSED(te),
-                                          TreeStoreElem *UNUSED(tsep),
+static void id_override_library_resync_fn(bContext * /*C*/,
+                                          ReportList * /*reports*/,
+                                          Scene * /*scene*/,
+                                          TreeElement * /*te*/,
+                                          TreeStoreElem * /*tsep*/,
                                           TreeStoreElem *tselem,
                                           void *user_data)
 {
@@ -1393,11 +1393,11 @@ static void id_override_library_resync_hierarchy_process(bContext *C,
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
-static void id_override_library_delete_hierarchy_fn(bContext *UNUSED(C),
-                                                    ReportList *UNUSED(reports),
-                                                    Scene *UNUSED(scene),
-                                                    TreeElement *UNUSED(te),
-                                                    TreeStoreElem *UNUSED(tsep),
+static void id_override_library_delete_hierarchy_fn(bContext * /*C*/,
+                                                    ReportList * /*reports*/,
+                                                    Scene * /*scene*/,
+                                                    TreeElement * /*te*/,
+                                                    TreeStoreElem * /*tsep*/,
                                                     TreeStoreElem *tselem,
                                                     void *user_data)
 {
@@ -1420,7 +1420,7 @@ static void id_override_library_delete_hierarchy_fn(bContext *UNUSED(C),
 
 /* Clear (delete) a hierarchy of library overrides. */
 static void id_override_library_delete_hierarchy_process(bContext *C,
-                                                         ReportList *UNUSED(reports),
+                                                         ReportList * /*reports*/,
                                                          OutlinerLibOverrideData &data)
 {
   Main *bmain = CTX_data_main(C);
@@ -1430,26 +1430,26 @@ static void id_override_library_delete_hierarchy_process(bContext *C,
   }
 }
 
-static void id_fake_user_set_fn(bContext *UNUSED(C),
-                                ReportList *UNUSED(reports),
-                                Scene *UNUSED(scene),
-                                TreeElement *UNUSED(te),
-                                TreeStoreElem *UNUSED(tsep),
+static void id_fake_user_set_fn(bContext * /*C*/,
+                                ReportList * /*reports*/,
+                                Scene * /*scene*/,
+                                TreeElement * /*te*/,
+                                TreeStoreElem * /*tsep*/,
                                 TreeStoreElem *tselem,
-                                void *UNUSED(user_data))
+                                void * /*user_data*/)
 {
   ID *id = tselem->id;
 
   id_fake_user_set(id);
 }
 
-static void id_fake_user_clear_fn(bContext *UNUSED(C),
-                                  ReportList *UNUSED(reports),
-                                  Scene *UNUSED(scene),
-                                  TreeElement *UNUSED(te),
-                                  TreeStoreElem *UNUSED(tsep),
+static void id_fake_user_clear_fn(bContext * /*C*/,
+                                  ReportList * /*reports*/,
+                                  Scene * /*scene*/,
+                                  TreeElement * /*te*/,
+                                  TreeStoreElem * /*tsep*/,
                                   TreeStoreElem *tselem,
-                                  void *UNUSED(user_data))
+                                  void * /*user_data*/)
 {
   ID *id = tselem->id;
 
@@ -1457,12 +1457,12 @@ static void id_fake_user_clear_fn(bContext *UNUSED(C),
 }
 
 static void id_select_linked_fn(bContext *C,
-                                ReportList *UNUSED(reports),
-                                Scene *UNUSED(scene),
-                                TreeElement *UNUSED(te),
-                                TreeStoreElem *UNUSED(tsep),
+                                ReportList * /*reports*/,
+                                Scene * /*scene*/,
+                                TreeElement * /*te*/,
+                                TreeStoreElem * /*tsep*/,
                                 TreeStoreElem *tselem,
-                                void *UNUSED(user_data))
+                                void * /*user_data*/)
 {
   ID *id = tselem->id;
 
@@ -1470,12 +1470,12 @@ static void id_select_linked_fn(bContext *C,
 }
 
 static void singleuser_action_fn(bContext *C,
-                                 ReportList *UNUSED(reports),
-                                 Scene *UNUSED(scene),
+                                 ReportList * /*reports*/,
+                                 Scene * /*scene*/,
                                  TreeElement *te,
                                  TreeStoreElem *tsep,
                                  TreeStoreElem *tselem,
-                                 void *UNUSED(user_data))
+                                 void * /*user_data*/)
 {
   /* This callback runs for all selected elements, some of which may not be actions which results
    * in a crash. */
@@ -1498,12 +1498,12 @@ static void singleuser_action_fn(bContext *C,
 }
 
 static void singleuser_world_fn(bContext *C,
-                                ReportList *UNUSED(reports),
-                                Scene *UNUSED(scene),
-                                TreeElement *UNUSED(te),
+                                ReportList * /*reports*/,
+                                Scene * /*scene*/,
+                                TreeElement * /*te*/,
                                 TreeStoreElem *tsep,
                                 TreeStoreElem *tselem,
-                                void *UNUSED(user_data))
+                                void * /*user_data*/)
 {
   ID *id = tselem->id;
 
@@ -1579,29 +1579,29 @@ void outliner_do_object_operation(bContext *C,
 /** \name Internal Tagging Utilities
  * \{ */
 
-static void clear_animdata_fn(int UNUSED(event),
-                              TreeElement *UNUSED(te),
+static void clear_animdata_fn(int /*event*/,
+                              TreeElement * /*te*/,
                               TreeStoreElem *tselem,
-                              void *UNUSED(arg))
+                              void * /*arg*/)
 {
   BKE_animdata_free(tselem->id, true);
   DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
-static void unlinkact_animdata_fn(int UNUSED(event),
-                                  TreeElement *UNUSED(te),
+static void unlinkact_animdata_fn(int /*event*/,
+                                  TreeElement * /*te*/,
                                   TreeStoreElem *tselem,
-                                  void *UNUSED(arg))
+                                  void * /*arg*/)
 {
   /* just set action to nullptr */
   BKE_animdata_set_action(nullptr, tselem->id, nullptr);
   DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
-static void cleardrivers_animdata_fn(int UNUSED(event),
-                                     TreeElement *UNUSED(te),
+static void cleardrivers_animdata_fn(int /*event*/,
+                                     TreeElement * /*te*/,
                                      TreeStoreElem *tselem,
-                                     void *UNUSED(arg))
+                                     void * /*arg*/)
 {
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 
@@ -1610,10 +1610,10 @@ static void cleardrivers_animdata_fn(int UNUSED(event),
   DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
-static void refreshdrivers_animdata_fn(int UNUSED(event),
-                                       TreeElement *UNUSED(te),
+static void refreshdrivers_animdata_fn(int /*event*/,
+                                       TreeElement * /*te*/,
                                        TreeStoreElem *tselem,
-                                       void *UNUSED(arg))
+                                       void * /*arg*/)
 {
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 
@@ -1895,7 +1895,7 @@ enum eOutliner_PropModifierOps {
   OL_MODIFIER_OP_DELETE,
 };
 
-static void pchan_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
+static void pchan_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void * /*arg*/)
 {
   bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 
@@ -1914,7 +1914,7 @@ static void pchan_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
   }
 }
 
-static void bone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
+static void bone_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void * /*arg*/)
 {
   Bone *bone = (Bone *)te->directdata;
 
@@ -1933,7 +1933,7 @@ static void bone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), v
   }
 }
 
-static void ebone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
+static void ebone_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void * /*arg*/)
 {
   EditBone *ebone = (EditBone *)te->directdata;
 
@@ -1952,7 +1952,7 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
   }
 }
 
-static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *scene_ptr)
+static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *scene_ptr)
 {
   TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
   Sequence *seq = &te_seq->getSequence();
@@ -1982,8 +1982,8 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 
 static void gpencil_layer_fn(int event,
                              TreeElement *te,
-                             TreeStoreElem *UNUSED(tselem),
-                             void *UNUSED(arg))
+                             TreeStoreElem * /*tselem*/,
+                             void * /*arg*/)
 {
   bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
@@ -2003,7 +2003,7 @@ static void gpencil_layer_fn(int event,
 
 static void data_select_linked_fn(int event,
                                   TreeElement *te,
-                                  TreeStoreElem *UNUSED(tselem),
+                                  TreeStoreElem * /*tselem*/,
                                   void *C_v)
 {
   const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
@@ -2022,7 +2022,7 @@ static void data_select_linked_fn(int event,
   }
 }
 
-static void constraint_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
+static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *C_v)
 {
   bContext *C = static_cast<bContext *>(C_v);
   Main *bmain = CTX_data_main(C);
@@ -2062,7 +2062,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
   }
 }
 
-static void modifier_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *Carg)
+static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *Carg)
 {
   bContext *C = (bContext *)Carg;
   Main *bmain = CTX_data_main(C);
@@ -2523,8 +2523,8 @@ static const EnumPropertyItem prop_id_op_types[] = {
 };
 
 static bool outliner_id_operation_item_poll(bContext *C,
-                                            PointerRNA *UNUSED(ptr),
-                                            PropertyRNA *UNUSED(prop),
+                                            PointerRNA * /*ptr*/,
+                                            PropertyRNA * /*prop*/,
                                             const int enum_value)
 {
   if (!outliner_operation_tree_element_poll(C)) {
@@ -2891,7 +2891,7 @@ static void outliner_do_id_set_operation(
   });
 }
 
-static void actionset_id_fn(TreeElement *UNUSED(te),
+static void actionset_id_fn(TreeElement * /*te*/,
                             TreeStoreElem *tselem,
                             TreeStoreElem *tsep,
                             ID *actId)
@@ -3274,9 +3274,9 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 
 /* Dynamically populate an enum of Keying Sets */
 static const EnumPropertyItem *outliner_data_op_sets_enum_item_fn(bContext *C,
-                                                                  PointerRNA *UNUSED(ptr),
-                                                                  PropertyRNA *UNUSED(prop),
-                                                                  bool *UNUSED(r_free))
+                                                                  PointerRNA * /*ptr*/,
+                                                                  PropertyRNA * /*prop*/,
+                                                                  bool * /*r_free*/)
 {
   /* Check for invalid states. */
   if (C == nullptr) {
@@ -3433,7 +3433,7 @@ static int do_outliner_operation_event(bContext *C,
   return OPERATOR_CANCELLED;
 }
 
-static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int outliner_operation(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);

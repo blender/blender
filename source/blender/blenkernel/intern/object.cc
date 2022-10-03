@@ -321,7 +321,7 @@ static void object_free_data(ID *id)
 }
 
 static void library_foreach_modifiersForeachIDLink(void *user_data,
-                                                   Object *UNUSED(object),
+                                                   Object * /*object*/,
                                                    ID **id_pointer,
                                                    int cb_flag)
 {
@@ -331,7 +331,7 @@ static void library_foreach_modifiersForeachIDLink(void *user_data,
 }
 
 static void library_foreach_gpencil_modifiersForeachIDLink(void *user_data,
-                                                           Object *UNUSED(object),
+                                                           Object * /*object*/,
                                                            ID **id_pointer,
                                                            int cb_flag)
 {
@@ -341,7 +341,7 @@ static void library_foreach_gpencil_modifiersForeachIDLink(void *user_data,
 }
 
 static void library_foreach_shaderfxForeachIDLink(void *user_data,
-                                                  Object *UNUSED(object),
+                                                  Object * /*object*/,
                                                   ID **id_pointer,
                                                   int cb_flag)
 {
@@ -350,7 +350,7 @@ static void library_foreach_shaderfxForeachIDLink(void *user_data,
       data, BKE_lib_query_foreachid_process(data, id_pointer, cb_flag));
 }
 
-static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con),
+static void library_foreach_constraintObjectLooper(bConstraint * /*con*/,
                                                    ID **id_pointer,
                                                    bool is_reference,
                                                    void *user_data)
@@ -361,7 +361,7 @@ static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con),
       data, BKE_lib_query_foreachid_process(data, id_pointer, cb_flag));
 }
 
-static void library_foreach_particlesystemsObjectLooper(ParticleSystem *UNUSED(psys),
+static void library_foreach_particlesystemsObjectLooper(ParticleSystem * /*psys*/,
                                                         ID **id_pointer,
                                                         void *user_data,
                                                         int cb_flag)
@@ -1017,9 +1017,9 @@ static void expand_constraint_channels(BlendExpander *expander, ListBase *chanba
 }
 
 static void expand_object_expandModifiers(void *userData,
-                                          Object *UNUSED(ob),
+                                          Object * /*ob*/,
                                           ID **idpoin,
-                                          int UNUSED(cb_flag))
+                                          int /*cb_flag*/)
 {
   BlendExpander *expander = (BlendExpander *)userData;
   BLO_expand(expander, *idpoin);
@@ -4126,8 +4126,8 @@ struct GPencilStrokePointIterData {
   void *user_data;
 };
 
-static void foreach_display_point_gpencil_stroke_fn(bGPDlayer *UNUSED(layer),
-                                                    bGPDframe *UNUSED(frame),
+static void foreach_display_point_gpencil_stroke_fn(bGPDlayer * /*layer*/,
+                                                    bGPDframe * /*frame*/,
                                                     bGPDstroke *stroke,
                                                     void *thunk)
 {
@@ -5098,7 +5098,7 @@ void BKE_object_runtime_reset(Object *object)
   memset(&object->runtime, 0, sizeof(object->runtime));
 }
 
-void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
+void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
 {
   Object_Runtime *runtime = &object->runtime;
   runtime->data_eval = nullptr;

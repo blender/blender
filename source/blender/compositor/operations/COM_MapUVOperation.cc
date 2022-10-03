@@ -201,8 +201,8 @@ void MapUVOperation::get_area_of_interest(const int input_idx,
   }
 }
 
-void MapUVOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                  const rcti &UNUSED(area),
+void MapUVOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                  const rcti & /*area*/,
                                                   Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *uv_input = inputs[UV_INPUT_INDEX];

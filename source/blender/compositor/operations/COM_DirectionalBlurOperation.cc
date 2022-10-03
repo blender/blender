@@ -128,7 +128,7 @@ bool DirectionalBlurOperation::determine_depending_area_of_interest(
 }
 
 void DirectionalBlurOperation::get_area_of_interest(const int input_idx,
-                                                    const rcti &UNUSED(output_area),
+                                                    const rcti & /*output_area*/,
                                                     rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);

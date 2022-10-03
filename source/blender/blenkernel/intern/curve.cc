@@ -1056,7 +1056,7 @@ BPoint *BKE_nurb_bpoint_get_prev(Nurb *nu, BPoint *bp)
   return bp_prev;
 }
 
-void BKE_nurb_bezt_calc_normal(struct Nurb *UNUSED(nu), BezTriple *bezt, float r_normal[3])
+void BKE_nurb_bezt_calc_normal(struct Nurb * /*nu*/, BezTriple *bezt, float r_normal[3])
 {
   /* calculate the axis matrix from the spline */
   float dir_prev[3], dir_next[3];

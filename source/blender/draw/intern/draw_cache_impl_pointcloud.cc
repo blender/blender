@@ -304,7 +304,7 @@ GPUBatch *DRW_pointcloud_batch_cache_get_surface_viewer_attribute(Object *ob)
 }
 
 GPUBatch **DRW_cache_pointcloud_surface_shaded_get(Object *ob,
-                                                   struct GPUMaterial **UNUSED(gpumat_array),
+                                                   struct GPUMaterial ** /*gpumat_array*/,
                                                    uint gpumat_array_len)
 {
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
