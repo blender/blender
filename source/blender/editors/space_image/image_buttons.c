@@ -974,8 +974,16 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
   uiLayoutSetPropDecorate(col, false);
 
   uiItemR(col, imfptr, "file_format", 0, NULL, ICON_NONE);
-  uiItemR(
-      uiLayoutRow(col, true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
+
+  /* Multi-layer always saves raw unmodified channels. */
+  if (imf->imtype != R_IMF_IMTYPE_MULTILAYER) {
+    uiItemR(uiLayoutRow(col, true),
+            imfptr,
+            "color_mode",
+            UI_ITEM_R_EXPAND,
+            IFACE_("Color"),
+            ICON_NONE);
+  }
 
   /* only display depth setting if multiple depths can be used */
   if (ELEM(depth_ok,
