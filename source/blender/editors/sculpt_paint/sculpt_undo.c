@@ -83,7 +83,7 @@
 #include "sculpt_intern.h"
 
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
-#define SCULPT_UNDO_DEBUG
+//#define SCULPT_UNDO_DEBUG
 
 /* Implementation of undo system for objects in sculpt mode.
  *
