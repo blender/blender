@@ -1710,6 +1710,22 @@ typedef struct SpaceUserPref {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Project Settings
+ * \{ */
+
+typedef struct SpaceProjectSettings {
+  SpaceLink *next, *prev;
+  /** Storage of regions for inactive spaces. */
+  ListBase regionbase;
+  char spacetype;
+  char link_flag;
+  char _pad0[6];
+  /* End 'SpaceLink' header. */
+} SpaceProjectSettings;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Motion Tracking
  * \{ */
 
@@ -2045,9 +2061,10 @@ typedef enum eSpace_Type {
   SPACE_CLIP = 20,
   SPACE_TOPBAR = 21,
   SPACE_STATUSBAR = 22,
-  SPACE_SPREADSHEET = 23
+  SPACE_SPREADSHEET = 23,
+  SPACE_PROJECT_SETTINGS = 24
 
-#define SPACE_TYPE_NUM (SPACE_SPREADSHEET + 1)
+#define SPACE_TYPE_NUM (SPACE_PROJECT_SETTINGS + 1)
 } eSpace_Type;
 
 /* use for function args */

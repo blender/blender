@@ -82,6 +82,7 @@ void ED_spacetypes_init(void)
   ED_spacetype_statusbar();
   ED_spacetype_topbar();
   ED_spacetype_spreadsheet();
+  ED_spacetype_project_settings();
 
   /* Register operator types for screen and all spaces. */
   ED_operatortypes_userpref();

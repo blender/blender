@@ -171,11 +171,16 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
      ICON_SPREADSHEET,
      "Spreadsheet",
      "Explore geometry data in a table"},
+    {SPACE_PROJECT_SETTINGS,
+     "PROJECT_SETTINGS",
+     ICON_PREFERENCES,
+     "Project Settings",
+     "Edit persistent configuration settings for the active project"},
     {SPACE_USERPREF,
      "PREFERENCES",
      ICON_PREFERENCES,
      "Preferences",
-     "Edit persistent configuration settings"},
+     "Edit persistent configuration settings for personal use"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -605,6 +610,8 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
       return &RNA_SpaceConsole;
     case SPACE_USERPREF:
       return &RNA_SpacePreferences;
+    case SPACE_PROJECT_SETTINGS:
+      return &RNA_SpaceProjectSettings;
     case SPACE_CLIP:
       return &RNA_SpaceClipEditor;
     case SPACE_SPREADSHEET:
@@ -7138,6 +7145,14 @@ static void rna_def_space_userpref(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
 }
 
+static void rna_def_space_project_settings(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "SpaceProjectSettings", "Space");
+  RNA_def_struct_ui_text(srna, "Space Project Settings", "Blender project space data");
+}
+
 static void rna_def_node_tree_path(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8054,6 +8069,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_console_line(brna);
   rna_def_space_info(brna);
   rna_def_space_userpref(brna);
+  rna_def_space_project_settings(brna);
   rna_def_node_tree_path(brna);
   rna_def_space_node(brna);
   rna_def_space_clip(brna);

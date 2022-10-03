@@ -46,6 +46,7 @@ void ED_spacetype_clip(void);
 void ED_spacetype_statusbar(void);
 void ED_spacetype_topbar(void);
 void ED_spacetype_spreadsheet(void);
+void ED_spacetype_project_settings(void);
 
 /** \} */
 

@@ -635,6 +635,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
           SPACE_MENU_MAP(SPACE_NODE, "NODE_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_CONSOLE, "CONSOLE_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_USERPREF, "USERPREF_MT_editor_menus");
+          SPACE_MENU_MAP(SPACE_PROJECT_SETTINGS, "PROJECTSETTINGS_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_CLIP,
                          (((const SpaceClip *)sl)->mode == SC_MODE_TRACKING) ?
                              "CLIP_MT_tracking_editor_menus" :

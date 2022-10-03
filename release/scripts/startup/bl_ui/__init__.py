@@ -69,6 +69,7 @@ _modules = [
     "space_nla",
     "space_node",
     "space_outliner",
+    "space_project_settings",
     "space_properties",
     "space_sequencer",
     "space_spreadsheet",
