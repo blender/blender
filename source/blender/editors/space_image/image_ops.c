@@ -1871,8 +1871,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
   }
 
   /* Enable save_copy by default for render results. */
-  if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) &&
-      !RNA_struct_property_is_set(op->ptr, "copy")) {
+  if (image->source == IMA_SRC_VIEWER && !RNA_struct_property_is_set(op->ptr, "copy")) {
     RNA_boolean_set(op->ptr, "copy", true);
   }
 
@@ -1964,16 +1963,16 @@ static void image_save_as_cancel(bContext *UNUSED(C), wmOperator *op)
   image_save_as_free(op);
 }
 
-static bool image_save_as_draw_check_prop(PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          void *UNUSED(user_data))
+static bool image_save_as_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *user_data)
 {
+  ImageSaveData *isd = user_data;
   const char *prop_id = RNA_property_identifier(prop);
 
   return !(STREQ(prop_id, "filepath") || STREQ(prop_id, "directory") ||
            STREQ(prop_id, "filename") ||
            /* when saving a copy, relative path has no effect */
-           (STREQ(prop_id, "relative_path") && RNA_boolean_get(ptr, "copy")));
+           (STREQ(prop_id, "relative_path") && RNA_boolean_get(ptr, "copy")) ||
+           (STREQ(prop_id, "save_as_render") && isd->image->source == IMA_SRC_VIEWER));
 }
 
 static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
@@ -1987,13 +1986,13 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  /* main draw call */
+  /* Operator settings. */
   uiDefAutoButsRNA(
-      layout, op->ptr, image_save_as_draw_check_prop, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
+      layout, op->ptr, image_save_as_draw_check_prop, isd, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
   uiItemS(layout);
 
-  /* image template */
+  /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
   uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
 
@@ -2004,7 +2003,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
     uiItemR(col, &linear_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
   }
 
-  /* multiview template */
+  /* Multiview settings. */
   if (is_multiview) {
     uiTemplateImageFormatViews(layout, &imf_ptr, op->ptr);
   }
@@ -2049,11 +2048,14 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna,
-                         "save_as_render",
-                         0,
-                         "Save As Render",
-                         "Apply render part of display transform when saving byte image");
+  prop = RNA_def_boolean(
+      ot->srna,
+      "save_as_render",
+      0,
+      "Save As Render",
+      "Save image with render color management.\n"
+      "For display image formats like PNG, apply view and display transform.\n"
+      "For intermediate image formats like OpenEXR, use the default render output color space.");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "copy",
