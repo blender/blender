@@ -1329,8 +1329,8 @@ float BLI_noise_mg_fbm(
 float BLI_noise_mg_multi_fractal(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-  /* This one is in fact rather confusing,
-   * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+  /* This one is in fact rather confusing, there seem to be errors in the original source code
+   * (in all three versions of `proc.text & mod`),
    * I modified it to something that made sense to me, so it might be wrong. */
 
   float (*noisefunc)(float, float, float);

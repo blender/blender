@@ -265,7 +265,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGKey *key,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
-                          unsigned int **grid_hidden);
+                          unsigned int **grid_hidden,
+                          struct Mesh *me);
 /**
  * Build a PBVH from a BMesh.
  */

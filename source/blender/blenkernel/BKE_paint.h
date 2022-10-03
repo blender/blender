@@ -372,6 +372,7 @@ typedef struct SculptClothSimulation {
   float (*acceleration)[3];
   float (*pos)[3];
   float (*init_pos)[3];
+  float (*init_no)[3];
   float (*softbody_pos)[3];
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];

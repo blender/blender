@@ -712,7 +712,6 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   const float len = event->prev_press_xy[0] - event->xy[0];
   filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
 
-  SCULPT_stroke_id_next(ob);
   SCULPT_vertex_random_access_ensure(ss);
 
   bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);

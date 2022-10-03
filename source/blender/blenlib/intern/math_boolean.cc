@@ -2191,18 +2191,18 @@ static double insphereadapt(const double *pa,
   INEXACT double _i, _j;
   double _0;
 
-  aex = (double)(pa[0] - pe[0]);
-  bex = (double)(pb[0] - pe[0]);
-  cex = (double)(pc[0] - pe[0]);
-  dex = (double)(pd[0] - pe[0]);
-  aey = (double)(pa[1] - pe[1]);
-  bey = (double)(pb[1] - pe[1]);
-  cey = (double)(pc[1] - pe[1]);
-  dey = (double)(pd[1] - pe[1]);
-  aez = (double)(pa[2] - pe[2]);
-  bez = (double)(pb[2] - pe[2]);
-  cez = (double)(pc[2] - pe[2]);
-  dez = (double)(pd[2] - pe[2]);
+  aex = double(pa[0] - pe[0]);
+  bex = double(pb[0] - pe[0]);
+  cex = double(pc[0] - pe[0]);
+  dex = double(pd[0] - pe[0]);
+  aey = double(pa[1] - pe[1]);
+  bey = double(pb[1] - pe[1]);
+  cey = double(pc[1] - pe[1]);
+  dey = double(pd[1] - pe[1]);
+  aez = double(pa[2] - pe[2]);
+  bez = double(pb[2] - pe[2]);
+  cez = double(pc[2] - pe[2]);
+  dez = double(pd[2] - pe[2]);
 
   Two_Product(aex, bey, aexbey1, aexbey0);
   Two_Product(bex, aey, bexaey1, bexaey0);

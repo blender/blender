@@ -91,8 +91,6 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_OUTLINE_STROKE = (1 << 17),
   /* Collide with stroke. */
   GP_BRUSH_FILL_STROKE_COLLIDE = (1 << 18),
-  /* Extend lines only close if collide. */
-  GP_BRUSH_FILL_COLLIDE_ONLY = (1 << 19),
 } eGPDbrush_Flag;
 
 typedef enum eGPDbrush_Flag2 {

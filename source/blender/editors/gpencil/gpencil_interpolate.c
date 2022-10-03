@@ -167,20 +167,20 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
 
   /* Line from start of strokes. */
   pt = &gps_from->points[0];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_from_start[0], &v_from_start[1]);
 
   pt = &gps_to->points[0];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_to_start[0], &v_to_start[1]);
 
   /* Line from end of strokes. */
   pt = &gps_from->points[gps_from->totpoints - 1];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_from_end[0], &v_from_end[1]);
 
   pt = &gps_to->points[gps_to->totpoints - 1];
-  gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_world_space(pt, diff_mat, &pt_dummy_ps);
   gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_to_end[0], &v_to_end[1]);
 
   const bool isect_lines = (isect_seg_seg_v2(v_from_start, v_to_start, v_from_end, v_to_end) ==

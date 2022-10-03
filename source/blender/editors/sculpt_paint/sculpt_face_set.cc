@@ -217,6 +217,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }

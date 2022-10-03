@@ -192,7 +192,7 @@ void MESH_OT_loopcut(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_rip_edge(struct wmOperatorType *ot);
 
-/* *** editmesh_select.c *** */
+/* *** editmesh_select.cc *** */
 
 void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_similar_region(struct wmOperatorType *ot);

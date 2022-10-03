@@ -1462,7 +1462,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
     bGPDspoint pt_temp;
     pt = &gps->points[0];
     if ((is_masking && (pt->flag & GP_SPOINT_SELECT) != 0) || (!is_masking)) {
-      gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+      gpencil_point_to_world_space(gps->points, diff_mat, &pt_temp);
       gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
       pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
@@ -1499,10 +1499,10 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
         }
       }
       bGPDspoint npt;
-      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_world_space(pt1, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_world_space(pt2, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the bound-box of the selection stroke. */
@@ -1803,7 +1803,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
         bGPDspoint npt;
 
         if (gps->totpoints == 1) {
-          gpencil_point_to_parent_space(gps->points, bound_mat, &npt);
+          gpencil_point_to_world_space(gps->points, bound_mat, &npt);
           gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
           /* Only check if point is inside. */
@@ -1821,7 +1821,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
             pt2 = gps->points + i + 1;
 
             /* Check first point. */
-            gpencil_point_to_parent_space(pt1, bound_mat, &npt);
+            gpencil_point_to_world_space(pt1, bound_mat, &npt);
             gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
             if (len_v2v2_int(mval_i, pc1) <= radius) {
               BLI_ghash_insert(gso->automasking_strokes, gps, gps);
@@ -1830,7 +1830,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
             }
 
             /* Check second point. */
-            gpencil_point_to_parent_space(pt2, bound_mat, &npt);
+            gpencil_point_to_world_space(pt2, bound_mat, &npt);
             gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
             if (len_v2v2_int(mval_i, pc2) <= radius) {
               BLI_ghash_insert(gso->automasking_strokes, gps, gps);

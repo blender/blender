@@ -102,6 +102,8 @@ static void color_filter_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;
     float brightness, contrast, gain, delta, offset;
@@ -294,8 +296,6 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   if (event->type != MOUSEMOVE) {
     return OPERATOR_RUNNING_MODAL;
   }
-
-  SCULPT_stroke_id_next(ob);
 
   const float len = event->prev_press_xy[0] - event->xy[0];
   filter_strength = filter_strength * -len * 0.001f;

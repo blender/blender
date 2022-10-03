@@ -3605,8 +3605,8 @@ static void outliner_draw_struct_marks(ARegion *region,
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
 
         immBegin(GPU_PRIM_LINES, 2);
-        immVertex2f(pos, 0, (float)*starty + UI_UNIT_Y);
-        immVertex2f(pos, region->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
+        immVertex2f(pos, 0, float(*starty) + UI_UNIT_Y);
+        immVertex2f(pos, region->v2d.cur.xmax, float(*starty) + UI_UNIT_Y);
         immEnd();
 
         immUnbindProgram();

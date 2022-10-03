@@ -144,8 +144,8 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
 
       zneg_flag = zpos_flag;
 
-      /* Persp : If camera is below floor plane, we switch clipping
-       * Ortho : If eye vector is looking up, we switch clipping */
+      /* Perspective: If camera is below floor plane, we switch clipping.
+       * Orthographic: If eye vector is looking up, we switch clipping. */
       if (((winmat[3][3] == 0.0f) && (campos[2] > 0.0f)) ||
           ((winmat[3][3] != 0.0f) && (zvec[2] < 0.0f))) {
         zpos_flag |= CLIP_ZPOS;

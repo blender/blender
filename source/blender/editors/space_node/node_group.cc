@@ -1047,6 +1047,8 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 
   ED_node_tree_propagate_change(C, bmain, nullptr);
 
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+
   /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);
 

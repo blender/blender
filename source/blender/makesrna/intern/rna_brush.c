@@ -1976,13 +1976,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       prop, "Strokes Collision", "Check if extend lines collide with strokes");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
-  prop = RNA_def_property(srna, "use_collide_only", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_COLLIDE_ONLY);
-  RNA_def_property_boolean_default(prop, false);
-  RNA_def_property_ui_text(
-      prop, "Only Collide Lines", "Use for closing gaps only if the extend strokes collide");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
   prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_FILL_HIDE);
   RNA_def_property_boolean_default(prop, true);

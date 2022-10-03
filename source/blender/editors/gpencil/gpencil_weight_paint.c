@@ -413,7 +413,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gpencil_point_to_world_space(gps->points, diff_mat, &pt_temp);
     gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
@@ -440,10 +440,10 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
       pt2 = gps->points + i + 1;
 
       bGPDspoint npt;
-      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_world_space(pt1, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_world_space(pt2, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the bound-box of the selection stroke */

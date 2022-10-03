@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma once
 
 #include "DNA_customdata_types.h"

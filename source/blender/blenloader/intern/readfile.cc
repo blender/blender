@@ -5111,12 +5111,12 @@ static void convert_pointer_array_64_to_32(BlendDataReader *reader,
     for (int i = 0; i < array_size; i++) {
       uint64_t ptr = src[i];
       BLI_endian_switch_uint64(&ptr);
-      dst[i] = (uint32_t)(ptr >> 3);
+      dst[i] = uint32_t(ptr >> 3);
     }
   }
   else {
     for (int i = 0; i < array_size; i++) {
-      dst[i] = (uint32_t)(src[i] >> 3);
+      dst[i] = uint32_t(src[i] >> 3);
     }
   }
 }

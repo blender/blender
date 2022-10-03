@@ -3113,6 +3113,8 @@ void DRW_render_context_enable(Render *render)
     WM_init_opengl();
   }
 
+  GPU_render_begin();
+
   if (GPU_use_main_context_workaround()) {
     GPU_context_main_lock();
     DRW_opengl_context_enable();
@@ -3136,6 +3138,8 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
+  GPU_render_end();
+
   if (GPU_use_main_context_workaround()) {
     DRW_opengl_context_disable();
     GPU_context_main_unlock();

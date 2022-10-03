@@ -2387,7 +2387,7 @@ void BKE_brush_scale_size(int *r_brush_size,
   if (old_unprojected_radius != 0) {
     scale /= new_unprojected_radius;
   }
-  (*r_brush_size) = (int)((float)(*r_brush_size) * scale);
+  (*r_brush_size) = int(float(*r_brush_size) * scale);
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])

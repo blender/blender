@@ -1100,19 +1100,15 @@ static void gizmo_prepare_mat(const bContext *C,
       mid_v3_v3v3(rv3d->twmat[3], tbounds->min, tbounds->max);
 
       if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-        bGPdata *gpd = CTX_data_gpencil_data(C);
-        /* Grease Pencil uses object origin. */
-        if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-          BKE_view_layer_synced_ensure(scene, view_layer);
-          Object *ob = BKE_view_layer_active_object_get(view_layer);
-          if (ob != NULL) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        Object *ob = BKE_view_layer_active_object_get(view_layer);
+        if (ob != NULL) {
+          /* Grease Pencil uses object origin. */
+          bGPdata *gpd = CTX_data_gpencil_data(C);
+          if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
             ED_object_calc_active_center(ob, false, rv3d->twmat[3]);
           }
-        }
-        else {
-          BKE_view_layer_synced_ensure(scene, view_layer);
-          Object *ob = BKE_view_layer_active_object_get(view_layer);
-          if (ob != NULL) {
+          else {
             if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
               SculptSession *ss = ob->sculpt;
               copy_v3_v3(rv3d->twmat[3], ss->pivot_pos);

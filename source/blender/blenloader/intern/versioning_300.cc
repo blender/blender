@@ -1757,7 +1757,7 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
       node->type = SH_NODE_MIX;
       NodeShaderMix *data = (NodeShaderMix *)MEM_callocN(sizeof(NodeShaderMix), __func__);
       data->blend_type = node->custom1;
-      data->clamp_result = node->custom2;
+      data->clamp_result = (node->custom2 & SHD_MIXRGB_CLAMP) ? 1 : 0;
       data->clamp_factor = 1;
       data->data_type = SOCK_RGBA;
       data->factor_mode = NODE_MIX_MODE_UNIFORM;
@@ -3034,9 +3034,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             gpmd->factor *= 2.0f;
           }
           else {
-            gpmd->step = 1 + (int)(gpmd->factor * max_ff(0.0f,
-                                                         min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
-                                                                gpmd->step + 2.0f)));
+            gpmd->step = 1 + int(gpmd->factor * max_ff(0.0f,
+                                                       min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
+                                                              gpmd->step + 2.0f)));
             gpmd->factor = 1.0f;
           }
         }

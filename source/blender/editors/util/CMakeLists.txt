@@ -90,6 +90,7 @@ set(SRC
   ../include/ED_uvedit.h
   ../include/ED_view3d.h
   ../include/ED_view3d_offscreen.h
+  ../include/ED_viewer_path.hh
   ../include/UI_abstract_view.hh
   ../include/UI_grid_view.hh
   ../include/UI_icons.h

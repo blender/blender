@@ -25,15 +25,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The position of the second vertex in the edge"));
 }
 
-enum VertexNumber { VERTEX_ONE, VERTEX_TWO };
+enum class VertNumber { V1, V2 };
 
 static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
-                                                const VertexNumber vertex,
+                                                const VertNumber vertex,
                                                 const eAttrDomain domain)
 {
   const Span<MEdge> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_EDGE) {
-    if (vertex == VERTEX_ONE) {
+    if (vertex == VertNumber::V1) {
       return VArray<int>::ForFunc(edges.size(),
                                   [edges](const int i) -> int { return edges[i].v1; });
     }
@@ -42,12 +42,12 @@ static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
   return {};
 }
 
-class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
+class EdgeVertsInput final : public bke::MeshFieldInput {
  private:
-  VertexNumber vertex_;
+  VertNumber vertex_;
 
  public:
-  EdgeVerticesFieldInput(VertexNumber vertex)
+  EdgeVertsInput(VertNumber vertex)
       : bke::MeshFieldInput(CPPType::get<int>(), "Edge Vertices Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
@@ -62,13 +62,12 @@ class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
 
   uint64_t hash() const override
   {
-    return vertex_ == VERTEX_ONE ? 23847562893465 : 92384598734567;
+    return vertex_ == VertNumber::V1 ? 23847562893465 : 92384598734567;
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    if (const EdgeVerticesFieldInput *other_field = dynamic_cast<const EdgeVerticesFieldInput *>(
-            &other)) {
+    if (const EdgeVertsInput *other_field = dynamic_cast<const EdgeVertsInput *>(&other)) {
       return vertex_ == other_field->vertex_;
     }
     return false;
@@ -81,13 +80,13 @@ class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
 };
 
 static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
-                                                       const VertexNumber vertex,
+                                                       const VertNumber vertex,
                                                        const eAttrDomain domain)
 {
   const Span<MVert> verts = mesh.verts();
   const Span<MEdge> edges = mesh.edges();
 
-  if (vertex == VERTEX_ONE) {
+  if (vertex == VertNumber::V1) {
     return mesh.attributes().adapt_domain<float3>(
         VArray<float3>::ForFunc(edges.size(),
                                 [verts, edges](const int i) { return verts[edges[i].v1].co; }),
@@ -103,10 +102,10 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
 
 class EdgePositionFieldInput final : public bke::MeshFieldInput {
  private:
-  VertexNumber vertex_;
+  VertNumber vertex_;
 
  public:
-  EdgePositionFieldInput(VertexNumber vertex)
+  EdgePositionFieldInput(VertNumber vertex)
       : bke::MeshFieldInput(CPPType::get<float3>(), "Edge Position Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
@@ -121,7 +120,7 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
 
   uint64_t hash() const override
   {
-    return vertex_ == VERTEX_ONE ? 987456978362 : 374587679866;
+    return vertex_ == VertNumber::V1 ? 987456978362 : 374587679866;
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
@@ -141,10 +140,10 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<int> vertex_field_1{std::make_shared<EdgeVerticesFieldInput>(VERTEX_ONE)};
-  Field<int> vertex_field_2{std::make_shared<EdgeVerticesFieldInput>(VERTEX_TWO)};
-  Field<float3> position_field_1{std::make_shared<EdgePositionFieldInput>(VERTEX_ONE)};
-  Field<float3> position_field_2{std::make_shared<EdgePositionFieldInput>(VERTEX_TWO)};
+  Field<int> vertex_field_1{std::make_shared<EdgeVertsInput>(VertNumber::V1)};
+  Field<int> vertex_field_2{std::make_shared<EdgeVertsInput>(VertNumber::V2)};
+  Field<float3> position_field_1{std::make_shared<EdgePositionFieldInput>(VertNumber::V1)};
+  Field<float3> position_field_2{std::make_shared<EdgePositionFieldInput>(VertNumber::V2)};
 
   params.set_output("Vertex Index 1", std::move(vertex_field_1));
   params.set_output("Vertex Index 2", std::move(vertex_field_2));

@@ -5263,7 +5263,7 @@ static void blend_read_mdisps(BlendDataReader *reader,
          * overwritten with the correct value in
          * bm_corners_to_loops() */
         float gridsize = sqrtf(mdisps[i].totdisp);
-        mdisps[i].level = (int)(logf(gridsize - 1.0f) / (float)M_LN2) + 1;
+        mdisps[i].level = int(logf(gridsize - 1.0f) / float(M_LN2)) + 1;
       }
 
       if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {

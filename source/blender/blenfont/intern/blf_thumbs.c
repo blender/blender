@@ -37,8 +37,8 @@
 
 typedef struct UnicodeSample {
   char32_t sample[BLF_SAMPLE_LEN];
-  char field; /* ‘OS/2’ table ulUnicodeRangeX field (1-4). */
-  long mask;  /* ‘OS/2’ table ulUnicodeRangeX bit mask. */
+  int field;     /* ‘OS/2’ table ulUnicodeRangeX field (1-4). */
+  FT_ULong mask; /* ‘OS/2’ table ulUnicodeRangeX bit mask. */
 } UnicodeSample;
 
 /* The seemingly arbitrary order that follows is to help quickly find the most-likely designed
@@ -86,7 +86,7 @@ static const UnicodeSample unicode_samples[] = {
     {U"\ua188\ua320\ua4bf", 3, TT_UCR_YI},
     {U"\u1900\u1901\u1902", 3, TT_UCR_LIMBU},
     {U"\u1950\u1951\u1952", 3, TT_UCR_TAI_LE},
-    {U"\u1980\u1982\u1986", 3, TT_UCR_NEW_TAI_LUE},
+    {U"\u1980\u1982\u1986", 3, (FT_ULong)TT_UCR_NEW_TAI_LUE},
     {U"\u1A00\u1A01\u1A02", 4, TT_UCR_BUGINESE},
     {U"\u2c01\u2c05\u2c0c", 4, TT_UCR_GLAGOLITIC},
     {U"\u2d31\u2d33\u2d37", 4, TT_UCR_TIFINAGH},
@@ -258,16 +258,18 @@ static const char32_t *blf_get_sample_text(FT_Face face)
                        count_bits_i((uint)os2_table->ulUnicodeRange4);
 
   for (uint i = 0; i < ARRAY_SIZE(unicode_samples); ++i) {
-    UnicodeSample s = unicode_samples[i];
-    if (os2_table && s.field && s.mask) {
+    const UnicodeSample *s = &unicode_samples[i];
+    if (os2_table && s->field && s->mask) {
       /* OS/2 Table contains 4 contiguous integers of script coverage bit flags. */
-      FT_ULong *field = &(os2_table->ulUnicodeRange1) + (s.field - 1);
-      if (!(*field & (FT_ULong)s.mask)) {
+      const FT_ULong *unicode_range = &os2_table->ulUnicodeRange1;
+      const int index = (s->field - 1);
+      BLI_assert(index < 4);
+      if (!(unicode_range[index] & s->mask)) {
         continue;
       }
     }
-    if (FT_Get_Char_Index(face, s.sample[0]) != 0) {
-      sample = s.sample;
+    if (FT_Get_Char_Index(face, s->sample[0]) != 0) {
+      sample = s->sample;
       break;
     }
   }

@@ -14,7 +14,7 @@
 #include "../GHOST_Types.h"
 #include "GHOST_System.h"
 
-// For tablets
+/* For tablets. */
 #ifdef WITH_X11_XINPUT
 #  include <X11/extensions/XInput.h>
 

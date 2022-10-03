@@ -171,9 +171,9 @@ set(SRC
   BLI_asan.h
   BLI_assert.h
   BLI_astar.h
+  BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
-  BLI_bit_vector.hh
   BLI_blenlib.h
   BLI_bounds.hh
   BLI_boxpack_2d.h
@@ -239,6 +239,7 @@ set(SRC
   BLI_kdtree.h
   BLI_kdtree_impl.h
   BLI_lasso_2d.h
+  BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
   BLI_link_utils.h

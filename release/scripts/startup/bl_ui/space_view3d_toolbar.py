@@ -976,7 +976,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
         col.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
         col.prop(sculpt, "use_automasking_view_normal", text="View Normal")
-        
+
         if sculpt.use_automasking_start_normal:
             col.separator()
 
@@ -1934,8 +1934,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
         if gp_settings.fill_extend_mode == 'EXTEND':
             row = col.row(align=True)
             row.prop(gp_settings, "use_collide_strokes")
-            row = col.row(align=True)
-            row.prop(gp_settings, "use_collide_only")
 
 
 # Grease Pencil stroke sculpting tools

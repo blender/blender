@@ -2331,7 +2331,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
     return nullptr;
   }
 
-  const int ctime = (int)BKE_scene_ctime_get(scene);
+  const int ctime = int(BKE_scene_ctime_get(scene));
   int frame = -(MAXFRAME + 1);
   int min_frame = MAXFRAME + 1;
   Object *camera = nullptr;
@@ -2872,10 +2872,10 @@ int get_render_child_particle_number(const RenderData *r, int child_num, bool fo
 {
   if (r->mode & R_SIMPLIFY) {
     if (for_render) {
-      return (int)(r->simplify_particles_render * child_num);
+      return int(r->simplify_particles_render * child_num);
     }
 
-    return (int)(r->simplify_particles * child_num);
+    return int(r->simplify_particles * child_num);
   }
 
   return child_num;

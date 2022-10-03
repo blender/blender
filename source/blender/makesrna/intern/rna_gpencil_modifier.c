@@ -1812,7 +1812,7 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "seg_repeat", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_range(prop, 1, INT16_MAX);
   RNA_def_property_ui_text(prop, "Repeat", "Number of cycle repeats");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 

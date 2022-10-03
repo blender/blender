@@ -837,7 +837,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP - 1];
   struct GPUTexture *unf_source_buffer; /* pointer copy */
   struct GPUTexture *unf_base_buffer;   /* pointer copy */
-  /* Not alloced, just a copy of a *GPUtexture in EEVEE_TextureList. */
+  /* Not allocated, just a copy of a *GPUtexture in EEVEE_TextureList. */
   struct GPUTexture *source_buffer;     /* latest updated texture */
   struct GPUFrameBuffer *target_buffer; /* next target to render to */
   struct GPUTexture *final_tx;          /* Final color to transform to display color space. */

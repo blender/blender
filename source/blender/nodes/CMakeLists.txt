@@ -60,6 +60,7 @@ set(SRC
   NOD_geometry.h
   NOD_geometry_exec.hh
   NOD_geometry_nodes_lazy_function.hh
+  NOD_geometry_nodes_log.hh
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
