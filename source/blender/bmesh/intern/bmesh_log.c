@@ -1022,12 +1022,12 @@ void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
   }
 
   printf("v | added: %d, removed: %d, modified: %d\n",
-         BLI_ghash_len(entry->added_verts),
-         BLI_ghash_len(entry->deleted_verts),
-         BLI_ghash_len(entry->modified_verts));
+         (int)BLI_ghash_len(entry->added_verts),
+         (int)BLI_ghash_len(entry->deleted_verts),
+         (int)BLI_ghash_len(entry->modified_verts));
   printf("f | added: %d, removed: %d, modified: %d\n",
-         BLI_ghash_len(entry->added_faces),
-         BLI_ghash_len(entry->deleted_faces),
-         BLI_ghash_len(entry->modified_faces));
+         (int)BLI_ghash_len(entry->added_faces),
+         (int)BLI_ghash_len(entry->deleted_faces),
+         (int)BLI_ghash_len(entry->modified_faces));
   printf("}\n");
 }
