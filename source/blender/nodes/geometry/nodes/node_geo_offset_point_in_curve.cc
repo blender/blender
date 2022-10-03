@@ -22,7 +22,7 @@ int apply_offset_in_cyclic_range(const IndexRange range, const int start_index, 
 
 }  // namespace blender::nodes
 
-namespace blender::nodes::node_geo_input_control_point_neighbors_cc {
+namespace blender::nodes::node_geo_offset_point_in_curve_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -51,7 +51,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
 
  public:
   ControlPointNeighborFieldInput(Field<int> index, Field<int> offset)
-      : CurvesFieldInput(CPPType::get<int>(), "Control Point Neighbors"),
+      : CurvesFieldInput(CPPType::get<int>(), "Offset Point in Curve"),
         index_(std::move(index)),
         offset_(std::move(offset))
   {
@@ -156,14 +156,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_input_control_point_neighbors_cc
+}  // namespace blender::nodes::node_geo_offset_point_in_curve_cc
 
-void register_node_type_geo_input_control_point_neighbors()
+void register_node_type_geo_offset_point_in_curve()
 {
-  namespace file_ns = blender::nodes::node_geo_input_control_point_neighbors_cc;
+  namespace file_ns = blender::nodes::node_geo_offset_point_in_curve_cc;
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_CONTROL_POINT_NEIGHBORS, "Control Point Neighbors", NODE_CLASS_INPUT);
+      &ntype, GEO_NODE_OFFSET_POINT_IN_CURVE, "Offset Point in Curve", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

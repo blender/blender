@@ -4745,7 +4745,6 @@ static void registerGeometryNodes()
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
-  register_node_type_geo_input_control_point_neighbors();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -4802,6 +4801,7 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_topology_face_of_corner();
   register_node_type_geo_mesh_topology_vertex_of_corner();
   register_node_type_geo_object_info();
+  register_node_type_geo_offset_point_in_curve();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
   register_node_type_geo_points();
