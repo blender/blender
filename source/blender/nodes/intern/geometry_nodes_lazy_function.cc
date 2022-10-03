@@ -28,6 +28,8 @@
 #include "FN_field_cpp_type.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
+#include "DEG_depsgraph_query.h"
+
 namespace blender::nodes {
 
 using fn::ValueOrField;
@@ -1290,6 +1292,11 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
   btree.ensure_topology_cache();
   if (btree.has_available_link_cycle()) {
     return nullptr;
+  }
+  if (const ID *id_orig = DEG_get_original_id(const_cast<ID *>(&btree.id))) {
+    if (id_orig->tag & LIB_TAG_MISSING) {
+      return nullptr;
+    }
   }
 
   std::unique_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info_ptr =
