@@ -724,6 +724,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
   const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
+  const int channels = (!multi_layer && imf && imf->planes == R_IMF_PLANES_RGB) ? 3 : 4;
   Vector<float *> tmp_output_rects;
 
   /* Write first layer if not multilayer and no layer was specified. */
@@ -767,9 +768,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
                                    rview->rectf, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
                                rview->rectf;
 
-      for (int a = 0; a < 4; a++) {
+      for (int a = 0; a < channels; a++) {
         char passname[EXR_PASS_MAXNAME];
         char layname[EXR_PASS_MAXNAME];
+        /* "A" is not used if only "RGB" channels are output. */
         const char *chan_id = "RGBA";
 
         if (multi_layer) {
@@ -832,8 +834,8 @@ bool BKE_image_render_write_exr(ReportList *reports,
                   rp->rect, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
               rp->rect;
 
-      for (int a = 0; a < rp->channels; a++) {
-        /* Save Combined as RGBA if single layer save. */
+      for (int a = 0; a < std::min(channels, rp->channels); a++) {
+        /* Save Combined as RGBA or RGB if single layer save. */
         char passname[EXR_PASS_MAXNAME];
         char layname[EXR_PASS_MAXNAME];
 
