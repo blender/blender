@@ -1003,3 +1003,31 @@ void bm_log_print(const BMLog *log, const char *description)
   }
 }
 #endif
+
+void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
+{
+  if (bm) {
+    printf("BM { totvert=%d totedge=%d totloop=%d totpoly=%d\n",
+           bm->totvert,
+           bm->totedge,
+           bm->totloop,
+           bm->totface);
+
+    if (!bm->totvert) {
+      printf("%s: Warning: empty bmesh\n", __func__);
+    }
+  }
+  else {
+    printf("BM { totvert=unknown totedge=unknown totloop=unknown totpoly=unknown\n");
+  }
+
+  printf("v | added: %d, removed: %d, modified: %d\n",
+         BLI_ghash_len(entry->added_verts),
+         BLI_ghash_len(entry->deleted_verts),
+         BLI_ghash_len(entry->modified_verts));
+  printf("f | added: %d, removed: %d, modified: %d\n",
+         BLI_ghash_len(entry->added_faces),
+         BLI_ghash_len(entry->deleted_faces),
+         BLI_ghash_len(entry->modified_faces));
+  printf("}\n");
+}
