@@ -1238,8 +1238,10 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
                          (is_render ? IMA_CHAN_FLAG_BW : 0);
 
   /* ensure depth and color settings match */
-  if (((imf->planes == R_IMF_PLANES_BW) && !(chan_flag & IMA_CHAN_FLAG_BW)) ||
-      ((imf->planes == R_IMF_PLANES_RGBA) && !(chan_flag & IMA_CHAN_FLAG_ALPHA))) {
+  if ((imf->planes == R_IMF_PLANES_BW) && !(chan_flag & IMA_CHAN_FLAG_BW)) {
+    imf->planes = R_IMF_PLANES_RGBA;
+  }
+  if ((imf->planes == R_IMF_PLANES_RGBA) && !(chan_flag & IMA_CHAN_FLAG_RGBA)) {
     imf->planes = R_IMF_PLANES_RGB;
   }
 
@@ -1319,12 +1321,12 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     RenderData *rd = &scene->r;
 
     if (BKE_ffmpeg_alpha_channel_is_supported(rd)) {
-      chan_flag |= IMA_CHAN_FLAG_ALPHA;
+      chan_flag |= IMA_CHAN_FLAG_RGBA;
     }
   }
 #  endif
 
-  if (chan_flag == (IMA_CHAN_FLAG_BW | IMA_CHAN_FLAG_RGB | IMA_CHAN_FLAG_ALPHA)) {
+  if (chan_flag == (IMA_CHAN_FLAG_BW | IMA_CHAN_FLAG_RGB | IMA_CHAN_FLAG_RGBA)) {
     return rna_enum_image_color_mode_items;
   }
   else {
@@ -1337,7 +1339,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     if (chan_flag & IMA_CHAN_FLAG_RGB) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGB);
     }
-    if (chan_flag & IMA_CHAN_FLAG_ALPHA) {
+    if (chan_flag & IMA_CHAN_FLAG_RGBA) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGBA);
     }
 
