@@ -4813,6 +4813,7 @@ static void registerGeometryNodes()
   register_node_type_geo_sample_index();
   register_node_type_geo_sample_nearest_surface();
   register_node_type_geo_sample_nearest();
+  register_node_type_geo_sample_uv_surface();
   register_node_type_geo_scale_elements();
   register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();

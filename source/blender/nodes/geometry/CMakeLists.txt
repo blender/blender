@@ -141,6 +141,7 @@ set(SRC
   nodes/node_geo_sample_index.cc
   nodes/node_geo_sample_nearest.cc
   nodes/node_geo_sample_nearest_surface.cc
+  nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_self_object.cc

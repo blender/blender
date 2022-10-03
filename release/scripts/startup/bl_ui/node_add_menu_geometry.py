@@ -198,6 +198,7 @@ class NODE_MT_geometry_node_GEO_MESH(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToPoints")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearestSurface")
+        node_add_menu.add_node_type(layout, "GeometryNodeSampleUVSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleElements")
         node_add_menu.add_node_type(layout, "GeometryNodeSplitEdges")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideMesh")
