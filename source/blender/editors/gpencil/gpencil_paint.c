@@ -1387,7 +1387,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   }
 
   gpencil_update_cache(p->gpd);
-  BKE_gpencil_tag_full_update(p->gpd, gpl, p->gpf, NULL);
+  BKE_gpencil_tag_full_update(
+      p->gpd, gpl, (GPENCIL_MULTIEDIT_SESSIONS_ON(p->gpd)) ? NULL : p->gpf, NULL);
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
