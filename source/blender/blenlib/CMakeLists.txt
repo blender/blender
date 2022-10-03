@@ -239,6 +239,7 @@ set(SRC
   BLI_kdtree.h
   BLI_kdtree_impl.h
   BLI_lasso_2d.h
+  BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
   BLI_link_utils.h
