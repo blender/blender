@@ -1355,7 +1355,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_OT_reveal_all(wmOperatorType *ot)
+static void SCULPT_OT_reveal_all(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Reveal All";
