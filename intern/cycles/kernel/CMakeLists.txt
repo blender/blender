@@ -727,6 +727,17 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     ${SRC_UTIL_HEADERS}
   )
 
+  set (ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS 1)
+  if (WITH_CYCLES_ONEAPI_BINARIES)
+    cmake_host_system_information(RESULT AVAILABLE_MEMORY_AMOUNT QUERY AVAILABLE_PHYSICAL_MEMORY)
+    # Conservative value of peak consumption here, just to be fully sure that other backend compilers will have enough memory as well
+    set(ONEAPI_GPU_COMPILER_MEMORY_AT_PEAK_MB 8150)
+    math(EXPR ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS "${AVAILABLE_MEMORY_AMOUNT} / ${ONEAPI_GPU_COMPILER_MEMORY_AT_PEAK_MB}")
+    if (ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS LESS 1)
+      set(ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS 1)
+    endif()
+    message(STATUS "${ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS} instance(s) of oneAPI offline compiler will be used.")
+  endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
   set(sycl_compiler_flags
       ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
@@ -735,6 +746,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -fdelayed-template-parsing
       -mllvm -inlinedefault-threshold=300
       -mllvm -inlinehint-threshold=400
+      -fsycl-device-code-split=per_kernel
+      -fsycl-max-parallel-link-jobs=${ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS}
       -shared
       -DWITH_ONEAPI
       -ffast-math
