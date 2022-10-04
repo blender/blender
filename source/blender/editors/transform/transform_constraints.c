@@ -338,7 +338,7 @@ static bool isPlaneProjectionViewAligned(const TransInfo *t, const float plane[4
 }
 
 static void planeProjection(const TransInfo *t,
-                            const float plane[3],
+                            const float plane[4],
                             const float in[3],
                             float out[3])
 {
