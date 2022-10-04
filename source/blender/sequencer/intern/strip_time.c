@@ -522,31 +522,31 @@ int SEQ_time_right_handle_frame_get(const Scene *scene, const Sequence *seq)
   return SEQ_time_content_end_frame_get(scene, seq) - seq->endofs;
 }
 
-void SEQ_time_left_handle_frame_set(const Scene *scene, Sequence *seq, int val)
+void SEQ_time_left_handle_frame_set(const Scene *scene, Sequence *seq, int timeline_frame)
 {
   const float right_handle_orig_frame = SEQ_time_right_handle_frame_get(scene, seq);
 
-  if (val >= right_handle_orig_frame) {
-    val = right_handle_orig_frame - 1;
+  if (timeline_frame >= right_handle_orig_frame) {
+    timeline_frame = right_handle_orig_frame - 1;
   }
 
-  seq->startofs = val - SEQ_time_start_frame_get(seq);
-  seq->startdisp = val; /* Only to make files usable in older versions. */
+  seq->startofs = timeline_frame - SEQ_time_start_frame_get(seq);
+  seq->startdisp = timeline_frame; /* Only to make files usable in older versions. */
 
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq));
 }
 
-void SEQ_time_right_handle_frame_set(const Scene *scene, Sequence *seq, int val)
+void SEQ_time_right_handle_frame_set(const Scene *scene, Sequence *seq, int timeline_frame)
 {
   const float left_handle_orig_frame = SEQ_time_left_handle_frame_get(scene, seq);
 
-  if (val <= left_handle_orig_frame) {
-    val = left_handle_orig_frame + 1;
+  if (timeline_frame <= left_handle_orig_frame) {
+    timeline_frame = left_handle_orig_frame + 1;
   }
 
-  seq->endofs = SEQ_time_content_end_frame_get(scene, seq) - val;
-  seq->enddisp = val; /* Only to make files usable in older versions. */
+  seq->endofs = SEQ_time_content_end_frame_get(scene, seq) - timeline_frame;
+  seq->enddisp = timeline_frame; /* Only to make files usable in older versions. */
 
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq));

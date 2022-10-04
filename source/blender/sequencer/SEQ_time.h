@@ -96,12 +96,16 @@ int SEQ_time_right_handle_frame_get(const struct Scene *scene, const struct Sequ
 /**
  * Set frame where strip boundary starts. This function moves only handle, content is not moved.
  */
-void SEQ_time_left_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
+void SEQ_time_left_handle_frame_set(const struct Scene *scene,
+                                    struct Sequence *seq,
+                                    int timeline_frame);
 /**
  * Set frame where strip boundary ends.
  * This function moves only handle, content is not moved.
  */
-void SEQ_time_right_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
+void SEQ_time_right_handle_frame_set(const struct Scene *scene,
+                                     struct Sequence *seq,
+                                     int timeline_frame);
 /**
  * Get number of frames (in timeline) that can be rendered.
  * This can change depending on scene FPS or strip speed factor.
