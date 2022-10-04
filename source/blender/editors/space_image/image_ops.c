@@ -2055,7 +2055,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
       "Save As Render",
       "Save image with render color management.\n"
       "For display image formats like PNG, apply view and display transform.\n"
-      "For intermediate image formats like OpenEXR, use the default render output color space.");
+      "For intermediate image formats like OpenEXR, use the default render output color space");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "copy",
