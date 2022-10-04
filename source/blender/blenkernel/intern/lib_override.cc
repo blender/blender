@@ -1210,6 +1210,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      const Object *old_active_object,
                                                      const bool is_resync)
 {
+  /* If there is an old active object, there should also always be a given view layer. */
+  BLI_assert(old_active_object == nullptr || view_layer != nullptr);
+
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
    * do not do anything about it. */
 
@@ -1269,7 +1272,12 @@ static void lib_override_library_create_post_process(Main *bmain,
     }
   }
 
-  BKE_view_layer_synced_ensure(scene, view_layer);
+  if (view_layer != nullptr) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+  }
+  else {
+    BKE_scene_view_layers_synced_ensure(scene);
+  }
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
   Collection *default_instantiating_collection = residual_storage;
@@ -1379,8 +1387,14 @@ bool BKE_lib_override_library_create(Main *bmain,
   if (id_hierarchy_root_reference == nullptr) {
     id_hierarchy_root_reference = id_root_reference;
   }
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
+
+  /* While in theory it _should_ be enough to ensure sync of given viewlayer (if any), or at least
+   * of given scene, think for now it's better to get a fully synced Main at this point, this code
+   * may do some very wide remapping/data access in some cases. */
+  BKE_main_view_layers_synced_ensure(bmain);
+  const Object *old_active_object = (view_layer != nullptr) ?
+                                        BKE_view_layer_active_object_get(view_layer) :
+                                        nullptr;
 
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
