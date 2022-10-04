@@ -20,9 +20,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(float3(0.0f))
       .description(N_("The positions of the new points"));
   b.add_input<decl::Float>(N_("Radius"))
+      .min(0.0f)
+      .default_value(0.1f)
       .supports_field()
       .subtype(PROP_DISTANCE)
-      .default_value(float(0.1f))
       .description(N_("The radii of the new points"));
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
