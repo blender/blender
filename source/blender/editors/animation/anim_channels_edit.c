@@ -2534,7 +2534,7 @@ static void ANIM_OT_channels_fcurves_enable(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Revive Disabled F-Curves";
   ot->idname = "ANIM_OT_channels_fcurves_enable";
-  ot->description = "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
+  ot->description = "Clear 'disabled' tag from all F-Curves to get broken F-Curves working again";
 
   /* api callbacks */
   ot->exec = animchannels_enable_exec;
