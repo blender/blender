@@ -74,10 +74,11 @@ static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *v
   if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
-  if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), seq->start) > view_area->xmax) {
+  if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
+      view_area->xmax) {
     return false;
   }
-  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq), seq->start + seq->len) <
+  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq), SEQ_time_content_end_frame_get(scene, seq)) <
       view_area->xmin) {
     return false;
   }

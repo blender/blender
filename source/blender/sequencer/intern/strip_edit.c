@@ -260,8 +260,8 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
 
 static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  const float content_start = seq->start;
-  const float content_end = seq->start + SEQ_time_strip_length_get(scene, seq);
+  const float content_start = SEQ_time_start_frame_get(seq);
+  const float content_end = SEQ_time_content_end_frame_get(scene, seq);
 
   /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < content_start) {
@@ -283,8 +283,8 @@ static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int tim
 
 static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  const float content_start = seq->start;
-  const float content_end = seq->start + SEQ_time_strip_length_get(scene, seq);
+  const float content_start = SEQ_time_start_frame_get(seq);
+  const float content_end = SEQ_time_content_end_frame_get(scene, seq);
 
   /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < content_start) {

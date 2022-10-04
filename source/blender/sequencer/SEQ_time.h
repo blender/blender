@@ -74,6 +74,7 @@ void SEQ_time_speed_factor_set(const struct Scene *scene,
                                struct Sequence *seq,
                                const float speed_factor);
 float SEQ_time_start_frame_get(const struct Sequence *seq);
+float SEQ_time_content_end_frame_get(const struct Scene *scene, const struct Sequence *seq);
 void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);
 
