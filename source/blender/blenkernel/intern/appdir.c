@@ -760,9 +760,9 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
   return path;
 }
 
-const char *BKE_appdir_folder_id_version(const int folder_id,
-                                         const int version,
-                                         const bool check_is_dir)
+const char *BKE_appdir_resource_path_id_with_version(const int folder_id,
+                                                     const bool check_is_dir,
+                                                     const int version)
 {
   static char path[FILE_MAX] = "";
   bool ok;
@@ -783,6 +783,11 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
       break;
   }
   return ok ? path : NULL;
+}
+
+const char *BKE_appdir_resource_path_id(const int folder_id, const bool check_is_dir)
+{
+  return BKE_appdir_resource_path_id_with_version(folder_id, check_is_dir, BLENDER_VERSION);
 }
 
 /** \} */
