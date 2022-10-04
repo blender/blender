@@ -641,7 +641,6 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     }
     case PBVH_BMESH: {
       BMIter iter;
-      BMVert *v;
       BMFace *f;
 
       /* Hide all verts and edges attached to faces.*/
@@ -655,7 +654,7 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
 
       /* Unhide verts and edges attached to visible faces. */
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        if (!(BM_elem_flag_test(f, BM_ELEM_HIDDEN))) {
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
           continue;
         }
 
