@@ -259,8 +259,8 @@ struct MovieTrackingTrack *BKE_tracking_track_get_active(struct MovieTracking *t
 
 float *BKE_tracking_track_get_mask(int frame_width,
                                    int frame_height,
-                                   struct MovieTrackingTrack *track,
-                                   struct MovieTrackingMarker *marker);
+                                   const struct MovieTrackingTrack *track,
+                                   const struct MovieTrackingMarker *marker);
 
 float BKE_tracking_track_get_weight_for_marker(struct MovieClip *clip,
                                                struct MovieTrackingTrack *track,
@@ -448,8 +448,8 @@ void BKE_tracking_object_unique_name(struct MovieTracking *tracking,
 struct MovieTrackingObject *BKE_tracking_object_get_named(struct MovieTracking *tracking,
                                                           const char *name);
 
-struct MovieTrackingObject *BKE_tracking_object_get_active(struct MovieTracking *tracking);
-struct MovieTrackingObject *BKE_tracking_object_get_camera(struct MovieTracking *tracking);
+struct MovieTrackingObject *BKE_tracking_object_get_active(const struct MovieTracking *tracking);
+struct MovieTrackingObject *BKE_tracking_object_get_camera(const struct MovieTracking *tracking);
 
 struct ListBase *BKE_tracking_object_get_tracks(struct MovieTracking *tracking,
                                                 struct MovieTrackingObject *object);
@@ -543,22 +543,22 @@ void BKE_tracking_max_distortion_delta_across_bound(struct MovieTracking *tracki
 
 struct ImBuf *BKE_tracking_sample_pattern(int frame_width,
                                           int frame_height,
-                                          struct ImBuf *search_ib,
-                                          struct MovieTrackingTrack *track,
-                                          struct MovieTrackingMarker *marker,
+                                          const struct ImBuf *search_ib,
+                                          const struct MovieTrackingTrack *track,
+                                          const struct MovieTrackingMarker *marker,
                                           bool from_anchor,
                                           bool use_mask,
                                           int num_samples_x,
                                           int num_samples_y,
                                           float pos[2]);
-struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf,
-                                             struct MovieTrackingTrack *track,
-                                             struct MovieTrackingMarker *marker,
+struct ImBuf *BKE_tracking_get_pattern_imbuf(const struct ImBuf *ibuf,
+                                             const struct MovieTrackingTrack *track,
+                                             const struct MovieTrackingMarker *marker,
                                              bool anchored,
                                              bool disable_channels);
-struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf,
-                                            struct MovieTrackingTrack *track,
-                                            struct MovieTrackingMarker *marker,
+struct ImBuf *BKE_tracking_get_search_imbuf(const struct ImBuf *ibuf,
+                                            const struct MovieTrackingTrack *track,
+                                            const struct MovieTrackingMarker *marker,
                                             bool anchored,
                                             bool disable_channels);
 

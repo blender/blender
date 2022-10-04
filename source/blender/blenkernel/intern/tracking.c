@@ -1104,7 +1104,7 @@ MovieTrackingTrack *BKE_tracking_track_get_active(MovieTracking *tracking)
   return NULL;
 }
 
-static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
+static bGPDlayer *track_mask_gpencil_layer_get(const MovieTrackingTrack *track)
 {
   bGPDlayer *layer;
 
@@ -1155,15 +1155,15 @@ static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
   } while (++index != index_end);
 }
 
-static void track_mask_gpencil_layer_rasterize(int frame_width,
-                                               int frame_height,
+static void track_mask_gpencil_layer_rasterize(const int frame_width,
+                                               const int frame_height,
                                                const float region_min[2],
-                                               bGPDlayer *layer,
+                                               const bGPDlayer *layer,
                                                float *mask,
-                                               int mask_width,
-                                               int mask_height)
+                                               const int mask_width,
+                                               const int mask_height)
 {
-  bGPDframe *frame = layer->frames.first;
+  const bGPDframe *frame = layer->frames.first;
   TrackMaskSetPixelData data;
 
   data.mask = mask;
@@ -1171,10 +1171,10 @@ static void track_mask_gpencil_layer_rasterize(int frame_width,
   data.mask_height = mask_height;
 
   while (frame) {
-    bGPDstroke *stroke = frame->strokes.first;
+    const bGPDstroke *stroke = frame->strokes.first;
 
     while (stroke) {
-      bGPDspoint *stroke_points = stroke->points;
+      const bGPDspoint *stroke_points = stroke->points;
       if (stroke->flag & GP_STROKE_2DSPACE) {
         int *mask_points, *point;
         point = mask_points = MEM_callocN(2 * stroke->totpoints * sizeof(int),
@@ -1200,14 +1200,14 @@ static void track_mask_gpencil_layer_rasterize(int frame_width,
   }
 }
 
-float *tracking_track_get_mask_for_region(int frame_width,
-                                          int frame_height,
+float *tracking_track_get_mask_for_region(const int frame_width,
+                                          const int frame_height,
                                           const float region_min[2],
                                           const float region_max[2],
-                                          MovieTrackingTrack *track)
+                                          const MovieTrackingTrack *track)
 {
   float *mask = NULL;
-  bGPDlayer *layer = track_mask_gpencil_layer_get(track);
+  const bGPDlayer *layer = track_mask_gpencil_layer_get(track);
   if (layer != NULL) {
     const int mask_width = region_max[0] - region_min[0];
     const int mask_height = region_max[1] - region_min[1];
@@ -1218,10 +1218,10 @@ float *tracking_track_get_mask_for_region(int frame_width,
   return mask;
 }
 
-float *BKE_tracking_track_get_mask(int frame_width,
-                                   int frame_height,
-                                   MovieTrackingTrack *track,
-                                   MovieTrackingMarker *marker)
+float *BKE_tracking_track_get_mask(const int frame_width,
+                                   const int frame_height,
+                                   const MovieTrackingTrack *track,
+                                   const MovieTrackingMarker *marker)
 {
   /* Convert normalized space marker's search area to pixel-space region. */
   const float region_min[2] = {
@@ -2089,12 +2089,12 @@ MovieTrackingObject *BKE_tracking_object_get_named(MovieTracking *tracking, cons
   return NULL;
 }
 
-MovieTrackingObject *BKE_tracking_object_get_active(MovieTracking *tracking)
+MovieTrackingObject *BKE_tracking_object_get_active(const MovieTracking *tracking)
 {
   return BLI_findlink(&tracking->objects, tracking->objectnr);
 }
 
-MovieTrackingObject *BKE_tracking_object_get_camera(MovieTracking *tracking)
+MovieTrackingObject *BKE_tracking_object_get_camera(const MovieTracking *tracking)
 {
   MovieTrackingObject *object = tracking->objects.first;
 
@@ -2615,7 +2615,9 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
  * Image sampling.
  */
 
-static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, bool grayscale)
+static void disable_imbuf_channels(ImBuf *ibuf,
+                                   const MovieTrackingTrack *track,
+                                   const bool grayscale)
 {
   BKE_tracking_disable_channels(ibuf,
                                 track->flag & TRACK_DISABLE_RED,
@@ -2624,15 +2626,15 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, bool 
                                 grayscale);
 }
 
-ImBuf *BKE_tracking_sample_pattern(int frame_width,
-                                   int frame_height,
-                                   ImBuf *search_ibuf,
-                                   MovieTrackingTrack *track,
-                                   MovieTrackingMarker *marker,
-                                   bool from_anchor,
-                                   bool use_mask,
-                                   int num_samples_x,
-                                   int num_samples_y,
+ImBuf *BKE_tracking_sample_pattern(const int frame_width,
+                                   const int frame_height,
+                                   const ImBuf *search_ibuf,
+                                   const MovieTrackingTrack *track,
+                                   const MovieTrackingMarker *marker,
+                                   const bool from_anchor,
+                                   const bool use_mask,
+                                   const int num_samples_x,
+                                   const int num_samples_y,
                                    float pos[2])
 {
   ImBuf *pattern_ibuf;
@@ -2719,11 +2721,11 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width,
   return pattern_ibuf;
 }
 
-ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf,
-                                      MovieTrackingTrack *track,
-                                      MovieTrackingMarker *marker,
-                                      bool anchored,
-                                      bool disable_channels)
+ImBuf *BKE_tracking_get_pattern_imbuf(const ImBuf *ibuf,
+                                      const MovieTrackingTrack *track,
+                                      const MovieTrackingMarker *marker,
+                                      const bool anchored,
+                                      const bool disable_channels)
 {
   ImBuf *pattern_ibuf, *search_ibuf;
   float pat_min[2], pat_max[2];
@@ -2757,11 +2759,11 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf,
   return pattern_ibuf;
 }
 
-ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf,
-                                     MovieTrackingTrack *track,
-                                     MovieTrackingMarker *marker,
-                                     bool anchored,
-                                     bool disable_channels)
+ImBuf *BKE_tracking_get_search_imbuf(const ImBuf *ibuf,
+                                     const MovieTrackingTrack *track,
+                                     const MovieTrackingMarker *marker,
+                                     const bool anchored,
+                                     const bool disable_channels)
 {
   ImBuf *searchibuf;
   int x, y, w, h;

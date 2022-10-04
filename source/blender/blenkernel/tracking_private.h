@@ -134,11 +134,11 @@ struct MovieTrackingMarker *tracking_get_keyframed_marker(struct MovieTrackingTr
 /**
  * Region is in pixel space, relative to marker's center.
  */
-float *tracking_track_get_mask_for_region(int frame_width,
-                                          int frame_height,
+float *tracking_track_get_mask_for_region(const int frame_width,
+                                          const int frame_height,
                                           const float region_min[2],
                                           const float region_max[2],
-                                          MovieTrackingTrack *track);
+                                          const MovieTrackingTrack *track);
 
 /*********************** Frame Accessor *************************/
 

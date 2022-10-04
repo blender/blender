@@ -568,8 +568,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 }
 
 static void draw_marker_outline(SpaceClip *sc,
-                                MovieTrackingTrack *track,
-                                MovieTrackingMarker *marker,
+                                const MovieTrackingTrack *track,
+                                const MovieTrackingMarker *marker,
                                 const float marker_pos[2],
                                 int width,
                                 int height,
@@ -654,7 +654,7 @@ static void draw_marker_outline(SpaceClip *sc,
   GPU_matrix_pop();
 }
 
-static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
+static void track_colors(const MovieTrackingTrack *track, int act, float col[3], float scol[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     if (act) {
@@ -713,8 +713,8 @@ static void set_draw_marker_area_color(const MovieTrackingTrack *track,
 }
 
 static void draw_marker_areas(SpaceClip *sc,
-                              MovieTrackingTrack *track,
-                              MovieTrackingMarker *marker,
+                              const MovieTrackingTrack *track,
+                              const MovieTrackingMarker *marker,
                               const float marker_pos[2],
                               int width,
                               int height,
@@ -868,7 +868,7 @@ static void draw_marker_areas(SpaceClip *sc,
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 }
 
-static float get_shortest_pattern_side(MovieTrackingMarker *marker)
+static float get_shortest_pattern_side(const MovieTrackingMarker *marker)
 {
   float len_sq = FLT_MAX;
 
@@ -918,8 +918,8 @@ static void draw_marker_slide_triangle(
 }
 
 static void draw_marker_slide_zones(SpaceClip *sc,
-                                    MovieTrackingTrack *track,
-                                    MovieTrackingMarker *marker,
+                                    const MovieTrackingTrack *track,
+                                    const MovieTrackingMarker *marker,
                                     const float marker_pos[2],
                                     int outline,
                                     int sel,
@@ -1016,8 +1016,8 @@ static void draw_marker_slide_zones(SpaceClip *sc,
 }
 
 static void draw_marker_texts(SpaceClip *sc,
-                              MovieTrackingTrack *track,
-                              MovieTrackingMarker *marker,
+                              const MovieTrackingTrack *track,
+                              const MovieTrackingMarker *marker,
                               const float marker_pos[2],
                               int act,
                               int width,
