@@ -460,18 +460,22 @@ static bool get_path_user_ex(char *targetpath,
                              const bool check_is_dir)
 {
   char user_path[FILE_MAX];
-  const char *user_base_path;
 
-  /* for portable install, user path is always local */
-  if (BKE_appdir_app_is_portable_install()) {
-    return get_path_local_ex(
-        targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+  if (test_env_path(user_path, "BLENDER_USER_RESOURCES", check_is_dir)) {
+    /* Pass. */
   }
-  user_path[0] = '\0';
+  else {
+    /* for portable install, user path is always local */
+    if (BKE_appdir_app_is_portable_install()) {
+      return get_path_local_ex(
+          targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+    }
+    user_path[0] = '\0';
 
-  user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
-  if (user_base_path) {
-    BLI_strncpy(user_path, user_base_path, FILE_MAX);
+    const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
+    if (user_base_path) {
+      BLI_strncpy(user_path, user_base_path, FILE_MAX);
+    }
   }
 
   if (!user_path[0]) {
@@ -518,7 +522,6 @@ static bool get_path_system_ex(char *targetpath,
                                const bool check_is_dir)
 {
   char system_path[FILE_MAX];
-  const char *system_base_path;
   char relfolder[FILE_MAX];
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
@@ -528,10 +531,15 @@ static bool get_path_system_ex(char *targetpath,
     relfolder[0] = '\0';
   }
 
-  system_path[0] = '\0';
-  system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
-  if (system_base_path) {
-    BLI_strncpy(system_path, system_base_path, FILE_MAX);
+  if (test_env_path(system_path, "BLENDER_SYSTEM_RESOURCES", check_is_dir)) {
+    /* Pass. */
+  }
+  else {
+    system_path[0] = '\0';
+    const char *system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
+    if (system_base_path) {
+      BLI_strncpy(system_path, system_base_path, FILE_MAX);
+    }
   }
 
   if (!system_path[0]) {
