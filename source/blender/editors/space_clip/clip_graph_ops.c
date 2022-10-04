@@ -249,10 +249,9 @@ static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
       SelectUserData selectdata = {SEL_DESELECT};
       MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 
-      tracking->act_track = userdata.track;
+      object->active_track = userdata.track;
       if ((sc->flag & SC_SHOW_GRAPH_SEL_ONLY) == 0) {
-        ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-        BKE_tracking_track_select(tracksbase, userdata.track, TRACK_AREA_ALL, false);
+        BKE_tracking_track_select(&object->tracks, userdata.track, TRACK_AREA_ALL, false);
       }
 
       /* deselect all knots on newly selected curve */

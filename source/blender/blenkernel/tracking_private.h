@@ -26,7 +26,6 @@ struct libmv_CameraIntrinsicsOptions;
 
 typedef struct TracksMap {
   char object_name[MAX_NAME];
-  bool is_camera;
 
   int num_tracks;
   int customdata_size;
@@ -42,10 +41,7 @@ typedef struct TracksMap {
   SpinLock spin_lock;
 } TracksMap;
 
-struct TracksMap *tracks_map_new(const char *object_name,
-                                 bool is_camera,
-                                 int num_tracks,
-                                 int customdata_size);
+struct TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size);
 int tracks_map_get_size(struct TracksMap *map);
 void tracks_map_get_indexed_element(struct TracksMap *map,
                                     int index,

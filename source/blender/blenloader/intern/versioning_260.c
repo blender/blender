@@ -856,7 +856,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
           clip->tracking.camera.pixel_aspect = 1.0f;
         }
 
-        track = clip->tracking.tracks.first;
+        track = clip->tracking.tracks_legacy.first;
         while (track) {
           if (track->minimum_correlation == 0.0f) {
             track->minimum_correlation = 0.75f;
@@ -1442,7 +1442,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
       MovieTrackingTrack *track;
 
-      track = clip->tracking.tracks.first;
+      track = clip->tracking.tracks_legacy.first;
       while (track) {
         do_versions_affine_tracker_track(track);
 
@@ -1738,7 +1738,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       MovieTrackingTrack *track;
       MovieTrackingObject *object;
 
-      for (track = clip->tracking.tracks.first; track; track = track->next) {
+      for (track = clip->tracking.tracks_legacy.first; track; track = track->next) {
         do_versions_affine_tracker_track(track);
       }
 
@@ -2459,7 +2459,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       MovieClip *clip;
       for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
         MovieTrackingPlaneTrack *plane_track;
-        for (plane_track = clip->tracking.plane_tracks.first; plane_track;
+        for (plane_track = clip->tracking.plane_tracks_legacy.first; plane_track;
              plane_track = plane_track->next) {
           plane_track->image_opacity = 1.0f;
         }

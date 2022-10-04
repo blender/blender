@@ -40,7 +40,6 @@ typedef struct MovieReconstructContext {
   struct libmv_Reconstruction *reconstruction;
 
   char object_name[MAX_NAME];
-  bool is_camera;
   short motion_flag;
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
@@ -137,16 +136,10 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   int sfra = context->sfra, efra = context->efra;
   float imat[4][4];
 
-  if (context->is_camera) {
-    tracksbase = &tracking->tracks;
-    reconstruction = &tracking->reconstruction;
-  }
-  else {
-    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
+  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
 
-    tracksbase = &object->tracks;
-    reconstruction = &object->reconstruction;
-  }
+  tracksbase = &object->tracks;
+  reconstruction = &object->reconstruction;
 
   unit_m4(imat);
 
@@ -355,7 +348,6 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
   MovieTrackingTrack *track;
 
   BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
-  context->is_camera = object->flag & TRACKING_OBJECT_CAMERA;
   context->motion_flag = tracking->settings.motion_flag;
 
   context->select_keyframes = (tracking->settings.reconstruction_flag &
@@ -364,7 +356,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
   tracking_cameraIntrinscisOptionsFromTracking(
       tracking, width, height, &context->camera_intrinsics_options);
 
-  context->tracks_map = tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);
+  context->tracks_map = tracks_map_new(context->object_name, num_tracks, 0);
 
   track = tracksbase->first;
   while (track) {
@@ -526,13 +518,7 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   BKE_tracking_dopesheet_tag_update(tracking);
 
   object = BKE_tracking_object_get_named(tracking, context->object_name);
-
-  if (context->is_camera) {
-    reconstruction = &tracking->reconstruction;
-  }
-  else {
-    reconstruction = &object->reconstruction;
-  }
+  reconstruction = &object->reconstruction;
 
   /* update keyframe in the interface */
   if (context->select_keyframes) {

@@ -35,22 +35,22 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingPlaneTrack *plane_track;
-  ListBase *tracks_base = BKE_tracking_get_active_tracks(tracking);
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  plane_track = BKE_tracking_plane_track_add(tracking, plane_tracks_base, tracks_base, framenr);
+  plane_track = BKE_tracking_plane_track_add(
+      tracking, &tracking_object->plane_tracks, &tracking_object->tracks, framenr);
 
   if (plane_track == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Need at least 4 selected point tracks to create a plane");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_tracking_tracks_deselect_all(tracks_base);
+  BKE_tracking_tracks_deselect_all(&tracking_object->tracks);
 
   plane_track->flag |= SELECT;
-  clip->tracking.act_track = NULL;
-  clip->tracking.act_plane_track = plane_track;
+  tracking_object->active_track = NULL;
+  tracking_object->active_plane_track = plane_track;
 
   /* Compute homoraphies and apply them on marker's corner, so we've got
    * quite nice motion from the very beginning.
@@ -208,9 +208,10 @@ static int slide_plane_marker_invoke(bContext *C, wmOperator *op, const wmEvent 
     SpaceClip *sc = CTX_wm_space_clip(C);
     MovieClip *clip = ED_space_clip_get_clip(sc);
     MovieTracking *tracking = &clip->tracking;
+    MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
-    tracking->act_plane_track = slidedata->plane_track;
-    tracking->act_track = NULL;
+    tracking_object->active_plane_track = slidedata->plane_track;
+    tracking_object->active_track = NULL;
 
     op->customdata = slidedata;
 

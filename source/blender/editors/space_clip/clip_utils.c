@@ -311,13 +311,12 @@ void clip_graph_tracking_iterate(SpaceClip *sc,
 void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 {
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   bool has_bundle = false;
   const bool used_for_stabilization = (track->flag &
                                        (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT)) != 0;
-  if (track == act_track) {
-    tracking->act_track = NULL;
+  if (track == tracking_object->active_track) {
+    tracking_object->active_track = NULL;
   }
   /* Handle reconstruction display in 3d viewport. */
   if (track->flag & TRACK_HAS_BUNDLE) {
@@ -334,7 +333,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
   }
   /* Delete track itself. */
   BKE_tracking_track_free(track);
-  BLI_freelinkN(tracksbase, track);
+  BLI_freelinkN(&tracking_object->tracks, track);
   /* Send notifiers. */
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
   if (used_for_stabilization) {

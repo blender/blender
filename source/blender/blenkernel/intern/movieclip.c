@@ -69,6 +69,10 @@
 
 #include "BLO_read_write.h"
 
+/* Convert camera object to legacy format where the camera tracks are stored in the MovieTracking
+ * structure when saving .blend file. */
+#define USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE 1
+
 static void free_buffers(MovieClip *clip);
 
 static void movie_clip_init_data(ID *id)
@@ -117,17 +121,10 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
-  }
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
     }
-  }
-
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking->plane_tracks) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
   }
 }
 
@@ -200,7 +197,29 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   clip->tracking.stats = NULL;
 
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object;
+
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+  const bool is_undo = BLO_write_is_undo(writer);
+
+  /* When using legacy format for camera object assign the list of camera tracks to the
+   * MovieTracking object. Do it in-place as it simplifies the code a bit, and it is not
+   * supposed to cause threading issues as no other code is meant to access the legacy fields. */
+  if (!is_undo) {
+    MovieTrackingObject *active_tracking_object = BKE_tracking_object_get_active(tracking);
+    MovieTrackingObject *tracking_camera_object = BKE_tracking_object_get_camera(tracking);
+    BLI_assert(active_tracking_object != NULL);
+    BLI_assert(tracking_camera_object != NULL);
+
+    tracking->tracks_legacy = tracking_camera_object->tracks;
+    tracking->plane_tracks_legacy = tracking_camera_object->plane_tracks;
+
+    /* The active track in the tracking structure used to be shared across all tracking objects. */
+    tracking->act_track_legacy = active_tracking_object->active_track;
+    tracking->act_plane_track_legacy = active_tracking_object->active_plane_track;
+
+    tracking->reconstruction_legacy = tracking_camera_object->reconstruction;
+  }
+#endif
 
   BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
   BKE_id_blend_write(writer, &clip->id);
@@ -209,20 +228,40 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
     BKE_animdata_blend_write(writer, clip->adt);
   }
 
-  write_movieTracks(writer, &tracking->tracks);
-  write_moviePlaneTracks(writer, &tracking->plane_tracks);
-  write_movieReconstruction(writer, &tracking->reconstruction);
-
-  object = tracking->objects.first;
-  while (object) {
-    BLO_write_struct(writer, MovieTrackingObject, object);
+  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+    /* When saving camers object in the legacy format clear the list of tracks. This is because the
+     * tracking object code is generic and assumes object owns the tracks in the list. For the
+     * camera tracks that is not the case in the legacy format. */
+    if (!is_undo && (object->flag & TRACKING_OBJECT_CAMERA)) {
+      MovieTrackingObject legacy_object = *object;
+      BLI_listbase_clear(&legacy_object.tracks);
+      BLI_listbase_clear(&legacy_object.plane_tracks);
+      legacy_object.active_track = NULL;
+      legacy_object.active_plane_track = NULL;
+      memset(&legacy_object.reconstruction, 0, sizeof(legacy_object.reconstruction));
+      BLO_write_struct_at_address(writer, MovieTrackingObject, object, &legacy_object);
+    }
+    else
+#endif
+    {
+      BLO_write_struct(writer, MovieTrackingObject, object);
+    }
 
     write_movieTracks(writer, &object->tracks);
     write_moviePlaneTracks(writer, &object->plane_tracks);
     write_movieReconstruction(writer, &object->reconstruction);
-
-    object = object->next;
   }
+
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+  if (!is_undo) {
+    BLI_listbase_clear(&tracking->tracks_legacy);
+    BLI_listbase_clear(&tracking->plane_tracks_legacy);
+    tracking->act_track_legacy = NULL;
+    tracking->act_plane_track_legacy = NULL;
+    memset(&tracking->reconstruction_legacy, 0, sizeof(tracking->reconstruction_legacy));
+  }
+#endif
 }
 
 static void direct_link_movieReconstruction(BlendDataReader *reader,
@@ -262,12 +301,12 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &clip->adt);
   BKE_animdata_blend_read_data(reader, clip->adt);
 
-  direct_link_movieTracks(reader, &tracking->tracks);
-  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
-  direct_link_movieReconstruction(reader, &tracking->reconstruction);
+  direct_link_movieTracks(reader, &tracking->tracks_legacy);
+  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks_legacy);
+  direct_link_movieReconstruction(reader, &tracking->reconstruction_legacy);
 
-  BLO_read_data_address(reader, &clip->tracking.act_track);
-  BLO_read_data_address(reader, &clip->tracking.act_plane_track);
+  BLO_read_data_address(reader, &clip->tracking.act_track_legacy);
+  BLO_read_data_address(reader, &clip->tracking.act_plane_track_legacy);
 
   clip->anim = NULL;
   clip->tracking_context = NULL;
@@ -290,6 +329,9 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
     direct_link_movieTracks(reader, &object->tracks);
     direct_link_moviePlaneTracks(reader, &object->plane_tracks);
     direct_link_movieReconstruction(reader, &object->reconstruction);
+
+    BLO_read_data_address(reader, &object->active_track);
+    BLO_read_data_address(reader, &object->active_plane_track);
   }
 }
 
@@ -315,9 +357,6 @@ static void movieclip_blend_read_lib(BlendLibReader *reader, ID *id)
   MovieTracking *tracking = &clip->tracking;
 
   BLO_read_id_address(reader, clip->id.lib, &clip->gpd);
-
-  lib_link_movieTracks(reader, clip, &tracking->tracks);
-  lib_link_moviePlaneTracks(reader, clip, &tracking->plane_tracks);
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     lib_link_movieTracks(reader, clip, &object->tracks);

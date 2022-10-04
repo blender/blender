@@ -289,9 +289,7 @@ static int select_exec(bContext *C, wmOperator *op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
 
@@ -307,7 +305,7 @@ static int select_exec(bContext *C, wmOperator *op)
     if (track != NULL) {
       MovieClip *clip_iter = ED_space_clip_get_clip(sc);
 
-      clip_iter->tracking.act_track = track;
+      tracking_object->active_track = track;
 
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
       DEG_id_tag_update(&clip_iter->id, ID_RECALC_SELECT);
@@ -318,9 +316,10 @@ static int select_exec(bContext *C, wmOperator *op)
 
   float distance_to_track, distance_to_plane_track;
 
-  MovieTrackingTrack *track = find_nearest_track(sc, tracksbase, co, &distance_to_track);
+  MovieTrackingTrack *track = find_nearest_track(
+      sc, &tracking_object->tracks, co, &distance_to_track);
   MovieTrackingPlaneTrack *plane_track = find_nearest_plane_track(
-      sc, plane_tracks_base, co, &distance_to_plane_track);
+      sc, &tracking_object->plane_tracks, co, &distance_to_plane_track);
 
   ClipViewLockState lock_state;
   ED_clip_view_lock_state_store(C, &lock_state);
@@ -346,7 +345,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
   if (track) {
     if (!extend) {
-      ed_tracking_deselect_all_plane_tracks(plane_tracks_base);
+      ed_tracking_deselect_all_plane_tracks(&tracking_object->plane_tracks);
     }
 
     int area = track_mouse_area(C, co, track);
@@ -356,12 +355,12 @@ static int select_exec(bContext *C, wmOperator *op)
     }
 
     if (extend && TRACK_AREA_SELECTED(track, area)) {
-      if (track == act_track) {
+      if (track == tracking_object->active_track) {
         BKE_tracking_track_deselect(track, area);
       }
       else {
-        clip->tracking.act_track = track;
-        clip->tracking.act_plane_track = NULL;
+        tracking_object->active_track = track;
+        tracking_object->active_plane_track = NULL;
       }
     }
     else {
@@ -369,14 +368,14 @@ static int select_exec(bContext *C, wmOperator *op)
         area = TRACK_AREA_ALL;
       }
 
-      BKE_tracking_track_select(tracksbase, track, area, extend);
-      clip->tracking.act_track = track;
-      clip->tracking.act_plane_track = NULL;
+      BKE_tracking_track_select(&tracking_object->tracks, track, area, extend);
+      tracking_object->active_track = track;
+      tracking_object->active_plane_track = NULL;
     }
   }
   else if (plane_track) {
     if (!extend) {
-      ed_tracking_deselect_all_tracks(tracksbase);
+      ed_tracking_deselect_all_tracks(&tracking_object->tracks);
     }
 
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
@@ -388,12 +387,12 @@ static int select_exec(bContext *C, wmOperator *op)
       plane_track->flag |= SELECT;
     }
 
-    clip->tracking.act_track = NULL;
-    clip->tracking.act_plane_track = plane_track;
+    tracking_object->active_track = NULL;
+    tracking_object->active_plane_track = plane_track;
   }
   else if (deselect_all) {
-    ed_tracking_deselect_all_tracks(tracksbase);
-    ed_tracking_deselect_all_plane_tracks(plane_tracks_base);
+    ed_tracking_deselect_all_tracks(&tracking_object->tracks);
+    ed_tracking_deselect_all_plane_tracks(&tracking_object->plane_tracks);
   }
 
   ED_clip_view_lock_state_restore_no_jump(C, &lock_state);

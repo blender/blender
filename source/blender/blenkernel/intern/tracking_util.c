@@ -48,15 +48,11 @@
 /** \name Tracks Map
  * \{ */
 
-TracksMap *tracks_map_new(const char *object_name,
-                          bool is_camera,
-                          int num_tracks,
-                          int customdata_size)
+TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size)
 {
   TracksMap *map = MEM_callocN(sizeof(TracksMap), "TrackingsMap");
 
   BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
-  map->is_camera = is_camera;
 
   map->num_tracks = num_tracks;
   map->customdata_size = customdata_size;
@@ -114,19 +110,13 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
   ListBase *old_tracks;
 
-  if (map->is_camera) {
-    old_tracks = &tracking->tracks;
+  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
+  if (!object) {
+    /* object was deleted by user, create new one */
+    object = BKE_tracking_object_add(tracking, map->object_name);
   }
-  else {
-    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
 
-    if (!object) {
-      /* object was deleted by user, create new one */
-      object = BKE_tracking_object_add(tracking, map->object_name);
-    }
-
-    old_tracks = &object->tracks;
-  }
+  old_tracks = &object->tracks;
 
   /* duplicate currently operating tracks to temporary list.
    * this is needed to keep names in unique state and it's faster to change names
