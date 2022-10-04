@@ -10,6 +10,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
     pgettext_tip as tip_,
 )
+from bl_ui.utils import CenterAlignMixIn
 
 
 # -----------------------------------------------------------------------------
@@ -134,40 +135,6 @@ class USERPREF_PT_save_preferences(Panel):
         layout.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
 
         USERPREF_HT_header.draw_buttons(layout, context)
-
-
-# -----------------------------------------------------------------------------
-# Min-In Helpers
-
-# Panel mix-in.
-class CenterAlignMixIn:
-    """
-    Base class for panels to center align contents with some horizontal margin.
-    Deriving classes need to implement a ``draw_centered(context, layout)`` function.
-    """
-
-    def draw(self, context):
-        layout = self.layout
-        width = context.region.width
-        ui_scale = context.preferences.system.ui_scale
-        # No horizontal margin if region is rather small.
-        is_wide = width > (350 * ui_scale)
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        row = layout.row()
-        if is_wide:
-            row.label()  # Needed so col below is centered.
-
-        col = row.column()
-        col.ui_units_x = 50
-
-        # Implemented by sub-classes.
-        self.draw_centered(context, col)
-
-        if is_wide:
-            row.label()  # Needed so col above is centered.
 
 
 # -----------------------------------------------------------------------------

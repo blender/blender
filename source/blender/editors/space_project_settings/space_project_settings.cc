@@ -3,6 +3,7 @@
 #include "BKE_screen.h"
 
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 
 #include "BLO_read_write.h"
 
@@ -14,7 +15,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
 #include "UI_interface.h"
+
+using namespace blender;
 
 static SpaceLink *project_settings_create(const ScrArea *area, const Scene *UNUSED(scene))
 {
@@ -106,7 +112,26 @@ static void project_settings_main_region_init(wmWindowManager *wm, ARegion *regi
 
 static void project_settings_main_region_layout(const bContext *C, ARegion *region)
 {
-  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, nullptr, nullptr);
+  SpaceProjectSettings *sproject_settings = CTX_wm_space_project_settings(C);
+
+  char id_lower[64];
+  const char *contexts[2] = {id_lower, NULL};
+
+  /* Avoid duplicating identifiers, use existing RNA enum. */
+  {
+    const EnumPropertyItem *items = rna_enum_project_settings_section_items;
+    int i = RNA_enum_from_value(items, sproject_settings->active_section);
+    /* Enum value not found: File is from the future. */
+    if (i == -1) {
+      i = 0;
+    }
+    StringRefNull id = items[i].identifier;
+    BLI_assert(id.size() < (int64_t)sizeof(id_lower));
+    STRNCPY(id_lower, id.c_str());
+    BLI_str_tolower_ascii(id_lower, strlen(id_lower));
+  }
+
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
 static void project_settings_main_region_listener(const wmRegionListenerParams *UNUSED(params))

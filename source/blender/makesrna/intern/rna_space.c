@@ -529,6 +529,12 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_project_settings_section_items[] = {
+    {PROJECT_SETTINGS_SECTION_GENERAL, "GENERAL", 0, "General", ""},
+    {PROJECT_SETTINGS_SECTION_ASSET_LIBRARIES, "ASSET_LIBRARIES", 0, "Asset Libraries", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
@@ -7151,6 +7157,12 @@ static void rna_def_space_project_settings(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceProjectSettings", "Space");
   RNA_def_struct_ui_text(srna, "Space Project Settings", "Blender project space data");
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "active_section", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_project_settings_section_items);
+  RNA_def_property_ui_text(prop, "Active Section", "Choose the category of options to display");
 }
 
 static void rna_def_node_tree_path(BlenderRNA *brna)

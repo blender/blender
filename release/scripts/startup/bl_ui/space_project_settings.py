@@ -2,6 +2,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
+from bl_ui.utils import CenterAlignMixIn
 
 
 # -----------------------------------------------------------------------------
@@ -19,7 +20,7 @@ class PROJECTSETTINGS_HT_header(Header):
         # TODO, wrong operator
         layout.operator(
             "wm.save_userpref",
-            text=iface_("Save Project") + (" *" if is_dirty else ""),
+            text=iface_("Save Project Settings") + (" *" if is_dirty else ""),
             translate=False,
         )
 
@@ -48,14 +49,13 @@ class PROJECTSETTINGS_PT_navigation_bar(Panel):
     def draw(self, context):
         layout = self.layout
 
-        # prefs = context.preferences
+        space_data = context.space_data
 
         col = layout.column()
 
         col.scale_x = 1.3
         col.scale_y = 1.3
-        col.label(text="Test")
-        # col.prop(prefs, "active_section", expand=True)
+        col.prop(space_data, "active_section", expand=True)
 
 
 class PROJECTSETTINGS_MT_editor_menus(Menu):
@@ -97,6 +97,16 @@ class PROJECTSETTINGS_PT_save_project_settings(Panel):
 
         PROJECTSETTINGS_HT_header.draw_buttons(layout, context)
 
+class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):
+    bl_space_type = 'PROJECT_SETTINGS'
+    bl_region_type = 'WINDOW'
+    bl_context = "general"
+    bl_label = "Setup"
+    bl_options = {'HIDE_HEADER'}
+
+    def draw_centered(self, context, layout):
+        layout.label(text="Testing")
+
 
 classes = (
     PROJECTSETTINGS_HT_header,
@@ -104,6 +114,7 @@ classes = (
     PROJECTSETTINGS_MT_view,
     PROJECTSETTINGS_PT_navigation_bar,
     PROJECTSETTINGS_PT_save_project_settings,
+    PROJECTSETTINGS_PT_setup,
 )
 
 if __name__ == "__main__":  # only for live edit.
