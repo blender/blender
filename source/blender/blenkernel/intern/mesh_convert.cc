@@ -1260,12 +1260,15 @@ static int find_object_active_key_uid(const Key &key, const Object &object)
   return kb->uid;
 }
 
-static void move_shapekey_layers_to_keyblocks(Mesh &mesh, Key &key_dst, const int actshape_uid)
+static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
+                                              CustomData &custom_data,
+                                              Key &key_dst,
+                                              const int actshape_uid)
 {
   using namespace blender::bke;
-  for (const int i : IndexRange(CustomData_number_of_layers(&mesh.vdata, CD_SHAPEKEY))) {
-    const int layer_index = CustomData_get_layer_index_n(&mesh.vdata, CD_SHAPEKEY, i);
-    CustomDataLayer &layer = mesh.vdata.layers[layer_index];
+  for (const int i : IndexRange(CustomData_number_of_layers(&custom_data, CD_SHAPEKEY))) {
+    const int layer_index = CustomData_get_layer_index_n(&custom_data, CD_SHAPEKEY, i);
+    CustomDataLayer &layer = custom_data.layers[layer_index];
 
     KeyBlock *kb = keyblock_ensure_from_uid(key_dst, layer.uid, layer.name);
     MEM_SAFE_FREE(kb->data);
@@ -1286,10 +1289,10 @@ static void move_shapekey_layers_to_keyblocks(Mesh &mesh, Key &key_dst, const in
   LISTBASE_FOREACH (KeyBlock *, kb, &key_dst.block) {
     if (kb->totelem != mesh.totvert) {
       MEM_SAFE_FREE(kb->data);
+      kb->totelem = mesh.totvert;
+      kb->data = MEM_cnew_array<float3>(kb->totelem, __func__);
+      CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
     }
-    kb->totelem = mesh.totvert;
-    kb->data = MEM_cnew_array<float3>(kb->totelem, __func__);
-    CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
   }
 }
 
@@ -1334,7 +1337,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
     if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
       /* If no object, set to -1 so we don't mess up any shapekey layers. */
       const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
-      move_shapekey_layers_to_keyblocks(*mesh_src, *key_dst, uid_active);
+      move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vdata, *key_dst, uid_active);
     }
     else if (mesh_src->totvert != mesh_dst->totvert) {
       CLOG_ERROR(&LOG, "Mesh in Main '%s' lost shape keys", mesh_src->id.name);
