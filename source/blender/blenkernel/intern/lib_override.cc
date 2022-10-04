@@ -1215,6 +1215,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      const Object *old_active_object,
                                                      const bool is_resync)
 {
+  /* If there is an old active object, there should also always be a given view layer. */
+  BLI_assert(old_active_object == nullptr || view_layer != nullptr);
+
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
    * do not do anything about it. */
 
@@ -1383,7 +1386,7 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
-  const Object *old_active_object = OBACT(view_layer);
+  const Object *old_active_object = (view_layer != nullptr) ? OBACT(view_layer) : nullptr;
 
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
