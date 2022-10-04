@@ -278,7 +278,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         # mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon_value=item.icon_value)
+            layout.label(text=item.name, icon_value=item.icon_value)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="")
