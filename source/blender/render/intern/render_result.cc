@@ -251,8 +251,6 @@ RenderResult *render_result_new(Render *re,
   rr = MEM_cnew<RenderResult>("new render result");
   rr->rectx = rectx;
   rr->recty = recty;
-  rr->renrect.xmin = 0;
-  rr->renrect.xmax = rectx;
 
   /* tilerect is relative coordinates within render disprect. do not subtract crop yet */
   rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
