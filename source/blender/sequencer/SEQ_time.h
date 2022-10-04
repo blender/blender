@@ -42,7 +42,19 @@ void SEQ_timeline_expand_boundbox(const struct Scene *scene,
 void SEQ_timeline_boundbox(const struct Scene *scene,
                            const struct ListBase *seqbase,
                            struct rctf *rect);
+/**
+ * Get FPS rate of source media. Movie, scene and movieclip strips are supported.
+ * Returns 0 for unsupported strip or if media can't be loaded.
+ */
 float SEQ_time_sequence_get_fps(struct Scene *scene, struct Sequence *seq);
+/**
+ * Find start or end position of next or previous strip.
+ * \param scene: Video editing scene
+ * \param timeline_frame: reference frame for searching
+ * \param side: direction of searching, `SEQ_SIDE_LEFT`, `SEQ_SIDE_RIGHT` or `SEQ_SIDE_BOTH`.
+ * \param do_center: find closest strip center if true, otherwise finds closest handle position.
+ * \param do_unselected: only find closest position of unselected strip.
+ */
 int SEQ_time_find_next_prev_edit(struct Scene *scene,
                                  int timeline_frame,
                                  short side,
@@ -61,21 +73,64 @@ int SEQ_time_find_next_prev_edit(struct Scene *scene,
 bool SEQ_time_strip_intersects_frame(const struct Scene *scene,
                                      const struct Sequence *seq,
                                      int timeline_frame);
+/**
+ * Returns true if strip has frames without content to render.
+ */
 bool SEQ_time_has_still_frames(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Returns true if at beginning of strip there is no content to be rendered.
+ */
 bool SEQ_time_has_left_still_frames(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Returns true if at end of strip there is no content to be rendered.
+ */
 bool SEQ_time_has_right_still_frames(const struct Scene *scene, const struct Sequence *seq);
-
+/**
+ * Get timeline frame where strip boundary starts.
+ */
 int SEQ_time_left_handle_frame_get(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Get timeline frame where strip boundary ends.
+ */
 int SEQ_time_right_handle_frame_get(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Set frame where strip boundary starts. This function moves only handle, content is not moved.
+ */
 void SEQ_time_left_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
+/**
+ * Set frame where strip boundary ends.
+ * This function moves only handle, content is not moved.
+ */
 void SEQ_time_right_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
+/**
+ * Get number of frames (in timeline) that can be rendered.
+ * This can change depending on scene FPS or strip speed factor.
+ */
 int SEQ_time_strip_length_get(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Set strip playback speed.
+ * Strip length is affected by changing speed factor.
+ */
 void SEQ_time_speed_factor_set(const struct Scene *scene,
                                struct Sequence *seq,
                                const float speed_factor);
+/**
+ * Get timeline frame where strip content starts.
+ */
 float SEQ_time_start_frame_get(const struct Sequence *seq);
+/**
+ * Get timeline frame where strip content ends.
+ */
 float SEQ_time_content_end_frame_get(const struct Scene *scene, const struct Sequence *seq);
+/**
+ * Set frame where strip content starts.
+ * This function will also move strip handles.
+ */
 void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
+/**
+ * Update length of metastrip after any contained strip length or position has changed.
+ * \note this function is currently only used internally and in versioning code.
+ */
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);
 
 #ifdef __cplusplus

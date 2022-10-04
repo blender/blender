@@ -478,8 +478,6 @@ bool SEQ_time_has_still_frames(const Scene *scene, const Sequence *seq)
   return SEQ_time_has_right_still_frames(scene, seq) || SEQ_time_has_left_still_frames(scene, seq);
 }
 
-/* Length of strip content in frames. This is number of original frames adjusted by playback rate
- * factor */
 int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
 {
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
@@ -489,7 +487,6 @@ int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
   return seq->len / seq_time_playback_rate_factor_get(scene, seq);
 }
 
-/* Return timeline frame, where strip content starts. */
 float SEQ_time_start_frame_get(const Sequence *seq)
 {
   return seq->start;
