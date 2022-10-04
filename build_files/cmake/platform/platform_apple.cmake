@@ -429,6 +429,18 @@ if(WITH_HARU)
   endif()
 endif()
 
+if(WITH_CYCLES_PATH_GUIDING)
+  find_package(openpgl QUIET)
+  if(openpgl_FOUND)
+    get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
+    get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
+    message(STATUS "Found OpenPGL: ${OPENPGL_LIBRARIES}")
+  else()
+    set(WITH_CYCLES_PATH_GUIDING OFF)
+    message(STATUS "OpenPGL not found, disabling WITH_CYCLES_PATH_GUIDING")
+  endif()
+endif()
+
 set(ZSTD_ROOT_DIR ${LIBDIR}/zstd)
 find_package(Zstd REQUIRED)
 
