@@ -29,7 +29,6 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
-#include "RNA_prototypes.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -38,17 +37,13 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
 
@@ -57,7 +52,6 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"

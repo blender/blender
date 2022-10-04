@@ -8,27 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.h"
-#include "BLI_blenlib.h"
-#include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
-#include "BLI_hash.h"
-#include "BLI_link_utils.h"
-#include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_memarena.h"
-#include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "atomic_ops.h"
 
 #include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -42,43 +28,22 @@
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_image.h"
-#include "BKE_kelvinlet.h"
-#include "BKE_key.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_fair.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pbvh.h"
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_subdiv_ccg.h"
-#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "IMB_colormanagement.h"
-
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -89,22 +54,17 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_path.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "bmesh.h"
-#include "bmesh_tools.h"
 
 #include <math.h>
 #include <stdlib.h>

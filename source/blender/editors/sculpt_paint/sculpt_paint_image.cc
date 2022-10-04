@@ -2,13 +2,9 @@
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
 #include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_paint.h"
-#include "ED_uvedit.h"
 
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
@@ -19,13 +15,10 @@
 
 #include "BKE_brush.h"
 #include "BKE_image_wrappers.hh"
-#include "BKE_material.h"
 #include "BKE_pbvh.h"
 #include "BKE_pbvh_pixels.hh"
 
 #include "bmesh.h"
-
-#include "NOD_shader.h"
 
 #include "sculpt_intern.h"
 

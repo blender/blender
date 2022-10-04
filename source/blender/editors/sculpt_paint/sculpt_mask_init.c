@@ -7,27 +7,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
-
 #include "PIL_time.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -39,8 +31,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_sculpt.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "bmesh.h"

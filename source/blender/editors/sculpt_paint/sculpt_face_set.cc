@@ -27,7 +27,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -35,25 +34,17 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_fair.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "ED_view3d.h"
-#include "paint_intern.h"
+
 #include "sculpt_intern.h"
 
 #include "RNA_access.h"

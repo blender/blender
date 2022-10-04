@@ -17,8 +17,6 @@
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
-
 #include "ED_paint.h"
 #include "ED_view3d.h"
 
@@ -28,11 +26,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "ED_image.h"

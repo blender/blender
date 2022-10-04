@@ -35,6 +35,9 @@ struct Object;
 struct SculptUndoNode;
 struct bContext;
 struct PaintModeSettings;
+struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
 
 /* Updates */
 
