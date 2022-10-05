@@ -765,6 +765,30 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
 
 }  // namespace blender::bke
 
+static bool can_simple_adapt_for_single(const eAttrDomain from_domain, const eAttrDomain to_domain)
+{
+  /* For some domain combinations, a single value will always map directly. For others, there may
+   * be loose elements on the result domain that should have the default value rather than the
+   * single value from the source. */
+  switch (from_domain) {
+    case ATTR_DOMAIN_POINT:
+      /* All other domains are always connected to points. */
+      return true;
+    case ATTR_DOMAIN_EDGE:
+      /* There may be loose vertices not connected to edges. */
+      return ELEM(to_domain, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
+    case ATTR_DOMAIN_FACE:
+      /* There may be loose vertices or edges not connected to faces. */
+      return to_domain == ATTR_DOMAIN_CORNER;
+    case ATTR_DOMAIN_CORNER:
+      /* Only faces are always connected to corners. */
+      return to_domain == ATTR_DOMAIN_FACE;
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
+}
+
 static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
                                                     const blender::GVArray &varray,
                                                     const eAttrDomain from_domain,
@@ -778,6 +802,14 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
   }
   if (from_domain == to_domain) {
     return varray;
+  }
+  if (varray.is_single()) {
+    if (can_simple_adapt_for_single(from_domain, to_domain)) {
+      BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
+      varray.get_internal_single(value);
+      return blender::GVArray::ForSingle(
+          varray.type(), mesh.attributes().domain_size(to_domain), value);
+    }
   }
 
   switch (from_domain) {
