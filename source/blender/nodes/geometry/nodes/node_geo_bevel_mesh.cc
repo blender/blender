@@ -34,16 +34,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
   b.add_input<decl::Float>(N_("Amount")).default_value(1.0f).supports_field();
-  b.add_input<decl::Float>(N_("Slope")).default_value(0.0f).supports_field()
-    .description(N_("Face inset will raise up with this slope"))
-    .make_available([](bNode &node) {
-      node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES;
-    });
-  b.add_input<decl::Bool>(N_("Use Regions")).default_value(false)
-    .description(N_("Combine adjacent faces into regions and inset regions as a whole"))
-    .make_available([](bNode &node) {
-      node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES;
-    });
+  b.add_input<decl::Float>(N_("Slope"))
+      .default_value(0.0f)
+      .supports_field()
+      .description(N_("Face inset will raise up with this slope"))
+      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES; });
+  b.add_input<decl::Bool>(N_("Use Regions"))
+      .default_value(false)
+      .description(N_("Combine adjacent faces into regions and inset regions as a whole"))
+      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES; });
   b.add_output<decl::Geometry>("Mesh");
 }
 
@@ -460,47 +459,47 @@ static std::ostream &operator<<(std::ostream &os, const BoundaryVert &bv)
   return os;
 }
 
-/** The different types of BoundaryEdges (see below). */
-typedef enum eBoundaryEdgeType {
-  BE_UNBEVELED = 0,
-  BE_BEVELED = 1,
-  BE_FACE_BEVEL_BOTH = 2,
-  BE_FACE_BEVEL_LEFT = 3,
-  BE_FACE_BEVEL_RIGHT = 4,
+/** The different types of HalfEdges (see below). */
+typedef enum eHalfEdgeType {
+  HE_UNBEVELED = 0,
+  HE_BEVELED = 1,
+  HE_FACE_BEVEL_BOTH = 2,
+  HE_FACE_BEVEL_LEFT = 3,
+  HE_FACE_BEVEL_RIGHT = 4,
   BE_OTHER = 5,
-} eBoundaryEdgeType;
+} eHalfEdgeType;
 
-static const char *be_type_name[6] = {
+static const char *he_type_name[6] = {
     "unbev", "bev", "facebev_both", "facebev_l", "facebev_r", "other"};
 
-/** A BoundaryEdge is one end of an edge, attached to a vertex in a VertexCap.
+/** A HalfEdge is one end of an edge, attached to a vertex in a VertexCap.
  * This data describes how it is involved in beveling, and how it is attached
  * to BoundaryVerts.
  * Note: when the descriptors "left" and "right" are used to refer to sides of
  * edges, these are to be taken as left and right when looking down the edge
  * towards the VertexCap's vertex.
  */
-class BoundaryEdge {
+class HalfEdge {
  public:
   /* The mesh index of the edge. */
   int edge;
   /* Where it is found in the list of edges in the VertexCap. */
   int vc_index;
   /* The boundary vertex index where the edge is attached,
-   * only used for BE_UNBEVELED and BE_FACE_BEVEL_* types. */
+   * only used for HE_UNBEVELED and HE_FACE_BEVEL_* types. */
   int bv_index;
-  /* The boundary vertex index where the left half of a BE_BEVELED,
-   * BE_FACE_BEVEL_BOTH, or BE_FACE_BEVEL_LEFT attached. */
+  /* The boundary vertex index where the left half of a HE_BEVELED,
+   * HE_FACE_BEVEL_BOTH, or HE_FACE_BEVEL_LEFT attached. */
   int bv_left_index;
-  /* The boundary vertex index where the left half of a BE_BEVELED,
-   * BE_FACE_BEVEL_BOTH, or BE_FACE_BEVEL_RIGHT attached. */
+  /* The boundary vertex index where the left half of a HE_BEVELED,
+   * HE_FACE_BEVEL_BOTH, or HE_FACE_BEVEL_RIGHT attached. */
   int bv_right_index;
   /* The index of this edge, if unbeveled, in output mesh. */
   int mesh_index;
-  /* The type of this BoundaryEdge. */
-  eBoundaryEdgeType type;
+  /* The type of this HalfEdge. */
+  eHalfEdgeType type;
 
-  BoundaryEdge()
+  HalfEdge()
       : edge(-1),
         vc_index(-1),
         bv_index(-1),
@@ -509,6 +508,37 @@ class BoundaryEdge {
         mesh_index(-1),
         type(BE_OTHER)
   {
+  }
+};
+
+/** A BevelEdge holds the two ends (HalfEdges) of an edge that is to be beveled.
+ * The underlying edge has a direction, and he1 is the HalfEdge at the source end,
+ * while he2 is the HalfEdge at the destination end.
+ */
+class BevelEdge {
+  /* Index in mesh of the underlying edge. */
+  int edge_;
+
+ public:
+  /* Source end HalfEdge. */
+  HalfEdge *he1;
+  /* Destination end HalfEdge. */
+  HalfEdge *he2;
+  /* Bevel amount for this edge. */
+  float amount;
+
+  BevelEdge() : edge_(-1), he1(nullptr), he2(nullptr), amount(0.0f)
+  {
+  }
+
+  BevelEdge(int edge, HalfEdge *he1, HalfEdge *he2, float amount)
+      : edge_(edge), he1(he1), he2(he2), amount(amount)
+  {
+  }
+
+  int edge() const
+  {
+    return edge_;
   }
 };
 
@@ -530,15 +560,15 @@ class BoundaryConnector {
   }
 };
 
-static std::ostream &operator<<(std::ostream &os, const BoundaryEdge &be)
+static std::ostream &operator<<(std::ostream &os, const HalfEdge &he)
 {
-  os << "be{" << be_type_name[be.type] << " "
-     << "edge=" << be.edge << " "
-     << "vc#=" << be.vc_index << " "
-     << "bv#=" << be.bv_index << " "
-     << "bvl#=" << be.bv_left_index << " "
-     << "bvr#=" << be.bv_right_index << " "
-     << "eout=" << be.mesh_index << "}";
+  os << "he{" << he_type_name[he.type] << " "
+     << "edge=" << he.edge << " "
+     << "vc#=" << he.vc_index << " "
+     << "bv#=" << he.bv_index << " "
+     << "bvl#=" << he.bv_left_index << " "
+     << "bvr#=" << he.bv_right_index << " "
+     << "eout=" << he.mesh_index << "}";
   return os;
 }
 
@@ -546,7 +576,7 @@ static std::ostream &operator<<(std::ostream &os, const BoundaryEdge &be)
 class BevelVertexData {
   VertexCap vertex_cap_;
   Array<BoundaryVert> boundary_vert_;
-  Array<BoundaryEdge> boundary_edge_;
+  Array<HalfEdge> half_edge_;
   /* boundary_conn_[i] goes from boundary_vert_[i] to the following one. */
   Array<BoundaryConnector> boundary_conn_;
 
@@ -585,9 +615,9 @@ class BevelVertexData {
     return boundary_vert_.as_mutable_span();
   }
 
-  Span<BoundaryEdge> boundary_edges() const
+  Span<HalfEdge> half_edges() const
   {
-    return boundary_edge_.as_span();
+    return half_edge_.as_span();
   }
 
   const BoundaryVert &boundary_vert(int boundary_vert_pos) const
@@ -612,8 +642,8 @@ class BevelVertexData {
     return boundary_conn_[boundary_vert_pos].edge;
   }
 
-  /* Find the BoundaryEdge for `edge`, returning nullptr if not found. */
-  BoundaryEdge *find_boundary_edge(int edge) const;
+  /* Find the HalfEdge for `edge`, returning nullptr if not found. */
+  HalfEdge *find_half_edge(int edge) const;
 };
 
 static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
@@ -626,10 +656,10 @@ static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
   for (const int i : bvs.index_range()) {
     os << "[" << i << "] " << bvs[i] << "\n";
   }
-  Span<BoundaryEdge> bes = bvd.boundary_edges();
+  Span<HalfEdge> hes = bvd.half_edges();
   os << "boundary edges:\n";
-  for (const int i : bes.index_range()) {
-    os << "[" << i << "] " << bes[i] << "\n";
+  for (const int i : hes.index_range()) {
+    os << "[" << i << "] " << hes[i] << "\n";
   }
   return os;
 }
@@ -646,7 +676,7 @@ void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshT
   const int num_edges = vertex_cap().size();
 
   /* There will be one boundary vertex on each edge attached to `vert`. */
-  boundary_edge_.reinitialize(num_edges);
+  half_edge_.reinitialize(num_edges);
   boundary_vert_.reinitialize(num_edges);
   boundary_conn_.reinitialize(num_edges);
 
@@ -655,25 +685,25 @@ void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshT
     BoundaryVert &bv = boundary_vert_[i];
     bv.type = BV_ON_EDGE;
     bv.vc_index = i;
-    BoundaryEdge &be = boundary_edge_[i];
-    be.edge = vertex_cap().edge(i);
-    be.type = BE_UNBEVELED;
-    be.bv_index = i;
-    be.vc_index = i;
+    HalfEdge &he = half_edge_[i];
+    he.edge = vertex_cap().edge(i);
+    he.type = HE_UNBEVELED;
+    he.bv_index = i;
+    he.vc_index = i;
 
     /* Set the position of the boundary vertex by sliding at distance `amount` along the edge. */
-    float3 dir = topo.edge_dir_from_vert_normalized(be.edge, vert);
+    float3 dir = topo.edge_dir_from_vert_normalized(he.edge, vert);
     bv.co = vert_co + amount * dir;
   }
 }
 
-BoundaryEdge *BevelVertexData::find_boundary_edge(int edge) const
+HalfEdge *BevelVertexData::find_half_edge(int edge) const
 {
-  for (int i : boundary_edge_.index_range()) {
-    if (boundary_edge_[i].edge == edge) {
+  for (int i : half_edge_.index_range()) {
+    if (half_edge_[i].edge == edge) {
       /* There's no non-const rvalue subscripting in Array. */
-      BoundaryEdge *be = const_cast<BoundaryEdge *>(&boundary_edge_[i]);
-      return be;
+      HalfEdge *he = const_cast<HalfEdge *>(&half_edge_[i]);
+      return he;
     }
   }
   return nullptr;
@@ -699,8 +729,11 @@ class BevelData {
   {
   }
 
-  /* Initial calculation of position of boundary and edge attachments for vertex bevel. */
+  /* Initial calculation of vertex bevels. */
   void calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts);
+
+  /* Calculation of edge bevels. */
+  void calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts);
 
   /* Sets up internal Map for fast access to the BevelVertexData for a given mesh vert. */
   void setup_vert_map();
@@ -766,6 +799,15 @@ void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> 
     }
   });
   setup_vert_map();
+}
+
+/** Calculate the BevelData for an edge bevel off all the specified edges of the mesh.
+ * `to_bevel` gives the mesh indics of the edges to be beveled.
+ * `amounts` should have (virtual) length that matches the number of edges in the mesh,
+ * and gives, per edge, the magnitude of the bevel for that edge.
+ */
+void BevelData::calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts)
+{
 }
 
 /** IndexAlloc allocates sequential integers, starting from a given start value. */
@@ -1514,10 +1556,10 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
         int e = mloop.e;
         BevelVertexData *bvd1 = bd.bevel_vertex_data(v1);
         BevelVertexData *bvd2 = bd.bevel_vertex_data(v2);
-        BoundaryEdge *be1 = bvd1 == nullptr ? nullptr : bvd1->find_boundary_edge(e);
-        BoundaryEdge *be2 = bvd2 == nullptr ? nullptr : bvd2->find_boundary_edge(e);
-        const BoundaryVert *bv1 = be1 == nullptr ? nullptr : &bvd1->boundary_vert(be1->bv_index);
-        const BoundaryVert *bv2 = be2 == nullptr ? nullptr : &bvd2->boundary_vert(be2->bv_index);
+        HalfEdge *he1 = bvd1 == nullptr ? nullptr : bvd1->find_half_edge(e);
+        HalfEdge *he2 = bvd2 == nullptr ? nullptr : bvd2->find_half_edge(e);
+        const BoundaryVert *bv1 = he1 == nullptr ? nullptr : &bvd1->boundary_vert(he1->bv_index);
+        const BoundaryVert *bv2 = he2 == nullptr ? nullptr : &bvd2->boundary_vert(he2->bv_index);
 
         /* If v1 is beveled, we need to add the boundary connector from the next boundary vertex
          * CCW from bv1 (which is therefore the previous boundary vertex when going around our
@@ -1540,13 +1582,13 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
           totloop++;
           /* Now we need an edge from bv1->mesh_index to either v2 (if v2 is not beveled)
            * or to bv2->mesh_index. But that edge may have been made already. If so,
-           * we will find its mesh index in be2->mesh_index.
-           * It is also possible we made the edge and stored it in be1->mesh_index,
+           * we will find its mesh index in he2->mesh_index.
+           * It is also possible we made the edge and stored it in he1->mesh_index,
            * while doing the adjacent face.
            */
           if (bvd2 == nullptr) {
-            if (be1->mesh_index != -1) {
-              e = be1->mesh_index;
+            if (he1->mesh_index != -1) {
+              e = he1->mesh_index;
             }
             else {
               e = mesh_delta.new_edge(bv1->mesh_index, v2, mloop.e);
@@ -1554,28 +1596,28 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
             lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
           }
           else {
-            if (be1->mesh_index != -1) {
-              e = be1->mesh_index;
+            if (he1->mesh_index != -1) {
+              e = he1->mesh_index;
             }
-            else if (be2->mesh_index != -1) {
-              e = be2->mesh_index;
+            else if (he2->mesh_index != -1) {
+              e = he2->mesh_index;
             }
             else {
               e = mesh_delta.new_edge(bv1->mesh_index, bv2->mesh_index, mloop.e);
-              be2->mesh_index = e;
+              he2->mesh_index = e;
             }
             lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
           }
-          be1->mesh_index = e;
+          he1->mesh_index = e;
         }
         else if (bvd2 != nullptr) {
           /* v1 is not beveled and v2 is. */
-          if (be2->mesh_index != -1) {
-            e = be2->mesh_index;
+          if (he2->mesh_index != -1) {
+            e = he2->mesh_index;
           }
           else {
             e = mesh_delta.new_edge(v1, bv2->mesh_index, mloop.e);
-            be2->mesh_index = e;
+            he2->mesh_index = e;
           }
           lnew = mesh_delta.new_loop(v1, e, l);
         }
@@ -1645,7 +1687,7 @@ static Mesh *calculate_face_bevel(BevelData &bd,
         mr_vert_to_mesh_vert[i] = mi_vert_to_mesh_vert[mi_result.orig_vert[i]];
       }
       else {
-        mr_vert_to_mesh_vert[i] = delta.new_vert(mi_result.vert[i], 0); // TODO: better rep!
+        mr_vert_to_mesh_vert[i] = delta.new_vert(mi_result.vert[i], 0);  // TODO: better rep!
       }
     }
     /* Construct the output faces. */
@@ -1656,15 +1698,16 @@ static Mesh *calculate_face_bevel(BevelData &bd,
       for (const int i : IndexRange(m)) {
         int v = mr_vert_to_mesh_vert[mr_face[i]];
         int v_next = mr_vert_to_mesh_vert[mr_face[(i + 1) % m]];
-        int e = delta.find_or_add_edge(v, v_next, 0); // TODO: better rep!
-        int l = delta.new_loop(v, e, 0); //TODO: better rep!
+        int e = delta.find_or_add_edge(v, v_next, 0);  // TODO: better rep!
+        int l = delta.new_loop(v, e, 0);               // TODO: better rep!
         if (lfirst == -1) {
           lfirst = l;
         }
       }
-      delta.new_face(lfirst, m, face_index); // TODO: better rep!
+      delta.new_face(lfirst, m, face_index);  // TODO: better rep!
     }
-    /* The following also deletes the loops. The edges in the original faces should have all been reused. */
+    /* The following also deletes the loops. The edges in the original faces should have all been
+     * reused. */
     delta.delete_face(face_index);
   }
   Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
@@ -1693,24 +1736,33 @@ static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
 }
 
 static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
-                             const MeshComponent &component,
-                             const Field<bool> &UNUSED(selection_field),
-                             const Field<float> &UNUSED(amount_field))
+                              const MeshComponent &component,
+                              const Field<bool> selection_field,
+                              const Field<float> amount_field)
 {
   const Mesh &mesh = *component.get_for_read();
+  int orig_edge_size = mesh.totedge;
+  bke::MeshFieldContext context(mesh, ATTR_DOMAIN_EDGE);
+  FieldEvaluator evaluator(context, orig_edge_size);
+  evaluator.set_selection(selection_field);
+  evaluator.add(amount_field);
+  evaluator.evaluate();
+  VArray<float> amounts = evaluator.get_evaluated<float>(0);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+
   BevelData bdata(mesh);
   MeshDelta delta(mesh, bdata.topo);
-  /* TODO: actually bevel the edges! */
+  bdata.calculate_edge_bevels(selection, amounts);
   Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
   return mesh_out;
 }
 
 static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
-                             const MeshComponent &component,
-                             const Field<bool> &selection_field,
-                             const Field<float> &amount_field,
-                             const Field<float> &slope_field,
-                             bool use_regions)
+                              const MeshComponent &component,
+                              const Field<bool> &selection_field,
+                              const Field<float> &amount_field,
+                              const Field<float> &slope_field,
+                              bool use_regions)
 {
   const Mesh &mesh = *component.get_for_read();
   bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
@@ -1724,7 +1776,8 @@ static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   BevelData bdata(mesh);
-  return calculate_face_bevel(bdata, mesh, geometry_set, component, selection, amounts, slopes, use_regions);
+  return calculate_face_bevel(
+      bdata, mesh, geometry_set, component, selection, amounts, slopes, use_regions);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -1743,18 +1796,15 @@ static void node_geo_exec(GeoNodeExecParams params)
         case GEO_NODE_BEVEL_MESH_VERTICES:
           mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field);
           break;
-        case GEO_NODE_BEVEL_MESH_EDGES:
-          {
-            mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
-          }
-          break;
-        case GEO_NODE_BEVEL_MESH_FACES:
-        {
+        case GEO_NODE_BEVEL_MESH_EDGES: {
+          mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
+        } break;
+        case GEO_NODE_BEVEL_MESH_FACES: {
           Field<float> slope_field = params.extract_input<Field<float>>("Slope");
           bool use_regions = params.get_input<bool>("Use Regions");
-          mesh_out = bevel_mesh_faces(geometry_set, component, selection_field, amount_field, slope_field, use_regions);
-        }
-          break;
+          mesh_out = bevel_mesh_faces(
+              geometry_set, component, selection_field, amount_field, slope_field, use_regions);
+        } break;
       }
       BLI_assert(BKE_mesh_is_valid(mesh_out));
       geometry_set.replace_mesh(mesh_out);
