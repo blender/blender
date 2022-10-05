@@ -208,6 +208,7 @@ class NODE_MT_geometry_node_GEO_MESH(Menu):
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeAngle")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeNeighbors")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeVertices")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceArea")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshFaceSetBoundaries")
@@ -244,7 +245,6 @@ class NODE_MT_geometry_node_mesh_topology(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeCornersOfFace"),
         node_add_menu.add_node_type(layout, "GeometryNodeCornersOfVertex"),
-        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeVertices")
         node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfCorner"),
         node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfVertex"),
         node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner"),
