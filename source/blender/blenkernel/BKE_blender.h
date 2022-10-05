@@ -26,8 +26,9 @@ void BKE_blender_userdef_data_set(struct UserDef *userdef);
 void BKE_blender_userdef_data_set_and_free(struct UserDef *userdef);
 
 /**
- * Write U from userdef.
  * This function defines which settings a template will override for the user preferences.
+ *
+ * \note the order of `userdef_a` & `userdef_b` isn't important as values are simply swapped.
  */
 void BKE_blender_userdef_app_template_data_swap(struct UserDef *userdef_a,
                                                 struct UserDef *userdef_b);

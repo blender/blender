@@ -61,7 +61,7 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name High Level `.blend` file read/write.
+/** \name Blend File IO (High Level)
  * \{ */
 
 static bool blendfile_or_libraries_versions_atleast(Main *bmain,
@@ -559,6 +559,34 @@ void BKE_blendfile_read_make_empty(bContext *C)
   FOREACH_MAIN_LISTBASE_END;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File IO (Preferences)
+ *
+ * Application Templates
+ * =====================
+ *
+ * When using app-templates, both regular & app-template preferences are used.
+ * Note that "regular" preferences refers to the preferences used with no app-template is active.
+ *
+ * - Reading preferences is performed for both the app-template & regular preferences.
+ *
+ *   The preferences are merged by using some from the app-template and other settings from the
+ *   regular preferences (add-ons from the app-template for example are used),
+ *   undo-memory uses the regular preferences (for e.g.).
+ *
+ * - Writing preferences is performed for both the app-template & regular preferences.
+ *
+ *   Writing unmodified preference (#U) into the regular preferences
+ *   would loose any settings the app-template overrides.
+ *   To keep default settings the regular preferences is read, add-ons etc temporarily swapped
+ *   into #U for writing, then swapped back out so as not to change the run-time preferences.
+ *
+ * \note The function #BKE_blender_userdef_app_template_data_swap determines which settings
+ * the app-template overrides.
+ * \{ */
+
 UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
 {
   BlendFileData *bfd;
@@ -756,6 +784,12 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   return ok;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File IO (WorkSpace)
+ * \{ */
+
 WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
                                                              const void *filebuf,
                                                              int filelength,
@@ -818,7 +852,7 @@ void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Partial `.blend` file save.
+/** \name Blend File Write (Partial)
  * \{ */
 
 void BKE_blendfile_write_partial_begin(Main *bmain_src)
