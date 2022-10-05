@@ -233,6 +233,7 @@ class NODE_MT_category_PRIMITIVES_MESH(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshIcoSphere")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshCircle")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshLine")
+        node_add_menu.add_node_type(layout, "GeometryNodeMeshUVSphere")
 
 
 class NODE_MT_geometry_node_mesh_topology(Menu):
