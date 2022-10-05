@@ -1068,6 +1068,12 @@ void wm_homefile_read_ex(bContext *C,
   const bool use_data = params_homefile->use_data;
   const bool use_userdef = params_homefile->use_userdef;
   bool use_factory_settings = params_homefile->use_factory_settings;
+  /* Currently this only impacts preferences as it doesn't make much sense to keep the default
+   * startup open in the case the app-template doesn't happen to define it's own startup.
+   * Unlike preferences where we might want to only reset the app-template part of the preferences
+   * so as not to reset the preferences for all other Blender instances, see: T96427. */
+  const bool use_factory_settings_app_template_only =
+      params_homefile->use_factory_settings_app_template_only;
   const bool use_empty_data = params_homefile->use_empty_data;
   const char *filepath_startup_override = params_homefile->filepath_startup_override;
   const char *app_template_override = params_homefile->app_template_override;
@@ -1180,7 +1186,11 @@ void wm_homefile_read_ex(bContext *C,
 
   /* load preferences before startup.blend */
   if (use_userdef) {
-    if (!use_factory_settings && BLI_exists(filepath_userdef)) {
+    if (use_factory_settings_app_template_only) {
+      /* Use the current preferences as-is (only load in the app_template preferences). */
+      skip_flags |= BLO_READ_SKIP_USERDEF;
+    }
+    else if (!use_factory_settings && BLI_exists(filepath_userdef)) {
       UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, NULL);
       if (userdef != NULL) {
         BKE_blender_userdef_data_set_and_free(userdef);
@@ -2254,19 +2264,23 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
   const bool use_data = false;
   const bool use_userdef = true;
   const bool use_factory_settings = STREQ(op->type->idname, "WM_OT_read_factory_userpref");
+  const bool use_factory_settings_app_template_only =
+      (use_factory_settings && RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only"));
 
   UserDef U_backup = U;
 
-  wm_homefile_read(C,
-                   &(const struct wmHomeFileRead_Params){
-                       .use_data = use_data,
-                       .use_userdef = use_userdef,
-                       .use_factory_settings = use_factory_settings,
-                       .use_empty_data = false,
-                       .filepath_startup_override = NULL,
-                       .app_template_override = WM_init_state_app_template_get(),
-                   },
-                   op->reports);
+  wm_homefile_read(
+      C,
+      &(const struct wmHomeFileRead_Params){
+          .use_data = use_data,
+          .use_userdef = use_userdef,
+          .use_factory_settings = use_factory_settings,
+          .use_factory_settings_app_template_only = use_factory_settings_app_template_only,
+          .use_empty_data = false,
+          .filepath_startup_override = NULL,
+          .app_template_override = WM_init_state_app_template_get(),
+      },
+      op->reports);
 
   wm_userpref_read_exceptions(&U, &U_backup);
   SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
@@ -2307,6 +2321,16 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_userpref_read_exec;
+
+  PropertyRNA *prop;
+
+  /* So it's possible to reset app-template settings without resetting other defaults. */
+  prop = RNA_def_boolean(ot->srna,
+                         "use_factory_startup_app_template_only",
+                         false,
+                         "Factory Startup App-Template Only",
+                         "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2349,6 +2373,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
                                                      "WM_OT_read_factory_settings");
   const bool use_factory_settings = use_factory_startup_and_userdef ||
                                     RNA_boolean_get(op->ptr, "use_factory_startup");
+  const bool use_factory_settings_app_template_only =
+      (use_factory_startup_and_userdef &&
+       RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only"));
+
   bool use_userdef = false;
   char filepath_buf[FILE_MAX];
   const char *filepath = NULL;
@@ -2405,16 +2433,18 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = WM_init_state_app_template_get();
   }
 
-  wm_homefile_read(C,
-                   &(const struct wmHomeFileRead_Params){
-                       .use_data = true,
-                       .use_userdef = use_userdef,
-                       .use_factory_settings = use_factory_settings,
-                       .use_empty_data = use_empty_data,
-                       .filepath_startup_override = filepath,
-                       .app_template_override = app_template,
-                   },
-                   op->reports);
+  wm_homefile_read(
+      C,
+      &(const struct wmHomeFileRead_Params){
+          .use_data = true,
+          .use_userdef = use_userdef,
+          .use_factory_settings = use_factory_settings,
+          .use_factory_settings_app_template_only = use_factory_settings_app_template_only,
+          .use_empty_data = use_empty_data,
+          .filepath_startup_override = filepath,
+          .app_template_override = app_template,
+      },
+      op->reports);
 
   if (use_splash) {
     WM_init_splash(C);
@@ -2458,6 +2488,14 @@ static void read_homefile_props(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna, "use_empty", false, "Empty", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  /* So it's possible to reset app-template settings without resetting other defaults. */
+  prop = RNA_def_boolean(ot->srna,
+                         "use_factory_startup_app_template_only",
+                         false,
+                         "Factory Startup App-Template Only",
+                         "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

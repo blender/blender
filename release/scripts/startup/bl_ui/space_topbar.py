@@ -411,9 +411,16 @@ class TOPBAR_MT_file_defaults(Menu):
                 app_template, has_ext=False))
 
         layout.operator("wm.save_homefile")
-        props = layout.operator("wm.read_factory_settings")
         if app_template:
+            display_name = bpy.path.display_name(iface_(app_template))
+            props = layout.operator("wm.read_factory_settings", text="Load Factory Blender Settings")
             props.app_template = app_template
+            props = layout.operator("wm.read_factory_settings", text="Load Factory %s Settings" % display_name)
+            props.app_template = app_template
+            props.use_factory_startup_app_template_only = True
+            del display_name
+        else:
+            layout.operator("wm.read_factory_settings")
 
 
 # Include technical operators here which would otherwise have no way for users to access.
