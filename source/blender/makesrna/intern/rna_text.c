@@ -231,6 +231,7 @@ static void rna_def_text(BlenderRNA *brna)
   prop = RNA_def_property(srna, "indentation", PROP_ENUM, PROP_NONE); /* as an enum */
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
   RNA_def_property_enum_items(prop, indentation_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
   RNA_def_property_ui_text(prop, "Indentation", "Use tabs or spaces for indentation");
 
   prop = RNA_def_property(srna, "lines", PROP_COLLECTION, PROP_NONE);

@@ -763,6 +763,7 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 
   /* For redo only. */
   prop = RNA_def_int(ot->srna, "object_index", -1, -1, INT_MAX, "Object Index", "", 0, INT_MAX);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "Edge Index", "", 0, INT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);

@@ -108,7 +108,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "use_even_offset", 0, NULL, ICON_NONE);
   }
 
-  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Rim"));
+  col = uiLayoutColumnWithHeading(layout, false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
   uiItemR(col, ptr, "use_rim", 0, IFACE_("Fill"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_rim"));
@@ -162,7 +162,7 @@ static void materials_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "material_offset", 0, NULL, ICON_NONE);
   col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_rim"));
-  uiItemR(col, ptr, "material_offset_rim", 0, IFACE_("Rim"), ICON_NONE);
+  uiItemR(col, ptr, "material_offset_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
 }
 
 static void edge_data_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -181,7 +181,7 @@ static void edge_data_panel_draw(const bContext *UNUSED(C), Panel *panel)
     col = uiLayoutColumn(layout, true);
     uiItemR(col, ptr, "edge_crease_inner", 0, IFACE_("Crease Inner"), ICON_NONE);
     uiItemR(col, ptr, "edge_crease_outer", 0, IFACE_("Outer"), ICON_NONE);
-    uiItemR(col, ptr, "edge_crease_rim", 0, IFACE_("Rim"), ICON_NONE);
+    uiItemR(col, ptr, "edge_crease_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
   }
   uiItemR(layout, ptr, "bevel_convex", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -216,7 +216,7 @@ static void vertex_group_panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiItemPointerR(
       col, ptr, "shell_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Shell"), ICON_NONE);
-  uiItemPointerR(col, ptr, "rim_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Rim"), ICON_NONE);
+  uiItemPointerR(col, ptr, "rim_vertex_group", &ob_ptr, "vertex_groups", CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
