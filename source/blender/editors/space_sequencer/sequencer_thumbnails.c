@@ -78,8 +78,8 @@ static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *v
       view_area->xmax) {
     return false;
   }
-  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq), SEQ_time_content_end_frame_get(scene, seq)) <
-      view_area->xmin) {
+  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
+             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin) {
     return false;
   }
   if (seq->machine + 1.0f < view_area->ymin) {
