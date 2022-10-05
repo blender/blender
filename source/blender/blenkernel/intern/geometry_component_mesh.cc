@@ -222,18 +222,17 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_corner_to_point(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totvert);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       /* We compute all interpolated values at once, because for this interpolation, one has to
        * iterate over all loops anyway. */
-      Array<T> values(mesh.totvert);
-      adapt_mesh_domain_corner_to_point_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_corner_to_point_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 /**
@@ -368,16 +367,15 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totedge);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totedge);
-      adapt_mesh_domain_corner_to_edge_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_corner_to_edge_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 template<typename T>
@@ -429,16 +427,15 @@ void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totvert);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totvert);
-      adapt_mesh_domain_face_to_point_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_face_to_point_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 /* Each corner's value is simply a copy of the value at its face. */
@@ -461,16 +458,15 @@ void adapt_mesh_domain_face_to_corner_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totloop);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totloop);
-      adapt_mesh_domain_face_to_corner_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_face_to_corner_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 template<typename T>
@@ -520,16 +516,15 @@ void adapt_mesh_domain_face_to_edge_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_face_to_edge(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totedge);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totedge);
-      adapt_mesh_domain_face_to_edge_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_face_to_edge_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &varray)
@@ -662,16 +657,15 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_edge_to_corner(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totloop);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totloop);
-      adapt_mesh_domain_edge_to_corner_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_edge_to_corner_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 template<typename T>
@@ -715,16 +709,15 @@ void adapt_mesh_domain_edge_to_point_impl(const Mesh &mesh,
 
 static GVArray adapt_mesh_domain_edge_to_point(const Mesh &mesh, const GVArray &varray)
 {
-  GVArray new_varray;
+  GArray<> values(varray.type(), mesh.totvert);
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totvert);
-      adapt_mesh_domain_edge_to_point_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      adapt_mesh_domain_edge_to_point_impl<T>(
+          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return new_varray;
+  return GVArray::ForGArray(std::move(values));
 }
 
 static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &varray)
