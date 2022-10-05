@@ -1137,9 +1137,7 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  int unselected;
-
-  unselected = RNA_boolean_get(op->ptr, "unselected");
+  const int unselected = RNA_boolean_get(op->ptr, "unselected");
 
   /* Hide point tracks. */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {

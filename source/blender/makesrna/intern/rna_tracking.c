@@ -594,10 +594,8 @@ static MovieTrackingTrack *rna_trackingTracks_new(ID *id,
 {
   MovieClip *clip = (MovieClip *)id;
   MovieTrackingObject *tracking_camera_object = BKE_tracking_object_get_camera(&clip->tracking);
-
-  MovieTrackingTrack *track;
-
-  track = add_track_to_base(clip, tracking, &tracking_camera_object->tracks, name, frame);
+  MovieTrackingTrack *track = add_track_to_base(
+      clip, tracking, &tracking_camera_object->tracks, name, frame);
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, clip);
 
@@ -610,10 +608,8 @@ static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id,
                                                          int frame)
 {
   MovieClip *clip = (MovieClip *)id;
-  ListBase *tracksbase = &object->tracks;
-  MovieTrackingTrack *track;
-
-  track = add_track_to_base(clip, &clip->tracking, tracksbase, name, frame);
+  MovieTrackingTrack *track = add_track_to_base(
+      clip, &clip->tracking, &object->tracks, name, frame);
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 

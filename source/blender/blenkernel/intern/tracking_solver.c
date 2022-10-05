@@ -126,44 +126,36 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
                                               MovieTracking *tracking)
 {
   struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
-  MovieTrackingReconstruction *reconstruction = NULL;
-  MovieReconstructedCamera *reconstructed;
-  MovieTrackingTrack *track;
-  ListBase *tracksbase = NULL;
-  int tracknr = 0;
   bool ok = true;
   bool origin_set = false;
   int sfra = context->sfra, efra = context->efra;
   float imat[4][4];
 
   MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
-
-  tracksbase = &object->tracks;
-  reconstruction = &object->reconstruction;
+  MovieTrackingReconstruction *reconstruction = &object->reconstruction;
 
   unit_m4(imat);
 
-  track = tracksbase->first;
-  while (track) {
-    double pos[3];
+  {
+    int track_index = 0;
+    LISTBASE_FOREACH_INDEX (MovieTrackingTrack *, track, &object->tracks, track_index) {
+      double pos[3];
 
-    if (libmv_reprojectionPointForTrack(libmv_reconstruction, tracknr, pos)) {
-      track->bundle_pos[0] = pos[0];
-      track->bundle_pos[1] = pos[1];
-      track->bundle_pos[2] = pos[2];
+      if (libmv_reprojectionPointForTrack(libmv_reconstruction, track_index, pos)) {
+        track->bundle_pos[0] = pos[0];
+        track->bundle_pos[1] = pos[1];
+        track->bundle_pos[2] = pos[2];
 
-      track->flag |= TRACK_HAS_BUNDLE;
-      track->error = libmv_reprojectionErrorForTrack(libmv_reconstruction, tracknr);
+        track->flag |= TRACK_HAS_BUNDLE;
+        track->error = libmv_reprojectionErrorForTrack(libmv_reconstruction, track_index);
+      }
+      else {
+        track->flag &= ~TRACK_HAS_BUNDLE;
+        ok = false;
+
+        printf("Unable to reconstruct position for track #%d '%s'\n", track_index, track->name);
+      }
     }
-    else {
-      track->flag &= ~TRACK_HAS_BUNDLE;
-      ok = false;
-
-      printf("Unable to reconstruct position for track #%d '%s'\n", tracknr, track->name);
-    }
-
-    track = track->next;
-    tracknr++;
   }
 
   if (reconstruction->cameras) {
@@ -172,8 +164,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
 
   reconstruction->camnr = 0;
   reconstruction->cameras = NULL;
-  reconstructed = MEM_callocN((efra - sfra + 1) * sizeof(MovieReconstructedCamera),
-                              "temp reconstructed camera");
+
+  MovieReconstructedCamera *reconstructed_cameras = MEM_callocN(
+      (efra - sfra + 1) * sizeof(MovieReconstructedCamera), "temp reconstructed camera");
 
   for (int a = sfra; a <= efra; a++) {
     double matd[4][4];
@@ -208,9 +201,11 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
         mul_m4_m4m4(mat, imat, mat);
       }
 
-      copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
-      reconstructed[reconstruction->camnr].framenr = a;
-      reconstructed[reconstruction->camnr].error = error;
+      MovieReconstructedCamera *reconstructed_camera =
+          &reconstructed_cameras[reconstruction->camnr];
+      copy_m4_m4(reconstructed_camera->mat, mat);
+      reconstructed_camera->framenr = a;
+      reconstructed_camera->error = error;
       reconstruction->camnr++;
     }
     else {
@@ -220,23 +215,20 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   }
 
   if (reconstruction->camnr) {
-    int size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
+    const size_t size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
     reconstruction->cameras = MEM_mallocN(size, "reconstructed camera");
-    memcpy(reconstruction->cameras, reconstructed, size);
+    memcpy(reconstruction->cameras, reconstructed_cameras, size);
   }
 
   if (origin_set) {
-    track = tracksbase->first;
-    while (track) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
       if (track->flag & TRACK_HAS_BUNDLE) {
         mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
       }
-
-      track = track->next;
     }
   }
 
-  MEM_freeN(reconstructed);
+  MEM_freeN(reconstructed_cameras);
 
   return ok;
 }
@@ -494,9 +486,6 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
 
 bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieTracking *tracking)
 {
-  MovieTrackingReconstruction *reconstruction;
-  MovieTrackingObject *object;
-
   if (!libmv_reconstructionIsValid(context->reconstruction)) {
     BKE_tracking_reconstruction_report_error_message(
         context, "Failed to solve the motion: most likely there are no good keyframes");
@@ -506,8 +495,8 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   tracks_map_merge(context->tracks_map, tracking);
   BKE_tracking_dopesheet_tag_update(tracking);
 
-  object = BKE_tracking_object_get_named(tracking, context->object_name);
-  reconstruction = &object->reconstruction;
+  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
+  MovieTrackingReconstruction *reconstruction = &object->reconstruction;
 
   /* update keyframe in the interface */
   if (context->select_keyframes) {
