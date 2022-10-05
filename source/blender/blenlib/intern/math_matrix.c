@@ -3116,6 +3116,34 @@ bool has_zero_axis_m4(const float matrix[4][4])
          len_squared_v3(matrix[2]) < FLT_EPSILON;
 }
 
+void zero_axis_bias_m4(float mat[4][4])
+{
+  const bool axis_x_degenerate = len_squared_v3(mat[0]) < FLT_EPSILON;
+  const bool axis_y_degenerate = len_squared_v3(mat[1]) < FLT_EPSILON;
+  const bool axis_z_degenerate = len_squared_v3(mat[2]) < FLT_EPSILON;
+
+  /* X Axis. */
+  if (axis_x_degenerate && !axis_y_degenerate && !axis_z_degenerate) {
+    cross_v3_v3v3(mat[0], mat[1], mat[2]);
+    mul_v3_fl(mat[0], FLT_EPSILON);
+    return;
+  }
+
+  /* Y Axis. */
+  if (!axis_x_degenerate && axis_y_degenerate && !axis_z_degenerate) {
+    cross_v3_v3v3(mat[1], mat[2], mat[0]);
+    mul_v3_fl(mat[1], FLT_EPSILON);
+    return;
+  }
+
+  /* Z Axis. */
+  if (!axis_x_degenerate && !axis_y_degenerate && axis_z_degenerate) {
+    cross_v3_v3v3(mat[2], mat[0], mat[1]);
+    mul_v3_fl(mat[2], FLT_EPSILON);
+    return;
+  }
+}
+
 void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4])
 {
   if (!invert_m4_m4(inverse, mat)) {
