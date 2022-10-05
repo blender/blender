@@ -16,6 +16,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -711,8 +712,13 @@ bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 
 bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports)
 {
-  /* if it fails, overwrite is OK. */
-  UserDef *userdef_default = BKE_blendfile_userdef_read(filepath, NULL);
+  /* Checking that `filepath` exists is not essential, it just avoids printing a warning that
+   * the file can't be found. In this case it's not an error - as the file is used if it exists,
+   * falling back to the defaults.
+   * If the preferences exists but file reading fails - the file can be assumed corrupt
+   * so overwriting the file is OK. */
+  UserDef *userdef_default = BLI_exists(filepath) ? BKE_blendfile_userdef_read(filepath, NULL) :
+                                                    NULL;
   if (userdef_default == NULL) {
     return BKE_blendfile_userdef_write(filepath, reports);
   }
