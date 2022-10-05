@@ -1229,7 +1229,7 @@ static void id_override_library_create_hierarchy(
     /* Remove the instance empty from this scene, the items now have an overridden collection
      * instead. */
     if (success && data_idroot.is_override_instancing_object) {
-      BLI_assert(GS(data_idroot.id_instance_hint) == ID_OB);
+      BLI_assert(GS(data_idroot.id_instance_hint->name) == ID_OB);
       ED_object_base_free_and_unlink(
           &bmain, scene, reinterpret_cast<Object *>(data_idroot.id_instance_hint));
     }
@@ -1815,7 +1815,7 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_delete_hierarchy_fn,
                                                   OUTLINER_LIB_SELECTIONSET_SELECTED,
-                                                  nullptr);
+                                                  &override_data);
 
       id_override_library_delete_hierarchy_process(C, op->reports, override_data);
 
