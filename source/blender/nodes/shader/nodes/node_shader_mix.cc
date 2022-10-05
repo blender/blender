@@ -23,11 +23,13 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("Factor"), "Factor_Float")
+      .no_muted_links()
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Factor"), "Factor_Vector")
+      .no_muted_links()
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR);
 
