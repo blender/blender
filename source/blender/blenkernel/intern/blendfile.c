@@ -720,7 +720,7 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
   UserDef *userdef_default = BLI_exists(filepath) ? BKE_blendfile_userdef_read(filepath, NULL) :
                                                     NULL;
   if (userdef_default == NULL) {
-    return BKE_blendfile_userdef_write(filepath, reports);
+    userdef_default = BKE_blendfile_userdef_from_defaults();
   }
 
   BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
