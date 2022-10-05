@@ -1619,15 +1619,15 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
-  int keyframe = RNA_enum_get(op->ptr, "keyframe");
-  int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  const int keyframe = RNA_enum_get(op->ptr, "keyframe");
+  const int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
 
   if (keyframe == SOLVER_KEYFRAME_A) {
-    object->keyframe1 = framenr;
+    tracking_object->keyframe1 = framenr;
   }
   else {
-    object->keyframe2 = framenr;
+    tracking_object->keyframe2 = framenr;
   }
 
   WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
@@ -1992,16 +1992,14 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object;
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
-  object = BKE_tracking_object_get_active(tracking);
-
-  if (object->flag & TRACKING_OBJECT_CAMERA) {
+  if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
     BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking cannot be deleted");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_tracking_object_delete(tracking, object);
+  BKE_tracking_object_delete(tracking, tracking_object);
 
   DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
@@ -2035,11 +2033,11 @@ static int copy_tracks_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
   clip_tracking_clear_invisible_track_selection(sc, clip);
 
-  BKE_tracking_clipboard_copy_tracks(tracking, object);
+  BKE_tracking_clipboard_copy_tracks(tracking, tracking_object);
 
   return OPERATOR_FINISHED;
 }

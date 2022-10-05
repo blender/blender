@@ -1592,13 +1592,13 @@ static void draw_tracking_tracks(SpaceClip *sc,
   }
 
   if (sc->flag & SC_SHOW_BUNDLES) {
-    MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+    MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
     float pos[4], vec[4], mat[4][4], aspy;
 
     GPU_point_size(3.0f);
 
     aspy = 1.0f / clip->tracking.camera.pixel_aspect;
-    BKE_tracking_get_projection_matrix(tracking, object, framenr, width, height, mat);
+    BKE_tracking_get_projection_matrix(tracking, tracking_object, framenr, width, height, mat);
 
     track = tracksbase->first;
     while (track) {

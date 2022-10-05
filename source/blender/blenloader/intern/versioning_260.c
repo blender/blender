@@ -1732,18 +1732,13 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
-    MovieClip *clip;
-
-    for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-      MovieTrackingTrack *track;
-      MovieTrackingObject *object;
-
-      for (track = clip->tracking.tracks_legacy.first; track; track = track->next) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &clip->tracking.tracks_legacy) {
         do_versions_affine_tracker_track(track);
       }
 
-      for (object = clip->tracking.objects.first; object; object = object->next) {
-        for (track = object->tracks.first; track; track = track->next) {
+      LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &clip->tracking.objects) {
+        LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
           do_versions_affine_tracker_track(track);
         }
       }

@@ -36,9 +36,7 @@ void TrackPositionOperation::init_execution()
 void TrackPositionOperation::calc_track_position()
 {
   is_track_position_calculated_ = true;
-  MovieTracking *tracking = nullptr;
   MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-  MovieTrackingObject *object;
 
   track_position_ = 0;
   zero_v2(marker_pos_);
@@ -48,16 +46,16 @@ void TrackPositionOperation::calc_track_position()
     return;
   }
 
-  tracking = &movie_clip_->tracking;
+  MovieTracking *tracking = &movie_clip_->tracking;
 
   BKE_movieclip_user_set_frame(&user, framenumber_);
   BKE_movieclip_get_size(movie_clip_, &user, &width_, &height_);
 
-  object = BKE_tracking_object_get_named(tracking, tracking_object_name_);
-  if (object) {
-    MovieTrackingTrack *track;
-
-    track = BKE_tracking_track_get_named(tracking, object, track_name_);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking,
+                                                                       tracking_object_name_);
+  if (tracking_object) {
+    MovieTrackingTrack *track = BKE_tracking_track_get_named(
+        tracking, tracking_object, track_name_);
 
     if (track) {
       MovieTrackingMarker *marker;

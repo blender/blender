@@ -434,30 +434,31 @@ static void rna_tracking_resetIntrinsics(Main *UNUSED(bmain),
 
 static void rna_trackingObject_tracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
-  rna_iterator_listbase_begin(iter, &object->tracks, NULL);
+  MovieTrackingObject *tracking_object = (MovieTrackingObject *)ptr->data;
+  rna_iterator_listbase_begin(iter, &tracking_object->tracks, NULL);
 }
 
 static void rna_trackingObject_plane_tracks_begin(CollectionPropertyIterator *iter,
                                                   PointerRNA *ptr)
 {
-  MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
-  rna_iterator_listbase_begin(iter, &object->plane_tracks, NULL);
+  MovieTrackingObject *tracking_object = (MovieTrackingObject *)ptr->data;
+  rna_iterator_listbase_begin(iter, &tracking_object->plane_tracks, NULL);
 }
 
 static PointerRNA rna_trackingObject_reconstruction_get(PointerRNA *ptr)
 {
-  MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
+  MovieTrackingObject *tracking_object = (MovieTrackingObject *)ptr->data;
   return rna_pointer_inherit_refine(
-      ptr, &RNA_MovieTrackingReconstruction, &object->reconstruction);
+      ptr, &RNA_MovieTrackingReconstruction, &tracking_object->reconstruction);
 }
 
 static PointerRNA rna_tracking_active_object_get(PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
-  MovieTrackingObject *object = BLI_findlink(&clip->tracking.objects, clip->tracking.objectnr);
+  MovieTrackingObject *tracking_object = BLI_findlink(&clip->tracking.objects,
+                                                      clip->tracking.objectnr);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingObject, object);
+  return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingObject, tracking_object);
 }
 
 static void rna_tracking_active_object_set(PointerRNA *ptr,
@@ -465,8 +466,8 @@ static void rna_tracking_active_object_set(PointerRNA *ptr,
                                            struct ReportList *UNUSED(reports))
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
-  MovieTrackingObject *object = (MovieTrackingObject *)value.data;
-  int index = BLI_findindex(&clip->tracking.objects, object);
+  MovieTrackingObject *tracking_object = (MovieTrackingObject *)value.data;
+  const int index = BLI_findindex(&clip->tracking.objects, tracking_object);
 
   if (index != -1) {
     clip->tracking.objectnr = index;
@@ -479,11 +480,11 @@ static void rna_tracking_active_object_set(PointerRNA *ptr,
 static void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
-  MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
+  MovieTrackingObject *tracking_object = (MovieTrackingObject *)ptr->data;
 
-  BLI_strncpy(object->name, value, sizeof(object->name));
+  BLI_strncpy(tracking_object->name, value, sizeof(tracking_object->name));
 
-  BKE_tracking_object_unique_name(&clip->tracking, object);
+  BKE_tracking_object_unique_name(&clip->tracking, tracking_object);
 }
 
 static void rna_trackingObject_flushUpdate(Main *UNUSED(bmain),
@@ -603,13 +604,13 @@ static MovieTrackingTrack *rna_trackingTracks_new(ID *id,
 }
 
 static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id,
-                                                         MovieTrackingObject *object,
+                                                         MovieTrackingObject *tracking_object,
                                                          const char *name,
                                                          int frame)
 {
   MovieClip *clip = (MovieClip *)id;
   MovieTrackingTrack *track = add_track_to_base(
-      clip, &clip->tracking, &object->tracks, name, frame);
+      clip, &clip->tracking, &tracking_object->tracks, name, frame);
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 
@@ -618,20 +619,20 @@ static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id,
 
 static MovieTrackingObject *rna_trackingObject_new(MovieTracking *tracking, const char *name)
 {
-  MovieTrackingObject *object = BKE_tracking_object_add(tracking, name);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_add(tracking, name);
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 
-  return object;
+  return tracking_object;
 }
 
 static void rna_trackingObject_remove(MovieTracking *tracking,
                                       ReportList *reports,
                                       PointerRNA *object_ptr)
 {
-  MovieTrackingObject *object = object_ptr->data;
-  if (BKE_tracking_object_delete(tracking, object) == false) {
-    BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' cannot be removed", object->name);
+  MovieTrackingObject *tracking_object = object_ptr->data;
+  if (BKE_tracking_object_delete(tracking, tracking_object) == false) {
+    BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' cannot be removed", tracking_object->name);
     return;
   }
 
@@ -735,11 +736,9 @@ static void rna_trackingPlaneMarkers_delete_frame(MovieTrackingPlaneTrack *plane
 static MovieTrackingObject *find_object_for_reconstruction(
     MovieTracking *tracking, MovieTrackingReconstruction *reconstruction)
 {
-  MovieTrackingObject *object;
-
-  for (object = tracking->objects.first; object; object = object->next) {
-    if (&object->reconstruction == reconstruction) {
-      return object;
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    if (&tracking_object->reconstruction == reconstruction) {
+      return tracking_object;
     }
   }
 
@@ -751,8 +750,8 @@ static MovieReconstructedCamera *rna_trackingCameras_find_frame(
 {
   MovieClip *clip = (MovieClip *)id;
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = find_object_for_reconstruction(tracking, reconstruction);
-  return BKE_tracking_camera_get_reconstructed(tracking, object, framenr);
+  MovieTrackingObject *tracking_object = find_object_for_reconstruction(tracking, reconstruction);
+  return BKE_tracking_camera_get_reconstructed(tracking, tracking_object, framenr);
 }
 
 static void rna_trackingCameras_matrix_from_frame(ID *id,
@@ -764,8 +763,8 @@ static void rna_trackingCameras_matrix_from_frame(ID *id,
 
   MovieClip *clip = (MovieClip *)id;
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = find_object_for_reconstruction(tracking, reconstruction);
-  BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
+  MovieTrackingObject *tracking_object = find_object_for_reconstruction(tracking, reconstruction);
+  BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, mat);
 
   memcpy(matrix, mat, sizeof(float[4][4]));
 }

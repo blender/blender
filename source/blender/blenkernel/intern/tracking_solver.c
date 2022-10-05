@@ -131,14 +131,15 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   int sfra = context->sfra, efra = context->efra;
   float imat[4][4];
 
-  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
-  MovieTrackingReconstruction *reconstruction = &object->reconstruction;
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking,
+                                                                       context->object_name);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
   unit_m4(imat);
 
   {
     int track_index = 0;
-    LISTBASE_FOREACH_INDEX (MovieTrackingTrack *, track, &object->tracks, track_index) {
+    LISTBASE_FOREACH_INDEX (MovieTrackingTrack *, track, &tracking_object->tracks, track_index) {
       double pos[3];
 
       if (libmv_reprojectionPointForTrack(libmv_reconstruction, track_index, pos)) {
@@ -221,7 +222,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   }
 
   if (origin_set) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if (track->flag & TRACK_HAS_BUNDLE) {
         mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
       }
@@ -244,12 +245,12 @@ static int reconstruct_retrieve_libmv(MovieReconstructContext *context, MovieTra
 
 /* Convert blender's refinement flags to libmv's. */
 static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking,
-                                                   MovieTrackingObject *object)
+                                                   MovieTrackingObject *tracking_object)
 {
-  int refine = tracking->settings.refine_camera_intrinsics;
+  const int refine = tracking->settings.refine_camera_intrinsics;
   int flags = 0;
 
-  if ((object->flag & TRACKING_OBJECT_CAMERA) == 0) {
+  if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
     return 0;
   }
 
@@ -273,12 +274,12 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking,
 }
 
 /* Count tracks which has markers at both of keyframes. */
-static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *object)
+static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *tracking_object)
 {
-  const int frame1 = object->keyframe1, frame2 = object->keyframe2;
+  const int frame1 = tracking_object->keyframe1, frame2 = tracking_object->keyframe2;
 
   int tot = 0;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame1)) {
       if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame2)) {
         tot++;
@@ -290,7 +291,7 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *objec
 }
 
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
-                                       MovieTrackingObject *object,
+                                       MovieTrackingObject *tracking_object,
                                        char *error_msg,
                                        int error_size)
 {
@@ -300,7 +301,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
   }
   if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
     /* automatic keyframe selection does not require any pre-process checks */
-    if (reconstruct_count_tracks_on_both_keyframes(object) < 8) {
+    if (reconstruct_count_tracks_on_both_keyframes(tracking_object) < 8) {
       BLI_strncpy(error_msg,
                   N_("At least 8 common tracks on both keyframes are needed for reconstruction"),
                   error_size);
@@ -317,21 +318,22 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
   return true;
 }
 
-MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip,
-                                                                 MovieTrackingObject *object,
-                                                                 int keyframe1,
-                                                                 int keyframe2,
-                                                                 int width,
-                                                                 int height)
+MovieReconstructContext *BKE_tracking_reconstruction_context_new(
+    MovieClip *clip,
+    MovieTrackingObject *tracking_object,
+    int keyframe1,
+    int keyframe2,
+    int width,
+    int height)
 {
   MovieTracking *tracking = &clip->tracking;
   MovieReconstructContext *context = MEM_callocN(sizeof(MovieReconstructContext),
                                                  "MovieReconstructContext data");
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
-  const int num_tracks = BLI_listbase_count(&object->tracks);
+  const int num_tracks = BLI_listbase_count(&tracking_object->tracks);
   int sfra = INT_MAX, efra = INT_MIN;
 
-  BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
+  BLI_strncpy(context->object_name, tracking_object->name, sizeof(context->object_name));
   context->motion_flag = tracking->settings.motion_flag;
 
   context->select_keyframes = (tracking->settings.reconstruction_flag &
@@ -342,7 +344,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 
   context->tracks_map = tracks_map_new(context->object_name, num_tracks, 0);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     int first = 0, last = track->markersnr - 1;
     MovieTrackingMarker *first_marker = &track->markers[0];
     MovieTrackingMarker *last_marker = &track->markers[track->markersnr - 1];
@@ -373,10 +375,10 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
   context->sfra = sfra;
   context->efra = efra;
 
-  context->tracks = libmv_tracks_new(clip, &object->tracks, width, height * aspy);
+  context->tracks = libmv_tracks_new(clip, &tracking_object->tracks, width, height * aspy);
   context->keyframe1 = keyframe1;
   context->keyframe2 = keyframe2;
-  context->refine_flags = reconstruct_refine_intrinsics_get_flags(tracking, object);
+  context->refine_flags = reconstruct_refine_intrinsics_get_flags(tracking, tracking_object);
 
   context->error_message[0] = '\0';
 
@@ -495,13 +497,14 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   tracks_map_merge(context->tracks_map, tracking);
   BKE_tracking_dopesheet_tag_update(tracking);
 
-  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, context->object_name);
-  MovieTrackingReconstruction *reconstruction = &object->reconstruction;
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking,
+                                                                       context->object_name);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
   /* update keyframe in the interface */
   if (context->select_keyframes) {
-    object->keyframe1 = context->keyframe1;
-    object->keyframe2 = context->keyframe2;
+    tracking_object->keyframe1 = context->keyframe1;
+    tracking_object->keyframe2 = context->keyframe2;
   }
 
   reconstruction->error = context->reprojection_error;

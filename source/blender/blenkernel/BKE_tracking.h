@@ -95,7 +95,7 @@ void BKE_tracking_get_camera_object_matrix(struct Object *camera_object, float m
  * \note frame number should be in clip space, not scene space.
  */
 void BKE_tracking_get_projection_matrix(struct MovieTracking *tracking,
-                                        struct MovieTrackingObject *object,
+                                        struct MovieTrackingObject *tracking_object,
                                         int framenr,
                                         int winx,
                                         int winy,
@@ -113,7 +113,7 @@ void BKE_tracking_clipboard_free(void);
  * Copy selected tracks from specified object to the clipboard.
  */
 void BKE_tracking_clipboard_copy_tracks(struct MovieTracking *tracking,
-                                        struct MovieTrackingObject *object);
+                                        struct MovieTrackingObject *tracking_object);
 /**
  * Check whether there are any tracks in the clipboard.
  */
@@ -124,7 +124,7 @@ bool BKE_tracking_clipboard_has_tracks(void);
  * Names of new tracks in object are guaranteed to be unique here.
  */
 void BKE_tracking_clipboard_paste_tracks(struct MovieTracking *tracking,
-                                         struct MovieTrackingObject *object);
+                                         struct MovieTrackingObject *tracking_object);
 
 /* **** Track **** */
 
@@ -248,9 +248,8 @@ void BKE_tracking_tracks_average(struct MovieTrackingTrack *dst_track,
                                  /*const*/ struct MovieTrackingTrack **src_tracks,
                                  int num_src_tracks);
 
-struct MovieTrackingTrack *BKE_tracking_track_get_named(struct MovieTracking *tracking,
-                                                        struct MovieTrackingObject *object,
-                                                        const char *name);
+struct MovieTrackingTrack *BKE_tracking_track_get_named(
+    struct MovieTracking *tracking, struct MovieTrackingObject *tracking_object, const char *name);
 struct MovieTrackingTrack *BKE_tracking_track_get_indexed(struct MovieTracking *tracking,
                                                           int tracknr,
                                                           struct ListBase **r_tracksbase);
@@ -382,7 +381,7 @@ bool BKE_tracking_plane_track_has_enabled_marker_at_frame(
     struct MovieTrackingPlaneTrack *plane_track, int framenr);
 
 struct MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_named(
-    struct MovieTracking *tracking, struct MovieTrackingObject *object, const char *name);
+    struct MovieTracking *tracking, struct MovieTrackingObject *tracking_object, const char *name);
 
 struct MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(
     struct MovieTracking *tracking);
@@ -440,10 +439,10 @@ void BKE_tracking_plane_marker_get_subframe_corners(struct MovieTrackingPlaneTra
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking,
                                                     const char *name);
 bool BKE_tracking_object_delete(struct MovieTracking *tracking,
-                                struct MovieTrackingObject *object);
+                                struct MovieTrackingObject *tracking_object);
 
 void BKE_tracking_object_unique_name(struct MovieTracking *tracking,
-                                     struct MovieTrackingObject *object);
+                                     struct MovieTrackingObject *tracking_object);
 
 struct MovieTrackingObject *BKE_tracking_object_get_named(struct MovieTracking *tracking,
                                                           const char *name);
@@ -467,9 +466,9 @@ void BKE_tracking_camera_to_blender(struct MovieTracking *tracking,
                                     int height);
 
 struct MovieReconstructedCamera *BKE_tracking_camera_get_reconstructed(
-    struct MovieTracking *tracking, struct MovieTrackingObject *object, int framenr);
+    struct MovieTracking *tracking, struct MovieTrackingObject *tracking_object, int framenr);
 void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tracking,
-                                                       struct MovieTrackingObject *object,
+                                                       struct MovieTrackingObject *tracking_object,
                                                        float framenr,
                                                        float mat[4][4]);
 
@@ -619,7 +618,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
  * Perform early check on whether everything is fine to start reconstruction.
  */
 bool BKE_tracking_reconstruction_check(struct MovieTracking *tracking,
-                                       struct MovieTrackingObject *object,
+                                       struct MovieTrackingObject *tracking_object,
                                        char *error_msg,
                                        int error_size);
 
@@ -630,7 +629,7 @@ bool BKE_tracking_reconstruction_check(struct MovieTracking *tracking,
  */
 struct MovieReconstructContext *BKE_tracking_reconstruction_context_new(
     struct MovieClip *clip,
-    struct MovieTrackingObject *object,
+    struct MovieTrackingObject *tracking_object,
     int keyframe1,
     int keyframe2,
     int width,

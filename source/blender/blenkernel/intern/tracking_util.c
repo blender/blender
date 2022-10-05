@@ -110,13 +110,13 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
   ListBase *old_tracks;
 
-  MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
-  if (!object) {
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, map->object_name);
+  if (!tracking_object) {
     /* object was deleted by user, create new one */
-    object = BKE_tracking_object_add(tracking, map->object_name);
+    tracking_object = BKE_tracking_object_add(tracking, map->object_name);
   }
 
-  old_tracks = &object->tracks;
+  old_tracks = &tracking_object->tracks;
 
   /* duplicate currently operating tracks to temporary list.
    * this is needed to keep names in unique state and it's faster to change names

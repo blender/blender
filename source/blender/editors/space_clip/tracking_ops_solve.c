@@ -53,10 +53,10 @@ static bool solve_camera_initjob(
   MovieClip *clip = ED_space_clip_get_clip(sc);
   Scene *scene = CTX_data_scene(C);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int width, height;
 
-  if (!BKE_tracking_reconstruction_check(tracking, object, error_msg, max_error)) {
+  if (!BKE_tracking_reconstruction_check(tracking, tracking_object, error_msg, max_error)) {
     return false;
   }
 
@@ -69,8 +69,12 @@ static bool solve_camera_initjob(
   scj->reports = op->reports;
   scj->user = sc->user;
 
-  scj->context = BKE_tracking_reconstruction_context_new(
-      clip, object, object->keyframe1, object->keyframe2, width, height);
+  scj->context = BKE_tracking_reconstruction_context_new(clip,
+                                                         tracking_object,
+                                                         tracking_object->keyframe1,
+                                                         tracking_object->keyframe2,
+                                                         width,
+                                                         height);
 
   tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 

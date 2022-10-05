@@ -62,7 +62,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
   float location[2];
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -84,8 +84,8 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
       }
 
       if (track->flag & TRACK_DOPE_SEL) {
-        object->active_track = track;
-        BKE_tracking_track_select(&object->tracks, track, TRACK_AREA_ALL, true);
+        tracking_object->active_track = track;
+        BKE_tracking_track_select(&tracking_object->tracks, track, TRACK_AREA_ALL, true);
       }
       else if (show_selected_only == false) {
         BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
