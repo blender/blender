@@ -14,6 +14,20 @@ function(download_source dep)
   else()
     set(TARGET_URI  https://svn.blender.org/svnroot/bf-blender/trunk/lib/packages/${TARGET_FILE})
   endif()
+  # Validate all required variables are set and give an explicit error message
+  # rather than CMake erroring out later on with a more ambigious error.
+  if (NOT DEFINED TARGET_FILE)
+    message(FATAL_ERROR "${dep}_FILE variable not set")
+  endif()
+  if (NOT DEFINED TARGET_HASH)
+    message(FATAL_ERROR "${dep}_HASH variable not set")
+  endif()
+  if (NOT DEFINED TARGET_HASH_TYPE)
+    message(FATAL_ERROR "${dep}_HASH_TYPE variable not set")
+  endif()
+  if (NOT DEFINED TARGET_URI)
+    message(FATAL_ERROR "${dep}_URI variable not set")
+  endif()
   set(TARGET_FILE ${PACKAGE_DIR}/${TARGET_FILE})
   message("Checking source : ${dep} (${TARGET_FILE})")
   if(NOT EXISTS ${TARGET_FILE})
@@ -24,6 +38,36 @@ function(download_source dep)
          TLS_VERIFY ON
          SHOW_PROGRESS
         )
+  endif()
+  if(EXISTS ${TARGET_FILE})
+    # Sometimes the download fails, but that is not a
+    # fail condition for "file(DOWNLOAD" it will warn about
+    # a crc mismatch and just carry on, we need to explicitly
+    # catch this and remove the bogus 0 byte file so we can
+    # retry without having to go find the file and manually
+    # delete it.
+    file (SIZE ${TARGET_FILE} TARGET_SIZE)
+    if(${TARGET_SIZE} EQUAL 0)
+      file(REMOVE ${TARGET_FILE})
+      message(FATAL_ERROR "for ${TARGET_FILE} file size 0, download likely failed, deleted...")
+    endif()
+
+    # If we are using sources from the blender repo also
+    # validate that the hashes match, this takes a
+    # little more time, but protects us when we are
+    # building a release package and one of the packages
+    # is missing or incorrect.
+    #
+    # For regular platform maintenaince this is not needed
+    # since the actual build of the dep will notify the
+    # platform maintainer if there is a problem with the
+    # source package and refuse to build.
+    if(NOT PACKAGE_USE_UPSTREAM_SOURCES)
+      file(${TARGET_HASH_TYPE} ${TARGET_FILE} LOCAL_HASH)
+      if(NOT ${TARGET_HASH} STREQUAL ${LOCAL_HASH})
+        message(FATAL_ERROR "${TARGET_FILE} ${TARGET_HASH_TYPE} mismatch\nExpected\t: ${TARGET_HASH}\nActual\t: ${LOCAL_HASH}")
+      endif()
+    endif()
   endif()
 endfunction(download_source)
 
@@ -51,7 +95,6 @@ download_source(OSL)
 download_source(PYTHON)
 download_source(TBB)
 download_source(OPENVDB)
-download_source(NANOVDB)
 download_source(NUMPY)
 download_source(LAME)
 download_source(OGG)
