@@ -39,6 +39,6 @@ void main()
   vec3 screen_pos = screen_vecs[0] * quadCoord.x + screen_vecs[1] * quadCoord.y;
   ws_location += screen_pos * sphere_size;
 
-  gl_Position = ViewProjectionMatrix * vec4(ws_location, 1.0);
+  gl_Position = ProjectionMatrix * (ViewMatrix * vec4(ws_location, 1.0));
   gl_Position.z += 0.0001; /* Small bias to let the icon draw without zfighting */
 }

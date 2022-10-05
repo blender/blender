@@ -21,8 +21,6 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
   data_.viewinv = view_mat.inverted();
   data_.winmat = win_mat;
   data_.wininv = win_mat.inverted();
-  data_.persmat = data_.winmat * data_.viewmat;
-  data_.persinv = data_.persmat.inverted();
   /* Should not be used anymore. */
   data_.viewcamtexcofac = float4(1.0f, 1.0f, 0.0f, 0.0f);
 
@@ -83,7 +81,8 @@ void View::frustum_boundbox_calc(BoundBox &bbox)
 
 void View::frustum_culling_planes_calc()
 {
-  planes_from_projmat(data_.persmat.ptr(),
+  float4x4 persmat = data_.winmat * data_.viewmat;
+  planes_from_projmat(persmat.ptr(),
                       data_.frustum_planes[0],
                       data_.frustum_planes[5],
                       data_.frustum_planes[1],
@@ -298,7 +297,8 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
   }
 #ifdef DEBUG
   if (debug_freeze) {
-    drw_debug_matrix_as_bbox(data_freeze_.persinv, float4(0, 1, 0, 1));
+    float4x4 persmat = data_freeze_.winmat * data_freeze_.viewmat;
+    drw_debug_matrix_as_bbox(persmat.inverted(), float4(0, 1, 0, 1));
   }
 #endif
   frozen_ = debug_freeze;
