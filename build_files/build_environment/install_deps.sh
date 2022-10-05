@@ -1050,7 +1050,7 @@ while true; do
       LEVEL_ZERO_SKIP=true; shift; continue
     ;;
     --skip-openpgl)
-      P{ENPGL_SKIP=true; shift; continue
+      OPENPGL_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
