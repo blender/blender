@@ -287,11 +287,8 @@ static void setup_app_data(bContext *C,
     }
   }
 
-  /* free G_MAIN Main database */
-  //  CTX_wm_manager_set(C, NULL);
-  BKE_blender_globals_clear();
-
-  bmain = G_MAIN = bfd->main;
+  BKE_blender_globals_main_replace(bfd->main);
+  bmain = G_MAIN;
   bfd->main = NULL;
 
   CTX_data_main_set(C, bmain);

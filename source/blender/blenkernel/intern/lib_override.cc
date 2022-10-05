@@ -23,6 +23,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -3829,9 +3830,8 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   /* This temporary swap of G_MAIN is rather ugly,
    * but necessary to avoid asserts checks in some RNA assignment functions,
-   * since those always use on G_MAIN when they need access to a Main database. */
-  Main *orig_gmain = G_MAIN;
-  G_MAIN = bmain;
+   * since those always use G_MAIN when they need access to a Main database. */
+  Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
@@ -3844,7 +3844,9 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
-  G_MAIN = orig_gmain;
+  Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
+  BLI_assert(tmp_gmain == bmain);
+  UNUSED_VARS_NDEBUG(tmp_gmain);
 }
 
 bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)

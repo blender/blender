@@ -53,6 +53,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
@@ -1613,12 +1614,13 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       if (me->totface && !me->totpoly) {
         /* temporarily switch main so that reading from
          * external CustomData works */
-        Main *gmain = G_MAIN;
-        G_MAIN = bmain;
+        Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
         BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
 
-        G_MAIN = gmain;
+        Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
+        BLI_assert(tmp_gmain == bmain);
+        UNUSED_VARS_NDEBUG(tmp_gmain);
       }
 
       /* Deprecated, only kept for conversion. */
