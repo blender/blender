@@ -367,6 +367,8 @@ void pseudoinverse_m4_m4(float Ainv[4][4], const float A[4][4], float epsilon);
 void pseudoinverse_m3_m3(float Ainv[3][3], const float A[3][3], float epsilon);
 
 bool has_zero_axis_m4(const float matrix[4][4]);
+/** Fix any zero scale axis adding a small bias orthogonal to the other valid axis. */
+void zero_axis_bias_m4(float mat[4][4]);
 
 void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4]);
 
