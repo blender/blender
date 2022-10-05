@@ -1578,7 +1578,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
         int found = 0;
         /* Jump to target only works with search properties currently, not search callbacks yet.
          * See ui_but_add_search. */
-        if (coll_search->search_prop != NULL) {
+        if (coll_search->search_prop != nullptr) {
           found = RNA_property_collection_lookup_string(
               &coll_search->search_ptr, coll_search->search_prop, str_ptr, &target_ptr);
         }

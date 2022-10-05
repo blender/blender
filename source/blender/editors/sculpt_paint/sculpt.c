@@ -6100,23 +6100,23 @@ void SCULPT_fake_neighbors_free(Object *ob)
 void SCULPT_automasking_node_begin(Object *ob,
                                    const SculptSession *UNUSED(ss),
                                    AutomaskingCache *automasking,
-                                   AutomaskingNodeData *node_data,
+                                   AutomaskingNodeData *automask_data,
                                    PBVHNode *node)
 {
   if (!automasking) {
-    memset(node_data, 0, sizeof(*node_data));
+    memset(automask_data, 0, sizeof(*automask_data));
     return;
   }
 
-  node_data->node = node;
-  node_data->have_orig_data = automasking->settings.flags &
-                              (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
+  automask_data->node = node;
+  automask_data->have_orig_data = automasking->settings.flags &
+                                  (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
 
-  if (node_data->have_orig_data) {
-    SCULPT_orig_vert_data_init(&node_data->orig_data, ob, node, SCULPT_UNDO_COORDS);
+  if (automask_data->have_orig_data) {
+    SCULPT_orig_vert_data_init(&automask_data->orig_data, ob, node, SCULPT_UNDO_COORDS);
   }
   else {
-    memset(&node_data->orig_data, 0, sizeof(node_data->orig_data));
+    memset(&automask_data->orig_data, 0, sizeof(automask_data->orig_data));
   }
 }
 

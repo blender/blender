@@ -5,7 +5,7 @@
  * \ingroup spview3d
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"

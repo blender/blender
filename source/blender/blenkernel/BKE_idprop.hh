@@ -46,7 +46,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
                                                       const StringRefNull value);
 
 /** \brief Allocate a new IDProperty of type IDP_ID, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, ID *id);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, ID *value);
 
 /**
  * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_INT.

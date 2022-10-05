@@ -249,7 +249,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
         bNodeSocket *new_socket = nodeFindSocket(&new_node, SOCK_IN, new_identifier->c_str());
         link->tonode = &new_node;
         link->tosock = new_socket;
-        old_socket->link = NULL;
+        old_socket->link = nullptr;
       }
     }
     if (link->fromnode == &old_node) {
@@ -258,7 +258,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
         bNodeSocket *new_socket = nodeFindSocket(&new_node, SOCK_OUT, new_identifier->c_str());
         link->fromnode = &new_node;
         link->fromsock = new_socket;
-        old_socket->link = NULL;
+        old_socket->link = nullptr;
       }
     }
   }

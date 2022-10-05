@@ -8,17 +8,24 @@
  * Embeds GPU meshes inside of PBVH nodes, used by mesh sculpt mode.
  */
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <algorithm>
+#include <climits>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
+#include "BLI_map.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -43,15 +50,6 @@
 
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
-
-#include "BLI_index_range.hh"
-#include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
-#include "BLI_vector.hh"
-#include <vector>
-
-#include <algorithm>
-#include <string>
 
 using blender::char3;
 using blender::float2;

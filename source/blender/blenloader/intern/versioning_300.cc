@@ -674,7 +674,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
 {
   using namespace blender;
   /* Otherwise `ntree->typeInfo` is null. */
-  ntreeSetTypes(NULL, ntree);
+  ntreeSetTypes(nullptr, ntree);
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (node->type != GEO_NODE_TRANSFER_ATTRIBUTE_DEPRECATED) {
       continue;
@@ -685,7 +685,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
     switch (storage->mode) {
       case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED: {
         bNode *sample_nearest_surface = nodeAddStaticNode(
-            NULL, ntree, GEO_NODE_SAMPLE_NEAREST_SURFACE);
+            nullptr, ntree, GEO_NODE_SAMPLE_NEAREST_SURFACE);
         sample_nearest_surface->parent = node->parent;
         sample_nearest_surface->custom1 = storage->data_type;
         sample_nearest_surface->locx = node->locx;
@@ -711,7 +711,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
                                        eAttrDomain(storage->domain);
 
         /* Use a sample index node to retrieve the data with this node's index output. */
-        bNode *sample_index = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_INDEX);
+        bNode *sample_index = nodeAddStaticNode(nullptr, ntree, GEO_NODE_SAMPLE_INDEX);
         NodeGeometrySampleIndex *sample_storage = static_cast<NodeGeometrySampleIndex *>(
             sample_index->storage);
         sample_storage->data_type = storage->data_type;
@@ -727,7 +727,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
                       nodeFindSocket(sample_index, SOCK_IN, "Geometry"));
         }
 
-        bNode *sample_nearest = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_NEAREST);
+        bNode *sample_nearest = nodeAddStaticNode(nullptr, ntree, GEO_NODE_SAMPLE_NEAREST);
         sample_nearest->parent = node->parent;
         sample_nearest->custom1 = storage->data_type;
         sample_nearest->custom2 = domain;
@@ -767,7 +767,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
         break;
       }
       case GEO_NODE_ATTRIBUTE_TRANSFER_INDEX: {
-        bNode *sample_index = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_INDEX);
+        bNode *sample_index = nodeAddStaticNode(nullptr, ntree, GEO_NODE_SAMPLE_INDEX);
         NodeGeometrySampleIndex *sample_storage = static_cast<NodeGeometrySampleIndex *>(
             sample_index->storage);
         sample_storage->data_type = storage->data_type;
@@ -792,7 +792,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
 
         if (!index_was_linked) {
           /* Add an index input node, since the new node doesn't use an implicit input. */
-          bNode *index = nodeAddStaticNode(NULL, ntree, GEO_NODE_INPUT_INDEX);
+          bNode *index = nodeAddStaticNode(nullptr, ntree, GEO_NODE_INPUT_INDEX);
           index->parent = node->parent;
           index->locx = node->locx - 25.0f;
           index->locy = node->locy - 25.0f;
@@ -807,7 +807,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
     }
     /* The storage must be freed manually because the node type isn't defined anymore. */
     MEM_freeN(node->storage);
-    nodeRemoveNode(NULL, ntree, node, false);
+    nodeRemoveNode(nullptr, ntree, node, false);
   }
 }
 
@@ -2992,7 +2992,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
-      tool_settings->snap_flag_seq = tool_settings->snap_flag & ~(SCE_SNAP | SCE_SNAP_SEQ);
+      tool_settings->snap_flag_seq = tool_settings->snap_flag &
+                                     ~(short(SCE_SNAP) | short(SCE_SNAP_SEQ));
       if (tool_settings->snap_flag & SCE_SNAP_SEQ) {
         tool_settings->snap_flag_seq |= SCE_SNAP;
         tool_settings->snap_flag &= ~SCE_SNAP_SEQ;

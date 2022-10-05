@@ -1009,7 +1009,7 @@ static void drw_command_set_mutable_state(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          Object *ob,
                          float (*obmat)[4],
-                         struct GPUBatch *geom,
+                         GPUBatch *geom,
                          bool bypass_culling,
                          void *user_data)
 {
@@ -1036,7 +1036,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
+    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1047,7 +1047,7 @@ void DRW_shgroup_call_range(
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num)
+    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1105,19 +1105,19 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup, Object *ob, uint point_count)
 {
-  struct GPUBatch *geom = drw_cache_procedural_points_get();
+  GPUBatch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, Object *ob, uint line_count)
 {
-  struct GPUBatch *geom = drw_cache_procedural_lines_get();
+  GPUBatch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob, uint tri_count)
 {
-  struct GPUBatch *geom = drw_cache_procedural_triangles_get();
+  GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
@@ -1126,7 +1126,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
                                           Object *ob,
                                           GPUStorageBuf *indirect_buf)
 {
-  struct GPUBatch *geom = nullptr;
+  GPUBatch *geom = nullptr;
   switch (primitive_type) {
     case GPU_PRIM_POINTS:
       geom = drw_cache_procedural_points_get();
@@ -1153,10 +1153,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
   drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
-void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
-                                Object *ob,
-                                struct GPUBatch *geom,
-                                uint count)
+void DRW_shgroup_call_instances(DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint count)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1168,8 +1165,8 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            Object *ob,
-                                           struct GPUBatch *geom,
-                                           struct GPUBatch *inst_attributes)
+                                           GPUBatch *geom,
+                                           GPUBatch *inst_attributes)
 {
   BLI_assert(geom != nullptr);
   BLI_assert(inst_attributes != nullptr);
@@ -1183,7 +1180,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
 }
 
 #define SCULPT_DEBUG_BUFFERS (G.debug_value == 889)
-typedef struct DRWSculptCallbackData {
+struct DRWSculptCallbackData {
   Object *ob;
   DRWShadingGroup **shading_groups;
   int num_shading_groups;
@@ -1196,7 +1193,7 @@ typedef struct DRWSculptCallbackData {
   int debug_node_nr;
   PBVHAttrReq *attrs;
   int attrs_num;
-} DRWSculptCallbackData;
+};
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
 static float sculpt_debug_colors[9][4] = {
@@ -1514,7 +1511,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 static GPUVertFormat inst_select_format = {0};
 
 DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
-                                       struct GPUVertFormat *format,
+                                       GPUVertFormat *format,
                                        GPUPrimType prim_type)
 {
   BLI_assert(ELEM(prim_type, GPU_PRIM_POINTS, GPU_PRIM_LINES, GPU_PRIM_TRI_FAN));
@@ -1544,7 +1541,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
 }
 
 DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
-                                                struct GPUVertFormat *format,
+                                                GPUVertFormat *format,
                                                 GPUBatch *geom)
 {
   BLI_assert(geom != nullptr);
@@ -1740,7 +1737,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP) == -1);
 }
 
-static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass *pass)
+static DRWShadingGroup *drw_shgroup_create_ex(GPUShader *shader, DRWPass *pass)
 {
   DRWShadingGroup *shgroup = static_cast<DRWShadingGroup *>(
       BLI_memblock_alloc(DST.vmempool->shgroups));
@@ -1785,7 +1782,7 @@ static void drw_shgroup_material_texture(DRWShadingGroup *grp,
   GPU_texture_ref(gputex);
 }
 
-void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial *material)
+void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *material)
 {
   ListBase textures = GPU_material_textures(material);
 
@@ -1849,7 +1846,7 @@ GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat att
   return format;
 }
 
-DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass)
+DRWShadingGroup *DRW_shgroup_material_create(GPUMaterial *material, DRWPass *pass)
 {
   GPUPass *gpupass = GPU_material_get_pass(material);
   DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
@@ -1861,14 +1858,14 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
   return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
+DRWShadingGroup *DRW_shgroup_create(GPUShader *shader, DRWPass *pass)
 {
   DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
   drw_shgroup_init(shgroup, shader);
   return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
+DRWShadingGroup *DRW_shgroup_transform_feedback_create(GPUShader *shader,
                                                        DRWPass *pass,
                                                        GPUVertBuf *tf_target)
 {
@@ -2220,7 +2217,7 @@ DRWView *DRW_view_create(const float viewmat[4][4],
 
   if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
     int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
-    struct wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
+    wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
     wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
     sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
   }

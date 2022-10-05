@@ -406,7 +406,7 @@ bool BKE_modifier_supports_cage(struct Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  return ((!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
+  return ((!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
           (mti->flags & eModifierTypeFlag_SupportsEditmode) && BKE_modifier_supports_mapping(md));
 }
 
@@ -415,7 +415,7 @@ bool BKE_modifier_couldbe_cage(struct Scene *scene, ModifierData *md)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
   return ((md->mode & eModifierMode_Realtime) && (md->mode & eModifierMode_Editmode) &&
-          (!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
+          (!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
           BKE_modifier_supports_mapping(md));
 }
 
@@ -513,7 +513,7 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
     bool supports_mapping;
 
-    if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+    if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
       continue;
     }
     if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) {

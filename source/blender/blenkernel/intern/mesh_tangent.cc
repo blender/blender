@@ -7,7 +7,7 @@
  * Functions to evaluate mesh tangents.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -224,12 +224,10 @@ struct SGLSLMeshToTangent {
       const float *uv = mloopuv[loop_index].uv;
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
-    else {
-      const float *l_orco = orco[mloop[loop_index].v];
-      float u, v;
-      map_to_sphere(&u, &v, l_orco[0], l_orco[1], l_orco[2]);
-      return mikk::float3(u, v, 1.0f);
-    }
+    const float *l_orco = orco[mloop[loop_index].v];
+    float u, v;
+    map_to_sphere(&u, &v, l_orco[0], l_orco[1], l_orco[2]);
+    return mikk::float3(u, v, 1.0f);
   }
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
@@ -239,35 +237,31 @@ struct SGLSLMeshToTangent {
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[loop_index]);
     }
-    else if ((mpoly[lt->poly].flag & ME_SMOOTH) == 0) { /* flat */
+    if ((mpoly[lt->poly].flag & ME_SMOOTH) == 0) { /* flat */
       if (precomputedFaceNormals) {
         return mikk::float3(precomputedFaceNormals[lt->poly]);
       }
-      else {
 #ifdef USE_LOOPTRI_DETECT_QUADS
-        const MPoly *mp = &mpoly[lt->poly];
-        float normal[3];
-        if (mp->totloop == 4) {
-          normal_quad_v3(normal,
-                         mvert[mloop[mp->loopstart + 0].v].co,
-                         mvert[mloop[mp->loopstart + 1].v].co,
-                         mvert[mloop[mp->loopstart + 2].v].co,
-                         mvert[mloop[mp->loopstart + 3].v].co);
-        }
-        else
-#endif
-        {
-          normal_tri_v3(normal,
-                        mvert[mloop[lt->tri[0]].v].co,
-                        mvert[mloop[lt->tri[1]].v].co,
-                        mvert[mloop[lt->tri[2]].v].co);
-        }
-        return mikk::float3(normal);
+      const MPoly *mp = &mpoly[lt->poly];
+      float normal[3];
+      if (mp->totloop == 4) {
+        normal_quad_v3(normal,
+                       mvert[mloop[mp->loopstart + 0].v].co,
+                       mvert[mloop[mp->loopstart + 1].v].co,
+                       mvert[mloop[mp->loopstart + 2].v].co,
+                       mvert[mloop[mp->loopstart + 3].v].co);
       }
+      else
+#endif
+      {
+        normal_tri_v3(normal,
+                      mvert[mloop[lt->tri[0]].v].co,
+                      mvert[mloop[lt->tri[1]].v].co,
+                      mvert[mloop[lt->tri[2]].v].co);
+      }
+      return mikk::float3(normal);
     }
-    else {
-      return mikk::float3(vert_normals[mloop[loop_index].v]);
-    }
+    return mikk::float3(vert_normals[mloop[loop_index].v]);
   }
 
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)

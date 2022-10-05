@@ -248,10 +248,8 @@ static void spreadsheet_update_context(const bContext *C)
             /* The pinned path is still valid, do nothing. */
             break;
           }
-          else {
-            /* The pinned path does not exist anymore, clear pinning. */
-            sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
-          }
+          /* The pinned path does not exist anymore, clear pinning. */
+          sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
         }
         else {
           /* Unknown pinned path, clear pinning. */
@@ -266,11 +264,9 @@ static void spreadsheet_update_context(const bContext *C)
           /* Nothing changed. */
           break;
         }
-        else {
-          /* Update the viewer path from the workspace. */
-          BKE_viewer_path_clear(&sspreadsheet->viewer_path);
-          BKE_viewer_path_copy(&sspreadsheet->viewer_path, &workspace->viewer_path);
-        }
+        /* Update the viewer path from the workspace. */
+        BKE_viewer_path_clear(&sspreadsheet->viewer_path);
+        BKE_viewer_path_copy(&sspreadsheet->viewer_path, &workspace->viewer_path);
       }
       else {
         /* No active viewer node, change back to showing evaluated active object. */

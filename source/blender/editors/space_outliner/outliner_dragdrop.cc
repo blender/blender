@@ -1571,7 +1571,7 @@ void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 /** \name Drop Boxes
  * \{ */
 
-void outliner_dropboxes(void)
+void outliner_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
 

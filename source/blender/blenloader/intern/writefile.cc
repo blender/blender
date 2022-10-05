@@ -55,12 +55,13 @@
  * - write #USER (#UserDef struct) if filename is `~/.config/blender/X.XX/config/startup.blend`.
  */
 
+#include <cerrno>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -116,8 +117,6 @@
 
 #include "readfile.h"
 
-#include <errno.h>
-
 #include <zstd.h>
 
 /* Make preferences read-only. */
@@ -143,19 +142,18 @@ static CLG_LogRef LOG = {"blo.writefile"};
 /** \name Internal Write Wrapper's (Abstracts Compression)
  * \{ */
 
-typedef enum {
+enum eWriteWrapType {
   WW_WRAP_NONE = 1,
   WW_WRAP_ZSTD,
-} eWriteWrapType;
+};
 
-typedef struct ZstdFrame {
+struct ZstdFrame {
   struct ZstdFrame *next, *prev;
 
   uint32_t compressed_size;
   uint32_t uncompressed_size;
-} ZstdFrame;
+};
 
-typedef struct WriteWrap WriteWrap;
 struct WriteWrap {
   /* callbacks */
   bool (*open)(WriteWrap *ww, const char *filepath);
@@ -395,8 +393,8 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 /** \name Write Data Type & Functions
  * \{ */
 
-typedef struct {
-  const struct SDNA *sdna;
+struct WriteData {
+  const SDNA *sdna;
 
   struct {
     /** Use for file and memory writing (size stored in max_size). */
@@ -429,11 +427,11 @@ typedef struct {
    * Will be nullptr for UNDO.
    */
   WriteWrap *ww;
-} WriteData;
+};
 
-typedef struct BlendWriter {
+struct BlendWriter {
   WriteData *wd;
-} BlendWriter;
+};
 
 static WriteData *writedata_new(WriteWrap *ww)
 {
@@ -812,11 +810,11 @@ static void current_screen_compat(Main *mainvar,
                                          nullptr;
 }
 
-typedef struct RenderInfo {
+struct RenderInfo {
   int sfra;
   int efra;
   char scene_name[MAX_ID_NAME - 2];
-} RenderInfo;
+};
 
 /**
  * This was originally added for the historic render-daemon feature,

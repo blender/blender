@@ -639,7 +639,7 @@ static int mesh_customdata_add_exec__internal(bContext *C, char htype, int type)
     BM_data_layer_add(mesh->edit_mesh->bm, data, type);
   }
   else {
-    CustomData_add_layer(data, type, CD_SET_DEFAULT, NULL, tot);
+    CustomData_add_layer(data, type, CD_SET_DEFAULT, nullptr, tot);
   }
 
   DEG_id_tag_update(&mesh->id, 0);

@@ -23,13 +23,13 @@ namespace blender::geometry {
 
 #define CURVE_TYPE_AS_MASK(curve_type) ((CurveTypeMask)(1 << int(curve_type)))
 
-typedef enum CurveTypeMask {
+enum CurveTypeMask {
   CURVE_TYPE_MASK_CATMULL_ROM = (1 << 0),
   CURVE_TYPE_MASK_POLY = (1 << 1),
   CURVE_TYPE_MASK_BEZIER = (1 << 2),
   CURVE_TYPE_MASK_NURBS = (1 << 3),
   CURVE_TYPE_MASK_ALL = (1 << 4) - 1
-} CurveTypeMask;
+};
 
 /** \} */
 

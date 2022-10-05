@@ -165,9 +165,7 @@ static void eevee_render_to_image(void *vedata,
   instance->render_frame(layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
-  if (ved->instance) {
-    delete ved->instance;
-  }
+  delete ved->instance;
   ved->instance = instance;
 }
 

@@ -298,7 +298,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
         BLI_addtail(&gpl_dst->frames, gpf_dst);
 
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf_dst->strokes) {
-          gps->runtime.gps_orig = NULL;
+          gps->runtime.gps_orig = nullptr;
           /* Create material of the stroke. */
           Material *ma_src = BKE_object_material_get(elem->ob, gps->mat_nr + 1);
           bool found = false;
@@ -322,7 +322,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           for (int j = 0; j < gps->totpoints; j++) {
             bGPDspoint *pt = &gps->points[j];
             pt->runtime.idx_orig = 0;
-            pt->runtime.pt_orig = NULL;
+            pt->runtime.pt_orig = nullptr;
             mul_m4_v3(ob_eval->obmat, &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }

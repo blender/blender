@@ -5,9 +5,9 @@
  * \ingroup draw_engine
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -46,7 +46,7 @@
 
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
 
-typedef struct ArmatureDrawContext {
+struct ArmatureDrawContext {
   /* Current armature object */
   Object *ob;
   /* bArmature *arm; */ /* TODO */
@@ -87,7 +87,7 @@ typedef struct ArmatureDrawContext {
   bool show_relations;
 
   const ThemeWireColor *bcolor; /* pchan color */
-} ArmatureDrawContext;
+};
 
 bool OVERLAY_armature_is_pose_mode(Object *ob, const DRWContextState *draw_ctx)
 {
@@ -135,7 +135,7 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
     DRW_PASS_CREATE(psl->armature_bone_select_ps, state | pd->clipping_state);
 
     float alpha = pd->overlay.xray_alpha_bone;
-    struct GPUShader *sh = OVERLAY_shader_uniform_color();
+    GPUShader *sh = OVERLAY_shader_uniform_color();
     DRWShadingGroup *grp;
 
     pd->armature_bone_select_act_grp = grp = DRW_shgroup_create(sh, psl->armature_bone_select_ps);
@@ -148,8 +148,8 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
   }
 
   for (int i = 0; i < 2; i++) {
-    struct GPUShader *sh;
-    struct GPUVertFormat *format;
+    GPUShader *sh;
+    GPUVertFormat *format;
     DRWShadingGroup *grp = nullptr;
 
     OVERLAY_InstanceFormats *formats = OVERLAY_shader_instance_formats_get();
@@ -620,7 +620,7 @@ extern "C" void drw_batch_cache_generate_requested_delayed(Object *custom);
 
 BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
                                                        DRWShadingGroup *grp,
-                                                       struct GPUBatch *custom_geom)
+                                                       GPUBatch *custom_geom)
 {
   DRWCallBuffer *buf = static_cast<DRWCallBuffer *>(
       BLI_ghash_lookup(ctx->custom_shapes_ghash, custom_geom));
@@ -644,9 +644,9 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
 
-  struct GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
-  struct GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
-  struct GPUBatch *ledges = DRW_mesh_batch_cache_get_loose_edges(mesh);
+  GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
+  GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
+  GPUBatch *ledges = DRW_mesh_batch_cache_get_loose_edges(mesh);
   BoneInstanceData inst_data;
   DRWCallBuffer *buf;
 
@@ -688,7 +688,7 @@ static void drw_shgroup_bone_custom_mesh_wire(ArmatureDrawContext *ctx,
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
 
-  struct GPUBatch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
+  GPUBatch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {
     DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, geom);
     BoneInstanceData inst_data;
@@ -714,7 +714,7 @@ static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
 
   /* This only handles curves without any surface. The other curve types should have been converted
    * to meshes and rendered in the mesh drawing function. */
-  struct GPUBatch *ledges = nullptr;
+  GPUBatch *ledges = nullptr;
   if (custom->type == OB_FONT) {
     ledges = DRW_cache_text_edge_wire_get(custom);
   }
@@ -2066,7 +2066,7 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
                            bArmature *arm,
                            const int boneflag)
 {
-  struct DRWTextStore *dt = DRW_text_cache_ensure();
+  DRWTextStore *dt = DRW_text_cache_ensure();
   uchar color[4];
   float vec[3];
 
@@ -2579,7 +2579,7 @@ void OVERLAY_pose_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+  GPUBatch *geom = DRW_cache_object_surface_get(ob);
   if (geom) {
     if (POSE_is_driven_by_active_armature(ob)) {
       DRW_shgroup_call(pd->armature_bone_select_act_grp, geom, ob);

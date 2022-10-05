@@ -94,12 +94,10 @@ struct SGLSLEditMeshToTangent {
       const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
-    else {
-      const float *orco_p = orco[BM_elem_index_get(l->v)];
-      float u, v;
-      map_to_sphere(&u, &v, orco_p[0], orco_p[1], orco_p[2]);
-      return mikk::float3(u, v, 1.0f);
-    }
+    const float *orco_p = orco[BM_elem_index_get(l->v)];
+    float u, v;
+    map_to_sphere(&u, &v, orco_p[0], orco_p[1], orco_p[2]);
+    return mikk::float3(u, v, 1.0f);
   }
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_index)
@@ -108,17 +106,13 @@ struct SGLSLEditMeshToTangent {
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[BM_elem_index_get(l)]);
     }
-    else if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
+    if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
       if (precomputedFaceNormals) {
         return mikk::float3(precomputedFaceNormals[BM_elem_index_get(l->f)]);
       }
-      else {
-        return mikk::float3(l->f->no);
-      }
+      return mikk::float3(l->f->no);
     }
-    else {
-      return mikk::float3(l->v->no);
-    }
+    return mikk::float3(l->v->no);
   }
 
   void SetTangentSpace(const uint face_num,

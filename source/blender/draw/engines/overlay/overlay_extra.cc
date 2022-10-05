@@ -60,8 +60,8 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
     DRW_PASS_CREATE(psl->extra_grid_ps, state | pd->clipping_state);
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     DRWShadingGroup *grp;
-    struct GPUShader *sh = OVERLAY_shader_extra_grid();
-    struct GPUTexture *tex = DRW_state_is_fbo() ? dtxl->depth : txl->dummy_depth_tx;
+    GPUShader *sh = OVERLAY_shader_extra_grid();
+    GPUTexture *tex = DRW_state_is_fbo() ? dtxl->depth : txl->dummy_depth_tx;
 
     pd->extra_grid_grp = grp = DRW_shgroup_create(sh, psl->extra_grid_ps);
     DRW_shgroup_uniform_texture(grp, "depthBuffer", tex);
@@ -71,8 +71,8 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */
-    struct GPUShader *sh;
-    struct GPUVertFormat *format;
+    GPUShader *sh;
+    GPUVertFormat *format;
     DRWShadingGroup *grp, *grp_sub;
 
     OVERLAY_InstanceFormats *formats = OVERLAY_shader_instance_formats_get();
@@ -248,7 +248,7 @@ OVERLAY_ExtraCallBuffers *OVERLAY_extra_call_buffer_get(OVERLAY_Data *vedata, Ob
 }
 
 void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
-                                struct GPUBatch *geom,
+                                GPUBatch *geom,
                                 const float mat[4][4],
                                 const float color[4])
 {
@@ -258,7 +258,7 @@ void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
 }
 
 void OVERLAY_extra_wire(OVERLAY_ExtraCallBuffers *cb,
-                        struct GPUBatch *geom,
+                        GPUBatch *geom,
                         const float mat[4][4],
                         const float color[4])
 {
@@ -806,7 +806,7 @@ void OVERLAY_speaker_cache_populate(OVERLAY_Data *vedata, Object *ob)
 /** \name Camera
  * \{ */
 
-typedef union OVERLAY_CameraInstanceData {
+union OVERLAY_CameraInstanceData {
   /* Pack render data into object matrix and object color. */
   struct {
     float color[4];
@@ -842,7 +842,7 @@ typedef union OVERLAY_CameraInstanceData {
       float mist_end;
     };
   };
-} OVERLAY_CameraInstanceData;
+};
 
 static void camera_view3d_reconstruction(
     OVERLAY_ExtraCallBuffers *cb, Scene *scene, View3D *v3d, Object *ob, const float color[4])
@@ -946,7 +946,7 @@ static void camera_view3d_reconstruction(
       }
 
       if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_select) {
-        struct DRWTextStore *dt = DRW_text_cache_ensure();
+        DRWTextStore *dt = DRW_text_cache_ensure();
 
         DRW_text_cache_add(dt,
                            bundle_mat[3],
@@ -1333,7 +1333,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
             OVERLAY_extra_line_dashed(cb, ct->matrix[3], ob->obmat[3], constraint_color);
           }
 
-          BKE_constraint_targets_flush(curcon, &targets, 1);
+          BKE_constraint_targets_flush(curcon, &targets, true);
         }
       }
     }
@@ -1507,7 +1507,7 @@ static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
 
 static void OVERLAY_object_name(Object *ob, int theme_id)
 {
-  struct DRWTextStore *dt = DRW_text_cache_ensure();
+  DRWTextStore *dt = DRW_text_cache_ensure();
   uchar color[4];
   /* Color Management: Exception here as texts are drawn in sRGB space directly. */
   UI_GetThemeColor4ubv(theme_id, color);

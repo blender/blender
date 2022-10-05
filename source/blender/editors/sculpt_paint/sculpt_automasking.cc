@@ -170,7 +170,7 @@ static float sculpt_automasking_normal_calc(SculptSession *ss,
 
     return t;
   }
-  else if (angle > limit_upper) {
+  if (angle > limit_upper) {
     return 0.0f;
   }
 

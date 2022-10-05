@@ -777,7 +777,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     ED_node_tree_update(C);
   }
 
-  WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
   return OPERATOR_FINISHED;
 }
