@@ -2595,8 +2595,8 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(Scene *scene,
 
   if (include_default) {
     tmp.identifier = "DEFAULT";
-    tmp.name = "Default";
-    tmp.description = "Use the scene orientation";
+    tmp.name = N_("Default");
+    tmp.description = N_("Use the scene orientation");
     tmp.value = V3D_ORIENT_DEFAULT;
     tmp.icon = ICON_OBJECT_ORIGIN;
     RNA_enum_item_add(&item, &totitem, &tmp);

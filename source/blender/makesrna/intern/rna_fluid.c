@@ -20,6 +20,8 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
@@ -570,14 +572,14 @@ static const EnumPropertyItem *rna_Fluid_cachetype_mesh_itemf(bContext *UNUSED(C
 
   tmp.value = FLUID_DOMAIN_FILE_BIN_OBJECT;
   tmp.identifier = "BOBJECT";
-  tmp.name = "Binary Object";
-  tmp.description = "Binary object file format (.bobj.gz)";
+  tmp.name = N_("Binary Object");
+  tmp.description = N_("Binary object file format (.bobj.gz)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FILE_OBJECT;
   tmp.identifier = "OBJECT";
-  tmp.name = "Object";
-  tmp.description = "Object file format (.obj)";
+  tmp.name = N_("Object");
+  tmp.description = N_("Object file format (.obj)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   RNA_enum_item_end(&item, &totitem);
@@ -597,15 +599,15 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext *UNUSED
 
   tmp.value = FLUID_DOMAIN_FILE_UNI;
   tmp.identifier = "UNI";
-  tmp.name = "Uni Cache";
-  tmp.description = "Uni file format (.uni)";
+  tmp.name = N_("Uni Cache");
+  tmp.description = N_("Uni file format (.uni)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
 #  ifdef WITH_OPENVDB
   tmp.value = FLUID_DOMAIN_FILE_OPENVDB;
   tmp.identifier = "OPENVDB";
-  tmp.name = "OpenVDB";
-  tmp.description = "OpenVDB file format (.vdb)";
+  tmp.name = N_("OpenVDB");
+  tmp.description = N_("OpenVDB file format (.vdb)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 #  endif
 
@@ -615,8 +617,8 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext *UNUSED
       fds->cache_noise_format == FLUID_DOMAIN_FILE_RAW) {
     tmp.value = FLUID_DOMAIN_FILE_RAW;
     tmp.identifier = "RAW";
-    tmp.name = "Raw Cache";
-    tmp.description = "Raw file format (.raw)";
+    tmp.name = N_("Raw Cache");
+    tmp.description = N_("Raw file format (.raw)");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
 
@@ -637,8 +639,8 @@ static const EnumPropertyItem *rna_Fluid_cachetype_particle_itemf(bContext *UNUS
 
   tmp.value = FLUID_DOMAIN_FILE_UNI;
   tmp.identifier = "UNI";
-  tmp.name = "Uni Cache";
-  tmp.description = "Uni file format";
+  tmp.name = N_("Uni Cache");
+  tmp.description = N_("Uni file format");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   RNA_enum_item_end(&item, &totitem);
@@ -676,136 +678,136 @@ static const EnumPropertyItem *rna_Fluid_cobafield_itemf(bContext *UNUSED(C),
   tmp.value = FLUID_DOMAIN_FIELD_FLAGS;
   tmp.identifier = "FLAGS";
   tmp.icon = 0;
-  tmp.name = "Flags";
-  tmp.description = "Flag grid of the fluid domain";
+  tmp.name = N_("Flags");
+  tmp.description = N_("Flag grid of the fluid domain");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_PRESSURE;
   tmp.identifier = "PRESSURE";
   tmp.icon = 0;
-  tmp.name = "Pressure";
-  tmp.description = "Pressure field of the fluid domain";
+  tmp.name = N_("Pressure");
+  tmp.description = N_("Pressure field of the fluid domain");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_X;
   tmp.identifier = "VELOCITY_X";
   tmp.icon = 0;
-  tmp.name = "X Velocity";
-  tmp.description = "X component of the velocity field";
+  tmp.name = N_("X Velocity");
+  tmp.description = N_("X component of the velocity field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_Y;
   tmp.identifier = "VELOCITY_Y";
   tmp.icon = 0;
-  tmp.name = "Y Velocity";
-  tmp.description = "Y component of the velocity field";
+  tmp.name = N_("Y Velocity");
+  tmp.description = N_("Y component of the velocity field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_Z;
   tmp.identifier = "VELOCITY_Z";
   tmp.icon = 0;
-  tmp.name = "Z Velocity";
-  tmp.description = "Z component of the velocity field";
+  tmp.name = N_("Z Velocity");
+  tmp.description = N_("Z component of the velocity field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_FORCE_X;
   tmp.identifier = "FORCE_X";
   tmp.icon = 0;
-  tmp.name = "X Force";
-  tmp.description = "X component of the force field";
+  tmp.name = N_("X Force");
+  tmp.description = N_("X component of the force field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_FORCE_Y;
   tmp.identifier = "FORCE_Y";
   tmp.icon = 0;
-  tmp.name = "Y Force";
-  tmp.description = "Y component of the force field";
+  tmp.name = N_("Y Force");
+  tmp.description = N_("Y component of the force field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = FLUID_DOMAIN_FIELD_FORCE_Z;
   tmp.identifier = "FORCE_Z";
   tmp.icon = 0;
-  tmp.name = "Z Force";
-  tmp.description = "Z component of the force field";
+  tmp.name = N_("Z Force");
+  tmp.description = N_("Z component of the force field");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   if (settings->type == FLUID_DOMAIN_TYPE_GAS) {
     tmp.value = FLUID_DOMAIN_FIELD_COLOR_R;
     tmp.identifier = "COLOR_R";
     tmp.icon = 0;
-    tmp.name = "Red";
-    tmp.description = "Red component of the color field";
+    tmp.name = N_("Red");
+    tmp.description = N_("Red component of the color field");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_COLOR_G;
     tmp.identifier = "COLOR_G";
     tmp.icon = 0;
-    tmp.name = "Green";
-    tmp.description = "Green component of the color field";
+    tmp.name = N_("Green");
+    tmp.description = N_("Green component of the color field");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_COLOR_B;
     tmp.identifier = "COLOR_B";
     tmp.icon = 0;
-    tmp.name = "Blue";
-    tmp.description = "Blue component of the color field";
+    tmp.name = N_("Blue");
+    tmp.description = N_("Blue component of the color field");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_DENSITY;
     tmp.identifier = "DENSITY";
     tmp.icon = 0;
-    tmp.name = "Density";
-    tmp.description = "Quantity of soot in the fluid";
+    tmp.name = N_("Density");
+    tmp.description = N_("Quantity of soot in the fluid");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_FLAME;
     tmp.identifier = "FLAME";
     tmp.icon = 0;
-    tmp.name = "Flame";
-    tmp.description = "Flame field";
+    tmp.name = N_("Flame");
+    tmp.description = N_("Flame field");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_FUEL;
     tmp.identifier = "FUEL";
     tmp.icon = 0;
-    tmp.name = "Fuel";
-    tmp.description = "Fuel field";
+    tmp.name = N_("Fuel");
+    tmp.description = N_("Fuel field");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_HEAT;
     tmp.identifier = "HEAT";
     tmp.icon = 0;
-    tmp.name = "Heat";
-    tmp.description = "Temperature of the fluid";
+    tmp.name = N_("Heat");
+    tmp.description = N_("Temperature of the fluid");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
   else if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
     tmp.value = FLUID_DOMAIN_FIELD_PHI;
     tmp.identifier = "PHI";
     tmp.icon = 0;
-    tmp.name = "Fluid Levelset";
-    tmp.description = "Levelset representation of the fluid";
+    tmp.name = N_("Fluid Levelset");
+    tmp.description = N_("Levelset representation of the fluid");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_IN;
     tmp.identifier = "PHI_IN";
     tmp.icon = 0;
-    tmp.name = "Inflow Levelset";
-    tmp.description = "Levelset representation of the inflow";
+    tmp.name = N_("Inflow Levelset");
+    tmp.description = N_("Levelset representation of the inflow");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_OUT;
     tmp.identifier = "PHI_OUT";
     tmp.icon = 0;
-    tmp.name = "Outflow Levelset";
-    tmp.description = "Levelset representation of the outflow";
+    tmp.name = N_("Outflow Levelset");
+    tmp.description = N_("Levelset representation of the outflow");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_OBSTACLE;
     tmp.identifier = "PHI_OBSTACLE";
     tmp.icon = 0;
-    tmp.name = "Obstacle Levelset";
-    tmp.description = "Levelset representation of the obstacles";
+    tmp.name = N_("Obstacle Levelset");
+    tmp.description = N_("Levelset representation of the obstacles");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
 
@@ -829,23 +831,23 @@ static const EnumPropertyItem *rna_Fluid_data_depth_itemf(bContext *UNUSED(C),
   tmp.value = VDB_PRECISION_FULL_FLOAT;
   tmp.identifier = "32";
   tmp.icon = 0;
-  tmp.name = "Full";
-  tmp.description = "Full float (Use 32 bit for all data)";
+  tmp.name = N_("Full");
+  tmp.description = N_("Full float (Use 32 bit for all data)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = VDB_PRECISION_HALF_FLOAT;
   tmp.identifier = "16";
   tmp.icon = 0;
-  tmp.name = "Half";
-  tmp.description = "Half float (Use 16 bit for all data)";
+  tmp.name = N_("Half");
+  tmp.description = N_("Half float (Use 16 bit for all data)");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
     tmp.value = VDB_PRECISION_MINI_FLOAT;
     tmp.identifier = "8";
     tmp.icon = 0;
-    tmp.name = "Mini";
-    tmp.description = "Mini float (Use 8 bit where possible, otherwise use 16 bit)";
+    tmp.name = N_("Mini");
+    tmp.description = N_("Mini float (Use 8 bit where possible, otherwise use 16 bit)");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
 
@@ -1192,16 +1194,16 @@ static const EnumPropertyItem *rna_Fluid_flowsource_itemf(bContext *UNUSED(C),
   tmp.value = FLUID_FLOW_SOURCE_MESH;
   tmp.identifier = "MESH";
   tmp.icon = ICON_META_CUBE;
-  tmp.name = "Mesh";
-  tmp.description = "Emit fluid from mesh surface or volume";
+  tmp.name = N_("Mesh");
+  tmp.description = N_("Emit fluid from mesh surface or volume");
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   if (settings->type != FLUID_FLOW_TYPE_LIQUID) {
     tmp.value = FLUID_FLOW_SOURCE_PARTICLES;
     tmp.identifier = "PARTICLES";
     tmp.icon = ICON_PARTICLES;
-    tmp.name = "Particle System";
-    tmp.description = "Emit smoke from particles";
+    tmp.name = N_("Particle System");
+    tmp.description = N_("Emit smoke from particles");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
 

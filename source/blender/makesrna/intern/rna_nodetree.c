@@ -828,21 +828,21 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C),
 
   tmp.value = NODE_CUSTOM;
   tmp.identifier = "CUSTOM";
-  tmp.name = "Custom";
-  tmp.description = "Custom Node";
+  tmp.name = N_("Custom");
+  tmp.description = N_("Custom Node");
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = NODE_CUSTOM_GROUP;
   tmp.identifier = "CUSTOM GROUP";
-  tmp.name = "CustomGroup";
-  tmp.description = "Custom Group Node";
+  tmp.name = N_("CustomGroup");
+  tmp.description = N_("Custom Group Node");
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = NODE_UNDEFINED;
   tmp.identifier = "UNDEFINED";
-  tmp.name = "UNDEFINED";
+  tmp.name = N_("UNDEFINED");
   tmp.description = "";
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
