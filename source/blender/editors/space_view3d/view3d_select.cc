@@ -2394,20 +2394,10 @@ bool ED_view3d_is_object_under_cursor(bContext *C, const int mval[2])
 
 static void deselect_all_tracks(MovieTracking *tracking)
 {
-  MovieTrackingObject *object;
-
-  object = static_cast<MovieTrackingObject *>(tracking->objects.first);
-  while (object) {
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-    MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracksbase->first);
-
-    while (track) {
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
-
-      track = track->next;
     }
-
-    object = object->next;
   }
 }
 

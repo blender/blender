@@ -37,7 +37,7 @@
 
 /********************** set origin operator *********************/
 
-static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
+static Object *get_camera_with_movieclip(Scene *scene, const MovieClip *clip)
 {
   Object *camera = scene->camera;
 
@@ -182,12 +182,11 @@ static int set_origin_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
   float median[3] = {0.0f, 0.0f, 0.0f};
   zero_v3(median);
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+  LISTBASE_FOREACH (const MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       add_v3_v3(median, track->bundle_pos);
     }
@@ -240,9 +239,9 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 static void set_axis(Scene *scene,
                      Object *ob,
-                     MovieClip *clip,
-                     MovieTrackingObject *tracking_object,
-                     MovieTrackingTrack *track,
+                     const MovieClip *clip,
+                     const MovieTrackingObject *tracking_object,
+                     const MovieTrackingTrack *track,
                      char axis)
 {
   Object *camera = get_camera_with_movieclip(scene, clip);
@@ -376,10 +375,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   Scene *scene = CTX_data_scene(C);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *tracking_object;
-  MovieTrackingTrack *track, *axis_track = NULL, *act_track;
-  ListBase *tracksbase;
-  Object *object;
+  const MovieTrackingTrack *axis_track = NULL;
   Object *camera = get_camera_with_movieclip(scene, clip);
   int tot = 0;
   float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3] = {0.0f, 0.0f, 0.0f};
@@ -397,11 +393,10 @@ static int set_plane_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  tracking_object = BKE_tracking_object_get_active(tracking);
-  tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-  act_track = BKE_tracking_track_get_active(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  const MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
-  object = get_orientation_object(C);
+  Object *object = get_orientation_object(C);
   if (object == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
     return OPERATOR_CANCELLED;
@@ -410,19 +405,22 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   BKE_tracking_get_camera_object_matrix(camera, mat);
 
   /* Get 3 bundles to use as reference. */
-  track = static_cast<MovieTrackingTrack *>(tracksbase->first);
-  while (track && tot < 3) {
-    if (track->flag & TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
-      mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
-      if (tot == 0 || track == act_track) {
-        copy_v3_v3(orig, vec[tot]);
+  {
+    const MovieTrackingTrack *track = static_cast<const MovieTrackingTrack *>(
+        tracking_object->tracks.first);
+    while (track && tot < 3) {
+      if (track->flag & TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
+        mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
+        if (tot == 0 || track == act_track) {
+          copy_v3_v3(orig, vec[tot]);
+        }
+        else {
+          axis_track = track;
+        }
+        tot++;
       }
-      else {
-        axis_track = track;
-      }
-      tot++;
+      track = track->next;
     }
-    track = track->next;
   }
 
   sub_v3_v3(vec[1], vec[0]);
@@ -537,8 +535,8 @@ static int set_axis_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-  MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracksbase->first);
+  const MovieTrackingTrack *track = static_cast<const MovieTrackingTrack *>(
+      tracking_object->tracks.first);
   while (track) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       break;

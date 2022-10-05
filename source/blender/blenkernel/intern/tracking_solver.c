@@ -281,23 +281,17 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking,
 }
 
 /* Count tracks which has markers at both of keyframes. */
-static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking,
-                                                      MovieTrackingObject *object)
+static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *object)
 {
-  ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-  int tot = 0;
-  int frame1 = object->keyframe1, frame2 = object->keyframe2;
-  MovieTrackingTrack *track;
+  const int frame1 = object->keyframe1, frame2 = object->keyframe2;
 
-  track = tracksbase->first;
-  while (track) {
+  int tot = 0;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
     if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame1)) {
       if (BKE_tracking_track_has_enabled_marker_at_frame(track, frame2)) {
         tot++;
       }
     }
-
-    track = track->next;
   }
 
   return tot;
@@ -314,7 +308,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
   }
   if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
     /* automatic keyframe selection does not require any pre-process checks */
-    if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
+    if (reconstruct_count_tracks_on_both_keyframes(object) < 8) {
       BLI_strncpy(error_msg,
                   N_("At least 8 common tracks on both keyframes are needed for reconstruction"),
                   error_size);
@@ -341,11 +335,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
   MovieTracking *tracking = &clip->tracking;
   MovieReconstructContext *context = MEM_callocN(sizeof(MovieReconstructContext),
                                                  "MovieReconstructContext data");
-  ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-  float aspy = 1.0f / tracking->camera.pixel_aspect;
-  int num_tracks = BLI_listbase_count(tracksbase);
+  const float aspy = 1.0f / tracking->camera.pixel_aspect;
+  const int num_tracks = BLI_listbase_count(&object->tracks);
   int sfra = INT_MAX, efra = INT_MIN;
-  MovieTrackingTrack *track;
 
   BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
   context->motion_flag = tracking->settings.motion_flag;
@@ -358,8 +350,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 
   context->tracks_map = tracks_map_new(context->object_name, num_tracks, 0);
 
-  track = tracksbase->first;
-  while (track) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
     int first = 0, last = track->markersnr - 1;
     MovieTrackingMarker *first_marker = &track->markers[0];
     MovieTrackingMarker *last_marker = &track->markers[track->markersnr - 1];
@@ -385,14 +376,12 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
     }
 
     tracks_map_insert(context->tracks_map, track, NULL);
-
-    track = track->next;
   }
 
   context->sfra = sfra;
   context->efra = efra;
 
-  context->tracks = libmv_tracks_new(clip, tracksbase, width, height * aspy);
+  context->tracks = libmv_tracks_new(clip, &object->tracks, width, height * aspy);
   context->keyframe1 = keyframe1;
   context->keyframe2 = keyframe2;
   context->refine_flags = reconstruct_refine_intrinsics_get_flags(tracking, object);
@@ -563,10 +552,6 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
 void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
 {
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-    MovieTrackingReconstruction *reconstruction = BKE_tracking_object_get_reconstruction(tracking,
-                                                                                         object);
-
-    tracking_scale_reconstruction(tracksbase, reconstruction, scale);
+    tracking_scale_reconstruction(&object->tracks, &object->reconstruction, scale);
   }
 }

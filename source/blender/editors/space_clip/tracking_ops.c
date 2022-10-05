@@ -2081,11 +2081,10 @@ static int paste_tracks_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
-  ListBase *tracks_base = BKE_tracking_object_get_tracks(tracking, object);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
-  BKE_tracking_tracks_deselect_all(tracks_base);
-  BKE_tracking_clipboard_paste_tracks(tracking, object);
+  BKE_tracking_tracks_deselect_all(&tracking_object->tracks);
+  BKE_tracking_clipboard_paste_tracks(tracking, tracking_object);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 

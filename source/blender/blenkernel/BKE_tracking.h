@@ -451,13 +451,6 @@ struct MovieTrackingObject *BKE_tracking_object_get_named(struct MovieTracking *
 struct MovieTrackingObject *BKE_tracking_object_get_active(const struct MovieTracking *tracking);
 struct MovieTrackingObject *BKE_tracking_object_get_camera(const struct MovieTracking *tracking);
 
-struct ListBase *BKE_tracking_object_get_tracks(struct MovieTracking *tracking,
-                                                struct MovieTrackingObject *object);
-struct ListBase *BKE_tracking_object_get_plane_tracks(struct MovieTracking *tracking,
-                                                      struct MovieTrackingObject *object);
-struct MovieTrackingReconstruction *BKE_tracking_object_get_reconstruction(
-    struct MovieTracking *tracking, struct MovieTrackingObject *object);
-
 /* --------------------------------------------------------------------
  * Camera.
  */

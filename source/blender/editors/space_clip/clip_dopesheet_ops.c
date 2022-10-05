@@ -64,8 +64,6 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
-  MovieTrackingDopesheetChannel *channel;
-  ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
   float location[2];
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   int current_channel_index = 0, channel_index;
@@ -74,7 +72,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", location);
   channel_index = -(location[1] - (CHANNEL_FIRST + CHANNEL_HEIGHT_HALF)) / CHANNEL_STEP;
 
-  for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
     MovieTrackingTrack *track = channel->track;
 
     if (current_channel_index == channel_index) {
@@ -87,7 +85,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 
       if (track->flag & TRACK_DOPE_SEL) {
         object->active_track = track;
-        BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
+        BKE_tracking_track_select(&object->tracks, track, TRACK_AREA_ALL, true);
       }
       else if (show_selected_only == false) {
         BKE_tracking_track_deselect(track, TRACK_AREA_ALL);

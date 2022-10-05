@@ -231,33 +231,28 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingPlaneMarker *plane_marker = (MovieTrackingPlaneMarker *)ptr->data;
-  MovieTrackingObject *tracking_object;
-  bool found = false;
-  MovieTrackingPlaneTrack *plane_track = NULL;
+  MovieTrackingPlaneTrack *plane_track_of_marker = NULL;
 
-  for (tracking_object = tracking->objects.first; tracking_object;
-       tracking_object = tracking_object->next) {
-    ListBase *tracksbase = BKE_tracking_object_get_plane_tracks(tracking, tracking_object);
-
-    for (plane_track = tracksbase->first; plane_track; plane_track = plane_track->next) {
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
       if (plane_marker >= plane_track->markers &&
           plane_marker < plane_track->markers + plane_track->markersnr) {
-        found = true;
+        plane_track_of_marker = plane_track;
         break;
       }
     }
 
-    if (found) {
+    if (plane_track_of_marker) {
       break;
     }
   }
 
-  if (found) {
+  if (plane_track_of_marker) {
     MovieTrackingPlaneMarker new_plane_marker = *plane_marker;
     new_plane_marker.framenr = value;
 
-    BKE_tracking_plane_marker_delete(plane_track, plane_marker->framenr);
-    BKE_tracking_plane_marker_insert(plane_track, &new_plane_marker);
+    BKE_tracking_plane_marker_delete(plane_track_of_marker, plane_marker->framenr);
+    BKE_tracking_plane_marker_insert(plane_track_of_marker, &new_plane_marker);
   }
 }
 
@@ -506,32 +501,27 @@ static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
-  MovieTrackingObject *tracking_object;
-  bool found = false;
-  MovieTrackingTrack *track = NULL;
+  MovieTrackingTrack *track_of_marker = NULL;
 
-  for (tracking_object = tracking->objects.first; tracking_object;
-       tracking_object = tracking_object->next) {
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-
-    for (track = tracksbase->first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if (marker >= track->markers && marker < track->markers + track->markersnr) {
-        found = true;
+        track_of_marker = track;
         break;
       }
     }
 
-    if (found) {
+    if (track_of_marker) {
       break;
     }
   }
 
-  if (found) {
+  if (track_of_marker) {
     MovieTrackingMarker new_marker = *marker;
     new_marker.framenr = value;
 
-    BKE_tracking_marker_delete(track, marker->framenr);
-    BKE_tracking_marker_insert(track, &new_marker);
+    BKE_tracking_marker_delete(track_of_marker, marker->framenr);
+    BKE_tracking_marker_insert(track_of_marker, &new_marker);
   }
 }
 
