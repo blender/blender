@@ -2321,14 +2321,6 @@ void DRW_view_update(DRWView *view,
   draw_frustum_bound_sphere_calc(
       &view->frustum_corners, viewinv, winmat, wininv, &view->frustum_bsphere);
 
-  /* TODO(fclem): Deduplicate. */
-  for (int i = 0; i < 8; i++) {
-    copy_v3_v3(view->storage.frustum_corners[i], view->frustum_corners.vec[i]);
-  }
-  for (int i = 0; i < 6; i++) {
-    copy_v4_v4(view->storage.frustum_planes[i], view->frustum_planes[i]);
-  }
-
 #ifdef DRW_DEBUG_CULLING
   if (G.debug_value != 0) {
     DRW_debug_sphere(

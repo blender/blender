@@ -7,6 +7,7 @@
 #  include "GPU_shader_shared_utils.h"
 #  include "draw_defines.h"
 
+typedef struct ViewCullingData ViewCullingData;
 typedef struct ViewInfos ViewInfos;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
@@ -50,6 +51,15 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
  * This should be kept in sync with `GPU_ATTR_MAX` */
 #define DRW_ATTRIBUTE_PER_CURVES_MAX 15
 
+struct ViewCullingData {
+  /** \note vec3 array padded to vec4. */
+  /** Frustum corners. */
+  float4 corners[8];
+  float4 planes[6];
+  float4 bound_sphere;
+};
+BLI_STATIC_ASSERT_ALIGN(ViewCullingData, 16)
+
 struct ViewInfos {
   /* View matrices */
   float4x4 viewmat;
@@ -64,12 +74,6 @@ struct ViewInfos {
 
   float2 viewport_size;
   float2 viewport_size_inverse;
-
-  /** Frustum culling data. */
-  /** \note vec3 array padded to vec4. */
-  float4 frustum_corners[8];
-  float4 frustum_planes[6];
-  float4 frustum_bound_sphere;
 
   /** For debugging purpose */
   /* Mouse pixel. */

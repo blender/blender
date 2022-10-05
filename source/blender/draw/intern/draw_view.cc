@@ -28,8 +28,8 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
 
   update_view_vectors();
 
-  BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&data_.frustum_corners);
-  BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&data_.frustum_bound_sphere);
+  BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&culling_.corners);
+  BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&culling_.bound_sphere);
   frustum_boundbox_calc(bound_box);
   frustum_culling_planes_calc();
   frustum_culling_sphere_calc(bound_box, bound_sphere);
@@ -83,16 +83,16 @@ void View::frustum_culling_planes_calc()
 {
   float4x4 persmat = data_.winmat * data_.viewmat;
   planes_from_projmat(persmat.ptr(),
-                      data_.frustum_planes[0],
-                      data_.frustum_planes[5],
-                      data_.frustum_planes[1],
-                      data_.frustum_planes[3],
-                      data_.frustum_planes[4],
-                      data_.frustum_planes[2]);
+                      culling_.planes[0],
+                      culling_.planes[5],
+                      culling_.planes[1],
+                      culling_.planes[3],
+                      culling_.planes[4],
+                      culling_.planes[2]);
 
   /* Normalize. */
   for (int p = 0; p < 6; p++) {
-    data_.frustum_planes[p].w /= normalize_v3(data_.frustum_planes[p]);
+    culling_.planes[p].w /= normalize_v3(culling_.planes[p]);
   }
 }
 
@@ -284,9 +284,11 @@ void View::bind()
   if (dirty_) {
     dirty_ = false;
     data_.push_update();
+    culling_.push_update();
   }
 
   GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
+  GPU_uniformbuf_bind(culling_, DRW_VIEW_CULLING_UBO_SLOT);
 }
 
 void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze)
@@ -294,6 +296,8 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
   if (debug_freeze && frozen_ == false) {
     data_freeze_ = static_cast<ViewInfos>(data_);
     data_freeze_.push_update();
+    culling_freeze_ = static_cast<ViewCullingData>(culling_);
+    culling_freeze_.push_update();
   }
 #ifdef DEBUG
   if (debug_freeze) {
