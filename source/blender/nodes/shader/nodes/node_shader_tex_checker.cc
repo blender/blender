@@ -23,7 +23,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 }
 
-static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexChecker *tex = MEM_cnew<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -34,7 +34,7 @@ static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_checker(GPUMaterial *mat,
                                        bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
+                                       bNodeExecData * /*execdata*/,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
@@ -64,7 +64,7 @@ class NodeTexChecker : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(

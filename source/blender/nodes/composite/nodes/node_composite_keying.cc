@@ -33,7 +33,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Edges"));
 }
 
-static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeKeyingData *data = MEM_cnew<NodeKeyingData>(__func__);
 
@@ -47,7 +47,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_keying(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   /* bNode *node = (bNode*)ptr->data; */ /* UNUSED */
 

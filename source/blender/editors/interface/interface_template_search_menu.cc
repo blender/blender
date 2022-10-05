@@ -931,7 +931,7 @@ static void menu_search_arg_free_fn(void *data_v)
   MEM_freeN(data);
 }
 
-static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   MenuSearch_Item *item = (MenuSearch_Item *)arg2;
   if (item == nullptr) {
@@ -994,11 +994,11 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
   }
 }
 
-static void menu_search_update_fn(const bContext *UNUSED(C),
+static void menu_search_update_fn(const bContext * /*C*/,
                                   void *arg,
                                   const char *str,
                                   uiSearchItems *items,
-                                  const bool UNUSED(is_first))
+                                  const bool /*is_first*/)
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
@@ -1077,7 +1077,7 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 
 static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
                                                      struct ARegion *region,
-                                                     const rcti *UNUSED(item_rect),
+                                                     const rcti * /*item_rect*/,
                                                      void *arg,
                                                      void *active)
 {

@@ -40,6 +40,21 @@ template<typename T> struct vec_struct_base<T, 4> {
   T x, y, z, w;
 };
 
+template<class Fn, size_t... I> void unroll_impl(Fn fn, std::index_sequence<I...> /*indices*/)
+{
+  (fn(I), ...);
+}
+
+/**
+ * Variadic templates are used to unroll loops manually. This helps GCC avoid branching during math
+ * operations and makes the code generation more explicit and predictable. Unrolling should always
+ * be worth it because the vector size is expected to be small.
+ */
+template<int N, class Fn> void unroll(Fn fn)
+{
+  unroll_impl(fn, std::make_index_sequence<N>());
+}
+
 namespace math {
 
 template<typename T> uint64_t vector_hash(const T &vec)
@@ -181,17 +196,13 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base(const T *ptr)
   {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = ptr[i];
-    }
+    unroll<Size>([&](auto i) { (*this)[i] = ptr[i]; });
   }
 
   template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   explicit vec_base(const U *ptr)
   {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = ptr[i];
-    }
+    unroll<Size>([&](auto i) { (*this)[i] = ptr[i]; });
   }
 
   vec_base(const T (*ptr)[Size]) : vec_base(static_cast<const T *>(ptr[0]))
@@ -202,9 +213,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   template<typename U> explicit vec_base(const vec_base<U, Size> &vec)
   {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = T(vec[i]);
-    }
+    unroll<Size>([&](auto i) { (*this)[i] = T(vec[i]); });
   }
 
   /** C-style pointer dereference. */
@@ -239,29 +248,20 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
 #define BLI_INT_OP(_T) template<typename U = _T, BLI_ENABLE_IF((std::is_integral_v<U>))>
 
-#define BLI_VEC_OP_IMPL(_result, _i, _op) \
-  vec_base _result; \
-  for (int _i = 0; _i < Size; _i++) { \
-    _op; \
-  } \
-  return _result;
-
-#define BLI_VEC_OP_IMPL_SELF(_i, _op) \
-  for (int _i = 0; _i < Size; _i++) { \
-    _op; \
-  } \
-  return *this;
-
   /** Arithmetic operators. */
 
   friend vec_base operator+(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] + b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] + b[i]; });
+    return result;
   }
 
   friend vec_base operator+(const vec_base &a, const T &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] + b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] + b; });
+    return result;
   }
 
   friend vec_base operator+(const T &a, const vec_base &b)
@@ -271,52 +271,69 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base &operator+=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] += b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] += b[i]; });
+    return *this;
   }
 
   vec_base &operator+=(const T &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] += b);
+    vec_base result;
+    unroll<Size>([&](auto i) { (*this)[i] += b; });
+    return result;
   }
 
   friend vec_base operator-(const vec_base &a)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = -a[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = -a[i]; });
+    return result;
   }
 
   friend vec_base operator-(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] - b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] - b[i]; });
+    return result;
   }
 
   friend vec_base operator-(const vec_base &a, const T &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] - b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] - b; });
+    return result;
   }
 
   friend vec_base operator-(const T &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a - b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a - b[i]; });
+    return result;
   }
 
   vec_base &operator-=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] -= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] -= b[i]; });
+    return *this;
   }
 
   vec_base &operator-=(const T &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] -= b);
+    unroll<Size>([&](auto i) { (*this)[i] -= b; });
+    return *this;
   }
 
   friend vec_base operator*(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] * b[i]; });
+    return result;
   }
 
   template<typename FactorT> friend vec_base operator*(const vec_base &a, FactorT b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] * b; });
+    return result;
   }
 
   friend vec_base operator*(T a, const vec_base &b)
@@ -326,12 +343,14 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base &operator*=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] *= b);
+    unroll<Size>([&](auto i) { (*this)[i] *= b; });
+    return *this;
   }
 
   vec_base &operator*=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] *= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] *= b[i]; });
+    return *this;
   }
 
   friend vec_base operator/(const vec_base &a, const vec_base &b)
@@ -339,13 +358,17 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
     }
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] / b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] / b[i]; });
+    return result;
   }
 
   friend vec_base operator/(const vec_base &a, T b)
   {
     BLI_assert(b != T(0));
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] / b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] / b; });
+    return result;
   }
 
   friend vec_base operator/(T a, const vec_base &b)
@@ -353,31 +376,39 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
     }
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a / b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a / b[i]; });
+    return result;
   }
 
   vec_base &operator/=(T b)
   {
     BLI_assert(b != T(0));
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] /= b);
+    unroll<Size>([&](auto i) { (*this)[i] /= b; });
+    return *this;
   }
 
   vec_base &operator/=(const vec_base &b)
   {
     BLI_assert(b != T(0));
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] /= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] /= b[i]; });
+    return *this;
   }
 
   /** Binary operators. */
 
   BLI_INT_OP(T) friend vec_base operator&(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] & b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] & b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator&(const vec_base &a, T b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] & b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] & b; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator&(T a, const vec_base &b)
@@ -387,22 +418,28 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   BLI_INT_OP(T) vec_base &operator&=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] &= b);
+    unroll<Size>([&](auto i) { (*this)[i] &= b; });
+    return *this;
   }
 
   BLI_INT_OP(T) vec_base &operator&=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] &= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] &= b[i]; });
+    return *this;
   }
 
   BLI_INT_OP(T) friend vec_base operator|(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] | b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] | b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator|(const vec_base &a, T b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] | b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] | b; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator|(T a, const vec_base &b)
@@ -412,22 +449,28 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   BLI_INT_OP(T) vec_base &operator|=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] |= b);
+    unroll<Size>([&](auto i) { (*this)[i] |= b; });
+    return *this;
   }
 
   BLI_INT_OP(T) vec_base &operator|=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] |= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] |= b[i]; });
+    return *this;
   }
 
   BLI_INT_OP(T) friend vec_base operator^(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] ^ b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] ^ b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator^(const vec_base &a, T b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] ^ b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] ^ b; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator^(T a, const vec_base &b)
@@ -437,59 +480,75 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   BLI_INT_OP(T) vec_base &operator^=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] ^= b);
+    unroll<Size>([&](auto i) { (*this)[i] ^= b; });
+    return *this;
   }
 
   BLI_INT_OP(T) vec_base &operator^=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] ^= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] ^= b[i]; });
+    return *this;
   }
 
   BLI_INT_OP(T) friend vec_base operator~(const vec_base &a)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = ~a[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = ~a[i]; });
+    return result;
   }
 
   /** Bit-shift operators. */
 
   BLI_INT_OP(T) friend vec_base operator<<(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] << b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] << b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator<<(const vec_base &a, T b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] << b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] << b; });
+    return result;
   }
 
   BLI_INT_OP(T) vec_base &operator<<=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] <<= b);
+    unroll<Size>([&](auto i) { (*this)[i] <<= b; });
+    return *this;
   }
 
   BLI_INT_OP(T) vec_base &operator<<=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] <<= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] <<= b[i]; });
+    return *this;
   }
 
   BLI_INT_OP(T) friend vec_base operator>>(const vec_base &a, const vec_base &b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] >> b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] >> b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator>>(const vec_base &a, T b)
   {
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] >> b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] >> b; });
+    return result;
   }
 
   BLI_INT_OP(T) vec_base &operator>>=(T b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] >>= b);
+    unroll<Size>([&](auto i) { (*this)[i] >>= b; });
+    return *this;
   }
 
   BLI_INT_OP(T) vec_base &operator>>=(const vec_base &b)
   {
-    BLI_VEC_OP_IMPL_SELF(i, (*this)[i] >>= b[i]);
+    unroll<Size>([&](auto i) { (*this)[i] >>= b[i]; });
+    return *this;
   }
 
   /** Modulo operators. */
@@ -499,24 +558,28 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
     }
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] % b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] % b[i]; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator%(const vec_base &a, T b)
   {
     BLI_assert(b != 0);
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] % b);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a[i] % b; });
+    return result;
   }
 
   BLI_INT_OP(T) friend vec_base operator%(T a, const vec_base &b)
   {
     BLI_assert(b != T(0));
-    BLI_VEC_OP_IMPL(ret, i, ret[i] = a % b[i]);
+    vec_base result;
+    unroll<Size>([&](auto i) { result[i] = a % b[i]; });
+    return result;
   }
 
 #undef BLI_INT_OP
-#undef BLI_VEC_OP_IMPL
-#undef BLI_VEC_OP_IMPL_SELF
 
   /** Compare. */
 

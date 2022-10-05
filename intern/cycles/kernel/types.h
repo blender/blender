@@ -1160,7 +1160,7 @@ typedef struct KernelBake {
   int use;
   int object_index;
   int tri_offset;
-  int pad1;
+  int use_camera;
 } KernelBake;
 static_assert_align(KernelBake, 16);
 

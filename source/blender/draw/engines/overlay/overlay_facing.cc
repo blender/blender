@@ -10,7 +10,7 @@
 
 #include "overlay_private.hh"
 
-void OVERLAY_facing_init(OVERLAY_Data *UNUSED(vedata))
+void OVERLAY_facing_init(OVERLAY_Data * /*vedata*/)
 {
 }
 

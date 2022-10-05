@@ -28,14 +28,12 @@ static void cmp_node_brightcontrast_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_brightcontrast(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_brightcontrast(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1;
 }
 
-static void node_composit_buts_brightcontrast(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_composit_buts_brightcontrast(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }

@@ -284,7 +284,7 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
 
 void PlaneDistortMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                              const rcti &area,
-                                                             Span<MemoryBuffer *> UNUSED(inputs))
+                                                             Span<MemoryBuffer *> /*inputs*/)
 {
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     int inside_count = 0;

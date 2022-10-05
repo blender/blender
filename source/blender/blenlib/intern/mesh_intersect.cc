@@ -829,13 +829,13 @@ struct BBPadData {
 
 static void pad_face_bb_range_func(void *__restrict userdata,
                                    const int iter,
-                                   const TaskParallelTLS *__restrict UNUSED(tls))
+                                   const TaskParallelTLS *__restrict /*tls*/)
 {
   BBPadData *pad_data = static_cast<BBPadData *>(userdata);
   (*pad_data->face_bounding_box)[iter].expand(pad_data->pad);
 }
 
-static void calc_face_bb_reduce(const void *__restrict UNUSED(userdata),
+static void calc_face_bb_reduce(const void *__restrict /*userdata*/,
                                 void *__restrict chunk_join,
                                 void *__restrict chunk)
 {
@@ -2451,7 +2451,7 @@ class TriOverlaps {
   }
 
  private:
-  static bool only_different_shapes(void *userdata, int index_a, int index_b, int UNUSED(thread))
+  static bool only_different_shapes(void *userdata, int index_a, int index_b, int /*thread*/)
   {
     CBData *cbdata = static_cast<CBData *>(userdata);
     return cbdata->tm.face(index_a)->orig != cbdata->tm.face(index_b)->orig;
@@ -2487,7 +2487,7 @@ static std::pair<int, int> canon_int_pair(int a, int b)
 
 static void calc_overlap_itts_range_func(void *__restrict userdata,
                                          const int iter,
-                                         const TaskParallelTLS *__restrict UNUSED(tls))
+                                         const TaskParallelTLS *__restrict /*tls*/)
 {
   constexpr int dbg_level = 0;
   OverlapIttsData *data = static_cast<OverlapIttsData *>(userdata);
@@ -2682,7 +2682,7 @@ static CDT_data calc_cluster_subdivided(const CoplanarClusterInfo &clinfo,
                                         const IMesh &tm,
                                         const TriOverlaps &ov,
                                         const Map<std::pair<int, int>, ITT_value> &itt_map,
-                                        IMeshArena *UNUSED(arena))
+                                        IMeshArena * /*arena*/)
 {
   constexpr int dbg_level = 0;
   BLI_assert(c < clinfo.tot_cluster());
@@ -2889,7 +2889,7 @@ static void degenerate_range_func(void *__restrict userdata,
   chunk_data->has_degenerate_tri |= is_degenerate;
 }
 
-static void degenerate_reduce(const void *__restrict UNUSED(userdata),
+static void degenerate_reduce(const void *__restrict /*userdata*/,
                               void *__restrict chunk_join,
                               void *__restrict chunk)
 {
@@ -2931,7 +2931,7 @@ static IMesh remove_degenerate_tris(const IMesh &tm_in)
 IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena)
 {
   return trimesh_nary_intersect(
-      tm_in, 1, [](int UNUSED(t)) { return 0; }, true, arena);
+      tm_in, 1, [](int /*t*/) { return 0; }, true, arena);
 }
 
 IMesh trimesh_nary_intersect(const IMesh &tm_in,

@@ -63,7 +63,7 @@ class RawAllocator {
   };
 
  public:
-  void *allocate(size_t size, size_t alignment, const char *UNUSED(name))
+  void *allocate(size_t size, size_t alignment, const char * /*name*/)
   {
     BLI_assert(is_power_of_2_i(int(alignment)));
     void *ptr = malloc(size + alignment + sizeof(MemHead));

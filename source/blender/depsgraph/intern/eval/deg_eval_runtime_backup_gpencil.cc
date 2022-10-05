@@ -19,7 +19,7 @@ GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
 {
 }
 
-void GPencilBackup::init_from_gpencil(bGPdata *UNUSED(gpd))
+void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/)
 {
 }
 

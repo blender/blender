@@ -7,34 +7,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_view3d.h"
+
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -850,7 +840,6 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   const float len = event->prev_press_xy[0] - event->xy[0];
   filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
 
-  SCULPT_stroke_id_next(ob);
   SCULPT_vertex_random_access_ensure(ss);
 
   bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
@@ -1011,7 +1000,7 @@ void SCULPT_mesh_filter_properties(struct wmOperatorType *ot)
       0.001,
       5.0,
       "Normal Radius",
-      "Radius used for calculating area normal on initial click,\nin percentage of brush radius.",
+      "Radius used for calculating area normal on initial click,\nin percentage of brush radius",
       0.01,
       1.0);
   RNA_def_float(

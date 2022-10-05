@@ -83,15 +83,15 @@ struct TemplateListVisualInfo {
 };
 
 static void uilist_draw_item_default(struct uiList *ui_list,
-                                     const struct bContext *UNUSED(C),
+                                     const struct bContext * /*C*/,
                                      struct uiLayout *layout,
-                                     struct PointerRNA *UNUSED(dataptr),
+                                     struct PointerRNA * /*dataptr*/,
                                      struct PointerRNA *itemptr,
                                      int icon,
-                                     struct PointerRNA *UNUSED(active_dataptr),
-                                     const char *UNUSED(active_propname),
-                                     int UNUSED(index),
-                                     int UNUSED(flt_flag))
+                                     struct PointerRNA * /*active_dataptr*/,
+                                     const char * /*active_propname*/,
+                                     int /*index*/,
+                                     int /*flt_flag*/)
 {
   PropertyRNA *nameprop = RNA_struct_name_property(itemptr->type);
 
@@ -114,7 +114,7 @@ static void uilist_draw_item_default(struct uiList *ui_list,
 }
 
 static void uilist_draw_filter_default(struct uiList *ui_list,
-                                       const struct bContext *UNUSED(C),
+                                       const struct bContext * /*C*/,
                                        struct uiLayout *layout)
 {
   PointerRNA listptr;
@@ -160,7 +160,7 @@ static int cmpstringp(const void *p1, const void *p2)
 }
 
 static void uilist_filter_items_default(struct uiList *ui_list,
-                                        const struct bContext *UNUSED(C),
+                                        const struct bContext * /*C*/,
                                         struct PointerRNA *dataptr,
                                         const char *propname)
 {
@@ -561,7 +561,7 @@ static void uilist_prepare(uiList *ui_list,
                                   items->tot_items);
 }
 
-static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
+static void uilist_resize_update_cb(bContext *C, void *arg1, void * /*arg2*/)
 {
   uiList *ui_list = static_cast<uiList *>(arg1);
   uiListDyn *dyn_data = ui_list->dyn_data;
@@ -592,7 +592,7 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
   return nullptr;
 }
 
-static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const char *tip)
+static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
   return BLI_sprintfN("%s - %s", tip, dyn_tooltip);

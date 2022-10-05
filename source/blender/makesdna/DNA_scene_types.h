@@ -559,7 +559,8 @@ typedef struct BakeData {
   char target;
   char save_mode;
   char margin_type;
-  char _pad[5];
+  char view_from;
+  char _pad[4];
 
   struct Object *cage_object;
 } BakeData;
@@ -591,6 +592,12 @@ typedef enum eBakeSaveMode {
   R_BAKE_SAVE_INTERNAL = 0,
   R_BAKE_SAVE_EXTERNAL = 1,
 } eBakeSaveMode;
+
+/** #BakeData.view_from (char) */
+typedef enum eBakeViewFrom {
+  R_BAKE_VIEW_FROM_ABOVE_SURFACE = 0,
+  R_BAKE_VIEW_FROM_ACTIVE_CAMERA = 1,
+} eBakeViewFrom;
 
 /** #BakeData.pass_filter */
 typedef enum eBakePassFilter {

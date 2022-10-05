@@ -35,7 +35,7 @@ static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Z")).default_value(1.0f).min(0.0f).max(1.0f);
 }
 
-static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
@@ -46,12 +46,12 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
-static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_viewer(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-static void node_composit_buts_viewer_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_viewer_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

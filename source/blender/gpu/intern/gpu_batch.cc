@@ -56,7 +56,6 @@ void GPU_batch_init_ex(GPUBatch *batch,
                        GPUIndexBuf *elem,
                        eGPUBatchFlag owns_flag)
 {
-  BLI_assert(verts != nullptr);
   /* Do not pass any other flag */
   BLI_assert((owns_flag & ~(GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX)) == 0);
 

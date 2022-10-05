@@ -72,7 +72,7 @@ void MetaDataExtractCallbackData::set_cryptomatte_keys(blender::StringRef crypto
 void MetaDataExtractCallbackData::extract_cryptomatte_meta_data(void *_data,
                                                                 const char *propname,
                                                                 char *propvalue,
-                                                                int UNUSED(len))
+                                                                int /*len*/)
 {
   MetaDataExtractCallbackData *data = static_cast<MetaDataExtractCallbackData *>(_data);
   blender::StringRefNull key(propname);

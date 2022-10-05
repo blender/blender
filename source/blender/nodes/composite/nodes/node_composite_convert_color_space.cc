@@ -24,7 +24,7 @@ static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_convert_colorspace(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(
       MEM_callocN(sizeof(NodeConvertColorSpace), "node colorspace"));
@@ -42,7 +42,7 @@ static void node_composit_init_convert_colorspace(bNodeTree *UNUSED(ntree), bNod
 }
 
 static void node_composit_buts_convert_colorspace(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);

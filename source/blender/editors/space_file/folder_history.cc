@@ -27,15 +27,15 @@
 /** \name FOLDERLIST (previous/next)
  * \{ */
 
-typedef struct FolderList {
-  struct FolderList *next, *prev;
+struct FolderList {
+  FolderList *next, *prev;
   char *foldername;
-} FolderList;
+};
 
 void folderlist_popdir(struct ListBase *folderlist, char *dir)
 {
   const char *prev_dir;
-  struct FolderList *folder;
+  FolderList *folder;
   folder = static_cast<FolderList *>(folderlist->last);
 
   if (folder) {
@@ -58,7 +58,7 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
     return;
   }
 
-  struct FolderList *folder, *previous_folder;
+  FolderList *folder, *previous_folder;
   previous_folder = static_cast<FolderList *>(folderlist->last);
 
   /* check if already exists */
@@ -78,10 +78,10 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
 
 const char *folderlist_peeklastdir(ListBase *folderlist)
 {
-  struct FolderList *folder;
+  FolderList *folder;
 
   if (!folderlist->last) {
-    return NULL;
+    return nullptr;
   }
 
   folder = static_cast<FolderList *>(folderlist->last);
@@ -91,7 +91,7 @@ const char *folderlist_peeklastdir(ListBase *folderlist)
 bool folderlist_clear_next(struct SpaceFile *sfile)
 {
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  struct FolderList *folder;
+  FolderList *folder;
 
   /* if there is no folder_next there is nothing we can clear */
   if (BLI_listbase_is_empty(sfile->folders_next)) {
@@ -121,7 +121,7 @@ void folderlist_free(ListBase *folderlist)
 
 static ListBase folderlist_duplicate(ListBase *folderlist)
 {
-  ListBase folderlistn = {NULL};
+  ListBase folderlistn = {nullptr};
 
   BLI_duplicatelist(&folderlistn, folderlist);
 
@@ -145,7 +145,7 @@ static FileFolderHistory *folder_history_find(const SpaceFile *sfile, eFileBrows
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile)
@@ -165,10 +165,10 @@ void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile)
 static void folder_history_entry_free(SpaceFile *sfile, FileFolderHistory *history)
 {
   if (sfile->folders_prev == &history->folders_prev) {
-    sfile->folders_prev = NULL;
+    sfile->folders_prev = nullptr;
   }
   if (sfile->folders_next == &history->folders_next) {
-    sfile->folders_next = NULL;
+    sfile->folders_next = nullptr;
   }
   folderlist_free(&history->folders_prev);
   folderlist_free(&history->folders_next);
@@ -184,7 +184,7 @@ void folder_history_list_free(SpaceFile *sfile)
 
 ListBase folder_history_list_duplicate(ListBase *listbase)
 {
-  ListBase histories = {NULL};
+  ListBase histories = {nullptr};
 
   LISTBASE_FOREACH (FileFolderHistory *, history, listbase) {
     FileFolderHistory *history_new = static_cast<FileFolderHistory *>(MEM_dupallocN(history));

@@ -81,8 +81,9 @@ void *CalculateStandardDeviationOperation::initialize_tile_data(rcti *rect)
   return nullptr;
 }
 
-void CalculateStandardDeviationOperation::update_memory_buffer_started(
-    MemoryBuffer *UNUSED(output), const rcti &UNUSED(area), Span<MemoryBuffer *> inputs)
+void CalculateStandardDeviationOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                                       const rcti & /*area*/,
+                                                                       Span<MemoryBuffer *> inputs)
 {
   if (!iscalculated_) {
     const MemoryBuffer *input = inputs[0];
@@ -104,7 +105,7 @@ void CalculateStandardDeviationOperation::update_memory_buffer_started(
 }
 
 void CalculateStandardDeviationOperation::update_memory_buffer_partial(
-    MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> UNUSED(inputs))
+    MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> /*inputs*/)
 {
   output->fill(area, &standard_deviation_);
 }

@@ -2914,7 +2914,7 @@ static int gpencil_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
 
               /* return data */
               copy_v3_v3(&pt->x, fpt);
-              gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
+              gpencil_world_to_object_space_point(depsgraph, obact, gpl, pt);
 
               changed = true;
             }
@@ -3015,7 +3015,7 @@ static int gpencil_snap_to_cursor(bContext *C, wmOperator *op)
             for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
               if (pt->flag & GP_SPOINT_SELECT) {
                 copy_v3_v3(&pt->x, cursor_global);
-                gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
+                gpencil_world_to_object_space_point(depsgraph, obact, gpl, pt);
 
                 changed = true;
               }
@@ -5460,7 +5460,7 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   const struct GP_SelectLassoUserData *data = user_data;
   bGPDspoint pt2;
   int x0, y0;
-  gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+  gpencil_point_to_world_space(pt, diff_mat, &pt2);
   gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso */
   return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&

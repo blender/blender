@@ -1134,7 +1134,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 /** \name Select Linked To Operator
  * \{ */
 
-static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1184,7 +1184,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 /** \name Select Linked From Operator
  * \{ */
 
-static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1352,10 +1352,10 @@ static void node_find_create_label(const bNode *node, char *str, int maxlen)
 
 /* Generic search invoke. */
 static void node_find_update_fn(const bContext *C,
-                                void *UNUSED(arg),
+                                void * /*arg*/,
                                 const char *str,
                                 uiSearchItems *items,
-                                const bool UNUSED(is_first))
+                                const bool /*is_first*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1383,7 +1383,7 @@ static void node_find_update_fn(const bContext *C,
   BLI_string_search_free(search);
 }
 
-static void node_find_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *active = (bNode *)arg2;
@@ -1450,7 +1450,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
   return block;
 }
 
-static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   UI_popup_block_invoke(C, node_find_menu, op, nullptr);
   return OPERATOR_CANCELLED;

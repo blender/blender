@@ -216,7 +216,7 @@ eCompositorPriority ViewerOperation::get_render_priority() const
   return eCompositorPriority::Low;
 }
 
-void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void ViewerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                    const rcti &area,
                                                    Span<MemoryBuffer *> inputs)
 {

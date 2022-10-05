@@ -296,7 +296,7 @@ static void load_node(const tinygltf::Model &gltf_model,
   float world_transform[4][4];
 
   GHOST_XrControllerModelNode &node = nodes.emplace_back();
-  const int32_t node_idx = (int32_t)(nodes.size() - 1);
+  const int32_t node_idx = int32_t(nodes.size() - 1);
   node.parent_idx = parent_idx;
   calc_node_transforms(gltf_node, parent_transform, node.local_transform, world_transform);
 
@@ -496,7 +496,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
 
   std::vector<XrControllerModelNodePropertiesMSFT> node_properties(
       model_properties.nodeCountOutput, {XR_TYPE_CONTROLLER_MODEL_NODE_PROPERTIES_MSFT});
-  model_properties.nodeCapacityInput = (uint32_t)node_properties.size();
+  model_properties.nodeCapacityInput = uint32_t(node_properties.size());
   model_properties.nodeProperties = node_properties.data();
   CHECK_XR(g_xrGetControllerModelPropertiesMSFT(session, m_model_key, &model_properties),
            "Failed to get controller model node properties.");
@@ -583,11 +583,11 @@ void GHOST_XrControllerModel::updateComponents(XrSession session)
 void GHOST_XrControllerModel::getData(GHOST_XrControllerModelData &r_data)
 {
   if (m_data_loaded) {
-    r_data.count_vertices = (uint32_t)m_vertices.size();
+    r_data.count_vertices = uint32_t(m_vertices.size());
     r_data.vertices = m_vertices.data();
-    r_data.count_indices = (uint32_t)m_indices.size();
+    r_data.count_indices = uint32_t(m_indices.size());
     r_data.indices = m_indices.data();
-    r_data.count_components = (uint32_t)m_components.size();
+    r_data.count_components = uint32_t(m_components.size());
     r_data.components = m_components.data();
   }
   else {

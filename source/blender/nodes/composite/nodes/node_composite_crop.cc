@@ -37,7 +37,7 @@ static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_crop(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTwoXYs *nxy = MEM_cnew<NodeTwoXYs>(__func__);
   node->storage = nxy;
@@ -47,7 +47,7 @@ static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)
   nxy->y2 = 0;
 }
 
-static void node_composit_buts_crop(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

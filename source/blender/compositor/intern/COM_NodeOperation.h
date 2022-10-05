@@ -628,9 +628,9 @@ class NodeOperation {
   /**
    * Executes operation updating output memory buffer. Single-threaded calls.
    */
-  virtual void update_memory_buffer(MemoryBuffer *UNUSED(output),
-                                    const rcti &UNUSED(area),
-                                    Span<MemoryBuffer *> UNUSED(inputs))
+  virtual void update_memory_buffer(MemoryBuffer * /*output*/,
+                                    const rcti & /*area*/,
+                                    Span<MemoryBuffer *> /*inputs*/)
   {
   }
 

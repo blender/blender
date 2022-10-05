@@ -281,8 +281,7 @@ PyDoc_STRVAR(pygpu_interface_info_name_doc,
              "Name of the interface block.\n"
              "\n"
              ":type: str");
-static PyObject *pygpu_interface_info_name_get(BPyGPUStageInterfaceInfo *self,
-                                               void *UNUSED(closure))
+static PyObject *pygpu_interface_info_name_get(BPyGPUStageInterfaceInfo *self, void * /*closure*/)
 {
   StageInterfaceInfo *interface = reinterpret_cast<StageInterfaceInfo *>(self->interface);
   return PyUnicode_FromString(interface->name.c_str());
@@ -303,7 +302,7 @@ static PyGetSetDef pygpu_interface_info__tp_getseters[] = {
 /** \name GPUStageInterfaceInfo Type
  * \{ */
 
-static PyObject *pygpu_interface_info__tp_new(PyTypeObject *UNUSED(type),
+static PyObject *pygpu_interface_info__tp_new(PyTypeObject * /*type*/,
                                               PyObject *args,
                                               PyObject *kwds)
 {
@@ -1017,9 +1016,7 @@ static struct PyMethodDef pygpu_shader_info__tp_methods[] = {
 /** \name GPUShaderCreateInfo Initialization
  * \{ */
 
-static PyObject *pygpu_shader_info__tp_new(PyTypeObject *UNUSED(type),
-                                           PyObject *args,
-                                           PyObject *kwds)
+static PyObject *pygpu_shader_info__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
   if (PyTuple_Size(args) || kwds) {
     PyErr_SetString(PyExc_TypeError, "no args or keywords are expected");

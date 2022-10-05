@@ -384,7 +384,7 @@ void ScreenLensDistortionOperation::determine_canvas(const rcti &preferred_area,
 }
 
 void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
-                                                         const rcti &UNUSED(output_area),
+                                                         const rcti & /*output_area*/,
                                                          rcti &r_input_area)
 {
   if (input_idx != 0) {

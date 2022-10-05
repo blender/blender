@@ -963,8 +963,7 @@ static void draw_sequence_extensions_overlay(
   UI_GetColorPtrShade3ubv(col, blend_col, 10);
 
   const float strip_content_start = SEQ_time_start_frame_get(seq);
-  const float strip_content_end = SEQ_time_start_frame_get(seq) +
-                                  SEQ_time_strip_length_get(scene, seq);
+  const float strip_content_end = SEQ_time_content_end_frame_get(scene, seq);
   float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
   float left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
 
@@ -1095,8 +1094,7 @@ static void draw_seq_background(Scene *scene,
     }
     if (SEQ_time_has_right_still_frames(scene, seq)) {
       float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
-      const float content_end = SEQ_time_start_frame_get(seq) +
-                                SEQ_time_strip_length_get(scene, seq);
+      const float content_end = SEQ_time_content_end_frame_get(scene, seq);
       immRectf(pos, content_end, y1, right_handle_frame, y2);
     }
   }
@@ -1317,8 +1315,7 @@ static void draw_seq_strip(const bContext *C,
   x1 = SEQ_time_has_left_still_frames(scene, seq) ? SEQ_time_start_frame_get(seq) :
                                                     SEQ_time_left_handle_frame_get(scene, seq);
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  x2 = SEQ_time_has_right_still_frames(scene, seq) ?
-           SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq) :
+  x2 = SEQ_time_has_right_still_frames(scene, seq) ? SEQ_time_content_end_frame_get(scene, seq) :
            SEQ_time_right_handle_frame_get(scene, seq);
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
@@ -2290,7 +2287,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         continue;
       }
       if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                 SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq)) <
+                 SEQ_time_content_end_frame_get(scene, seq)) <
           v2d->cur.xmin) {
         continue;
       }

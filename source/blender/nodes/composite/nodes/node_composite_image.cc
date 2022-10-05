@@ -80,7 +80,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            const char *passname,
                                            int rres_index,
                                            eNodeSocketDatatype type,
-                                           int UNUSED(is_rlayers),
+                                           int /*is_rlayers*/,
                                            LinkNodePair *available_sockets,
                                            int *prev_index)
 {
@@ -273,8 +273,8 @@ static void cmp_node_rlayer_create_outputs_cb(void *userdata,
                                               Scene *scene,
                                               ViewLayer *view_layer,
                                               const char *name,
-                                              int UNUSED(channels),
-                                              const char *UNUSED(chanid),
+                                              int /*channels*/,
+                                              const char * /*chanid*/,
                                               eNodeSocketDatatype type)
 {
   CreateOutputUserData &data = *(CreateOutputUserData *)userdata;
@@ -426,7 +426,7 @@ static void node_composit_free_image(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
+static void node_composit_copy_image(bNodeTree * /*dst_ntree*/,
                                      bNode *dest_node,
                                      const bNode *src_node)
 {
@@ -710,7 +710,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype),
+static bool node_composit_poll_rlayers(bNodeType * /*ntype*/,
                                        bNodeTree *ntree,
                                        const char **r_disabled_hint)
 {
@@ -749,7 +749,7 @@ static void node_composit_free_rlayers(bNode *node)
   }
 }
 
-static void node_composit_copy_rlayers(bNodeTree *UNUSED(dest_ntree),
+static void node_composit_copy_rlayers(bNodeTree * /*dst_ntree*/,
                                        bNode *dest_node,
                                        const bNode *src_node)
 {

@@ -26,7 +26,7 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     const Span<MLoop> loops = mesh.loops();
     Array<int> face_count(mesh.totedge, 0);

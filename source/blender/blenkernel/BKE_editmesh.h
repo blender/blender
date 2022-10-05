@@ -69,7 +69,7 @@ typedef struct BMEditMesh {
 
 } BMEditMesh;
 
-/* editmesh.c */
+/* editmesh.cc */
 
 void BKE_editmesh_looptri_calc_ex(BMEditMesh *em,
                                   const struct BMeshCalcTessellation_Params *params);

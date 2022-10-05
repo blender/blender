@@ -37,7 +37,7 @@ ImBuf *MultilayerBaseOperation::get_im_buf()
 
 void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
-                                                           Span<MemoryBuffer *> UNUSED(inputs))
+                                                           Span<MemoryBuffer *> /*inputs*/)
 {
   output->copy_from(buffer_, area);
 }

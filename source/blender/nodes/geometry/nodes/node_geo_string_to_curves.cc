@@ -76,7 +76,7 @@ static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
   uiItemR(layout, ptr, "pivot_mode", 0, IFACE_("Pivot Point"), ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryStringToCurves *data = MEM_cnew<NodeGeometryStringToCurves>(__func__);
 

@@ -22,7 +22,7 @@
 
 using namespace blender::ed::spreadsheet;
 
-static int row_filter_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int row_filter_add_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
@@ -78,9 +78,7 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
 }
 
-static int select_component_domain_invoke(bContext *C,
-                                          wmOperator *op,
-                                          const wmEvent *UNUSED(event))
+static int select_component_domain_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   GeometryComponentType component_type = static_cast<GeometryComponentType>(
       RNA_int_get(op->ptr, "component_type"));

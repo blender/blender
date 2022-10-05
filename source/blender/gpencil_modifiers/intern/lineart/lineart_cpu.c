@@ -3425,7 +3425,7 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
     tt->testing_e[th->thread_id] = (LineartEdge *)tri;
 
     if (!((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_FORCE_INTERSECTION)) {
-      if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
+      if (((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_NO_INTERSECTION) ||
           (testing_triangle->flags & tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY)) {
         continue;
       }

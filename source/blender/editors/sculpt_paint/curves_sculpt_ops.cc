@@ -153,7 +153,7 @@ struct SculptCurvesBrushStrokeData {
 static bool stroke_get_location(bContext *C,
                                 float out[3],
                                 const float mouse[2],
-                                bool UNUSED(force_original))
+                                bool /*force_original*/)
 {
   out[0] = mouse[0];
   out[1] = mouse[1];
@@ -170,7 +170,7 @@ static bool stroke_test_start(bContext *C, struct wmOperator *op, const float mo
 
 static void stroke_update_step(bContext *C,
                                wmOperator *op,
-                               PaintStroke *UNUSED(stroke),
+                               PaintStroke * /*stroke*/,
                                PointerRNA *stroke_element)
 {
   SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
@@ -448,7 +448,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void select_random_ui(bContext *UNUSED(C), wmOperator *op)
+static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
@@ -1003,7 +1003,7 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
   return std::min(300, needed_points);
 }
 
-static void min_distance_edit_draw(bContext *C, int UNUSED(x), int UNUSED(y), void *customdata)
+static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(customdata);

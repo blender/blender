@@ -408,7 +408,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 }
 
 static void view_to_string__frame_number(
-    void *UNUSED(user_data), float v2d_pos, float UNUSED(v2d_step), uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, uint max_len, char *r_str)
 {
   BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
 }
@@ -428,7 +428,7 @@ static void view_to_string__time(
 }
 
 static void view_to_string__value(
-    void *UNUSED(user_data), float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float v2d_step, uint max_len, char *r_str)
 {
   if (v2d_step >= 1.0f) {
     BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));

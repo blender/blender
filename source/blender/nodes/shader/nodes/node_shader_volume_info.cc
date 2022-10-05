@@ -14,9 +14,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static int node_shader_gpu_volume_info(GPUMaterial *mat,
-                                       bNode *UNUSED(node),
-                                       bNodeExecData *UNUSED(execdata),
-                                       GPUNodeStack *UNUSED(in),
+                                       bNode * /*node*/,
+                                       bNodeExecData * /*execdata*/,
+                                       GPUNodeStack * /*in*/,
                                        GPUNodeStack *out)
 {
   if (out[0].hasoutput) {

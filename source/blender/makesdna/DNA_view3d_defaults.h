@@ -39,7 +39,7 @@
     .flag = V3D_OVERLAY_VIEWER_ATTRIBUTE, \
     .wireframe_threshold = 1.0f, \
     .wireframe_opacity = 1.0f, \
-    .viewer_attribute_opacity = 0.8f, \
+    .viewer_attribute_opacity = 1.0f, \
     .xray_alpha_bone = 0.5f, \
     .bone_wire_alpha = 1.0f, \
     .fade_alpha = 0.40f, \

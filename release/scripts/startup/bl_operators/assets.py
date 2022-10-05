@@ -4,6 +4,9 @@ from __future__ import annotations
 import bpy
 from bpy.types import Operator
 
+from bpy.app.translations import pgettext_data as data_
+
+
 from bpy_extras.asset_utils import (
     SpaceAssetInfo,
 )
@@ -33,7 +36,7 @@ class ASSET_OT_tag_add(AssetBrowserMetadataOperator, Operator):
 
     def execute(self, context):
         active_asset = SpaceAssetInfo.get_active_asset(context)
-        active_asset.tags.new("Tag")
+        active_asset.tags.new(data_("Tag"))
 
         return {'FINISHED'}
 

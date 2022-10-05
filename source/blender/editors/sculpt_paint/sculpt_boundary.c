@@ -15,7 +15,6 @@
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -33,14 +32,11 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "bmesh.h"

@@ -178,7 +178,7 @@ static void bvhtree_balance(BVHTree *tree, const bool isolate)
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
 float bvhtree_ray_tri_intersection(const BVHTreeRay *ray,
-                                   const float UNUSED(m_dist),
+                                   const float /*m_dist*/,
                                    const float v0[3],
                                    const float v1[3],
                                    const float v2[3])
@@ -1136,7 +1136,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
 
 static BLI_bitmap *loose_verts_map_get(const MEdge *medge,
                                        int edges_num,
-                                       const MVert *UNUSED(mvert),
+                                       const MVert * /*mvert*/,
                                        int verts_num,
                                        int *r_loose_vert_num)
 {

@@ -560,8 +560,8 @@ TEST(map, PopExceptions)
 TEST(map, AddOrModifyExceptions)
 {
   Map<ExceptionThrower, ExceptionThrower> map;
-  auto create_fn = [](ExceptionThrower *UNUSED(v)) { throw std::runtime_error(""); };
-  auto modify_fn = [](ExceptionThrower *UNUSED(v)) {};
+  auto create_fn = [](ExceptionThrower * /*v*/) { throw std::runtime_error(""); };
+  auto modify_fn = [](ExceptionThrower * /*v*/) {};
   EXPECT_ANY_THROW({ map.add_or_modify(3, create_fn, modify_fn); });
 }
 

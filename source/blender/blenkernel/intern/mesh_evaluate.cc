@@ -528,7 +528,7 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
  * \{ */
 
 static bool mesh_calc_center_centroid_ex(const MVert *mverts,
-                                         int UNUSED(mverts_num),
+                                         int /*mverts_num*/,
                                          const MLoopTri *looptri,
                                          int looptri_num,
                                          const MLoop *mloop,

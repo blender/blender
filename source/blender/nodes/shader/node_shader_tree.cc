@@ -52,7 +52,7 @@
 using blender::Array;
 using blender::Vector;
 
-static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
+static bool shader_tree_poll(const bContext *C, bNodeTreeType * /*treetype*/)
 {
   Scene *scene = CTX_data_scene(C);
   const char *engine_id = scene->r.engine;
@@ -63,11 +63,8 @@ static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
           !BKE_scene_use_shading_nodes_custom(scene));
 }
 
-static void shader_get_from_context(const bContext *C,
-                                    bNodeTreeType *UNUSED(treetype),
-                                    bNodeTree **r_ntree,
-                                    ID **r_id,
-                                    ID **r_from)
+static void shader_get_from_context(
+    const bContext *C, bNodeTreeType * /*treetype*/, bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *scene = CTX_data_scene(C);
@@ -110,7 +107,7 @@ static void shader_get_from_context(const bContext *C,
   }
 }
 
-static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+static void foreach_nodeclass(Scene * /*scene*/, void *calldata, bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
@@ -125,7 +122,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
   func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
-static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
+static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
 {
   /* replace muted nodes and reroute nodes by internal links */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &localtree->nodes) {
@@ -153,7 +150,7 @@ static bool shader_validate_link(eNodeSocketDatatype from, eNodeSocketDatatype t
   return true;
 }
 
-static bool shader_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
+static bool shader_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
                                                bNodeSocketType *socket_type)
 {
   return nodeIsStaticSocketType(socket_type) &&
@@ -642,7 +639,7 @@ static bool ntree_shader_implicit_closure_cast(bNodeTree *ntree)
 
 /* Socket already has a link to it. Add weights together. */
 static void ntree_weight_tree_merge_weight(bNodeTree *ntree,
-                                           bNode *UNUSED(fromnode),
+                                           bNode * /*fromnode*/,
                                            bNodeSocket *fromsock,
                                            bNode **tonode,
                                            bNodeSocket **tosock)
@@ -947,7 +944,7 @@ static bool closure_node_filter(const bNode *node)
   }
 }
 
-static bool shader_to_rgba_node_gather(bNode *UNUSED(fromnode), bNode *tonode, void *userdata)
+static bool shader_to_rgba_node_gather(bNode * /*fromnode*/, bNode *tonode, void *userdata)
 {
   Vector<bNode *> &shader_to_rgba_nodes = *(Vector<bNode *> *)userdata;
   if (tonode->tmp_flag == -1 && tonode->type == SH_NODE_SHADERTORGB) {
@@ -987,7 +984,7 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   }
 }
 
-static bool ntree_branch_node_tag(bNode *fromnode, bNode *tonode, void *UNUSED(userdata))
+static bool ntree_branch_node_tag(bNode *fromnode, bNode *tonode, void * /*userdata*/)
 {
   fromnode->tmp_flag = 1;
   tonode->tmp_flag = 1;

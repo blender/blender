@@ -585,6 +585,9 @@ struct LayerCollection *BKE_view_layer_active_collection_get(struct ViewLayer *v
 void BKE_view_layer_need_resync_tag(struct ViewLayer *view_layer);
 void BKE_view_layer_synced_ensure(const struct Scene *scene, struct ViewLayer *view_layer);
 
+void BKE_scene_view_layers_synced_ensure(const struct Scene *scene);
+void BKE_main_view_layers_synced_ensure(const struct Main *bmain);
+
 struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer);
 void BKE_view_layer_remove_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);
 void BKE_view_layer_set_active_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);

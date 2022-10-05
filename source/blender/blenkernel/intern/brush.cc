@@ -60,7 +60,7 @@ static void brush_init_data(ID *id)
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
 
-static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   Brush *brush_dst = (Brush *)id_dst;
   const Brush *brush_src = (const Brush *)id_src;
@@ -2789,7 +2789,7 @@ void BKE_brush_scale_size(int *r_brush_size,
   if (old_unprojected_radius != 0) {
     scale /= new_unprojected_radius;
   }
-  (*r_brush_size) = (int)((float)(*r_brush_size) * scale);
+  (*r_brush_size) = int(float(*r_brush_size) * scale);
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])

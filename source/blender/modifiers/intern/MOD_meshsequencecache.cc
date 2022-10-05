@@ -98,9 +98,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
@@ -305,7 +303,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void velocity_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -322,7 +320,7 @@ static void velocity_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "velocity_scale", 0, nullptr, ICON_NONE);
 }
 
-static void time_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -391,7 +389,7 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   MeshSeqCacheModifierData *msmcd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
   msmcd->reader = nullptr;

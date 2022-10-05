@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
+struct Main;
 struct UserDef;
 
 /**
@@ -21,13 +24,24 @@ void BKE_blender_free(void);
 void BKE_blender_globals_init(void);
 void BKE_blender_globals_clear(void);
 
+/** Replace current global Main by the given one, freeing existing one. */
+void BKE_blender_globals_main_replace(struct Main *bmain);
+/**
+ * Replace current global Main by the given one, returning the old one.
+ *
+ * \warning Advanced, risky workaround addressing the issue that current RNA is not able to process
+ * correectly non-G_MAIN data, use with (a lot of) care.
+ */
+struct Main *BKE_blender_globals_main_swap(struct Main *new_gmain);
+
 void BKE_blender_userdef_data_swap(struct UserDef *userdef_a, struct UserDef *userdef_b);
 void BKE_blender_userdef_data_set(struct UserDef *userdef);
 void BKE_blender_userdef_data_set_and_free(struct UserDef *userdef);
 
 /**
- * Write U from userdef.
  * This function defines which settings a template will override for the user preferences.
+ *
+ * \note the order of `userdef_a` & `userdef_b` isn't important as values are simply swapped.
  */
 void BKE_blender_userdef_app_template_data_swap(struct UserDef *userdef_a,
                                                 struct UserDef *userdef_b);

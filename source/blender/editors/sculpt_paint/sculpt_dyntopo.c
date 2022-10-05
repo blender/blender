@@ -30,7 +30,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -38,25 +37,14 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_undo.h"
-#include "ED_view3d.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -722,6 +710,14 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
   BKE_sculpt_attribute_destroy_temporary_all(ob);
+
+  if (ss->attrs.dyntopo_node_id_vertex) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  }
+
+  if (ss->attrs.dyntopo_node_id_face) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
+  }
 
   BKE_sculptsession_bm_to_me(ob, true);
 

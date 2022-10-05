@@ -218,7 +218,7 @@ int cloth_bvh_collision(struct Depsgraph *depsgraph,
 /* -------------------------------------------------------------------- */
 /* cloth.c */
 
-/* Needed for modifier.c */
+/* Needed for modifier.cc */
 /** Frees all. */
 void cloth_free_modifier_extern(struct ClothModifierData *clmd);
 /** Frees all. */

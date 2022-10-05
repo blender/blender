@@ -32,7 +32,7 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeEllipseMask *data = MEM_cnew<NodeEllipseMask>(__func__);
   data->x = 0.5;
@@ -43,7 +43,7 @@ static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
-static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
   row = uiLayoutRow(layout, true);

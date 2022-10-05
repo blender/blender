@@ -78,7 +78,7 @@ class GVMutableArrayImpl : public GVArrayImpl {
 namespace detail {
 struct GVArrayAnyExtraInfo {
   const GVArrayImpl *(*get_varray)(const void *buffer) =
-      [](const void *UNUSED(buffer)) -> const GVArrayImpl * { return nullptr; };
+      [](const void * /*buffer*/) -> const GVArrayImpl * { return nullptr; };
 
   template<typename StorageT> static constexpr GVArrayAnyExtraInfo get();
 };

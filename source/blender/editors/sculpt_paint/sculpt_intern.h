@@ -46,6 +46,9 @@ struct TaskParallelTLS;
 
 enum ePaintSymmetryFlags;
 struct PaintModeSettings;
+struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
 
 /*
 maximum symmetry passes returned by SCULPT_get_symmetry_pass.

@@ -801,12 +801,12 @@ class MFProcedureDotExport {
     variable_to_string(instruction.variable(), ss);
   }
 
-  void instruction_to_string(const MFDummyInstruction &UNUSED(instruction), std::stringstream &ss)
+  void instruction_to_string(const MFDummyInstruction & /*instruction*/, std::stringstream &ss)
   {
     instruction_name_format("Dummy ", ss);
   }
 
-  void instruction_to_string(const MFReturnInstruction &UNUSED(instruction), std::stringstream &ss)
+  void instruction_to_string(const MFReturnInstruction & /*instruction*/, std::stringstream &ss)
   {
     instruction_name_format("Return ", ss);
 

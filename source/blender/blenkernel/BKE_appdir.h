@@ -90,7 +90,10 @@ const char *BKE_appdir_folder_id_user_notest(int folder_id,
  * Returns the path of the top-level version-specific local, user or system directory.
  * If check_is_dir, then the result will be NULL if the directory doesn't exist.
  */
-const char *BKE_appdir_folder_id_version(int folder_id, int version, bool check_is_dir);
+const char *BKE_appdir_resource_path_id_with_version(int folder_id,
+                                                     bool check_is_dir,
+                                                     int version);
+const char *BKE_appdir_resource_path_id(int folder_id, bool check_is_dir);
 
 /**
  * Check if this is an install with user files kept together

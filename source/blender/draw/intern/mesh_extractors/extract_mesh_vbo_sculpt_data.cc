@@ -32,9 +32,9 @@ static GPUVertFormat *get_sculpt_data_format()
 }
 
 static void extract_sculpt_data_init(const MeshRenderData *mr,
-                                     MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache * /*cache*/,
                                      void *buf,
-                                     void *UNUSED(tls_data))
+                                     void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat *format = get_sculpt_data_format();
@@ -115,9 +115,9 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
 
 static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
-                                            MeshBatchCache *UNUSED(cache),
+                                            MeshBatchCache * /*cache*/,
                                             void *buffer,
-                                            void *UNUSED(data))
+                                            void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
 

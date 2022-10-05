@@ -64,7 +64,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_mix_rgb(GPUMaterial *mat,
                               bNode *node,
-                              bNodeExecData *UNUSED(execdata),
+                              bNodeExecData * /*execdata*/,
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {
@@ -111,7 +111,7 @@ class MixRGBFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1,

@@ -107,7 +107,7 @@ PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
              ":type: (:class:`ViewEdge`, bool)");
 
 static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterator *self,
-                                                     void *UNUSED(closure))
+                                                     void * /*closure*/)
 {
   if (self->ove_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");

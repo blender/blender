@@ -49,13 +49,13 @@ namespace blender::gpu::debug {
 #  define APIENTRY
 #endif
 
-static void APIENTRY debug_callback(GLenum UNUSED(source),
+static void APIENTRY debug_callback(GLenum /*source*/,
                                     GLenum type,
-                                    GLuint UNUSED(id),
+                                    GLuint /*id*/,
                                     GLenum severity,
-                                    GLsizei UNUSED(length),
+                                    GLsizei /*length*/,
                                     const GLchar *message,
-                                    const GLvoid *UNUSED(userParm))
+                                    const GLvoid * /*userParm*/)
 {
   if (ELEM(type, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_TYPE_POP_GROUP)) {
     /* The debug layer will emit a message each time a debug group is pushed or popped.

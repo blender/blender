@@ -102,10 +102,7 @@ static void palette_init_data(ID *id)
   id_fake_user_set(&palette->id);
 }
 
-static void palette_copy_data(Main *UNUSED(bmain),
-                              ID *id_dst,
-                              const ID *id_src,
-                              const int UNUSED(flag))
+static void palette_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Palette *palette_dst = (Palette *)id_dst;
   const Palette *palette_src = (const Palette *)id_src;
@@ -136,7 +133,7 @@ static void palette_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &palette->colors);
 }
 
-static void palette_undo_preserve(BlendLibReader *UNUSED(reader), ID *id_new, ID *id_old)
+static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *id_old)
 {
   /* Whole Palette is preserved across undo-steps, and it has no extra pointer, simple. */
   /* NOTE: We do not care about potential internal references to self here, Palette has none. */
@@ -176,10 +173,10 @@ IDTypeInfo IDType_ID_PAL = {
     /* lib_override_apply_post */ nullptr,
 };
 
-static void paint_curve_copy_data(Main *UNUSED(bmain),
+static void paint_curve_copy_data(Main * /*bmain*/,
                                   ID *id_dst,
                                   const ID *id_src,
-                                  const int UNUSED(flag))
+                                  const int /*flag*/)
 {
   PaintCurve *paint_curve_dst = (PaintCurve *)id_dst;
   const PaintCurve *paint_curve_src = (const PaintCurve *)id_src;
@@ -1630,9 +1627,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
       /* Multires can't work without displacement layer. */
       return nullptr;
     }
-    else {
-      need_mdisps = true;
-    }
+    need_mdisps = true;
   }
 
   /* Weight paint operates on original vertices, and needs to treat multires as regular modifier
@@ -1917,7 +1912,7 @@ static void sculpt_update_object(
 
         BLI_assert(me_eval_deform->totvert == me->totvert);
 
-        ss->deform_cos = BKE_mesh_vert_coords_alloc(me_eval, NULL);
+        ss->deform_cos = BKE_mesh_vert_coords_alloc(me_eval, nullptr);
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
 
         used_me_eval = true;
@@ -2463,7 +2458,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     /* Nothing is hidden, so we can just remove all visibility bitmaps. */
-    for (const int i : hide_poly.index_range()) {
+    for (const int i : IndexRange(subdiv_ccg->num_grids)) {
       BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg, i);
     }
     return;
@@ -2663,7 +2658,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                          subdiv_ccg->grid_flag_mats,
                          subdiv_ccg->grid_hidden,
                          ob->sculpt->fast_draw,
-                         ss->face_areas);
+                         ss->face_areas,
+                         base_mesh);
   }
   else {
     BKE_pbvh_subdiv_ccg_set(pbvh, subdiv_ccg);
@@ -2900,10 +2896,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   BKE_pbvh_set_pmap(pbvh, ob->sculpt->pmap);
+  sculpt_attribute_update_refs(ob);
 
   ob->sculpt->pbvh = pbvh;
-
-  BKE_sculptsession_update_attr_refs(ob);
 
   if (pbvh) {
     SCULPT_update_flat_vcol_shading(ob, scene);
@@ -2921,7 +2916,7 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         subdiv_ccg->grid_hidden);
 }
 
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *UNUSED(v3d))
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)
 {
   SculptSession *ss = ob->sculpt;
   if (ss == nullptr || ss->pbvh == nullptr || ss->mode_type != OB_MODE_SCULPT) {
@@ -3153,7 +3148,7 @@ static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
         return &ss->bm->pdata;
       default:
         BLI_assert_unreachable();
-        return NULL;
+        return nullptr;
     }
   }
   else {
@@ -3171,7 +3166,7 @@ static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
         return &me->pdata;
       default:
         BLI_assert_unreachable();
-        return NULL;
+        return nullptr;
     }
   }
 }
@@ -3250,9 +3245,9 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
     out->data = MEM_calloc_arrayN(totelem, elemsize, __func__);
 
-    out->data_for_bmesh = ss->bm != NULL;
+    out->data_for_bmesh = ss->bm != nullptr;
     out->bmesh_cd_offset = -1;
-    out->layer = NULL;
+    out->layer = nullptr;
     out->elem_size = elemsize;
     out->used = true;
     out->elem_num = totelem;
@@ -3262,7 +3257,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
   switch (pbvhtype) {
     case PBVH_BMESH: {
-      CustomData *cdata = NULL;
+      CustomData *cdata = nullptr;
       out->data_for_bmesh = true;
 
       switch (domain) {
@@ -3286,14 +3281,14 @@ static bool sculpt_attribute_create(SculptSession *ss,
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 
-      out->data = NULL;
+      out->data = nullptr;
       out->layer = cdata->layers + index;
       out->bmesh_cd_offset = out->layer->offset;
       out->elem_size = CustomData_sizeof(proptype);
       break;
     }
     case PBVH_FACES: {
-      CustomData *cdata = NULL;
+      CustomData *cdata = nullptr;
 
       out->data_for_bmesh = false;
 
@@ -3311,14 +3306,14 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
       BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
 
-      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, NULL, totelem, name);
+      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, nullptr, totelem, name);
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 
-      out->data = NULL;
+      out->data = nullptr;
       out->layer = cdata->layers + index;
       out->bmesh_cd_offset = -1;
       out->data = out->layer->data;
@@ -3398,7 +3393,7 @@ static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool BKE_sculpt_attribute_exists(Object *ob,
@@ -3431,7 +3426,7 @@ static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)
   }
 
   BLI_assert_unreachable();
-  return NULL;
+  return nullptr;
 }
 
 SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
@@ -3487,7 +3482,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
@@ -3614,7 +3609,8 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
   }
 
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
-  ss->cd_faceset_offset = CustomData_get_offset_named(&ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  ss->cd_faceset_offset = CustomData_get_offset_named(
+      &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   if (ss->attrs.face_areas) {
     ss->cd_face_areas = ss->attrs.face_areas->bmesh_cd_offset;
@@ -3698,7 +3694,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
 
   for (int i = 0; i < ptrs_num; i++) {
     if (ptrs[i] == attr) {
-      ptrs[i] = NULL;
+      ptrs[i] = nullptr;
     }
   }
 
@@ -3754,7 +3750,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     sculpt_attribute_update_refs(ob);
   }
 
-  attr->data = NULL;
+  attr->data = nullptr;
   attr->used = false;
 
   return true;

@@ -28,7 +28,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_vect_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
@@ -141,7 +141,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_vector_math(GPUMaterial *mat,
                                   bNode *node,
-                                  bNodeExecData *UNUSED(execdata),
+                                  bNodeExecData * /*execdata*/,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {

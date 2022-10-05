@@ -170,7 +170,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   }
 }
 
-static bool socket_is_available(bNodeTree *UNUSED(ntree), bNodeSocket *sock, const bool allow_used)
+static bool socket_is_available(bNodeTree * /*ntree*/, bNodeSocket *sock, const bool allow_used)
 {
   if (nodeSocketIsHidden(sock)) {
     return false;
@@ -699,7 +699,7 @@ static int node_link_viewer(const bContext &C, bNode &bnode_to_view, bNodeSocket
 /** \name Link to Viewer Node Operator
  * \{ */
 
-static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_active_link_viewer_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNode *node = nodeGetActive(snode.edittree);
@@ -805,7 +805,7 @@ static bool should_create_drag_link_search_menu(const bNodeTree &node_tree,
   return true;
 }
 
-static void draw_draglink_tooltip(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
+static void draw_draglink_tooltip(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   bNodeLinkDrag *nldrag = static_cast<bNodeLinkDrag *>(arg);
 
@@ -834,7 +834,7 @@ static void draw_draglink_tooltip_deactivate(const ARegion &region, bNodeLinkDra
   }
 }
 
-static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
+static void node_link_update_header(bContext *C, bNodeLinkDrag * /*nldrag*/)
 {
   char header[UI_MAX_DRAW_STR];
 
@@ -1549,7 +1549,7 @@ void NODE_OT_links_mute(wmOperatorType *ot)
 /** \name Detach Links Operator
  * \{ */
 
-static int detach_links_exec(bContext *C, wmOperator *UNUSED(op))
+static int detach_links_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -1586,7 +1586,7 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 /** \name Set Parent Operator
  * \{ */
 
-static int node_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -1668,7 +1668,7 @@ static void node_join_attach_recursive(bNode *node,
   }
 }
 
-static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_join_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1738,7 +1738,7 @@ static bNode *node_find_frame_to_attach(ARegion &region,
   return nullptr;
 }
 
-static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1836,7 +1836,7 @@ static void node_detach_recursive(bNode *node)
 }
 
 /* detach the root nodes in the current selection */
-static int node_detach_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_detach_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -2104,7 +2104,7 @@ static bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketIn
   return nullptr;
 }
 
-static bool node_parents_offset_flag_enable_cb(bNode *parent, void *UNUSED(userdata))
+static bool node_parents_offset_flag_enable_cb(bNode *parent, void * /*userdata*/)
 {
   /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
   parent->flag |= NODE_TEST;

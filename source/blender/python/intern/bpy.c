@@ -322,7 +322,7 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
     return NULL;
   }
 
-  path = BKE_appdir_folder_id_version(type.value_found, (major * 100) + minor, false);
+  path = BKE_appdir_resource_path_id_with_version(type.value_found, false, (major * 100) + minor);
 
   return PyC_UnicodeFromByte(path ? path : "");
 }

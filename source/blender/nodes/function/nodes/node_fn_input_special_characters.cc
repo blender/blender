@@ -26,7 +26,7 @@ class MF_SpecialCharacters : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     MutableSpan<std::string> lb = params.uninitialized_single_output<std::string>(0, "Line Break");
     MutableSpan<std::string> tab = params.uninitialized_single_output<std::string>(1, "Tab");

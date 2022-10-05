@@ -49,7 +49,7 @@ struct uiPieMenu {
   int mx, my;
 };
 
-static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handle, void *arg_pie)
+static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, void *arg_pie)
 {
   uiBlock *block;
   uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);

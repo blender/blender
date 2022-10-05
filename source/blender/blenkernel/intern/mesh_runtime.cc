@@ -78,7 +78,7 @@ void BKE_mesh_runtime_free_data(Mesh *mesh)
   mesh_runtime_free_mutexes(mesh);
 }
 
-void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
+void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int /*flag*/)
 {
   Mesh_Runtime *runtime = &mesh->runtime;
 

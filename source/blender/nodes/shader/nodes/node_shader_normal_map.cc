@@ -34,7 +34,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
   }
 }
 
-static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_normal_map(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderNormalMap *attr = MEM_cnew<NodeShaderNormalMap>("NodeShaderNormalMap");
   node->storage = attr;
@@ -42,7 +42,7 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int gpu_shader_normal_map(GPUMaterial *mat,
                                  bNode *node,
-                                 bNodeExecData *UNUSED(execdata),
+                                 bNodeExecData * /*execdata*/,
                                  GPUNodeStack *in,
                                  GPUNodeStack *out)
 {

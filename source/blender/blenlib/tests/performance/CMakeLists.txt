@@ -6,8 +6,8 @@ set(INC
   ..
   ../..
   ../../../makesdna
-  ../../../../../intern/guardedalloc
   ../../../../../intern/atomic
+  ../../../../../intern/guardedalloc
 )
 
 include_directories(${INC})

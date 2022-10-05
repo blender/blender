@@ -63,7 +63,7 @@ struct TestType {
     return stream;
   }
 
-  friend bool operator==(const TestType &UNUSED(a), const TestType &UNUSED(b))
+  friend bool operator==(const TestType & /*a*/, const TestType & /*b*/)
   {
     return false;
   }

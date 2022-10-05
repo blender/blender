@@ -8,17 +8,24 @@
  * Embeds GPU meshes inside of PBVH nodes, used by mesh sculpt mode.
  */
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <algorithm>
+#include <climits>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
+#include "BLI_map.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -44,15 +51,6 @@
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
 
-#include "BLI_index_range.hh"
-#include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
-#include "BLI_vector.hh"
-#include <vector>
-
-#include <algorithm>
-#include <string>
-
 using blender::char3;
 using blender::float2;
 using blender::float3;
@@ -61,7 +59,6 @@ using blender::IndexRange;
 using blender::Map;
 using blender::short3;
 using blender::uchar3;
-using blender::uchar4;
 using blender::ushort3;
 using blender::ushort4;
 using blender::Vector;
@@ -89,7 +86,7 @@ struct PBVHVbo {
   {
     char buf[512];
 
-    sprintf(buf, "%d:%d:%s", (int)type, (int)domain, name.c_str());
+    sprintf(buf, "%d:%d:%s", int(type), int(domain), name.c_str());
 
     key = string(buf);
     return key;
@@ -341,6 +338,19 @@ struct PBVHBatches {
     GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
 
     switch (vbo.type) {
+      case CD_PROP_COLOR:
+      case CD_PROP_BYTE_COLOR: {
+        /* TODO: Implement color support for multires similar to the mesh cache
+         * extractor code. For now just upload white.
+         */
+        const ushort4 white(USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX);
+
+        foreach_grids(
+            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
+              *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
+            });
+        break;
+      }
       case CD_PBVH_CO_TYPE:
         foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
           float *co = CCG_elem_co(&args->ccg_key, elems[i]);
@@ -377,7 +387,7 @@ struct PBVHBatches {
         foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
           float *mask = CCG_elem_mask(&args->ccg_key, elems[i]);
 
-          *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = mask ? (uchar)(*mask * 255.0f) :
+          *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = mask ? uchar(*mask * 255.0f) :
                                                                         255;
         });
         break;
@@ -390,13 +400,13 @@ struct PBVHBatches {
 
           foreach_grids(
               [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-                *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = white;
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
               });
         }
         else {
           foreach_grids(
               [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
-                uchar face_set_color[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+                uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
                 if (face_sets) {
                   const int face_index = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg,
@@ -481,8 +491,6 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
-    int totvert = args->totprim * 3;
-
     auto foreach_faces =
         [&](std::function<void(int buffer_i, int tri_i, int vertex_i, const MLoopTri *tri)> func) {
           int buffer_i = 0;
@@ -503,6 +511,9 @@ struct PBVHBatches {
             }
           }
         };
+
+    int totvert = 0;
+    foreach_faces([&totvert](int, int, int, const MLoopTri *) { totvert++; });
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
@@ -531,13 +542,13 @@ struct PBVHBatches {
         if (mask) {
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask[vertex_i] *
-                                                                               255.0f);
+                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = uchar(mask[vertex_i] *
+                                                                             255.0f);
               });
         }
         else {
           foreach_faces(
-              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri * /*tri*/) {
                 *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
               });
         }
@@ -545,27 +556,40 @@ struct PBVHBatches {
       }
       case CD_PBVH_FSET_TYPE: {
         int *face_sets = static_cast<int *>(
-            CustomData_get_layer(args->pdata, CD_SCULPT_FACE_SETS));
-        int last_poly = -1;
-        uchar fset_color[3] = {255, 255, 255};
+            CustomData_get_layer_named(args->pdata, CD_PROP_INT32, ".sculpt_face_set"));
 
-        foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
-          if (last_poly != tri->poly && args->face_sets) {
-            last_poly = tri->poly;
+        if (face_sets) {
+          int last_poly = -1;
+          uchar fset_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-            const int fset = abs(face_sets[tri->poly]);
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
+                if (last_poly != tri->poly) {
+                  last_poly = tri->poly;
 
-            if (fset != args->face_sets_color_default) {
-              BKE_paint_face_set_overlay_color_get(fset, args->face_sets_color_seed, fset_color);
-            }
-            else {
-              /* Skip for the default color face set to render it white. */
-              fset_color[0] = fset_color[1] = fset_color[2] = 255;
-            }
-          }
+                  const int fset = face_sets[tri->poly];
 
-          *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
-        });
+                  if (fset != args->face_sets_color_default) {
+                    BKE_paint_face_set_overlay_color_get(
+                        fset, args->face_sets_color_seed, fset_color);
+                  }
+                  else {
+                    /* Skip for the default color face set to render it white. */
+                    fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
+                  }
+                }
+
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
+              });
+        }
+        else {
+          uchar fset_color[4] = {255, 255, 255, 255};
+
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri * /*tri*/) {
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
+              });
+        }
 
         break;
       }
@@ -908,13 +932,13 @@ struct PBVHBatches {
           foreach_bmesh([&](BMLoop *l) {
             float mask = BM_ELEM_CD_GET_FLOAT(l->v, cd_mask);
 
-            *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask * 255.0f);
+            *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = uchar(mask * 255.0f);
           });
         }
         break;
       }
       case CD_PBVH_FSET_TYPE: {
-        uchar3 white(255, 255, 255);
+        uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
 
         foreach_bmesh([&](BMLoop * /*l*/) {
           *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
@@ -1000,10 +1024,30 @@ struct PBVHBatches {
         const char *prefix = "a";
 
         if (ELEM(type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+          Mesh query_mesh;
+
+          /* Check if we have args->me; if not use get_cdata to build something we
+           * can query for color attributes.
+           */
+          if (args->me) {
+            memcpy(static_cast<void *>(&query_mesh),
+                   static_cast<const void *>(args->me),
+                   sizeof(Mesh));
+          }
+          else {
+            BKE_id_attribute_copy_domains_temp(ID_ME,
+                                               get_cdata(ATTR_DOMAIN_POINT, args),
+                                               nullptr,
+                                               get_cdata(ATTR_DOMAIN_CORNER, args),
+                                               nullptr,
+                                               nullptr,
+                                               &query_mesh.id);
+          }
+
           prefix = "c";
 
-          CustomDataLayer *render = BKE_id_attributes_render_color_get(&args->me->id);
-          CustomDataLayer *active = BKE_id_attributes_active_color_get(&args->me->id);
+          CustomDataLayer *render = BKE_id_attributes_render_color_get(&query_mesh.id);
+          CustomDataLayer *active = BKE_id_attributes_active_color_get(&query_mesh.id);
 
           is_render = render && layer && STREQ(render->name, layer->name);
           is_active = active && layer && STREQ(active->name, layer->name);
@@ -1313,11 +1357,11 @@ struct PBVHBatches {
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
 
-      if (!has_vbo(attr->domain, (int)attr->type, attr->name)) {
-        create_vbo(attr->domain, (uint32_t)attr->type, attr->name, args);
+      if (!has_vbo(attr->domain, int(attr->type), attr->name)) {
+        create_vbo(attr->domain, uint32_t(attr->type), attr->name, args);
       }
 
-      PBVHVbo *vbo = get_vbo(attr->domain, (uint32_t)attr->type, attr->name);
+      PBVHVbo *vbo = get_vbo(attr->domain, uint32_t(attr->type), attr->name);
       int vbo_i = get_vbo_index(vbo);
 
       batch.vbos.append(vbo_i);

@@ -84,7 +84,7 @@ float light_point_light(LightData ld, const bool is_directional, vec3 L, float d
    **/
   float d_sqr = sqr(dist);
   float r_sqr = ld.radius_squared;
-  /* Using reformulation that has better numerical percision. */
+  /* Using reformulation that has better numerical precision. */
   float power = 2.0 / (d_sqr + r_sqr + dist * sqrt(d_sqr + r_sqr));
 
   if (is_area_light(ld.type)) {

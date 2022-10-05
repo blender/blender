@@ -293,7 +293,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+static void view_pan_cancel(bContext * /*C*/, wmOperator *op)
 {
   view_pan_exit(op);
 }
@@ -330,7 +330,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
  * \{ */
 
 /* set up modal operator and relevant settings */
-static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   op->customdata = MEM_callocN(sizeof(View2DEdgePanData), "View2DEdgePanData");
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
@@ -358,7 +358,7 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   return OPERATOR_PASS_THROUGH;
 }
 
-static void view_edge_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+static void view_edge_pan_cancel(bContext * /*C*/, wmOperator *op)
 {
   v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
@@ -1614,7 +1614,7 @@ void UI_view2d_smooth_view(const bContext *C,
 }
 
 /* only meant for timer usage */
-static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int view2d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
@@ -1628,7 +1628,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
   float step;
   if (sms->time_allowed != 0.0) {
-    step = (float)((v2d->smooth_timer->duration) / sms->time_allowed);
+    step = float((v2d->smooth_timer->duration) / sms->time_allowed);
   }
   else {
     step = 1.0f;
@@ -1859,11 +1859,11 @@ static void scroller_activate_init(bContext *C,
 
   if (in_scroller == 'h') {
     /* horizontal scroller - calculate adjustment factor first */
-    const float mask_size = (float)BLI_rcti_size_x(&v2d->hor);
+    const float mask_size = float(BLI_rcti_size_x(&v2d->hor));
     vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
-    vsm->fac_round = (BLI_rctf_size_x(&v2d->cur)) / (float)(BLI_rcti_size_x(&region->winrct) + 1);
+    vsm->fac_round = (BLI_rctf_size_x(&v2d->cur)) / float(BLI_rcti_size_x(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
     vsm->zone = mouse_in_scroller_handle(
@@ -1879,11 +1879,11 @@ static void scroller_activate_init(bContext *C,
   }
   else {
     /* vertical scroller - calculate adjustment factor first */
-    const float mask_size = (float)BLI_rcti_size_y(&v2d->vert);
+    const float mask_size = float(BLI_rcti_size_y(&v2d->vert));
     vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
-    vsm->fac_round = (BLI_rctf_size_y(&v2d->cur)) / (float)(BLI_rcti_size_y(&region->winrct) + 1);
+    vsm->fac_round = (BLI_rctf_size_y(&v2d->cur)) / float(BLI_rcti_size_y(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
     vsm->zone = mouse_in_scroller_handle(
@@ -2000,11 +2000,11 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
         switch (vsm->scroller) {
           case 'h': /* horizontal scroller - so only horizontal movement
                      * ('cur' moves opposite to mouse) */
-            vsm->delta = (float)(event->xy[0] - vsm->lastx);
+            vsm->delta = float(event->xy[0] - vsm->lastx);
             break;
           case 'v': /* vertical scroller - so only vertical movement
                      * ('cur' moves opposite to mouse) */
-            vsm->delta = (float)(event->xy[1] - vsm->lasty);
+            vsm->delta = float(event->xy[1] - vsm->lasty);
             break;
         }
       }
@@ -2013,11 +2013,11 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
         switch (vsm->scroller) {
           case 'h': /* horizontal scroller - so only horizontal movement
                      * ('cur' moves with mouse) */
-            vsm->delta = (float)(vsm->lastx - event->xy[0]);
+            vsm->delta = float(vsm->lastx - event->xy[0]);
             break;
           case 'v': /* vertical scroller - so only vertical movement
                      * ('cur' moves with to mouse) */
-            vsm->delta = (float)(vsm->lasty - event->xy[1]);
+            vsm->delta = float(vsm->lasty - event->xy[1]);
             break;
         }
       }
@@ -2080,11 +2080,11 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
       switch (vsm->scroller) {
         case 'h': /* horizontal scroller - so only horizontal movement
                    * ('cur' moves opposite to mouse) */
-          vsm->delta = (float)(event->xy[0] - vsm->scrollbar_orig);
+          vsm->delta = float(event->xy[0] - vsm->scrollbar_orig);
           break;
         case 'v': /* vertical scroller - so only vertical movement
                    * ('cur' moves opposite to mouse) */
-          vsm->delta = (float)(event->xy[1] - vsm->scrollbar_orig);
+          vsm->delta = float(event->xy[1] - vsm->scrollbar_orig);
           break;
       }
       scroller_activate_apply(C, op);
@@ -2169,7 +2169,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 /** \name View Reset Operator
  * \{ */
 
-static int reset_exec(bContext *C, wmOperator *UNUSED(op))
+static int reset_exec(bContext *C, wmOperator * /*op*/)
 {
   const uiStyle *style = UI_style_get();
   ARegion *region = CTX_wm_region(C);
@@ -2177,8 +2177,8 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
   const int snap_test = ED_region_snap_size_test(region);
 
   /* zoom 1.0 */
-  const int winx = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
-  const int winy = (float)(BLI_rcti_size_y(&v2d->mask) + 1);
+  const int winx = float(BLI_rcti_size_x(&v2d->mask) + 1);
+  const int winy = float(BLI_rcti_size_y(&v2d->mask) + 1);
 
   v2d->cur.xmax = v2d->cur.xmin + winx;
   v2d->cur.ymax = v2d->cur.ymin + winy;

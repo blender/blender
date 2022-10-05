@@ -12,7 +12,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Material>(N_("Material"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "material", 0, "", ICON_NONE);
 }

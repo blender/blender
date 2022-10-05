@@ -23,6 +23,8 @@
 #include "util/log.h"
 #include "util/task.h"
 
+#include "BKE_duplilist.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Utilities */
@@ -353,79 +355,26 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   return object;
 }
 
-/* This function mirrors drw_uniform_property_lookup in draw_instance_data.cpp */
-static bool lookup_property(BL::ID b_id, const string &name, float4 *r_value)
-{
-  PointerRNA ptr;
-  PropertyRNA *prop;
+extern "C" DupliObject *rna_hack_DepsgraphObjectInstance_dupli_object_get(PointerRNA *ptr);
 
-  if (!RNA_path_resolve(&b_id.ptr, name.c_str(), &ptr, &prop)) {
-    return false;
-  }
-
-  if (prop == NULL) {
-    return false;
-  }
-
-  PropertyType type = RNA_property_type(prop);
-  int arraylen = RNA_property_array_length(&ptr, prop);
-
-  if (arraylen == 0) {
-    float value;
-
-    if (type == PROP_FLOAT)
-      value = RNA_property_float_get(&ptr, prop);
-    else if (type == PROP_INT)
-      value = static_cast<float>(RNA_property_int_get(&ptr, prop));
-    else
-      return false;
-
-    *r_value = make_float4(value, value, value, 1.0f);
-    return true;
-  }
-  else if (type == PROP_FLOAT && arraylen <= 4) {
-    *r_value = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-    RNA_property_float_get_array(&ptr, prop, &r_value->x);
-    return true;
-  }
-
-  return false;
-}
-
-/* This function mirrors drw_uniform_attribute_lookup in draw_instance_data.cpp */
 static float4 lookup_instance_property(BL::DepsgraphObjectInstance &b_instance,
                                        const string &name,
                                        bool use_instancer)
 {
-  string idprop_name = string_printf("[\"%s\"]", name.c_str());
-  float4 value;
+  ::Object *ob = (::Object *)b_instance.object().ptr.data;
+  ::DupliObject *dupli = nullptr;
+  ::Object *dupli_parent = nullptr;
 
   /* If requesting instance data, check the parent particle system and object. */
   if (use_instancer && b_instance.is_instance()) {
-    BL::ParticleSystem b_psys = b_instance.particle_system();
-
-    if (b_psys) {
-      if (lookup_property(b_psys.settings(), idprop_name, &value) ||
-          lookup_property(b_psys.settings(), name, &value)) {
-        return value;
-      }
-    }
-    if (lookup_property(b_instance.parent(), idprop_name, &value) ||
-        lookup_property(b_instance.parent(), name, &value)) {
-      return value;
-    }
+    dupli = rna_hack_DepsgraphObjectInstance_dupli_object_get(&b_instance.ptr);
+    dupli_parent = (::Object *)b_instance.parent().ptr.data;
   }
 
-  /* Check the object and mesh. */
-  BL::Object b_ob = b_instance.object();
-  BL::ID b_data = b_ob.data();
+  float4 value;
+  BKE_object_dupli_find_rgba_attribute(ob, dupli, dupli_parent, name.c_str(), &value.x);
 
-  if (lookup_property(b_ob, idprop_name, &value) || lookup_property(b_ob, name, &value) ||
-      lookup_property(b_data, idprop_name, &value) || lookup_property(b_data, name, &value)) {
-    return value;
-  }
-
-  return zero_float4();
+  return value;
 }
 
 bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object)

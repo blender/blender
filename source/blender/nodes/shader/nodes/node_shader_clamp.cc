@@ -21,19 +21,19 @@ static void sh_node_clamp_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Result"));
 }
 
-static void node_shader_buts_clamp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_clamp(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "clamp_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_clamp(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_clamp(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = NODE_CLAMP_MINMAX; /* clamp type */
 }
 
 static int gpu_shader_clamp(GPUMaterial *mat,
                             bNode *node,
-                            bNodeExecData *UNUSED(execdata),
+                            bNodeExecData * /*execdata*/,
                             GPUNodeStack *in,
                             GPUNodeStack *out)
 {

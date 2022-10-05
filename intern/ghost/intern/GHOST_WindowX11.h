@@ -11,7 +11,7 @@
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-// For tablets
+/* For tablets. */
 #ifdef WITH_X11_XINPUT
 #  include <X11/extensions/XInput.h>
 #endif

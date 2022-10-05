@@ -143,7 +143,7 @@ static void eevee_instance_free(void *instance)
 static void eevee_render_to_image(void *vedata,
                                   struct RenderEngine *engine,
                                   struct RenderLayer *layer,
-                                  const struct rcti *UNUSED(rect))
+                                  const struct rcti * /*rect*/)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
@@ -165,9 +165,7 @@ static void eevee_render_to_image(void *vedata,
   instance->render_frame(layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
-  if (ved->instance) {
-    delete ved->instance;
-  }
+  delete ved->instance;
   ved->instance = instance;
 }
 

@@ -344,7 +344,7 @@ vec3 coordinate_screen(vec3 P)
   }
   else {
     /* TODO(fclem): Actual camera transform. */
-    window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
+    window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
     window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
   }
   return window;

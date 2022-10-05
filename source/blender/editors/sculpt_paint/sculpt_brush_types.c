@@ -24,18 +24,12 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "atomic_ops.h"
-
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -45,7 +39,6 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_image.h"
 #include "BKE_kelvinlet.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -59,7 +52,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -91,18 +83,13 @@
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
+
 #include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
-
+#include "atomic_ops.h"
 #include "bmesh.h"
-#include "bmesh_tools.h"
 
 #include <math.h>
 #include <stdlib.h>

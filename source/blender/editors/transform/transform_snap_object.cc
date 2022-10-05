@@ -1250,7 +1250,7 @@ static void nearest_world_tree_co(BVHTree *tree,
   }
 }
 
-static bool nearest_world_tree(SnapObjectContext *UNUSED(sctx),
+static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
                                const struct SnapObjectParams *params,
                                BVHTree *tree,
                                BVHTree_NearestPointCallback nearest_cb,
@@ -2206,7 +2206,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
                               float *dist_px,
                               /* return args */
                               float r_loc[3],
-                              float *UNUSED(r_no),
+                              float * /*r_no*/,
                               int *r_index)
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;
@@ -2373,7 +2373,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
                            float *dist_px,
                            /* return args */
                            float r_loc[3],
-                           float *UNUSED(r_no),
+                           float * /*r_no*/,
                            int *r_index)
 {
   bool has_snap = false;
@@ -2543,7 +2543,7 @@ static eSnapMode snap_object_center(const SnapObjectContext *sctx,
                                     float *dist_px,
                                     /* return args */
                                     float r_loc[3],
-                                    float *UNUSED(r_no),
+                                    float * /*r_no*/,
                                     int *r_index)
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;

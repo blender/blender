@@ -125,7 +125,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
   return true;
 }
 
-static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
+static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
@@ -170,7 +170,7 @@ static bool lib_id_generate_preview_from_object_poll(bContext *C)
   return true;
 }
 
-static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator *UNUSED(op))
+static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
@@ -304,7 +304,7 @@ static bool lib_id_override_editable_toggle_poll(bContext *C)
   return id && ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id);
 }
 
-static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
@@ -346,7 +346,7 @@ static void ED_OT_lib_id_override_editable_toggle(wmOperatorType *ot)
 /** \name General editor utils.
  * \{ */
 
-static int ed_flush_edits_exec(bContext *C, wmOperator *UNUSED(op))
+static int ed_flush_edits_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   ED_editors_flush_edits(bmain);

@@ -73,7 +73,7 @@ static void edbm_flag_disable_all_multi(const Scene *scene,
   MEM_freeN(objects);
 }
 
-/* When accessed as a tool, get the active edge from the preselection gizmo. */
+/** When accessed as a tool, get the active edge from the pre-selection gizmo. */
 static bool edbm_preselect_or_active(bContext *C, const View3D *v3d, Base **r_base, BMElem **r_ele)
 {
   ARegion *region = CTX_wm_region(C);

@@ -903,13 +903,13 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
 }
 
 static void draw_subdiv_vertex_corner_cb(const SubdivForeachContext *foreach_context,
-                                         void *UNUSED(tls),
-                                         const int UNUSED(ptex_face_index),
-                                         const float UNUSED(u),
-                                         const float UNUSED(v),
+                                         void * /*tls*/,
+                                         const int /*ptex_face_index*/,
+                                         const float /*u*/,
+                                         const float /*v*/,
                                          const int coarse_vertex_index,
-                                         const int UNUSED(coarse_poly_index),
-                                         const int UNUSED(coarse_corner),
+                                         const int /*coarse_poly_index*/,
+                                         const int /*coarse_corner*/,
                                          const int subdiv_vertex_index)
 {
   BLI_assert(coarse_vertex_index != ORIGINDEX_NONE);
@@ -917,26 +917,26 @@ static void draw_subdiv_vertex_corner_cb(const SubdivForeachContext *foreach_con
   ctx->vert_origindex_map[subdiv_vertex_index] = coarse_vertex_index;
 }
 
-static void draw_subdiv_vertex_edge_cb(const SubdivForeachContext *UNUSED(foreach_context),
-                                       void *UNUSED(tls_v),
-                                       const int UNUSED(ptex_face_index),
-                                       const float UNUSED(u),
-                                       const float UNUSED(v),
-                                       const int UNUSED(coarse_edge_index),
-                                       const int UNUSED(coarse_poly_index),
-                                       const int UNUSED(coarse_corner),
-                                       const int UNUSED(subdiv_vertex_index))
+static void draw_subdiv_vertex_edge_cb(const SubdivForeachContext * /*foreach_context*/,
+                                       void * /*tls_v*/,
+                                       const int /*ptex_face_index*/,
+                                       const float /*u*/,
+                                       const float /*v*/,
+                                       const int /*coarse_edge_index*/,
+                                       const int /*coarse_poly_index*/,
+                                       const int /*coarse_corner*/,
+                                       const int /*subdiv_vertex_index*/)
 {
   /* Required if SubdivForeachContext.vertex_corner is also set. */
 }
 
 static void draw_subdiv_edge_cb(const SubdivForeachContext *foreach_context,
-                                void *UNUSED(tls),
+                                void * /*tls*/,
                                 const int coarse_edge_index,
                                 const int subdiv_edge_index,
-                                const bool UNUSED(is_loose),
-                                const int UNUSED(subdiv_v1),
-                                const int UNUSED(subdiv_v2))
+                                const bool /*is_loose*/,
+                                const int /*subdiv_v1*/,
+                                const int /*subdiv_v2*/)
 {
   DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
 
@@ -956,13 +956,13 @@ static void draw_subdiv_edge_cb(const SubdivForeachContext *foreach_context,
 }
 
 static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
-                                void *UNUSED(tls_v),
+                                void * /*tls_v*/,
                                 const int ptex_face_index,
                                 const float u,
                                 const float v,
-                                const int UNUSED(coarse_loop_index),
+                                const int /*coarse_loop_index*/,
                                 const int coarse_poly_index,
-                                const int UNUSED(coarse_corner),
+                                const int /*coarse_corner*/,
                                 const int subdiv_loop_index,
                                 const int subdiv_vertex_index,
                                 const int subdiv_edge_index)

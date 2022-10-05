@@ -118,7 +118,7 @@ PyDoc_STRVAR(ViewVertex_nature_doc,
              "\n"
              ":type: :class:`Nature`");
 
-static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void *UNUSED(closure))
+static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void * /*closure*/)
 {
   Nature::VertexNature nature = self->vv->getNature();
   if (PyErr_Occurred()) {
@@ -127,7 +127,7 @@ static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void *UNUSED(closur
   return BPy_Nature_from_Nature(nature);  // return a copy
 }
 
-static int ViewVertex_nature_set(BPy_ViewVertex *self, PyObject *value, void *UNUSED(closure))
+static int ViewVertex_nature_set(BPy_ViewVertex *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Nature_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a Nature");

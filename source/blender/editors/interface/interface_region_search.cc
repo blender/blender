@@ -307,8 +307,8 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
 
 static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
                                                  struct ARegion *region,
-                                                 int *UNUSED(r_pass),
-                                                 double *UNUSED(pass_delay),
+                                                 int * /*r_pass*/,
+                                                 double * /*pass_delay*/,
                                                  bool *r_exit_on_event)
 {
   *r_exit_on_event = true;
@@ -903,7 +903,7 @@ static void str_tolower_titlecaps_ascii(char *str, const size_t len)
   }
 }
 
-static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARegion *region)
+static void ui_searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegion *region)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
@@ -997,7 +997,7 @@ void ui_searchbox_free(bContext *C, ARegion *region)
   ui_region_temp_remove(C, CTX_wm_screen(C), region);
 }
 
-static void ui_searchbox_region_draw_cb__menu(const bContext *UNUSED(C), ARegion *UNUSED(region))
+static void ui_searchbox_region_draw_cb__menu(const bContext * /*C*/, ARegion * /*region*/)
 {
   /* Currently unused. */
 }

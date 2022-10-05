@@ -6,8 +6,8 @@
  * Tree hash for the outliner space.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
@@ -34,7 +34,6 @@ class TseGroup {
    * item is exponential and becomes critically slow when there are a lot of items in the group. */
   int lastused_reset_count = -1;
 
- public:
   void add_element(TreeStoreElem &elem);
   void remove_element(TreeStoreElem &elem);
 };
@@ -144,7 +143,7 @@ void TreeHash::remove_element(TreeStoreElem &elem)
 
 TseGroup *TreeHash::lookup_group(const TreeStoreElemKey &key) const
 {
-  auto *group = elem_groups_.lookup_ptr(key);
+  const auto *group = elem_groups_.lookup_ptr(key);
   if (group) {
     return group->get();
   }

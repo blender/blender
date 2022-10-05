@@ -17,17 +17,17 @@
 
 namespace blender::ed::file::indexer {
 
-static eFileIndexerResult read_index(const char *UNUSED(file_name),
-                                     FileIndexerEntries *UNUSED(entries),
-                                     int *UNUSED(r_read_entries_len),
-                                     void *UNUSED(user_data))
+static eFileIndexerResult read_index(const char * /*file_name*/,
+                                     FileIndexerEntries * /*entries*/,
+                                     int * /*r_read_entries_len*/,
+                                     void * /*user_data*/)
 {
   return FILE_INDEXER_NEEDS_UPDATE;
 }
 
-static void update_index(const char *UNUSED(file_name),
-                         FileIndexerEntries *UNUSED(entries),
-                         void *UNUSED(user_data))
+static void update_index(const char * /*file_name*/,
+                         FileIndexerEntries * /*entries*/,
+                         void * /*user_data*/)
 {
 }
 

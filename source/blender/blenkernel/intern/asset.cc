@@ -143,7 +143,7 @@ IDProperty *BKE_asset_metadata_idprop_find(const AssetMetaData *asset_data, cons
 
 /* Queries -------------------------------------------- */
 
-PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData *UNUSED(asset_data),
+PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData * /*asset_data*/,
                                                      const ID *id)
 {
   return BKE_previewimg_id_get(id);

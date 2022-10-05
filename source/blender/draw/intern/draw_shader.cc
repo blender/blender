@@ -32,13 +32,12 @@ static struct {
 /** \name Hair refinement
  * \{ */
 
-static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(refinement))
+static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader /*refinement*/)
 {
   return GPU_shader_create_from_info_name("draw_hair_refine_compute");
 }
 
-static GPUShader *hair_refine_shader_transform_feedback_create(
-    ParticleRefineShader UNUSED(refinement))
+static GPUShader *hair_refine_shader_transform_feedback_create(ParticleRefineShader /*refinement*/)
 {
   GPUShader *sh = nullptr;
 
@@ -58,7 +57,7 @@ static GPUShader *hair_refine_shader_transform_feedback_create(
 }
 
 static GPUShader *hair_refine_shader_transform_feedback_workaround_create(
-    ParticleRefineShader UNUSED(refinement))
+    ParticleRefineShader /*refinement*/)
 {
   return GPU_shader_create_from_info_name("draw_hair_refine_transform_feedback_workaround");
 }

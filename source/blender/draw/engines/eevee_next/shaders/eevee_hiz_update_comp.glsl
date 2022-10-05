@@ -6,11 +6,11 @@
  * http://rastergrid.com/blog/2010/10/hierarchical-z-map-based-occlusion-culling/
  *
  * Major simplification has been made since we pad the buffer to always be
- * bigger than input to avoid mipmapping misalignement.
+ * bigger than input to avoid mipmapping misalignment.
  *
  * Start by copying the base level by quad loading the depth.
  * Then each thread compute it's local depth for level 1.
- * After that we use shared variables to do inter thread comunication and
+ * After that we use shared variables to do inter thread communication and
  * downsample to max level.
  */
 

@@ -910,6 +910,11 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   const char *undo_push_label = NULL;
 
   switch (event) {
+    case UI_ID_NOP:
+      /* Don't do anything, typically set for buttons that execute an operator instead. They may
+       * still assign the callback so the button can be identified as part of an ID-template. See
+       * #UI_context_active_but_prop_get_templateID(). */
+      break;
     case UI_ID_BROWSE:
     case UI_ID_PIN:
       RNA_warning("warning, id event %d shouldn't come here", event);
@@ -1543,7 +1548,8 @@ static void template_ID(const bContext *C,
                           UI_UNIT_Y,
                           NULL);
       /* so we can access the template from operators, font unlinking needs this */
-      UI_but_funcN_set(but, NULL, MEM_dupallocN(template_ui), NULL);
+      UI_but_funcN_set(
+          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_NOP));
     }
     else {
       if ((RNA_property_flag(template_ui->prop) & PROP_NEVER_UNLINK) == 0) {

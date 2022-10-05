@@ -3431,7 +3431,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Count", "Number of times the keys are looped");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-  /* modified dm support */
+  /* Evaluated mesh support. */
   prop = RNA_def_property(srna, "use_modifier_stack", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_modifier_stack", 0);
   RNA_def_property_ui_text(

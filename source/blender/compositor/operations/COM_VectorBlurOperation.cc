@@ -103,8 +103,8 @@ bool VectorBlurOperation::determine_depending_area_of_interest(rcti * /*input*/,
   return false;
 }
 
-void VectorBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
-                                               const rcti &UNUSED(output_area),
+void VectorBlurOperation::get_area_of_interest(const int /*input_idx*/,
+                                               const rcti & /*output_area*/,
                                                rcti &r_input_area)
 {
   r_input_area = this->get_canvas();

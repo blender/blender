@@ -61,6 +61,14 @@ void **rna_DepsgraphIterator_instance(PointerRNA *ptr)
 }
 #  endif
 
+/* Temporary hack for Cycles until it is changed to work with the C API directly. */
+DupliObject *rna_hack_DepsgraphObjectInstance_dupli_object_get(PointerRNA *ptr)
+{
+  RNA_DepsgraphIterator *di = ptr->data;
+  DEGObjectIterData *deg_iter = (DEGObjectIterData *)di->iter.data;
+  return deg_iter->dupli_object_current;
+}
+
 static PointerRNA rna_DepsgraphObjectInstance_object_get(PointerRNA *ptr)
 {
   RNA_DepsgraphIterator *di = ptr->data;

@@ -80,7 +80,7 @@ extern ModifierTypeInfo modifierType_BassRelief;
 /* MOD_util.c */
 
 /**
- * Only called by `BKE_modifier.h/modifier.c`
+ * Only called by `BKE_modifier.h/modifier.cc`
  */
 void modifier_type_init(ModifierTypeInfo *types[]);
 

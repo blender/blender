@@ -25,7 +25,7 @@ std::string LazyFunction::output_name(int index) const
   return outputs_[index].debug_name;
 }
 
-void *LazyFunction::init_storage(LinearAllocator<> &UNUSED(allocator)) const
+void *LazyFunction::init_storage(LinearAllocator<> & /*allocator*/) const
 {
   return nullptr;
 }

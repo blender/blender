@@ -429,7 +429,7 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
         for (int i = 0; i < gps->totpoints; i++) {
           bGPDspoint *pt = &gps->points[i];
           bGPDspoint pt2;
-          gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+          gpencil_point_to_world_space(pt, diff_mat, &pt2);
           gpencil_point_to_xy_fl(
               &tgpf->gsc, gps, &pt2, &stroke->points2d[i][0], &stroke->points2d[i][1]);
         }
@@ -477,21 +477,6 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
     }
   }
   tgpf->stroke_array_num = idx;
-}
-
-/* Check if a 2D point is inside a 2D Bounding Box. */
-static bool is_point_in_bbox(tGPDfill *tgpf,
-                             bGPDstroke *gps,
-                             float diff_mat[4][4],
-                             float point2d[2])
-{
-  float boundbox_min[2];
-  float boundbox_max[2];
-
-  ED_gpencil_projected_2d_bound_box(&tgpf->gsc, gps, diff_mat, boundbox_min, boundbox_max);
-
-  rctf rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
-  return BLI_rctf_isect_pt_v(&rect_stroke, point2d);
 }
 
 static void set_stroke_collide(bGPDstroke *gps_a, bGPDstroke *gps_b, const float connection_dist)
@@ -544,11 +529,6 @@ static void gpencil_stroke_collision(
         float intersection2D[2];
         isect_line_line_v2_point(
             a1xy, a2xy, stroke->points2d[i], stroke->points2d[i + 1], intersection2D);
-        /* Verify the collision is inside the bounding box of the strokes. */
-        if (!is_point_in_bbox(tgpf, gps_a, diff_mat, intersection2D) &&
-            !is_point_in_bbox(tgpf, gps_b, diff_mat, intersection2D)) {
-          continue;
-        }
 
         gpencil_point_xy_to_3d(&tgpf->gsc, tgpf->scene, intersection2D, &extreme_a->x);
         mul_m4_v3(inv_mat, &extreme_a->x);
@@ -617,11 +597,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
 
       /* First stroke. */
       bGPDspoint *pt = &gps_a->points[0];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a1xy[0], &a1xy[1]);
 
       pt = &gps_a->points[1];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a2xy[0], &a2xy[1]);
       bGPDspoint *extreme_a = &gps_a->points[1];
 
@@ -644,11 +624,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
         }
 
         pt = &gps_b->points[0];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b1xy[0], &b1xy[1]);
 
         pt = &gps_b->points[1];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b2xy[0], &b2xy[1]);
         bGPDspoint *extreme_b = &gps_b->points[1];
 
@@ -877,12 +857,12 @@ static bool gpencil_stroke_is_drawable(tGPDfill *tgpf, bGPDstroke *gps)
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
   const bool show_help = (tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) != 0;
   const bool show_extend = (tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES) != 0;
+  const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool is_extend_stroke = (gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_TAG);
   const bool is_help_stroke = (gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_HELP);
-  const bool only_collide_strokes = (tgpf->flag & GP_BRUSH_FILL_COLLIDE_ONLY) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
-  if (is_line_mode && is_extend_stroke && only_collide_strokes && tgpf->is_render &&
+  if (is_line_mode && is_extend_stroke && tgpf->is_render && use_stroke_collide &&
       !stroke_collide) {
     return false;
   }
@@ -930,7 +910,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
                          !(gps->flag & GP_STROKE_HELP);
   const bool is_help = gps->flag & GP_STROKE_HELP;
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
-  const bool only_collide = (tgpf->flag & GP_BRUSH_FILL_COLLIDE_ONLY) != 0;
+  const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
   if (!gpencil_stroke_is_drawable(tgpf, gps)) {
@@ -951,7 +931,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
   }
   else if ((is_extend) && (!tgpf->is_render)) {
-    if (stroke_collide || !only_collide || !is_line_mode) {
+    if (stroke_collide || !use_stroke_collide || !is_line_mode) {
       copy_v4_v4(col, extend_col);
     }
     else {
@@ -2248,7 +2228,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   /* if parented change position relative to parent object */
   for (int a = 0; a < tgpf->sbuffer_used; a++) {
     pt = &gps->points[a];
-    gpencil_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
+    gpencil_world_to_object_space_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
   }
 
   /* If camera view or view projection, reproject flat to view to avoid perspective effect. */

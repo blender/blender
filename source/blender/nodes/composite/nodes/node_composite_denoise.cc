@@ -28,7 +28,7 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_denonise(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeDenoise *ndg = MEM_cnew<NodeDenoise>(__func__);
   ndg->hdr = true;
@@ -36,7 +36,7 @@ static void node_composit_init_denonise(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
-static void node_composit_buts_denoise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
 #ifndef WITH_OPENIMAGEDENOISE
   uiItemL(layout, IFACE_("Disabled, built without OpenImageDenoise"), ICON_ERROR);

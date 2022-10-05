@@ -52,8 +52,6 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 
 struct ViewInfos {
   /* View matrices */
-  float4x4 persmat;
-  float4x4 persinv;
   float4x4 viewmat;
   float4x4 viewinv;
   float4x4 winmat;
@@ -86,8 +84,6 @@ BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 /* Do not override old definitions if the shader uses this header but not shader info. */
 #ifdef USE_GPU_SHADER_CREATE_INFO
 /* TODO(@fclem): Mass rename. */
-#  define ViewProjectionMatrix drw_view.persmat
-#  define ViewProjectionMatrixInverse drw_view.persinv
 #  define ViewMatrix drw_view.viewmat
 #  define ViewMatrixInverse drw_view.viewinv
 #  define ProjectionMatrix drw_view.winmat
@@ -205,7 +201,6 @@ struct ObjectAttribute {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
-  bool id_property_lookup(ID *id, const char *name);
 #endif
 };
 #pragma pack(pop)

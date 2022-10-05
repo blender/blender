@@ -27,11 +27,6 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "atomic_ops.h"
-
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -50,25 +45,18 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_kelvinlet.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_fair.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pbvh.h"
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
@@ -87,25 +75,22 @@
 #include "GPU_state.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
+
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "atomic_ops.h"
 
 #include "bmesh.h"
 #include "bmesh_log.h"
@@ -803,13 +788,13 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
+      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+        int state = BM_ELEM_CD_GET_BOOL(f, cd_hide_poly);
+        state ^= true;
 
-        fset = -fset;
-
-        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+        BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, state);
       }
       break;
     }
@@ -888,15 +873,28 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
     }
     case PBVH_BMESH: {
       BMIter iter;
-      BMLoop *l;
       BMVert *v = (BMVert *)vertex.i;
+      BMEdge *e = v->e;
+      BMLoop *l;
       int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
-      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-        if (BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly)) {
-          return false;
-        }
+      if (!e) {
+        return true;
       }
+
+      do {
+        BMLoop *l = e->l;
+
+        if (!l) {
+          continue;
+        }
+
+        do {
+          if (BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly)) {
+            return false;
+          }
+        } while ((l = l->radial_next) != e->l);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
       return true;
     }
@@ -1199,47 +1197,28 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
-      BMVert *v;
       int cd_hide_poly = CustomData_get_layer_named(&ss->bm->pdata, CD_PROP_INT32, ".hide_poly");
 
-      if (cd_hide_poly == -1) {
-        return;
-      }
-
+      /* Hide all verts and edges attached to faces.*/
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
-
-        if (BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
-          BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
-        }
-        else {
-          BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
-        }
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
       }
 
-      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-        MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, ss->cd_sculpt_vert);
-
-        BMIter iter2;
-        BMLoop *l;
-
-        int visible = false;
-
-        BM_ITER_ELEM (l, &iter2, v, BM_LOOPS_OF_VERT) {
-          if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
-            visible = true;
-            break;
-          }
+      /* Unhide verts and edges attached to visible faces. */
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        if (BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
+          continue;
         }
 
-        if (!visible) {
-          mv->flag |= SCULPTVERT_VERT_FSET_HIDDEN;
-          BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
-        }
-        else {
-          mv->flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
-          BM_elem_flag_disable(v, BM_ELEM_HIDDEN);
-        }
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
       }
       break;
     }
@@ -8129,6 +8108,38 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), const float mv
   return SCULPT_stroke_get_location(C, co_dummy, mval, false);
 }
 
+static void sculpt_stroke_undo_begin(const bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+
+  /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
+   * Color attributes are part of the sculpting undo system. */
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
+  }
+  else {
+    SCULPT_undo_push_begin_ex(ob, sculpt_tool_name(sd));
+  }
+}
+
+static void sculpt_stroke_undo_end(const bContext *C, Brush *brush)
+{
+  Object *ob = CTX_data_active_object(C);
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    ED_image_undo_push_end();
+  }
+  else {
+    SCULPT_undo_push_end(ob);
+  }
+}
+
 bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -8215,15 +8226,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval, false, false);
 
-    /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
-     * Color attributes are part of the sculpting undo system. */
-    if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
-        SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
-      ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
-    }
-    else {
-      SCULPT_undo_push_begin_ex(ob, sculpt_tool_name(sd));
-    }
+    sculpt_stroke_undo_begin(C, op);
 
     if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_ARRAY) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
@@ -8581,13 +8584,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     SCULPT_array_datalayers_free(ss->array, ob);
   }
 
-  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
-      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
-    ED_image_undo_push_end();
-  }
-  else {
-    SCULPT_undo_push_end(ob);
-  }
+  sculpt_stroke_undo_end(C, brush);
 
   if (tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -8595,6 +8592,9 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   else if (brush->sculpt_tool == SCULPT_TOOL_PAINT) {
     if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_IMAGE);
+    }
+    else {
+      BKE_sculpt_attributes_destroy_temporary_stroke(ob);
     }
   }
   else {
@@ -8663,9 +8663,10 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_PASS_THROUGH;
   }
 
-  if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
+  retval = op->type->modal(C, op, event);
+  if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     paint_stroke_free(C, op, op->customdata);
-    return OPERATOR_FINISHED;
+    return retval;
   }
   /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
@@ -8723,7 +8724,30 @@ static EnumPropertyItem *stroke_tool_items = NULL;
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
+  bool started = op->customdata && paint_stroke_started((struct PaintStroke *)op->customdata);
+
+  int retval = paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
+
+  if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+    /* Did the stroke never start? If so push a blank sculpt undo
+     * step to prevent a global undo step (which is triggered by the
+     * OPTYPE_UNDO flag in SCULPT_OT_brush_stroke).
+     *
+     * Having blank global undo steps interleaved with sculpt steps
+     * corrupts the DynTopo undo stack.
+     * See T101430.
+     *
+     * Note: simply returning OPERATOR_CANCELLED was not
+     * sufficient to prevent this.
+     */
+    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+
+    sculpt_stroke_undo_begin(C, op);
+    sculpt_stroke_undo_end(C, brush);
+  }
+
+  return retval;
 }
 
 static void sculpt_redo_empty_ui(bContext *UNUSED(C), wmOperator *UNUSED(op))
@@ -9481,23 +9505,23 @@ SculptAttribute *SCULPT_stroke_id_attribute_ensure(Object *ob)
 void SCULPT_automasking_node_begin(Object *ob,
                                    const SculptSession *UNUSED(ss),
                                    AutomaskingCache *automasking,
-                                   AutomaskingNodeData *node_data,
+                                   AutomaskingNodeData *automask_data,
                                    PBVHNode *node)
 {
   if (!automasking) {
-    memset(node_data, 0, sizeof(*node_data));
+    memset(automask_data, 0, sizeof(*automask_data));
     return;
   }
 
-  node_data->node = node;
-  node_data->have_orig_data = automasking->settings.flags &
-                              (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
+  automask_data->node = node;
+  automask_data->have_orig_data = automasking->settings.flags &
+                                  (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
 
-  if (node_data->have_orig_data) {
-    SCULPT_orig_vert_data_init(&node_data->orig_data, ob, node, SCULPT_UNDO_COORDS);
+  if (automask_data->have_orig_data) {
+    SCULPT_orig_vert_data_init(&automask_data->orig_data, ob, node, SCULPT_UNDO_COORDS);
   }
   else {
-    memset(&node_data->orig_data, 0, sizeof(node_data->orig_data));
+    memset(&automask_data->orig_data, 0, sizeof(automask_data->orig_data));
   }
 }
 

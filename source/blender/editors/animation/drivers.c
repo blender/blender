@@ -1126,7 +1126,7 @@ void ANIM_OT_driver_button_remove(wmOperatorType *ot)
   ot->name = "Remove Driver";
   ot->idname = "ANIM_OT_driver_button_remove";
   ot->description =
-      "Remove the driver(s) for the property(s) connected represented by the highlighted button";
+      "Remove the driver(s) for the connected property(s) represented by the highlighted button";
 
   /* callbacks */
   ot->exec = remove_driver_button_exec;
@@ -1163,7 +1163,7 @@ void ANIM_OT_driver_button_edit(wmOperatorType *ot)
   ot->name = "Edit Driver";
   ot->idname = "ANIM_OT_driver_button_edit";
   ot->description =
-      "Edit the drivers for the property connected represented by the highlighted button";
+      "Edit the drivers for the connected property represented by the highlighted button";
 
   /* callbacks */
   ot->exec = edit_driver_button_exec;
@@ -1257,7 +1257,7 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Driver";
   ot->idname = "ANIM_OT_paste_driver_button";
-  ot->description = "Paste the driver in the copy/paste buffer for the highlighted button";
+  ot->description = "Paste the driver in the clipboard to the highlighted button";
 
   /* callbacks */
   ot->exec = paste_driver_button_exec;

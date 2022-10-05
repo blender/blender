@@ -2527,7 +2527,7 @@ class InsideShapeTestData {
 static void inside_shape_callback(void *userdata,
                                   int index,
                                   const BVHTreeRay *ray,
-                                  BVHTreeRayHit *UNUSED(hit))
+                                  BVHTreeRayHit * /*hit*/)
 {
   const int dbg_level = 0;
   if (dbg_level > 0) {

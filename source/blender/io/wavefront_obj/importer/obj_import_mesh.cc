@@ -275,12 +275,13 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      if (curr_corner.uv_vert_index >= 0 &&
-          curr_corner.uv_vert_index < global_vertices_.uv_vertices.size()) {
-        const float2 &mluv_src = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
-        copy_v2_v2(mluv_dst[tot_loop_idx].uv, mluv_src);
-        tot_loop_idx++;
+      const int uv_index = curr_corner.uv_vert_index;
+      float2 uv(0, 0);
+      if (uv_index >= 0 && uv_index < global_vertices_.uv_vertices.size()) {
+        uv = global_vertices_.uv_vertices[uv_index];
       }
+      copy_v2_v2(mluv_dst[tot_loop_idx].uv, uv);
+      tot_loop_idx++;
     }
   }
 }

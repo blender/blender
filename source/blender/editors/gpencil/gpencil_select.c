@@ -1497,7 +1497,7 @@ static bool gpencil_stroke_do_circle_sel(bGPdata *gpd,
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
     bGPDspoint pt_temp;
-    gpencil_point_to_parent_space(pt, diff_mat, &pt_temp);
+    gpencil_point_to_world_space(pt, diff_mat, &pt_temp);
     gpencil_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
     /* do boundbox check first */
@@ -2072,7 +2072,8 @@ static bool gpencil_generic_stroke_select(bContext *C,
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
       /* Convert point coords to screen-space. */
-      const bool is_inside = is_inside_fn(gsc.region, gpstroke_iter.diff_mat, &pt->x, user_data);
+      const bool is_inside = is_inside_fn(
+          gsc.region, gpstroke_iter.diff_mat, &pt_active->x, user_data);
       if (strokemode == false) {
         const bool is_select = (pt_active->flag & GP_SPOINT_SELECT) != 0;
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -2477,7 +2478,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
         int xy[2];
 
         bGPDspoint pt2;
-        gpencil_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, gpstroke_iter.diff_mat, &pt2);
         gpencil_point_to_xy(&gsc, gps_active, &pt2, &xy[0], &xy[1]);
 
         /* do boundbox check first */

@@ -242,7 +242,7 @@ GVArray InstancesFieldInput::get_varray_for_context(const fn::FieldContext &cont
 }
 
 GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                    IndexMask UNUSED(mask)) const
+                                                    const IndexMask /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
   if (auto attributes = context.attributes()) {
@@ -490,12 +490,13 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
       return std::nullopt;
     }
     for (const fn::FieldInput &field_input : field_inputs->deduplicated_nodes) {
-      if (auto geometry_field_input = dynamic_cast<const GeometryFieldInput *>(&field_input)) {
+      if (const auto *geometry_field_input = dynamic_cast<const GeometryFieldInput *>(
+              &field_input)) {
         if (!handle_domain(geometry_field_input->preferred_domain(component))) {
           return std::nullopt;
         }
       }
-      else if (auto mesh_field_input = dynamic_cast<const MeshFieldInput *>(&field_input)) {
+      else if (const auto *mesh_field_input = dynamic_cast<const MeshFieldInput *>(&field_input)) {
         if (!handle_domain(mesh_field_input->preferred_domain(*mesh))) {
           return std::nullopt;
         }
@@ -512,12 +513,14 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
       return std::nullopt;
     }
     for (const fn::FieldInput &field_input : field_inputs->deduplicated_nodes) {
-      if (auto geometry_field_input = dynamic_cast<const GeometryFieldInput *>(&field_input)) {
+      if (const auto *geometry_field_input = dynamic_cast<const GeometryFieldInput *>(
+              &field_input)) {
         if (!handle_domain(geometry_field_input->preferred_domain(component))) {
           return std::nullopt;
         }
       }
-      else if (auto curves_field_input = dynamic_cast<const CurvesFieldInput *>(&field_input)) {
+      else if (const auto *curves_field_input = dynamic_cast<const CurvesFieldInput *>(
+                   &field_input)) {
         if (!handle_domain(
                 curves_field_input->preferred_domain(CurvesGeometry::wrap(curves->geometry)))) {
           return std::nullopt;

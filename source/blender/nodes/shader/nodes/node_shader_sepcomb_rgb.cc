@@ -20,7 +20,7 @@ static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_seprgb(GPUMaterial *mat,
                              bNode *node,
-                             bNodeExecData *UNUSED(execdata),
+                             bNodeExecData * /*execdata*/,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
@@ -45,7 +45,7 @@ class SeparateRGBFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -98,7 +98,7 @@ static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_combrgb(GPUMaterial *mat,
                               bNode *node,
-                              bNodeExecData *UNUSED(execdata),
+                              bNodeExecData * /*execdata*/,
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {

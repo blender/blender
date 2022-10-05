@@ -88,11 +88,11 @@ set(SRC
   intern/draw_instance_data.c
   intern/draw_manager.c
   intern/draw_manager.cc
-  intern/draw_manager_data.c
+  intern/draw_manager_data.cc
   intern/draw_manager_exec.c
   intern/draw_manager_profiling.c
   intern/draw_manager_shader.c
-  intern/draw_manager_text.c
+  intern/draw_manager_text.cc
   intern/draw_manager_texture.c
   intern/draw_pbvh.cc
   intern/draw_select_buffer.c
@@ -207,8 +207,8 @@ set(SRC
   engines/overlay/overlay_wireframe.cc
 
   DRW_engine.h
-  DRW_select_buffer.h
   DRW_pbvh.h
+  DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
   intern/draw_attributes.h
@@ -231,8 +231,8 @@ set(SRC
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
-  intern/draw_pbvh.h
   intern/draw_pass.hh
+  intern/draw_pbvh.h
   intern/draw_resource.cc
   intern/draw_resource.hh
   intern/draw_shader.h
@@ -254,6 +254,7 @@ set(SRC
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
   engines/eevee_next/eevee_camera.hh
+  engines/eevee_next/eevee_cryptomatte.hh
   engines/eevee_next/eevee_depth_of_field.hh
   engines/eevee_next/eevee_engine.h
   engines/eevee_next/eevee_film.hh

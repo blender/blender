@@ -70,13 +70,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_(total_out_description));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeAccumulateField *data = MEM_cnew<NodeAccumulateField>(__func__);
   data->data_type = CD_PROP_FLOAT;
@@ -362,7 +362,8 @@ template<typename T> class TotalFieldInput final : public bke::GeometryFieldInpu
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
   {
     return source_domain_;
   }

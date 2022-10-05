@@ -57,7 +57,7 @@ typedef struct BendSpringRef {
 
 /******************************************************************************
  *
- * External interface called by modifier.c clothModifier functions.
+ * External interface called by modifier.cc clothModifier functions.
  *
  ******************************************************************************/
 

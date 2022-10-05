@@ -73,7 +73,6 @@ set(SRC
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_image_texture.cc
-  nodes/node_geo_input_control_point_neighbors.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
   nodes/node_geo_input_id.cc
@@ -130,6 +129,7 @@ set(SRC
   nodes/node_geo_mesh_topology_offset_corner_in_face.cc
   nodes/node_geo_mesh_topology_vertex_of_corner.cc
   nodes/node_geo_object_info.cc
+  nodes/node_geo_offset_point_in_curve.cc
   nodes/node_geo_points.cc
   nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_volume.cc
@@ -139,14 +139,16 @@ set(SRC
   nodes/node_geo_remove_attribute.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_sample_index.cc
-  nodes/node_geo_sample_nearest_surface.cc
   nodes/node_geo_sample_nearest.cc
+  nodes/node_geo_sample_nearest_surface.cc
+  nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
+  nodes/node_geo_self_object.cc
   nodes/node_geo_separate_components.cc
   nodes/node_geo_separate_geometry.cc
-  nodes/node_geo_self_object.cc
   nodes/node_geo_set_curve_handles.cc
+  nodes/node_geo_set_curve_normal.cc
   nodes/node_geo_set_curve_radius.cc
   nodes/node_geo_set_curve_tilt.cc
   nodes/node_geo_set_id.cc

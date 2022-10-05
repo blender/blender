@@ -16,7 +16,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_lnor_init(const MeshRenderData *mr,
-                              MeshBatchCache *UNUSED(cache),
+                              MeshBatchCache * /*cache*/,
                               void *buf,
                               void *tls_data)
 {
@@ -34,7 +34,7 @@ static void extract_lnor_init(const MeshRenderData *mr,
 
 static void extract_lnor_iter_poly_bm(const MeshRenderData *mr,
                                       const BMFace *f,
-                                      const int UNUSED(f_index),
+                                      const int /*f_index*/,
                                       void *data)
 {
   BMLoop *l_iter, *l_first;
@@ -106,10 +106,10 @@ static GPUVertFormat *get_subdiv_lnor_format()
 }
 
 static void extract_lnor_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                     const MeshRenderData *UNUSED(mr),
+                                     const MeshRenderData * /*mr*/,
                                      MeshBatchCache *cache,
                                      void *buffer,
-                                     void *UNUSED(data))
+                                     void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   GPUVertBuf *pos_nor = cache->final.buff.vbo.pos_nor;
@@ -143,7 +143,7 @@ struct gpuHQNor {
 };
 
 static void extract_lnor_hq_init(const MeshRenderData *mr,
-                                 MeshBatchCache *UNUSED(cache),
+                                 MeshBatchCache * /*cache*/,
                                  void *buf,
                                  void *tls_data)
 {
@@ -161,7 +161,7 @@ static void extract_lnor_hq_init(const MeshRenderData *mr,
 
 static void extract_lnor_hq_iter_poly_bm(const MeshRenderData *mr,
                                          const BMFace *f,
-                                         const int UNUSED(f_index),
+                                         const int /*f_index*/,
                                          void *data)
 {
   BMLoop *l_iter, *l_first;

@@ -25,18 +25,18 @@
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextGLX.h"
 
-/* for XIWarpPointer */
+/* For #XIWarpPointer. */
 #ifdef WITH_X11_XINPUT
 #  include <X11/extensions/XInput2.h>
 #endif
 
-// For DPI value
+/* For DPI value. */
 #include <X11/Xresource.h>
 
 #include <cstdio>
 #include <cstring>
 
-/* gethostname */
+/* For `gethostname`. */
 #include <unistd.h>
 
 #include <algorithm>

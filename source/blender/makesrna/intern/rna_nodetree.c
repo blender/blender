@@ -13,6 +13,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_curves_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -827,21 +828,21 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C),
 
   tmp.value = NODE_CUSTOM;
   tmp.identifier = "CUSTOM";
-  tmp.name = "Custom";
-  tmp.description = "Custom Node";
+  tmp.name = N_("Custom");
+  tmp.description = N_("Custom Node");
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = NODE_CUSTOM_GROUP;
   tmp.identifier = "CUSTOM GROUP";
-  tmp.name = "CustomGroup";
-  tmp.description = "Custom Group Node";
+  tmp.name = N_("CustomGroup");
+  tmp.description = N_("Custom Group Node");
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   tmp.value = NODE_UNDEFINED;
   tmp.identifier = "UNDEFINED";
-  tmp.name = "UNDEFINED";
+  tmp.name = N_("UNDEFINED");
   tmp.description = "";
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
@@ -9698,6 +9699,17 @@ static void def_geo_curve_set_handle_positions(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_set_curve_normal(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_curve_normal_modes);
+  RNA_def_property_ui_text(prop, "Mode", "Mode for curve normal evaluation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_curve_handle_type_selection(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10460,6 +10472,18 @@ static void def_geo_sample_nearest(StructRNA *srna)
   RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
   RNA_def_property_ui_text(prop, "Domain", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_sample_uv_surface(StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_input_material(StructRNA *srna)

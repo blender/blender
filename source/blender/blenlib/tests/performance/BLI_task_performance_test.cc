@@ -36,10 +36,10 @@ static uint gen_pseudo_random_number(uint num)
 
 /* *** Parallel iterations over double-linked list items. *** */
 
-static void task_listbase_light_iter_func(void *UNUSED(userdata),
+static void task_listbase_light_iter_func(void * /*userdata*/,
                                           void *item,
                                           int index,
-                                          const TaskParallelTLS *__restrict UNUSED(tls))
+                                          const TaskParallelTLS *__restrict /*tls*/)
 
 {
   LinkData *data = (LinkData *)item;
@@ -50,7 +50,7 @@ static void task_listbase_light_iter_func(void *UNUSED(userdata),
 static void task_listbase_light_membarrier_iter_func(void *userdata,
                                                      void *item,
                                                      int index,
-                                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                                     const TaskParallelTLS *__restrict /*tls*/)
 
 {
   LinkData *data = (LinkData *)item;
@@ -60,10 +60,10 @@ static void task_listbase_light_membarrier_iter_func(void *userdata,
   atomic_sub_and_fetch_uint32((uint32_t *)count, 1);
 }
 
-static void task_listbase_heavy_iter_func(void *UNUSED(userdata),
+static void task_listbase_heavy_iter_func(void * /*userdata*/,
                                           void *item,
                                           int index,
-                                          const TaskParallelTLS *__restrict UNUSED(tls))
+                                          const TaskParallelTLS *__restrict /*tls*/)
 
 {
   LinkData *data = (LinkData *)item;
@@ -79,7 +79,7 @@ static void task_listbase_heavy_iter_func(void *UNUSED(userdata),
 static void task_listbase_heavy_membarrier_iter_func(void *userdata,
                                                      void *item,
                                                      int index,
-                                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                                     const TaskParallelTLS *__restrict /*tls*/)
 
 {
   LinkData *data = (LinkData *)item;

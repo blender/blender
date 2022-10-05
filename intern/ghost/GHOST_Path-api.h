@@ -30,13 +30,19 @@ extern GHOST_TSuccess GHOST_DisposeSystemPaths(void);
 /**
  * Determine the base dir in which shared resources are located. It will first try to use
  * "unpack and run" path, then look for properly installed path, including versioning.
- * \return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+ * \return Unsigned char string pointing to system dir (eg `/usr/share/blender/`).
+ *
+ * \note typically: `BKE_appdir_resource_path_id(BLENDER_RESOURCE_PATH_SYSTEM, false)` should be
+ * used instead of this function directly as it ensures environment variable overrides are used.
  */
 extern const char *GHOST_getSystemDir(int version, const char *versionstr);
 
 /**
  * Determine the base dir in which user configuration is stored, including versioning.
  * \return Unsigned char string pointing to user dir (eg ~).
+ *
+ * \note typically: `BKE_appdir_resource_path_id(BLENDER_RESOURCE_PATH_USER, false)` should be
+ * used instead of this function directly as it ensures environment variable overrides are used.
  */
 extern const char *GHOST_getUserDir(int version, const char *versionstr);
 

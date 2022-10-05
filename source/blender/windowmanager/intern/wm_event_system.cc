@@ -359,7 +359,7 @@ void WM_main_remove_notifier_reference(const void *reference)
   }
 }
 
-static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void *UNUSED(user_data))
+static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void * /*user_data*/)
 {
   ED_assetlist_storage_id_remap(old_id, new_id);
 }
@@ -1226,7 +1226,7 @@ int WM_operator_repeat_last(bContext *C, wmOperator *op)
   op->flag &= ~op_flag;
   return ret;
 }
-bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
+bool WM_operator_repeat_check(const bContext * /*C*/, wmOperator *op)
 {
   if (op->type->exec != nullptr) {
     return true;
@@ -4457,7 +4457,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
                                                             wmKeyMap *keymap,
-                                                            int UNUSED(priority))
+                                                            int /*priority*/)
 {
   WM_event_remove_keymap_handler(handlers, keymap);
 

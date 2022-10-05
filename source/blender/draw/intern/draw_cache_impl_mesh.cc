@@ -241,7 +241,7 @@ BLI_INLINE void mesh_cd_layers_type_clear(DRW_MeshCDMask *a)
   *((uint32_t *)a) = 0;
 }
 
-static void mesh_cd_calc_edit_uv_layer(const Mesh *UNUSED(me), DRW_MeshCDMask *cd_used)
+static void mesh_cd_calc_edit_uv_layer(const Mesh * /*me*/, DRW_MeshCDMask *cd_used)
 {
   cd_used->edit_uv = 1;
 }
@@ -1402,8 +1402,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     }
   };
 #else
-  auto assert_deps_valid = [&](DRWBatchFlag UNUSED(batch_flag),
-                               Span<int> UNUSED(used_buffer_indices)) {};
+  auto assert_deps_valid = [&](DRWBatchFlag /*batch_flag*/, Span<int> /*used_buffer_indices*/) {};
 
 #endif
 

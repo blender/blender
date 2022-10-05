@@ -272,7 +272,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         # mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon_value=item.icon_value)
+            layout.label(text=item.name, icon_value=item.icon_value)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="")
@@ -1403,6 +1403,14 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         """
         
         col.separator()
+        col.prop(sculpt, "use_automasking_topology", text="Topology")
+        col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
+        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
+        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        col.prop(sculpt, "use_automasking_cavity", text="Cavity")
+        col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
+        col.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
+        col.prop(sculpt, "use_automasking_view_normal", text="View Normal")
 
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
@@ -2423,8 +2431,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
         if gp_settings.fill_extend_mode == 'EXTEND':
             row = col.row(align=True)
             row.prop(gp_settings, "use_collide_strokes")
-            row = col.row(align=True)
-            row.prop(gp_settings, "use_collide_only")
 
 
 # Grease Pencil stroke sculpting tools

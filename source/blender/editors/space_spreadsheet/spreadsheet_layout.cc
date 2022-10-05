@@ -342,7 +342,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       /* Tooltip showing raw byte values. Encode values in pointer to avoid memory allocation. */
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char *UNUSED(tip)) {
+          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
             ColorGeometry4b color = *(ColorGeometry4b *)&uint_color;
             return BLI_sprintfN(TIP_("Byte Color (sRGB encoded):\n%3d  %3d  %3d  %3d"),

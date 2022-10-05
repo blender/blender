@@ -174,8 +174,8 @@ typedef struct iterData {
 } iterData;
 
 static void gpencil_layer_cache_populate(bGPDlayer *gpl,
-                                         bGPDframe *UNUSED(gpf),
-                                         bGPDstroke *UNUSED(gps),
+                                         bGPDframe * /*gpf*/,
+                                         bGPDstroke * /*gps*/,
                                          void *thunk)
 {
   iterData *iter = (iterData *)thunk;
@@ -197,8 +197,8 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
 }
 
-static void gpencil_stroke_cache_populate(bGPDlayer *UNUSED(gpl),
-                                          bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
+                                          bGPDframe * /*gpf*/,
                                           bGPDstroke *gps,
                                           void *thunk)
 {

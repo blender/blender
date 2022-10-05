@@ -60,7 +60,8 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       height(0),
       preview_osl(preview_osl),
       python_thread_state(NULL),
-      use_developer_ui(false)
+      use_developer_ui(b_userpref.experimental().use_cycles_debug() &&
+                       b_userpref.view().show_developer_ui())
 {
   /* offline render */
   background = true;

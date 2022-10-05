@@ -21,7 +21,7 @@ class AddLazyFunction : public LazyFunction {
     outputs_.append({"Result", CPPType::get<int>()});
   }
 
-  void execute_impl(Params &params, const Context &UNUSED(context)) const override
+  void execute_impl(Params &params, const Context & /*context*/) const override
   {
     const int a = params.get_input<int>(0);
     const int b = params.get_input<int>(1);
@@ -42,7 +42,7 @@ class StoreValueFunction : public LazyFunction {
     inputs_.append({"B", CPPType::get<int>(), ValueUsage::Maybe});
   }
 
-  void execute_impl(Params &params, const Context &UNUSED(context)) const override
+  void execute_impl(Params &params, const Context & /*context*/) const override
   {
     *dst1_ = params.get_input<int>(0);
     if (int *value = params.try_get_input_data_ptr_or_request<int>(1)) {
@@ -62,7 +62,7 @@ class SimpleSideEffectProvider : public GraphExecutor::SideEffectProvider {
   }
 
   Vector<const FunctionNode *> get_nodes_with_side_effects(
-      const Context &UNUSED(context)) const override
+      const Context & /*context*/) const override
   {
     return side_effect_nodes_;
   }

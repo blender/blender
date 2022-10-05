@@ -1393,6 +1393,7 @@ void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *ext
  * - AutoButR: RNA property button with type automatically defined.
  */
 enum {
+  UI_ID_NOP = 0,
   UI_ID_RENAME = 1 << 0,
   UI_ID_BROWSE = 1 << 1,
   UI_ID_ADD_NEW = 1 << 2,

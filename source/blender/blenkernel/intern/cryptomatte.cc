@@ -580,7 +580,7 @@ blender::StringRef CryptomatteStampDataCallbackData::extract_layer_hash(blender:
 void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
                                                            const char *propname,
                                                            char *propvalue,
-                                                           int UNUSED(len))
+                                                           int /*len*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 
@@ -598,7 +598,7 @@ void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
 void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
                                                               const char *propname,
                                                               char *propvalue,
-                                                              int UNUSED(len))
+                                                              int /*len*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 

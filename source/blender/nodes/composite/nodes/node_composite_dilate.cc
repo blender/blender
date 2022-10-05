@@ -41,14 +41,14 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeDilateErode *data = MEM_cnew<NodeDilateErode>(__func__);
   data->falloff = PROP_SMOOTH;
   node->storage = data;
 }
 
-static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_dilateerode(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);

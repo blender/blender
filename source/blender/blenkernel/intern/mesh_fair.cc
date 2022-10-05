@@ -559,7 +559,7 @@ class VoronoiVertexWeight : public VertexWeight {
 
 class UniformLoopWeight : public LoopWeight {
  public:
-  float weight_at_index(const int UNUSED(index)) override
+  float weight_at_index(const int /*index*/) override
   {
     return 1.0f;
   }

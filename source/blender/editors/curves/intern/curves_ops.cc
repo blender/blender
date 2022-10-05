@@ -467,7 +467,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   return curves;
 }
 
-static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNUSED(op))
+static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   Scene &scene = *CTX_data_scene(C);
@@ -804,7 +804,7 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
 
 namespace disable_selection {
 
-static int curves_disable_selection_exec(bContext *C, wmOperator *UNUSED(op))
+static int curves_disable_selection_exec(bContext *C, wmOperator * /*op*/)
 {
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
@@ -997,6 +997,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
+    WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
 
     /* Required for deformation. */
     new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;

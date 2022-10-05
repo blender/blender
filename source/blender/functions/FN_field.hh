@@ -412,7 +412,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     const int field_index = fields_to_evaluate_.append_and_get_index(std::move(field));
     dst_varrays_.append({});
     output_pointer_infos_.append(OutputPointerInfo{
-        varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &UNUSED(scope)) {
+        varray_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
           *(VArray<T> *)dst = varray.typed<T>();
         }});
     return field_index;

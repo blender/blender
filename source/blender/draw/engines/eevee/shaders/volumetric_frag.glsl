@@ -52,7 +52,7 @@ vec3 coordinate_camera(vec3 P)
 vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
-  window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
+  window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
   window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
   return window;
 }

@@ -14,7 +14,7 @@ static void fn_node_input_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void fn_node_input_color_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_input_color_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateColorPicker(layout, ptr, "color", true, false, false, true);
   uiItemR(layout, ptr, "color", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -29,7 +29,7 @@ static void fn_node_input_color_build_multi_function(
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<ColorGeometry4f>>(color);
 }
 
-static void fn_node_input_color_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_input_color_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeInputColor *data = MEM_cnew<NodeInputColor>(__func__);
   copy_v4_fl4(data->color, 0.5f, 0.5f, 0.5f, 1.0f);

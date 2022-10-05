@@ -263,7 +263,7 @@ static void mesh_calc_tessellation_for_face_with_normal_fn(void *__restrict user
                                        data->poly_normals[index]);
 }
 
-static void mesh_calc_tessellation_for_face_free_fn(const void *__restrict UNUSED(userdata),
+static void mesh_calc_tessellation_for_face_free_fn(const void *__restrict /*userdata*/,
                                                     void *__restrict tls_v)
 {
   TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls_v);
@@ -275,7 +275,7 @@ static void mesh_calc_tessellation_for_face_free_fn(const void *__restrict UNUSE
 static void mesh_recalc_looptri__multi_threaded(const MLoop *mloop,
                                                 const MPoly *mpoly,
                                                 const MVert *mvert,
-                                                int UNUSED(totloop),
+                                                int /*totloop*/,
                                                 int totpoly,
                                                 MLoopTri *mlooptri,
                                                 const float (*poly_normals)[3])

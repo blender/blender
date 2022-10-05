@@ -12,7 +12,7 @@
 
 namespace blender::nodes::node_shader_script_cc {
 
-static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -44,7 +44,7 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 #endif
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderScript *nss = MEM_cnew<NodeShaderScript>("shader script node");
   node->storage = nss;
@@ -63,9 +63,7 @@ static void node_free_script(bNode *node)
   }
 }
 
-static void node_copy_script(bNodeTree *UNUSED(dest_ntree),
-                             bNode *dest_node,
-                             const bNode *src_node)
+static void node_copy_script(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   NodeShaderScript *src_nss = static_cast<NodeShaderScript *>(src_node->storage);
   NodeShaderScript *dest_nss = static_cast<NodeShaderScript *>(MEM_dupallocN(src_nss));

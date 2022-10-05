@@ -25,7 +25,7 @@ class OpenVDBMeshAdapter {
   OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform);
   size_t polygonCount() const;
   size_t pointCount() const;
-  size_t vertexCount(size_t UNUSED(polygon_index)) const;
+  size_t vertexCount(size_t /*polygon_index*/) const;
   void getIndexSpacePoint(size_t polygon_index, size_t vertex_index, openvdb::Vec3d &pos) const;
 };
 
@@ -44,7 +44,7 @@ size_t OpenVDBMeshAdapter::pointCount() const
   return size_t(verts_.size());
 }
 
-size_t OpenVDBMeshAdapter::vertexCount(size_t UNUSED(polygon_index)) const
+size_t OpenVDBMeshAdapter::vertexCount(size_t /*polygon_index*/) const
 {
   /* All polygons are triangles. */
   return 3;

@@ -11,9 +11,9 @@ class NODE_MT_geometry_node_GEO_ATTRIBUTE(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeAttributeStatistic")
         node_add_menu.add_node_type(layout, "GeometryNodeCaptureAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeAttributeDomainSize")
-        node_add_menu.add_node_type(layout, "GeometryNodeAttributeStatistic")
         node_add_menu.add_node_type(layout, "GeometryNodeRemoveAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeStoreNamedAttribute")
 
@@ -24,14 +24,14 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
+        node_add_menu.add_node_type(layout, "FunctionNodeCombineColor")
         props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Color"))
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'RGBA'"
         node_add_menu.add_node_type(layout, "ShaderNodeRGBCurve")
-        node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "FunctionNodeSeparateColor")
-        node_add_menu.add_node_type(layout, "FunctionNodeCombineColor")
 
 
 class NODE_MT_geometry_node_GEO_CURVE(Menu):
@@ -62,6 +62,7 @@ class NODE_MT_geometry_node_GEO_CURVE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSplineParameter")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSplineResolution")
         layout.separator()
+        node_add_menu.add_node_type(layout, "GeometryNodeSetCurveNormal")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveRadius")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveTilt")
         node_add_menu.add_node_type(layout, "GeometryNodeSetCurveHandlePositions")
@@ -77,14 +78,14 @@ class NODE_MT_geometry_node_GEO_PRIMITIVES_CURVE(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveLine")
-        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveCircle")
-        node_add_menu.add_node_type(layout, "GeometryNodeCurveStar")
-        node_add_menu.add_node_type(layout, "GeometryNodeCurveSpiral")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveArc")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveBezierSegment")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveCircle")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveLine")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurveSpiral")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveQuadraticBezier")
         node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveQuadrilateral")
-        node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveBezierSegment")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurveStar")
 
 
 class NODE_MT_geometry_node_curve_topology(Menu):
@@ -93,9 +94,9 @@ class NODE_MT_geometry_node_curve_topology(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveOfPoint")
         node_add_menu.add_node_type(layout, "GeometryNodePointsOfCurve")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputControlPointNeighbors")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
@@ -198,6 +199,7 @@ class NODE_MT_geometry_node_GEO_MESH(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToPoints")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearestSurface")
+        node_add_menu.add_node_type(layout, "GeometryNodeSampleUVSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleElements")
         node_add_menu.add_node_type(layout, "GeometryNodeSplitEdges")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideMesh")
@@ -225,13 +227,14 @@ class NODE_MT_category_PRIMITIVES_MESH(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeMeshCircle")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshCone")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshCube")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshCylinder")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshGrid")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshIcoSphere")
+        node_add_menu.add_node_type(layout, "GeometryNodeMeshCircle")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshLine")
+        node_add_menu.add_node_type(layout, "GeometryNodeMeshUVSphere")
 
 
 class NODE_MT_geometry_node_mesh_topology(Menu):
@@ -279,12 +282,12 @@ class NODE_MT_category_GEO_TEXT(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "FunctionNodeSliceString")
         node_add_menu.add_node_type(layout, "GeometryNodeStringJoin")
-        node_add_menu.add_node_type(layout, "FunctionNodeStringLength")
         node_add_menu.add_node_type(layout, "FunctionNodeReplaceString")
-        node_add_menu.add_node_type(layout, "FunctionNodeValueToString")
+        node_add_menu.add_node_type(layout, "FunctionNodeSliceString")
+        node_add_menu.add_node_type(layout, "FunctionNodeStringLength")
         node_add_menu.add_node_type(layout, "GeometryNodeStringToCurves")
+        node_add_menu.add_node_type(layout, "FunctionNodeValueToString")
         layout.separator()
         node_add_menu.add_node_type(layout, "FunctionNodeInputSpecialCharacters")
 
@@ -314,20 +317,20 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeAccumulateField")
+        node_add_menu.add_node_type(layout, "FunctionNodeAlignEulerToVector")
+        node_add_menu.add_node_type(layout, "FunctionNodeBooleanMath")
+        node_add_menu.add_node_type(layout, "ShaderNodeClamp")
+        node_add_menu.add_node_type(layout, "FunctionNodeCompare")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldAtIndex")
+        node_add_menu.add_node_type(layout, "ShaderNodeFloatCurve")
+        node_add_menu.add_node_type(layout, "FunctionNodeFloatToInt")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldOnDomain")
         node_add_menu.add_node_type(layout, "ShaderNodeMapRange")
-        node_add_menu.add_node_type(layout, "ShaderNodeFloatCurve")
-        node_add_menu.add_node_type(layout, "ShaderNodeClamp")
         node_add_menu.add_node_type(layout, "ShaderNodeMath")
-        node_add_menu.add_node_type(layout, "FunctionNodeBooleanMath")
-        node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
-        node_add_menu.add_node_type(layout, "FunctionNodeCompare")
         node_add_menu.add_node_type(layout, "ShaderNodeMix")
-        node_add_menu.add_node_type(layout, "FunctionNodeFloatToInt")
-        node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
         node_add_menu.add_node_type(layout, "FunctionNodeRandomValue")
-        node_add_menu.add_node_type(layout, "FunctionNodeAlignEulerToVector")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
+        node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
 
 
 class NODE_MT_category_GEO_UV(Menu):
