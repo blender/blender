@@ -626,12 +626,12 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   const int mode = RNA_enum_get(op->ptr, "mode");
 
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     return OPERATOR_CANCELLED;
   }
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
