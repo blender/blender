@@ -2313,6 +2313,37 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Write Project Settings Operator
+ * \{ */
+
+/* Only save the prefs block. operator entry */
+static int wm_save_project_settings_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  BlenderProject *active_project = CTX_wm_project();
+  if (!active_project) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!BKE_project_settings_save(active_project)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_save_project_settings(wmOperatorType *ot)
+{
+  ot->name = "Save Project Settings";
+  ot->idname = "WM_OT_save_project_settings";
+  ot->description = "Make the current changes to the project settings permanent";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = wm_save_project_settings_exec;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Read File History Operator
  * \{ */
 

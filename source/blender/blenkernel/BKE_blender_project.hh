@@ -10,6 +10,10 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender::io::serialize {
+class DictionaryValue;
+}
+
 namespace blender::bke {
 
 class ProjectSettings;
@@ -60,16 +64,27 @@ class ProjectSettings {
   /**
    * Read project settings from the given \a project_path, which may be either a project root
    * directory or the .blender_project directory.
-   * Both Unix and Windows style slashes are allowed.
+   * Both Unix and Windows style slashes are allowed. Path is expected to be normalized.
    * \return The read project settings or null in case of failure.
    */
   static auto load_from_disk [[nodiscard]] (StringRef project_path)
   -> std::unique_ptr<ProjectSettings>;
+  /**
+   * Write project settings to the given \a project_path, which may be either a project root
+   * directory or the .blender_project directory. The .blender_project directory must exist.
+   * Both Unix and Windows style slashes are allowed. Path is expected to be normalized.
+   * \return True on success. If the .blender_project directory doesn't exist, that's treated as
+   *         failure.
+   */
+  auto save_to_disk(StringRef project_path) const -> bool;
 
   explicit ProjectSettings(StringRef project_root_path);
 
   auto project_root_path [[nodiscard]] () const -> StringRefNull;
   auto project_name [[nodiscard]] () const -> StringRefNull;
+
+ private:
+  auto to_dictionary() const -> std::unique_ptr<io::serialize::DictionaryValue>;
 };
 
 }  // namespace blender::bke

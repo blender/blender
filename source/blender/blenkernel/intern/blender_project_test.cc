@@ -19,6 +19,12 @@
 
 namespace blender::bke::tests {
 
+struct SVNFiles {
+  const std::string svn_root = blender::tests::flags_test_asset_dir();
+  const std::string project_root_rel = "blender_project/the_project";
+  const std::string project_root = svn_root + "/blender_project/the_project";
+};
+
 class ProjectTest : public testing::Test {
   /* RAII helper to delete the created directories reliably after testing or on errors. */
   struct ProjectDirectoryRAIIWrapper {
@@ -36,6 +42,9 @@ class ProjectTest : public testing::Test {
 
       native_project_path_ = project_path;
       BLI_path_slash_native(native_project_path_.data());
+      if (native_project_path_.back() != SEP) {
+        native_project_path_ += SEP;
+      }
 
       /** Assert would be preferable but that would only run in debug builds, and #ASSERT_TRUE()
        * doesn't support printing a message. */
@@ -139,18 +148,42 @@ TEST_F(ProjectTest, settings_load_from_project_settings_path)
     ProjectSettings::create_settings_directory(project_path);
 
     std::unique_ptr project_settings = ProjectSettings::load_from_disk(
-        project_path + SEP_STR + ProjectSettings::SETTINGS_DIRNAME);
+        project_path + (ELEM(project_path.back(), SEP, ALTSEP) ? "" : SEP_STR) +
+        ProjectSettings::SETTINGS_DIRNAME);
     EXPECT_NE(project_settings, nullptr);
     EXPECT_EQ(project_settings->project_root_path(), project_path_native);
     EXPECT_EQ(project_settings->project_name(), "");
   });
 }
 
-struct SVNFiles {
-  const std::string svn_root = blender::tests::flags_test_asset_dir();
-  const std::string project_root_rel = "blender_project/the_project";
-  const std::string project_root = svn_root + "/blender_project/the_project";
-};
+TEST_F(ProjectTest, settings_json_read)
+{
+  SVNFiles svn_files{};
+  std::unique_ptr from_project_settings = ProjectSettings::load_from_disk(svn_files.project_root);
+  EXPECT_NE(from_project_settings, nullptr);
+  EXPECT_EQ(from_project_settings->project_name(), "Ružena");
+}
+
+TEST_F(ProjectTest, settings_json_write)
+{
+  SVNFiles svn_files{};
+  std::unique_ptr from_project_settings = ProjectSettings::load_from_disk(svn_files.project_root);
+
+  /* Take the settings read from the SVN files and write it to /tmp/ projects. */
+  test_foreach_project_path(
+      [&from_project_settings](StringRefNull to_project_path, StringRefNull) {
+        ProjectSettings::create_settings_directory(to_project_path);
+
+        if (!from_project_settings->save_to_disk(to_project_path)) {
+          FAIL();
+        }
+
+        /* Now check if the settings written to disk match the expectations. */
+        std::unique_ptr written_settings = ProjectSettings::load_from_disk(to_project_path);
+        EXPECT_NE(written_settings, nullptr);
+        EXPECT_EQ(written_settings->project_name(), "Ružena");
+      });
+}
 
 TEST_F(ProjectTest, project_root_path_find_from_path)
 {

@@ -152,41 +152,104 @@ static std::unique_ptr<ExtractedSettings> extract_settings(
   return extracted_settings;
 }
 
-std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef project_path)
+struct ResolvedPaths {
+  std::string settings_filepath;
+  std::string project_root_path;
+};
+
+/**
+ * Returned paths can be assumed to use native slashes.
+ */
+static ResolvedPaths resolve_paths_from_project_path(StringRef project_path)
 {
   std::string project_path_native = project_path;
   BLI_path_slash_native(project_path_native.data());
 
-  if (!BLI_exists(project_path_native.c_str())) {
-    return nullptr;
-  }
-
-  StringRef project_root_path = project_path_native;
+  ResolvedPaths resolved_paths{};
 
   const StringRef path_no_trailing_slashes = path_strip_trailing_native_slash(project_path_native);
-  if (path_no_trailing_slashes.endswith(SETTINGS_DIRNAME)) {
-    project_root_path = StringRef(project_path_native).drop_suffix(SETTINGS_DIRNAME.size() + 1);
+  if (path_no_trailing_slashes.endswith(ProjectSettings::SETTINGS_DIRNAME)) {
+    resolved_paths.project_root_path =
+        StringRef(path_no_trailing_slashes).drop_suffix(ProjectSettings::SETTINGS_DIRNAME.size());
   }
+  else {
+    resolved_paths.project_root_path = std::string(path_no_trailing_slashes) + SEP;
+  }
+  resolved_paths.settings_filepath = resolved_paths.project_root_path +
+                                     ProjectSettings::SETTINGS_DIRNAME + SEP +
+                                     ProjectSettings::SETTINGS_FILENAME;
 
-  if (!path_contains_project_settings(project_root_path)) {
+  return resolved_paths;
+}
+
+std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef project_path)
+{
+  ResolvedPaths paths = resolve_paths_from_project_path(project_path);
+
+  if (!BLI_exists(paths.project_root_path.c_str())) {
+    return nullptr;
+  }
+  if (!path_contains_project_settings(paths.project_root_path.c_str())) {
     return nullptr;
   }
 
-  std::string settings_filepath = project_path_native + SEP + SETTINGS_DIRNAME + SEP +
-                                  SETTINGS_FILENAME;
-  std::unique_ptr<serialize::Value> values = read_settings_file(settings_filepath);
+  std::unique_ptr<serialize::Value> values = read_settings_file(paths.settings_filepath);
   std::unique_ptr<ExtractedSettings> extracted_settings = nullptr;
   if (values) {
     BLI_assert(values->as_dictionary_value() != nullptr);
     extracted_settings = extract_settings(*values->as_dictionary_value());
   }
 
-  std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>(project_root_path);
+  std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>(paths.project_root_path);
   if (extracted_settings) {
     loaded_settings->project_name_ = extracted_settings->project_name;
   }
 
   return loaded_settings;
+}
+
+std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() const
+{
+  using namespace serialize;
+
+  std::unique_ptr<DictionaryValue> root = std::make_unique<DictionaryValue>();
+  DictionaryValue::Items &root_attributes = root->elements();
+  std::unique_ptr<DictionaryValue> project_dict = std::make_unique<DictionaryValue>();
+  DictionaryValue::Items &project_attributes = project_dict->elements();
+  project_attributes.append_as("name", new StringValue(project_name_));
+  root_attributes.append_as("project", std::move(project_dict));
+
+  return root;
+}
+
+static void write_settings_file(StringRef settings_filepath,
+                                std::unique_ptr<serialize::DictionaryValue> dictionary)
+{
+  using namespace serialize;
+
+  JsonFormatter formatter;
+
+  std::ofstream os;
+  os.open(settings_filepath, std::ios::out | std::ios::trunc);
+  formatter.serialize(os, *dictionary);
+  os.close();
+}
+
+bool ProjectSettings::save_to_disk(StringRef project_path) const
+{
+  ResolvedPaths paths = resolve_paths_from_project_path(project_path);
+
+  if (!BLI_exists(paths.project_root_path.c_str())) {
+    return false;
+  }
+  if (!path_contains_project_settings(paths.project_root_path.c_str())) {
+    return false;
+  }
+
+  std::unique_ptr settings_as_dict = to_dictionary();
+  write_settings_file(paths.settings_filepath, std::move(settings_as_dict));
+
+  return true;
 }
 
 StringRefNull ProjectSettings::project_root_path() const
@@ -239,6 +302,14 @@ BlenderProject *BKE_project_active_load_from_path(const char *path)
   bke::BlenderProject::set_active_from_settings(std::move(project_settings));
 
   return BKE_project_active_get();
+}
+
+bool BKE_project_settings_save(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  const bke::ProjectSettings &settings = project->get_settings();
+  return settings.save_to_disk(settings.project_root_path());
 }
 
 const char *BKE_project_root_path_get(const BlenderProject *project_handle)

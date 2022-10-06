@@ -3742,6 +3742,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(WM_OT_read_factory_settings);
   WM_operatortype_append(WM_OT_save_homefile);
   WM_operatortype_append(WM_OT_save_userpref);
+  WM_operatortype_append(WM_OT_save_project_settings);
   WM_operatortype_append(WM_OT_read_userpref);
   WM_operatortype_append(WM_OT_read_factory_userpref);
   WM_operatortype_append(WM_OT_window_fullscreen_toggle);

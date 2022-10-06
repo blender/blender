@@ -19,8 +19,8 @@ class PROJECTSETTINGS_HT_header(Header):
         # Show '*' to let users know the settings have been modified.
         # TODO, wrong operator
         layout.operator(
-            "wm.save_userpref",
-            text=iface_("Save Project Settings") + (" *" if is_dirty else ""),
+            "wm.save_project_settings",
+            text=iface_("Save Settings") + (" *" if is_dirty else ""),
             translate=False,
         )
 
