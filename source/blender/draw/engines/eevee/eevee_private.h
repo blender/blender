@@ -900,6 +900,7 @@ typedef struct EEVEE_CommonUniformBuffer {
   float alpha_hash_offset;                     /* float */
   float alpha_hash_scale;                      /* float */
   float camera_uv_scale[2], camera_uv_bias[2]; /* vec4 */
+  float planar_clip_plane[4];                  /* vec4 */
 } EEVEE_CommonUniformBuffer;
 
 BLI_STATIC_ASSERT_ALIGN(EEVEE_CommonUniformBuffer, 16)

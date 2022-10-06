@@ -46,6 +46,7 @@ layout(std140) uniform common_block
   float alphaHashScale;
   /* Misc */
   vec4 cameraUvScaleBias;
+  vec4 planarClipPlane;
 };
 
 /* rayType (keep in sync with ray_type) */

@@ -796,6 +796,7 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
                                int ref_count)
 {
   EEVEE_StorageList *stl = user_data->vedata->stl;
+  EEVEE_ViewLayerData *sldata = user_data->sldata;
   DRWView *main_view = stl->effects->taa_view;
   DRWView **views = stl->g_data->planar_views;
   /* Prepare views at the same time for faster culling. */
@@ -804,6 +805,8 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
   }
 
   for (int i = 0; i < ref_count; i++) {
+    copy_v4_v4(sldata->common_data.planar_clip_plane, planar_data[i].plane_equation);
+    sldata->common_data.planar_clip_plane[3] += planar_data[i].clipsta;
     DRW_view_set_active(views[i]);
     callback(i, user_data);
   }
