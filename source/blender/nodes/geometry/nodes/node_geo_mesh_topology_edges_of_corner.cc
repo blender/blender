@@ -77,13 +77,13 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
     }
     const Span<MPoly> polys = mesh.polys();
     const Span<MLoop> loops = mesh.loops();
-    Array<int> corner_to_poly_map = mesh_topology::build_corner_to_poly_map(polys, mesh.totloop);
+    Array<int> loop_to_poly_map = mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
     return VArray<int>::ForFunc(
         mesh.totloop,
-        [polys, loops, corner_to_poly_map = std::move(corner_to_poly_map)](const int corner_i) {
-          const int poly_i = corner_to_poly_map[corner_i];
+        [polys, loops, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
+          const int poly_i = loop_to_poly_map[corner_i];
           const MPoly &poly = polys[poly_i];
-          const int corner_i_prev = mesh_topology::previous_poly_corner(poly, corner_i);
+          const int corner_i_prev = mesh_topology::previous_poly_loop(poly, corner_i);
           return loops[corner_i_prev].e;
         });
   }
