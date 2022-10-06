@@ -3202,14 +3202,14 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
   }
 }
 
-static bool sculpt_attribute_create(SculptSession *ss,
-                                    Object *ob,
-                                    eAttrDomain domain,
-                                    eCustomDataType proptype,
-                                    const char *name,
-                                    SculptAttribute *out,
-                                    const SculptAttributeParams *params,
-                                    PBVHType pbvhtype)
+ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
+                                                Object *ob,
+                                                eAttrDomain domain,
+                                                eCustomDataType proptype,
+                                                const char *name,
+                                                SculptAttribute *out,
+                                                const SculptAttributeParams *params,
+                                                PBVHType pbvhtype)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3339,7 +3339,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
   return true;
 }
 
-static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
+ATTR_NO_OPT static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
   int elem_num = sculpt_attr_elem_count_get(ob, attr->domain);
@@ -3472,6 +3472,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr = sculpt_alloc_attr(ss);
 
       attr->used = true;
+      attr->domain = domain;
       attr->proptype = proptype;
       attr->data = cdata->layers[index].data;
       attr->bmesh_cd_offset = cdata->layers[index].offset;
@@ -3487,12 +3488,12 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
   return nullptr;
 }
 
-static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
-                                                   eAttrDomain domain,
-                                                   eCustomDataType proptype,
-                                                   const char *name,
-                                                   const SculptAttributeParams *params,
-                                                   PBVHType pbvhtype)
+ATTR_NO_OPT static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
+                                                               eAttrDomain domain,
+                                                               eCustomDataType proptype,
+                                                               const char *name,
+                                                               const SculptAttributeParams *params,
+                                                               PBVHType pbvhtype)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttribute *attr = BKE_sculpt_attribute_get(ob, domain, proptype, name);
@@ -3545,8 +3546,10 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   SculptSession *ss = ob->sculpt;
   SculptAttributeParams params = {0};
 
-  ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
-      ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH);
+  if (!ss->attrs.sculpt_vert) {
+    ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
+        ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH);
+  }
 
   if (!ss->attrs.face_areas) {
     ss->attrs.face_areas = sculpt_attribute_ensure_ex(ob,
@@ -3572,6 +3575,11 @@ static void sculptsession_bmesh_add_layers(Object *ob)
       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face),
       &params,
       PBVH_BMESH);
+
+  ss->cd_vert_node_offset = ss->attrs.dyntopo_node_id_vertex->bmesh_cd_offset;
+  ss->cd_face_node_offset = ss->attrs.dyntopo_node_id_face->bmesh_cd_offset;
+  ss->cd_face_areas = ss->attrs.face_areas->bmesh_cd_offset;
+  ss->cd_sculpt_vert = ss->attrs.sculpt_vert->bmesh_cd_offset;
 }
 
 void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
@@ -3613,13 +3621,7 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
   ss->cd_faceset_offset = CustomData_get_offset_named(
       &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-  if (ss->attrs.face_areas) {
-    ss->cd_face_areas = ss->attrs.face_areas->bmesh_cd_offset;
-  }
-  else {
-    ss->cd_face_areas = -1;
-  }
+  ss->cd_face_areas = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
 
   if (ss->pbvh) {
     BKE_pbvh_update_offsets(ss->pbvh,

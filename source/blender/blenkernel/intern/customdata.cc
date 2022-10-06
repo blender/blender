@@ -70,6 +70,9 @@ using blender::Vector;
 #define CUSTOMDATA_GROW 5
 
 #define BM_ASAN_PAD 32
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#  define CD_HAVE_ASAN
+#endif
 
 /* ensure typemap size is ok */
 BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)nullptr)->typemap) == CD_NUMTYPES, "size mismatch");
@@ -2835,11 +2838,13 @@ static void customData_update_offsets(CustomData *data)
 
   // do large structs first
   for (int j = 0; j < data->totlayer; j++) {
-    typeInfo = layerType_getInfo(data->layers[j].type);
+    CustomDataLayer *layer = data->layers + j;
+
+    typeInfo = layerType_getInfo(layer->type);
     int size = (int)typeInfo->size;
 
     /* Float vectors get 4-byte alignment. */
-    if (ELEM(data->layers[j].type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
+    if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
       alignment = max_ii(alignment, 4);
     }
     else if (size > 4) {
@@ -2864,14 +2869,14 @@ static void customData_update_offsets(CustomData *data)
         size += 8 - (size & 7);
       }
 
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#ifdef CD_HAVE_ASAN
       offset += BM_ASAN_PAD;
 #endif
 
-      data->layers[j].offset = offset;
+      layer->offset = offset;
       offset += size;
 
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#ifdef CD_HAVE_ASAN
       offset += BM_ASAN_PAD;
 #endif
     }
@@ -2879,18 +2884,20 @@ static void customData_update_offsets(CustomData *data)
 
   for (int i = 0; i < ARRAY_SIZE(aligns) + 1; i++) {
     for (int j = 0; j < data->totlayer; j++) {
+      CustomDataLayer *layer = data->layers + j;
+
       if (BLI_BITMAP_TEST(donemap, j)) {
         continue;
       }
 
-      typeInfo = layerType_getInfo(data->layers[j].type);
+      typeInfo = layerType_getInfo(layer->type);
       int size = (int)typeInfo->size;
 
       if (i < ARRAY_SIZE(aligns) && (size % aligns[i]) != 0) {
         continue;
       }
 
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#ifdef CD_HAVE_ASAN
       offset += BM_ASAN_PAD;
 #endif
 
@@ -2901,10 +2908,10 @@ static void customData_update_offsets(CustomData *data)
         offset += align2;
       }
 
-      data->layers[j].offset = offset;
+      layer->offset = offset;
       offset += size;
 
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#ifdef CD_HAVE_ASAN
       offset += BM_ASAN_PAD;
 #endif
     }
@@ -2921,7 +2928,7 @@ static void customData_update_offsets(CustomData *data)
 
 void CustomData_bmesh_asan_poison(const CustomData *data, void *block)
 {
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#ifdef CD_HAVE_ASAN
   if (!block) {
     return;
   }

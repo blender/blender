@@ -4122,7 +4122,7 @@ void BKE_pbvh_update_all_tri_areas(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
 {
   if (!(node->flag & PBVH_UpdateTriAreas)) {
     return;

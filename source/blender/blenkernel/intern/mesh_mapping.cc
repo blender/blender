@@ -227,6 +227,9 @@ static void calc_cloud_normal(DiskCycleSortData *varr,
   }
 
   float dir_a[3];
+  const float *co_a_opposite = NULL;
+  const float *co_b_opposite = NULL;
+
   sub_v3_v3v3(dir_a, co_a, center);
   normalize_v3(dir_a);
 
@@ -256,9 +259,6 @@ static void calc_cloud_normal(DiskCycleSortData *varr,
   }
 
   normalize_v3(dir_b);
-
-  const float *co_a_opposite = NULL;
-  const float *co_b_opposite = NULL;
 
   {
     float dot_a_min = FLT_MAX;
