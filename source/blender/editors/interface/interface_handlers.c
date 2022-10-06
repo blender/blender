@@ -1118,9 +1118,6 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
   }
   else {
     value_toggle = (value == 0.0);
-    if (ELEM(but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N)) {
-      value_toggle = !value_toggle;
-    }
   }
 
   ui_but_value_set(but, (double)value_toggle);
