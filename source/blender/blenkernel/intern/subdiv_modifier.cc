@@ -170,5 +170,5 @@ int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_m
     return eModifierMode_Render;
   }
 
-  return eModifierMode_Realtime | (is_edit_mode ? eModifierMode_Editmode : 0);
+  return eModifierMode_Realtime | (is_edit_mode ? int(eModifierMode_Editmode) : 0);
 }
