@@ -758,7 +758,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       ${SYCL_CPP_FLAGS}
       )
 
-
   if (WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
     list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_ENABLED)
   endif()
@@ -826,36 +825,43 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -D_CRT_SECURE_NO_DEPRECATE
     -DONEAPI_EXPORT)
 
-    if(sycl_compiler_compiler_name MATCHES "dpcpp")
-      # The oneAPI distribution calls the compiler "dpcpp" and comes with a script that sets environment variables.
-      add_custom_command(
-        OUTPUT ${cycles_kernel_oneapi_lib}
-        COMMAND "${sycl_compiler_root}/../../env/vars.bat"
-        COMMAND ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
-        DEPENDS ${cycles_oneapi_kernel_sources})
+    string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
+    if(NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION) # case for Ninja on Windows
+      get_filename_component(cmake_mt_dir ${CMAKE_MT} DIRECTORY)
+      string(REPLACE /bin/ /Lib/ WINDOWS_KIT_DIR ${cmake_mt_dir})
+      get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
     else()
-      # The open source SYCL compiler just goes by clang++ and does not have such a script.
-      # Set the variables manually.
-      string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
-      if(NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION) # case for Ninja on Windows
-        get_filename_component(cmake_mt_dir ${CMAKE_MT} DIRECTORY)
-        string(REPLACE /bin/ /Lib/ WINDOWS_KIT_DIR ${cmake_mt_dir})
-        get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
-      else()
-        set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
-      endif()
-      list(APPEND sycl_compiler_flags
-                  -L "${MSVC_TOOLS_DIR}/lib/x64"
-                  -L "${WINDOWS_KIT_DIR}/um/x64"
-                  -L "${WINDOWS_KIT_DIR}/ucrt/x64")
-      add_custom_command(
-        OUTPUT ${cycles_kernel_oneapi_lib}
-        COMMAND ${CMAKE_COMMAND} -E env
-                "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
-                "PATH=${OCLOC_INSTALL_DIR};${sycl_compiler_root}"
-                ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
-        DEPENDS ${cycles_oneapi_kernel_sources})
+      set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
     endif()
+    list(APPEND sycl_compiler_flags
+                -L "${MSVC_TOOLS_DIR}/lib/x64"
+                -L "${WINDOWS_KIT_DIR}/um/x64"
+                -L "${WINDOWS_KIT_DIR}/ucrt/x64")
+
+    set(sycl_compiler_flags_Release ${sycl_compiler_flags})
+    set(sycl_compiler_flags_Debug ${sycl_compiler_flags})
+    set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
+    set(sycl_compiler_flags_MinSizeRel ${sycl_compiler_flags})
+    list(APPEND sycl_compiler_flags_RelWithDebInfo -g)
+    get_filename_component(sycl_library_debug_name ${SYCL_LIBRARY_DEBUG} NAME_WE)
+    list(APPEND sycl_compiler_flags_Debug
+                -g
+                -D_DEBUG
+                -nostdlib -Xclang --dependent-lib=msvcrtd
+                -Xclang --dependent-lib=${sycl_library_debug_name})
+
+    add_custom_command(
+      OUTPUT ${cycles_kernel_oneapi_lib}
+      COMMAND ${CMAKE_COMMAND} -E env
+              "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
+              "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
+              ${SYCL_COMPILER}
+              "$<$<CONFIG:Release>:${sycl_compiler_flags_Releas}>"
+              "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo}>"
+              "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
+              "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
+              COMMAND_EXPAND_LISTS
+              DEPENDS ${cycles_oneapi_kernel_sources})
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
@@ -867,26 +873,16 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     # libpi_level_zero.so can be placed next to it and get found.
     list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
 
-    # The oneAPI distribution calls the compiler "dpcpp" and comes with a script that sets environment variables.
-    if(sycl_compiler_compiler_name MATCHES "dpcpp")
-      add_custom_command(
-        OUTPUT ${cycles_kernel_oneapi_lib}
-        COMMAND bash -c \"source ${sycl_compiler_root}/../../env/vars.sh&&${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}\"
-        DEPENDS ${cycles_oneapi_kernel_sources})
-    else()
-      # The open source SYCL compiler just goes by clang++ and does not have such a script.
-      # Set the variables manually.
-      if(NOT IGC_INSTALL_DIR)
-        get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
-      endif()
-      add_custom_command(
-        OUTPUT ${cycles_kernel_oneapi_lib}
-        COMMAND ${CMAKE_COMMAND} -E env
-                "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
-                "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}" # env PATH is for compiler to find ld
-                ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
-        DEPENDS ${cycles_oneapi_kernel_sources})
+    if(NOT IGC_INSTALL_DIR)
+      get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
     endif()
+    add_custom_command(
+      OUTPUT ${cycles_kernel_oneapi_lib}
+      COMMAND ${CMAKE_COMMAND} -E env
+              "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+              "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}" # env PATH is for compiler to find ld
+              ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
+      DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
 
   if(NOT WITH_BLENDER)

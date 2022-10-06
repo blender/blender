@@ -958,11 +958,17 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
     set(SYCL_ROOT_DIR ${CYCLES_SYCL})
   endif()
-  file(GLOB _sycl_runtime_libraries
+  file(GLOB _sycl_runtime_libraries_glob
     ${SYCL_ROOT_DIR}/bin/sycl.dll
     ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
-    ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll
   )
+  foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
+    string(REPLACE ".dll" "$<$<CONFIG:Debug>:d>.dll" sycl_runtime_library ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries ${sycl_runtime_library})
+  endforeach()
+  unset(_sycl_runtime_libraries_glob)
+
+  list(APPEND _sycl_runtime_libraries ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll)
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
