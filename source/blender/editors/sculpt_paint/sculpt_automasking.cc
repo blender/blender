@@ -83,9 +83,6 @@ bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
 
 bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
 {
-  if (br && SCULPT_stroke_is_dynamic_topology(ss, br)) {
-    return false;
-  }
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
     return true;
   }
@@ -746,7 +743,6 @@ void SCULPT_automasking_cache_settings_update(AutomaskingCache *automasking,
                                               const Brush *brush)
 {
   automasking->settings.flags = sculpt_automasking_mode_effective_bits(sd, brush);
-  automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
 
   automasking->settings.view_normal_limit = sd->automasking_view_normal_limit;
   automasking->settings.view_normal_falloff = sd->automasking_view_normal_falloff;
@@ -820,6 +816,10 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
 
   AutomaskingCache *automasking = (AutomaskingCache *)MEM_callocN(sizeof(AutomaskingCache),
                                                                   "automasking cache");
+
+  automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
+  automasking->settings.current_face_set = automasking->settings.initial_face_set;
+
   SCULPT_automasking_cache_settings_update(automasking, ss, sd, brush);
   SCULPT_boundary_info_ensure(ob);
 

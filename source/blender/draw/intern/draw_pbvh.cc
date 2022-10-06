@@ -975,7 +975,13 @@ struct PBVHBatches {
             uchar face_set_color[4];
             int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
 
-            BKE_paint_face_set_overlay_color_get(fset, args->face_sets_color_seed, face_set_color);
+            if (fset != args->face_sets_color_default) {
+              BKE_paint_face_set_overlay_color_get(
+                  fset, args->face_sets_color_seed, face_set_color);
+            }
+            else {
+              face_set_color[0] = face_set_color[1] = face_set_color[2] = 255;
+            }
 
             *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
           });
