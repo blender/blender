@@ -19,7 +19,7 @@ namespace blender::bke {
 class ProjectSettings;
 
 class BlenderProject {
-  inline static std::unique_ptr<BlenderProject> instance_;
+  inline static std::unique_ptr<BlenderProject> active_;
 
   std::unique_ptr<ProjectSettings> settings_;
 

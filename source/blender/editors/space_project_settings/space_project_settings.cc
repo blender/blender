@@ -216,7 +216,7 @@ void ED_spacetype_project_settings()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: navigation window */
-  art = MEM_cnew<ARegionType>("spacetype project settings region");
+  art = MEM_cnew<ARegionType>("spacetype project settings navigation region");
   art->regionid = RGN_TYPE_NAV_BAR;
   art->prefsizex = UI_NAVIGATION_REGION_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_NAVBAR;
@@ -227,7 +227,7 @@ void ED_spacetype_project_settings()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: execution window */
-  art = MEM_cnew<ARegionType>("spacetype project settings region");
+  art = MEM_cnew<ARegionType>("spacetype project settings execute region");
   art->regionid = RGN_TYPE_EXECUTE;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI;

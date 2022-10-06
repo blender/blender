@@ -33,18 +33,18 @@ BlenderProject::BlenderProject(std::unique_ptr<ProjectSettings> settings)
 BlenderProject *BlenderProject::set_active_from_settings(std::unique_ptr<ProjectSettings> settings)
 {
   if (settings) {
-    instance_ = std::make_unique<BlenderProject>(BlenderProject(std::move(settings)));
+    active_ = std::make_unique<BlenderProject>(BlenderProject(std::move(settings)));
   }
   else {
-    instance_ = nullptr;
+    active_ = nullptr;
   }
 
-  return instance_.get();
+  return active_.get();
 }
 
 BlenderProject *BlenderProject::get_active()
 {
-  return instance_.get();
+  return active_.get();
 }
 
 StringRef BlenderProject::project_root_path_find_from_path(StringRef path)
