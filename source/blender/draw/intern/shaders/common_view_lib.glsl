@@ -17,10 +17,6 @@ layout(std140) uniform viewBlock
   mat4 ProjectionMatrixInverse;
 
   vec4 clipPlanes[6];
-
-  /* View frustum corners [NDC(-1.0, -1.0, -1.0) & NDC(1.0, 1.0, 1.0)].
-   * Fourth components are near and far values. */
-  vec4 ViewVecs[2];
 };
 
 #endif /* USE_GPU_SHADER_CREATE_INFO */
@@ -33,9 +29,6 @@ layout(std140) uniform viewBlock
 
 #define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
 #define IS_FIRST_INVOCATION (gl_GlobalInvocationID == uvec3(0))
-
-#define ViewNear (ViewVecs[0].w)
-#define ViewFar (ViewVecs[1].w)
 
 #define cameraForward ViewMatrixInverse[2].xyz
 #define cameraPos ViewMatrixInverse[3].xyz
@@ -310,24 +303,26 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 
 float get_view_z_from_depth(float depth)
 {
+  float d = 2.0 * depth - 1.0;
   if (ProjectionMatrix[3][3] == 0.0) {
-    float d = 2.0 * depth - 1.0;
-    return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
+    d = -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
   }
   else {
-    return ViewVecs[0].z + depth * ViewVecs[1].z;
+    d = (d - ProjectionMatrix[3][2]) / ProjectionMatrix[2][2];
   }
+  return d;
 }
 
 float get_depth_from_view_z(float z)
 {
+  float d;
   if (ProjectionMatrix[3][3] == 0.0) {
-    float d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
-    return d * 0.5 + 0.5;
+    d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
   }
   else {
-    return (z - ViewVecs[0].z) / ViewVecs[1].z;
+    d = ProjectionMatrix[2][2] * z + ProjectionMatrix[3][2];
   }
+  return d * 0.5 + 0.5;
 }
 
 vec2 get_uvs_from_view(vec3 view)
@@ -338,12 +333,9 @@ vec2 get_uvs_from_view(vec3 view)
 
 vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 {
-  if (ProjectionMatrix[3][3] == 0.0) {
-    return vec3(ViewVecs[0].xy + uvcoords * ViewVecs[1].xy, 1.0) * get_view_z_from_depth(depth);
-  }
-  else {
-    return ViewVecs[0].xyz + vec3(uvcoords, depth) * ViewVecs[1].xyz;
-  }
+  vec3 ndc = vec3(uvcoords, depth) * 2.0 - 1.0;
+  vec4 p = ProjectionMatrixInverse * vec4(ndc, 1.0);
+  return p.xyz / p.w;
 }
 
 vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
@@ -351,14 +343,18 @@ vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
   return (ViewMatrixInverse * vec4(get_view_space_from_depth(uvcoords, depth), 1.0)).xyz;
 }
 
-vec3 get_view_vector_from_screen_uv(vec2 uv)
+vec3 get_view_vector_from_screen_uv(vec2 uvcoords)
 {
   if (ProjectionMatrix[3][3] == 0.0) {
-    return normalize(vec3(ViewVecs[0].xy + uv * ViewVecs[1].xy, 1.0));
+    vec2 ndc = vec2(uvcoords * 2.0 - 1.0);
+    /* This is the manual inversion of the ProjectionMatrix. */
+    vec3 vV = vec3((-ndc - ProjectionMatrix[2].xy) /
+                       vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]),
+                   -ProjectionMatrix[2][2] - ProjectionMatrix[3][2]);
+    return normalize(vV);
   }
-  else {
-    return vec3(0.0, 0.0, 1.0);
-  }
+  /* Orthographic case. */
+  return vec3(0.0, 0.0, 1.0);
 }
 
 #endif /* COMMON_VIEW_LIB_GLSL */

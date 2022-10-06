@@ -85,7 +85,6 @@ class View {
   void bind();
   void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
 
-  void update_view_vectors();
   void update_viewport_size();
 
   void frustum_boundbox_calc(BoundBox &bbox);

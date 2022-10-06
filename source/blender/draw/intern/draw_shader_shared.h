@@ -68,7 +68,6 @@ struct ViewInfos {
   float4x4 wininv;
 
   float4 clip_planes[6];
-  float4 viewvecs[2];
 
   float2 viewport_size;
   float2 viewport_size_inverse;
@@ -91,7 +90,6 @@ BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 #  define ProjectionMatrix drw_view.winmat
 #  define ProjectionMatrixInverse drw_view.wininv
 #  define clipPlanes drw_view.clip_planes
-#  define ViewVecs drw_view.viewvecs
 #endif
 
 /** \} */

@@ -24,8 +24,6 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
 
   data_.is_inverted = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 
-  update_view_vectors();
-
   BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&culling_.corners);
   BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&culling_.bound_sphere);
   frustum_boundbox_calc(bound_box);
@@ -222,57 +220,6 @@ void View::update_viewport_size()
   if (assign_if_different(data_.viewport_size, viewport_size)) {
     dirty_ = true;
   }
-}
-
-void View::update_view_vectors()
-{
-  bool is_persp = data_.winmat[3][3] == 0.0f;
-
-  /* Near clip distance. */
-  data_.viewvecs[0][3] = (is_persp) ? -data_.winmat[3][2] / (data_.winmat[2][2] - 1.0f) :
-                                      -(data_.winmat[3][2] + 1.0f) / data_.winmat[2][2];
-
-  /* Far clip distance. */
-  data_.viewvecs[1][3] = (is_persp) ? -data_.winmat[3][2] / (data_.winmat[2][2] + 1.0f) :
-                                      -(data_.winmat[3][2] - 1.0f) / data_.winmat[2][2];
-
-  /* View vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  float3 view_vecs[4] = {
-      {-1.0f, -1.0f, -1.0f},
-      {1.0f, -1.0f, -1.0f},
-      {-1.0f, 1.0f, -1.0f},
-      {-1.0f, -1.0f, 1.0f},
-  };
-
-  /* Convert the view vectors to view space */
-  for (int i = 0; i < 4; i++) {
-    mul_project_m4_v3(data_.wininv.ptr(), view_vecs[i]);
-    /* Normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    if (is_persp) {
-      view_vecs[i].x /= view_vecs[i].z;
-      view_vecs[i].y /= view_vecs[i].z;
-    }
-  }
-
-  /**
-   * - If orthographic:
-   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
-   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
-   *   the far-top-right corner.
-   * - If perspective:
-   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
-   *   when `Z = 1`, and top-left corner if `Z = 1`.
-   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
-   *   distance from the near plane to the far clip plane.
-   */
-  copy_v3_v3(data_.viewvecs[0], view_vecs[0]);
-
-  /* we need to store the differences */
-  data_.viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
-  data_.viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-  data_.viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
 }
 
 void View::bind()

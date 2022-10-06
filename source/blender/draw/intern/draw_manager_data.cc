@@ -2146,52 +2146,6 @@ static void draw_view_matrix_state_update(DRWView *view,
   invert_m4_m4(view->persinv.values, view->persmat.values);
 
   const bool is_persp = (winmat[3][3] == 0.0f);
-
-  /* Near clip distance. */
-  storage->viewvecs[0][3] = (is_persp) ? -winmat[3][2] / (winmat[2][2] - 1.0f) :
-                                         -(winmat[3][2] + 1.0f) / winmat[2][2];
-
-  /* Far clip distance. */
-  storage->viewvecs[1][3] = (is_persp) ? -winmat[3][2] / (winmat[2][2] + 1.0f) :
-                                         -(winmat[3][2] - 1.0f) / winmat[2][2];
-
-  /* view vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  float view_vecs[4][3] = {
-      {-1.0f, -1.0f, -1.0f},
-      {1.0f, -1.0f, -1.0f},
-      {-1.0f, 1.0f, -1.0f},
-      {-1.0f, -1.0f, 1.0f},
-  };
-
-  /* convert the view vectors to view space */
-  for (int i = 0; i < 4; i++) {
-    mul_project_m4_v3(storage->wininv.values, view_vecs[i]);
-    /* normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    if (is_persp) {
-      /* Divide XY by Z. */
-      mul_v2_fl(view_vecs[i], 1.0f / view_vecs[i][2]);
-    }
-  }
-
-  /**
-   * - When orthographic:
-   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
-   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
-   *   the far-top-right corner.
-   * - When perspective:
-   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
-   *   when Z = 1, and top-left corner if `Z = 1`.
-   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
-   *   distance from the near plane to the far clip plane.
-   */
-  copy_v3_v3(storage->viewvecs[0], view_vecs[0]);
-
-  /* we need to store the differences */
-  storage->viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
-  storage->viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-  storage->viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
 }
 
 DRWView *DRW_view_create(const float viewmat[4][4],
