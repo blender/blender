@@ -712,13 +712,9 @@ struct PBVHBatches {
       for (int i : IndexRange(args->tribuf->tottri)) {
         PBVHTri *tri = args->tribuf->tris + i;
 
-        BMLoop *l1 = reinterpret_cast<BMLoop *>(tri->l[0]);
-        BMLoop *l2 = reinterpret_cast<BMLoop *>(tri->l[1]);
-        BMLoop *l3 = reinterpret_cast<BMLoop *>(tri->l[2]);
-
-        callback(l1);
-        callback(l2);
-        callback(l3);
+        for (int j = 0; j < 3; j++) {
+          callback(reinterpret_cast<BMLoop *>(tri->l[j]));
+        }
       }
     };
 
@@ -829,7 +825,7 @@ struct PBVHBatches {
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
 
-    int vert_count = tris_count * 6;
+    int vert_count = tris_count * 3;
 
     if (existing_data == nullptr || existing_num != vert_count) {
       /* Allocate buffer if not allocated yet or size changed. */

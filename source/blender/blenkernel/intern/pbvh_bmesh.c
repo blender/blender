@@ -252,6 +252,8 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   BB_reset(&n->orig_vb);
   BMFace *f;
 
+  int cd_hide_poly = pbvh->cd_hide_poly;
+
   TGSET_ITER (f, n->bm_faces) {
     /* Update ownership of faces */
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
@@ -279,7 +281,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
       BB_expand(&n->orig_vb, mv->origco);
     } while ((l_iter = l_iter->next) != l_first);
 
-    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (cd_hide_poly == -1 || !BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
       has_visible = true;
     }
   }
@@ -876,6 +878,11 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
 
 /************************* Called from pbvh.c *************************/
 
+static bool pbvh_poly_hidden(PBVH *pbvh, BMFace *f)
+{
+  return pbvh->cd_hide_poly != -1 && BM_ELEM_CD_GET_BOOL(f, pbvh->cd_hide_poly);
+}
+
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
   PBVHVertRef vertex = {(intptr_t)v};
@@ -915,7 +922,7 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
 
     BMFace *f = (BMFace *)tri->f.i;
 
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
@@ -1006,7 +1013,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
     BMVert *v3 = (BMVert *)node->tribuf->verts[tri->v[2]].i;
     BMFace *f = (BMFace *)tri->f.i;
 
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
@@ -1047,7 +1054,7 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
     PBVHTri *tri = tribuf->tris + i;
     BMFace *f = (BMFace *)tri->f.i;
 
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
@@ -1511,7 +1518,7 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
     } while ((l_iter = l_iter->next) != l_first);
 
     /* Update node bounding box */
-    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (!pbvh_poly_hidden(pbvh, f)) {
       has_visible = true;
     }
 
@@ -2242,6 +2249,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 {
   // coalese_pbvh(pbvh, bm);
 
+  pbvh->cd_hide_poly = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_areas");
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -2849,7 +2858,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   INIT_MINMAX(min, max);
 
   TGSET_ITER (f, node->bm_faces) {
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
@@ -3002,7 +3011,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   TGSET_ITER_END
 
   TGSET_ITER (f, node->bm_faces) {
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
@@ -3996,8 +4005,10 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
-                             const int cd_face_areas)
+                             const int cd_face_areas,
+                             const int cd_hide_poly)
 {
+  pbvh->cd_hide_poly = cd_hide_poly;
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;

@@ -820,6 +820,9 @@ typedef struct SculptSession {
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
 
+  /* TODO: get rid of these cd_ members and use
+   * .attrs.XXX.bmesh_cd_offset directly.
+   */
   int cd_sculpt_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
@@ -827,6 +830,7 @@ typedef struct SculptSession {
   int cd_vert_mask_offset;
   int cd_faceset_offset;
   int cd_face_areas;
+  int cd_hide_poly;
 
   int totuv;
 

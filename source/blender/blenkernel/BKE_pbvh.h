@@ -432,7 +432,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
-                             const int cd_face_areas);
+                             const int cd_face_areas,
+                             const int cd_hide_poly);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 

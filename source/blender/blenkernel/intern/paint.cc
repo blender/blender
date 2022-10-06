@@ -3532,12 +3532,14 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
   if (ss->pbvh) {
     int cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
     int cd_face_area = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
+    int cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 
     BKE_pbvh_update_offsets(ss->pbvh,
-                            ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                            ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset,
+                            ss->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
+                            ss->attrs.dyntopo_node_id_face->bmesh_cd_offset,
                             cd_sculpt_vert,
-                            cd_face_area);
+                            cd_face_area,
+                            cd_hide_poly);
   }
 }
 
@@ -3580,6 +3582,7 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   ss->cd_face_node_offset = ss->attrs.dyntopo_node_id_face->bmesh_cd_offset;
   ss->cd_face_areas = ss->attrs.face_areas->bmesh_cd_offset;
   ss->cd_sculpt_vert = ss->attrs.sculpt_vert->bmesh_cd_offset;
+  ss->cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 }
 
 void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
@@ -3622,13 +3625,15 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
   ss->cd_faceset_offset = CustomData_get_offset_named(
       &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   ss->cd_face_areas = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
+  ss->cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 
   if (ss->pbvh) {
     BKE_pbvh_update_offsets(ss->pbvh,
                             ss->cd_vert_node_offset,
                             ss->cd_face_node_offset,
                             ss->cd_sculpt_vert,
-                            ss->cd_face_areas);
+                            ss->cd_face_areas,
+                            ss->cd_hide_poly);
   }
 }
 
