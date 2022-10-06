@@ -633,6 +633,7 @@ void gpencil_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, b
   float fpt[3];
 
   BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+  zero_axis_bias_m4(diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   for (i = 0; i < gps->totpoints; i++) {
@@ -653,6 +654,7 @@ void gpencil_apply_parent_point(Depsgraph *depsgraph,
   float fpt[3];
 
   BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+  zero_axis_bias_m4(diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   mul_v3_m4v3(fpt, inverse_diff_mat, &pt->x);
@@ -935,6 +937,7 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
   gpencil_point_conversion_init(C, &gsc);
 
   BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
+  zero_axis_bias_m4(diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   /* Adjust each point */
@@ -1050,6 +1053,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
 
   float diff_mat[4][4], inverse_diff_mat[4][4];
   BKE_gpencil_layer_transform_matrix_get(depsgraph, gsc->ob, gpl, diff_mat);
+  zero_axis_bias_m4(diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   float origin[3];
