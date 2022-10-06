@@ -2896,9 +2896,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   BKE_pbvh_set_pmap(pbvh, ob->sculpt->pmap);
-  sculpt_attribute_update_refs(ob);
-
   ob->sculpt->pbvh = pbvh;
+
+  sculpt_attribute_update_refs(ob);
 
   if (pbvh) {
     SCULPT_update_flat_vcol_shading(ob, scene);
