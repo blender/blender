@@ -85,8 +85,6 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 
-#include "MOD_nodes.h"
-
 #include "UI_interface.h"
 
 #include "WM_api.h"
