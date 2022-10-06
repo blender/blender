@@ -3758,6 +3758,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(WM_OT_save_as_mainfile);
   WM_operatortype_append(WM_OT_save_mainfile);
   WM_operatortype_append(WM_OT_new_project);
+  WM_operatortype_append(WM_OT_delete_project_setup);
   WM_operatortype_append(WM_OT_redraw_timer);
   WM_operatortype_append(WM_OT_memory_statistics);
   WM_operatortype_append(WM_OT_debug_menu);

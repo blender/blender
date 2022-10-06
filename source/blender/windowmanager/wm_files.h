@@ -93,6 +93,7 @@ void WM_OT_read_userpref(struct wmOperatorType *ot);
 void WM_OT_read_factory_userpref(struct wmOperatorType *ot);
 void WM_OT_save_project_settings(struct wmOperatorType *ot);
 void WM_OT_new_project(struct wmOperatorType *ot);
+void WM_OT_delete_project_setup(struct wmOperatorType *ot);
 void WM_OT_read_history(struct wmOperatorType *ot);
 void WM_OT_read_homefile(struct wmOperatorType *ot);
 void WM_OT_read_factory_settings(struct wmOperatorType *ot);

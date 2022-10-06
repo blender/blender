@@ -19,6 +19,8 @@ typedef struct BlenderProject BlenderProject;
 
 /** See #bke::ProjectSettings::create_settings_directory(). */
 bool BKE_project_create_settings_directory(const char *project_root_path) ATTR_NONNULL();
+/** See #bke::ProjectSettings::delete_settings_directory(). */
+bool BKE_project_delete_settings_directory(const BlenderProject *project) ATTR_NONNULL();
 
 BlenderProject *BKE_project_active_get(void) ATTR_WARN_UNUSED_RESULT;
 /**

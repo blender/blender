@@ -108,6 +108,11 @@ class ProjectTest : public testing::Test {
       fn(temp_project_path.project_path_, temp_project_path.native_project_path_);
     }
   }
+
+  void TearDown() override
+  {
+    BKE_project_active_unset();
+  }
 };
 
 TEST_F(ProjectTest, settings_create)
@@ -277,6 +282,29 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
   }
   BKE_project_active_load_from_path(bfile->main->filepath);
   EXPECT_EQ(BKE_project_active_get(), nullptr);
+}
+
+TEST_F(ProjectTest, project_load_and_delete)
+{
+  test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
+    ProjectSettings::create_settings_directory(project_path);
+
+    ::BlenderProject *project = BKE_project_active_load_from_path(project_path.c_str());
+    EXPECT_NE(project, nullptr);
+    EXPECT_FALSE(BKE_project_has_unsaved_changes(project));
+
+    std::string project_settings_dir = project_path_native + SEP_STR +
+                                       ProjectSettings::SETTINGS_DIRNAME;
+
+    EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()));
+    if (!BKE_project_delete_settings_directory(project)) {
+      FAIL();
+    }
+    /* Runtime project should still exist, but with unsaved changes. */
+    EXPECT_NE(project, nullptr);
+    EXPECT_TRUE(BKE_project_has_unsaved_changes(project));
+    EXPECT_FALSE(BLI_exists(project_settings_dir.c_str()));
+  });
 }
 
 }  // namespace blender::bke::tests

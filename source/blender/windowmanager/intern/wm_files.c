@@ -2316,7 +2316,7 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 /** \name Write Project Settings Operator
  * \{ */
 
-static bool wm_save_project_settings_poll(bContext *C)
+static bool wm_project_has_active_poll(bContext *C)
 {
   const BlenderProject *active_project = CTX_wm_project();
   CTX_wm_operator_poll_msg_set(C, TIP_("No active project loaded"));
@@ -2342,7 +2342,7 @@ void WM_OT_save_project_settings(wmOperatorType *ot)
   ot->description = "Make the current changes to the project settings permanent";
 
   ot->invoke = WM_operator_confirm;
-  ot->poll = wm_save_project_settings_poll;
+  ot->poll = wm_project_has_active_poll;
   ot->exec = wm_save_project_settings_exec;
 }
 
@@ -2420,6 +2420,43 @@ void WM_OT_new_project(wmOperatorType *ot)
                                  WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete project setup operator
+ * \{ */
+
+static int wm_delete_project_setup_exec(bContext *C, wmOperator *op)
+{
+  if (!BKE_project_delete_settings_directory(CTX_wm_project())) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Failed to delete project settings. Is the project directory read-only?");
+    return OPERATOR_CANCELLED;
+  }
+  BKE_project_active_unset();
+
+  WM_main_add_notifier(NC_PROJECT, NULL);
+  /* Update the window title. */
+  WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_delete_project_setup(wmOperatorType *ot)
+{
+  ot->name = "Delete Project Setup";
+  ot->idname = "WM_OT_delete_project_setup";
+  ot->description =
+      "Remove the configuration of the current project with all settings, but keep project files "
+      "(such as .blend files) untouched.";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = wm_delete_project_setup_exec;
+  /* omit window poll so this can work in background mode */
+  ot->poll = wm_project_has_active_poll;
 }
 
 /** \} */

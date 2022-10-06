@@ -80,6 +80,15 @@ class PROJECTSETTINGS_MT_view(Menu):
         layout.menu("INFO_MT_area")
 
 
+class PROJECTSETTINGS_MT_advanced_operations(Menu):
+    bl_label = "Advanced Project Settings Operations"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("wm.delete_project_setup")
+
+
 class PROJECTSETTINGS_PT_save_project_settings(Panel):
     bl_label = "Save Project Settings"
     bl_space_type = 'PROJECT_SETTINGS'
@@ -98,6 +107,8 @@ class PROJECTSETTINGS_PT_save_project_settings(Panel):
     def draw(self, context):
         layout = self.layout.row()
         layout.operator_context = 'EXEC_AREA'
+
+        layout.menu("PROJECTSETTINGS_MT_advanced_operations", text="", icon='COLLAPSEMENU')
 
         PROJECTSETTINGS_HT_header.draw_buttons(layout, context)
 
@@ -138,6 +149,7 @@ classes = (
     PROJECTSETTINGS_HT_header,
     PROJECTSETTINGS_MT_editor_menus,
     PROJECTSETTINGS_MT_view,
+    PROJECTSETTINGS_MT_advanced_operations,
     PROJECTSETTINGS_PT_navigation_bar,
     PROJECTSETTINGS_PT_save_project_settings,
     PROJECTSETTINGS_PT_no_project,

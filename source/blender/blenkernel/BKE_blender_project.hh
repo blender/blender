@@ -78,6 +78,12 @@ class ProjectSettings {
    *         failure.
    */
   auto save_to_disk(StringRef project_path) -> bool;
+  /**
+   * Remove the .blender_project directory with all of its contents. Does not unload the active
+   * project but marks it as having unsaved changes. Runtime project data is still valid.
+   * \return True on success.
+   */
+  auto delete_settings_directory() -> bool;
 
   explicit ProjectSettings(StringRef project_root_path);
 

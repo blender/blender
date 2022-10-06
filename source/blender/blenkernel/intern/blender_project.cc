@@ -254,6 +254,20 @@ bool ProjectSettings::save_to_disk(StringRef project_path)
   return true;
 }
 
+bool ProjectSettings::delete_settings_directory()
+{
+  BLI_assert(project_root_path_[0] == SEP);
+  std::string dot_blender_project_dir_path = project_root_path_ + SETTINGS_DIRNAME;
+
+  /* Returns 0 on success. */
+  if (BLI_delete(dot_blender_project_dir_path.c_str(), true, true)) {
+    return false;
+  }
+
+  has_unsaved_changes_ = true;
+  return true;
+}
+
 StringRefNull ProjectSettings::project_root_path() const
 {
   return project_root_path_;
@@ -284,6 +298,14 @@ using namespace blender;
 bool BKE_project_create_settings_directory(const char *project_root_path)
 {
   return bke::ProjectSettings::create_settings_directory(project_root_path);
+}
+
+bool BKE_project_delete_settings_directory(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  bke::ProjectSettings &settings = project->get_settings();
+  return settings.delete_settings_directory();
 }
 
 BlenderProject *BKE_project_active_get(void)
