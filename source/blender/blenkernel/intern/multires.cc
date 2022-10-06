@@ -69,8 +69,8 @@ void multires_customdata_delete(Mesh *me)
   if (me->edit_mesh) {
     BMEditMesh *em = me->edit_mesh;
     /* CustomData_external_remove is used here only to mark layer
-     * as non-external for further free-ing, so zero element count
-     * looks safer than em->totface */
+     * as non-external for further freeing, so zero element count
+     * looks safer than `em->bm->totface`. */
     CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
 
     if (CustomData_has_layer(&em->bm->ldata, CD_MDISPS)) {
@@ -1359,11 +1359,9 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
   MultiresModifierData *mmd_dst = get_multires_modifier(scene, ob_dst, true);
 
   if (!mmd_src) {
-    /* object could have MDISP even when there is no multires modifier
-     * this could lead to troubles due to i've got no idea how mdisp could be
-     * up-sampled correct without modifier data.
-     * just remove mdisps if no multires present (nazgul) */
-
+    /* NOTE(@sergey): object could have MDISP even when there is no multires modifier
+     * this could lead to troubles due to I've got no idea how mdisp could be
+     * up-sampled correct without modifier data. Just remove mdisps if no multires present. */
     multires_customdata_delete(static_cast<Mesh *>(ob_src->data));
   }
 
@@ -1404,9 +1402,8 @@ static void multires_apply_smat(struct Depsgraph * /*depsgraph*/,
     multires_apply_uniform_scale(object, scale);
   }
   else {
-    /* TODO(sergey): This branch of code actually requires more work to
-     * preserve all the details.
-     */
+    /* TODO(@sergey): This branch of code actually requires more work to
+     * preserve all the details. */
     const float scale = mat3_to_scale(smat);
     multires_apply_uniform_scale(object, scale);
   }

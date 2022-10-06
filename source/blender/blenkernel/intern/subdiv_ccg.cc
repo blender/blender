@@ -363,7 +363,7 @@ static int *static_or_heap_storage_get(StaticOrHeapIntStorage *storage, int heap
   if (heap_len <= storage->static_storage_len) {
     return storage->static_storage;
   }
-  /* Make sure heap ius big enough. */
+  /* Make sure heap is big enough. */
   if (heap_len > storage->heap_storage_len) {
     MEM_SAFE_FREE(storage->heap_storage);
     storage->heap_storage = static_cast<int *>(
@@ -1708,7 +1708,7 @@ static int adjacent_edge_point_index_from_coord(const SubdivCCG *subdiv_ccg,
     directional_edge_vertex_index = edge_vertices_indices[1];
   }
 
-  /* Flip the index if the edde points opposite direction. */
+  /* Flip the index if the edge points opposite direction. */
   if (adjacent_vertex_index != directional_edge_vertex_index) {
     const int num_edge_points = subdiv_ccg->grid_size * 2;
     adjacent_edge_point_index = num_edge_points - adjacent_edge_point_index - 1;

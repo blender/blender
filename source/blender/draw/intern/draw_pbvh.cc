@@ -729,7 +729,7 @@ struct PBVHBatches {
     GPUVertBufRaw access;
     GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
 
-#if 0 /* Enable to fuzz gpu data (to check for overallocation). */
+#if 0 /* Enable to fuzz GPU data (to check for over-allocation). */
     existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
     uchar *c = static_cast<uchar *>(existing_data);
     for (int i : IndexRange(vert_count * access.stride)) {

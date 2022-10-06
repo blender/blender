@@ -212,7 +212,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
-    /* Happens on bad topology, ut also on empty input mesh. */
+    /* Happens on bad topology, also on empty input mesh. */
     return result;
   }
   const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
@@ -308,7 +308,7 @@ static void deformMatrices(ModifierData *md,
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
-    /* Happens on bad topology, ut also on empty input mesh. */
+    /* Happens on bad topology, also on empty input mesh. */
     return;
   }
   BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
