@@ -120,26 +120,6 @@ void main()
   do_vertex_shader(out_pos0, base_vertex_id, ssPos[0], finalColor_geom[0]);
   do_vertex_shader(out_pos1, base_vertex_id + 1, ssPos[0], finalColor_geom[0]);
 
-  /* Calculate Vertex Clip distances. */
-#ifdef USE_WORLD_CLIP_PLANES
-  float out_ClipDistance0[6];
-
-  out_ClipDistance0[0] = dot(clipPlanes[0], out_pos0);
-  out_ClipDistance0[1] = dot(clipPlanes[1], out_pos0);
-  out_ClipDistance0[2] = dot(clipPlanes[2], out_pos0);
-  out_ClipDistance0[3] = dot(clipPlanes[3], out_pos0);
-  out_ClipDistance0[4] = dot(clipPlanes[4], out_pos0);
-  out_ClipDistance0[5] = dot(clipPlanes[5], out_pos0);
-
-  float out_ClipDistance1[6];
-  out_ClipDistance1[0] = dot(clipPlanes[0], out_pos1);
-  out_ClipDistance1[1] = dot(clipPlanes[1], out_pos1);
-  out_ClipDistance1[2] = dot(clipPlanes[2], out_pos1);
-  out_ClipDistance1[3] = dot(clipPlanes[3], out_pos1);
-  out_ClipDistance1[4] = dot(clipPlanes[4], out_pos1);
-  out_ClipDistance1[5] = dot(clipPlanes[5], out_pos1);
-#endif
-
   /* Geometry shader alternative -- Output is trianglelist consisting of 6 vertices.
    * Each vertex shader invocation is one vertex in the output primitive, so outptut
    * required ID. */
@@ -150,36 +130,28 @@ void main()
   float line_size = float(lineThickness) * sizePixel;
 
   if (quad_vertex_id == 0) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_ClipDistance0);
-#endif
+    view_clipping_distances(out_pos0);
 
     interp.color = finalColor_geom[0];
     t = edge_dir * (line_size * (is_persp ? out_pos0.w : 1.0));
     gl_Position = out_pos0 + vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 1 || quad_vertex_id == 3) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_ClipDistance0);
-#endif
+    view_clipping_distances(out_pos0);
 
     interp.color = finalColor_geom[0];
     t = edge_dir * (line_size * (is_persp ? out_pos0.w : 1.0));
     gl_Position = out_pos0 - vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 2 || quad_vertex_id == 5) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_ClipDistance1);
-#endif
+    view_clipping_distances(out_pos1);
 
     interp.color = finalColor_geom[1];
     t = edge_dir * (line_size * (is_persp ? out_pos1.w : 1.0));
     gl_Position = out_pos1 + vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 4) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_ClipDistance1);
-#endif
+    view_clipping_distances(out_pos1);
 
     interp.color = finalColor_geom[1];
     t = edge_dir * (line_size * (is_persp ? out_pos1.w : 1.0));

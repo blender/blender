@@ -143,26 +143,6 @@ void main()
       colorEditMeshMiddle.rgb, out_finalColor[1].rgb, facing1);
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  float out_clipdistances0[6];
-  float out_clipdistances1[6];
-  vec4 clip_pos0 = vec4(world_pos0, 1.0);
-  out_clipdistances0[0] = dot(WorldClipPlanes[0], clip_pos0);
-  out_clipdistances0[1] = dot(WorldClipPlanes[1], clip_pos0);
-  out_clipdistances0[2] = dot(WorldClipPlanes[2], clip_pos0);
-  out_clipdistances0[3] = dot(WorldClipPlanes[3], clip_pos0);
-  out_clipdistances0[4] = dot(WorldClipPlanes[4], clip_pos0);
-  out_clipdistances0[5] = dot(WorldClipPlanes[5], clip_pos0);
-
-  vec4 clip_pos1 = vec4(world_pos1, 1.0);
-  out_clipdistances1[0] = dot(WorldClipPlanes[0], clip_pos1);
-  out_clipdistances1[1] = dot(WorldClipPlanes[1], clip_pos1);
-  out_clipdistances1[2] = dot(WorldClipPlanes[2], clip_pos1);
-  out_clipdistances1[3] = dot(WorldClipPlanes[3], clip_pos1);
-  out_clipdistances1[4] = dot(WorldClipPlanes[4], clip_pos1);
-  out_clipdistances1[5] = dot(WorldClipPlanes[5], clip_pos1);
-#endif
-
   // -------- GEOM SHADER ALTERNATIVE ----------- //
   vec2 ss_pos[2];
 
@@ -210,27 +190,19 @@ void main()
 
   /* Output specific Vertex data depending on quad_vertex_id. */
   if (quad_vertex_id == 0) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_clipdistances0);
-#endif
+    view_clipping_distances(world_pos0);
     do_vertex(out_finalColor[0], pos0, half_size, edge_ofs.xy);
   }
   else if (quad_vertex_id == 1 || quad_vertex_id == 3) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_clipdistances0);
-#endif
+    view_clipping_distances(world_pos0);
     do_vertex(out_finalColor[0], pos0, -half_size, -edge_ofs.xy);
   }
   else if (quad_vertex_id == 2 || quad_vertex_id == 5) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_clipdistances1);
-#endif
+    view_clipping_distances(world_pos1);
     do_vertex(final_color, pos1, half_size, edge_ofs.xy);
   }
   else if (quad_vertex_id == 4) {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_set_clip_distance(out_clipdistances1);
-#endif
+    view_clipping_distances(world_pos1);
     do_vertex(final_color, pos1, -half_size, -edge_ofs.xy);
   }
 }
