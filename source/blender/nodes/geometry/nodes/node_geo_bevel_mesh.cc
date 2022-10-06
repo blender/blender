@@ -718,6 +718,10 @@ class BevelData {
    * an Array of size equal to the number of mesh vertices here.
    */
   Map<int, int> vert_to_bvd_index_;
+  /* All the BevelEdges, when edge beveling. */
+  Array<BevelEdge> bevel_edge_;
+  /* Map from mesh edge indiex inot bevel_edge_. */
+  Map<int, int> edge_to_bevel_edge_;
 
  public:
   MeshTopology topo;
@@ -808,6 +812,14 @@ void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> 
  */
 void BevelData::calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts)
 {
+  bevel_edge_.reinitialize(to_bevel.size());
+  Set<int> need_vert;
+  for (const int e : to_bevel) {
+    need_vert.add(topo.edge_v1(e));
+    need_vert.add(topo.edge_v2(e));
+  }
+  const int tot_need_vert = need_vert.size();
+  bevel_vert_data_.reinitialize(tot_need_vert);
 }
 
 /** IndexAlloc allocates sequential integers, starting from a given start value. */
