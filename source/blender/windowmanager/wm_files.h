@@ -90,8 +90,9 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
 void WM_OT_save_homefile(struct wmOperatorType *ot);
 void WM_OT_save_userpref(struct wmOperatorType *ot);
 void WM_OT_read_userpref(struct wmOperatorType *ot);
-void WM_OT_save_project_settings(struct wmOperatorType *ot);
 void WM_OT_read_factory_userpref(struct wmOperatorType *ot);
+void WM_OT_save_project_settings(struct wmOperatorType *ot);
+void WM_OT_new_project(struct wmOperatorType *ot);
 void WM_OT_read_history(struct wmOperatorType *ot);
 void WM_OT_read_homefile(struct wmOperatorType *ot);
 void WM_OT_read_factory_settings(struct wmOperatorType *ot);
@@ -104,8 +105,6 @@ void WM_OT_recover_auto_save(struct wmOperatorType *ot);
 
 void WM_OT_save_as_mainfile(struct wmOperatorType *ot);
 void WM_OT_save_mainfile(struct wmOperatorType *ot);
-
-void WM_OT_new_project(struct wmOperatorType *ot);
 
 /* wm_files_link.c */
 

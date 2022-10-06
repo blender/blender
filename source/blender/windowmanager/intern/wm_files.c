@@ -2349,6 +2349,82 @@ void WM_OT_save_project_settings(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name New project operator
+ * \{ */
+
+static int wm_new_project_exec(bContext *C, wmOperator *op)
+{
+  const Main *bmain = CTX_data_main(C);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+
+  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
+    BKE_report(op->reports, RPT_ERROR, "No path defined for creating a new project in");
+    return OPERATOR_CANCELLED;
+  }
+  char project_root_dir[FILE_MAXDIR];
+  RNA_string_get(op->ptr, "directory", project_root_dir);
+
+  if (!BKE_project_create_settings_directory(project_root_dir)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Failed to create project with unknown error. Is the directory read-only?");
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, "Project created and loaded successfully");
+
+  if (blendfile_path[0] && BLI_path_contains(project_root_dir, blendfile_path)) {
+    BKE_project_active_load_from_path(blendfile_path);
+
+    WM_main_add_notifier(NC_PROJECT, NULL);
+    /* Update the window title. */
+    WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+  }
+  else {
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "The current file is not located inside of the new project. This means the new "
+                "project is not active");
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static int wm_new_project_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  const Main *bmain = CTX_data_main(C);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  if (blendfile_path[0]) {
+    /* Open at the .blend file location if any. */
+    RNA_string_set(op->ptr, "filepath", blendfile_path);
+  }
+
+  WM_event_add_fileselect(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void WM_OT_new_project(wmOperatorType *ot)
+{
+  ot->name = "New Project";
+  ot->idname = "WM_OT_new_project";
+  ot->description = "Choose a directory to use as the root of a project";
+
+  ot->invoke = wm_new_project_invoke;
+  ot->exec = wm_new_project_exec;
+  /* omit window poll so this can work in background mode */
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER,
+                                 FILE_BLENDER,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Read File History Operator
  * \{ */
 
@@ -3326,82 +3402,6 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name New project operator
- * \{ */
-
-static int wm_new_project_exec(bContext *C, wmOperator *op)
-{
-  const Main *bmain = CTX_data_main(C);
-  const char *blendfile_path = BKE_main_blendfile_path(bmain);
-
-  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
-    BKE_report(op->reports, RPT_ERROR, "No path defined for creating a new project in");
-    return OPERATOR_CANCELLED;
-  }
-  char project_root_dir[FILE_MAXDIR];
-  RNA_string_get(op->ptr, "directory", project_root_dir);
-
-  if (!BKE_project_create_settings_directory(project_root_dir)) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "Failed to create project with unknown error. Is the directory read-only?");
-    return OPERATOR_CANCELLED;
-  }
-
-  BKE_reportf(op->reports, RPT_INFO, "Project created and loaded successfully");
-
-  if (blendfile_path[0] && BLI_path_contains(project_root_dir, blendfile_path)) {
-    BKE_project_active_load_from_path(blendfile_path);
-
-    WM_main_add_notifier(NC_PROJECT, NULL);
-    /* Update the window title. */
-    WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
-  }
-  else {
-    BKE_reportf(op->reports,
-                RPT_INFO,
-                "The current file is not located inside of the new project. This means the new "
-                "project is not active");
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-static int wm_new_project_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-  const Main *bmain = CTX_data_main(C);
-  const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  if (blendfile_path[0]) {
-    /* Open at the .blend file location if any. */
-    RNA_string_set(op->ptr, "filepath", blendfile_path);
-  }
-
-  WM_event_add_fileselect(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
-
-void WM_OT_new_project(wmOperatorType *ot)
-{
-  ot->name = "New Project";
-  ot->idname = "WM_OT_new_project";
-  ot->description = "Choose a directory to use as the root of a project";
-
-  ot->invoke = wm_new_project_invoke;
-  ot->exec = wm_new_project_exec;
-  /* omit window poll so this can work in background mode */
-
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER,
-                                 FILE_BLENDER,
-                                 FILE_OPENFILE,
-                                 WM_FILESEL_DIRECTORY,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */
