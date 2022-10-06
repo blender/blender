@@ -3343,6 +3343,7 @@ static int wm_new_project_exec(bContext *C, wmOperator *op)
   if (blendfile_path[0] && BLI_path_contains(project_root_dir, blendfile_path)) {
     BKE_project_active_load_from_path(blendfile_path);
 
+    WM_main_add_notifier(NC_PROJECT, NULL);
     /* Update the window title. */
     WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
   }

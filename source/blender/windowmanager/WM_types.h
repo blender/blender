@@ -355,6 +355,8 @@ typedef struct wmNotifier {
 #define NC_ASSET (27 << 24)
 /* Changes to the active viewer path. */
 #define NC_VIEWER_PATH (28 << 24)
+/* Changes related to the active project. */
+#define NC_PROJECT (29 << 24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA 0x00FF0000

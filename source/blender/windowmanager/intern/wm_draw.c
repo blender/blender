@@ -1345,6 +1345,9 @@ void wm_draw_update(bContext *C)
 
   BKE_image_free_unused_gpu_textures();
 
+  /* Subscribe to messages when drawing, #ED_region_do_draw() does the same on region level. */
+  wm_messages_subscribe(wm);
+
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);

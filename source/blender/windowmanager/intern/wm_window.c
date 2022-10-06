@@ -43,6 +43,7 @@
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 #include "wm.h"
 #include "wm_draw.h"
@@ -1541,6 +1542,35 @@ void wm_window_process_events(const bContext *C)
     PIL_sleep_ms(5);
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name WM level message bus subscribers
+ * \{ */
+
+static void wm_msg_windows_title_update_fn(bContext *C,
+                                           wmMsgSubscribeKey *UNUSED(msg_key),
+                                           wmMsgSubscribeValue *UNUSED(msg_val))
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    wm_window_title(wm, win);
+  }
+}
+
+void wm_messages_subscribe(wmWindowManager *wm)
+{
+  WM_msgbus_clear_by_owner(wm->message_bus, wm);
+
+  wmMsgSubscribeValue msg_sub_value_update_win_titles = {0};
+  msg_sub_value_update_win_titles.owner = wm;
+  msg_sub_value_update_win_titles.notify = wm_msg_windows_title_update_fn;
+
+  /* Update window titles on project name change. */
+  WM_msg_subscribe_rna_anon_prop(
+      wm->message_bus, BlenderProject, name, &msg_sub_value_update_win_titles);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Ghost Init/Exit

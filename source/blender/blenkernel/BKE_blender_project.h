@@ -40,6 +40,10 @@ bool BKE_project_settings_save(const BlenderProject *project) ATTR_NONNULL();
 
 const char *BKE_project_root_path_get(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+/**
+ * \param name The new name to set, expected to be 0 terminated.
+ */
+void BKE_project_name_set(const BlenderProject *project_handle, const char *name) ATTR_NONNULL();
 const char *BKE_project_name_get(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 

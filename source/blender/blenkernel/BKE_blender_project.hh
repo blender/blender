@@ -81,6 +81,7 @@ class ProjectSettings {
   explicit ProjectSettings(StringRef project_root_path);
 
   auto project_root_path [[nodiscard]] () const -> StringRefNull;
+  void project_name(StringRef new_name);
   auto project_name [[nodiscard]] () const -> StringRefNull;
 
  private:

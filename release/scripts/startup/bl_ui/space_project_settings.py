@@ -105,7 +105,14 @@ class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):
     bl_options = {'HIDE_HEADER'}
 
     def draw_centered(self, context, layout):
-        layout.label(text="Testing")
+        project = context.project
+
+        if not project:
+            layout.label(text="No active project.", icon='INFO')
+            return
+
+        layout.prop(project, "name")
+        layout.prop(project, "root_path", text="Location")
 
 
 classes = (

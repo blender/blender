@@ -257,6 +257,11 @@ StringRefNull ProjectSettings::project_root_path() const
   return project_root_path_;
 }
 
+void ProjectSettings::project_name(StringRef new_name)
+{
+  project_name_ = new_name;
+}
+
 StringRefNull ProjectSettings::project_name() const
 {
   return project_name_;
@@ -317,6 +322,13 @@ const char *BKE_project_root_path_get(const BlenderProject *project_handle)
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
   return project->get_settings().project_root_path().c_str();
+}
+
+void BKE_project_name_set(const BlenderProject *project_handle, const char *name)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  project->get_settings().project_name(name);
 }
 
 const char *BKE_project_name_get(const BlenderProject *project_handle)

@@ -85,6 +85,18 @@ static SpaceLink *project_settings_duplicate(SpaceLink *sl)
   return reinterpret_cast<SpaceLink *>(sproject_settings_new);
 }
 
+static void project_settings_listener(const wmSpaceTypeListenerParams *params)
+{
+  const wmNotifier *wmn = params->notifier;
+  ScrArea *area = params->area;
+
+  switch (wmn->category) {
+    case NC_PROJECT:
+      ED_area_tag_redraw(area);
+      break;
+  }
+}
+
 static void project_settings_operatortypes(void)
 {
 }
@@ -187,6 +199,7 @@ void ED_spacetype_project_settings()
   st->free = project_settings_free;
   st->init = project_settings_init;
   st->duplicate = project_settings_duplicate;
+  st->listener = project_settings_listener;
   st->operatortypes = project_settings_operatortypes;
   st->keymap = project_settings_keymap;
   st->blend_write = project_settings_blend_write;
