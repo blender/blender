@@ -1884,7 +1884,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->bm_log = log;
 
   /* TODO: choose leaf limit better */
-  pbvh->leaf_limit = 100;
+  pbvh->leaf_limit = 400;
 
   BKE_pbvh_update_bmesh_offsets(pbvh, cd_vert_node_offset, cd_face_node_offset);
 
