@@ -2396,7 +2396,7 @@ static int wm_new_project_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
   if (blendfile_path[0]) {
     /* Open at the .blend file location if any. */
-    RNA_string_set(op->ptr, "filepath", blendfile_path);
+    RNA_string_set(op->ptr, "directory", blendfile_path);
   }
 
   WM_event_add_fileselect(C, op);
