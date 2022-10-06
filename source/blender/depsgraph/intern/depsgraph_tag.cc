@@ -95,10 +95,6 @@ void depsgraph_select_tag_to_component_opcode(const ID *id,
     *component_type = NodeType::OBJECT_FROM_LAYER;
     *operation_code = OperationCode::OBJECT_FROM_LAYER_ENTRY;
   }
-  else if (id_type == ID_MC) {
-    *component_type = NodeType::BATCH_CACHE;
-    *operation_code = OperationCode::MOVIECLIP_SELECT_UPDATE;
-  }
   else if (is_selectable_data_id_type(id_type)) {
     *component_type = NodeType::BATCH_CACHE;
     *operation_code = OperationCode::GEOMETRY_SELECT_UPDATE;

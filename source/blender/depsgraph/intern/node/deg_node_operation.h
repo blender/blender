@@ -176,7 +176,6 @@ enum class OperationCode {
 
   /* Movie clips. --------------------------------------------------------- */
   MOVIECLIP_EVAL,
-  MOVIECLIP_SELECT_UPDATE,
 
   /* Images. -------------------------------------------------------------- */
   IMAGE_ANIMATION,

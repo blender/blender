@@ -1990,13 +1990,6 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
                      [bmain = bmain_, clip_cow](::Depsgraph *depsgraph) {
                        BKE_movieclip_eval_update(depsgraph, bmain, clip_cow);
                      });
-
-  add_operation_node(clip_id,
-                     NodeType::BATCH_CACHE,
-                     OperationCode::MOVIECLIP_SELECT_UPDATE,
-                     [clip_cow](::Depsgraph *depsgraph) {
-                       BKE_movieclip_eval_selection_update(depsgraph, clip_cow);
-                     });
 }
 
 void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
