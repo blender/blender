@@ -46,8 +46,8 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
   }
 
   /* Allocate runtime data if it did not exist yet. */
-  if (runtime_data == NULL) {
-    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+  if (runtime_data == nullptr) {
+    runtime_data = MEM_cnew<SubsurfRuntimeData>(__func__);
     smd->modifier.runtime = runtime_data;
   }
   runtime_data->settings = settings;
@@ -58,7 +58,7 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
                                                         const Object *ob,
                                                         int required_mode)
 {
-  ModifierData *md = ob->modifiers.last;
+  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
 
   while (md) {
     if (BKE_modifier_is_enabled(scene, md, required_mode)) {
@@ -83,7 +83,7 @@ static bool subsurf_modifier_use_autosmooth_or_split_normals(const SubsurfModifi
   return (mesh->flag & ME_AUTOSMOOTH) || BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
 }
 
-static bool is_subdivision_evaluation_possible_on_gpu(void)
+static bool is_subdivision_evaluation_possible_on_gpu()
 {
   /* Only OpenGL is supported for OpenSubdiv evaluation for now. */
   if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
@@ -147,7 +147,7 @@ bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh)
   return runtime_data && runtime_data->has_gpu_subdiv;
 }
 
-void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv) = NULL;
+void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv) = nullptr;
 
 Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,
                                                       const Mesh *mesh,
@@ -155,7 +155,7 @@ Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtim
 {
   if (runtime_data->subdiv && runtime_data->set_by_draw_code != for_draw_code) {
     BKE_subdiv_free(runtime_data->subdiv);
-    runtime_data->subdiv = NULL;
+    runtime_data->subdiv = nullptr;
   }
   Subdiv *subdiv = BKE_subdiv_update_from_mesh(
       runtime_data->subdiv, &runtime_data->settings, mesh);

@@ -277,7 +277,7 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.cc
-  intern/subdiv_modifier.c
+  intern/subdiv_modifier.cc
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
