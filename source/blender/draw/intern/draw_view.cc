@@ -21,8 +21,6 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
   data_.viewinv = view_mat.inverted();
   data_.winmat = win_mat;
   data_.wininv = win_mat.inverted();
-  /* Should not be used anymore. */
-  data_.viewcamtexcofac = float4(1.0f, 1.0f, 0.0f, 0.0f);
 
   data_.is_inverted = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 

@@ -1,4 +1,6 @@
 
+#define COMMON_UNIFORMS_LIB
+
 layout(std140) uniform common_block
 {
   mat4 pastViewProjectionMatrix;
@@ -42,10 +44,8 @@ layout(std140) uniform common_block
   float rayDepth;
   float alphaHashOffset;
   float alphaHashScale;
-  float pad6;
-  float pad7;
-  float pad8;
-  float pad9;
+  /* Misc */
+  vec4 cameraUvScaleBias;
 };
 
 /* rayType (keep in sync with ray_type) */

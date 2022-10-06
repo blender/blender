@@ -2213,8 +2213,6 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->visibility_fn = visibility_fn;
   view->parent = nullptr;
 
-  copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
-
   if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
     int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
     wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
@@ -2355,16 +2353,6 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   if (plane_len > 0) {
     memcpy(view->storage.clip_planes, planes, sizeof(float[4]) * plane_len);
   }
-}
-
-void DRW_view_camtexco_set(DRWView *view, float texco[4])
-{
-  copy_v4_v4(view->storage.viewcamtexcofac, texco);
-}
-
-void DRW_view_camtexco_get(const DRWView *view, float r_texco[4])
-{
-  copy_v4_v4(r_texco, view->storage.viewcamtexcofac);
 }
 
 void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)

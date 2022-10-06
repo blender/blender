@@ -566,7 +566,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
     dst->pixsize = rv3d->pixsize;
     dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
-    DRW_view_camtexco_set(dst->view_default, rv3d->viewcamtexcofac);
 
     if (dst->draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       int plane_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;

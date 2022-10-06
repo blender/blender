@@ -21,9 +21,6 @@ layout(std140) uniform viewBlock
   /* View frustum corners [NDC(-1.0, -1.0, -1.0) & NDC(1.0, 1.0, 1.0)].
    * Fourth components are near and far values. */
   vec4 ViewVecs[2];
-
-  /* TODO: move it elsewhere. */
-  vec4 CameraTexCoFactors;
 };
 
 #endif /* USE_GPU_SHADER_CREATE_INFO */

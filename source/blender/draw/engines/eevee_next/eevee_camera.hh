@@ -99,7 +99,7 @@ class Camera {
     BLI_assert(data_.initialized);
     return data_;
   }
-  const GPUUniformBuf *ubo_get() const
+  GPUUniformBuf *ubo_get() const
   {
     return data_;
   }

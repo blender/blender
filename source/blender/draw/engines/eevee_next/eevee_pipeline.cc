@@ -79,6 +79,8 @@ void ForwardPipeline::sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      /* Uniform Buf. */
+      prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.velocity.bind_resources(&prepass_ps_);
       inst_.sampling.bind_resources(&prepass_ps_);
@@ -117,6 +119,8 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
       /* Textures. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      /* Uniform Buf. */
+      opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
@@ -140,6 +144,8 @@ void ForwardPipeline::sync()
 
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    /* Uniform Buf. */
+    opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
     inst_.lights.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);

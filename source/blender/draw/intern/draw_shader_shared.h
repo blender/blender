@@ -69,8 +69,6 @@ struct ViewInfos {
 
   float4 clip_planes[6];
   float4 viewvecs[2];
-  /* Should not be here. Not view dependent (only main view). */
-  float4 viewcamtexcofac;
 
   float2 viewport_size;
   float2 viewport_size_inverse;
@@ -94,7 +92,6 @@ BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 #  define ProjectionMatrixInverse drw_view.wininv
 #  define clipPlanes drw_view.clip_planes
 #  define ViewVecs drw_view.viewvecs
-#  define CameraTexCoFactors drw_view.viewcamtexcofac
 #endif
 
 /** \} */
