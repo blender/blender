@@ -52,8 +52,10 @@ class PROJECTSETTINGS_PT_navigation_bar(Panel):
         layout = self.layout
 
         space_data = context.space_data
+        project = context.project
 
         col = layout.column()
+        col.enabled = project is not None
 
         col.scale_x = 1.3
         col.scale_y = 1.3
@@ -99,6 +101,25 @@ class PROJECTSETTINGS_PT_save_project_settings(Panel):
 
         PROJECTSETTINGS_HT_header.draw_buttons(layout, context)
 
+
+class PROJECTSETTINGS_PT_no_project(CenterAlignMixIn, Panel):
+    bl_space_type = 'PROJECT_SETTINGS'
+    bl_region_type = 'WINDOW'
+    # Special hardcoded context.
+    bl_context = "no_project"
+    bl_label = "No Project"
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.project is None)
+
+    def draw_centered(self, context, layout):
+        layout = self.layout
+
+        layout.label(text="No active project.", icon='INFO')
+
+
 class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):
     bl_space_type = 'PROJECT_SETTINGS'
     bl_region_type = 'WINDOW'
@@ -108,10 +129,6 @@ class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):
 
     def draw_centered(self, context, layout):
         project = context.project
-
-        if not project:
-            layout.label(text="No active project.", icon='INFO')
-            return
 
         layout.prop(project, "name")
         layout.prop(project, "root_path", text="Location")
@@ -123,6 +140,7 @@ classes = (
     PROJECTSETTINGS_MT_view,
     PROJECTSETTINGS_PT_navigation_bar,
     PROJECTSETTINGS_PT_save_project_settings,
+    PROJECTSETTINGS_PT_no_project,
     PROJECTSETTINGS_PT_setup,
 )
 

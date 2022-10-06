@@ -2316,13 +2316,17 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 /** \name Write Project Settings Operator
  * \{ */
 
+static bool wm_save_project_settings_poll(bContext *C)
+{
+  const BlenderProject *active_project = CTX_wm_project();
+  CTX_wm_operator_poll_msg_set(C, TIP_("No active project loaded"));
+  return active_project != NULL;
+}
+
 /* Only save the prefs block. operator entry */
 static int wm_save_project_settings_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
   BlenderProject *active_project = CTX_wm_project();
-  if (!active_project) {
-    return OPERATOR_CANCELLED;
-  }
 
   if (!BKE_project_settings_save(active_project)) {
     return OPERATOR_CANCELLED;
@@ -2338,6 +2342,7 @@ void WM_OT_save_project_settings(wmOperatorType *ot)
   ot->description = "Make the current changes to the project settings permanent";
 
   ot->invoke = WM_operator_confirm;
+  ot->poll = wm_save_project_settings_poll;
   ot->exec = wm_save_project_settings_exec;
 }
 

@@ -129,8 +129,12 @@ static void project_settings_main_region_layout(const bContext *C, ARegion *regi
   char id_lower[64];
   const char *contexts[2] = {id_lower, NULL};
 
-  /* Avoid duplicating identifiers, use existing RNA enum. */
-  {
+  if (!CTX_wm_project()) {
+    /* Special context for when there is no project. UI can draw a special panel then. */
+    STRNCPY(id_lower, "no_project");
+  }
+  else {
+    /* Avoid duplicating identifiers, use existing RNA enum. */
     const EnumPropertyItem *items = rna_enum_project_settings_section_items;
     int i = RNA_enum_from_value(items, sproject_settings->active_section);
     /* Enum value not found: File is from the future. */
