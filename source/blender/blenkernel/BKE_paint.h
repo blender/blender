@@ -444,6 +444,7 @@ typedef struct SculptClothSimulation {
 
   float (*pos)[3];
   float (*init_pos)[3];
+  float (*init_no)[3];
   float (*softbody_pos)[3];
 
   /* Position anchors for deformation brushes. These positions are modified by the brush and the

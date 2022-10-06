@@ -240,6 +240,8 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   PBVHNode *n = &pbvh->nodes[node_index];
   bool has_visible = false;
 
+  n->draw_batches = NULL;
+
   /* Create vert hash sets */
   if (!n->bm_unique_verts) {
     n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
@@ -409,6 +411,7 @@ static void pbvh_bmesh_node_split(
   /* Initialize children */
   PBVHNode *c1 = &pbvh->nodes[children], *c2 = &pbvh->nodes[children + 1];
 
+  c1->draw_batches = c2->draw_batches = NULL;
   c1->depth = c2->depth = n->depth + 1;
 
   c1->flag |= PBVH_Leaf;
@@ -509,6 +512,7 @@ static void pbvh_bmesh_node_split(
 
   if (n->draw_batches) {
     DRW_pbvh_node_free(n->draw_batches);
+    n->draw_batches = NULL;
   }
   n->flag &= ~PBVH_Leaf;
 
@@ -3311,6 +3315,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
           n3->bm_other_verts = BLI_table_gset_new("bm_other_verts");
           n3->bm_faces = BLI_table_gset_new("bm_faces");
           n3->tribuf = NULL;
+          n3->draw_batches = NULL;
         }
         else if ((n1->flag & PBVH_Delete) && (n2->flag & PBVH_Delete)) {
           n->children_offset = 0;
@@ -3322,6 +3327,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
             n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
             n->bm_faces = BLI_table_gset_new("bm_faces");
             n->tribuf = NULL;
+            n->draw_batches = NULL;
           }
         }
       }
@@ -3692,7 +3698,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(depthmap);
 }
 
-static void pbvh_bmesh_join_nodes(PBVH *bvh)
+ATTR_NO_OPT static void pbvh_bmesh_join_nodes(PBVH *bvh)
 {
   if (bvh->totnode < 2) {
     return;
@@ -3706,13 +3712,13 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   for (int i = 0; i < bvh->totnode; i++) {
     PBVHNode *n = bvh->nodes + i;
 
-    if (!(n->flag & PBVH_Delete)) {
+    if (0 && !(n->flag & PBVH_Delete)) {
       if (!(n->flag & PBVH_Leaf)) {
         PBVHNode *n1 = bvh->nodes + n->children_offset;
         PBVHNode *n2 = bvh->nodes + n->children_offset + 1;
 
         if ((n1->flag & PBVH_Delete) != (n2->flag & PBVH_Delete)) {
-          printf("un-deleting an empty node\n");
+          printf("%s: Un-deleting an empty node!\n", __func__);
           PBVHNode *n3 = n1->flag & PBVH_Delete ? n1 : n2;
 
           n3->flag = PBVH_Leaf | PBVH_UpdateTris;
@@ -3720,6 +3726,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
           n3->bm_other_verts = BLI_table_gset_new("bm_other_verts");
           n3->bm_faces = BLI_table_gset_new("bm_faces");
           n3->tribuf = NULL;
+          n3->draw_batches = NULL;
         }
         else if ((n1->flag & PBVH_Delete) && (n2->flag & PBVH_Delete)) {
           n->children_offset = 0;
@@ -3730,8 +3737,10 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
             n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
             n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
             n->bm_faces = BLI_table_gset_new("bm_faces");
-            n->tribuf = NULL;
           }
+
+          n->tribuf = NULL;
+          n->draw_batches = NULL;
         }
       }
 
@@ -3741,6 +3750,20 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
 
   int *map = MEM_callocN(sizeof(int) * bvh->totnode, "bmesh map temp");
 
+  for (int i = 0; i < bvh->totnode; i++) {
+    for (int j = 0; j < bvh->totnode; j++) {
+      if (i == j || !bvh->nodes[i].draw_batches) {
+        continue;
+      }
+
+      if (bvh->nodes[i].draw_batches == bvh->nodes[j].draw_batches) {
+        printf("%s: error %d %d\n", __func__, i, j);
+
+        bvh->nodes[j].draw_batches = NULL;
+      }
+    }
+  }
+
   // build idx map for child offsets
   int j = 0;
   for (int i = 0; i < bvh->totnode; i++) {
@@ -3749,7 +3772,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
     if (!(n->flag & PBVH_Delete)) {
       map[i] = j++;
     }
-    else if (1) {
+    else {
       if (n->layer_disp) {
         MEM_freeN(n->layer_disp);
         n->layer_disp = NULL;
@@ -3796,7 +3819,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   for (int i = 0; i < bvh->totnode; i++) {
     if (!(bvh->nodes[i].flag & PBVH_Delete)) {
       if (bvh->nodes[i].children_offset >= bvh->totnode - 1) {
-        printf("error %i %i\n", i, bvh->nodes[i].children_offset);
+        printf("%s: error %i %i\n", __func__, i, bvh->nodes[i].children_offset);
         continue;
       }
 
@@ -3804,7 +3827,8 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
       int i2 = map[bvh->nodes[i].children_offset + 1];
 
       if (bvh->nodes[i].children_offset >= bvh->totnode) {
-        printf("bad child node reference %d->%d, totnode: %d\n",
+        printf("%s: Bad child node reference %d->%d, totnode: %d\n",
+               __func__,
                i,
                bvh->nodes[i].children_offset,
                bvh->totnode);
@@ -3823,7 +3847,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   }
 
   if (j != totnode) {
-    printf("pbvh error: %s", __func__);
+    printf("%s: pbvh error.", __func__);
   }
 
   if (bvh->totnode != j) {
@@ -3842,7 +3866,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
     }
 
     if (!n->bm_unique_verts) {
-      printf("ERROR!\n");
+      printf("%s: ERROR!\n", __func__);
       n->bm_unique_verts = BLI_table_gset_new("bleh");
       n->bm_other_verts = BLI_table_gset_new("bleh");
       n->bm_faces = BLI_table_gset_new("bleh");

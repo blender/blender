@@ -11,6 +11,8 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
+#include "BLI_hash.h"
+
 #include "PIL_time.h"
 
 #include "DNA_meshdata_types.h"

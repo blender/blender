@@ -13,6 +13,7 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_hash.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -29,6 +30,12 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_mesh_mapping.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
+#include "BKE_subdiv.h"
+#include "BKE_subdiv_ccg.h"
+#include "BKE_kelvinlet.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

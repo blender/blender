@@ -2085,7 +2085,7 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
     ch->def = BKE_brush_builtin_channel_def_find(ch->idname);
 
     if (!ch->def) {
-      printf("failed to find brush definition for %s\n", ch->idname);
+      //printf("failed to find brush definition for %s\n", ch->idname);
       ch->def = BKE_brush_default_channel_def();
     }
     else {

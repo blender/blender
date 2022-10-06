@@ -9,8 +9,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
+#include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -44,6 +47,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "IMB_colormanagement.h"
 
@@ -63,12 +67,17 @@
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
-#include "RNA_prototypes.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "GPU_immediate.h"
+#include "GPU_state.h"
+#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_format.h"
 
 #include "bmesh.h"
 #include "bmesh_log.h"
@@ -1917,7 +1926,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(ss->bm_log, v, cd_mask);
+      BM_log_vert_before_modified(ss->bm_log, v, cd_mask, true);
     }
     BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
       BM_log_face_modified(ss->bm_log, f);

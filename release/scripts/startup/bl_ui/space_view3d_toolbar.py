@@ -1412,17 +1412,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
         col.prop(sculpt, "use_automasking_view_normal", text="View Normal")
 
-        UnifiedPaintPanel.channel_unified(layout.column(),
-            context,
-            brush,
-            "show_origco",
-            toolsettings_only=True, ui_editing=False)
-
-        UnifiedPaintPanel.channel_unified(layout.column(),
-            context,
-            brush,
-            "save_temp_layers",
-            toolsettings_only=True, ui_editing=False)
+        layout.prop(context.tool_settings, "show_origco")
+        layout.prop(context.tool_settings, "save_temp_layers")
 
         col.separator()
 

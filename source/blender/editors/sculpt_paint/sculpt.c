@@ -28,6 +28,8 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -55,8 +57,11 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_pbvh.h"
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
@@ -95,6 +100,8 @@
 #include "bmesh.h"
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
+
+#include "UI_resources.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -872,10 +879,8 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       return true;
     }
     case PBVH_BMESH: {
-      BMIter iter;
       BMVert *v = (BMVert *)vertex.i;
       BMEdge *e = v->e;
-      BMLoop *l;
       int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
       if (!e) {
@@ -1139,7 +1144,6 @@ void sculpt_vertex_faceset_update_bmesh(SculptSession *ss, PBVHVertRef vert)
   BMVert *v = (BMVert *)vert.i;
   BMEdge *e = v->e;
   bool ok = false;
-  const int cd_faceset_offset = ss->cd_faceset_offset;
   const int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
   if (!e) {
@@ -1197,7 +1201,8 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
-      int cd_hide_poly = CustomData_get_layer_named(&ss->bm->pdata, CD_PROP_INT32, ".hide_poly");
+
+      int cd_hide_poly = CustomData_get_offset_named(&ss->bm->pdata, CD_PROP_INT32, ".hide_poly");
 
       /* Hide all verts and edges attached to faces.*/
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
@@ -1461,7 +1466,6 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
                                               PBVHVertRef vertex,
                                               SculptVertexNeighborIter *iter)
 {
-  const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
@@ -3854,7 +3858,7 @@ static void calc_cubic_uv_v3(const float cubic[4][3], const float co[3], float r
 
     float start = t - dt;
     float end = t;
-    float mid;
+    float mid = t;
 
     for (int j = 0; j < binary_steps; j++) {
       mid = (start + end) * 0.5f;
@@ -5995,7 +5999,7 @@ void sculpt_combine_proxies(Sculpt *sd, Object *ob)
   int totnode;
 
   if (!ss->cache ||
-      !ss->cache->supports_gravity && sculpt_tool_is_proxy_used(brush->sculpt_tool)) {
+      (!ss->cache->supports_gravity && sculpt_tool_is_proxy_used(brush->sculpt_tool))) {
     /* First line is tools that don't support proxies. */
     return;
   }
@@ -7648,7 +7652,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex = srd.active_vertex;
   if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && ss->active_vertex.i == 0) {
-    printf("%s: error!\n");
+    printf("%s: error!\n", __func__);
   }
 
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
@@ -8306,7 +8310,7 @@ static void sculpt_stroke_update_step(bContext *C,
 
   // bad debug global
   extern bool pbvh_show_orig_co;
-  pbvh_show_orig_co = BRUSHSET_GET_INT(ss->cache->channels_final, show_origco, NULL);
+  pbvh_show_orig_co = ts->show_origco;
 
   ss->cache->use_plane_trim = BRUSHSET_GET_INT(
       ss->cache->channels_final, use_plane_trim, &ss->cache->input_mapping);
@@ -8640,7 +8644,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
     BKE_sculpt_mask_layers_ensure(ob, mmd);
   }
   if (SCULPT_tool_is_face_sets(brush->sculpt_tool)) {
-    Mesh *mesh = BKE_object_get_original_mesh(ob);
     ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }
 
@@ -9544,7 +9547,8 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
 
   ED_view3d_project_float_v2_m4(ss->cache->vc->region, co, mouse, ss->cache->projection_mat);
 
-  int depth = SCULPT_raycast_init(ss->cache->vc, mouse, ray_end, ray_start, ray_normal, original);
+  float depth = SCULPT_raycast_init(
+      ss->cache->vc, mouse, ray_end, ray_start, ray_normal, original);
 
   negate_v3(ray_normal);
 

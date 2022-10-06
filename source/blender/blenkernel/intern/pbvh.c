@@ -649,6 +649,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->flat_vcol_shading = pbvh->flat_vcol_shading;
   args->show_orig = pbvh_show_orig_co;
   args->updategen = node->updategen;
+  args->msculptverts = pbvh->msculptverts;
 
   if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
     args->hide_poly = pbvh->pdata ?
@@ -1589,7 +1590,7 @@ void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value)
   pbvh->flat_vcol_shading = value;
 }
 
-void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
+ATTR_NO_OPT void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
 {
   if (node->draw_batches) {
     DRW_pbvh_node_free(node->draw_batches);
@@ -2031,6 +2032,12 @@ void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
       node->flag |= PBVH_RebuildPixels;
     }
   }
+}
+
+void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
+                PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node)

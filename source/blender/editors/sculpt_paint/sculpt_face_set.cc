@@ -1535,7 +1535,7 @@ enum eSculptFaceSetEditMode {
   SCULPT_FACE_SET_EDIT_FILL_COMPONENT = 6,
   SCULPT_FACE_SET_EDIT_EXTRUDE = 7,
   SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY = 8,
-} eSculptFaceSetEditMode;
+};
 
 static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
     {

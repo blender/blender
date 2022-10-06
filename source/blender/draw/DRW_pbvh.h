@@ -30,6 +30,7 @@ struct PBVHTriBuf;
 struct CustomData;
 struct MVert;
 struct MEdge;
+struct MSculptVert;
 struct MLoop;
 struct MPoly;
 struct SubdivCCG;
@@ -78,6 +79,7 @@ typedef struct PBVH_GPU_Args {
   int cd_mask_layer;
   struct PBVHTriBuf *tribuf, *tri_buffers;
   int tot_tri_buffers, updategen;
+  struct MSculptVert *msculptverts;
 } PBVH_GPU_Args;
 
 typedef struct PBVHGPUFormat PBVHGPUFormat;

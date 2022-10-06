@@ -1598,7 +1598,9 @@ typedef struct ToolSettings {
 
   /* Normal Editing */
   float normal_vector[3];
-  char _pad6[4];
+  char save_temp_layers, show_origco;
+
+  char _pad6[2];
 
   /* Custom Curve Profile for bevel tool:
    * Temporary until there is a proper preset system that stores the profiles or maybe stores

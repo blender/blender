@@ -1763,8 +1763,8 @@ static void sculpt_update_object(
   ss->building_vp_handle = false;
 
   ss->scene = scene;
-  if (sd->channels) {
-    ss->save_temp_layers = BRUSHSET_GET_INT(sd->channels, save_temp_layers, NULL);
+  if (sd->channels && scene->toolsettings) {
+    ss->save_temp_layers = scene->toolsettings->save_temp_layers;
   }
 
   ss->boundary_symmetry = (int)BKE_get_fset_boundary_symflag(ob);
@@ -3277,8 +3277,9 @@ static bool sculpt_attribute_create(SculptSession *ss,
       BM_data_layer_add_named(ss->bm, cdata, proptype, name);
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
-      if (!permanent) {
+      if (!permanent && !ss->save_temp_layers) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+        out->params.permanent = true;
       }
 
       out->data = nullptr;
@@ -3309,7 +3310,8 @@ static bool sculpt_attribute_create(SculptSession *ss,
       CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, nullptr, totelem, name);
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
-      if (!permanent) {
+      if (!permanent && !ss->save_temp_layers) {
+        out->params.permanent = true;
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 

@@ -155,6 +155,7 @@ struct PBVHBatches {
   bool needs_tri_index = false;
 
   int material_index = 0;
+  bool freed = false;
 
   int count_faces(PBVH_GPU_Args *args)
   {
@@ -198,7 +199,7 @@ struct PBVHBatches {
     }
   }
 
-  ~PBVHBatches()
+  ATTR_NO_OPT ~PBVHBatches()
   {
     for (PBVHBatch &batch : batches.values()) {
       GPU_BATCH_DISCARD_SAFE(batch.tris);
@@ -211,6 +212,8 @@ struct PBVHBatches {
 
     GPU_INDEXBUF_DISCARD_SAFE(tri_index);
     GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+
+    freed = true;
   }
 
   string build_key(PBVHAttrReq *attrs, int attrs_num)
@@ -528,10 +531,20 @@ struct PBVHBatches {
 
     switch (vbo.type) {
       case CD_PBVH_CO_TYPE:
-        foreach_faces(
-            [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-              *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = args->mvert[vertex_i].co;
-            });
+        if (args->show_orig) {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                MSculptVert *mv = args->msculptverts + vertex_i;
+
+                *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+              });
+        }
+        else {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = args->mvert[vertex_i].co;
+              });
+        }
         break;
       case CD_PBVH_NO_TYPE:
         fill_vbo_normal_faces(vbo, args, foreach_faces, &access);
@@ -907,8 +920,21 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_CO_TYPE:
-        foreach_bmesh(
-            [&](BMLoop *l) { *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co; });
+        if (args->show_orig) {
+          int cd_sculpt_vert = CustomData_get_offset(&args->bm->vdata, CD_DYNTOPO_VERT);
+
+          foreach_bmesh([&](BMLoop *l) {
+            MSculptVert *mv = static_cast<MSculptVert *>(
+                BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert));
+
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+          });
+        }
+        else {
+          foreach_bmesh([&](BMLoop *l) {
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co;
+          });
+        }
         break;
 
       case CD_PBVH_NO_TYPE:
@@ -938,11 +964,26 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_FSET_TYPE: {
-        uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
+        int cd_fset = CustomData_get_offset_named(
+            &args->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
-        });
+        if (cd_fset == -1) {
+          uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
+
+          foreach_bmesh([&](BMLoop * /*l*/) {
+            *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
+          });
+        }
+        else {
+          foreach_bmesh([&](BMLoop *l) {
+            uchar face_set_color[4];
+            int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+
+            BKE_paint_face_set_overlay_color_get(fset, args->face_sets_color_seed, face_set_color);
+
+            *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+          });
+        }
       }
     }
   }

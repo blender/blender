@@ -1167,8 +1167,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   }
 
   ADDCH(sharp_mode);
-  ADDCH(show_origco);
-  ADDCH(save_temp_layers);
 
   ADDCH(use_surface_falloff);
 
@@ -2150,9 +2148,6 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
-
-  ADDCH(show_origco);
-  ADDCH(save_temp_layers);
 
   ADDCH(smooth_strength_factor);
   ADDCH(smooth_strength_projection);

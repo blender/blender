@@ -37,6 +37,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_mesh_mapping.h"
 
 #include "DEG_depsgraph.h"
 
