@@ -259,7 +259,7 @@ set(SRC
   intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
-  intern/shrinkwrap.c
+  intern/shrinkwrap.cc
   intern/simulation.cc
   intern/softbody.c
   intern/sound.c
