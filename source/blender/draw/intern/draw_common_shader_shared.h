@@ -124,8 +124,7 @@ struct GlobalsUboStorage {
   float4 color_uv_shadow;
 
   /* NOTE: Put all color before #UBO_LAST_COLOR. */
-  float4 screen_vecs[2]; /* Padded as vec4. */
-  float4 size_viewport;  /* Packed as vec4. */
+  float4 size_viewport; /* Packed as vec4. */
 
   /* Pack individual float at the end of the buffer to avoid alignment errors */
   float size_pixel, pixel_fac;
@@ -228,7 +227,6 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorFaceBack globalsBlock.color_face_back
 #  define colorFaceFront globalsBlock.color_face_front
 #  define colorUVShadow globalsBlock.color_uv_shadow
-#  define screenVecs globalsBlock.screen_vecs
 #  define sizeViewport globalsBlock.size_viewport.xy
 #  define sizePixel globalsBlock.size_pixel
 #  define pixelFac globalsBlock.pixel_fac

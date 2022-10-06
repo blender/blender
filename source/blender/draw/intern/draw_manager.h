@@ -598,7 +598,6 @@ typedef struct DRWManager {
   struct GPUFrameBuffer *default_framebuffer;
   float size[2];
   float inv_size[2];
-  float screenvecs[2][3];
   float pixsize;
 
   struct {

@@ -178,11 +178,6 @@ void DRW_globals_update(void)
   gb->size_edge = U.pixelsize * (1.0f / 2.0f); /* TODO: Theme. */
   gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->size_edge * (float)M_SQRT1_2)));
 
-  const float(*screen_vecs)[3] = (float(*)[3])DRW_viewport_screenvecs_get();
-  for (int i = 0; i < 2; i++) {
-    copy_v3_v3(gb->screen_vecs[i], screen_vecs[i]);
-  }
-
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
   /* Deprecated, use drw_view.viewport_size instead */

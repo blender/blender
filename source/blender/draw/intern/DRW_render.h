@@ -738,7 +738,6 @@ void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4]);
 
 const float *DRW_viewport_size_get(void);
 const float *DRW_viewport_invert_size_get(void);
-const float *DRW_viewport_screenvecs_get(void);
 const float *DRW_viewport_pixelsize_get(void);
 
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);

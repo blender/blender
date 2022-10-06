@@ -15,7 +15,6 @@ layout(std140) uniform probe_block
 };
 
 uniform float sphere_size;
-uniform vec3 screen_vecs[2];
 
 flat out int pid;
 out vec2 quadCoord;
@@ -36,7 +35,8 @@ void main()
   quadCoord = pos[vert_id];
 
   vec3 ws_location = probes_data[pid].position_type.xyz;
-  vec3 screen_pos = screen_vecs[0] * quadCoord.x + screen_vecs[1] * quadCoord.y;
+  vec3 screen_pos = ViewMatrixInverse[0].xyz * quadCoord.x +
+                    ViewMatrixInverse[1].xyz * quadCoord.y;
   ws_location += screen_pos * sphere_size;
 
   gl_Position = ProjectionMatrix * (ViewMatrix * vec4(ws_location, 1.0));

@@ -107,7 +107,6 @@ layout(std140) uniform globalsBlock
 
   vec4 colorUVShadow;
 
-  vec4 screenVecs[2];
   vec4 sizeViewport; /* Inverted size in zw. */
 
   float sizePixel; /* This one is for DPI scaling. */

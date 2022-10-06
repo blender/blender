@@ -28,7 +28,7 @@ void main()
 
   if ((vclass & VCLASS_SCREENALIGNED) != 0) {
     /* World sized, camera facing geometry. */
-    world_pos += (screenVecs[0].xyz * pos.x + screenVecs[1].xyz * pos.y) * draw_size;
+    world_pos += (ViewMatrixInverse[0].xyz * pos.x + ViewMatrixInverse[1].xyz * pos.y) * draw_size;
   }
   else {
     world_pos += rotate(pos, part_rot) * draw_size;

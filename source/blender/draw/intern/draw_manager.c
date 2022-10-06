@@ -298,10 +298,6 @@ const float *DRW_viewport_invert_size_get(void)
   return DST.inv_size;
 }
 
-const float *DRW_viewport_screenvecs_get(void)
-{
-  return &DST.screenvecs[0][0];
-}
 
 const float *DRW_viewport_pixelsize_get(void)
 {
@@ -561,9 +557,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   draw_unit_state_create();
 
   if (rv3d != NULL) {
-    normalize_v3_v3(dst->screenvecs[0], rv3d->viewinv[0]);
-    normalize_v3_v3(dst->screenvecs[1], rv3d->viewinv[1]);
-
     dst->pixsize = rv3d->pixsize;
     dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
 
@@ -594,9 +587,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     dst->view_previous = NULL;
   }
   else {
-    zero_v3(dst->screenvecs[0]);
-    zero_v3(dst->screenvecs[1]);
-
     dst->pixsize = 1.0f;
     dst->view_default = NULL;
     dst->view_active = NULL;
