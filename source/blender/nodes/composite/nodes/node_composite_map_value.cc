@@ -34,12 +34,12 @@ static void cmp_node_map_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_map_value(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_texture_mapping_add(TEXMAP_TYPE_POINT);
 }
 
-static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *sub, *col;
 

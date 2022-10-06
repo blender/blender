@@ -251,8 +251,6 @@ RenderResult *render_result_new(Render *re,
   rr = MEM_cnew<RenderResult>("new render result");
   rr->rectx = rectx;
   rr->recty = recty;
-  rr->renrect.xmin = 0;
-  rr->renrect.xmax = rectx;
 
   /* tilerect is relative coordinates within render disprect. do not subtract crop yet */
   rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
@@ -1055,7 +1053,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (imf->planes == R_IMF_PLANES_BW) {
+  if (imf->planes == R_IMF_PLANES_BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
     IMB_color_to_bw(ibuf_bw);
     IMB_freeImBuf(ibuf);

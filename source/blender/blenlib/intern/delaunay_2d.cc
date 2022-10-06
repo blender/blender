@@ -45,7 +45,7 @@ template<> double math_abs<double>(const double v)
   return fabs(v);
 }
 
-template<typename T> double math_to_double(const T UNUSED(v))
+template<typename T> double math_to_double(const T /*v*/)
 {
   BLI_assert(false); /* Need implementation for other type. */
   return 0.0;
@@ -2645,7 +2645,7 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
 
 template<typename T>
 CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
-                             const CDT_input<T> UNUSED(input),
+                             const CDT_input<T> /*input*/,
                              CDT_output_type output_type)
 {
   CDT_output_type oty = output_type;

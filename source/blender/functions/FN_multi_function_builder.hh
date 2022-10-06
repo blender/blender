@@ -413,7 +413,7 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
         ...);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
     fn_(mask, params);
   }
@@ -571,7 +571,7 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
     };
   }
 
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
     MutableSpan<Mut1> mut1 = params.single_mutable<Mut1>(0);
     function_(mask, mut1);
@@ -631,7 +631,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
     MutableSpan<T> output = params.uninitialized_single_output<T>(0);
     mask.to_best_mask_type([&](const auto &mask) {

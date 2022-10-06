@@ -58,7 +58,7 @@ void schedule_children(DepsgraphEvalState *state,
                        ScheduleFunction *schedule_function,
                        ScheduleFunctionArgs... schedule_function_args);
 
-void schedule_node_to_pool(OperationNode *node, const int UNUSED(thread_id), TaskPool *pool)
+void schedule_node_to_pool(OperationNode *node, const int /*thread_id*/, TaskPool *pool)
 {
   BLI_task_pool_push(pool, deg_task_run_func, node, false, nullptr);
 }

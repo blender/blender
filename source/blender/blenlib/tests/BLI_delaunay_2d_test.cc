@@ -110,7 +110,7 @@ static int get_orig_index(const Array<Vector<int>> &out_to_orig, int orig_index)
   return -1;
 }
 
-template<typename T> static double math_to_double(const T UNUSED(v))
+template<typename T> static double math_to_double(const T /*v*/)
 {
   BLI_assert(false); /* Need implementation for other type. */
   return 0.0;

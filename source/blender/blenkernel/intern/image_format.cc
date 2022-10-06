@@ -272,7 +272,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_DPX:
     case R_IMF_IMTYPE_WEBP:
-      chan_flag |= IMA_CHAN_FLAG_ALPHA;
+      chan_flag |= IMA_CHAN_FLAG_RGBA;
       break;
   }
 

@@ -245,7 +245,7 @@ static void ui_update_color_picker_buts_rgb(uiBut *from_but,
   }
 }
 
-static void ui_colorpicker_rgba_update_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
+static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 {
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
@@ -264,7 +264,7 @@ static void ui_colorpicker_rgba_update_cb(bContext *UNUSED(C), void *bt1, void *
   }
 }
 
-static void ui_colorpicker_hsv_update_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
+static void ui_colorpicker_hsv_update_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 {
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
@@ -279,7 +279,7 @@ static void ui_colorpicker_hsv_update_cb(bContext *UNUSED(C), void *bt1, void *U
   }
 }
 
-static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
+static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *hexcl)
 {
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
@@ -302,7 +302,7 @@ static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexc
   }
 }
 
-static void ui_popup_close_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
+static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 {
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
@@ -336,7 +336,7 @@ static void ui_colorpicker_hide_reveal(uiBlock *block, ePickerType colormode)
   }
 }
 
-static void ui_colorpicker_create_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
+static void ui_colorpicker_create_mode_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 {
   uiBut *bt = static_cast<uiBut *>(bt1);
   const short colormode = ui_but_value_get(bt);
@@ -820,7 +820,7 @@ static void ui_block_colorpicker(uiBlock *block,
   ui_colorpicker_hide_reveal(block, (ePickerType)colormode);
 }
 
-static int ui_colorpicker_small_wheel_cb(const bContext *UNUSED(C),
+static int ui_colorpicker_small_wheel_cb(const bContext * /*C*/,
                                          uiBlock *block,
                                          const wmEvent *event)
 {

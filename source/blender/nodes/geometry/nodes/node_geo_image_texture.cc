@@ -31,13 +31,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryImageTexture *tex = MEM_cnew<NodeGeometryImageTexture>(__func__);
   node->storage = tex;
@@ -285,7 +285,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
     }
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
     MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(

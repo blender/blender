@@ -36,7 +36,7 @@ static GPUVertFormat *get_fdots_nor_format_subdiv()
 }
 
 static void extract_fdots_pos_init(const MeshRenderData *mr,
-                                   MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache * /*cache*/,
                                    void *buf,
                                    void *tls_data)
 {
@@ -100,10 +100,10 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_fdots_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                      const MeshRenderData *UNUSED(mr),
+                                      const MeshRenderData * /*mr*/,
                                       MeshBatchCache *cache,
                                       void *buffer,
-                                      void *UNUSED(data))
+                                      void * /*data*/)
 {
   /* We "extract" positions, normals, and indices at once. */
   GPUVertBuf *fdots_pos_vbo = static_cast<GPUVertBuf *>(buffer);

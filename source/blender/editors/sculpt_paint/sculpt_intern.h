@@ -35,6 +35,9 @@ struct Object;
 struct SculptUndoNode;
 struct bContext;
 struct PaintModeSettings;
+struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
 
 /* Updates */
 
@@ -1350,7 +1353,7 @@ int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking);
  * fallback to euclidean distances to one of the initial vertices in the set.
  */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
-                                        struct GSet *initial_vertices,
+                                        struct GSet *initial_verts,
                                         float limit_radius);
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,

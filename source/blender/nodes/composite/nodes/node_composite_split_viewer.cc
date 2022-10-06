@@ -29,7 +29,7 @@ static void cmp_node_split_viewer_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Image"), "Image_001");
 }
 
-static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_splitviewer(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
@@ -39,7 +39,7 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
-static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_splitviewer(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 

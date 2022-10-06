@@ -13,7 +13,7 @@ static void fn_node_input_string_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>(N_("String"));
 }
 
-static void fn_node_input_string_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_input_string_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "string", 0, "", ICON_NONE);
 }
@@ -26,7 +26,7 @@ static void fn_node_input_string_build_multi_function(NodeMultiFunctionBuilder &
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<std::string>>(std::move(string));
 }
 
-static void fn_node_input_string_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_input_string_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->storage = MEM_callocN(sizeof(NodeInputString), __func__);
 }
@@ -43,9 +43,7 @@ static void fn_node_input_string_free(bNode *node)
   MEM_freeN(storage);
 }
 
-static void fn_node_string_copy(bNodeTree *UNUSED(dest_ntree),
-                                bNode *dest_node,
-                                const bNode *src_node)
+static void fn_node_string_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   NodeInputString *source_storage = (NodeInputString *)src_node->storage;
   NodeInputString *destination_storage = (NodeInputString *)MEM_dupallocN(source_storage);

@@ -41,10 +41,7 @@ static bool ui_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return UI_view_item_can_drop(hovered_item, drag, &drag->drop_state.disabled_info);
 }
 
-static char *ui_view_drop_tooltip(bContext *C,
-                                  wmDrag *drag,
-                                  const int xy[2],
-                                  wmDropBox *UNUSED(drop))
+static char *ui_view_drop_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox * /*drop*/)
 {
   const ARegion *region = CTX_wm_region(C);
   const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, xy);
@@ -61,12 +58,12 @@ static char *ui_view_drop_tooltip(bContext *C,
 /** \name Name Drag/Drop Callbacks
  * \{ */
 
-static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   return UI_but_active_drop_name(C) && (drag->type == WM_DRAG_ID);
 }
 
-static void ui_drop_name_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void ui_drop_name_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID(drag, 0);
   RNA_string_set(drop->ptr, "string", id->name + 2);
@@ -78,13 +75,13 @@ static void ui_drop_name_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop
 /** \name Material Drag/Drop Callbacks
  * \{ */
 
-static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
   return WM_drag_is_ID_type(drag, ID_MA) && !RNA_pointer_is_null(&mat_slot);
 }
 
-static void ui_drop_material_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void ui_drop_material_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_MA);
   RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
@@ -93,7 +90,7 @@ static void ui_drop_material_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *
 static char *ui_drop_material_tooltip(bContext *C,
                                       wmDrag *drag,
                                       const int UNUSED(xy[2]),
-                                      struct wmDropBox *UNUSED(drop))
+                                      struct wmDropBox * /*drop*/)
 {
   PointerRNA rna_ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
   Object *ob = (Object *)rna_ptr.data;

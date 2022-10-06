@@ -188,7 +188,7 @@ Frustum shape_frustum(vec3 corners[8])
 /** \name Cone
  * \{ */
 
-/* Cone at orign with no height. */
+/* Cone at origin with no height. */
 struct Cone {
   vec3 direction;
   float angle_cos;

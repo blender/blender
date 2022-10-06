@@ -36,13 +36,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 };
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "scale_mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = ATTR_DOMAIN_FACE;
   node->custom2 = GEO_NODE_SCALE_ELEMENTS_UNIFORM;

@@ -6,7 +6,7 @@ void main()
   glyph_dim = abs(glyph_size);
   interp_size = int(glyph_size.x < 0) + int(glyph_size.y < 0);
 
-  /* Quad expension using instanced rendering. */
+  /* Quad expansion using instanced rendering. */
   float x = float(gl_VertexID % 2);
   float y = float(gl_VertexID / 2);
   vec2 quad = vec2(x, y);

@@ -107,13 +107,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_principled(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_GGX;
   node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
@@ -125,7 +125,7 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {

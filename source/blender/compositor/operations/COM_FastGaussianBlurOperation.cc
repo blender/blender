@@ -384,15 +384,15 @@ void *FastGaussianBlurValueOperation::initialize_tile_data(rcti *rect)
   return iirgaus_;
 }
 
-void FastGaussianBlurValueOperation::get_area_of_interest(const int UNUSED(input_idx),
-                                                          const rcti &UNUSED(output_area),
+void FastGaussianBlurValueOperation::get_area_of_interest(const int /*input_idx*/,
+                                                          const rcti & /*output_area*/,
                                                           rcti &r_input_area)
 {
   r_input_area = this->get_canvas();
 }
 
-void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                                  const rcti &UNUSED(area),
+void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                                  const rcti & /*area*/,
                                                                   Span<MemoryBuffer *> inputs)
 {
   if (iirgaus_ == nullptr) {

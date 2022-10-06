@@ -169,7 +169,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * key. The hash can be used by other slot implementations to determine inequality faster.
    */
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t /*hash*/) const
   {
     if (state_ == Occupied) {
       return is_equal(key, *key_buffer_);
@@ -194,7 +194,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * Change the state of this slot from empty/removed to occupied. The value is assumed to be
    * constructed already.
    */
-  template<typename ForwardKey> void occupy_no_value(ForwardKey &&key, uint64_t UNUSED(hash))
+  template<typename ForwardKey> void occupy_no_value(ForwardKey &&key, uint64_t /*hash*/)
   {
     BLI_assert(!this->is_occupied());
     try {
@@ -295,7 +295,7 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t /*hash*/) const
   {
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
     return is_equal(key, key_);
@@ -310,7 +310,7 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
     this->occupy_no_value(std::forward<ForwardKey>(key), hash);
   }
 
-  template<typename ForwardKey> void occupy_no_value(ForwardKey &&key, uint64_t UNUSED(hash))
+  template<typename ForwardKey> void occupy_no_value(ForwardKey &&key, uint64_t /*hash*/)
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));

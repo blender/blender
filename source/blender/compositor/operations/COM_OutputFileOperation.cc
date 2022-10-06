@@ -287,7 +287,7 @@ void OutputSingleLayerOperation::deinit_execution()
   image_input_ = nullptr;
 }
 
-void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                               const rcti &area,
                                                               Span<MemoryBuffer *> inputs)
 {
@@ -449,7 +449,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
   }
 }
 
-void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                                     const rcti &area,
                                                                     Span<MemoryBuffer *> inputs)
 {

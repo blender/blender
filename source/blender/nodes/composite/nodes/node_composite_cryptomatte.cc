@@ -234,7 +234,7 @@ static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
     {-1, ""},
 };
 
-static void node_init_cryptomatte(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
   node->storage = user;
@@ -262,7 +262,7 @@ static void node_free_cryptomatte(bNode *node)
   }
 }
 
-static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
+static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
                                   bNode *dest_node,
                                   const bNode *src_node)
 {
@@ -275,7 +275,7 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = dest_nc;
 }
 
-static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
+static bool node_poll_cryptomatte(bNodeType * /*ntype*/,
                                   bNodeTree *ntree,
                                   const char **r_disabled_hint)
 {

@@ -656,12 +656,18 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("\t...works as expected.\n\n");
 
   printf("Environment Variables:\n");
-  printf("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
-  printf("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
-  printf("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
-  printf("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
-  printf("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
-  printf("  $BLENDER_SYSTEM_PYTHON    Directory for system Python libraries.\n");
+  printf("  $BLENDER_USER_RESOURCES  Top level directory for user files.\n");
+  printf("                           (other 'BLENDER_USER_*' variables override when set).\n");
+  printf("  $BLENDER_USER_CONFIG     Directory for user configuration files.\n");
+  printf("  $BLENDER_USER_SCRIPTS    Directory for user scripts.\n");
+  printf("  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).\n");
+  printf("\n");
+  printf("  $BLENDER_SYSTEM_RESOURCES  Top level directory for system files.\n");
+  printf("                             (other 'BLENDER_SYSTEM_*' variables override when set).\n");
+  printf("  $BLENDER_SYSTEM_SCRIPTS    Directory for system wide scripts.\n");
+  printf("  $BLENDER_SYSTEM_DATAFILES  Directory for system wide data files.\n");
+  printf("  $BLENDER_SYSTEM_PYTHON     Directory for system Python libraries.\n");
+
 #  ifdef WITH_OCIO
   printf("  $OCIO                     Path to override the OpenColorIO config file.\n");
 #  endif

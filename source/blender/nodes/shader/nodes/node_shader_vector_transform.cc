@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
-static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_vect_transform(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout,
           ptr,
@@ -33,7 +33,7 @@ static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C
   uiItemR(layout, ptr, "convert_to", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderVectTransform *vect = MEM_cnew<NodeShaderVectTransform>("NodeShaderVectTransform");
 
@@ -88,7 +88,7 @@ static const char *get_gpufn_name_from_to(short from, short to, bool is_directio
 
 static int gpu_shader_vect_transform(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {

@@ -23,9 +23,9 @@ namespace blender::draw {
  * \{ */
 
 static void extract_mesh_analysis_init(const MeshRenderData *mr,
-                                       MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache * /*cache*/,
                                        void *buf,
-                                       void *UNUSED(tls_data))
+                                       void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -265,7 +265,7 @@ struct BVHTree_OverlapData {
   float epsilon;
 };
 
-static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
+static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*thread*/)
 {
   struct BVHTree_OverlapData *data = static_cast<struct BVHTree_OverlapData *>(userdata);
 
@@ -367,7 +367,7 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
   }
 }
 
-BLI_INLINE float distort_remap(float fac, float min, float UNUSED(max), float minmax_irange)
+BLI_INLINE float distort_remap(float fac, float min, float /*max*/, float minmax_irange)
 {
   if (fac >= min) {
     fac = (fac - min) * minmax_irange;
@@ -474,7 +474,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
   }
 }
 
-BLI_INLINE float sharp_remap(float fac, float min, float UNUSED(max), float minmax_irange)
+BLI_INLINE float sharp_remap(float fac, float min, float /*max*/, float minmax_irange)
 {
   /* important not '>=' */
   if (fac > min) {
@@ -588,9 +588,9 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 }
 
 static void extract_analysis_iter_finish_mesh(const MeshRenderData *mr,
-                                              MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache * /*cache*/,
                                               void *buf,
-                                              void *UNUSED(data))
+                                              void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   BLI_assert(mr->edit_bmesh);

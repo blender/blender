@@ -11,9 +11,6 @@
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform viewBlock
 {
-  /* Same order as DRWViewportMatrixType */
-  mat4 ViewProjectionMatrix;
-  mat4 ViewProjectionMatrixInverse;
   mat4 ViewMatrix;
   mat4 ViewMatrixInverse;
   mat4 ProjectionMatrix;
@@ -61,8 +58,9 @@ vec3 cameraVec(vec3 P)
 /* TODO move to overlay engine. */
 float mul_project_m4_v3_zfac(in vec3 co)
 {
-  return pixelFac * ((ViewProjectionMatrix[0][3] * co.x) + (ViewProjectionMatrix[1][3] * co.y) +
-                     (ViewProjectionMatrix[2][3] * co.z) + ViewProjectionMatrix[3][3]);
+  vec3 vP = (ViewMatrix * vec4(co, 1.0)).xyz;
+  return pixelFac * ((ProjectionMatrix[0][3] * vP.x) + (ProjectionMatrix[1][3] * vP.y) +
+                     (ProjectionMatrix[2][3] * vP.z) + ProjectionMatrix[3][3]);
 }
 #endif
 
@@ -93,7 +91,7 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
     edge /= len;
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
-    /* Add 0.1 to diffenrentiate with cleared pixels. */
+    /* Add 0.1 to differentiate with cleared pixels. */
     return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
   }
   else {
@@ -228,7 +226,7 @@ layout(std140) uniform modelBlock
 #  ifndef USE_GPU_SHADER_CREATE_INFO
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
-/* Note that this is also a workaround of a problem on osx (amd or nvidia)
+/* Note that this is also a workaround of a problem on OSX (AMD or NVIDIA)
  * and older amd driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
@@ -267,13 +265,14 @@ uniform mat4 ModelMatrixInverse;
 #define normal_world_to_view(n) (mat3(ViewMatrix) * n)
 #define normal_view_to_world(n) (mat3(ViewMatrixInverse) * n)
 
-#define point_object_to_ndc(p) (ViewProjectionMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0))
+#define point_object_to_ndc(p) \
+  (ProjectionMatrix * (ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)))
 #define point_object_to_view(p) ((ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)).xyz)
 #define point_object_to_world(p) ((ModelMatrix * vec4(p, 1.0)).xyz)
 #define point_view_to_ndc(p) (ProjectionMatrix * vec4(p, 1.0))
 #define point_view_to_object(p) ((ModelMatrixInverse * (ViewMatrixInverse * vec4(p, 1.0))).xyz)
 #define point_view_to_world(p) ((ViewMatrixInverse * vec4(p, 1.0)).xyz)
-#define point_world_to_ndc(p) (ViewProjectionMatrix * vec4(p, 1.0))
+#define point_world_to_ndc(p) (ProjectionMatrix * (ViewMatrix * vec4(p, 1.0)))
 #define point_world_to_object(p) ((ModelMatrixInverse * vec4(p, 1.0)).xyz)
 #define point_world_to_view(p) ((ViewMatrix * vec4(p, 1.0)).xyz)
 

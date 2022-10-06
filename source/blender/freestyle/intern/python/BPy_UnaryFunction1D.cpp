@@ -85,7 +85,7 @@ PyDoc_STRVAR(UnaryFunction1D_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *UnaryFunction1D_name_get(BPy_UnaryFunction1D *self, void *UNUSED(closure))
+static PyObject *UnaryFunction1D_name_get(BPy_UnaryFunction1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }

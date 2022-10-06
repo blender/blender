@@ -8,7 +8,6 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -16,10 +15,6 @@
 
 #include "UI_interface.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"
 

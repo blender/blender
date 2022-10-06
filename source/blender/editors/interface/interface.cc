@@ -82,9 +82,9 @@ static void ui_but_to_pixelrect(struct rcti *rect,
                                 const struct ARegion *region,
                                 struct uiBlock *block,
                                 const struct uiBut *but);
-static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p);
-static void ui_def_but_rna__panel_type(bContext *UNUSED(C), uiLayout *layout, void *but_p);
-static void ui_def_but_rna__menu_type(bContext *UNUSED(C), uiLayout *layout, void *but_p);
+static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p);
+static void ui_def_but_rna__panel_type(bContext * /*C*/, uiLayout *layout, void *but_p);
+static void ui_def_but_rna__menu_type(bContext * /*C*/, uiLayout *layout, void *but_p);
 
 /* avoid unneeded calls to ui_but_value_get */
 #define UI_BUT_VALUE_UNSET DBL_MAX
@@ -4263,7 +4263,7 @@ void ui_def_but_icon_clear(uiBut *but)
   but->drawflag &= ~UI_BUT_ICON_LEFT;
 }
 
-static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
+static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   uiPopupBlockHandle *handle = block->handle;
@@ -6341,7 +6341,7 @@ static void operator_enum_search_update_fn(const struct bContext *C,
                                            void *but,
                                            const char *str,
                                            uiSearchItems *items,
-                                           const bool UNUSED(is_first))
+                                           const bool /*is_first*/)
 {
   wmOperatorType *ot = ((uiBut *)but)->optype;
   PropertyRNA *prop = ot->prop;
@@ -6390,7 +6390,7 @@ static void operator_enum_search_update_fn(const struct bContext *C,
   }
 }
 
-static void operator_enum_search_exec_fn(struct bContext *UNUSED(C), void *but, void *arg2)
+static void operator_enum_search_exec_fn(struct bContext * /*C*/, void *but, void *arg2)
 {
   wmOperatorType *ot = ((uiBut *)but)->optype;
   /* Will create it if needed! */

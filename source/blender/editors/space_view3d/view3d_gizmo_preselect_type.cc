@@ -277,9 +277,9 @@ static void gizmo_preselect_elem_free(wmGizmo *gz)
   MEM_SAFE_FREE(gz_ele->bases);
 }
 
-static int gizmo_preselect_elem_invoke(bContext *UNUSED(C),
-                                       wmGizmo *UNUSED(gz),
-                                       const wmEvent *UNUSED(event))
+static int gizmo_preselect_elem_invoke(bContext * /*C*/,
+                                       wmGizmo * /*gz*/,
+                                       const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }
@@ -447,9 +447,9 @@ static void gizmo_preselect_edgering_free(wmGizmo *gz)
   MEM_SAFE_FREE(gz_ring->bases);
 }
 
-static int gizmo_preselect_edgering_invoke(bContext *UNUSED(C),
-                                           wmGizmo *UNUSED(gz),
-                                           const wmEvent *UNUSED(event))
+static int gizmo_preselect_edgering_invoke(bContext * /*C*/,
+                                           wmGizmo * /*gz*/,
+                                           const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }

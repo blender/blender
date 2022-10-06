@@ -112,7 +112,7 @@ static GPUVertFormat *get_edit_data_format()
 }
 
 static void extract_edit_data_init(const MeshRenderData *mr,
-                                   MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache * /*cache*/,
                                    void *buf,
                                    void *tls_data)
 {
@@ -126,7 +126,7 @@ static void extract_edit_data_init(const MeshRenderData *mr,
 
 static void extract_edit_data_iter_poly_bm(const MeshRenderData *mr,
                                            const BMFace *f,
-                                           const int UNUSED(f_index),
+                                           const int /*f_index*/,
                                            void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
@@ -223,7 +223,7 @@ static void extract_edit_data_iter_lvert_bm(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
-                                              const MVert *UNUSED(mv),
+                                              const MVert * /*mv*/,
                                               const int lvert_index,
                                               void *_data)
 {
@@ -240,8 +240,8 @@ static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                          const MeshRenderData *UNUSED(mr),
-                                          MeshBatchCache *UNUSED(cache),
+                                          const MeshRenderData * /*mr*/,
+                                          MeshBatchCache * /*cache*/,
                                           void *buf,
                                           void *data)
 {
@@ -307,7 +307,7 @@ static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cach
 
 static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                                 const MeshRenderData *mr,
-                                                void *UNUSED(buffer),
+                                                void * /*buffer*/,
                                                 void *_data)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;

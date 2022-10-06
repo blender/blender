@@ -603,9 +603,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_group_separate_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      const wmEvent *UNUSED(event))
+static int node_group_separate_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
@@ -1047,7 +1045,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 
   ED_node_tree_propagate_change(C, bmain, nullptr);
 
-  WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
   /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);

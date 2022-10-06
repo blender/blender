@@ -22,7 +22,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
   ndg->quality = 1;
@@ -39,7 +39,7 @@ static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
-static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);

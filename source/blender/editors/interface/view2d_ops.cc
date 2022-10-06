@@ -293,7 +293,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+static void view_pan_cancel(bContext * /*C*/, wmOperator *op)
 {
   view_pan_exit(op);
 }
@@ -330,7 +330,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
  * \{ */
 
 /* set up modal operator and relevant settings */
-static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   op->customdata = MEM_callocN(sizeof(View2DEdgePanData), "View2DEdgePanData");
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
@@ -358,7 +358,7 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   return OPERATOR_PASS_THROUGH;
 }
 
-static void view_edge_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+static void view_edge_pan_cancel(bContext * /*C*/, wmOperator *op)
 {
   v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
@@ -1614,7 +1614,7 @@ void UI_view2d_smooth_view(const bContext *C,
 }
 
 /* only meant for timer usage */
-static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int view2d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
@@ -2169,7 +2169,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 /** \name View Reset Operator
  * \{ */
 
-static int reset_exec(bContext *C, wmOperator *UNUSED(op))
+static int reset_exec(bContext *C, wmOperator * /*op*/)
 {
   const uiStyle *style = UI_style_get();
   ARegion *region = CTX_wm_region(C);

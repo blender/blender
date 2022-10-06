@@ -133,9 +133,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   /* If no source object, bypass. */
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
@@ -231,7 +229,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub, *row;
   uiLayout *layout = panel->layout;
@@ -264,7 +262,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void vertex_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void vertex_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   uiLayout *layout = panel->layout;
@@ -272,7 +270,7 @@ static void vertex_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "use_vert_data", 0, nullptr, ICON_NONE);
 }
 
-static void vertex_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -288,7 +286,7 @@ static void vertex_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "vert_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void vertex_vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -302,7 +300,7 @@ static void vertex_vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "layers_vgroup_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
-static void edge_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -311,7 +309,7 @@ static void edge_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "use_edge_data", 0, nullptr, ICON_NONE);
 }
 
-static void edge_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -326,7 +324,7 @@ static void edge_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "edge_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void face_corner_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -335,7 +333,7 @@ static void face_corner_panel_draw_header(const bContext *UNUSED(C), Panel *pane
   uiItemR(layout, ptr, "use_loop_data", 0, nullptr, ICON_NONE);
 }
 
-static void face_corner_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -350,7 +348,7 @@ static void face_corner_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "loop_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void vert_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -366,7 +364,7 @@ static void vert_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "layers_vcol_vert_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
-static void face_corner_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -382,7 +380,7 @@ static void face_corner_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "layers_vcol_loop_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
-static void face_corner_uv_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -397,7 +395,7 @@ static void face_corner_uv_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "islands_precision", 0, nullptr, ICON_NONE);
 }
 
-static void face_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -406,7 +404,7 @@ static void face_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "use_poly_data", 0, nullptr, ICON_NONE);
 }
 
-static void face_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -421,7 +419,7 @@ static void face_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "poly_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;

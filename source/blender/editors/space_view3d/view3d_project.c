@@ -77,14 +77,16 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 
 eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
                                       struct Base *base,
-                                      short r_co[2])
+                                      float r_co[2])
 {
-  eV3DProjStatus ret = ED_view3d_project_short_global(
+  eV3DProjStatus ret = ED_view3d_project_float_global(
       region, base->object->obmat[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
 
+  /* Prevent uninitialized values when projection fails,
+   * although the callers should check the return value. */
   if (ret != V3D_PROJ_RET_OK) {
-    r_co[0] = IS_CLIPPED;
-    r_co[1] = 0;
+    r_co[0] = -1.0;
+    r_co[1] = -1.0;
   }
 
   return ret;

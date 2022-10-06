@@ -65,7 +65,7 @@ void main()
    * input primitive types which use restart indices. */
   int base_vertex_id = quad_id * 2;
 
-  /* Fetch attribute values for self and neighbouring vertex. */
+  /* Fetch attribute values for self and neighboring vertex. */
   vec3 in_pos0 = vertex_fetch_attribute(base_vertex_id, pos, vec3);
   vec3 in_pos1 = vertex_fetch_attribute(base_vertex_id + 1, pos, vec3);
   uchar4 in_data0 = vertex_fetch_attribute(base_vertex_id, data, uchar4);
@@ -75,7 +75,7 @@ void main()
   vec3 in_vnor1 = vec3_1010102_Inorm_to_vec3(
       vertex_fetch_attribute(base_vertex_id + 1, vnor, vec3_1010102_Inorm));
 
-  /* Calculate values for self and neighbouring vertex. */
+  /* Calculate values for self and neighboring vertex. */
   vec4 out_finalColor[2];
   vec4 out_finalColorOuter[2];
   int selectOveride[2];

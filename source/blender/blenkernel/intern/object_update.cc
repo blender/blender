@@ -278,7 +278,7 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_sync_boundbox_to_original(object_orig, object);
 }
 
-void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED(object))
+void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/)
 {
 }
 

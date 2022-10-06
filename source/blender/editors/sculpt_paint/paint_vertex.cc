@@ -29,7 +29,6 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
-#include "RNA_prototypes.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -38,17 +37,13 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
 
@@ -57,7 +52,6 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -398,7 +392,7 @@ static float wpaint_blend(const VPaint *wp,
                           float weight,
                           const float alpha,
                           float paintval,
-                          const float UNUSED(brush_alpha_value),
+                          const float /*brush_alpha_value*/,
                           const bool do_flip)
 {
   const Brush *brush = wp->paint.brush;
@@ -1902,7 +1896,7 @@ static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintIn
 
 static void do_wpaint_precompute_weight_cb_ex(void *__restrict userdata,
                                               const int n,
-                                              const TaskParallelTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = (SculptThreadedTaskData *)userdata;
   const MDeformVert *dv = &data->wpi->dvert[n];
@@ -1934,7 +1928,7 @@ static void precompute_weight_values(
 
 static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
                                             const int n,
-                                            const TaskParallelTLS *__restrict UNUSED(tls))
+                                            const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = (SculptThreadedTaskData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -2027,7 +2021,7 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
 
 static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
                                              const int n,
-                                             const TaskParallelTLS *__restrict UNUSED(tls))
+                                             const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = (SculptThreadedTaskData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -2140,7 +2134,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
 
 static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
                                             const int n,
-                                            const TaskParallelTLS *__restrict UNUSED(tls))
+                                            const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = (SculptThreadedTaskData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -2212,8 +2206,9 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_wpaint_brush_calc_average_weight_cb_ex(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void do_wpaint_brush_calc_average_weight_cb_ex(void *__restrict userdata,
+                                                      const int n,
+                                                      const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = (SculptThreadedTaskData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -2263,7 +2258,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 }
 
 static void calculate_average_weight(SculptThreadedTaskData *data,
-                                     PBVHNode **UNUSED(nodes),
+                                     PBVHNode ** /*nodes*/,
                                      int totnode)
 {
   WPaintAverageAccum *accum = (WPaintAverageAccum *)MEM_mallocN(sizeof(*accum) * totnode,
@@ -2483,7 +2478,7 @@ static void wpaint_do_symmetrical_brush_actions(
 }
 
 static void wpaint_stroke_update_step(bContext *C,
-                                      wmOperator *UNUSED(op),
+                                      wmOperator * /*op*/,
                                       PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
@@ -2952,7 +2947,7 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
 template<class Color = ColorPaint4b, typename Traits = ByteTraits>
 static void do_vpaint_brush_blur_loops(bContext *C,
-                                       Sculpt *UNUSED(sd),
+                                       Sculpt * /*sd*/,
                                        VPaint *vp,
                                        VPaintData<Color, Traits, ATTR_DOMAIN_CORNER> *vpd,
                                        Object *ob,
@@ -3097,7 +3092,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
 template<class Color = ColorPaint4b, typename Traits = ByteTraits>
 static void do_vpaint_brush_blur_verts(bContext *C,
-                                       Sculpt *UNUSED(sd),
+                                       Sculpt * /*sd*/,
                                        VPaint *vp,
                                        VPaintData<Color, Traits, ATTR_DOMAIN_POINT> *vpd,
                                        Object *ob,
@@ -3245,7 +3240,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
 template<typename Color = ColorPaint4b, typename Traits, eAttrDomain domain>
 static void do_vpaint_brush_smear(bContext *C,
-                                  Sculpt *UNUSED(sd),
+                                  Sculpt * /*sd*/,
                                   VPaint *vp,
                                   VPaintData<Color, Traits, domain> *vpd,
                                   Object *ob,
@@ -3538,7 +3533,7 @@ static float paint_and_tex_color_alpha(VPaint *vp,
 
 template<typename Color, typename Traits, eAttrDomain domain>
 static void vpaint_do_draw(bContext *C,
-                           Sculpt *UNUSED(sd),
+                           Sculpt * /*sd*/,
                            VPaint *vp,
                            VPaintData<Color, Traits, domain> *vpd,
                            Object *ob,
@@ -3883,7 +3878,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
 }
 
 static void vpaint_stroke_update_step(bContext *C,
-                                      wmOperator *UNUSED(op),
+                                      wmOperator * /*op*/,
                                       PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
@@ -3912,7 +3907,7 @@ static void vpaint_stroke_update_step(bContext *C,
 }
 
 template<typename Color, typename Traits, eAttrDomain domain>
-static void vpaint_free_vpaintdata(Object *UNUSED(ob), void *_vpd)
+static void vpaint_free_vpaintdata(Object * /*ob*/, void *_vpd)
 {
   VPaintData<Color, Traits, domain> *vpd = static_cast<VPaintData<Color, Traits, domain> *>(_vpd);
 
@@ -4210,7 +4205,7 @@ extern "C" bool BKE_object_attributes_active_color_fill(Object *ob,
   return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
 }
 
-static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_color_set_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);

@@ -978,17 +978,30 @@ def dump_messages(do_messages, do_checks, settings):
     # Get strings from addons' bl_info.
     import addon_utils
     for module in addon_utils.modules():
-        if module.bl_info['support'] != 'OFFICIAL':
+        # Only process official add-ons, i.e. those marked as 'OFFICIAL' and
+        # existing in the system add-ons directory (not user-installed ones).
+        if (module.bl_info['support'] != 'OFFICIAL'
+                or not bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS'))):
             continue
         dump_addon_bl_info(msgs, reports, module, settings)
 
     # Get strings from addons' categories.
+    system_categories = set()
+    for module in addon_utils.modules():
+        if bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS')):
+            system_categories.add(module.bl_info['category'])
     for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
             bpy.context.window_manager,
             bpy.context,
     ):
-        process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
-        if tip:
+        if label in system_categories:
+            # Only process add-on if it a system one (i.e shipped with Blender). Also,
+            # we do want to translate official categories, even if they have no official add-ons,
+            # hence the different test than below.
+            process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
+        elif tip:
+            # Only special categories get a tip (All and User).
+            process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
             process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Add-ons' categories", reports, None, settings)
 
     # Get strings specific to translations' menu.

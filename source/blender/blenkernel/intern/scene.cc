@@ -457,7 +457,7 @@ static void scene_free_data(ID *id)
   BLI_assert(scene->layer_properties == nullptr);
 }
 
-static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
+static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld * /*rbw*/,
                                                     ID **id_pointer,
                                                     void *user_data,
                                                     int cb_flag)
@@ -1691,7 +1691,7 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
   }
 }
 
-static void scene_lib_override_apply_post(ID *id_dst, ID *UNUSED(id_src))
+static void scene_lib_override_apply_post(ID *id_dst, ID * /*id_src*/)
 {
   Scene *scene = (Scene *)id_dst;
 
@@ -2637,7 +2637,7 @@ void BKE_scene_update_sound(Depsgraph *depsgraph, Main *bmain)
   BKE_sound_update_scene(depsgraph, scene);
 }
 
-void BKE_scene_update_tag_audio_volume(Depsgraph *UNUSED(depsgraph), Scene *scene)
+void BKE_scene_update_tag_audio_volume(Depsgraph * /*depsgraph*/, Scene *scene)
 {
   BLI_assert(DEG_is_evaluated_id(&scene->id));
   /* The volume is actually updated in BKE_scene_update_sound(), from either

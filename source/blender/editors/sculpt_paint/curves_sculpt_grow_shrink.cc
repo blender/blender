@@ -7,8 +7,6 @@
 #include "BLI_length_parameterize.hh"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "DEG_depsgraph.h"
 
 #include "BKE_attribute_math.hh"

@@ -28,7 +28,7 @@ static void cmp_node_sepycca_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("A"));
 }
 
-static void node_composit_init_mode_sepycca(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_mode_sepycca(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
@@ -115,7 +115,7 @@ static void cmp_node_combycca_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_mode_combycca(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_mode_combycca(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }

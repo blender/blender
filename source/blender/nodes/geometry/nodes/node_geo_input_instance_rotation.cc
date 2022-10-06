@@ -16,7 +16,7 @@ class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
   }
 
   GVArray get_varray_for_context(const InstancesComponent &instances,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     auto rotation_fn = [&](const int i) -> float3 {
       return instances.instance_transforms()[i].to_euler();

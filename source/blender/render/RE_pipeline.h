@@ -101,7 +101,6 @@ typedef struct RenderResult {
 
   /* target image size */
   int rectx, recty;
-  short sample_nr;
 
   /* The following rect32, rectf and rectz buffers are for temporary storage only,
    * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
@@ -124,8 +123,7 @@ typedef struct RenderResult {
   /* multiView maps to a StringVector in OpenEXR */
   ListBase views; /* RenderView */
 
-  /* allowing live updates: */
-  rcti renrect;
+  /* Render layer to display. */
   RenderLayer *renlay;
 
   /* for render results in Image, verify validity for sequences */

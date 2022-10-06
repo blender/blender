@@ -74,7 +74,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
 static void extract_uv_init(const MeshRenderData *mr,
                             MeshBatchCache *cache,
                             void *buf,
-                            void *UNUSED(tls_data))
+                            void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
@@ -119,10 +119,10 @@ static void extract_uv_init(const MeshRenderData *mr,
 }
 
 static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                   const MeshRenderData *UNUSED(mr),
+                                   const MeshRenderData * /*mr*/,
                                    MeshBatchCache *cache,
                                    void *buffer,
-                                   void *UNUSED(data))
+                                   void * /*data*/)
 {
   Mesh *coarse_mesh = subdiv_cache->mesh;
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);

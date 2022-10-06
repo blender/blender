@@ -273,7 +273,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+static void snode_bg_viewmove_cancel(bContext * /*C*/, wmOperator *op)
 {
   MEM_freeN(op->customdata);
   op->customdata = nullptr;
@@ -341,7 +341,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 /** \name Background Image Fit
  * \{ */
 
-static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
+static int backimage_fit_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);

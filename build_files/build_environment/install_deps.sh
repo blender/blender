@@ -40,15 +40,15 @@ ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,ver-
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
-force-xr-openxr,force-level-zero,\
+force-xr-openxr,force-level-zero, force-openpgl,\
 build-all,build-python,build-boost,build-tbb,\
 build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
-build-xr-openxr,build-level-zero,\
+build-xr-openxr,build-level-zero, build-openpgl,\
 skip-python,skip-boost,skip-tbb,\
 skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
-skip-xr-openxr,skip-level-zero \
+skip-xr-openxr,skip-level-zero, skip-openpgl \
 -- "$@" \
 )
 
@@ -136,7 +136,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Build and install the OpenImageDenoise libraries.
 
     --with-nanovdb
-        Build and install NanoVDB together with OpenVDB.
+        Build and install the NanoVDB branch of OpenVDB (instead of official release of OpenVDB).
 
     --with-jack
         Install the jack libraries.
@@ -232,6 +232,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --build-level-zero=<ver>
         Force the build of OneAPI Level Zero library.
 
+    --build-openpgl
+        Force the build of OpenPGL library.
+
     Note about the --build-foo options:
         * They force the script to prefer building dependencies rather than using available packages.
           This may make things simpler and allow working around some distribution bugs, but on the other hand it will
@@ -302,6 +305,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-level-zero=<ver>
         Force the rebuild of OneAPI Level Zero library.
 
+    --force-openpgl
+        Force the rebuild of OpenPGL library.
+
     Note about the --force-foo options:
         * They obviously only have an effect if those libraries are built by this script
           (i.e. if there is no available and satisfactory package)!
@@ -363,7 +369,10 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip OpenXR-SDK installation/building.
 
     --skip-level-zero=<ver>
-        Unconditionally skip OneAPI Level Zero installation/building.\""
+        Unconditionally skip OneAPI Level Zero installation/building.
+
+    --skip-openpgl
+        Unconditionally skip OpenPGL installation/building.\""
 
 # ----------------------------------------------------------------------------
 # Main Vars
@@ -385,7 +394,7 @@ CLANG_FORMAT_VERSION="10.0"
 CLANG_FORMAT_VERSION_MIN="6.0"
 CLANG_FORMAT_VERSION_MEX="14.0"
 
-PYTHON_VERSION="3.10.6"
+PYTHON_VERSION="3.10.2"
 PYTHON_VERSION_SHORT="3.10"
 PYTHON_VERSION_MIN="3.10"
 PYTHON_VERSION_MEX="3.12"
@@ -425,7 +434,7 @@ PYTHON_ZSTANDARD_VERSION_MIN="0.15.2"
 PYTHON_ZSTANDARD_VERSION_MEX="0.20.0"
 PYTHON_ZSTANDARD_NAME="zstandard"
 
-PYTHON_NUMPY_VERSION="1.23.2"
+PYTHON_NUMPY_VERSION="1.22.0"
 PYTHON_NUMPY_VERSION_MIN="1.14"
 PYTHON_NUMPY_VERSION_MEX="2.0"
 PYTHON_NUMPY_NAME="numpy"
@@ -453,8 +462,8 @@ PYTHON_MODULES_PIP=(
 )
 
 
-BOOST_VERSION="1.80.0"
-BOOST_VERSION_SHORT="1.80"
+BOOST_VERSION="1.78.0"
+BOOST_VERSION_SHORT="1.78"
 BOOST_VERSION_MIN="1.49"
 BOOST_VERSION_MEX="2.0"
 BOOST_FORCE_BUILD=false
@@ -496,7 +505,7 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.3.18.0"
+OIIO_VERSION="2.3.13.0"
 OIIO_VERSION_SHORT="2.3"
 OIIO_VERSION_MIN="2.1.12"
 OIIO_VERSION_MEX="2.4.0"
@@ -534,10 +543,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="9.1.0"
-OPENVDB_VERSION_SHORT="9.1"
+OPENVDB_VERSION="9.0.0"
+OPENVDB_VERSION_SHORT="9.0"
 OPENVDB_VERSION_MIN="9.0"
-OPENVDB_VERSION_MEX="9.2"
+OPENVDB_VERSION_MEX="9.1"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -592,6 +601,14 @@ LEVEL_ZERO_VERSION_MEX="2.0"
 LEVEL_ZERO_FORCE_BUILD=false
 LEVEL_ZERO_FORCE_REBUILD=false
 LEVEL_ZERO_SKIP=false
+
+OPENPGL_VERSION="0.3.1"
+OPENPGL_VERSION_SHORT="0.3"
+OPENPGL_VERSION_MIN="0.3.1"
+OPENPGL_VERSION_MEX="0.3.2"
+OPENPGL_FORCE_BUILD=false
+OPENPGL_FORCE_REBUILD=false
+OPENPGL_SKIP=false
 
 XR_OPENXR_VERSION="1.0.22"
 XR_OPENXR_VERSION_SHORT="1.0"
@@ -827,6 +844,7 @@ while true; do
       USD_FORCE_BUILD=true
       XR_OPENXR_FORCE_BUILD=true
       LEVEL_ZERO_FORCE_BUILD=true
+      OPENPGL_FORCE_BUILD=true
       shift; continue
     ;;
     --build-python)
@@ -887,6 +905,9 @@ while true; do
     --build-level-zero)
       LEVEL_ZERO_FORCE_BUILD=true; shift; continue
     ;;
+    --build-openpgl)
+      OPENPGL_FORCE_BUILD=true; shift; continue
+    ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
       BOOST_FORCE_REBUILD=true
@@ -907,6 +928,7 @@ while true; do
       USD_FORCE_REBUILD=true
       XR_OPENXR_FORCE_REBUILD=true
       LEVEL_ZERO_FORCE_REBUILD=true
+      OPENPGL_FORCE_REBUILD=true
       shift; continue
     ;;
     --force-python)
@@ -967,6 +989,9 @@ while true; do
     --force-level-zero)
       LEVEL_ZERO_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-openpgl)
+      OPENPGL_FORCE_REBUILD=true; shift; continue
+    ;;
     --skip-python)
       PYTHON_SKIP=true; shift; continue
     ;;
@@ -1023,6 +1048,9 @@ while true; do
     ;;
     --skip-level-zero)
       LEVEL_ZERO_SKIP=true; shift; continue
+    ;;
+    --skip-openpgl)
+      OPENPGL_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1173,6 +1201,9 @@ XR_OPENXR_REPO_BRANCH="master"
 
 LEVEL_ZERO_SOURCE=("https://github.com/oneapi-src/level-zero/archive/refs/tags/v${LEVEL_ZERO_VERSION}.tar.gz")
 
+OPENPGL_USE_REPO=false
+OPENPGL_SOURCE=( "https://github.com/OpenPathGuidingLibrary/openpgl/archive/refs/tags/v${OPENPGL_VERSION}-beta.tar.gz" )
+
 FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 # C++11 is required now
@@ -1227,7 +1258,8 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).
     * [Universal Scene Description $USD_VERSION] (from $USD_SOURCE).
     * [OpenXR-SDK $XR_OPENXR_VERSION] (from $XR_OPENXR_SOURCE).
-    * [OneAPI Level Zero $LEVEL_ZERO_VERSION] (from $LEVEL_ZERO_SOURCE).\""
+    * [OneAPI Level Zero $LEVEL_ZERO_VERSION] (from $LEVEL_ZERO_SOURCE).
+    * [OpenPGL $OPENPGL_VERSION] (from $OPENPGL_SOURCE).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
   PRINT ""
@@ -1661,6 +1693,7 @@ _update_deps_tbb() {
     USD_FORCE_BUILD=true
     EMBREE_FORCE_BUILD=true
     OIDN_FORCE_BUILD=true
+    OPENPGL_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     OSD_FORCE_REBUILD=true
@@ -1668,6 +1701,7 @@ _update_deps_tbb() {
     USD_FORCE_REBUILD=true
     EMBREE_FORCE_REBUILD=true
     OIDN_FORCE_REBUILD=true
+    OPENPGL_FORCE_REBUILD=true
   fi
 }
 
@@ -2919,10 +2953,6 @@ compile_OPENVDB() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
-    # Unfortunately OpenVDB currently forces using recent oneTBB over older versions when it finds it,
-    # even when TBB_ROOT is specified. So have to prevent any check for system library -
-    # in the hope it will not break in some other cases.
-    cmake_d="$cmake_d -D DISABLE_CMAKE_SEARCH_PATHS=ON"
 
     if [ "$WITH_NANOVDB" = true ]; then
       cmake_d="$cmake_d -D USE_NANOVDB=ON"
@@ -2934,6 +2964,7 @@ compile_OPENVDB() {
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
       cmake_d="$cmake_d -D Boost_USE_MULTITHREADED=ON"
       cmake_d="$cmake_d -D Boost_NO_SYSTEM_PATHS=ON"
+      cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
       cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
     fi
     if [ -d $INST/tbb ]; then
@@ -3198,7 +3229,7 @@ _init_opencollada() {
   _inst_shortcut=$INST/opencollada
 }
 
-_update_deps_opencollada() {
+_update_deps_collada() {
   :
 }
 
@@ -3309,7 +3340,12 @@ _init_embree() {
 }
 
 _update_deps_embree() {
-  :
+  if [ "$1" = true ]; then
+    OPENPGL_FORCE_BUILD=true
+  fi
+  if [ "$2" = true ]; then
+    OPENPGL_FORCE_REBUILD=true
+  fi
 }
 
 clean_Embree() {
@@ -3328,7 +3364,7 @@ compile_Embree() {
   fi
 
   # To be changed each time we make edits that would modify the compiled results!
-  embree_magic=11
+  embree_magic=12
   _init_embree
 
   # Force having own builds for the dependencies.
@@ -3966,6 +4002,112 @@ compile_Level_Zero() {
 
 
 # ----------------------------------------------------------------------------
+# Build OpenPGL
+
+_init_openpgl() {
+  _src=$SRC/openpgl-$OPENPGL_VERSION
+  _git=false
+  _inst=$INST/openpgl-$OPENPGL_VERSION_SHORT
+  _inst_shortcut=$INST/openpgl
+}
+
+_update_deps_openpgl() {
+  :
+}
+
+clean_OpenPGL() {
+  _init_openpgl
+  if [ -d $_inst ]; then
+    # Force rebuilding the dependencies if needed.
+    _update_deps_openpgl false true
+  fi
+  _clean
+}
+
+compile_OpenPGL() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenPGL will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled results!
+  openpgl_magic=1
+  _init_openpgl
+
+  # Force having own builds for the dependencies.
+  _update_deps_openpgl true false
+
+  # Clean install if needed!
+  magic_compile_check openpgl-$OPENPGL_VERSION $openpgl_magic
+  if [ $? -eq 1 -o "$OPENPGL_FORCE_REBUILD" = true ]; then
+    clean_OpenPGL
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building OpenPGL-$OPENPGL_VERSION"
+
+    # Force rebuilding the dependencies.
+    _update_deps_openpgl true true
+
+    prepare_inst
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      download OPENPGL_SOURCE[@] "$_src.tar.gz"
+      INFO "Unpacking OpenPGL-$OPENPGL_VERSION"
+      tar -C $SRC --transform "s,(.*/?)openpgl-$OPENPGL_VERSION-beta[^/]*(.*),\1openpgl-$OPENPGL_VERSION\2,x" \
+          -xf $_src.tar.gz
+    fi
+
+    cd $_src
+
+    INFO "$_src"
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D OPENPGL_BUILD_STATIC=OFF"
+    cmake_d="$cmake_d -D OPENPGL_BUILD_PYTHON=OFF"
+    cmake_d="$cmake_d -D EMBREE_ISPC_SUPPORT=OFF"
+    if [ -d $INST/tbb ]; then
+      cmake_d="$cmake_d -D OPENPGL_TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
+    fi
+
+    cmake $cmake_d ../
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ ! -d $_inst ]; then
+      ERROR "OpenPGL-$OPENPGL_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set openpgl-$OPENPGL_VERSION $openpgl_magic
+
+    cd $CWD
+    INFO "Done compiling OpenPGL-$OPENPGL_VERSION!"
+  else
+    INFO "Own OpenPGL-$OPENPGL_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-openpgl option."
+  fi
+
+  if [ -d $_inst ]; then
+    _create_inst_shortcut
+  fi
+
+  run_ldconfig "openpgl"
+}
+
+
+# ----------------------------------------------------------------------------
 # Install on DEB-like
 
 get_package_version_DEB() {
@@ -4067,7 +4209,8 @@ install_DEB() {
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libepoxy-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
-             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
+             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev \
+             libglfw3-dev"
 
   VORBIS_USE=true
   OGG_USE=true
@@ -4596,6 +4739,18 @@ install_DEB() {
     # No package currently!
     PRINT ""
     compile_Level_Zero
+  fi
+
+  PRINT ""
+  if [ "$OPENPGL_SKIP" = true ]; then
+    WARNING "Skipping OpenPGL installation, as requested..."
+  elif [ "$OPENPGL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenPGL building, as requested..."
+    compile_OpenPGL
+  else
+    # No package currently!
+    PRINT ""
+    compile_OpenPGL
   fi
 }
 
@@ -5304,6 +5459,18 @@ install_RPM() {
     PRINT ""
     compile_Level_Zero
   fi
+
+  PRINT ""
+  if [ "$OPENPGL_SKIP" = true ]; then
+    WARNING "Skipping OpenPGL installation, as requested..."
+  elif [ "$OPENPGL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenPGL building, as requested..."
+    compile_OpenPGL
+  else
+    # No package currently!
+    PRINT ""
+    compile_OpenPGL
+  fi
 }
 
 
@@ -5900,6 +6067,18 @@ install_ARCH() {
     PRINT ""
     compile_Level_Zero
   fi
+
+  PRINT ""
+  if [ "$OPENPGL_SKIP" = true ]; then
+    WARNING "Skipping OpenPGL installation, as requested..."
+  elif [ "$OPENPGL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenPGL building, as requested..."
+    compile_OpenPGL
+  else
+    # No package currently!
+    PRINT ""
+    compile_OpenPGL
+  fi
 }
 
 
@@ -6082,6 +6261,14 @@ install_OTHER() {
     INFO "Forced Level Zero building, as requested..."
     compile_Level_Zero
   fi
+
+  PRINT ""
+  if [ "$OPENPGL_SKIP" = true ]; then
+    WARNING "Skipping OpenPGL installation, as requested..."
+  elif [ "$OPENPGL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenPGL building, as requested..."
+    compile_OpenPGL
+  fi
 }
 
 # ----------------------------------------------------------------------------
@@ -6099,7 +6286,7 @@ print_info() {
   _buildargs="-U *SNDFILE* -U PYTHON* -U *BOOST* -U *Boost* -U *TBB*"
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CLANG* -U *CYCLES*"
   _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB*  -U *BLOSC* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -U *USD*"
-  _buildargs="$_buildargs -U *EMBREE* -U *OPENIMAGEDENOISE* -U *OPENXR*"
+  _buildargs="$_buildargs -U *EMBREE* -U *OPENIMAGEDENOISE* -U *OPENXR* -U *OPENPGL*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
@@ -6218,7 +6405,7 @@ print_info() {
     fi
     if [ -d $INST/nanovdb ]; then
       _1="-D WITH_NANOVDB=ON"
-      _2="-D NANOVDB_ROOT_DIR=$INST/openvdb"
+      _2="-D NANOVDB_ROOT_DIR=$INST/nanovdb"
       PRINT "  $_1"
       PRINT "  $_2"
       _buildargs="$_buildargs $_1 $_2"
@@ -6329,6 +6516,16 @@ print_info() {
       #~ _buildargs="$_buildargs $_1"
     #~ fi
   #~ fi
+
+  if [ "$OPENPGL_SKIP" = false ]; then
+    if [ -d $INST/openpgl ]; then
+      _1="-D openpgl_DIR=$INST/openpgl/lib/cmake/openpgl-$OPENPGL_VERSION"
+      _2="-D WITH_CYCLES_PATH_GUIDING=ON"
+      PRINT "  $_1"
+      PRINT "  $_2"
+      _buildargs="$_buildargs $_1 $_2"
+    fi
+  fi
 
   PRINT ""
   PRINT "Or even simpler, just run (in your blender-source dir):"

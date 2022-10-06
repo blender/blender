@@ -101,7 +101,7 @@ bool PreviewOperation::determine_depending_area_of_interest(rcti *input,
 
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
-void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void PreviewOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   /* Use default preview resolution as preferred ensuring it has size so that
    * generated inputs (which don't have resolution on their own) are displayed */
@@ -154,7 +154,7 @@ void PreviewOperation::get_area_of_interest(const int input_idx,
   r_input_area.ymax = output_area.ymax / divider_;
 }
 
-void PreviewOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void PreviewOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                     const rcti &area,
                                                     Span<MemoryBuffer *> inputs)
 {

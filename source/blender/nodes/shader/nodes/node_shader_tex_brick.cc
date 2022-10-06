@@ -46,7 +46,7 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 }
 
-static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -66,7 +66,7 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), Po
       col, ptr, "squash_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
 }
 
-static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_brick(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexBrick *tex = MEM_cnew<NodeTexBrick>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -88,7 +88,7 @@ static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
@@ -203,7 +203,7 @@ class BrickFunction : public fn::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(

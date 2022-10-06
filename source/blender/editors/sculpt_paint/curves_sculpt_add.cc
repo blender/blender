@@ -418,7 +418,7 @@ struct AddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             const MLoopTri &looptri = surface_looptris_eval_[index];
             const float3 v0_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[0]].v].co;
             const float3 v1_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[1]].v].co;
@@ -436,7 +436,7 @@ struct AddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             selected_looptri_indices.append(index);
           });
     }

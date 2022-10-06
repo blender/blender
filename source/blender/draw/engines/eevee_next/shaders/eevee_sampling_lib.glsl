@@ -41,7 +41,7 @@ vec3 sampling_rng_3D_get(const eSamplingDimension dimension)
 /** \name Random Number Generators.
  * \{ */
 
-/* Interlieved gradient noise by Jorge Jimenez
+/* Interleaved gradient noise by Jorge Jimenez
  * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
  * Seeding found by Epic Game. */
 float interlieved_gradient_noise(vec2 pixel, float seed, float offset)

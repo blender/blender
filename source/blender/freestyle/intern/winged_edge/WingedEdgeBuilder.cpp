@@ -50,7 +50,7 @@ void WingedEdgeBuilder::visitNodeTransform(NodeTransform &tn)
   _current_matrix = new_matrix;
 }
 
-void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform &UNUSED(transform))
+void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform & /*transform*/)
 {
   delete _current_matrix;
 

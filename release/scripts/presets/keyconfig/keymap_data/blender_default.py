@@ -5069,8 +5069,8 @@ def km_sculpt(params):
          {"properties": [("mode", 'TOGGLE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
-        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'SHOW_ALL')]}),
+        ("sculpt.reveal_all", {"type": 'H', "value": 'PRESS', "alt": True},
+         {"properties": []}),
 
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'GROW')]}),

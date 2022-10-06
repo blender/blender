@@ -9,7 +9,7 @@
  * \note Does not *fix* anything, only reports found errors.
  */
 
-#include <string.h> /* for #strrchr #strncmp #strstr */
+#include <cstring> /* for #strrchr #strncmp #strstr */
 
 #include "BLI_utildefines.h"
 

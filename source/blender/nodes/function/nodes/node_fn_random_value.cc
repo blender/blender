@@ -42,12 +42,12 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Value"), "Value_003").dependent_field();
 }
 
-static void fn_node_random_value_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_random_value_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
 
-static void fn_node_random_value_init(bNodeTree *UNUSED(tree), bNode *node)
+static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeRandomValue *data = MEM_cnew<NodeRandomValue>(__func__);
   data->data_type = CD_PROP_FLOAT;

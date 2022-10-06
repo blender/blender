@@ -23,12 +23,12 @@ static void cmp_node_levels_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Std Dev"));
 }
 
-static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_view_levels(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1; /* All channels. */
 }
 
-static void node_composit_buts_view_levels(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_view_levels(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }

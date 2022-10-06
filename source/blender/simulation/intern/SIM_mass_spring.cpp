@@ -175,7 +175,7 @@ static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *v
   return total_force / total_area;
 }
 
-int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
+int SIM_cloth_solver_init(Object * /*ob*/, ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts;
@@ -271,11 +271,8 @@ static void cloth_setup_constraints(ClothModifierData *clmd)
  * (edge distance constraints) in a lagrangian solver. Then add forces to help
  * guide the implicit solver to that state. This function is called after collisions.
  */
-static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
-                                                     ClothModifierData *clmd,
-                                                     float (*initial_cos)[3],
-                                                     float UNUSED(step),
-                                                     float dt)
+static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
+    Object * /*ob*/, ClothModifierData *clmd, float (*initial_cos)[3], float /*step*/, float dt)
 {
   Cloth *cloth = clmd->clothObject;
   float(*cos)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * cloth->mvert_num,
@@ -564,7 +561,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 }
 
 static void cloth_calc_force(
-    Scene *scene, ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
+    Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
 {
   /* Collect forces and derivatives:  F, dFdX, dFdV */
   Cloth *cloth = clmd->clothObject;

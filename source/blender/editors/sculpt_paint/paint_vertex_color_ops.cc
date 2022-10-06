@@ -120,7 +120,7 @@ static bool vertex_paint_from_weight(Object *ob)
   return true;
 }
 
-static int vertex_paint_from_weight_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_paint_from_weight_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_paint_from_weight(obact)) {
@@ -217,7 +217,7 @@ static bool vertex_color_smooth(Object *ob)
   return true;
 }
 
-static int vertex_color_smooth_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_color_smooth_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_color_smooth(obact)) {
@@ -419,7 +419,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
 }
 
-static int vertex_color_invert_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_color_invert_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
 

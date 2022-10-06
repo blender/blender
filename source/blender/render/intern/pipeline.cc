@@ -162,29 +162,27 @@ static bool do_write_image_or_movie(Render *re,
                                     const char *name_override);
 
 /* default callbacks, set in each new render */
-static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr))
+static void result_nothing(void * /*arg*/, RenderResult * /*rr*/)
 {
 }
-static void result_rcti_nothing(void *UNUSED(arg),
-                                RenderResult *UNUSED(rr),
-                                struct rcti *UNUSED(rect))
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, struct rcti * /*rect*/)
 {
 }
-static void current_scene_nothing(void *UNUSED(arg), Scene *UNUSED(scene))
+static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/)
 {
 }
-static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs))
+static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/)
 {
 }
-static void float_nothing(void *UNUSED(arg), float UNUSED(val))
+static void float_nothing(void * /*arg*/, float /*val*/)
 {
 }
-static int default_break(void *UNUSED(arg))
+static int default_break(void * /*arg*/)
 {
   return G.is_break == true;
 }
 
-static void stats_background(void *UNUSED(arg), RenderStats *rs)
+static void stats_background(void * /*arg*/, RenderStats *rs)
 {
   if (rs->infostr == nullptr) {
     return;
@@ -923,7 +921,7 @@ void *RE_gl_context_get(Render *re)
 void *RE_gpu_context_get(Render *re)
 {
   if (re->gpu_context == nullptr) {
-    re->gpu_context = GPU_context_create(NULL, re->gl_context);
+    re->gpu_context = GPU_context_create(nullptr, re->gl_context);
   }
   return re->gpu_context;
 }
@@ -1610,7 +1608,7 @@ bool RE_is_rendering_allowed(Scene *scene,
 static void update_physics_cache(Render *re,
                                  Scene *scene,
                                  ViewLayer *view_layer,
-                                 int UNUSED(anim_init))
+                                 int /*anim_init*/)
 {
   PTCacheBaker baker;
 

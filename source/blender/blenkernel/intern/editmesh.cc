@@ -290,7 +290,7 @@ void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
   }
 }
 
-BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh *UNUSED(em))
+BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh * /*em*/)
 {
   if (object->runtime.editmesh_bb_cage == nullptr) {
     float min[3], max[3];

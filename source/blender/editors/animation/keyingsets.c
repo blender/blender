@@ -120,7 +120,7 @@ void ANIM_OT_keying_set_add(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Add Empty Keying Set";
   ot->idname = "ANIM_OT_keying_set_add";
-  ot->description = "Add a new (empty) Keying Set to the active Scene";
+  ot->description = "Add a new (empty) keying set to the active Scene";
 
   /* callbacks */
   ot->exec = add_default_keyingset_exec;
@@ -168,7 +168,7 @@ void ANIM_OT_keying_set_remove(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Remove Active Keying Set";
   ot->idname = "ANIM_OT_keying_set_remove";
-  ot->description = "Remove the active Keying Set";
+  ot->description = "Remove the active keying set";
 
   /* callbacks */
   ot->exec = remove_active_keyingset_exec;
@@ -211,7 +211,7 @@ void ANIM_OT_keying_set_path_add(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Add Empty Keying Set Path";
   ot->idname = "ANIM_OT_keying_set_path_add";
-  ot->description = "Add empty path to active Keying Set";
+  ot->description = "Add empty path to active keying set";
 
   /* callbacks */
   ot->exec = add_empty_ks_path_exec;
@@ -254,7 +254,7 @@ void ANIM_OT_keying_set_path_remove(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Remove Active Keying Set Path";
   ot->idname = "ANIM_OT_keying_set_path_remove";
-  ot->description = "Remove active Path from active Keying Set";
+  ot->description = "Remove active Path from active keying set";
 
   /* callbacks */
   ot->exec = remove_active_ks_path_exec;
@@ -429,7 +429,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
 
     /* show warning */
-    BKE_report(op->reports, RPT_INFO, "Property removed from Keying Set");
+    BKE_report(op->reports, RPT_INFO, "Property removed from keying set");
   }
 
   return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -491,7 +491,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Active Keying Set";
   ot->idname = "ANIM_OT_keying_set_active_set";
-  ot->description = "Select a new keying set as the active one";
+  ot->description = "Set a new active keying set";
 
   /* callbacks */
   ot->invoke = keyingset_active_menu_invoke;

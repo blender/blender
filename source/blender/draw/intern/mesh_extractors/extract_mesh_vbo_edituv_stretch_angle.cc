@@ -74,7 +74,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 }
 
 static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
-                                              MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache * /*cache*/,
                                               void *buf,
                                               void *tls_data)
 {
@@ -104,7 +104,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
 
 static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
                                                       const BMFace *f,
-                                                      const int UNUSED(f_index),
+                                                      const int /*f_index*/,
                                                       void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
@@ -157,7 +157,7 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
 
 static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
                                                         const MPoly *mp,
-                                                        const int UNUSED(mp_index),
+                                                        const int /*mp_index*/,
                                                         void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
@@ -214,7 +214,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
                                                      const MeshRenderData *mr,
                                                      MeshBatchCache *cache,
                                                      void *buffer,
-                                                     void *UNUSED(tls_data))
+                                                     void * /*tls_data*/)
 {
   GPUVertBuf *refined_vbo = static_cast<GPUVertBuf *>(buffer);
 

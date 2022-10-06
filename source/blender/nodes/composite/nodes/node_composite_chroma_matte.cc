@@ -36,7 +36,7 @@ static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Matte"));
 }
 
-static void node_composit_init_chroma_matte(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_chroma_matte(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
@@ -47,7 +47,7 @@ static void node_composit_init_chroma_matte(bNodeTree *UNUSED(ntree), bNode *nod
   c->fstrength = 1.0f;
 }
 
-static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_chroma_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

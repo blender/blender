@@ -82,7 +82,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_math(GPUMaterial *mat,
                            bNode *node,
-                           bNodeExecData *UNUSED(execdata),
+                           bNodeExecData * /*execdata*/,
                            GPUNodeStack *in,
                            GPUNodeStack *out)
 {

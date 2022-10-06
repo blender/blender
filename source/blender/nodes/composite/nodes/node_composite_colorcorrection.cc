@@ -35,7 +35,7 @@ static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_colorcorrection(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorCorrection *n = MEM_cnew<NodeColorCorrection>(__func__);
   n->startmidtones = 0.2f;
@@ -64,9 +64,7 @@ static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *
   node->storage = n;
 }
 
-static void node_composit_buts_colorcorrection(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -155,7 +153,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout,
 }
 
 static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiLayout *row;

@@ -139,7 +139,7 @@ void TonemapOperation::deinitialize_tile_data(rcti * /*rect*/, void * /*data*/)
 }
 
 void TonemapOperation::get_area_of_interest(const int input_idx,
-                                            const rcti &UNUSED(output_area),
+                                            const rcti & /*output_area*/,
                                             rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);
@@ -170,8 +170,8 @@ static Luminance calc_area_luminance(const MemoryBuffer *input, const rcti &area
   return lum;
 }
 
-void TonemapOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                    const rcti &UNUSED(area),
+void TonemapOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                    const rcti & /*area*/,
                                                     Span<MemoryBuffer *> inputs)
 {
   if (cached_instance_ == nullptr) {

@@ -60,6 +60,17 @@ typedef struct DupliObject {
   /* Particle this dupli was generated from. */
   struct ParticleSystem *particle_system;
 
+  /* Geometry set stack for instance attributes; for each level lists the
+   * geometry set and instance index within it.
+   *
+   * Only non-null entries are stored, ordered from innermost to outermost.
+   * To save memory, these arrays are allocated smaller than persistent_id,
+   * assuming that not every entry will be associated with a GeometrySet; any
+   * size between 1 and MAX_DUPLI_RECUR can be used without issues.
+   */
+  int instance_idx[4];
+  const struct GeometrySet *instance_data[4];
+
   /* Random ID for shading */
   unsigned int random_id;
 } DupliObject;

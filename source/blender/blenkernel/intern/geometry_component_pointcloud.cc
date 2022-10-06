@@ -180,10 +180,10 @@ static AttributeAccessorFunctions get_pointcloud_accessor_functions()
         return 0;
     }
   };
-  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+  fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
     return domain == ATTR_DOMAIN_POINT;
   };
-  fn.adapt_domain = [](const void *UNUSED(owner),
+  fn.adapt_domain = [](const void * /*owner*/,
                        const blender::GVArray &varray,
                        const eAttrDomain from_domain,
                        const eAttrDomain to_domain) {

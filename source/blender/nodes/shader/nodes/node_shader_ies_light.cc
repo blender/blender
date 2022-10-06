@@ -15,7 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 }
 
-static void node_shader_buts_ies(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_ies(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -32,7 +32,7 @@ static void node_shader_buts_ies(uiLayout *layout, bContext *UNUSED(C), PointerR
   }
 }
 
-static void node_shader_init_tex_ies(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_ies(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderTexIES *tex = MEM_cnew<NodeShaderTexIES>("NodeShaderIESLight");
   node->storage = tex;

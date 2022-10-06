@@ -31,9 +31,9 @@ class FastGaussianBlurOperation : public BlurBaseOperation {
   void update_memory_buffer_started(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
-  void update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
-                                    const rcti &UNUSED(area),
-                                    Span<MemoryBuffer *> UNUSED(inputs)) override
+  void update_memory_buffer_partial(MemoryBuffer * /*output*/,
+                                    const rcti & /*area*/,
+                                    Span<MemoryBuffer *> /*inputs*/) override
   {
   }
 };

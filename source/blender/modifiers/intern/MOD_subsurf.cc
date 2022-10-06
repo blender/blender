@@ -5,9 +5,9 @@
  * \ingroup modifiers
  */
 
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -462,7 +462,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "advanced", "Advanced", nullptr, advanced_panel_draw, panel_type);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 

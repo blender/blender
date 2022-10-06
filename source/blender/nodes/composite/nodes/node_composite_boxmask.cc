@@ -32,7 +32,7 @@ static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_boxmask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBoxMask *data = MEM_cnew<NodeBoxMask>(__func__);
   data->x = 0.5;
@@ -43,7 +43,7 @@ static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 

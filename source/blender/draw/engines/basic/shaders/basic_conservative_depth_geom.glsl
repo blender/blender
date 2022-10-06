@@ -11,7 +11,7 @@
 
 void main()
 {
-  /* Compute plane normal in ndc space. */
+  /* Compute plane normal in NDC space. */
   vec3 pos0 = gl_in[0].gl_Position.xyz / gl_in[0].gl_Position.w;
   vec3 pos1 = gl_in[1].gl_Position.xyz / gl_in[1].gl_Position.w;
   vec3 pos2 = gl_in[2].gl_Position.xyz / gl_in[2].gl_Position.w;
@@ -33,7 +33,7 @@ void main()
       /* HACK: Fix cases where the triangle is too small make it cover at least one pixel. */
       gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w * ofs;
     }
-    /* Test if the triangle is almost parralele with the view to avoid precision issues. */
+    /* Test if the triangle is almost parallel with the view to avoid precision issues. */
     else if (any(is_subpixel) || is_coplanar) {
       /* HACK: Fix cases where the triangle is Parallel to the view by deforming it slightly. */
       vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(1.0, -1.0) : vec2(1.0));

@@ -36,7 +36,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorspill *ncs = MEM_cnew<NodeColorspill>(__func__);
   node->storage = ncs;
@@ -47,7 +47,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
   ncs->unspill = 0;     /* do not use unspill */
 }
 
-static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 

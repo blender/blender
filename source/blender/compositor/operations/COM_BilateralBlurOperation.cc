@@ -95,7 +95,7 @@ bool BilateralBlurOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void BilateralBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
+void BilateralBlurOperation::get_area_of_interest(const int /*input_idx*/,
                                                   const rcti &output_area,
                                                   rcti &r_input_area)
 {

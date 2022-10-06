@@ -8,17 +8,24 @@
  * Embeds GPU meshes inside of PBVH nodes, used by mesh sculpt mode.
  */
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <algorithm>
+#include <climits>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
+#include "BLI_map.hh"
 #include "BLI_math_color.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -43,15 +50,6 @@
 
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
-
-#include "BLI_index_range.hh"
-#include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
-#include "BLI_vector.hh"
-#include <vector>
-
-#include <algorithm>
-#include <string>
 
 using blender::char3;
 using blender::float2;
@@ -862,10 +860,30 @@ struct PBVHBatches {
         const char *prefix = "a";
 
         if (ELEM(type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+          Mesh query_mesh;
+
+          /* Check if we have args->me; if not use get_cdata to build something we
+           * can query for color attributes.
+           */
+          if (args->me) {
+            memcpy(static_cast<void *>(&query_mesh),
+                   static_cast<const void *>(args->me),
+                   sizeof(Mesh));
+          }
+          else {
+            BKE_id_attribute_copy_domains_temp(ID_ME,
+                                               get_cdata(ATTR_DOMAIN_POINT, args),
+                                               nullptr,
+                                               get_cdata(ATTR_DOMAIN_CORNER, args),
+                                               nullptr,
+                                               nullptr,
+                                               &query_mesh.id);
+          }
+
           prefix = "c";
 
-          CustomDataLayer *render = BKE_id_attributes_render_color_get(&args->me->id);
-          CustomDataLayer *active = BKE_id_attributes_active_color_get(&args->me->id);
+          CustomDataLayer *render = BKE_id_attributes_render_color_get(&query_mesh.id);
+          CustomDataLayer *active = BKE_id_attributes_active_color_get(&query_mesh.id);
 
           is_render = render && layer && STREQ(render->name, layer->name);
           is_active = active && layer && STREQ(active->name, layer->name);

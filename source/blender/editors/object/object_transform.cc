@@ -469,7 +469,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 /** \name Clear Origin Operator
  * \{ */
 
-static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_origin_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   float *v1, *v3;
   float mat[3][3];
@@ -1066,7 +1066,7 @@ static int apply_objects_internal(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
+static int visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1123,7 +1123,7 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Object *ob = ED_object_active_context(C);
 
@@ -1181,7 +1181,7 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 /** \name Apply Parent Inverse Operator
  * \{ */
 
-static int object_parent_inverse_apply_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_parent_inverse_apply_exec(bContext *C, wmOperator * /*op*/)
 {
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     if (ob->parent == nullptr) {

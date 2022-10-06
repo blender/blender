@@ -107,7 +107,7 @@ bool uvedit_uv_select_test(const struct Scene *scene, struct BMLoop *l, int cd_l
  * Changes selection state of a single UV Face.
  */
 void uvedit_face_select_set(const struct Scene *scene,
-                            struct BMesh *em,
+                            struct BMesh *bm,
                             struct BMFace *efa,
                             bool select,
                             bool do_history,
@@ -118,7 +118,7 @@ void uvedit_face_select_set(const struct Scene *scene,
  * Changes selection state of a single UV Edge.
  */
 void uvedit_edge_select_set(const struct Scene *scene,
-                            struct BMesh *em,
+                            struct BMesh *bm,
                             struct BMLoop *l,
                             bool select,
                             bool do_history,
@@ -129,7 +129,7 @@ void uvedit_edge_select_set(const struct Scene *scene,
  * Changes selection state of a single UV vertex.
  */
 void uvedit_uv_select_set(const struct Scene *scene,
-                          struct BMesh *em,
+                          struct BMesh *bm,
                           struct BMLoop *l,
                           bool select,
                           bool do_history,

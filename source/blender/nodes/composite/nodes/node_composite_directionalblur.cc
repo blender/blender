@@ -32,7 +32,7 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_dblur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeDBlurData *ndbd = MEM_cnew<NodeDBlurData>(__func__);
   node->storage = ndbd;
@@ -41,7 +41,7 @@ static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
   ndbd->center_y = 0.5;
 }
 
-static void node_composit_buts_dblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_dblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

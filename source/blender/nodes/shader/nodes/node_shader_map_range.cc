@@ -39,7 +39,7 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
-static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_map_range(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -94,7 +94,7 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   }
 }
 
-static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_map_range(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeMapRange *data = MEM_cnew<NodeMapRange>(__func__);
   data->clamp = 1;
@@ -197,7 +197,7 @@ static const char *gpu_shader_get_name(int mode, bool use_vector)
 
 static int gpu_shader_map_range(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {

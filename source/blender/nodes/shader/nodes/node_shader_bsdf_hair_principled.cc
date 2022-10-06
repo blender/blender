@@ -63,15 +63,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_principled_hair(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_shader_buts_principled_hair(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "parametrization", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 /* Initialize the custom Parametrization property to Color. */
-static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_hair_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_PRINCIPLED_HAIR_REFLECTANCE;
 }
@@ -110,7 +108,7 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 
 static int node_shader_gpu_hair_principled(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {

@@ -100,6 +100,8 @@ struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
 void *paint_stroke_mode_data(struct PaintStroke *stroke);
 float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
+bool paint_stroke_started(struct PaintStroke *stroke);
+
 bool PAINT_brush_tool_poll(struct bContext *C);
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.

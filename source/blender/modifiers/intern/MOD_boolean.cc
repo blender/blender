@@ -78,9 +78,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
   Collection *col = bmd->collection;
@@ -169,7 +167,7 @@ static Mesh *get_quick_mesh(
 /**
  * Compare selected/unselected.
  */
-static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 {
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
@@ -570,14 +568,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   r_cddata_masks->emask |= CD_MASK_MEDGE;
   r_cddata_masks->fmask |= CD_MASK_MTFACE;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
@@ -599,7 +597,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);

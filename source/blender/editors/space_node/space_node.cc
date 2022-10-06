@@ -219,7 +219,7 @@ float2 space_node_group_offset(const SpaceNode &snode)
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   SpaceNode *snode = MEM_cnew<SpaceNode>("initnode");
   snode->spacetype = SPACE_NODE;
@@ -305,7 +305,7 @@ static void node_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void node_init(wmWindowManager *UNUSED(wm), ScrArea *area)
+static void node_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
@@ -640,24 +640,22 @@ static void node_main_region_draw(const bContext *C, ARegion *region)
 
 /* ************* dropboxes ************* */
 
-static bool node_group_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_group_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return WM_drag_is_ID_type(drag, ID_NT);
 }
 
-static bool node_object_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_object_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return WM_drag_is_ID_type(drag, ID_OB);
 }
 
-static bool node_collection_drop_poll(bContext *UNUSED(C),
-                                      wmDrag *drag,
-                                      const wmEvent *UNUSED(event))
+static bool node_collection_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return WM_drag_is_ID_type(drag, ID_GR);
 }
 
-static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
@@ -666,26 +664,26 @@ static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent 
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
-static bool node_mask_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool node_mask_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return WM_drag_is_ID_type(drag, ID_MSK);
 }
 
-static void node_group_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void node_group_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
-static void node_id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void node_id_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
-static void node_id_path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void node_id_path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
@@ -739,7 +737,7 @@ static void node_dropboxes()
 /* ************* end drop *********** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void node_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -979,7 +977,7 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
   }
 }
 
-static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, const IDRemapper *mappings)
+static void node_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   /* Although we should be able to perform all the mappings in a single go this lead to issues when
    * running the python test cases. Somehow the nodetree/edittree weren't updated to the new

@@ -53,7 +53,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   /* Small texture which will have very small impact on render-time. */
-  if (txl->dummy_depth_tx == NULL) {
+  if (txl->dummy_depth_tx == nullptr) {
     const float pixel[1] = {1.0f};
     txl->dummy_depth_tx = DRW_texture_create_2d(
         1, 1, GPU_DEPTH_COMPONENT24, DRWTextureFlag(0), pixel);
@@ -68,8 +68,8 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   pd->antialiasing.enabled = need_wire_expansion ||
                              ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0);
 
-  GPUTexture *color_tex = NULL;
-  GPUTexture *line_tex = NULL;
+  GPUTexture *color_tex = nullptr;
+  GPUTexture *line_tex = nullptr;
 
   if (pd->antialiasing.enabled) {
     DRW_texture_ensure_fullscreen_2d(&txl->overlay_color_tx, GPU_SRGB8_A8, DRW_TEX_FILTER);
@@ -107,7 +107,7 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_PassList *psl = vedata->psl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   if (pd->antialiasing.enabled) {
@@ -124,7 +124,7 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", &dtxl->depth);
     DRW_shgroup_uniform_texture_ref(grp, "colorTex", &txl->overlay_color_tx);
     DRW_shgroup_uniform_texture_ref(grp, "lineTex", &txl->overlay_line_tx);
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
   }
 
   /* A bit out of place... not related to antialiasing. */
@@ -136,7 +136,7 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", &dtxl->depth);
     DRW_shgroup_uniform_texture_ref(grp, "xrayDepthTex", &txl->temp_depth_tx);
     DRW_shgroup_uniform_float_copy(grp, "opacity", 1.0f - pd->xray_opacity);
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
   }
 }
 
@@ -169,10 +169,10 @@ void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata)
                                    GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
   }
 
-  pd->antialiasing.do_depth_copy = !(psl->wireframe_ps == NULL ||
+  pd->antialiasing.do_depth_copy = !(psl->wireframe_ps == nullptr ||
                                      DRW_pass_is_empty(psl->wireframe_ps)) ||
                                    (pd->xray_enabled && pd->xray_opacity > 0.0f);
-  pd->antialiasing.do_depth_infront_copy = !(psl->wireframe_xray_ps == NULL ||
+  pd->antialiasing.do_depth_infront_copy = !(psl->wireframe_xray_ps == nullptr ||
                                              DRW_pass_is_empty(psl->wireframe_xray_ps));
 
   const bool do_wireframe = pd->antialiasing.do_depth_copy ||

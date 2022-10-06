@@ -104,12 +104,12 @@ void main()
    *  Note: Primitive is LineStrip for this shader. */
   int base_vertex_id = quad_id;
 
-  /* Fetch attributes for self and neighbouring vertex. */
+  /* Fetch attributes for self and neighboring vertex. */
   vec3 in_pos0 = vertex_fetch_attribute(base_vertex_id, pos, vec3);
   vec3 in_pos1 = vertex_fetch_attribute(base_vertex_id + 1, pos, vec3);
 
-  vec4 out_pos0 = ViewProjectionMatrix * vec4(in_pos0, 1.0);
-  vec4 out_pos1 = ViewProjectionMatrix * vec4(in_pos1, 1.0);
+  vec4 out_pos0 = ProjectionMatrix * (ViewMatrix * vec4(in_pos0, 1.0));
+  vec4 out_pos1 = ProjectionMatrix * (ViewMatrix * vec4(in_pos1, 1.0));
 
   /* Final calculations required for Geometry Shader alternative.
    * We need to calculate values for each vertex position to correctly determine the final output

@@ -377,7 +377,7 @@ static void threading_model_queue_deinitialize()
 /** \name Task Scheduling
  * \{ */
 
-static void threading_model_task_execute(TaskPool *__restrict UNUSED(pool), void *task_data)
+static void threading_model_task_execute(TaskPool *__restrict /*pool*/, void *task_data)
 {
   WorkPackage *package = static_cast<WorkPackage *>(task_data);
   CPUDevice device(BLI_task_parallel_thread_id(nullptr));

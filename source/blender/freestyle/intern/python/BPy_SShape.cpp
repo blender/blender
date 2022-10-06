@@ -155,13 +155,13 @@ PyDoc_STRVAR(SShape_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *SShape_id_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_id_get(BPy_SShape *self, void * /*closure*/)
 {
   Id id(self->ss->getId());
   return BPy_Id_from_Id(id);  // return a copy
 }
 
-static int SShape_id_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_id_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Id_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an Id");
@@ -176,12 +176,12 @@ PyDoc_STRVAR(SShape_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *SShape_name_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_name_get(BPy_SShape *self, void * /*closure*/)
 {
   return PyUnicode_FromString(self->ss->getName().c_str());
 }
 
-static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_name_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!PyUnicode_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a string");
@@ -197,13 +197,13 @@ PyDoc_STRVAR(SShape_bbox_doc,
              "\n"
              ":type: :class:`BBox`");
 
-static PyObject *SShape_bbox_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_bbox_get(BPy_SShape *self, void * /*closure*/)
 {
   BBox<Vec3r> bb(self->ss->bbox());
   return BPy_BBox_from_BBox(bb);  // return a copy
 }
 
-static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_BBox_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a BBox");
@@ -218,7 +218,7 @@ PyDoc_STRVAR(SShape_vertices_doc,
              "\n"
              ":type: List of :class:`SVertex` objects");
 
-static PyObject *SShape_vertices_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_vertices_get(BPy_SShape *self, void * /*closure*/)
 {
 
   vector<SVertex *> vertices = self->ss->getVertexList();
@@ -238,7 +238,7 @@ PyDoc_STRVAR(SShape_edges_doc,
              "\n"
              ":type: List of :class:`FEdge` objects");
 
-static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_edges_get(BPy_SShape *self, void * /*closure*/)
 {
 
   vector<FEdge *> edges = self->ss->getEdgeList();

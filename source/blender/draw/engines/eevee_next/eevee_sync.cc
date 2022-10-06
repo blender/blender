@@ -215,8 +215,8 @@ static void gpencil_drawcall_add(gpIterData &iter,
   iter.vcount = v_first + v_count - iter.vfirst;
 }
 
-static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
+                                bGPDframe * /*gpf*/,
                                 bGPDstroke *gps,
                                 void *thunk)
 {

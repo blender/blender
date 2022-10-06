@@ -13,7 +13,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -35,9 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_undo_system.h"
 
 #include "NOD_texture.h"
 
@@ -50,7 +47,6 @@
 #include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -59,9 +55,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "GPU_immediate.h"
-#include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
 
@@ -546,7 +539,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void grab_clone_cancel(bContext *UNUSED(C), wmOperator *op)
+static void grab_clone_cancel(bContext * /*C*/, wmOperator *op)
 {
   GrabClone *cmv = static_cast<GrabClone *>(op->customdata);
   MEM_delete(cmv);
@@ -911,7 +904,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;

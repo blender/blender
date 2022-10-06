@@ -27,7 +27,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 

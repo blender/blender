@@ -231,7 +231,9 @@ class GArray {
         this->deallocate(new_data);
         throw;
       }
-      this->deallocate(data_);
+      if (this->data_) {
+        this->deallocate(data_);
+      }
       data_ = new_data;
     }
 

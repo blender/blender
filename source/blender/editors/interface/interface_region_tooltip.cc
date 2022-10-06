@@ -157,7 +157,7 @@ static void rgb_tint(float col[3], float h, float h_strength, float v, float v_s
   hsv_to_rgb_v(col_hsv_to, col);
 }
 
-static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region)
+static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 {
   const float pad_px = UI_TIP_PADDING;
   uiTooltipData *data = static_cast<uiTooltipData *>(region->regiondata);

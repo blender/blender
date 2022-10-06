@@ -220,14 +220,12 @@ PyDoc_STRVAR(StrokeVertex_attribute_doc,
              "\n"
              ":type: :class:`StrokeAttribute`");
 
-static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return BPy_StrokeAttribute_from_StrokeAttribute(self->sv->attribute());
 }
 
-static int StrokeVertex_attribute_set(BPy_StrokeVertex *self,
-                                      PyObject *value,
-                                      void *UNUSED(closure))
+static int StrokeVertex_attribute_set(BPy_StrokeVertex *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_StrokeAttribute_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a StrokeAttribute object");
@@ -242,15 +240,14 @@ PyDoc_STRVAR(StrokeVertex_curvilinear_abscissa_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self,
-                                                       void *UNUSED(closure))
+static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->curvilinearAbscissa());
 }
 
 static int StrokeVertex_curvilinear_abscissa_set(BPy_StrokeVertex *self,
                                                  PyObject *value,
-                                                 void *UNUSED(closure))
+                                                 void * /*closure*/)
 {
   float scalar;
   if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -267,12 +264,12 @@ PyDoc_STRVAR(StrokeVertex_point_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeVertex_mathutils_cb_index, 0);
 }
 
-static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[2];
   if (mathutils_array_parse(v, 2, 2, value, "value must be a 2-dimensional vector") == -1) {
@@ -289,14 +286,14 @@ PyDoc_STRVAR(StrokeVertex_stroke_length_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->strokeLength());
 }
 
 static int StrokeVertex_stroke_length_set(BPy_StrokeVertex *self,
                                           PyObject *value,
-                                          void *UNUSED(closure))
+                                          void * /*closure*/)
 {
   float scalar;
   if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -313,7 +310,7 @@ PyDoc_STRVAR(StrokeVertex_u_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->u());
 }

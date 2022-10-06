@@ -21,14 +21,14 @@ static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_colorband_add(true);
 }
 
 static int gpu_shader_valtorgb(GPUMaterial *mat,
                                bNode *node,
-                               bNodeExecData *UNUSED(execdata),
+                               bNodeExecData * /*execdata*/,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
@@ -107,7 +107,7 @@ class ColorBandFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
     MutableSpan<ColorGeometry4f> colors = params.uninitialized_single_output<ColorGeometry4f>(

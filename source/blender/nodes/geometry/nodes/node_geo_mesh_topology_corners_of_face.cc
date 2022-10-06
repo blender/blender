@@ -21,12 +21,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0)
       .supports_field()
       .description(N_("Which of the sorted corners to output"));
-  b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
-      .description(N_("The number of corners in the face"));
   b.add_output<decl::Int>(N_("Corner Index"))
       .dependent_field()
       .description(N_("A corner of the face, chosen by the sort index"));
+  b.add_output<decl::Int>(N_("Total"))
+      .dependent_field()
+      .description(N_("The number of corners in the face"));
 }
 
 class CornersOfFaceInput final : public bke::MeshFieldInput {

@@ -60,7 +60,7 @@ class Context : public realtime_compositor::Context {
     return DRW_viewport_texture_list_get()->color;
   }
 
-  GPUTexture *get_input_texture(int UNUSED(view_layer), eScenePassType UNUSED(pass_type)) override
+  GPUTexture *get_input_texture(int /*view_layer*/, eScenePassType /*pass_type*/) override
   {
     return get_output_texture();
   }

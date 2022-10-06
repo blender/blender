@@ -256,7 +256,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
 /*************************** cancel render viewer **********************/
 
-static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
+static int render_view_cancel_exec(bContext *C, wmOperator * /*op*/)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);

@@ -29,7 +29,7 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
-static void node_shader_buts_vector_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_vector_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
@@ -55,7 +55,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_vector_rotate(GPUMaterial *mat,
                                     bNode *node,
-                                    bNodeExecData *UNUSED(execdata),
+                                    bNodeExecData * /*execdata*/,
                                     GPUNodeStack *in,
                                     GPUNodeStack *out)
 {

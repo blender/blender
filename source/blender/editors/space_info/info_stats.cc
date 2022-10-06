@@ -410,7 +410,7 @@ static void stats_update(Depsgraph *depsgraph,
   else {
     /* Objects. */
     GSet *objects_gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-    DEGObjectIterSettings deg_iter_settings = {0};
+    DEGObjectIterSettings deg_iter_settings{};
     deg_iter_settings.depsgraph = depsgraph;
     deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
     DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob_iter) {

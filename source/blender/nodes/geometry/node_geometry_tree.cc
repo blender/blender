@@ -26,11 +26,8 @@
 
 bNodeTreeType *ntreeType_Geometry;
 
-static void geometry_node_tree_get_from_context(const bContext *C,
-                                                bNodeTreeType *UNUSED(treetype),
-                                                bNodeTree **r_ntree,
-                                                ID **r_id,
-                                                ID **r_from)
+static void geometry_node_tree_get_from_context(
+    const bContext *C, bNodeTreeType * /*treetype*/, bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -65,7 +62,7 @@ static void geometry_node_tree_update(bNodeTree *ntree)
   ntree_update_reroute_nodes(ntree);
 }
 
-static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+static void foreach_nodeclass(Scene * /*scene*/, void *calldata, bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_GEOMETRY, N_("Geometry"));
@@ -88,7 +85,7 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
   return type_a == type_b;
 }
 
-static bool geometry_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
+static bool geometry_node_tree_socket_type_valid(bNodeTreeType * /*treetype*/,
                                                  bNodeSocketType *socket_type)
 {
   return nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,

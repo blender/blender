@@ -36,11 +36,11 @@
 /* Forward declarations. */
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob);
 
-typedef struct OVERLAY_StretchingAreaTotals {
+struct OVERLAY_StretchingAreaTotals {
   void *next, *prev;
   float *total_area;
   float *total_area_uv;
-} OVERLAY_StretchingAreaTotals;
+};
 
 static OVERLAY_UVLineStyle edit_uv_line_style_from_space_image(const SpaceImage *sima)
 {
@@ -328,7 +328,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   }
 
   if (pd->edit_uv.do_tiled_image_overlay) {
-    struct DRWTextStore *dt = DRW_text_cache_ensure();
+    DRWTextStore *dt = DRW_text_cache_ensure();
     uchar color[4];
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColorShade4ubv(TH_BACK, 60, color);

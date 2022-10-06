@@ -544,8 +544,10 @@ static void gpencil_brush_grab_apply_cached(tGP_BrushEditData *gso,
     return;
   }
 
-  float inverse_diff_mat[4][4];
-  invert_m4_m4(inverse_diff_mat, diff_mat);
+  float matrix[4][4], inverse_diff_mat[4][4];
+  copy_m4_m4(matrix, diff_mat);
+  zero_axis_bias_m4(matrix);
+  invert_m4_m4(inverse_diff_mat, matrix);
 
   /* Apply dvec to all of the stored points */
   for (int i = 0; i < data->size; i++) {
@@ -1169,7 +1171,10 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->scene = scene;
   gso->object = ob;
   if (ob) {
-    invert_m4_m4(gso->inv_mat, ob->obmat);
+    float matrix[4][4];
+    copy_m4_m4(matrix, ob->obmat);
+    zero_axis_bias_m4(matrix);
+    invert_m4_m4(gso->inv_mat, matrix);
     gso->vrgroup = gso->gpd->vertex_group_active_index - 1;
     if (!BLI_findlink(&gso->gpd->vertex_group_names, gso->vrgroup)) {
       gso->vrgroup = -1;

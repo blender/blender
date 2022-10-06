@@ -234,7 +234,7 @@ struct DensityAddOperationExecutor {
           new_roots_kdtree,
           root_pos_cu,
           brush_settings_->minimum_distance,
-          [&](const int other_new_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_new_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_new_i == -1) {
               new_curve_skipped[new_i] = true;
               return false;
@@ -415,7 +415,7 @@ struct DensityAddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             selected_looptri_indices.append(index);
           });
 
@@ -687,7 +687,7 @@ struct DensitySubtractOperationExecutor {
           root_points_kdtree_,
           orig_pos_cu,
           minimum_distance_,
-          [&](const int other_curve_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_curve_i == curve_i) {
               return true;
             }
@@ -772,7 +772,7 @@ struct DensitySubtractOperationExecutor {
           root_points_kdtree_,
           pos_cu,
           minimum_distance_,
-          [&](const int other_curve_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_curve_i == curve_i) {
               return true;
             }
