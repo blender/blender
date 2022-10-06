@@ -3152,6 +3152,16 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const BlenderProject *active_project = CTX_wm_project();
+  if (active_project && !BKE_project_contains_path(path)) {
+    BKE_reportf(
+        op->reports,
+        RPT_WARNING,
+        "File saved outside of the active project's path (\"%s\"). Active project changed.",
+        BKE_project_root_path_get(active_project));
+    /* Don't cancel. Otherwise there's no way to save files outside of the active project. */
+  }
+
   const int fileflags_orig = G.fileflags;
   int fileflags = G.fileflags;
 

@@ -27,12 +27,17 @@ BlenderProject *BKE_project_active_get(void) ATTR_WARN_UNUSED_RESULT;
  */
 void BKE_project_active_unset(void);
 /**
- * Attempt to load and activate a project based on the given path. If the path doesn't lead into a
- * project, the active project is unset. Note that the project will be unset on any failure when
- * loading the project.
+ * Check if \a path points into the project root path (i.e. if one of the ancestors of the
+ * referenced file/directory is a project root directory).
+ */
+bool BKE_project_contains_path(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Attempt to load and activate a project based on the given path. If the path doesn't lead
+ * into a project, the active project is unset. Note that the project will be unset on any
+ * failure when loading the project.
  *
- * \note: When setting an active project, the previously active one will be destroyed, so pointers
- *        may dangle.
+ * \note: When setting an active project, the previously active one will be destroyed, so
+ * pointers may dangle.
  */
 BlenderProject *BKE_project_active_load_from_path(const char *path) ATTR_NONNULL();
 

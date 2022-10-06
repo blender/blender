@@ -296,6 +296,12 @@ void BKE_project_active_unset(void)
   bke::BlenderProject::set_active_from_settings(nullptr);
 }
 
+bool BKE_project_contains_path(const char *path)
+{
+  const StringRef found_root_path = bke::BlenderProject::project_root_path_find_from_path(path);
+  return !found_root_path.is_empty();
+}
+
 BlenderProject *BKE_project_active_load_from_path(const char *path)
 {
   /* Project should be unset if the path doesn't contain a project root. Unset in the beginning so
