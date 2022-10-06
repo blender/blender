@@ -2382,7 +2382,7 @@ static int wm_new_project_exec(bContext *C, wmOperator *op)
   }
   else {
     BKE_reportf(op->reports,
-                RPT_INFO,
+                RPT_WARNING,
                 "The current file is not located inside of the new project. This means the new "
                 "project is not active");
   }
