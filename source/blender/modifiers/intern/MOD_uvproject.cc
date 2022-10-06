@@ -71,7 +71,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
   bool do_add_own_transform = false;
   for (int i = 0; i < umd->projectors_num; i++) {
-    if (umd->projectors[i] != NULL) {
+    if (umd->projectors[i] != nullptr) {
       DEG_add_object_relation(
           ctx->node, umd->projectors[i], DEG_OB_COMP_TRANSFORM, "UV Project Modifier");
       do_add_own_transform = true;
@@ -82,12 +82,12 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-typedef struct Projector {
+struct Projector {
   Object *ob;          /* object this projector is derived from */
   float projmat[4][4]; /* projection matrix */
   float normal[3];     /* projector normal in world space */
   void *uci;           /* optional uv-project info (panorama projection) */
-} Projector;
+};
 
 static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   const ModifierEvalContext *UNUSED(ctx),
@@ -95,7 +95,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Mesh *mesh)
 {
   float(*coords)[3], (*co)[3];
-  MLoopUV *mloop_uv;
   int i, verts_num, polys_num, loops_num;
   const MPoly *mp;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
@@ -108,7 +107,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   int free_uci = 0;
 
   for (i = 0; i < umd->projectors_num; i++) {
-    if (umd->projectors[i] != NULL) {
+    if (umd->projectors[i] != nullptr) {
       projectors[projectors_num++].ob = umd->projectors[i];
     }
   }
@@ -121,7 +120,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
    * (e.g. if a preceding modifier could not preserve it). */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
+        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, umd->uvlayer_name);
   }
 
   /* make sure we're using an existing layer */
@@ -131,17 +130,18 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   for (i = 0; i < projectors_num; i++) {
     float tmpmat[4][4];
     float offsetmat[4][4];
-    Camera *cam = NULL;
+    Camera *cam = nullptr;
     /* calculate projection matrix */
     invert_m4_m4(projectors[i].projmat, projectors[i].ob->obmat);
 
-    projectors[i].uci = NULL;
+    projectors[i].uci = nullptr;
 
     if (projectors[i].ob->type == OB_CAMERA) {
       cam = (Camera *)projectors[i].ob->data;
       if (cam->type == CAM_PANO) {
-        projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, NULL, aspx, aspy);
-        BLI_uvproject_camera_info_scale(projectors[i].uci, scax, scay);
+        projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
+        BLI_uvproject_camera_info_scale(
+            static_cast<ProjCameraInfo *>(projectors[i].uci), scax, scay);
         free_uci = 1;
       }
       else {
@@ -185,8 +185,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   loops_num = mesh->totloop;
 
   /* make sure we are not modifying the original UV map */
-  mloop_uv = CustomData_duplicate_referenced_layer_named(
-      &mesh->ldata, CD_MLOOPUV, uvname, loops_num);
+  MLoopUV *mloop_uv = static_cast<MLoopUV *>(
+      CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, loops_num));
 
   coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
 
@@ -196,7 +196,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   }
 
   /* if only one projector, project coords to UVs */
-  if (projectors_num == 1 && projectors[0].uci == NULL) {
+  if (projectors_num == 1 && projectors[0].uci == nullptr) {
     for (i = 0, co = coords; i < verts_num; i++, co++) {
       mul_project_m4_v3(projectors[0].projmat, *co);
     }
@@ -213,7 +213,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         do {
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
-          BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
+          BLI_uvproject_from_camera(
+              mloop_uv[lidx].uv, coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
         } while (fidx--);
       }
       else {
@@ -256,7 +257,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         do {
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
-          BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
+          BLI_uvproject_from_camera(
+              mloop_uv[lidx].uv, coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
         } while (fidx--);
       }
       else {
@@ -308,7 +310,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  uiItemPointerR(layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
 
   /* Aspect and Scale are only used for camera projectors. */
   bool has_camera = false;
@@ -323,17 +325,17 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   sub = uiLayoutColumn(layout, true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "aspect_x", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "aspect_x", 0, nullptr, ICON_NONE);
   uiItemR(sub, ptr, "aspect_y", 0, IFACE_("Y"), ICON_NONE);
 
   sub = uiLayoutColumn(layout, true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "scale_x", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "scale_x", 0, nullptr, ICON_NONE);
   uiItemR(sub, ptr, "scale_y", 0, IFACE_("Y"), ICON_NONE);
 
   uiItemR(layout, ptr, "projector_count", 0, IFACE_("Projectors"), ICON_NONE);
   RNA_BEGIN (ptr, projector_ptr, "projectors") {
-    uiItemR(layout, &projector_ptr, "object", 0, NULL, ICON_NONE);
+    uiItemR(layout, &projector_ptr, "object", 0, nullptr, ICON_NONE);
   }
   RNA_END;
 
@@ -357,24 +359,24 @@ ModifierTypeInfo modifierType_UVProject = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

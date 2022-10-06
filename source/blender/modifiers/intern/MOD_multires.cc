@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 
@@ -45,10 +45,10 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-typedef struct MultiresRuntimeData {
+struct MultiresRuntimeData {
   /* Cached subdivision surface descriptor, with topology and settings. */
   struct Subdiv *subdiv;
-} MultiresRuntimeData;
+};
 
 static void initData(ModifierData *md)
 {
@@ -87,11 +87,11 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
 
 static void freeRuntimeData(void *runtime_data_v)
 {
-  if (runtime_data_v == NULL) {
+  if (runtime_data_v == nullptr) {
     return;
   }
   MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)runtime_data_v;
-  if (runtime_data->subdiv != NULL) {
+  if (runtime_data->subdiv != nullptr) {
     BKE_subdiv_free(runtime_data->subdiv);
   }
   MEM_freeN(runtime_data);
@@ -106,8 +106,9 @@ static void freeData(ModifierData *md)
 static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
 {
   MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)mmd->modifier.runtime;
-  if (runtime_data == NULL) {
-    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+  if (runtime_data == nullptr) {
+    runtime_data = static_cast<MultiresRuntimeData *>(
+        MEM_callocN(sizeof(*runtime_data), __func__));
     mmd->modifier.runtime = runtime_data;
   }
   return runtime_data;
@@ -189,8 +190,8 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
   /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
    * this pointer. Not sure if it's needed, but might have a second look
    * on the ownership model here. */
-  MultiresRuntimeData *runtime_data = mmd->modifier.runtime;
-  runtime_data->subdiv = NULL;
+  MultiresRuntimeData *runtime_data = static_cast<MultiresRuntimeData *>(mmd->modifier.runtime);
+  runtime_data->subdiv = nullptr;
 
   return result;
 }
@@ -210,7 +211,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
-  if (subdiv == NULL) {
+  if (subdiv == nullptr) {
     /* Happens on bad topology, ut also on empty input mesh. */
     return result;
   }
@@ -235,7 +236,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * stroke: i.e. when exiting blender right after stroke is done.
      * Annoying and not so much black-boxed as far as sculpting goes, and
      * surely there is a better way of solving this. */
-    if (ctx->object->sculpt != NULL) {
+    if (ctx->object->sculpt != nullptr) {
       SculptSession *sculpt_session = ctx->object->sculpt;
       sculpt_session->subdiv_ccg = result->runtime.subdiv_ccg;
       sculpt_session->multires.active = true;
@@ -243,9 +244,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       sculpt_session->multires.level = mmd->sculptlvl;
       sculpt_session->totvert = mesh->totvert;
       sculpt_session->totpoly = mesh->totpoly;
-      sculpt_session->mvert = NULL;
-      sculpt_session->mpoly = NULL;
-      sculpt_session->mloop = NULL;
+      sculpt_session->mvert = nullptr;
+      sculpt_session->mpoly = nullptr;
+      sculpt_session->mloop = nullptr;
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
   }
@@ -260,8 +261,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
-      float(*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
-      BLI_assert(lnors != NULL);
+      float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&result->ldata, CD_NORMAL));
+      BLI_assert(lnors != nullptr);
       BKE_mesh_set_custom_normals(result, lnors);
       CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
       CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
@@ -306,7 +307,7 @@ static void deformMatrices(ModifierData *md,
 
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
-  if (subdiv == NULL) {
+  if (subdiv == nullptr) {
     /* Happens on bad topology, ut also on empty input mesh. */
     return;
   }
@@ -322,7 +323,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -337,7 +338,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "use_sculpt_base_mesh", 0, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   UI_block_lock_clear(block);
 
-  uiItemR(layout, ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -370,7 +371,7 @@ static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
               "OBJECT_OT_multires_subdivide",
               IFACE_("Subdivide"),
               ICON_NONE,
-              NULL,
+              nullptr,
               WM_OP_EXEC_DEFAULT,
               0,
               &op_ptr);
@@ -382,7 +383,7 @@ static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
               "OBJECT_OT_multires_subdivide",
               IFACE_("Simple"),
               ICON_NONE,
-              NULL,
+              nullptr,
               WM_OP_EXEC_DEFAULT,
               0,
               &op_ptr);
@@ -392,7 +393,7 @@ static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
               "OBJECT_OT_multires_subdivide",
               IFACE_("Linear"),
               ICON_NONE,
-              NULL,
+              nullptr,
               WM_OP_EXEC_DEFAULT,
               0,
               &op_ptr);
@@ -425,7 +426,7 @@ static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col, *row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
 
   bool is_external = RNA_boolean_get(ptr, "is_external");
@@ -441,7 +442,7 @@ static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
     uiLayoutSetPropSep(col, true);
     row = uiLayoutRow(col, false);
-    uiItemR(row, ptr, "filepath", 0, NULL, ICON_NONE);
+    uiItemR(row, ptr, "filepath", 0, nullptr, ICON_NONE);
   }
   else {
     uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
@@ -453,7 +454,7 @@ static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool has_displacement = RNA_int_get(ptr, "total_levels") != 0;
 
@@ -461,27 +462,27 @@ static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetActive(layout, !has_displacement);
 
-  uiItemR(layout, ptr, "quality", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "quality", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, true);
-  uiItemR(col, ptr, "uv_smooth", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "boundary_smooth", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_creases", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Multires, panel_draw);
   modifier_subpanel_register(
-      region_type, "subdivide", "Subdivision", NULL, subdivisions_panel_draw, panel_type);
-  modifier_subpanel_register(region_type, "shape", "Shape", NULL, shape_panel_draw, panel_type);
+      region_type, "subdivide", "Subdivision", nullptr, subdivisions_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "shape", "Shape", nullptr, shape_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "generate", "Generate", NULL, generate_panel_draw, panel_type);
+      region_type, "generate", "Generate", nullptr, generate_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "advanced", "Advanced", NULL, advanced_panel_draw, panel_type);
+      region_type, "advanced", "Advanced", nullptr, advanced_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_Multires = {
@@ -496,24 +497,24 @@ ModifierTypeInfo modifierType_Multires = {
 
     /* copyData */ copyData,
 
-    /* deformVerts */ NULL,
+    /* deformVerts */ nullptr,
     /* deformMatrices */ deformMatrices,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
     /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
+    /* isDisabled */ nullptr,
+    /* updateDepsgraph */ nullptr,
+    /* dependsOnTime */ nullptr,
     /* dependsOnNormals */ dependsOnNormals,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
+    /* foreachIDLink */ nullptr,
+    /* foreachTexLink */ nullptr,
     /* freeRuntimeData */ freeRuntimeData,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

@@ -63,7 +63,7 @@ set(SRC
   intern/MOD_meshdeform.c
   intern/MOD_meshsequencecache.cc
   intern/MOD_mirror.c
-  intern/MOD_multires.c
+  intern/MOD_multires.cc
   intern/MOD_nodes.cc
   intern/MOD_none.c
   intern/MOD_normal_edit.cc
@@ -86,18 +86,18 @@ set(SRC
   intern/MOD_surfacedeform.c
   intern/MOD_triangulate.c
   intern/MOD_ui_common.c
-  intern/MOD_util.c
-  intern/MOD_uvproject.c
-  intern/MOD_uvwarp.c
+  intern/MOD_util.cc
+  intern/MOD_uvproject.cc
+  intern/MOD_uvwarp.cc
   intern/MOD_volume_displace.cc
   intern/MOD_volume_to_mesh.cc
   intern/MOD_warp.c
   intern/MOD_wave.cc
-  intern/MOD_weighted_normal.c
+  intern/MOD_weighted_normal.cc
   intern/MOD_weightvg_util.c
-  intern/MOD_weightvgedit.c
-  intern/MOD_weightvgmix.c
-  intern/MOD_weightvgproximity.c
+  intern/MOD_weightvgedit.cc
+  intern/MOD_weightvgmix.cc
+  intern/MOD_weightvgproximity.cc
   intern/MOD_weld.cc
   intern/MOD_wireframe.c
 
