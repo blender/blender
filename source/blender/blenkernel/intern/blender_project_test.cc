@@ -185,6 +185,34 @@ TEST_F(ProjectTest, settings_json_write)
       });
 }
 
+TEST_F(ProjectTest, settings_read_change_write)
+{
+  SVNFiles svn_files{};
+  std::unique_ptr from_project_settings = ProjectSettings::load_from_disk(svn_files.project_root);
+
+  EXPECT_FALSE(from_project_settings->has_unsaved_changes());
+
+  /* Take the settings read from the SVN files and write it to /tmp/ projects. */
+  test_foreach_project_path(
+      [&from_project_settings](StringRefNull to_project_path, StringRefNull) {
+        ProjectSettings::create_settings_directory(to_project_path);
+
+        from_project_settings->project_name("новый");
+        EXPECT_TRUE(from_project_settings->has_unsaved_changes());
+
+        if (!from_project_settings->save_to_disk(to_project_path)) {
+          FAIL();
+        }
+        EXPECT_FALSE(from_project_settings->has_unsaved_changes());
+
+        /* Now check if the settings written to disk match the expectations. */
+        std::unique_ptr written_settings = ProjectSettings::load_from_disk(to_project_path);
+        EXPECT_NE(written_settings, nullptr);
+        EXPECT_EQ(written_settings->project_name(), "новый");
+        EXPECT_FALSE(from_project_settings->has_unsaved_changes());
+      });
+}
+
 TEST_F(ProjectTest, project_root_path_find_from_path)
 {
   /* Test the temporarily created directories with their various path formats. */

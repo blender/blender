@@ -92,6 +92,16 @@ static int rna_BlenderProject_root_path_editable(PointerRNA *UNUSED(ptr), const 
   return 0;
 }
 
+static bool rna_BlenderProject_is_dirty_get(PointerRNA *ptr)
+{
+  const BlenderProject *project = ptr->data;
+  if (!project) {
+    return false;
+  }
+
+  return BKE_project_has_unsaved_changes(project);
+}
+
 #else
 
 void RNA_def_blender_project(BlenderRNA *brna)
@@ -117,6 +127,14 @@ void RNA_def_blender_project(BlenderRNA *brna)
                                 "rna_BlenderProject_root_path_set");
   RNA_def_property_editable_func(prop, "rna_BlenderProject_root_path_editable");
   RNA_def_property_ui_text(prop, "Location", "The location of the project on disk");
+
+  prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BlenderProject_is_dirty_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Dirty",
+      "Project settings have changed since read from disk. Save the settings to keep them");
 }
 
 #endif

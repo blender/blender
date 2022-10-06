@@ -48,6 +48,7 @@ class ProjectSettings {
   /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;
   std::string project_name_;
+  bool has_unsaved_changes_ = false;
 
  public:
   inline static const StringRefNull SETTINGS_DIRNAME = ".blender_project";
@@ -76,13 +77,14 @@ class ProjectSettings {
    * \return True on success. If the .blender_project directory doesn't exist, that's treated as
    *         failure.
    */
-  auto save_to_disk(StringRef project_path) const -> bool;
+  auto save_to_disk(StringRef project_path) -> bool;
 
   explicit ProjectSettings(StringRef project_root_path);
 
   auto project_root_path [[nodiscard]] () const -> StringRefNull;
   void project_name(StringRef new_name);
   auto project_name [[nodiscard]] () const -> StringRefNull;
+  auto has_unsaved_changes [[nodiscard]] () const -> bool;
 
  private:
   auto to_dictionary() const -> std::unique_ptr<io::serialize::DictionaryValue>;

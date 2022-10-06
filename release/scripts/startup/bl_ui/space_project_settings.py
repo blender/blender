@@ -13,11 +13,13 @@ class PROJECTSETTINGS_HT_header(Header):
 
     @staticmethod
     def draw_buttons(layout, context):
+        project = context.project
+
         layout.operator_context = 'EXEC_AREA'
-        is_dirty = True
+
+        is_dirty = project and project.is_dirty
 
         # Show '*' to let users know the settings have been modified.
-        # TODO, wrong operator
         layout.operator(
             "wm.save_project_settings",
             text=iface_("Save Settings") + (" *" if is_dirty else ""),

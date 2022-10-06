@@ -235,7 +235,7 @@ static void write_settings_file(StringRef settings_filepath,
   os.close();
 }
 
-bool ProjectSettings::save_to_disk(StringRef project_path) const
+bool ProjectSettings::save_to_disk(StringRef project_path)
 {
   ResolvedPaths paths = resolve_paths_from_project_path(project_path);
 
@@ -249,6 +249,8 @@ bool ProjectSettings::save_to_disk(StringRef project_path) const
   std::unique_ptr settings_as_dict = to_dictionary();
   write_settings_file(paths.settings_filepath, std::move(settings_as_dict));
 
+  has_unsaved_changes_ = false;
+
   return true;
 }
 
@@ -260,11 +262,17 @@ StringRefNull ProjectSettings::project_root_path() const
 void ProjectSettings::project_name(StringRef new_name)
 {
   project_name_ = new_name;
+  has_unsaved_changes_ = true;
 }
 
 StringRefNull ProjectSettings::project_name() const
 {
   return project_name_;
+}
+
+bool ProjectSettings::has_unsaved_changes() const
+{
+  return has_unsaved_changes_;
 }
 
 }  // namespace blender::bke
@@ -313,7 +321,7 @@ bool BKE_project_settings_save(const BlenderProject *project_handle)
 {
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
-  const bke::ProjectSettings &settings = project->get_settings();
+  bke::ProjectSettings &settings = project->get_settings();
   return settings.save_to_disk(settings.project_root_path());
 }
 
@@ -336,4 +344,12 @@ const char *BKE_project_name_get(const BlenderProject *project_handle)
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
   return project->get_settings().project_name().c_str();
+}
+
+bool BKE_project_has_unsaved_changes(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  const bke::ProjectSettings &settings = project->get_settings();
+  return settings.has_unsaved_changes();
 }
