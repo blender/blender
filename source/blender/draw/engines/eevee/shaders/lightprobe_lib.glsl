@@ -206,7 +206,7 @@ vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 P, vec3 N, vec3 V, float 
   vec4 refco = ProjectionMatrix * (ViewMatrix * vec4(ref_pos, 1.0));
   refco.xy /= refco.w;
 
-  /* TODO: If we support non-ssr planar reflection, we should blur them with gaussian
+  /* TODO: If we support non-SSR planar reflection, we should blur them with gaussian
    * and chose the right mip depending on the cone footprint after projection */
   /* NOTE: X is inverted here to compensate inverted drawing. */
   vec3 radiance = textureLod(probePlanars, vec3(refco.xy * vec2(-0.5, 0.5) + 0.5, id), 0.0).rgb;

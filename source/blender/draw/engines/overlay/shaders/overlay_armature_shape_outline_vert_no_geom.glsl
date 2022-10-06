@@ -52,7 +52,7 @@ void do_vertex_shader(mat4 in_inst_obmat,
 void main()
 {
   /* Outputs a singular vertex as part of a LineList primitive, however, requires access to
-   * neighbouring 4 vertices. */
+   * neighboring 4 vertices. */
   /* Fetch verts from input type lines adjacency. */
   int line_prim_id = (gl_VertexID / 2);
   int line_vertex_id = gl_VertexID % 2;

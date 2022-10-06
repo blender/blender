@@ -82,7 +82,7 @@ void main()
 {
   ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), imageSize(inout_color_lod0_img) - 1);
   uvec2 texel_local = gl_LocalInvocationID.xy;
-  /* Increase readablility. */
+  /* Increase readability. */
 #define LOCAL_INDEX texel_local.y][texel_local.x
 #define LOCAL_OFFSET(x_, y_) texel_local.y + (y_)][texel_local.x + (x_)
 

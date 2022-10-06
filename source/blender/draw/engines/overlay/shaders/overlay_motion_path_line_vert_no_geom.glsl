@@ -104,7 +104,7 @@ void main()
    *  Note: Primitive is LineStrip for this shader. */
   int base_vertex_id = quad_id;
 
-  /* Fetch attributes for self and neighbouring vertex. */
+  /* Fetch attributes for self and neighboring vertex. */
   vec3 in_pos0 = vertex_fetch_attribute(base_vertex_id, pos, vec3);
   vec3 in_pos1 = vertex_fetch_attribute(base_vertex_id + 1, pos, vec3);
 

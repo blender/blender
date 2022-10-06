@@ -1,5 +1,5 @@
 
-/* Texture format tokens -- Type explictness required by other Graphics APIs. */
+/* Texture format tokens -- Type explicitness required by other Graphics APIs. */
 #define depth2D sampler2D
 #define depth2DArray sampler2DArray
 #define depth2DMS sampler2DMS

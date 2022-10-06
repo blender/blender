@@ -91,7 +91,7 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
     edge /= len;
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
-    /* Add 0.1 to diffenrentiate with cleared pixels. */
+    /* Add 0.1 to differentiate with cleared pixels. */
     return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
   }
   else {
@@ -226,7 +226,7 @@ layout(std140) uniform modelBlock
 #  ifndef USE_GPU_SHADER_CREATE_INFO
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
-/* Note that this is also a workaround of a problem on osx (amd or nvidia)
+/* Note that this is also a workaround of a problem on OSX (AMD or NVIDIA)
  * and older amd driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
