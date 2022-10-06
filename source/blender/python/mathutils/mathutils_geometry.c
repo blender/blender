@@ -185,6 +185,13 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
     return NULL;
   }
 
+  /* Zero 3rd axis of 2D vectors. */
+  if (ix_vec_num == 2) {
+    lines[1][2] = 0.0f;
+    lines[2][2] = 0.0f;
+    lines[3][2] = 0.0f;
+  }
+
   result = isect_line_line_v3(UNPACK4(lines), i1, i2);
   /* The return-code isn't exposed,
    * this way we can check know how close the lines are. */
