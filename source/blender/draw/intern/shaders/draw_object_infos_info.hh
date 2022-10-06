@@ -13,11 +13,11 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
 
 GPU_SHADER_CREATE_INFO(draw_volume_infos)
     .typedef_source("draw_shader_shared.h")
-    .uniform_buf(2, "VolumeInfos", "drw_volume", Frequency::BATCH);
+    .uniform_buf(3, "VolumeInfos", "drw_volume", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_curves_infos)
     .typedef_source("draw_shader_shared.h")
-    .uniform_buf(2, "CurvesInfos", "drw_curves", Frequency::BATCH);
+    .uniform_buf(3, "CurvesInfos", "drw_curves", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_object_infos_new)
     .typedef_source("draw_shader_shared.h")

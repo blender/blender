@@ -1629,6 +1629,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->uniforms = nullptr;
   shgroup->uniform_attrs = nullptr;
 
+  int clipping_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_DRW_CLIPPING);
   int view_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_VIEW);
   int model_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_MODEL);
   int info_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_INFO);
@@ -1700,6 +1701,16 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   if (view_ubo_location != -1) {
     drw_shgroup_uniform_create_ex(
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, GPU_SAMPLER_DEFAULT, 0, 1);
+  }
+
+  if (clipping_ubo_location) {
+    drw_shgroup_uniform_create_ex(shgroup,
+                                  clipping_ubo_location,
+                                  DRW_UNIFORM_BLOCK,
+                                  G_draw.clipping_ubo,
+                                  GPU_SAMPLER_DEFAULT,
+                                  0,
+                                  1);
   }
 
 #ifdef DEBUG
@@ -2144,8 +2155,6 @@ static void draw_view_matrix_state_update(DRWView *view,
 
   mul_m4_m4m4(view->persmat.values, winmat, viewmat);
   invert_m4_m4(view->persinv.values, view->persmat.values);
-
-  const bool is_persp = (winmat[3][3] == 0.0f);
 }
 
 DRWView *DRW_view_create(const float viewmat[4][4],
@@ -2305,7 +2314,7 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
   view->clip_planes_len = plane_len;
   if (plane_len > 0) {
-    memcpy(view->storage.clip_planes, planes, sizeof(float[4]) * plane_len);
+    memcpy(view->clip_planes, planes, sizeof(float[4]) * plane_len);
   }
 }
 

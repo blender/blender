@@ -15,8 +15,6 @@ layout(std140) uniform viewBlock
   mat4 ViewMatrixInverse;
   mat4 ProjectionMatrix;
   mat4 ProjectionMatrixInverse;
-
-  vec4 clipPlanes[6];
 };
 
 #endif /* USE_GPU_SHADER_CREATE_INFO */
@@ -37,12 +35,6 @@ vec3 cameraVec(vec3 P)
   return ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - P) : cameraForward);
 }
 #define viewCameraVec(vP) ((ProjectionMatrix[3][3] == 0.0) ? normalize(-vP) : vec3(0.0, 0.0, 1.0))
-
-#ifdef world_clip_planes_calc_clip_distance
-#  undef world_clip_planes_calc_clip_distance
-#  define world_clip_planes_calc_clip_distance(p) \
-    _world_clip_planes_calc_clip_distance(p, clipPlanes)
-#endif
 
 #ifdef COMMON_GLOBALS_LIB
 /* TODO move to overlay engine. */

@@ -50,8 +50,6 @@ class View {
     this->sync(view_mat, win_mat);
   }
 
-  void set_clip_planes(Span<float4> planes);
-
   void sync(const float4x4 &view_mat, const float4x4 &win_mat);
 
   bool is_persp() const

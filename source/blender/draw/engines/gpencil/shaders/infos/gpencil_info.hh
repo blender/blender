@@ -26,7 +26,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .sampler(1, ImageType::FLOAT_2D, "gpStrokeTexture")
     .sampler(2, ImageType::DEPTH_2D, "gpSceneDepthTexture")
     .sampler(3, ImageType::FLOAT_2D, "gpMaskTexture")
-    .uniform_buf(2, "gpMaterial", "materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
+    .uniform_buf(4, "gpMaterial", "materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
     .uniform_buf(3, "gpLight", "lights[GPENCIL_LIGHT_BUFFER_LEN]", Frequency::BATCH)
     /* Per Object */
     .push_constant(Type::VEC3, "gpNormal")

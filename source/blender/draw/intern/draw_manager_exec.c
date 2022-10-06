@@ -1155,6 +1155,7 @@ static void drw_update_view(const float viewport_size[2])
 
   /* TODO(fclem): update a big UBO and only bind ranges here. */
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
+  GPU_uniformbuf_update(G_draw.clipping_ubo, &DST.view_active->clip_planes);
 
   /* TODO: get rid of this. */
   DST.view_storage_cpy = DST.view_active->storage;

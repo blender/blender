@@ -612,6 +612,11 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(ViewInfos), NULL, "G_draw.view_ubo");
   }
 
+  if (G_draw.clipping_ubo == NULL) {
+    G_draw.clipping_ubo = GPU_uniformbuf_create_ex(
+        sizeof(float4) * 6, NULL, "G_draw.clipping_ubo");
+  }
+
   if (dst->draw_list == NULL) {
     dst->draw_list = GPU_draw_list_create(DRW_DRAWLIST_LEN);
   }
@@ -3079,6 +3084,7 @@ void DRW_engines_free(void)
 
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
+  DRW_UBO_FREE_SAFE(G_draw.clipping_ubo);
   DRW_TEXTURE_FREE_SAFE(G_draw.ramp);
   DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 

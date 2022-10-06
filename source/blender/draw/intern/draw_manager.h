@@ -443,6 +443,8 @@ struct DRWView {
 
   ViewInfos storage;
 
+  float4 clip_planes[6];
+
   float4x4 persmat;
   float4x4 persinv;
   /** Number of active clip planes. */

@@ -228,6 +228,8 @@ inline const char *ShaderInterface::builtin_uniform_block_name(GPUUniformBlockBu
       return "drw_matrices";
     case GPU_UNIFORM_BLOCK_DRW_INFOS:
       return "drw_infos";
+    case GPU_UNIFORM_BLOCK_DRW_CLIPPING:
+      return "drw_clipping";
     default:
       return nullptr;
   }

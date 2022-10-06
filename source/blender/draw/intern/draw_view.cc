@@ -203,15 +203,6 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
   }
 }
 
-void View::set_clip_planes(Span<float4> planes)
-{
-  BLI_assert(planes.size() <= ARRAY_SIZE(data_.clip_planes));
-  int i = 0;
-  for (const auto &plane : planes) {
-    data_.clip_planes[i++] = plane;
-  }
-}
-
 void View::update_viewport_size()
 {
   float4 viewport;
