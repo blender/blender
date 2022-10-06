@@ -216,7 +216,7 @@ set(SRC
   intern/mesh_wrapper.cc
   intern/modifier.cc
   intern/movieclip.c
-  intern/multires.c
+  intern/multires.cc
   intern/multires_reshape.c
   intern/multires_reshape_apply_base.c
   intern/multires_reshape_ccg.c
