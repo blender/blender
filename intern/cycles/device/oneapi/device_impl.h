@@ -3,15 +3,23 @@
 
 #ifdef WITH_ONEAPI
 
+#  include <CL/sycl.hpp>
+
 #  include "device/device.h"
 #  include "device/oneapi/device.h"
 #  include "device/oneapi/queue.h"
+#  include "kernel/device/oneapi/kernel.h"
 
 #  include "util/map.h"
 
 CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
+
+typedef void (*OneAPIDeviceIteratorCallback)(const char *id,
+                                             const char *name,
+                                             int num,
+                                             void *user_ptr);
 
 class OneapiDevice : public Device {
  private:
@@ -25,16 +33,12 @@ class OneapiDevice : public Device {
   void *kg_memory_device_;
   size_t kg_memory_size_ = (size_t)0;
   size_t max_memory_on_device_ = (size_t)0;
-  OneAPIDLLInterface oneapi_dll_;
   std::string oneapi_error_string_;
 
  public:
   virtual BVHLayoutMask get_bvh_layout_mask() const override;
 
-  OneapiDevice(const DeviceInfo &info,
-               OneAPIDLLInterface &oneapi_dll_object,
-               Stats &stats,
-               Profiler &profiler);
+  OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
 
   virtual ~OneapiDevice();
 
@@ -50,11 +54,7 @@ class OneapiDevice : public Device {
 
   void generic_free(device_memory &mem);
 
-  SyclQueue *sycl_queue();
-
   string oneapi_error_message();
-
-  OneAPIDLLInterface oneapi_dll_object();
 
   void *kernel_globals_device_pointer();
 
@@ -90,13 +90,37 @@ class OneapiDevice : public Device {
 
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
 
-  int get_num_multiprocessors();
-  int get_max_num_threads_per_multiprocessor();
-
   /* NOTE(@nsirgien): Create this methods to avoid some compilation problems on Windows with host
    * side compilation (MSVC). */
   void *usm_aligned_alloc_host(size_t memory_size, size_t alignment);
   void usm_free(void *usm_ptr);
+
+  static std::vector<sycl::device> available_devices();
+  static char *device_capabilities();
+  static int parse_driver_build_version(const sycl::device &device);
+  static void iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr);
+
+  size_t get_memcapacity();
+  int get_num_multiprocessors();
+  int get_max_num_threads_per_multiprocessor();
+  bool queue_synchronize(SyclQueue *queue);
+  bool kernel_globals_size(SyclQueue *queue, size_t &kernel_global_size);
+  void set_global_memory(SyclQueue *queue,
+                         void *kernel_globals,
+                         const char *memory_name,
+                         void *memory_device_pointer);
+  bool enqueue_kernel(KernelContext *kernel_context, int kernel, size_t global_size, void **args);
+  SyclQueue *sycl_queue();
+
+ protected:
+  void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
+  bool create_queue(SyclQueue *&external_queue, int device_index);
+  void free_queue(SyclQueue *queue);
+  void *usm_aligned_alloc_host(SyclQueue *queue, size_t memory_size, size_t alignment);
+  void *usm_alloc_device(SyclQueue *queue, size_t memory_size);
+  void usm_free(SyclQueue *queue, void *usm_ptr);
+  bool usm_memcpy(SyclQueue *queue, void *dest, void *src, size_t num_bytes);
+  bool usm_memset(SyclQueue *queue, void *usm_ptr, unsigned char value, size_t num_bytes);
 };
 
 CCL_NAMESPACE_END

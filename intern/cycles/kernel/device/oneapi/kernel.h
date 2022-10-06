@@ -25,11 +25,6 @@ enum DeviceKernel : int;
 
 class SyclQueue;
 
-typedef void (*OneAPIDeviceIteratorCallback)(const char *id,
-                                             const char *name,
-                                             int num,
-                                             void *user_ptr);
-
 typedef void (*OneAPIErrorCallback)(const char *error, void *user_ptr);
 
 struct KernelContext {
@@ -45,13 +40,15 @@ struct KernelContext {
 extern "C" {
 #  endif
 
-#  define DLL_INTERFACE_CALL(function, return_type, ...) \
-    CYCLES_KERNEL_ONEAPI_EXPORT return_type function(__VA_ARGS__);
-#  include "kernel/device/oneapi/dll_interface_template.h"
-#  undef DLL_INTERFACE_CALL
-
+CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_run_test_kernel(SyclQueue *queue_);
+CYCLES_KERNEL_ONEAPI_EXPORT void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr);
+CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_kernel_preferred_local_size(
+    SyclQueue *queue, const DeviceKernel kernel, const size_t kernel_global_size);
+CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
+                                                       int kernel,
+                                                       size_t global_size,
+                                                       void **args);
 #  ifdef __cplusplus
 }
 #  endif
-
 #endif /* WITH_ONEAPI */

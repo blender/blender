@@ -22,10 +22,7 @@ struct KernelExecutionInfo {
 /* OneapiDeviceQueue */
 
 OneapiDeviceQueue::OneapiDeviceQueue(OneapiDevice *device)
-    : DeviceQueue(device),
-      oneapi_device_(device),
-      oneapi_dll_(device->oneapi_dll_object()),
-      kernel_context_(nullptr)
+    : DeviceQueue(device), oneapi_device_(device), kernel_context_(nullptr)
 {
 }
 
@@ -81,14 +78,14 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
   assert(signed_kernel_work_size >= 0);
   size_t kernel_work_size = (size_t)signed_kernel_work_size;
 
-  size_t kernel_local_size = oneapi_dll_.oneapi_kernel_preferred_local_size(
+  size_t kernel_local_size = oneapi_kernel_preferred_local_size(
       kernel_context_->queue, (::DeviceKernel)kernel, kernel_work_size);
   size_t uniformed_kernel_work_size = round_up(kernel_work_size, kernel_local_size);
 
   assert(kernel_context_);
 
   /* Call the oneAPI kernel DLL to launch the requested kernel. */
-  bool is_finished_ok = oneapi_dll_.oneapi_enqueue_kernel(
+  bool is_finished_ok = oneapi_device_->enqueue_kernel(
       kernel_context_, kernel, uniformed_kernel_work_size, args);
 
   if (is_finished_ok == false) {
@@ -108,7 +105,7 @@ bool OneapiDeviceQueue::synchronize()
     return false;
   }
 
-  bool is_finished_ok = oneapi_dll_.oneapi_queue_synchronize(oneapi_device_->sycl_queue());
+  bool is_finished_ok = oneapi_device_->queue_synchronize(oneapi_device_->sycl_queue());
   if (is_finished_ok == false)
     oneapi_device_->set_error("oneAPI unknown kernel execution error: got runtime exception \"" +
                               oneapi_device_->oneapi_error_message() + "\"");

@@ -716,7 +716,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   if(WIN32)
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.dll)
   else()
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.so)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/libcycles_kernel_oneapi.so)
   endif()
 
   set(cycles_oneapi_kernel_sources
@@ -815,6 +815,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WIN32)
     list(APPEND sycl_compiler_flags
+    -fuse-ld=link
     -fms-extensions
     -fms-compatibility
     -D_WINDLL
@@ -888,33 +889,24 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     endif()
   endif()
 
-  # install dynamic libraries required at runtime
-  if(WIN32)
-    set(SYCL_RUNTIME_DEPENDENCIES
-        sycl.dll
-        pi_level_zero.dll
-    )
-    if(NOT WITH_BLENDER)
-      # For the Cycles standalone put libraries next to the Cycles application.
-      delayed_install("${sycl_compiler_root}" "${SYCL_RUNTIME_DEPENDENCIES}" ${CYCLES_INSTALL_PATH})
-    else()
-      # For Blender put the libraries next to the Blender executable.
-      #
-      # Note that the installation path in the delayed_install is relative to the versioned folder,
-      # which means we need to go one level up.
-      delayed_install("${sycl_compiler_root}" "${SYCL_RUNTIME_DEPENDENCIES}" "../")
-    endif()
-  elseif(UNIX AND NOT APPLE)
-    file(GLOB SYCL_RUNTIME_DEPENDENCIES
-              ${sycl_compiler_root}/../lib/libsycl.so
-              ${sycl_compiler_root}/../lib/libsycl.so.[0-9]
-              ${sycl_compiler_root}/../lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
-    )
-    list(APPEND SYCL_RUNTIME_DEPENDENCIES ${sycl_compiler_root}/../lib/libpi_level_zero.so)
-    delayed_install("" "${SYCL_RUNTIME_DEPENDENCIES}" ${CYCLES_INSTALL_PATH}/lib)
+  if(NOT WITH_BLENDER)
+    # For the Cycles standalone put libraries next to the Cycles application.
+    set(cycles_oneapi_target_path ${CYCLES_INSTALL_PATH})
+  else()
+    # For Blender put the libraries next to the Blender executable.
+    #
+    # Note that the installation path in the delayed_install is relative to the versioned folder,
+    # which means we need to go one level up.
+    set(cycles_oneapi_target_path "../")
   endif()
 
-  delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cycles_kernel_oneapi_lib}" ${CYCLES_INSTALL_PATH}/lib)
+  # install dynamic libraries required at runtime
+  if(WIN32)
+    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path})
+  elseif(UNIX AND NOT APPLE)
+    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path}/lib)
+  endif()
+
   add_custom_target(cycles_kernel_oneapi ALL DEPENDS ${cycles_kernel_oneapi_lib})
 endif()
 

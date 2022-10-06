@@ -335,10 +335,18 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
   endif()
 
-  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to DPC++ and SYCL installation")
+  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
     set(SYCL_ROOT_DIR ${CYCLES_SYCL})
   endif()
+  file(GLOB _sycl_runtime_libraries
+    ${SYCL_ROOT_DIR}/lib/libsycl.so
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9]
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
+    ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
+  )
+  list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
+  unset(_sycl_runtime_libraries)
 endif()
 
 if(WITH_OPENVDB)
