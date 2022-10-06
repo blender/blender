@@ -501,6 +501,11 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
                                                ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
+  /* we do not need to guide almost delta phase functions */
+  if (fabsf(g) >= 0.99f) {
+    return false;
+  }
+
   if (kg->opgl_volume_sampling_distribution->Init(
           kg->opgl_guiding_field, guiding_point3f(P), rand, true)) {
     kg->opgl_volume_sampling_distribution->ApplySingleLobeHenyeyGreensteinProduct(guiding_vec3f(D),

@@ -274,7 +274,7 @@ endif()
 ###########################################################################
 
 if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_PATH_GUIDING)
-  if(EXISTS ${_cycles_lib_dir})
+  if(NOT openpgl_DIR AND EXISTS ${_cycles_lib_dir})
     set(openpgl_DIR ${_cycles_lib_dir}/openpgl/lib/cmake/openpgl)
   endif()
 

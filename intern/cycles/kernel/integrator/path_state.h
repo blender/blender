@@ -59,6 +59,13 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 #ifdef __PATH_GUIDING__
   INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) = 1.0f;
   INTEGRATOR_STATE_WRITE(state, guiding, path_segment) = nullptr;
+  INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
+  INTEGRATOR_STATE_WRITE(state, guiding, sample_surface_guiding_rand) = 0.5f;
+  INTEGRATOR_STATE_WRITE(state, guiding, surface_guiding_sampling_prob) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, guiding, bssrdf_sampling_prob) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, guiding, use_volume_guiding) = false;
+  INTEGRATOR_STATE_WRITE(state, guiding, sample_volume_guiding_rand) = 0.5f;
+  INTEGRATOR_STATE_WRITE(state, guiding, volume_guiding_sampling_prob) = 0.0f;
 #endif
 
 #ifdef __MNEE__
