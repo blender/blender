@@ -16,37 +16,39 @@
 extern "C" {
 #endif
 
-/* ------------------------------------------ */
-/* Settings and Defines:                      */
+/* -------------------------------------------------------------------- */
+/** \name General Defines
+ * \{ */
 
-/* ---- General Defines ---- */
-
-/* generic value to use when coordinate lies out of view when converting */
+/** Generic value to use when coordinate lies out of view when converting. */
 #define V2D_IS_CLIPPED 12000
 
-/* Common View2D view types
- * NOTE: only define a type here if it completely sets all (+/- a few) of the relevant flags
- *       and settings for a View2D region, and that set of settings is used in more
- *       than one specific place
+/**
+ * Common View2D view types.
+ *
+ * \note only define a type here if it completely sets all (+/- a few) of the relevant flags and
+ * settings for a View2D region, and that set of settings is used in more than one specific place.
  */
 enum eView2D_CommonViewTypes {
-  /* custom view type (region has defined all necessary flags already) */
+  /** custom view type (region has defined all necessary flags already). */
   V2D_COMMONVIEW_CUSTOM = -1,
-  /* standard (only use this when setting up a new view, as a sensible base for most settings) */
+  /** standard (only use this when setting up a new view, as a sensible base for most settings). */
   V2D_COMMONVIEW_STANDARD,
-  /* listview (i.e. Outliner) */
+  /** List-view (i.e. Outliner). */
   V2D_COMMONVIEW_LIST,
-  /* Stack-view (this is basically a list where new items are added at the top). */
+  /** Stack-view (this is basically a list where new items are added at the top). */
   V2D_COMMONVIEW_STACK,
-  /* headers (this is basically the same as listview, but no y-panning) */
+  /** headers (this is basically the same as list-view, but no Y-panning). */
   V2D_COMMONVIEW_HEADER,
-  /* ui region containing panels */
+  /** UI region containing panels. */
   V2D_COMMONVIEW_PANELS_UI,
 };
 
-/* ---- Defines for Scroller Arguments ----- */
+/** \} */
 
-/* ------ Defines for Scrollers ----- */
+/* -------------------------------------------------------------------- */
+/** \name Defines for Scroll Bars
+ * \{ */
 
 /** Scroll bar area. */
 
@@ -74,15 +76,22 @@ enum eView2D_CommonViewTypes {
 /** Don't allow scroll thumb to show below this size (so it's never too small to click on). */
 #define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_DPI_FAC)
 
-/* ------ Define for UI_view2d_sync ----- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Define for #UI_view2d_sync
+ * \{ */
 
 /* means copy it from another v2d */
 #define V2D_LOCK_SET 0
 /* means copy it to the other v2ds */
 #define V2D_LOCK_COPY 1
 
-/* ------------------------------------------ */
-/* Macros:                                    */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Macros
+ * \{ */
 
 /* Test if mouse in a scroll-bar (assume that scroller availability has been tested). */
 #define IN_2D_VERT_SCROLL(v2d, co) (BLI_rcti_isect_pt_v(&v2d->vert, co))
@@ -91,8 +100,11 @@ enum eView2D_CommonViewTypes {
 #define IN_2D_VERT_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->vert, rct, NULL))
 #define IN_2D_HORIZ_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->hor, rct, NULL))
 
-/* ------------------------------------------ */
-/* Type definitions:                          */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Foeard Declarations
+ * \{ */
 
 struct View2D;
 struct View2DScrollers;
@@ -112,8 +124,11 @@ struct wmOperatorType;
 
 typedef struct View2DScrollers View2DScrollers;
 
-/* ----------------------------------------- */
-/* Prototypes:                               */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Prototypes
+ * \{ */
 
 /**
  * Refresh and validation (of view rects).
@@ -161,7 +176,12 @@ void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
 
 void UI_view2d_zoom_cache_reset(void);
 
-/* view matrix operations */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Matrix Operations
+ * \{ */
+
 /**
  * Set view matrices to use 'cur' rect as viewing frame for View2D drawing.
  */
@@ -178,7 +198,11 @@ void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, boo
  */
 void UI_view2d_view_restore(const struct bContext *C);
 
-/* grid drawing */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Grid Drawing
+ * \{ */
 
 /**
  * Draw a multi-level grid in given 2d-region.
@@ -241,7 +265,11 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
                                                bool display_seconds,
                                                int colorid);
 
-/* Scroll-bar drawing. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scroll-bar Drawing
+ * \{ */
 
 /**
  * Calculate relevant scroller properties.
@@ -258,7 +286,11 @@ void UI_view2d_scrollers_draw_ex(struct View2D *v2d,
                                  bool use_full_hide);
 void UI_view2d_scrollers_draw(struct View2D *v2d, const struct rcti *mask_custom);
 
-/* List view tools. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name List View Tools
+ * \{ */
 
 /**
  * Get the 'cell' (row, column) that the given 2D-view coordinates
@@ -281,7 +313,11 @@ void UI_view2d_listview_view_to_cell(float columnwidth,
                                      int *r_column,
                                      int *r_row);
 
-/* Coordinate conversion. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Coordinate Conversion
+ * \{ */
 
 float UI_view2d_region_to_view_x(const struct View2D *v2d, float x);
 float UI_view2d_region_to_view_y(const struct View2D *v2d, float y);
@@ -338,7 +374,11 @@ bool UI_view2d_view_to_region_rcti_clip(const struct View2D *v2d,
                                         const struct rctf *rect_src,
                                         struct rcti *rect_dst) ATTR_NONNULL();
 
-/* Utilities. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
 
 /**
  * View2D data by default resides in region, so get from region stored in context.
@@ -432,7 +472,11 @@ void UI_view2d_text_cache_add_rectf(struct View2D *v2d,
                                     const unsigned char col[4]);
 void UI_view2d_text_cache_draw(struct ARegion *region);
 
-/* Operators. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
 
 void ED_operatortypes_view2d(void);
 void ED_keymap_view2d(struct wmKeyConfig *keyconf);
@@ -449,7 +493,11 @@ void UI_view2d_smooth_view(const struct bContext *C,
 #define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
 #define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)
 
-/* Gizmo Types. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Gizmo Types
+ * \{ */
 
 /* view2d_gizmo_navigate.c */
 
@@ -458,7 +506,11 @@ void UI_view2d_smooth_view(const struct bContext *C,
  */
 void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
 
-/* Edge pan. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Pan
+ * \{ */
 
 /**
  * Custom-data for view panning operators.
@@ -558,6 +610,8 @@ void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
 void UI_view2d_edge_pan_operator_init(struct bContext *C,
                                       struct View2DEdgePanData *vpd,
                                       struct wmOperator *op);
+
+/** \} */
 
 #ifdef __cplusplus
 }

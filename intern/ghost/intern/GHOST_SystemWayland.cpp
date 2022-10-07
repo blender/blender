@@ -68,6 +68,12 @@ static void keyboard_handle_key_repeat_cancel(struct GWL_Seat *seat);
 
 static void output_handle_done(void *data, struct wl_output *wl_output);
 
+/* -------------------------------------------------------------------- */
+/** \name Local Defines
+ *
+ * Control local functionality, compositors specific workarounds.
+ * \{ */
+
 /**
  * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
  * Even though this has been fixed, at time of writing it's not yet in a release.
@@ -99,6 +105,8 @@ static bool use_gnome_confine_hack = false;
  * See: https://gitlab.gnome.org/GNOME/mutter/-/issues/2457
  */
 #define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Event Codes
