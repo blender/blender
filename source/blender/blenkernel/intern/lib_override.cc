@@ -1389,7 +1389,7 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
-  /* While in theory it _should_ be enough to ensure sync of given viewlayer (if any), or at least
+  /* While in theory it _should_ be enough to ensure sync of given view-layer (if any), or at least
    * of given scene, think for now it's better to get a fully synced Main at this point, this code
    * may do some very wide remapping/data access in some cases. */
   BKE_main_view_layers_synced_ensure(bmain);

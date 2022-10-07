@@ -31,6 +31,8 @@ struct wmHomeFileRead_Params {
    * Used for "Restore Factory Settings".
    */
   unsigned int use_factory_settings : 1;
+  /** Read factory settings from the app-templates only (keep other defaults). */
+  unsigned int use_factory_settings_app_template_only : 1;
   /**
    * Load the startup file without any data-blocks.
    * Useful for automated content generation, so the file starts without data.

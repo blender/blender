@@ -988,7 +988,7 @@ void BKE_main_view_layers_synced_ensure(const Main *bmain)
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
-  /* NOTE: This is not (yet?) covered by the dirty tag and deffered resync system */
+  /* NOTE: This is not (yet?) covered by the dirty tag and differed re-sync system */
   BKE_layer_collection_local_sync_all(bmain);
 }
 

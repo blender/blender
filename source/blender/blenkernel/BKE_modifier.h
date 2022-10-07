@@ -127,6 +127,7 @@ typedef enum ModifierApplyFlag {
    * See `OBJECT_OT_modifier_apply` operator. */
   MOD_APPLY_TO_BASE_MESH = 1 << 4,
 } ModifierApplyFlag;
+ENUM_OPERATORS(ModifierApplyFlag, MOD_APPLY_TO_BASE_MESH);
 
 typedef struct ModifierUpdateDepsgraphContext {
   struct Scene *scene;

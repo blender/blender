@@ -417,6 +417,11 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   return ANIM_animdata_context_getdata(ac);
 }
 
+bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
+{
+  return type == ANIMCONT_GPENCIL;
+}
+
 /* ************************************************************ */
 /* Blender Data <-- Filter --> Channels to be operated on */
 

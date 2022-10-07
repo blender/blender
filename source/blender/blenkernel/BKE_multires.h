@@ -8,7 +8,7 @@
  */
 
 #include "BKE_subsurf.h"
-#include "BLI_compiler_compat.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,12 +53,13 @@ void multires_modifier_update_hidden(struct DerivedMesh *dm);
  */
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
-typedef enum {
+typedef enum MultiresFlags {
   MULTIRES_USE_LOCAL_MMD = 1,
   MULTIRES_USE_RENDER_PARAMS = 2,
   MULTIRES_ALLOC_PAINT_MASK = 4,
   MULTIRES_IGNORE_SIMPLIFY = 8,
 } MultiresFlags;
+ENUM_OPERATORS(MultiresFlags, MULTIRES_IGNORE_SIMPLIFY);
 
 struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,
                                                        struct MultiresModifierData *mmd,

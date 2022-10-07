@@ -952,5 +952,17 @@ endif()
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
-set(SYCL_ROOT_DIR ${LIBDIR}/dpcpp)
+if(WITH_CYCLES_DEVICE_ONEAPI)
+  set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
+  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
+  if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
+    set(SYCL_ROOT_DIR ${CYCLES_SYCL})
+  endif()
+  file(GLOB _sycl_runtime_libraries
+    ${SYCL_ROOT_DIR}/bin/sycl.dll
+    ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
+    ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll
+  )
+  list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
+  unset(_sycl_runtime_libraries)
+endif()

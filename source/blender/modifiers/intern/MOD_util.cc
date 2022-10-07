@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -46,7 +46,7 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
 {
   Tex *tex = dmd->texture;
 
-  if (tex == NULL) {
+  if (tex == nullptr) {
     return;
   }
 
@@ -69,7 +69,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   float mapref_imat[4][4];
 
   if (texmapping == MOD_DISP_MAP_OBJECT) {
-    if (dmd->map_object != NULL) {
+    if (dmd->map_object != nullptr) {
       Object *map_object = dmd->map_object;
       if (dmd->map_bone[0] != '\0') {
         bPoseChannel *pchan = BKE_pose_channel_find_name(map_object->pose, dmd->map_bone);
@@ -102,7 +102,8 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
       CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, dmd->uvlayer_name, uvname);
-      const MLoopUV *mloop_uv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
+      const MLoopUV *mloop_uv = static_cast<const MLoopUV *>(
+          CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname));
 
       /* verts are given the UV from the first face that uses them */
       for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
@@ -134,17 +135,17 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   for (i = 0; i < verts_num; i++, mv++, r_texco++) {
     switch (texmapping) {
       case MOD_DISP_MAP_LOCAL:
-        copy_v3_v3(*r_texco, cos != NULL ? *cos : mv->co);
+        copy_v3_v3(*r_texco, cos != nullptr ? *cos : mv->co);
         break;
       case MOD_DISP_MAP_GLOBAL:
-        mul_v3_m4v3(*r_texco, ob->obmat, cos != NULL ? *cos : mv->co);
+        mul_v3_m4v3(*r_texco, ob->obmat, cos != nullptr ? *cos : mv->co);
         break;
       case MOD_DISP_MAP_OBJECT:
-        mul_v3_m4v3(*r_texco, ob->obmat, cos != NULL ? *cos : mv->co);
+        mul_v3_m4v3(*r_texco, ob->obmat, cos != nullptr ? *cos : mv->co);
         mul_m4_v3(mapref_imat, *r_texco);
         break;
     }
-    if (cos != NULL) {
+    if (cos != nullptr) {
       cos++;
     }
   }
@@ -154,8 +155,8 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
 {
   while ((md = md->next) && md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = (ArmatureModifierData *)md;
-    if (amd->multi && amd->vert_coords_prev == NULL) {
-      amd->vert_coords_prev = MEM_dupallocN(vert_coords);
+    if (amd->multi && amd->vert_coords_prev == nullptr) {
+      amd->vert_coords_prev = static_cast<float(*)[3]>(MEM_dupallocN(vert_coords));
     }
     else {
       break;
@@ -171,25 +172,26 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                const int verts_num,
                                const bool use_orco)
 {
-  if (mesh != NULL) {
+  if (mesh != nullptr) {
     /* pass */
   }
   else if (ob->type == OB_MESH) {
     if (em) {
-      mesh = BKE_mesh_wrapper_from_editmesh_with_coords(em, NULL, vertexCos, ob->data);
+      mesh = BKE_mesh_wrapper_from_editmesh_with_coords(
+          em, nullptr, vertexCos, static_cast<const Mesh *>(ob->data));
     }
     else {
       /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
        * we really need a copy here. Maybe the CoW ob->data can be directly used. */
       Mesh *mesh_prior_modifiers = BKE_object_get_pre_modified_mesh(ob);
-      mesh = (Mesh *)BKE_id_copy_ex(NULL,
+      mesh = (Mesh *)BKE_id_copy_ex(nullptr,
                                     &mesh_prior_modifiers->id,
-                                    NULL,
+                                    nullptr,
                                     (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_CD_REFERENCE));
       mesh->runtime.deformed_only = 1;
     }
 
-    if (em != NULL) {
+    if (em != nullptr) {
       /* pass */
     }
     /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
@@ -210,9 +212,9 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     /* Currently, that may not be the case every time
      * (texts e.g. tend to give issues,
      * also when deforming curve points instead of generated curve geometry... ). */
-    if (mesh != NULL && mesh->totvert != verts_num) {
-      BKE_id_free(NULL, mesh);
-      mesh = NULL;
+    if (mesh != nullptr && mesh->totvert != verts_num) {
+      BKE_id_free(nullptr, mesh);
+      mesh = nullptr;
     }
   }
 
@@ -232,7 +234,7 @@ void MOD_get_vgroup(
       *dvert = BKE_mesh_deform_verts(mesh);
     }
     else {
-      *dvert = NULL;
+      *dvert = nullptr;
     }
   }
   else {
@@ -241,7 +243,7 @@ void MOD_get_vgroup(
       *dvert = BKE_lattice_deform_verts_get(ob);
     }
     else {
-      *dvert = NULL;
+      *dvert = nullptr;
     }
   }
 }
@@ -251,7 +253,7 @@ void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
                                                const char *bonename,
                                                const char *description)
 {
-  if (object == NULL) {
+  if (object == nullptr) {
     return;
   }
   if (bonename[0] != '\0' && object->type == OB_ARMATURE) {

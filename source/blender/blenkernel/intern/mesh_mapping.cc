@@ -555,7 +555,7 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
 
 namespace blender::mesh_topology {
 
-Array<int> build_corner_to_poly_map(const Span<MPoly> polys, const int loops_num)
+Array<int> build_loop_to_poly_map(const Span<MPoly> polys, const int loops_num)
 {
   Array<int> map(loops_num);
   threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
@@ -577,7 +577,7 @@ Array<Vector<int>> build_vert_to_edge_map(const Span<MEdge> edges, const int ver
   return map;
 }
 
-Array<Vector<int>> build_vert_to_corner_map(const Span<MLoop> loops, const int verts_num)
+Array<Vector<int>> build_vert_to_loop_map(const Span<MLoop> loops, const int verts_num)
 {
   Array<Vector<int>> map(verts_num);
   for (const int64_t i : loops.index_range()) {

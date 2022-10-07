@@ -2677,6 +2677,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr = sculpt_alloc_attr(ss);
 
       attr->used = true;
+      attr->domain = domain;
       attr->proptype = proptype;
       attr->data = cdata->layers[index].data;
       attr->bmesh_cd_offset = cdata->layers[index].offset;
