@@ -11,6 +11,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_lasso_2d.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
@@ -36,225 +37,490 @@
 #include "clip_intern.h"         /* own include */
 #include "tracking_ops_intern.h" /* own include */
 
-static float dist_to_crns(const float co[2], const float pos[2], const float crns[4][2]);
+/* -------------------------------------------------------------------- */
+/** \name Point track marker picking.
+ * \{ */
+
+BLI_INLINE PointTrackPick point_track_pick_make_null(void)
+{
+  PointTrackPick pick = {NULL};
+
+  pick.area = TRACK_AREA_NONE;
+  pick.area_detail = TRACK_PICK_AREA_DETAIL_NONE;
+  pick.corner_index = -1;
+  pick.distance_px_squared = FLT_MAX;
+
+  return pick;
+}
+
+static void slide_marker_tilt_slider_relative(const float pattern_corners[4][2], float r_slider[2])
+{
+  add_v2_v2v2(r_slider, pattern_corners[1], pattern_corners[2]);
+}
+
+static void slide_marker_tilt_slider(const float marker_pos[2],
+                                     const float pattern_corners[4][2],
+                                     float r_slider[2])
+{
+  slide_marker_tilt_slider_relative(pattern_corners, r_slider);
+  add_v2_v2(r_slider, marker_pos);
+}
+
+static float mouse_to_slide_zone_distance_squared(const float co[2],
+                                                  const float slide_zone[2],
+                                                  int width,
+                                                  int height)
+{
+  const float pixel_co[2] = {co[0] * width, co[1] * height},
+              pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
+  return square_f(pixel_co[0] - pixel_slide_zone[0]) + square_f(pixel_co[1] - pixel_slide_zone[1]);
+}
+
+static float mouse_to_search_corner_distance_squared(
+    const MovieTrackingMarker *marker, const float co[2], int corner, int width, int height)
+{
+  float side_zone[2];
+  if (corner == 0) {
+    side_zone[0] = marker->pos[0] + marker->search_max[0];
+    side_zone[1] = marker->pos[1] + marker->search_min[1];
+  }
+  else {
+    side_zone[0] = marker->pos[0] + marker->search_min[0];
+    side_zone[1] = marker->pos[1] + marker->search_max[1];
+  }
+  return mouse_to_slide_zone_distance_squared(co, side_zone, width, height);
+}
+
+static float mouse_to_closest_pattern_corner_distance_squared(
+    const MovieTrackingMarker *marker, const float co[2], int width, int height, int *r_corner)
+{
+  float min_distance_squared = FLT_MAX;
+  for (int i = 0; i < 4; i++) {
+    float corner_co[2];
+    add_v2_v2v2(corner_co, marker->pattern_corners[i], marker->pos);
+    float distance_squared = mouse_to_slide_zone_distance_squared(co, corner_co, width, height);
+    if (distance_squared < min_distance_squared) {
+      min_distance_squared = distance_squared;
+      *r_corner = i;
+    }
+  }
+  return min_distance_squared;
+}
+
+static float mouse_to_offset_distance_squared(const MovieTrackingTrack *track,
+                                              const MovieTrackingMarker *marker,
+                                              const float co[2],
+                                              int width,
+                                              int height)
+{
+  float pos[2];
+  add_v2_v2v2(pos, marker->pos, track->offset);
+  return mouse_to_slide_zone_distance_squared(co, pos, width, height);
+}
+
+static float mouse_to_tilt_distance_squared(const MovieTrackingMarker *marker,
+                                            const float co[2],
+                                            int width,
+                                            int height)
+{
+  float slider[2];
+  slide_marker_tilt_slider(marker->pos, marker->pattern_corners, slider);
+  return mouse_to_slide_zone_distance_squared(co, slider, width, height);
+}
+
+static float mouse_to_closest_corners_edge_distance_squared(const float co[2],
+                                                            const float corners_offset[2],
+                                                            const float corners[4][2],
+                                                            int width,
+                                                            int height)
+{
+  const float co_px[2] = {co[0] * width, co[1] * height};
+
+  float prev_corner_co_px[2];
+  add_v2_v2v2(prev_corner_co_px, corners_offset, corners[3]);
+  prev_corner_co_px[0] *= width;
+  prev_corner_co_px[1] *= height;
+
+  float min_distance_squared = FLT_MAX;
+
+  for (int i = 0; i < 4; ++i) {
+    float corner_co_px[2];
+    add_v2_v2v2(corner_co_px, corners_offset, corners[i]);
+    corner_co_px[0] *= width;
+    corner_co_px[1] *= height;
+
+    const float distance_squared = dist_squared_to_line_segment_v2(
+        co_px, corner_co_px, prev_corner_co_px);
+
+    if (distance_squared < min_distance_squared) {
+      min_distance_squared = distance_squared;
+    }
+
+    copy_v2_v2(prev_corner_co_px, corner_co_px);
+  }
+
+  return min_distance_squared;
+}
+
+static float mouse_to_closest_pattern_edge_distance_squared(const MovieTrackingMarker *marker,
+                                                            const float co[2],
+                                                            int width,
+                                                            int height)
+{
+  return mouse_to_closest_corners_edge_distance_squared(
+      co, marker->pos, marker->pattern_corners, width, height);
+}
+
+static float mouse_to_closest_search_edge_distance_squared(const MovieTrackingMarker *marker,
+                                                           const float co[2],
+                                                           int width,
+                                                           int height)
+{
+  const float corners[4][2] = {
+      {marker->search_min[0], marker->search_min[1]},
+      {marker->search_max[0], marker->search_min[1]},
+      {marker->search_max[0], marker->search_max[1]},
+      {marker->search_min[0], marker->search_max[1]},
+  };
+
+  return mouse_to_closest_corners_edge_distance_squared(co, marker->pos, corners, width, height);
+}
+
+PointTrackPick ed_tracking_pick_point_track(const TrackPickOptions *options,
+                                            bContext *C,
+                                            const float co[2])
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+
+  int width, height;
+  ED_space_clip_get_size(space_clip, &width, &height);
+  if (width == 0 || height == 0) {
+    return point_track_pick_make_null();
+  }
+
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+
+  const float distance_tolerance_px_squared = (12.0f * 12.0f) / space_clip->zoom;
+  const bool are_disabled_markers_visible = (space_clip->flag & SC_HIDE_DISABLED) == 0;
+  const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
+
+  PointTrackPick pick = point_track_pick_make_null();
+
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+    const bool is_track_selected = TRACK_VIEW_SELECTED(space_clip, track);
+
+    if (options->selected_only && !is_track_selected) {
+      continue;
+    }
+    if (options->unlocked_only && (track->flag & TRACK_LOCKED)) {
+      continue;
+    }
+
+    MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    const bool is_marker_enabled = ((marker->flag & MARKER_DISABLED) == 0);
+
+    if (!is_marker_enabled) {
+      if (options->enabled_only) {
+        /* Disabled marker is requested to not be in the pick result, so skip it. */
+        continue;
+      }
+
+      /* See whether the disabled marker is visible.
+       *
+       * If the clip editor is not hiding disabled markers, then all disabled markers are visible.
+       * Otherwise only disabled marker of the active track is visible. */
+      if (!are_disabled_markers_visible && track != tracking_object->active_track) {
+        continue;
+      }
+    }
+
+    float distance_squared;
+
+    /* Initialize the current pick with the offset point of the track. */
+    PointTrackPick current_pick = point_track_pick_make_null();
+    current_pick.track = track;
+    current_pick.marker = marker;
+    current_pick.area = TRACK_AREA_POINT;
+    current_pick.distance_px_squared = mouse_to_offset_distance_squared(
+        track, marker, co, width, height);
+
+    /* If search area is visible, check how close to its sliding zones mouse is.
+     * NOTE: The search area is only visible for selected tracks. */
+    if (is_track_selected && (space_clip->flag & SC_SHOW_MARKER_SEARCH)) {
+      distance_squared = mouse_to_search_corner_distance_squared(marker, co, 1, width, height);
+      if (distance_squared < current_pick.distance_px_squared) {
+        current_pick.area = TRACK_AREA_SEARCH;
+        current_pick.area_detail = TRACK_PICK_AREA_DETAIL_OFFSET;
+        current_pick.distance_px_squared = distance_squared;
+      }
+
+      distance_squared = mouse_to_search_corner_distance_squared(marker, co, 0, width, height);
+      if (distance_squared < current_pick.distance_px_squared) {
+        current_pick.area = TRACK_AREA_SEARCH;
+        current_pick.area_detail = TRACK_PICK_AREA_DETAIL_SIZE;
+        current_pick.distance_px_squared = distance_squared;
+      }
+    }
+
+    /* If pattern area is visible, check which corner is closest to the mouse. */
+    if (space_clip->flag & SC_SHOW_MARKER_PATTERN) {
+      int current_corner = -1;
+      distance_squared = mouse_to_closest_pattern_corner_distance_squared(
+          marker, co, width, height, &current_corner);
+      if (distance_squared < current_pick.distance_px_squared) {
+        current_pick.area = TRACK_AREA_PAT;
+        current_pick.area_detail = TRACK_PICK_AREA_DETAIL_POSITION;
+        current_pick.corner_index = current_corner;
+        current_pick.distance_px_squared = distance_squared;
+      }
+
+      /* Here we also check whether the mouse is actually closer to the widget which controls scale
+       * and tilt.
+       * NOTE: The tilt contorl is only visible for selected tracks. */
+      if (is_track_selected) {
+        distance_squared = mouse_to_tilt_distance_squared(marker, co, width, height);
+        if (distance_squared < current_pick.distance_px_squared) {
+          current_pick.area = TRACK_AREA_PAT;
+          current_pick.area_detail = TRACK_PICK_AREA_DETAIL_TILT_SIZE;
+          current_pick.distance_px_squared = distance_squared;
+        }
+      }
+    }
+
+    /* Whenever a manipulation "widgets" are not within distance tolerance test the edges as well.
+     * This allows to pick tracks by clicking on the pattern/search areas edges but prefer to use
+     * more actionable "widget" for sliding. */
+    if (current_pick.distance_px_squared > distance_tolerance_px_squared) {
+      if (is_track_selected && (space_clip->flag & SC_SHOW_MARKER_SEARCH)) {
+        distance_squared = mouse_to_closest_search_edge_distance_squared(
+            marker, co, width, height);
+        if (distance_squared < current_pick.distance_px_squared) {
+          current_pick.area = TRACK_AREA_SEARCH;
+          current_pick.area_detail = TRACK_PICK_AREA_DETAIL_EDGE;
+          current_pick.distance_px_squared = distance_squared;
+        }
+      }
+
+      if (space_clip->flag & SC_SHOW_MARKER_PATTERN) {
+        distance_squared = mouse_to_closest_pattern_edge_distance_squared(
+            marker, co, width, height);
+        if (distance_squared < current_pick.distance_px_squared) {
+          current_pick.area = TRACK_AREA_PAT;
+          current_pick.area_detail = TRACK_PICK_AREA_DETAIL_EDGE;
+          current_pick.distance_px_squared = distance_squared;
+        }
+      }
+    }
+
+    if (current_pick.distance_px_squared < pick.distance_px_squared) {
+      pick = current_pick;
+    }
+  }
+
+  if (pick.distance_px_squared > distance_tolerance_px_squared) {
+    return point_track_pick_make_null();
+  }
+
+  return pick;
+}
+
+bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
+                                            const PointTrackPick *pick)
+{
+  if (pick->track == NULL) {
+    return false;
+  }
+
+  BLI_assert(pick->marker != NULL);
+
+  if (!TRACK_VIEW_SELECTED(space_clip, pick->track)) {
+    return false;
+  }
+
+  if (pick->track->flag & TRACK_LOCKED) {
+    return false;
+  }
+  if (pick->marker->flag & MARKER_DISABLED) {
+    return false;
+  }
+
+  return pick->area_detail != TRACK_PICK_AREA_DETAIL_EDGE;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Plane track marker picking.
+ * \{ */
+
+BLI_INLINE PlaneTrackPick plane_track_pick_make_null(void)
+{
+  PlaneTrackPick result = {NULL};
+
+  result.corner_index = -1;
+  result.distance_px_squared = FLT_MAX;
+
+  return result;
+}
+
+static float mouse_to_plane_slide_zone_distance_squared(const float co[2],
+                                                        const float slide_zone[2],
+                                                        int width,
+                                                        int height)
+{
+  const float pixel_co[2] = {co[0] * width, co[1] * height};
+  const float pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
+  return square_f(pixel_co[0] - pixel_slide_zone[0]) + square_f(pixel_co[1] - pixel_slide_zone[1]);
+}
+
+PlaneTrackPick ed_tracking_pick_plane_track(const TrackPickOptions *options,
+                                            bContext *C,
+                                            const float co[2])
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+
+  int width, height;
+  ED_space_clip_get_size(space_clip, &width, &height);
+  if (width == 0 || height == 0) {
+    return plane_track_pick_make_null();
+  }
+
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
+
+  const float distance_tolerance_px_squared = (12.0f * 12.0f) / space_clip->zoom;
+  PlaneTrackPick pick = plane_track_pick_make_null();
+
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+    if (options->selected_only && !PLANE_TRACK_VIEW_SELECTED(plane_track)) {
+      continue;
+    }
+
+    MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+
+    PlaneTrackPick current_pick = plane_track_pick_make_null();
+    current_pick.plane_track = plane_track;
+    current_pick.plane_marker = plane_marker;
+
+    for (int i = 0; i < 4; i++) {
+      const float distance_squared = mouse_to_plane_slide_zone_distance_squared(
+          co, plane_marker->corners[i], width, height);
+
+      if (distance_squared < current_pick.distance_px_squared) {
+        current_pick.corner_index = i;
+        current_pick.distance_px_squared = distance_squared;
+      }
+    }
+
+    if (current_pick.distance_px_squared > distance_tolerance_px_squared) {
+      const float zero_offset[2] = {0.0f, 0.0f};
+      const float distance_squared = mouse_to_closest_corners_edge_distance_squared(
+          co, zero_offset, plane_marker->corners, width, height);
+      if (distance_squared < current_pick.distance_px_squared) {
+        current_pick.corner_index = -1;
+        current_pick.distance_px_squared = distance_squared;
+      }
+    }
+
+    if (current_pick.distance_px_squared < pick.distance_px_squared) {
+      pick = current_pick;
+    }
+  }
+
+  if (pick.distance_px_squared > distance_tolerance_px_squared) {
+    return plane_track_pick_make_null();
+  }
+
+  return pick;
+}
+
+bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
+{
+  if (pick->plane_track == NULL) {
+    return false;
+  }
+
+  BLI_assert(pick->plane_marker != NULL);
+
+  if (!PLANE_TRACK_VIEW_SELECTED(pick->plane_track)) {
+    return false;
+  }
+
+  return pick->corner_index != -1;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point closest to point or plane track.
+ * \{ */
+
+BLI_INLINE TrackingPick tracking_pick_make_null(void)
+{
+  TrackingPick result;
+
+  result.point_track_pick = point_track_pick_make_null();
+  result.plane_track_pick = plane_track_pick_make_null();
+
+  return result;
+}
+
+static bool tracking_should_prefer_point_track(bContext *C,
+                                               const PointTrackPick *point_track_pick,
+                                               const PlaneTrackPick *plane_track_pick)
+{
+  /* Simple case: one of the pick results is empty, so prefer the other one. */
+  if (point_track_pick->track == NULL) {
+    return false;
+  }
+  if (plane_track_pick->plane_track == NULL) {
+    return true;
+  }
+
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+
+  /* If one of the picks can be slid prefer it. */
+  const bool can_slide_point_track = ed_tracking_point_track_pick_can_slide(space_clip,
+                                                                            point_track_pick);
+  const bool can_slide_plane_track = ed_tracking_plane_track_pick_can_slide(plane_track_pick);
+  if (can_slide_point_track && !can_slide_plane_track) {
+    return true;
+  }
+  else if (!can_slide_point_track && can_slide_plane_track) {
+    return false;
+  }
+
+  /* Prefer the closest pick. */
+  if (point_track_pick->distance_px_squared > plane_track_pick->distance_px_squared) {
+    return false;
+  }
+  return true;
+}
+
+TrackingPick ed_tracking_pick_closest(const TrackPickOptions *options,
+                                      bContext *C,
+                                      const float co[2])
+{
+  TrackingPick pick;
+
+  pick.point_track_pick = ed_tracking_pick_point_track(options, C, co);
+  pick.plane_track_pick = ed_tracking_pick_plane_track(options, C, co);
+
+  if (tracking_should_prefer_point_track(C, &pick.point_track_pick, &pick.plane_track_pick)) {
+    pick.plane_track_pick = plane_track_pick_make_null();
+  }
+  else {
+    pick.point_track_pick = point_track_pick_make_null();
+  }
+
+  return pick;
+}
+
+/** \} */
 
 /********************** mouse select operator *********************/
-
-static int mouse_on_side(
-    const float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
-{
-  if (x1 > x2) {
-    SWAP(float, x1, x2);
-  }
-
-  if (y1 > y2) {
-    SWAP(float, y1, y2);
-  }
-
-  return (co[0] >= x1 - epsx && co[0] <= x2 + epsx) && (co[1] >= y1 - epsy && co[1] <= y2 + epsy);
-}
-
-static int mouse_on_rect(const float co[2],
-                         const float pos[2],
-                         const float min[2],
-                         const float max[2],
-                         float epsx,
-                         float epsy)
-{
-  return mouse_on_side(
-             co, pos[0] + min[0], pos[1] + min[1], pos[0] + max[0], pos[1] + min[1], epsx, epsy) ||
-         mouse_on_side(
-             co, pos[0] + min[0], pos[1] + min[1], pos[0] + min[0], pos[1] + max[1], epsx, epsy) ||
-         mouse_on_side(
-             co, pos[0] + min[0], pos[1] + max[1], pos[0] + max[0], pos[1] + max[1], epsx, epsy) ||
-         mouse_on_side(
-             co, pos[0] + max[0], pos[1] + min[1], pos[0] + max[0], pos[1] + max[1], epsx, epsy);
-}
-
-static int mouse_on_crns(
-    const float co[2], const float pos[2], const float crns[4][2], float epsx, float epsy)
-{
-  float dist = dist_to_crns(co, pos, crns);
-
-  return dist < max_ff(epsx, epsy);
-}
-
-static int track_mouse_area(const bContext *C, const float co[2], MovieTrackingTrack *track)
-{
-  SpaceClip *sc = CTX_wm_space_clip(C);
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
-  MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-  float pat_min[2], pat_max[2];
-  float epsx, epsy;
-  int width, height;
-
-  ED_space_clip_get_size(sc, &width, &height);
-
-  BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
-
-  epsx = min_ffff(pat_min[0] - marker->search_min[0],
-                  marker->search_max[0] - pat_max[0],
-                  fabsf(pat_min[0]),
-                  fabsf(pat_max[0])) /
-         2;
-  epsy = min_ffff(pat_min[1] - marker->search_min[1],
-                  marker->search_max[1] - pat_max[1],
-                  fabsf(pat_min[1]),
-                  fabsf(pat_max[1])) /
-         2;
-
-  epsx = max_ff(epsx, 2.0f / width);
-  epsy = max_ff(epsy, 2.0f / height);
-
-  if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-    if (mouse_on_rect(co, marker->pos, marker->search_min, marker->search_max, epsx, epsy)) {
-      return TRACK_AREA_SEARCH;
-    }
-  }
-
-  if ((marker->flag & MARKER_DISABLED) == 0) {
-    if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-      if (mouse_on_crns(co, marker->pos, marker->pattern_corners, epsx, epsy)) {
-        return TRACK_AREA_PAT;
-      }
-    }
-
-    epsx = 12.0f / width;
-    epsy = 12.0f / height;
-
-    if (fabsf(co[0] - marker->pos[0] - track->offset[0]) < epsx &&
-        fabsf(co[1] - marker->pos[1] - track->offset[1]) <= epsy) {
-      return TRACK_AREA_POINT;
-    }
-  }
-
-  return TRACK_AREA_NONE;
-}
-
-static float dist_to_rect(const float co[2],
-                          const float pos[2],
-                          const float min[2],
-                          const float max[2])
-{
-  float d1, d2, d3, d4;
-  const float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-  const float v1[2] = {min[0], min[1]}, v2[2] = {max[0], min[1]};
-  const float v3[2] = {max[0], max[1]}, v4[2] = {min[0], max[1]};
-
-  d1 = dist_squared_to_line_segment_v2(p, v1, v2);
-  d2 = dist_squared_to_line_segment_v2(p, v2, v3);
-  d3 = dist_squared_to_line_segment_v2(p, v3, v4);
-  d4 = dist_squared_to_line_segment_v2(p, v4, v1);
-
-  return sqrtf(min_ffff(d1, d2, d3, d4));
-}
-
-/* Distance to quad defined by its corners, corners are relative to pos */
-static float dist_to_crns(const float co[2], const float pos[2], const float crns[4][2])
-{
-  float d1, d2, d3, d4;
-  const float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-  const float *v1 = crns[0], *v2 = crns[1];
-  const float *v3 = crns[2], *v4 = crns[3];
-
-  d1 = dist_squared_to_line_segment_v2(p, v1, v2);
-  d2 = dist_squared_to_line_segment_v2(p, v2, v3);
-  d3 = dist_squared_to_line_segment_v2(p, v3, v4);
-  d4 = dist_squared_to_line_segment_v2(p, v4, v1);
-
-  return sqrtf(min_ffff(d1, d2, d3, d4));
-}
-
-/* Same as above, but all the coordinates are absolute */
-static float dist_to_crns_abs(const float co[2], const float corners[4][2])
-{
-  float d1, d2, d3, d4;
-  const float *v1 = corners[0], *v2 = corners[1];
-  const float *v3 = corners[2], *v4 = corners[3];
-
-  d1 = dist_squared_to_line_segment_v2(co, v1, v2);
-  d2 = dist_squared_to_line_segment_v2(co, v2, v3);
-  d3 = dist_squared_to_line_segment_v2(co, v3, v4);
-  d4 = dist_squared_to_line_segment_v2(co, v4, v1);
-
-  return sqrtf(min_ffff(d1, d2, d3, d4));
-}
-
-static MovieTrackingTrack *find_nearest_track(SpaceClip *sc,
-                                              ListBase *tracksbase,
-                                              const float co[2],
-                                              float *r_distance)
-{
-  MovieTrackingTrack *track = NULL, *cur;
-  float mindist = 0.0f;
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
-
-  cur = tracksbase->first;
-  while (cur) {
-    MovieTrackingMarker *marker = BKE_tracking_marker_get(cur, framenr);
-
-    if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, cur, marker)) {
-      float dist, d1, d2 = FLT_MAX, d3 = FLT_MAX;
-
-      /* distance to marker point */
-      d1 = sqrtf(
-          (co[0] - marker->pos[0] - cur->offset[0]) * (co[0] - marker->pos[0] - cur->offset[0]) +
-          (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
-
-      /* distance to pattern boundbox */
-      if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-        d2 = dist_to_crns(co, marker->pos, marker->pattern_corners);
-      }
-
-      /* distance to search boundbox */
-      if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur)) {
-        d3 = dist_to_rect(co, marker->pos, marker->search_min, marker->search_max);
-      }
-
-      /* choose minimal distance. useful for cases of overlapped markers. */
-      dist = min_fff(d1, d2, d3);
-
-      if (track == NULL || dist < mindist) {
-        track = cur;
-        mindist = dist;
-      }
-    }
-
-    cur = cur->next;
-  }
-
-  *r_distance = mindist;
-
-  return track;
-}
-
-static MovieTrackingPlaneTrack *find_nearest_plane_track(SpaceClip *sc,
-                                                         ListBase *plane_tracks_base,
-                                                         const float co[2],
-                                                         float *r_distance)
-{
-  MovieTrackingPlaneTrack *plane_track = NULL, *current_plane_track;
-  float min_distance = 0.0f;
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
-
-  for (current_plane_track = plane_tracks_base->first; current_plane_track;
-       current_plane_track = current_plane_track->next) {
-    MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(current_plane_track,
-                                                                           framenr);
-
-    if ((current_plane_track->flag & TRACK_HIDDEN) == 0) {
-      float distance = dist_to_crns_abs(co, plane_marker->corners);
-      if (plane_track == NULL || distance < min_distance) {
-        plane_track = current_plane_track;
-        min_distance = distance;
-      }
-    }
-  }
-
-  *r_distance = min_distance;
-
-  return plane_track;
-}
 
 void ed_tracking_deselect_all_tracks(ListBase *tracks_base)
 {
@@ -296,59 +562,41 @@ static int select_exec(bContext *C, wmOperator *op)
   float co[2];
   RNA_float_get_array(op->ptr, "location", co);
 
+  const TrackPickOptions options = ed_tracking_pick_options_defaults();
+  const TrackingPick pick = ed_tracking_pick_closest(&options, C, co);
+
   /* Special code which allows to slide a marker which belongs to currently selected but not yet
    * active track. If such track is found activate it and return pass-though so that marker slide
    * operator can be used immediately after.
-   * This logic makes it convenient to slide markers when left mouse selection is used. */
-  if (!extend) {
-    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, co);
-    if (track != NULL) {
-      MovieClip *clip_iter = ED_space_clip_get_clip(sc);
-
-      tracking_object->active_track = track;
-
-      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-      DEG_id_tag_update(&clip_iter->id, ID_RECALC_SELECT);
-
-      return OPERATOR_PASS_THROUGH;
+   * This logic makes it convenient to slide markers when left mouse selection is used. Without it
+   * selection will be lost which causes inconvenience for the VFX artist. */
+  const bool activate_selected = !extend;
+  if (activate_selected && ed_tracking_pick_can_slide(sc, &pick)) {
+    if (pick.point_track_pick.track != NULL) {
+      tracking_object->active_track = pick.point_track_pick.track;
+      tracking_object->active_plane_track = NULL;
     }
+    else {
+      tracking_object->active_track = NULL;
+      tracking_object->active_plane_track = pick.plane_track_pick.plane_track;
+    }
+
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
+
+    return OPERATOR_PASS_THROUGH;
   }
-
-  float distance_to_track, distance_to_plane_track;
-
-  MovieTrackingTrack *track = find_nearest_track(
-      sc, &tracking_object->tracks, co, &distance_to_track);
-  MovieTrackingPlaneTrack *plane_track = find_nearest_plane_track(
-      sc, &tracking_object->plane_tracks, co, &distance_to_plane_track);
 
   ClipViewLockState lock_state;
   ED_clip_view_lock_state_store(C, &lock_state);
 
-  /* Do not select beyond some reasonable distance, that is useless and
-   * prevents the 'deselect on nothing' behavior. */
-  if (distance_to_track > 0.05f) {
-    track = NULL;
-  }
-  if (distance_to_plane_track > 0.05f) {
-    plane_track = NULL;
-  }
-
-  /* Between track and plane we choose closest to the mouse for selection here. */
-  if (track && plane_track) {
-    if (distance_to_track < distance_to_plane_track) {
-      plane_track = NULL;
-    }
-    else {
-      track = NULL;
-    }
-  }
-
-  if (track) {
+  if (pick.point_track_pick.track != NULL) {
     if (!extend) {
       ed_tracking_deselect_all_plane_tracks(&tracking_object->plane_tracks);
     }
 
-    int area = track_mouse_area(C, co, track);
+    MovieTrackingTrack *track = pick.point_track_pick.track;
+    int area = pick.point_track_pick.area;
 
     if (!extend || !TRACK_VIEW_SELECTED(sc, track)) {
       area = TRACK_AREA_ALL;
@@ -373,10 +621,12 @@ static int select_exec(bContext *C, wmOperator *op)
       tracking_object->active_plane_track = NULL;
     }
   }
-  else if (plane_track) {
+  else if (pick.plane_track_pick.plane_track != NULL) {
     if (!extend) {
       ed_tracking_deselect_all_tracks(&tracking_object->tracks);
     }
+
+    MovieTrackingPlaneTrack *plane_track = pick.plane_track_pick.plane_track;
 
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
       if (extend) {
@@ -401,6 +651,23 @@ static int select_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
   DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
+
+  /* This is a bit implicit, but when the selection operator is used from a LMB Add Marker and
+   * tweak tool we do not want the pass-through here and only want selection to happen. This way
+   * the selection operator will not fall-through to Add Marker operator. */
+  if (activate_selected) {
+    if (ed_tracking_pick_can_slide(sc, &pick)) {
+      return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+    }
+
+    if (ed_tracking_pick_empty(&pick)) {
+      /* When nothing was selected pass-though and allow Add Marker part of the keymap to add new
+       * marker at the position. */
+      return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+    }
+
+    return OPERATOR_FINISHED;
+  }
 
   /* Pass-through + finished to allow tweak to transform. */
   return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;

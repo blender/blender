@@ -93,63 +93,32 @@ typedef struct SlidePlaneMarkerData {
   bool accurate;
 } SlidePlaneMarkerData;
 
-static float mouse_to_plane_slide_zone_distance_squared(const float co[2],
-                                                        const float slide_zone[2],
-                                                        int width,
-                                                        int height)
-{
-  const float pixel_co[2] = {co[0] * width, co[1] * height},
-              pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
-  return square_f(pixel_co[0] - pixel_slide_zone[0]) + square_f(pixel_co[1] - pixel_slide_zone[1]);
-}
-
 static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
                                                                   const wmEvent *event,
                                                                   int *r_corner)
 {
-  const float distance_clip_squared = 12.0f * 12.0f;
-  SpaceClip *sc = CTX_wm_space_clip(C);
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
-  MovieClip *clip = ED_space_clip_get_clip(sc);
-  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-  const int framenr = ED_space_clip_get_clip_frame_number(sc);
-  int width, height;
-  float co[2];
 
-  ED_space_clip_get_size(sc, &width, &height);
-  if (width == 0 || height == 0) {
+  float co[2];
+  ED_clip_mouse_pos(space_clip, region, event->mval, co);
+
+  TrackPickOptions options = ed_tracking_pick_options_defaults();
+  options.selected_only = true;
+  options.unlocked_only = true;
+  options.enabled_only = true;
+  const PlaneTrackPick track_pick = ed_tracking_pick_plane_track(&options, C, co);
+
+  if (ed_tracking_plane_track_pick_empty(&track_pick) ||
+      !ed_tracking_plane_track_pick_can_slide(&track_pick)) {
     return NULL;
   }
 
-  ED_clip_mouse_pos(sc, region, event->mval, co);
-
-  float min_distance_squared = FLT_MAX;
-  int min_corner = -1;
-  MovieTrackingPlaneTrack *min_plane_track = NULL;
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
-      for (int i = 0; i < 4; i++) {
-        float distance_squared = mouse_to_plane_slide_zone_distance_squared(
-            co, plane_marker->corners[i], width, height);
-
-        if (distance_squared < min_distance_squared) {
-          min_distance_squared = distance_squared;
-          min_corner = i;
-          min_plane_track = plane_track;
-        }
-      }
-    }
+  if (r_corner != NULL) {
+    *r_corner = track_pick.corner_index;
   }
 
-  if (min_distance_squared < distance_clip_squared / sc->zoom) {
-    if (r_corner != NULL) {
-      *r_corner = min_corner;
-    }
-    return min_plane_track;
-  }
-
-  return NULL;
+  return track_pick.plane_track;
 }
 
 static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
