@@ -129,8 +129,8 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   subdiv_ccg->grids = static_cast<CCGElem **>(
       MEM_calloc_arrayN(num_grids, sizeof(CCGElem *), "subdiv ccg grids"));
   subdiv_ccg->grids_storage = static_cast<unsigned char *>(MEM_calloc_arrayN(
-      num_grids, ((size_t)grid_area) * element_size, "subdiv ccg grids storage"));
-  const size_t grid_size_in_bytes = (size_t)grid_area * element_size;
+      num_grids, (size_t(grid_area)) * element_size, "subdiv ccg grids storage"));
+  const size_t grid_size_in_bytes = size_t(grid_area) * element_size;
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     const size_t grid_offset = grid_size_in_bytes * grid_index;
     subdiv_ccg->grids[grid_index] = (CCGElem *)&subdiv_ccg->grids_storage[grid_offset];
@@ -241,7 +241,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
         const float grid_u = x * grid_size_1_inv;
         float u, v;
         BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
-        const size_t grid_element_index = (size_t)y * grid_size + x;
+        const size_t grid_element_index = size_t(y) * grid_size + x;
         const size_t grid_element_offset = grid_element_index * element_size;
         subdiv_ccg_eval_grid_element(data, ptex_face_index, u, v, &grid[grid_element_offset]);
       }
@@ -271,7 +271,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
       const float u = 1.0f - (y * grid_size_1_inv);
       for (int x = 0; x < grid_size; x++) {
         const float v = 1.0f - (x * grid_size_1_inv);
-        const size_t grid_element_index = (size_t)y * grid_size + x;
+        const size_t grid_element_index = size_t(y) * grid_size + x;
         const size_t grid_element_offset = grid_element_index * element_size;
         subdiv_ccg_eval_grid_element(data, ptex_face_index, u, v, &grid[grid_element_offset]);
       }

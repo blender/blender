@@ -1840,7 +1840,7 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
       value = RNA_property_float_get(&ptr, prop);
     }
     else if (type == PROP_INT) {
-      value = static_cast<float>(RNA_property_int_get(&ptr, prop));
+      value = float(RNA_property_int_get(&ptr, prop));
     }
     else if (type == PROP_BOOLEAN) {
       value = RNA_property_boolean_get(&ptr, prop) ? 1.0f : 0.0f;
@@ -1863,7 +1863,7 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
     int tmp[4] = {0, 0, 0, 1};
     RNA_property_int_get_array(&ptr, prop, tmp);
     for (int i = 0; i < 4; i++) {
-      r_data[i] = static_cast<float>(tmp[i]);
+      r_data[i] = float(tmp[i]);
     }
     return true;
   }

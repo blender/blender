@@ -221,7 +221,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     /* This will give us loop normal spaces,
      * we do not actually care about computed loop_normals for now... */
     loop_normals = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN((size_t)loops_num, sizeof(*loop_normals), __func__));
+        MEM_calloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
     BKE_mesh_normals_loop_split(mvert,
                                 wn_data->vert_normals,
                                 verts_num,
@@ -241,7 +241,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
     items_num = lnors_spacearr.spaces_num;
     items_data = static_cast<WeightedNormalDataAggregateItem *>(
-        MEM_calloc_arrayN((size_t)items_num, sizeof(*items_data), __func__));
+        MEM_calloc_arrayN(size_t(items_num), sizeof(*items_data), __func__));
 
     /* In this first loop, we assign each WeightedNormalDataAggregateItem
      * to its smooth fan of loops (aka lnor space). */
@@ -284,7 +284,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   else {
     items_num = verts_num;
     items_data = static_cast<WeightedNormalDataAggregateItem *>(
-        MEM_calloc_arrayN((size_t)items_num, sizeof(*items_data), __func__));
+        MEM_calloc_arrayN(size_t(items_num), sizeof(*items_data), __func__));
     if (use_face_influence) {
       for (int item_index = 0; item_index < items_num; item_index++) {
         items_data[item_index].curr_strength = FACE_STRENGTH_WEAK;
@@ -380,7 +380,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
        * But think we can live with it for now,
        * and it makes code simpler & cleaner. */
       float(*vert_normals)[3] = static_cast<float(*)[3]>(
-          MEM_calloc_arrayN((size_t)verts_num, sizeof(*loop_normals), __func__));
+          MEM_calloc_arrayN(size_t(verts_num), sizeof(*loop_normals), __func__));
 
       for (int ml_index = 0; ml_index < loops_num; ml_index++) {
         const int mv_index = mloop[ml_index].v;
@@ -404,7 +404,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     }
     else {
       loop_normals = static_cast<float(*)[3]>(
-          MEM_calloc_arrayN((size_t)loops_num, sizeof(*loop_normals), __func__));
+          MEM_calloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
 
       BKE_mesh_normals_loop_split(mvert,
                                   wn_data->vert_normals,
@@ -463,7 +463,7 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
   int mp_index;
 
   ModePair *face_area = static_cast<ModePair *>(
-      MEM_malloc_arrayN((size_t)polys_num, sizeof(*face_area), __func__));
+      MEM_malloc_arrayN(size_t(polys_num), sizeof(*face_area), __func__));
 
   ModePair *f_area = face_area;
   for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++, f_area++) {
@@ -490,23 +490,23 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   int mp_index;
 
   int *loop_to_poly = static_cast<int *>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*loop_to_poly), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_to_poly), __func__));
 
   ModePair *corner_angle = static_cast<ModePair *>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*corner_angle), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*corner_angle), __func__));
 
   for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
     const MLoop *ml_start = &mloop[mp->loopstart];
 
     float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN((size_t)mp->totloop, sizeof(*index_angle), __func__));
+        MEM_malloc_arrayN(size_t(mp->totloop), sizeof(*index_angle), __func__));
     BKE_mesh_calc_poly_angles(mp, ml_start, mvert, index_angle);
 
     ModePair *c_angl = &corner_angle[mp->loopstart];
     float *angl = index_angle;
     for (int ml_index = mp->loopstart; ml_index < mp->loopstart + mp->totloop;
          ml_index++, c_angl++, angl++) {
-      c_angl->val = (float)M_PI - *angl;
+      c_angl->val = float(M_PI) - *angl;
       c_angl->index = ml_index;
 
       loop_to_poly[ml_index] = mp_index;
@@ -534,17 +534,17 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   int mp_index;
 
   int *loop_to_poly = static_cast<int *>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*loop_to_poly), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_to_poly), __func__));
 
   ModePair *combined = static_cast<ModePair *>(
-      MEM_malloc_arrayN((size_t)loops_num, sizeof(*combined), __func__));
+      MEM_malloc_arrayN(size_t(loops_num), sizeof(*combined), __func__));
 
   for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
     const MLoop *ml_start = &mloop[mp->loopstart];
 
     float face_area = BKE_mesh_calc_poly_area(mp, ml_start, mvert);
     float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN((size_t)mp->totloop, sizeof(*index_angle), __func__));
+        MEM_malloc_arrayN(size_t(mp->totloop), sizeof(*index_angle), __func__));
     BKE_mesh_calc_poly_angles(mp, ml_start, mvert, index_angle);
 
     ModePair *cmbnd = &combined[mp->loopstart];
@@ -552,7 +552,7 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
     for (int ml_index = mp->loopstart; ml_index < mp->loopstart + mp->totloop;
          ml_index++, cmbnd++, angl++) {
       /* In this case val is product of corner angle and face area. */
-      cmbnd->val = ((float)M_PI - *angl) * face_area;
+      cmbnd->val = (float(M_PI) - *angl) * face_area;
       cmbnd->index = ml_index;
 
       loop_to_poly[ml_index] = mp_index;
@@ -606,12 +606,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
    * If weight < 50 then more weight given to faces with lesser vals. However current calculation
    * does not converge to min/max.
    */
-  float weight = ((float)wnmd->weight) / 50.0f;
+  float weight = float(wnmd->weight) / 50.0f;
   if (wnmd->weight == 100) {
-    weight = (float)SHRT_MAX;
+    weight = float(SHRT_MAX);
   }
   else if (wnmd->weight == 1) {
-    weight = 1 / (float)SHRT_MAX;
+    weight = 1 / float(SHRT_MAX);
   }
   else if ((weight - 1) * 25 > 1) {
     weight = (weight - 1) * 25;

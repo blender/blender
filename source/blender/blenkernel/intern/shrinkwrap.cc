@@ -199,7 +199,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   /* Count faces per edge (up to 2). */
   char *edge_mode = static_cast<char *>(
-      MEM_calloc_arrayN((size_t)mesh->totedge, sizeof(char), __func__));
+      MEM_calloc_arrayN(size_t(mesh->totedge), sizeof(char), __func__));
 
   for (int i = 0; i < mesh->totloop; i++) {
     uint eidx = mloop[i].e;
@@ -258,7 +258,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   /* Find boundary vertices and build a mapping table for compact storage of data. */
   int *vert_boundary_id = static_cast<int *>(
-      MEM_calloc_arrayN((size_t)mesh->totvert, sizeof(int), __func__));
+      MEM_calloc_arrayN(size_t(mesh->totvert), sizeof(int), __func__));
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
@@ -272,7 +272,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   uint num_boundary_verts = 0;
 
   for (int i = 0; i < mesh->totvert; i++) {
-    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? (int)num_boundary_verts++ : -1;
+    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? int(num_boundary_verts++) : -1;
   }
 
   data->vert_boundary_id = vert_boundary_id;
