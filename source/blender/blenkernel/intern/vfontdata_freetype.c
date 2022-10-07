@@ -281,14 +281,14 @@ static FT_Face vfont_face_load_from_packed_file(PackedFile *pf)
   }
 
   /* Select a character map. */
-  FT_Error err = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-  if (err) {
-    err = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+  FT_Error err_charmap = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+  if (err_charmap) {
+    err_charmap = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
   }
-  if (err && face->num_charmaps > 0) {
-    err = FT_Select_Charmap(face, face->charmaps[0]->encoding);
+  if (err_charmap && face->num_charmaps > 0) {
+    err_charmap = FT_Select_Charmap(face, face->charmaps[0]->encoding);
   }
-  if (err) {
+  if (err_charmap) {
     FT_Done_Face(face);
     return NULL;
   }
