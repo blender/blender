@@ -1,4 +1,4 @@
-#if 1
+#if 0
 #  include "MEM_guardedalloc.h"
 
 #  include "BLI_compiler_attrs.h"
@@ -39,7 +39,7 @@ using blender::Set;
 using blender::Vector;
 using namespace blender::threading;
 
-ATTR_NO_OPT extern "C" void BM_mesh_bm_to_me_threaded(
+extern "C" void BM_mesh_bm_to_me_threaded(
     Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
