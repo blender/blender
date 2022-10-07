@@ -856,7 +856,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
               "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
               "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
               ${SYCL_COMPILER}
-              "$<$<CONFIG:Release>:${sycl_compiler_flags_Releas}>"
+              "$<$<CONFIG:Release>:${sycl_compiler_flags_Release}>"
               "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo}>"
               "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
               "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
