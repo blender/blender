@@ -322,8 +322,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                     * then use the first one */
     {
       /* Use the shorter of the two (to avoid out of bounds access) */
-      int dst_len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr, prop) : 1;
-      int src_len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr2, prop2) : 1;
+      int dst_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr, prop) : 1;
+      int src_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr2, prop2) : 1;
 
       int len = MIN2(dst_len, src_len);
 
@@ -347,7 +347,7 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
     case CREATEDRIVER_MAPPING_1_N: /* 1-N - Specified target index for all */
     default: {
-      int len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr, prop) : 1;
+      int len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr, prop) : 1;
 
       for (int i = 0; i < len; i++) {
         done_tot += add_driver_with_target(reports,

@@ -510,7 +510,7 @@ static void bm_uuidwalk_pass_add(UUIDWalk *uuidwalk,
         do {
           if (!BLI_ghash_haskey(uuidwalk->faces_uuid, l_iter_radial->f) &&
               !BLI_gset_haskey(faces_step_next, l_iter_radial->f) &&
-              (bm_uuidwalk_face_test(uuidwalk, l_iter_radial->f))) {
+              bm_uuidwalk_face_test(uuidwalk, l_iter_radial->f)) {
             BLI_gset_insert(faces_step_next, l_iter_radial->f);
 
             /* add to fstep */

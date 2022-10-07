@@ -595,7 +595,7 @@ static void do_versions_fix_annotations(bGPdata *gpd)
 
         LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
           LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-            if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+            if ((gps->colorname[0] != '\0') && STREQ(gps->colorname, palcolor->info)) {
               /* copy color settings */
               copy_v4_v4(gpl->color, palcolor->color);
             }

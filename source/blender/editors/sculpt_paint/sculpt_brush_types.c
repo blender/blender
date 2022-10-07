@@ -131,7 +131,7 @@ static void calc_sculpt_plane(
     }
 
     /* For area normal. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
@@ -140,7 +140,7 @@ static void calc_sculpt_plane(
     }
 
     /* For flatten center. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }

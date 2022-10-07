@@ -2463,7 +2463,7 @@ bool do_guides(Depsgraph *depsgraph,
       if (guidetime != 0.0f) {
         /* curve direction */
         cross_v3_v3v3(temp, eff->guide_dir, guidedir);
-        angle = dot_v3v3(eff->guide_dir, guidedir) / (len_v3(eff->guide_dir));
+        angle = dot_v3v3(eff->guide_dir, guidedir) / len_v3(eff->guide_dir);
         angle = saacos(angle);
         axis_angle_to_quat(rot2, temp, angle);
         mul_qt_v3(rot2, vec_to_point);
@@ -2988,8 +2988,7 @@ static void psys_thread_create_path(ParticleTask *task,
      *        pa->num, pa->fuv,
      *        NULL);
      */
-    cpa_num = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num :
-                                                                           pa->num_dmcache;
+    cpa_num = ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa->num : pa->num_dmcache;
 
     /* XXX hack to avoid messed up particle num and subsequent crash (T40733) */
     if (cpa_num > ctx->sim.psmd->mesh_final->totface) {
@@ -3850,7 +3849,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
   MFace *mface;
   const float(*orcodata)[3];
 
-  int i = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num : pa->num_dmcache;
+  int i = ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa->num : pa->num_dmcache;
   if (i == -1 || i >= mesh->totface) {
     unit_m4(mat);
     return;

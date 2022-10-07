@@ -1415,7 +1415,7 @@ static void template_ID(const bContext *C,
 
       UI_but_funcN_set(
           but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ALONE));
-      if ((!BKE_id_copy_is_allowed(id)) || (idfrom && idfrom->lib) || (!editable) ||
+      if (!BKE_id_copy_is_allowed(id) || (idfrom && idfrom->lib) || (!editable) ||
           /* object in editmode - don't change data */
           (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT))) {
         UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -1442,7 +1442,7 @@ static void template_ID(const bContext *C,
                       UI_UNIT_Y,
                       NULL);
       }
-      else if (!(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+      else if (!ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS) &&
                (hide_buttons == false)) {
         uiDefIconButR(block,
                       UI_BTYPE_ICON_TOGGLE,
@@ -3665,7 +3665,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     (float)(MAX2(0, coba->tot - 1)),
+                     (float)MAX2(0, coba->tot - 1),
                      0,
                      0,
                      TIP_("Choose active color stop"));
@@ -3696,7 +3696,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     (float)(MAX2(0, coba->tot - 1)),
+                     (float)MAX2(0, coba->tot - 1),
                      0,
                      0,
                      TIP_("Choose active color stop"));

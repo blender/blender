@@ -1859,7 +1859,7 @@ static bool imb_exr_is_multilayer_file(MultiPartInputFile &file)
    * channels without a layer name will be single layer. */
   channels.layers(layerNames);
 
-  return (!layerNames.empty());
+  return !layerNames.empty();
 }
 
 static void imb_exr_type_by_channels(ChannelList &channels,

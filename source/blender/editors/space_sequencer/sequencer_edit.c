@@ -120,7 +120,7 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
   return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
-         (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW));
+         ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
 bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
@@ -194,7 +194,7 @@ bool sequencer_strip_has_path_poll(bContext *C)
   Editing *ed;
   Sequence *seq;
   return (((ed = SEQ_editing_get(CTX_data_scene(C))) != NULL) && ((seq = ed->act_seq) != NULL) &&
-          (SEQ_HAS_PATH(seq)));
+          SEQ_HAS_PATH(seq));
 }
 
 bool sequencer_view_has_preview_poll(bContext *C)

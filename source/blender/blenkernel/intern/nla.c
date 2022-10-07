@@ -431,8 +431,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
   BKE_action_get_frame_range(strip->act, &strip->actstart, &strip->actend);
 
   strip->start = strip->actstart;
-  strip->end = (IS_EQF(strip->actstart, strip->actend)) ? (strip->actstart + 1.0f) :
-                                                          (strip->actend);
+  strip->end = IS_EQF(strip->actstart, strip->actend) ? (strip->actstart + 1.0f) : strip->actend;
 
   /* strip should be referenced as-is */
   strip->scale = 1.0f;

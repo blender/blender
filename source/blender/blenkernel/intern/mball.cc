@@ -297,7 +297,7 @@ bool BKE_mball_is_basis(const Object *ob)
 
   /* Just a quick test. */
   const int len = strlen(ob->id.name);
-  return (!isdigit(ob->id.name[len - 1]));
+  return !isdigit(ob->id.name[len - 1]);
 }
 
 bool BKE_mball_is_same_group(const Object *ob1, const Object *ob2)

@@ -122,7 +122,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
             LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-              if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+              if ((gps->colorname[0] != '\0') && STREQ(gps->colorname, palcolor->info)) {
                 gps->mat_nr = ob->totcol - 1;
                 gps->colorname[0] = '\0';
                 /* weights array */
@@ -160,7 +160,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
           gpl->tintcolor[3] = 0.0f;
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
             LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-              if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+              if ((gps->colorname[0] != '\0') && STREQ(gps->colorname, palcolor->info)) {
                 /* copy color settings */
                 copy_v4_v4(gpl->color, palcolor->color);
               }

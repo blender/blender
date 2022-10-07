@@ -73,7 +73,7 @@ static bool vertex_paint_from_weight(Object *ob)
   using namespace blender;
 
   Mesh *me;
-  if ((me = BKE_mesh_from_object(ob)) == nullptr || (ED_mesh_color_ensure(me, nullptr)) == false) {
+  if ((me = BKE_mesh_from_object(ob)) == nullptr || ED_mesh_color_ensure(me, nullptr) == false) {
     return false;
   }
 

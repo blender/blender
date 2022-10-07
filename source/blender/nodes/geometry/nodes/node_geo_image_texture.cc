@@ -189,22 +189,22 @@ class ImageFieldsFunction : public fn::MultiFunction {
     v[2] = ((-0.5f * ty + 0.5f) * ty + 0.5f) * ty + (1.0f / 6.0f);
     v[3] = (1.0f / 6.0f) * ty * ty * ty;
 
-    return (v[0] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[0])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[0])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[0])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[0])))) +
-           (v[1] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[1])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[1])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[1])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[1])))) +
-           (v[2] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[2])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[2])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[2])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[2])))) +
-           (v[3] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[3])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[3])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[3])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[3]))));
+    return (v[0] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[0]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[0]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[0]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[0]))) +
+           (v[1] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[1]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[1]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[1]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[1]))) +
+           (v[2] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[2]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[2]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[2]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[2]))) +
+           (v[3] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[3]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[3]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[3]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[3])));
   }
 
   static float4 image_linear_texture_lookup(const ImBuf *ibuf,

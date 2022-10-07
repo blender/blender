@@ -881,7 +881,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
       if (hmd->object) {
         BKE_view_layer_synced_ensure(scene, view_layer);
         base = BKE_view_layer_base_find(view_layer, hmd->object);
-        if (base && ((base->flag & BASE_SELECTED) == 0) && (BASE_SELECTABLE(v3d, base))) {
+        if (base && ((base->flag & BASE_SELECTED) == 0) && BASE_SELECTABLE(v3d, base)) {
           ED_object_base_select(base, BA_SELECT);
           changed = true;
         }
@@ -958,7 +958,7 @@ static bool select_grouped_color(bContext *C, Object *ob)
 
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     if (((base->flag & BASE_SELECTED) == 0) &&
-        (compare_v3v3(base->object->color, ob->color, 0.005f))) {
+        compare_v3v3(base->object->color, ob->color, 0.005f)) {
       ED_object_base_select(base, BA_SELECT);
       changed = true;
     }

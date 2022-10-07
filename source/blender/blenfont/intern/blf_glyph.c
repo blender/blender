@@ -54,7 +54,7 @@
  */
 static FT_Fixed to_16dot16(double val)
 {
-  return (FT_Fixed)(lround(val * 65536.0));
+  return (FT_Fixed)lround(val * 65536.0);
 }
 
 /** \} */

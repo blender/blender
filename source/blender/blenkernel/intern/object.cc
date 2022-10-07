@@ -3352,7 +3352,7 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
     case PAROBJECT: {
       bool ok = false;
       if (par->type == OB_CURVES_LEGACY) {
-        if ((((Curve *)par->data)->flag & CU_PATH) && (ob_parcurve(ob, par, tmat))) {
+        if ((((Curve *)par->data)->flag & CU_PATH) && ob_parcurve(ob, par, tmat)) {
           ok = true;
         }
       }

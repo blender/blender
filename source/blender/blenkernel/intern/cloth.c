@@ -1130,7 +1130,7 @@ static void cloth_update_springs(ClothModifierData *clmd)
        * because implicit solver would need reset! */
 
       /* Activate / Deactivate existing springs */
-      if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) &&
+      if (!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED) &&
           (cloth->verts[spring->ij].goal > ALMOST_ZERO)) {
         spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
       }

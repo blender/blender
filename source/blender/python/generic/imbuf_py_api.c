@@ -150,13 +150,13 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
   }
 
   if (/* X range. */
-      (!(crop.xmin >= 0 && crop.xmax < self->ibuf->x)) ||
+      !(crop.xmin >= 0 && crop.xmax < self->ibuf->x) ||
       /* Y range. */
-      (!(crop.ymin >= 0 && crop.ymax < self->ibuf->y)) ||
+      !(crop.ymin >= 0 && crop.ymax < self->ibuf->y) ||
       /* X order. */
-      (!(crop.xmin <= crop.xmax)) ||
+      !(crop.xmin <= crop.xmax) ||
       /* Y order. */
-      (!(crop.ymin <= crop.ymax))) {
+      !(crop.ymin <= crop.ymax)) {
     PyErr_SetString(PyExc_ValueError, "ImBuf crop min/max not in range");
     return NULL;
   }

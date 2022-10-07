@@ -821,7 +821,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           blend_color_interpolate_float(dest_rgba, orig_rgba, border_rgba, 1.0 - orig_rgba[3]);
           linearrgb_to_srgb_v4(dest_srgb, dest_rgba);
 
-          const uint alpha_mask = ((uint)(dest_srgb[3] * 255)) << 24;
+          const uint alpha_mask = (uint)(dest_srgb[3] * 255) << 24;
           const uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
           result->rect[offset_write] = cpack;
         }

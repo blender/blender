@@ -43,11 +43,11 @@ static float quad_calc_error(const float v1[3],
 
     normal_tri_v3(n1, v1, v2, v3);
     normal_tri_v3(n2, v1, v3, v4);
-    angle_a = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
+    angle_a = compare_v3v3(n1, n2, FLT_EPSILON) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
     normal_tri_v3(n1, v2, v3, v4);
     normal_tri_v3(n2, v4, v1, v2);
-    angle_b = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
+    angle_b = compare_v3v3(n1, n2, FLT_EPSILON) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
     diff = (angle_a + angle_b) / (float)(M_PI * 2);
 
@@ -166,15 +166,15 @@ static float bm_edge_is_delimit(const BMEdge *e, const struct DelimitData *delim
   float angle;
 #endif
 
-  if ((delimit_data->do_seam) && (BM_elem_flag_test(e, BM_ELEM_SEAM))) {
+  if (delimit_data->do_seam && BM_elem_flag_test(e, BM_ELEM_SEAM)) {
     goto fail;
   }
 
-  if ((delimit_data->do_sharp) && (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0)) {
+  if (delimit_data->do_sharp && (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0)) {
     goto fail;
   }
 
-  if ((delimit_data->do_mat) && (f_a->mat_nr != f_b->mat_nr)) {
+  if (delimit_data->do_mat && (f_a->mat_nr != f_b->mat_nr)) {
     goto fail;
   }
 

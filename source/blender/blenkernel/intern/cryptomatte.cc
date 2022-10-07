@@ -464,7 +464,7 @@ static std::string to_manifest(const CryptomatteLayer *layer)
     else {
       manifest << ",";
     }
-    manifest << quoted(item.key) << ":\"" << (item.value.hex_encoded()) << "\"";
+    manifest << quoted(item.key) << ":\"" << item.value.hex_encoded() << "\"";
   }
   manifest << "}";
   return manifest.str();

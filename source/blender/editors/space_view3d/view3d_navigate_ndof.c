@@ -32,7 +32,7 @@ static bool ndof_has_translate(const wmNDOFMotionData *ndof,
                                const View3D *v3d,
                                const RegionView3D *rv3d)
 {
-  return !is_zero_v3(ndof->tvec) && (!ED_view3d_offset_lock_check(v3d, rv3d));
+  return !is_zero_v3(ndof->tvec) && !ED_view3d_offset_lock_check(v3d, rv3d);
 }
 
 static bool ndof_has_rotate(const wmNDOFMotionData *ndof, const RegionView3D *rv3d)

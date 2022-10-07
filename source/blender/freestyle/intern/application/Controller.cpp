@@ -1004,7 +1004,7 @@ NodeGroup *Controller::BuildRep(vector<ViewEdge *>::iterator vedges_begin,
   mat.setDiffuse(1, 1, 0.3, 1);
   tesselator2D.setFrsMaterial(mat);
 
-  return (tesselator2D.Tesselate(vedges_begin, vedges_end));
+  return tesselator2D.Tesselate(vedges_begin, vedges_end);
 }
 
 void Controller::toggleEdgeTesselationNature(Nature::EdgeNature iNature)

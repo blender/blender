@@ -100,7 +100,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         const Span<MVert> verts = mesh->verts();
         EXPECT_V3_NEAR(verts.first().co, exp.vert_first, 0.0001f);
         EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
-        const float3 *lnors = (const float3 *)(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+        const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->ldata, CD_NORMAL);
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
@@ -108,8 +108,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
         if (exp.color_first.x >= 0) {
-          const float4 *colors = (const float4 *)(CustomData_get_layer(&mesh->vdata,
-                                                                       CD_PROP_COLOR));
+          const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
           EXPECT_TRUE(colors != nullptr);
           EXPECT_V4_NEAR(colors[0], exp.color_first, 0.0001f);
         }

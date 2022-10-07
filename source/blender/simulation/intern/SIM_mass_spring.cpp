@@ -588,7 +588,7 @@ static void cloth_calc_force(
     SIM_mass_spring_force_gravity(data, i, vert->mass, gravity);
 
     /* Vertex goal springs */
-    if ((!(vert->flags & CLOTH_VERT_FLAG_PINNED)) && (vert->goal > FLT_EPSILON)) {
+    if (!(vert->flags & CLOTH_VERT_FLAG_PINNED) && (vert->goal > FLT_EPSILON)) {
       float goal_x[3], goal_v[3];
       float k;
 

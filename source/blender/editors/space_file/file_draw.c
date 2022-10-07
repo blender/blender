@@ -971,7 +971,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
     /* don't drag parent or refresh items */
-    do_drag = !(FILENAME_IS_CURRPAR(file->relpath));
+    do_drag = !FILENAME_IS_CURRPAR(file->relpath);
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
     const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
 

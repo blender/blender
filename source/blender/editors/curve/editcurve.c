@@ -6817,7 +6817,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  int clear = (STREQ(op->idname, "CURVE_OT_shade_flat"));
+  int clear = STREQ(op->idname, "CURVE_OT_shade_flat");
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);

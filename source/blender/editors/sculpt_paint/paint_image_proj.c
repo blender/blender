@@ -592,8 +592,8 @@ static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[
    *
    * Second multiplication does similar but for vertical offset
    */
-  return ((int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x)) +
-         (((int)(((projCoSS[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y)) *
+  return (int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) +
+         ((int)(((projCoSS[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) *
           ps->buckets_x);
 }
 
@@ -1942,8 +1942,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   }
 
   /* which bounding box cell are we in?, needed for undo */
-  projPixel->bb_cell_index = ((int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV)) +
-                             ((int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV)) *
+  projPixel->bb_cell_index = (int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV) +
+                             (int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV) *
                                  PROJ_BOUNDBOX_DIV;
 
   /* done with view3d_project_float inline */
@@ -2412,7 +2412,7 @@ static bool IsectPT2Df_limit(
     const float pt[2], const float v1[2], const float v2[2], const float v3[2], const float limit)
 {
   return ((area_tri_v2(pt, v1, v2) + area_tri_v2(pt, v2, v3) + area_tri_v2(pt, v3, v1)) /
-          (area_tri_v2(v1, v2, v3))) < limit;
+          area_tri_v2(v1, v2, v3)) < limit;
 }
 
 /**

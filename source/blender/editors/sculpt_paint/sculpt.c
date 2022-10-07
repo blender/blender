@@ -1089,7 +1089,7 @@ PBVHVertRef SCULPT_nearest_vertex_get(
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 {
-  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (!ELEM(i, 3, 5))));
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)));
 }
 
 bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
@@ -3024,7 +3024,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For area normal. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
@@ -3033,7 +3033,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For flatten center. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }
@@ -5204,7 +5204,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 
   /* Restore the mesh before continuing with anchored stroke. */
   if ((brush->flag & BRUSH_ANCHORED) ||
-      ((ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM)) &&
+      (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM) &&
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 

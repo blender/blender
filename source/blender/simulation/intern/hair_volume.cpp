@@ -68,7 +68,7 @@ struct HairGrid {
 };
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) \
-  (min_ii(max_ii(int((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2))
+  min_ii(max_ii(int((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2)
 
 BLI_INLINE int hair_grid_offset(const float vec[3],
                                 const int res[3],

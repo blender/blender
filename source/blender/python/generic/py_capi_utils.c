@@ -1475,7 +1475,7 @@ bool PyC_RunString_AsNumber(const char *imports[],
     PyErr_Clear();
   }
 
-  if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
     ok = false;
   }
   else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {
@@ -1533,7 +1533,7 @@ bool PyC_RunString_AsIntPtr(const char *imports[],
 
   py_dict = PyC_DefaultNameSpace(filename);
 
-  if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
     ok = false;
   }
   else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {
@@ -1572,7 +1572,7 @@ bool PyC_RunString_AsStringAndSize(const char *imports[],
 
   py_dict = PyC_DefaultNameSpace(filename);
 
-  if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
     ok = false;
   }
   else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {

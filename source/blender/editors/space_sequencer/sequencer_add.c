@@ -201,7 +201,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
-    if ((ELEM(type, -1, seq->type)) && (strip_end < timeline_frame) &&
+    if (ELEM(type, -1, seq->type) && (strip_end < timeline_frame) &&
         (timeline_frame - strip_end < proximity)) {
       tgt = seq;
       proximity = timeline_frame - strip_end;
@@ -399,7 +399,7 @@ static bool seq_effect_add_properties_poll(const bContext *UNUSED(C),
       return false;
     }
   }
-  if ((type != SEQ_TYPE_COLOR) && (STREQ(prop_id, "color"))) {
+  if ((type != SEQ_TYPE_COLOR) && STREQ(prop_id, "color")) {
     return false;
   }
 
@@ -747,7 +747,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  return !(STR_ELEM(prop_id, "filepath", "directory", "filename"));
+  return !STR_ELEM(prop_id, "filepath", "directory", "filename");
 }
 
 /* Strips are added in context of timeline which has different preview size than actual preview. We

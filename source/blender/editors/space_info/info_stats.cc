@@ -624,7 +624,7 @@ static const char *info_statusbar_string(Main *bmain,
   }
 
   /* GPU VRAM status. */
-  if ((statusbar_flag & STATUSBAR_SHOW_VRAM) && (GPU_mem_stats_supported())) {
+  if ((statusbar_flag & STATUSBAR_SHOW_VRAM) && GPU_mem_stats_supported()) {
     int gpu_free_mem_kb, gpu_tot_mem_kb;
     GPU_mem_stats_get(&gpu_tot_mem_kb, &gpu_free_mem_kb);
     float gpu_total_gb = gpu_tot_mem_kb / 1048576.0f;

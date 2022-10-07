@@ -603,7 +603,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
    * UNEXIST flag.
    */
   const bool emit_from_volume_grid = (part->distr == PART_DISTR_GRID) &&
-                                     (!ELEM(part->from, PART_FROM_VERT, PART_FROM_CHILD));
+                                     !ELEM(part->from, PART_FROM_VERT, PART_FROM_CHILD);
   PARTICLE_P;
   LOOP_PARTICLES
   {
@@ -4150,17 +4150,17 @@ static bool particles_has_tracer(short parttype)
 
 static bool particles_has_spray(short parttype)
 {
-  return (ELEM(parttype, PART_FLUID_SPRAY, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE));
+  return ELEM(parttype, PART_FLUID_SPRAY, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE);
 }
 
 static bool particles_has_bubble(short parttype)
 {
-  return (ELEM(parttype, PART_FLUID_BUBBLE, PART_FLUID_FOAMBUBBLE, PART_FLUID_SPRAYFOAMBUBBLE));
+  return ELEM(parttype, PART_FLUID_BUBBLE, PART_FLUID_FOAMBUBBLE, PART_FLUID_SPRAYFOAMBUBBLE);
 }
 
 static bool particles_has_foam(short parttype)
 {
-  return (ELEM(parttype, PART_FLUID_FOAM, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE));
+  return ELEM(parttype, PART_FLUID_FOAM, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE);
 }
 
 static void particles_fluid_step(ParticleSimulationData *sim,

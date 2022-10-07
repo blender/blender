@@ -196,7 +196,7 @@ static bool screenshot_draw_check_prop(PointerRNA *UNUSED(ptr),
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  return !(STREQ(prop_id, "filepath"));
+  return !STREQ(prop_id, "filepath");
 }
 
 static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)

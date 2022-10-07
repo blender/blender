@@ -81,51 +81,51 @@ typedef struct FluidJob {
 
 static inline bool fluid_is_bake_all(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_ALL));
+  return STREQ(job->type, FLUID_JOB_BAKE_ALL);
 }
 static inline bool fluid_is_bake_data(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_DATA));
+  return STREQ(job->type, FLUID_JOB_BAKE_DATA);
 }
 static inline bool fluid_is_bake_noise(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_NOISE));
+  return STREQ(job->type, FLUID_JOB_BAKE_NOISE);
 }
 static inline bool fluid_is_bake_mesh(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_MESH));
+  return STREQ(job->type, FLUID_JOB_BAKE_MESH);
 }
 static inline bool fluid_is_bake_particle(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_PARTICLES));
+  return STREQ(job->type, FLUID_JOB_BAKE_PARTICLES);
 }
 static inline bool fluid_is_bake_guiding(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_GUIDES));
+  return STREQ(job->type, FLUID_JOB_BAKE_GUIDES);
 }
 static inline bool fluid_is_free_all(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_ALL));
+  return STREQ(job->type, FLUID_JOB_FREE_ALL);
 }
 static inline bool fluid_is_free_data(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_DATA));
+  return STREQ(job->type, FLUID_JOB_FREE_DATA);
 }
 static inline bool fluid_is_free_noise(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_NOISE));
+  return STREQ(job->type, FLUID_JOB_FREE_NOISE);
 }
 static inline bool fluid_is_free_mesh(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_MESH));
+  return STREQ(job->type, FLUID_JOB_FREE_MESH);
 }
 static inline bool fluid_is_free_particles(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_PARTICLES));
+  return STREQ(job->type, FLUID_JOB_FREE_PARTICLES);
 }
 static inline bool fluid_is_free_guiding(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_GUIDES));
+  return STREQ(job->type, FLUID_JOB_FREE_GUIDES);
 }
 
 static bool fluid_initjob(

@@ -746,17 +746,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                              image->comps[0].h * image->comps[0].prec)) /
+          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_24_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = ((float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                               image->comps[0].prec)) /
+          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
+                              image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_24_CS) {
-            parameters->tcp_rates[i] = ((float)(image->numcomps * image->comps[0].w *
-                                                image->comps[0].h * image->comps[0].prec)) /
+            parameters->tcp_rates[i] = (float)(image->numcomps * image->comps[0].w *
+                                               image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_24_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }
@@ -772,17 +772,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                              image->comps[0].h * image->comps[0].prec)) /
+          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_48_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = ((float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                               image->comps[0].prec)) /
+          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
+                              image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_48_CS) {
-            parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                                image->comps[0].h * image->comps[0].prec)) /
+            parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                               image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_48_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }

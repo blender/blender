@@ -770,7 +770,7 @@ ViewShape::~ViewShape()
 {
   _Vertices.clear();
 
-  if (!(_Edges.empty())) {
+  if (!_Edges.empty()) {
     for (vector<ViewEdge *>::iterator e = _Edges.begin(), eend = _Edges.end(); e != eend; e++) {
       delete (*e);
     }

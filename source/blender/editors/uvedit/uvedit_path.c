@@ -628,8 +628,8 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     else {
       l_src = ED_uvedit_active_edge_loop_get(bm);
       if (l_src != NULL) {
-        if ((!uvedit_uv_select_test(scene, l_src, cd_loop_uv_offset)) &&
-            (!uvedit_uv_select_test(scene, l_src->next, cd_loop_uv_offset))) {
+        if (!uvedit_uv_select_test(scene, l_src, cd_loop_uv_offset) &&
+            !uvedit_uv_select_test(scene, l_src->next, cd_loop_uv_offset)) {
           l_src = NULL;
         }
         ele_src = (BMElem *)l_src;

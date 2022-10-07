@@ -518,7 +518,7 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps
   /* filter stroke types by flags + spacetype */
   if (gps->flag & GP_STROKE_3DSPACE) {
     /* 3D strokes - only in 3D view */
-    return (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_PROPERTIES));
+    return ELEM(area->spacetype, SPACE_VIEW3D, SPACE_PROPERTIES);
   }
   if (gps->flag & GP_STROKE_2DIMAGE) {
     /* Special "image" strokes - only in Image Editor */
@@ -854,7 +854,7 @@ void gpencil_stroke_convertcoords_tpoint(Scene *scene,
   int mval_i[2];
   round_v2i_v2fl(mval_i, point2D->m_xy);
 
-  if ((depth != NULL) && (ED_view3d_autodist_simple(region, mval_i, r_out, 0, depth))) {
+  if ((depth != NULL) && ED_view3d_autodist_simple(region, mval_i, r_out, 0, depth)) {
     /* projecting onto 3D-Geometry
      * - nothing more needs to be done here, since view_autodist_simple() has already done it
      */
@@ -1662,11 +1662,11 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
   ScrArea *area = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob == NULL) || (!ELEM(ob->mode,
-                             OB_MODE_PAINT_GPENCIL,
-                             OB_MODE_SCULPT_GPENCIL,
-                             OB_MODE_WEIGHT_GPENCIL,
-                             OB_MODE_VERTEX_GPENCIL))) {
+  if ((ob == NULL) || !ELEM(ob->mode,
+                            OB_MODE_PAINT_GPENCIL,
+                            OB_MODE_SCULPT_GPENCIL,
+                            OB_MODE_WEIGHT_GPENCIL,
+                            OB_MODE_VERTEX_GPENCIL)) {
     return false;
   }
 
@@ -1755,7 +1755,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   const int mval_i[2] = {x, y};
   /* Check if cursor is in drawing region and has valid data-block. */
-  if ((!gpencil_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
+  if (!gpencil_check_cursor_region(C, mval_i) || (gpd == NULL)) {
     return;
   }
 
@@ -1793,7 +1793,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
        * is too disruptive and the size of cursor does not change with zoom factor.
        * The decision was to use a fix size, instead of brush->thickness value.
        */
-      if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
+      if ((gp_style) && GPENCIL_PAINT_MODE(gpd) &&
           ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
           ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
           (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
@@ -1878,7 +1878,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Inner Ring: Color from UI panel */
   immUniformColor4f(color[0], color[1], color[2], 0.8f);
-  if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
+  if ((gp_style) && GPENCIL_PAINT_MODE(gpd) &&
       ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
       ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
       (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
@@ -2751,7 +2751,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
                                      const int mval[2],
                                      GpRandomSettings *random_settings)
 {
-  int seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
+  int seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
   /* Use mouse position to get randomness. */
   int ix = mval[0] * seed;
   int iy = mval[1] * seed;
@@ -2797,7 +2797,7 @@ static void gpencil_sbuffer_vertex_color_random(
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
-    int seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
+    int seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
 
     int ix = (int)(tpt->m_xy[0] * seed);
     int iy = (int)(tpt->m_xy[1] * seed);
@@ -3020,7 +3020,7 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
   BLI_lasso_boundbox(&rect, mcoords, len);
 
   /* Test if point inside stroke. */
-  hit = ((!ELEM(V2D_IS_CLIPPED, mval[0], mval[1])) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
+  hit = (!ELEM(V2D_IS_CLIPPED, mval[0], mval[1]) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
          BLI_lasso_is_point_inside(mcoords, len, mval[0], mval[1], INT_MAX));
 
   /* Free memory. */
@@ -3088,8 +3088,8 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     }
 
     /* Check if one of the ends is inside target stroke bounding box. */
-    if ((!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_start, radius, diff_mat)) &&
-        (!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat))) {
+    if (!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_start, radius, diff_mat) &&
+        !ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat)) {
       continue;
     }
     /* Check the distance of the ends with the ends of target stroke to avoid middle contact.

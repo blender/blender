@@ -145,13 +145,12 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   LineartCache *local_lc = gpd->runtime.lineart_cache;
   if (!gpd->runtime.lineart_cache) {
     MOD_lineart_compute_feature_lines(
-        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+        depsgraph, lmd, &gpd->runtime.lineart_cache, !(ob->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data(lmd);
   }
   else {
     if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
-      MOD_lineart_compute_feature_lines(
-          depsgraph, lmd, &local_lc, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+      MOD_lineart_compute_feature_lines(depsgraph, lmd, &local_lc, !(ob->dtx & OB_DRAW_IN_FRONT));
       MOD_lineart_destroy_render_data(lmd);
     }
     MOD_lineart_chain_clear_picked_flag(local_lc);
@@ -198,7 +197,7 @@ static void bakeModifier(Main *UNUSED(bmain),
     lmd->shadow_selection_override = lmd->shadow_selection;
 
     MOD_lineart_compute_feature_lines(
-        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+        depsgraph, lmd, &gpd->runtime.lineart_cache, !(ob->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data(lmd);
   }
 

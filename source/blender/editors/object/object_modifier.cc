@@ -892,7 +892,7 @@ bool ED_object_modifier_apply(Main *bmain,
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
     return false;
   }
-  if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
+  if ((ob->mode & OB_MODE_SCULPT) && find_multires_modifier_before(scene, md) &&
       (BKE_modifier_is_same_topology(md) == false)) {
     BKE_report(reports,
                RPT_ERROR,
@@ -1436,7 +1436,7 @@ static bool modifier_apply_poll(bContext *C)
     return false;
   }
   if (md != nullptr) {
-    if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
+    if ((ob->mode & OB_MODE_SCULPT) && find_multires_modifier_before(scene, md) &&
         (BKE_modifier_is_same_topology(md) == false)) {
       CTX_wm_operator_poll_msg_set(
           C, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
@@ -1996,8 +1996,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(RNA_enum_get(
-      op->ptr, "mode"));
+  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)RNA_enum_get(
+      op->ptr, "mode");
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   ED_object_iter_other(
@@ -2419,7 +2419,7 @@ static void modifier_skin_customdata_delete(Object *ob)
 
 static bool skin_poll(bContext *C)
 {
-  return (edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), false, false));
+  return edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), false, false);
 }
 
 static bool skin_edit_poll(bContext *C)
