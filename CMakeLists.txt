@@ -242,17 +242,17 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_GHOST_X11 "Enable building Blender against X11 for windowing" ON)
   mark_as_advanced(WITH_GHOST_X11)
 
-  option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
+  option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing" ON)
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
-    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
+    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
     option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
 
-    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" OFF)
+    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
   endif()
 endif()
