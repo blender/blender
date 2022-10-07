@@ -419,7 +419,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 
 bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
 {
-  return type == ANIMCONT_GPENCIL;
+  return ELEM(type, ANIMCONT_GPENCIL, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE);
 }
 
 /* ************************************************************ */
