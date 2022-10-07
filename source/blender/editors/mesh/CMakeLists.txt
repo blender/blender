@@ -48,7 +48,7 @@ set(SRC
   editmesh_select.cc
   editmesh_select_similar.c
   editmesh_tools.c
-  editmesh_undo.c
+  editmesh_undo.cc
   editmesh_utils.c
   mesh_data.cc
   mesh_mirror.c
