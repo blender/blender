@@ -25,7 +25,8 @@ layout(std140) uniform viewBlock
 #  endif
 #endif
 
-#define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
+/* Not supported anymore. TODO(fclem): Add back support. */
+// #define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
 #define IS_FIRST_INVOCATION (gl_GlobalInvocationID == uvec3(0))
 
 #define cameraForward ViewMatrixInverse[2].xyz

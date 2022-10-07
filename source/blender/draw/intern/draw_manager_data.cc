@@ -2176,13 +2176,6 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->visibility_fn = visibility_fn;
   view->parent = nullptr;
 
-  if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
-    int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
-    wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
-    wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
-    sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
-  }
-
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 
   return view;

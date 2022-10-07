@@ -22,7 +22,7 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
   data_.winmat = win_mat;
   data_.wininv = win_mat.inverted();
 
-  data_.is_inverted = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
+  is_inverted_ = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 
   BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&culling_.corners);
   BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&culling_.bound_sphere);

@@ -35,6 +35,7 @@ class View {
 
   const char *debug_name_;
 
+  bool is_inverted_ = false;
   bool do_visibility_ = true;
   bool dirty_ = true;
   bool frozen_ = false;
@@ -59,7 +60,7 @@ class View {
 
   bool is_inverted() const
   {
-    return data_.is_inverted;
+    return is_inverted_;
   }
 
   float far_clip() const
