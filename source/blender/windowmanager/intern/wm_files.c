@@ -2045,6 +2045,26 @@ void wm_autosave_delete(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Shared Operator Properties
+ * \{ */
+
+/** Use for loading factory startup & preferences. */
+static void read_factory_reset_props(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* So it's possible to reset app-template settings without resetting other defaults. */
+  prop = RNA_def_boolean(ot->srna,
+                         "use_factory_startup_app_template_only",
+                         false,
+                         "Factory Startup App-Template Only",
+                         "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Initialize `WM_OT_open_*` Properties
  *
  * Check if load_ui was set by the caller.
@@ -2322,15 +2342,7 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_userpref_read_exec;
 
-  PropertyRNA *prop;
-
-  /* So it's possible to reset app-template settings without resetting other defaults. */
-  prop = RNA_def_boolean(ot->srna,
-                         "use_factory_startup_app_template_only",
-                         false,
-                         "Factory Startup App-Template Only",
-                         "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  read_factory_reset_props(ot);
 }
 
 /** \} */
@@ -2489,14 +2501,6 @@ static void read_homefile_props(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna, "use_empty", false, "Empty", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-
-  /* So it's possible to reset app-template settings without resetting other defaults. */
-  prop = RNA_def_boolean(ot->srna,
-                         "use_factory_startup_app_template_only",
-                         false,
-                         "Factory Startup App-Template Only",
-                         "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 void WM_OT_read_homefile(wmOperatorType *ot)
@@ -2527,6 +2531,7 @@ void WM_OT_read_homefile(wmOperatorType *ot)
    * Match naming for `--factory-startup` command line argument. */
   prop = RNA_def_boolean(ot->srna, "use_factory_startup", false, "Factory Startup", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  read_factory_reset_props(ot);
 
   read_homefile_props(ot);
 
@@ -2543,9 +2548,11 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_homefile_read_exec;
+  /* Omit poll to run in background mode. */
+
+  read_factory_reset_props(ot);
 
   read_homefile_props(ot);
-  /* omit poll to run in background mode */
 }
 
 /** \} */
