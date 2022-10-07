@@ -19,7 +19,7 @@ void main()
   /* Compute NDC bound box. */
   vec4 bbox = vec4(min(min(pos0.xy, pos1.xy), pos2.xy), max(max(pos0.xy, pos1.xy), pos2.xy));
   /* Convert to pixel space. */
-  bbox = (bbox * 0.5 + 0.5) * drw_view.viewport_size.xyxy;
+  bbox = (bbox * 0.5 + 0.5) * sizeViewport.xyxy;
   /* Detect failure cases where triangles would produce no fragments. */
   bvec2 is_subpixel = lessThan(bbox.zw - bbox.xy, vec2(1.0));
   /* View aligned triangle. */
@@ -31,13 +31,13 @@ void main()
     if (all(is_subpixel)) {
       vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(2.0, -1.0) : vec2(-1.0, 2.0));
       /* HACK: Fix cases where the triangle is too small make it cover at least one pixel. */
-      gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w * ofs;
+      gl_Position.xy += sizeViewportInv * gl_Position.w * ofs;
     }
     /* Test if the triangle is almost parallel with the view to avoid precision issues. */
     else if (any(is_subpixel) || is_coplanar) {
       /* HACK: Fix cases where the triangle is Parallel to the view by deforming it slightly. */
       vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(1.0, -1.0) : vec2(1.0));
-      gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w * ofs;
+      gl_Position.xy += sizeViewportInv * gl_Position.w * ofs;
     }
     else {
       /* Triangle expansion should happen here, but we decide to not implement it for
