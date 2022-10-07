@@ -67,9 +67,6 @@ struct ViewInfos {
   float4x4 winmat;
   float4x4 wininv;
 
-  float2 viewport_size;
-  float2 viewport_size_inverse;
-
   /** For debugging purpose */
   /* Mouse pixel. */
   int2 mouse_pixel;

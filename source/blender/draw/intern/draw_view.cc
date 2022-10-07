@@ -203,20 +203,8 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
   }
 }
 
-void View::update_viewport_size()
-{
-  float4 viewport;
-  GPU_viewport_size_get_f(viewport);
-  float2 viewport_size = float2(viewport.z, viewport.w);
-  if (assign_if_different(data_.viewport_size, viewport_size)) {
-    dirty_ = true;
-  }
-}
-
 void View::bind()
 {
-  update_viewport_size();
-
   if (dirty_) {
     dirty_ = false;
     data_.push_update();

@@ -21,6 +21,7 @@ GPU_SHADER_CREATE_INFO(draw_debug_print_display)
     .storage_buf(7, Qualifier::READ, "uint", "drw_debug_print_buf[]")
     .vertex_out(draw_debug_print_display_iface)
     .fragment_out(0, Type::VEC4, "out_color")
+    .push_constant(Type::VEC2, "viewport_size")
     .vertex_source("draw_debug_print_display_vert.glsl")
     .fragment_source("draw_debug_print_display_frag.glsl")
     .additional_info("draw_view");
