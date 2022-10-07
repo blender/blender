@@ -4880,8 +4880,7 @@ static bool followtrack_context_init(FollowTrackContext *context,
     return false;
   }
 
-  context->track = BKE_tracking_track_get_named(
-      context->tracking, context->tracking_object, data->track);
+  context->track = BKE_tracking_object_find_track_with_name(context->tracking_object, data->track);
   if (context->track == NULL) {
     return false;
   }

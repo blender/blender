@@ -248,8 +248,6 @@ void BKE_tracking_tracks_average(struct MovieTrackingTrack *dst_track,
                                  /*const*/ struct MovieTrackingTrack **src_tracks,
                                  int num_src_tracks);
 
-struct MovieTrackingTrack *BKE_tracking_track_get_named(
-    struct MovieTracking *tracking, struct MovieTrackingObject *tracking_object, const char *name);
 struct MovieTrackingTrack *BKE_tracking_track_get_indexed(struct MovieTracking *tracking,
                                                           int tracknr,
                                                           struct ListBase **r_tracksbase);
@@ -380,9 +378,6 @@ bool BKE_tracking_plane_track_has_marker_at_frame(struct MovieTrackingPlaneTrack
 bool BKE_tracking_plane_track_has_enabled_marker_at_frame(
     struct MovieTrackingPlaneTrack *plane_track, int framenr);
 
-struct MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_named(
-    struct MovieTracking *tracking, struct MovieTrackingObject *tracking_object, const char *name);
-
 struct MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(
     struct MovieTracking *tracking);
 
@@ -449,6 +444,16 @@ struct MovieTrackingObject *BKE_tracking_object_get_named(struct MovieTracking *
 
 struct MovieTrackingObject *BKE_tracking_object_get_active(const struct MovieTracking *tracking);
 struct MovieTrackingObject *BKE_tracking_object_get_camera(const struct MovieTracking *tracking);
+
+/* Find point track with the given name in the tracking object.
+ * If such track does not exist NULL is returned. */
+struct MovieTrackingTrack *BKE_tracking_object_find_track_with_name(
+    struct MovieTrackingObject *tracking_object, const char *name);
+
+/* Find plane track with the given name in the tracking object.
+ * If such track does not exist NULL is returned. */
+struct MovieTrackingPlaneTrack *BKE_tracking_object_find_plane_track_with_name(
+    struct MovieTrackingObject *tracking_object, const char *name);
 
 /* --------------------------------------------------------------------
  * Camera.

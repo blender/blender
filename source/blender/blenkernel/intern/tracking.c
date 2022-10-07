@@ -1034,19 +1034,6 @@ void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
   tracking_average_tracks(dst_track, src_tracks, num_src_tracks);
 }
 
-MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *UNUSED(tracking),
-                                                 MovieTrackingObject *tracking_object,
-                                                 const char *name)
-{
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (STREQ(track->name, name)) {
-      return track;
-    }
-  }
-
-  return NULL;
-}
-
 MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking,
                                                    int tracknr,
                                                    ListBase **r_tracksbase)
@@ -1680,19 +1667,6 @@ void BKE_tracking_plane_track_free(MovieTrackingPlaneTrack *plane_track)
   MEM_freeN(plane_track->point_tracks);
 }
 
-MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_named(MovieTracking *UNUSED(tracking),
-                                                            MovieTrackingObject *tracking_object,
-                                                            const char *name)
-{
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if (STREQ(plane_track->name, name)) {
-      return plane_track;
-    }
-  }
-
-  return NULL;
-}
-
 MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(struct MovieTracking *tracking)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
@@ -2062,6 +2036,30 @@ MovieTrackingObject *BKE_tracking_object_get_camera(const MovieTracking *trackin
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
     if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
       return tracking_object;
+    }
+  }
+
+  return NULL;
+}
+
+MovieTrackingTrack *BKE_tracking_object_find_track_with_name(MovieTrackingObject *tracking_object,
+                                                             const char *name)
+{
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+    if (STREQ(track->name, name)) {
+      return track;
+    }
+  }
+
+  return NULL;
+}
+
+MovieTrackingPlaneTrack *BKE_tracking_object_find_plane_track_with_name(
+    MovieTrackingObject *tracking_object, const char *name)
+{
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+    if (STREQ(plane_track->name, name)) {
+      return plane_track;
     }
   }
 

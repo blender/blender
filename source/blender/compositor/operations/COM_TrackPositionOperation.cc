@@ -54,8 +54,8 @@ void TrackPositionOperation::calc_track_position()
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking,
                                                                        tracking_object_name_);
   if (tracking_object) {
-    MovieTrackingTrack *track = BKE_tracking_track_get_named(
-        tracking, tracking_object, track_name_);
+    MovieTrackingTrack *track = BKE_tracking_object_find_track_with_name(tracking_object,
+                                                                         track_name_);
 
     if (track) {
       MovieTrackingMarker *marker;
