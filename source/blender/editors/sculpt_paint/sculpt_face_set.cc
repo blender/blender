@@ -661,7 +661,10 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
+                                                Object *ob,
+                                                PBVHNode **nodes,
+                                                int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
@@ -2778,7 +2781,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
 
   mul_v3_m4v3(depth_world_space, ob->obmat, fsecd->cursor_location);
 
-  float fmval[2] = {event->mval[0], event->mval[1]};
+  float fmval[2] = {(float)event->mval[0], (float)event->mval[1]};
 
   ED_view3d_win_to_3d(vc.v3d, vc.region, depth_world_space, fmval, new_pos);
   float extrude_disp = len_v3v3(depth_world_space, new_pos);
@@ -2854,7 +2857,7 @@ static void sculpt_face_set_extrude(bContext *C,
 
   fsecd->active_face_set = active_face_set;
   copy_v3_v3(fsecd->cursor_location, cursor_location);
-  float fmval[2] = {event->mval[0], event->mval[1]};
+  float fmval[2] = {(float)event->mval[0], (float)event->mval[1]};
   copy_v2_v2(fsecd->init_mval, fmval);
   op->customdata = fsecd;
 
