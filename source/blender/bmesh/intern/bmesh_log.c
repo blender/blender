@@ -4032,3 +4032,40 @@ bool BM_log_has_face_post(BMLog *log, BMFace *f)
   return BLI_ghash_haskey(log->current_entry->topo_modified_faces_post,
                           POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, f)));
 }
+
+void BM_log_get_changed(BMesh *bm, BMLogEntry *_entry, SmallHash *sh)
+{
+  BMLogEntry *entry = _entry;
+
+  while (entry->combined_prev) {
+    entry = entry->combined_prev;
+  }
+
+  while (entry) {
+    GHashIterator gh_iter;
+
+    GHash **ghashes = &entry->topo_modified_verts_pre;
+
+    for (int i = 0; i < 9; i++) {
+      GHASH_ITER (gh_iter, ghashes[i]) {
+        void *key = BLI_ghashIterator_getKey(&gh_iter);
+        uint id = POINTER_AS_UINT(key);
+
+        /* Note: elements are not guaranteed to exist */
+        if (id >= bm->idmap.map_size) {
+          continue;
+        }
+
+        BMElem *elem = BM_ELEM_FROM_ID(bm, id);
+
+        if (!elem) {
+          continue;
+        }
+
+        BLI_smallhash_reinsert(sh, (uintptr_t)elem, (void *)elem);
+      }
+    }
+
+    entry = entry->combined_next;
+  }
+}

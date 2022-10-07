@@ -149,6 +149,8 @@ typedef struct SculptUndoStep {
   UndoSculpt data;
   int id;
 
+  bool auto_saved;
+
   // active vcol layer
   SculptAttrRef active_attr_start;
   SculptAttrRef active_attr_end;
@@ -1228,7 +1230,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool need_refine_subdiv = false;
   //  bool did_first_hack = false;
 
- bool clear_automask_cache = false;
+  bool clear_automask_cache = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
     if (!ELEM(unode->type, SCULPT_UNDO_COLOR, SCULPT_UNDO_MASK)) {
@@ -3074,4 +3076,116 @@ void SCULPT_substep_undo(bContext *C, int dir)
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+}
+
+void BM_log_get_changed(BMesh *bm, BMLogEntry *_entry, SmallHash *sh);
+
+void ED_sculpt_fast_save_bmesh(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  BMesh *bm = ss->bm;
+
+  if (!bm || !ss) {
+    return;
+  }
+
+#if 1
+  struct BMeshToMeshParams params = {0};
+
+  void BM_mesh_bm_to_me_threaded(
+      Main * bmain, Object * ob, BMesh * bm, Mesh * me, const struct BMeshToMeshParams *params);
+
+  params.update_shapekey_indices = true;
+  params.cd_mask_extra.vmask = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT;
+  params.cd_mask_extra.emask = CD_MASK_MESH_ID;
+  params.cd_mask_extra.pmask = CD_MASK_MESH_ID;
+
+  // BM_mesh_bm_to_me_threaded(NULL, ob, bm, (Mesh *)ob->data, &params);
+  BM_mesh_bm_to_me(NULL, ob, bm, (Mesh *)ob->data, &params);
+#else
+  SculptUndoStep *last_step = NULL;
+
+  UndoStack *ustack = ED_undo_stack_get();
+  UndoStep *us = ustack->step_active;
+
+  SmallHash elems;
+  BLI_smallhash_init(&elems);
+
+  bool bad = false;
+
+  if (!us) {
+    printf("no active undo step!");
+    bad = true;
+  }
+  else {
+    while (us) {
+      us = us->prev;
+
+      if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
+        SculptUndoStep *usculpt = (SculptUndoStep *)us;
+
+        LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->data.nodes) {
+          if (unode->bm_entry) {
+            BM_log_get_changed(bm, unode->bm_entry, &elems);
+          }
+        }
+
+        if (usculpt->auto_saved) {
+          last_step = usculpt;
+          break;
+        }
+
+        if (!last_step) {
+          usculpt->auto_saved = true;
+        }
+
+        last_step = usculpt;
+      }
+    }
+  }
+
+  if (!last_step) {
+    bad = true;
+  }
+  else {
+    last_step->auto_saved = true;
+  }
+
+  if (bad) {
+    printf("%s: Failed to find sculpt undo stack entries\n", __func__);
+
+    /* Just save everything */
+    struct BMeshToMeshParams params = {0};
+    BM_mesh_bm_to_me(NULL, ob, bm, (Mesh *)ob->data, &params);
+    return;
+  }
+
+  int totv = 0, tote = 0, totl = 0, totf = 0;
+
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_LOOP | BM_FACE);
+
+  SmallHashIter iter;
+  uintptr_t key;
+  void *val = BLI_smallhash_iternew(&elems, &iter, &key);
+  for (; val; val = BLI_smallhash_iternext(&iter, &key)) {
+    BMElem *elem = (BMElem *)key;
+
+    switch (elem->head.htype) {
+      case BM_VERT:
+        totv++;
+        break;
+      case BM_EDGE:
+        tote++;
+        break;
+      case BM_LOOP:
+        totl++;
+        break;
+      case BM_FACE:
+        totf++;
+        break;
+    }
+  }
+
+  BLI_smallhash_release(&elems);
+#endif
 }
