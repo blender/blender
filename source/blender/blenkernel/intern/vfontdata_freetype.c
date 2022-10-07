@@ -34,10 +34,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"
 
-/* local variables */
-static FT_Library library;
-static FT_Error err;
-
 static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
   const float scale = vfd->scale;
@@ -60,7 +56,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
    *
    * Get the FT Glyph index and load the Glyph */
   glyph_index = FT_Get_Char_Index(face, charcode);
-  err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
+  FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 
   /* If loading succeeded, convert the FT glyph to the internal format */
   if (!err) {
@@ -240,7 +236,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
   return NULL;
 }
 
-static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
+static VChar *objchr_to_ftvfontdata(FT_Library library, VFont *vfont, FT_ULong charcode)
 {
   VChar *che;
 
@@ -249,13 +245,13 @@ static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 
   /* Load the font to memory */
   if (vfont->temp_pf) {
-    err = FT_New_Memory_Face(library, vfont->temp_pf->data, vfont->temp_pf->size, 0, &face);
+    FT_Error err = FT_New_Memory_Face(
+        library, vfont->temp_pf->data, vfont->temp_pf->size, 0, &face);
     if (err) {
       return NULL;
     }
   }
   else {
-    err = true;
     return NULL;
   }
 
@@ -266,7 +262,7 @@ static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
   return che;
 }
 
-static FT_Face vfont_face_load_from_packed_file(PackedFile *pf)
+static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *pf)
 {
   FT_Face face = NULL;
   FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
@@ -281,14 +277,14 @@ static FT_Face vfont_face_load_from_packed_file(PackedFile *pf)
   }
 
   /* Select a character map. */
-  FT_Error err_charmap = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-  if (err_charmap) {
-    err_charmap = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+  FT_Error err = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+  if (err) {
+    err = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
   }
-  if (err_charmap && face->num_charmaps > 0) {
-    err_charmap = FT_Select_Charmap(face, face->charmaps[0]->encoding);
+  if (err && face->num_charmaps > 0) {
+    err = FT_Select_Charmap(face, face->charmaps[0]->encoding);
   }
-  if (err_charmap) {
+  if (err) {
     FT_Done_Face(face);
     return NULL;
   }
@@ -307,11 +303,12 @@ static FT_Face vfont_face_load_from_packed_file(PackedFile *pf)
 
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
+  FT_Library library = NULL;
   if (FT_Init_FreeType(&library) != FT_Err_Ok) {
     return NULL;
   }
 
-  FT_Face face = vfont_face_load_from_packed_file(pf);
+  FT_Face face = vfont_face_load_from_packed_file(library, pf);
   if (!face) {
     FT_Done_FreeType(library);
     return NULL;
@@ -399,14 +396,15 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   }
 
   /* Init Freetype */
-  err = FT_Init_FreeType(&library);
+  FT_Library library = NULL;
+  FT_Error err = FT_Init_FreeType(&library);
   if (err) {
     /* XXX error("Failed to load the Freetype font library"); */
     return NULL;
   }
 
   /* Load the character */
-  che = objchr_to_ftvfontdata(vfont, character);
+  che = objchr_to_ftvfontdata(library, vfont, character);
 
   /* Free Freetype */
   FT_Done_FreeType(library);
