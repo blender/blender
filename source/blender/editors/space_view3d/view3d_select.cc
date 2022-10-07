@@ -1601,7 +1601,7 @@ static bool object_mouse_select_menu(bContext *C,
   const float dist_threshold_sq = square_f(15 * U.pixelsize);
   int base_count = 0;
 
-  using BaseRefWithDepth = struct BaseRefWithDepth {
+  struct BaseRefWithDepth {
     struct BaseRefWithDepth *next, *prev;
     Base *base;
     /** The scale isn't defined, simply use for sorting. */
@@ -1812,7 +1812,7 @@ static bool bone_mouse_select_menu(bContext *C,
 
   int bone_count = 0;
 
-  using BoneRefWithDepth = struct BoneRefWithDepth {
+  struct BoneRefWithDepth {
     struct BoneRefWithDepth *next, *prev;
     Base *base;
     union {
