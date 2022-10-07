@@ -28,6 +28,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .sampler(3, ImageType::FLOAT_2D, "gpMaskTexture")
     .uniform_buf(4, "gpMaterial", "materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
     .uniform_buf(3, "gpLight", "lights[GPENCIL_LIGHT_BUFFER_LEN]", Frequency::BATCH)
+    .push_constant(Type::VEC2, "viewportSize")
     /* Per Object */
     .push_constant(Type::VEC3, "gpNormal")
     .push_constant(Type::BOOL, "gpStrokeOrder3d")
