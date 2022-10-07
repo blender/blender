@@ -28,6 +28,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -1597,14 +1598,21 @@ static bool object_mouse_select_menu(bContext *C,
 
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   /* Distance from object center to use for selection. */
-  const float dist_threshold = 15 * U.pixelsize;
+  const float dist_threshold_sq = square_f(15 * U.pixelsize);
   int base_count = 0;
-  bool ok;
-  LinkNodePair linklist = {nullptr, nullptr};
+
+  using BaseRefWithDepth = struct BaseRefWithDepth {
+    struct BaseRefWithDepth *next, *prev;
+    Base *base;
+    /** The scale isn't defined, simply use for sorting. */
+    uint depth_id;
+  };
+  ListBase base_ref_list = {nullptr, nullptr}; /* List of #BaseRefWithDepth. */
 
   /* handle base->object->select_id */
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
-    ok = false;
+    bool ok = false;
+    uint depth_id;
 
     /* two selection methods, the CTRL select uses max dist of 15 */
     if (buffer) {
@@ -1612,6 +1620,7 @@ static bool object_mouse_select_menu(bContext *C,
         /* index was converted */
         if (base->object->runtime.select_id == (buffer[a].id & ~0xFFFF0000)) {
           ok = true;
+          depth_id = buffer[a].depth;
           break;
         }
       }
@@ -1619,19 +1628,21 @@ static bool object_mouse_select_menu(bContext *C,
     else {
       float region_co[2];
       if (ED_view3d_project_base(vc->region, base, region_co) == V3D_PROJ_RET_OK) {
-        if (len_manhattan_v2v2(mval_fl, region_co) < dist_threshold) {
+        const float dist_test_sq = len_squared_v2v2(mval_fl, region_co);
+        if (dist_test_sq < dist_threshold_sq) {
           ok = true;
+          /* Match GPU depth logic, as the float is always positive, it can be sorted as an int. */
+          depth_id = float_as_uint(dist_test_sq);
         }
       }
     }
 
     if (ok) {
       base_count++;
-      BLI_linklist_append(&linklist, base);
-
-      if (base_count == SEL_MENU_SIZE) {
-        break;
-      }
+      BaseRefWithDepth *base_ref = MEM_new<BaseRefWithDepth>(__func__);
+      base_ref->base = base;
+      base_ref->depth_id = depth_id;
+      BLI_addtail(&base_ref_list, (void *)base_ref);
     }
   }
   CTX_DATA_END;
@@ -1642,20 +1653,30 @@ static bool object_mouse_select_menu(bContext *C,
     return false;
   }
   if (base_count == 1) {
-    Base *base = (Base *)linklist.list->link;
-    BLI_linklist_free(linklist.list, nullptr);
+    Base *base = ((BaseRefWithDepth *)base_ref_list.first)->base;
+    BLI_freelistN(&base_ref_list);
     *r_basact = base;
     return false;
   }
 
+  /* Sort by depth or distance to cursor. */
+  BLI_listbase_sort(&base_ref_list, [](const void *a, const void *b) {
+    return int(static_cast<const BaseRefWithDepth *>(a)->depth_id >
+               static_cast<const BaseRefWithDepth *>(b)->depth_id);
+  });
+
+  while (base_count > SEL_MENU_SIZE) {
+    BLI_freelinkN(&base_ref_list, base_ref_list.last);
+    base_count -= 1;
+  }
+
   /* UI, full in static array values that we later use in an enum function */
-  LinkNode *node;
-  int i;
 
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
 
-  for (node = linklist.list, i = 0; node; node = node->next, i++) {
-    Base *base = static_cast<Base *>(node->link);
+  int i;
+  LISTBASE_FOREACH_INDEX (BaseRefWithDepth *, base_ref, &base_ref_list, i) {
+    Base *base = base_ref->base;
     Object *ob = base->object;
     const char *name = ob->id.name + 2;
 
@@ -1673,7 +1694,7 @@ static bool object_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_linklist_free(linklist.list, nullptr);
+  BLI_freelistN(&base_ref_list);
   return true;
 }
 
@@ -1790,8 +1811,20 @@ static bool bone_mouse_select_menu(bContext *C,
   BLI_assert(buffer);
 
   int bone_count = 0;
-  LinkNodePair base_list = {nullptr, nullptr};
-  LinkNodePair bone_list = {nullptr, nullptr};
+
+  using BoneRefWithDepth = struct BoneRefWithDepth {
+    struct BoneRefWithDepth *next, *prev;
+    Base *base;
+    union {
+      EditBone *ebone;
+      bPoseChannel *pchan;
+      void *bone_ptr;
+    };
+    /** The scale isn't defined, simply use for sorting. */
+    uint depth_id;
+  };
+  ListBase bone_ref_list = {nullptr, nullptr};
+
   GSet *added_bones = BLI_gset_ptr_new("Bone mouse select menu");
 
   /* Select logic taken from ed_armature_pick_bone_from_selectbuffer_impl in armature_select.c */
@@ -1823,18 +1856,16 @@ static bool bone_mouse_select_menu(bContext *C,
 
     /* Determine what the current bone is */
     if (is_editmode) {
-      EditBone *ebone;
       const uint hit_bone = (hitresult & ~BONESEL_ANY) >> 16;
       bArmature *arm = static_cast<bArmature *>(bone_base->object->data);
-      ebone = static_cast<EditBone *>(BLI_findlink(arm->edbo, hit_bone));
+      EditBone *ebone = static_cast<EditBone *>(BLI_findlink(arm->edbo, hit_bone));
       if (ebone && !(ebone->flag & BONE_UNSELECTABLE)) {
         bone_ptr = ebone;
       }
     }
     else {
-      bPoseChannel *pchan;
       const uint hit_bone = (hitresult & ~BONESEL_ANY) >> 16;
-      pchan = static_cast<bPoseChannel *>(
+      bPoseChannel *pchan = static_cast<bPoseChannel *>(
           BLI_findlink(&bone_base->object->pose->chanbase, hit_bone));
       if (pchan && !(pchan->bone->flag & BONE_UNSELECTABLE)) {
         bone_ptr = pchan;
@@ -1850,13 +1881,13 @@ static bool bone_mouse_select_menu(bContext *C,
 
     if (!is_duplicate_bone) {
       bone_count++;
-      BLI_linklist_append(&base_list, bone_base);
-      BLI_linklist_append(&bone_list, bone_ptr);
-      BLI_gset_insert(added_bones, bone_ptr);
+      BoneRefWithDepth *bone_ref = MEM_new<BoneRefWithDepth>(__func__);
+      bone_ref->base = bone_base;
+      bone_ref->bone_ptr = bone_ptr;
+      bone_ref->depth_id = buffer[a].depth;
+      BLI_addtail(&bone_ref_list, (void *)bone_ref);
 
-      if (bone_count == SEL_MENU_SIZE) {
-        break;
-      }
+      BLI_gset_insert(added_bones, bone_ptr);
     }
   }
 
@@ -1866,31 +1897,38 @@ static bool bone_mouse_select_menu(bContext *C,
     return false;
   }
   if (bone_count == 1) {
-    BLI_linklist_free(base_list.list, nullptr);
-    BLI_linklist_free(bone_list.list, nullptr);
+    BLI_freelistN(&bone_ref_list);
     return false;
   }
 
-  /* UI, full in static array values that we later use in an enum function */
-  LinkNode *bone_node, *base_node;
-  int i;
+  /* Sort by depth or distance to cursor. */
+  BLI_listbase_sort(&bone_ref_list, [](const void *a, const void *b) {
+    return int(static_cast<const BoneRefWithDepth *>(a)->depth_id >
+               static_cast<const BoneRefWithDepth *>(b)->depth_id);
+  });
 
+  while (bone_count > SEL_MENU_SIZE) {
+    BLI_freelinkN(&bone_ref_list, bone_ref_list.last);
+    bone_count -= 1;
+  }
+
+  /* UI, full in static array values that we later use in an enum function */
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
 
-  for (base_node = base_list.list, bone_node = bone_list.list, i = 0; bone_node;
-       base_node = base_node->next, bone_node = bone_node->next, i++) {
+  int i;
+  LISTBASE_FOREACH_INDEX (BoneRefWithDepth *, bone_ref, &bone_ref_list, i) {
     char *name;
 
-    object_mouse_select_menu_data[i].base_ptr = static_cast<Base *>(base_node->link);
+    object_mouse_select_menu_data[i].base_ptr = bone_ref->base;
 
     if (is_editmode) {
-      EditBone *ebone = static_cast<EditBone *>(bone_node->link);
-      object_mouse_select_menu_data[i].item_ptr = ebone;
+      EditBone *ebone = bone_ref->ebone;
+      object_mouse_select_menu_data[i].item_ptr = static_cast<void *>(ebone);
       name = ebone->name;
     }
     else {
-      bPoseChannel *pchan = static_cast<bPoseChannel *>(bone_node->link);
-      object_mouse_select_menu_data[i].item_ptr = pchan;
+      bPoseChannel *pchan = bone_ref->pchan;
+      object_mouse_select_menu_data[i].item_ptr = static_cast<void *>(pchan);
       name = pchan->name;
     }
 
@@ -1908,8 +1946,7 @@ static bool bone_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_linklist_free(base_list.list, nullptr);
-  BLI_linklist_free(bone_list.list, nullptr);
+  BLI_freelistN(&bone_ref_list);
   return true;
 }
 
