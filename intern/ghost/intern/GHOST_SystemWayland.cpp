@@ -2303,6 +2303,7 @@ static void keyboard_handle_enter(void *data,
   uint32_t *key;
   WL_ARRAY_FOR_EACH (key, keys) {
     const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
+    CLOG_INFO(LOG, 2, "enter (key_held=%d)", int(key_code));
     const xkb_keysym_t sym = xkb_state_key_get_one_sym(seat->xkb_state, key_code);
     const GHOST_TKey gkey = xkb_map_gkey_or_scan_code(sym, *key);
     if (gkey != GHOST_kKeyUnknown) {
@@ -2407,10 +2408,10 @@ static void keyboard_handle_key(void *data,
   const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(
       seat->xkb_state_empty, seat->xkb_state_empty_with_numlock, key_code);
   if (sym == XKB_KEY_NoSymbol) {
-    CLOG_INFO(LOG, 2, "key (no symbol, skipped)");
+    CLOG_INFO(LOG, 2, "key (code=%d, state=%u, no symbol, skipped)", int(key_code), state);
     return;
   }
-  CLOG_INFO(LOG, 2, "key");
+  CLOG_INFO(LOG, 2, "key (code=%d, state=%u)", int(key_code), state);
 
   GHOST_TEventType etype = GHOST_kEventUnknown;
   switch (state) {
@@ -3179,7 +3180,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     if (val) {
       if (UNLIKELY(!(val_l || val_r))) {
         CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                  "modifier (%s) state is inconsistent (held keys do not match XKB)",
+                  "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
                   mod_info.display_name);
         /* Picking the left is arbitrary. */
         val_l = true;
@@ -3188,7 +3189,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     else {
       if (UNLIKELY(val_l || val_r)) {
         CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                  "modifier (%s) state is inconsistent (released keys do not match XKB)",
+                  "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
                   mod_info.display_name);
         val_l = false;
         val_r = false;
