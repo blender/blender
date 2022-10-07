@@ -815,10 +815,6 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 #define PLANE_TRACK_VIEW_SELECTED(plane_track) \
   ((((plane_track)->flag & PLANE_TRACK_HIDDEN) == 0) && ((plane_track)->flag & SELECT))
 
-#define MARKER_VISIBLE(sc, track, marker) \
-  (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || \
-   (BKE_tracking_object_get_active(&(sc)->clip->tracking)->active_track == track))
-
 #ifdef __cplusplus
 }
 #endif

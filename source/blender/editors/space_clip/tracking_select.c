@@ -763,39 +763,44 @@ static int box_select_exec(bContext *C, wmOperator *op)
 
   /* do actual selection */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if ((track->flag & TRACK_HIDDEN) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-      if (MARKER_VISIBLE(sc, track, marker)) {
-        if (BLI_rctf_isect_pt_v(&rectf, marker->pos)) {
-          if (select) {
-            BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-          }
-          else {
-            BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-          }
-        }
-        changed = true;
-      }
+    if (track->flag & TRACK_HIDDEN) {
+      continue;
     }
-  }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-      for (int i = 0; i < 4; i++) {
-        if (BLI_rctf_isect_pt_v(&rectf, plane_marker->corners[i])) {
-          if (select) {
-            plane_track->flag |= SELECT;
-          }
-          else {
-            plane_track->flag &= ~SELECT;
-          }
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+      if (BLI_rctf_isect_pt_v(&rectf, marker->pos)) {
+        if (select) {
+          BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
+        }
+        else {
+          BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
         }
       }
       changed = true;
     }
+  }
+
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+      continue;
+    }
+
+    const MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                                 framenr);
+
+    for (int i = 0; i < 4; i++) {
+      if (BLI_rctf_isect_pt_v(&rectf, plane_marker->corners[i])) {
+        if (select) {
+          plane_track->flag |= SELECT;
+        }
+        else {
+          plane_track->flag &= ~SELECT;
+        }
+      }
+    }
+    changed = true;
   }
 
   if (changed) {
@@ -852,55 +857,60 @@ static int do_lasso_select_marker(bContext *C,
 
   /* do actual selection */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if ((track->flag & TRACK_HIDDEN) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-      if (MARKER_VISIBLE(sc, track, marker)) {
-        float screen_co[2];
-
-        /* marker in screen coords */
-        ED_clip_point_stable_pos__reverse(sc, region, marker->pos, screen_co);
-
-        if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(
-                mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
-          if (select) {
-            BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-          }
-          else {
-            BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-          }
-        }
-
-        changed = true;
-      }
+    if (track->flag & TRACK_HIDDEN) {
+      continue;
     }
-  }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-      for (int i = 0; i < 4; i++) {
-        float screen_co[2];
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+      float screen_co[2];
 
-        /* marker in screen coords */
-        ED_clip_point_stable_pos__reverse(sc, region, plane_marker->corners[i], screen_co);
+      /* marker in screen coords */
+      ED_clip_point_stable_pos__reverse(sc, region, marker->pos, screen_co);
 
-        if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(
-                mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
-          if (select) {
-            plane_track->flag |= SELECT;
-          }
-          else {
-            plane_track->flag &= ~SELECT;
-          }
+      if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
+          BLI_lasso_is_point_inside(
+              mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
+        if (select) {
+          BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
+        }
+        else {
+          BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
         }
       }
 
       changed = true;
     }
+  }
+
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+      continue;
+    }
+
+    const MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                                 framenr);
+
+    for (int i = 0; i < 4; i++) {
+      float screen_co[2];
+
+      /* marker in screen coords */
+      ED_clip_point_stable_pos__reverse(sc, region, plane_marker->corners[i], screen_co);
+
+      if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
+          BLI_lasso_is_point_inside(
+              mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
+        if (select) {
+          plane_track->flag |= SELECT;
+        }
+        else {
+          plane_track->flag &= ~SELECT;
+        }
+      }
+    }
+
+    changed = true;
   }
 
   if (changed) {
@@ -972,7 +982,7 @@ static int point_inside_ellipse(const float point[2],
   return x * x + y * y < 1.0f;
 }
 
-static int marker_inside_ellipse(MovieTrackingMarker *marker,
+static int marker_inside_ellipse(const MovieTrackingMarker *marker,
                                  const float offset[2],
                                  const float ellipse[2])
 {
@@ -1015,38 +1025,44 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
   /* do selection */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if ((track->flag & TRACK_HIDDEN) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    if (track->flag & TRACK_HIDDEN) {
+      continue;
+    }
 
-      if (MARKER_VISIBLE(sc, track, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
-        if (select) {
-          BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-        }
-        else {
-          BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-        }
-        changed = true;
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker) &&
+        marker_inside_ellipse(marker, offset, ellipse)) {
+      if (select) {
+        BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
       }
+      else {
+        BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
+      }
+      changed = true;
     }
   }
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+      continue;
+    }
 
-      for (int i = 0; i < 4; i++) {
-        if (point_inside_ellipse(plane_marker->corners[i], offset, ellipse)) {
-          if (select) {
-            plane_track->flag |= SELECT;
-          }
-          else {
-            plane_track->flag &= ~SELECT;
-          }
+    const MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                                 framenr);
+
+    for (int i = 0; i < 4; i++) {
+      if (point_inside_ellipse(plane_marker->corners[i], offset, ellipse)) {
+        if (select) {
+          plane_track->flag |= SELECT;
+        }
+        else {
+          plane_track->flag &= ~SELECT;
         }
       }
-
-      changed = true;
     }
+
+    changed = true;
   }
 
   if (changed) {

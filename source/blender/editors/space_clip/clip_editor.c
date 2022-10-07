@@ -382,13 +382,15 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
     action = SEL_SELECT;
 
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (TRACK_VIEW_SELECTED(sc, track)) {
-        const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      if (!TRACK_VIEW_SELECTED(sc, track)) {
+        continue;
+      }
 
-        if (MARKER_VISIBLE(sc, track, marker)) {
-          action = SEL_DESELECT;
-          break;
-        }
+      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+      if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+        action = SEL_DESELECT;
+        break;
       }
     }
 
@@ -401,27 +403,29 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
   }
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if ((track->flag & TRACK_HIDDEN) == 0) {
-      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    if (track->flag & TRACK_HIDDEN) {
+      continue;
+    }
 
-      if (MARKER_VISIBLE(sc, track, marker)) {
-        switch (action) {
-          case SEL_SELECT:
-            track->flag |= SELECT;
-            track->pat_flag |= SELECT;
-            track->search_flag |= SELECT;
-            break;
-          case SEL_DESELECT:
-            track->flag &= ~SELECT;
-            track->pat_flag &= ~SELECT;
-            track->search_flag &= ~SELECT;
-            break;
-          case SEL_INVERT:
-            track->flag ^= SELECT;
-            track->pat_flag ^= SELECT;
-            track->search_flag ^= SELECT;
-            break;
-        }
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+    if (ED_space_clip_marker_is_visible(sc, tracking_object, track, marker)) {
+      switch (action) {
+        case SEL_SELECT:
+          track->flag |= SELECT;
+          track->pat_flag |= SELECT;
+          track->search_flag |= SELECT;
+          break;
+        case SEL_DESELECT:
+          track->flag &= ~SELECT;
+          track->pat_flag &= ~SELECT;
+          track->search_flag &= ~SELECT;
+          break;
+        case SEL_INVERT:
+          track->flag ^= SELECT;
+          track->pat_flag ^= SELECT;
+          track->search_flag ^= SELECT;
+          break;
       }
     }
 
@@ -431,21 +435,23 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
   }
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
-      switch (action) {
-        case SEL_SELECT:
-          plane_track->flag |= SELECT;
-          break;
-        case SEL_DESELECT:
-          plane_track->flag &= ~SELECT;
-          break;
-        case SEL_INVERT:
-          plane_track->flag ^= SELECT;
-          break;
-      }
-      if (plane_track->flag & SELECT) {
-        has_selection = true;
-      }
+    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+      continue;
+    }
+
+    switch (action) {
+      case SEL_SELECT:
+        plane_track->flag |= SELECT;
+        break;
+      case SEL_DESELECT:
+        plane_track->flag &= ~SELECT;
+        break;
+      case SEL_INVERT:
+        plane_track->flag ^= SELECT;
+        break;
+    }
+    if (plane_track->flag & SELECT) {
+      has_selection = true;
     }
   }
 
