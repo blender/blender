@@ -168,16 +168,16 @@ static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
   static const int delta = 6;
 
-  if (act_track) {
+  if (active_track) {
     MouseSelectUserData userdata;
 
     mouse_select_init_data(C, &userdata, co);
     clip_graph_tracking_values_iterate_track(
-        sc, act_track, &userdata, find_nearest_tracking_knot_cb, NULL, NULL);
+        sc, active_track, &userdata, find_nearest_tracking_knot_cb, NULL, NULL);
 
     if (userdata.marker) {
       int x1, y1, x2, y2;
@@ -224,8 +224,8 @@ static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
   MouseSelectUserData userdata;
 
   mouse_select_init_data(C, &userdata, co);
@@ -239,15 +239,14 @@ static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
 
   if (userdata.track) {
     if (extend) {
-      if (act_track == userdata.track) {
+      if (active_track == userdata.track) {
         /* currently only single curve can be selected
          * (selected curve represents active track) */
-        act_track = NULL;
+        active_track = NULL;
       }
     }
-    else if (act_track != userdata.track) {
+    else if (active_track != userdata.track) {
       SelectUserData selectdata = {SEL_DESELECT};
-      MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
       tracking_object->active_track = userdata.track;
       if ((sc->flag & SC_SHOW_GRAPH_SEL_ONLY) == 0) {
@@ -392,12 +391,12 @@ static int box_select_graph_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
   BoxSelectuserData userdata;
   rctf rect;
 
-  if (act_track == NULL) {
+  if (active_track == NULL) {
     return OPERATOR_CANCELLED;
   }
 
@@ -409,7 +408,7 @@ static int box_select_graph_exec(bContext *C, wmOperator *op)
   userdata.select = !RNA_boolean_get(op->ptr, "deselect");
   userdata.extend = RNA_boolean_get(op->ptr, "extend");
 
-  clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, box_select_cb, NULL, NULL);
+  clip_graph_tracking_values_iterate_track(sc, active_track, &userdata, box_select_cb, NULL, NULL);
 
   if (userdata.changed) {
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
@@ -446,21 +445,19 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-  MovieTrackingMarker *marker;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
   int action = RNA_enum_get(op->ptr, "action");
-  int a;
 
-  if (!act_track) {
+  if (!active_track) {
     return OPERATOR_CANCELLED;
   }
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
-    for (a = 0; a < act_track->markersnr; a++) {
-      marker = &act_track->markers[a];
+    for (int a = 0; a < active_track->markersnr; a++) {
+      MovieTrackingMarker *marker = &active_track->markers[a];
 
       if (marker->flag & MARKER_GRAPH_SEL) {
         action = SEL_DESELECT;
@@ -469,8 +466,8 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (a = 0; a < act_track->markersnr; a++) {
-    marker = &act_track->markers[a];
+  for (int a = 0; a < active_track->markersnr; a++) {
+    MovieTrackingMarker *marker = &active_track->markers[a];
 
     switch (action) {
       case SEL_SELECT:
@@ -513,14 +510,14 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
 
-  if (!act_track) {
+  if (!active_track) {
     return OPERATOR_CANCELLED;
   }
 
-  clip_delete_track(C, clip, act_track);
+  clip_delete_track(C, clip, active_track);
 
   return OPERATOR_FINISHED;
 }
@@ -547,17 +544,17 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
 
-  if (act_track) {
+  if (active_track) {
     int a = 0;
 
-    while (a < act_track->markersnr) {
-      MovieTrackingMarker *marker = &act_track->markers[a];
+    while (a < active_track->markersnr) {
+      MovieTrackingMarker *marker = &active_track->markers[a];
 
       if (marker->flag & MARKER_GRAPH_SEL) {
-        clip_delete_marker(C, clip, act_track, marker);
+        clip_delete_marker(C, clip, active_track, marker);
       }
       else {
         a++;
@@ -708,18 +705,16 @@ static int graph_disable_markers_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-  MovieTrackingMarker *marker;
-  int action = RNA_enum_get(op->ptr, "action");
-  int a;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *active_track = tracking_object->active_track;
+  const int action = RNA_enum_get(op->ptr, "action");
 
-  if (!act_track || (act_track->flag & TRACK_LOCKED)) {
+  if (!active_track || (active_track->flag & TRACK_LOCKED)) {
     return OPERATOR_CANCELLED;
   }
 
-  for (a = 0; a < act_track->markersnr; a++) {
-    marker = &act_track->markers[a];
+  for (int a = 0; a < active_track->markersnr; a++) {
+    MovieTrackingMarker *marker = &active_track->markers[a];
 
     if (marker->flag & MARKER_GRAPH_SEL) {
       if (action == 0) {

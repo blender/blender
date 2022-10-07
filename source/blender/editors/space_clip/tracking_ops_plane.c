@@ -111,11 +111,10 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
   int width, height;
   float co[2];
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   ED_space_clip_get_size(sc, &width, &height);
   if (width == 0 || height == 0) {
@@ -127,8 +126,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
   float min_distance_squared = FLT_MAX;
   int min_corner = -1;
   MovieTrackingPlaneTrack *min_plane_track = NULL;
-  for (MovieTrackingPlaneTrack *plane_track = plane_tracks_base->first; plane_track != NULL;
-       plane_track = plane_track->next) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
       MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
       for (int i = 0; i < 4; i++) {

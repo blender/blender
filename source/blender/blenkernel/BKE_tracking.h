@@ -67,20 +67,6 @@ void BKE_tracking_copy(struct MovieTracking *tracking_dst,
  */
 void BKE_tracking_settings_init(struct MovieTracking *tracking);
 
-/**
- * Get list base of active object's tracks.
- */
-struct ListBase *BKE_tracking_get_active_tracks(struct MovieTracking *tracking);
-/**
- * Get list base of active object's plane tracks.
- */
-struct ListBase *BKE_tracking_get_active_plane_tracks(struct MovieTracking *tracking);
-/**
- * Get reconstruction data of active object.
- */
-struct MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(
-    struct MovieTracking *tracking);
-
 /* Matrices for constraints and drawing. */
 
 /**
@@ -252,8 +238,6 @@ struct MovieTrackingTrack *BKE_tracking_track_get_indexed(struct MovieTracking *
                                                           int tracknr,
                                                           struct ListBase **r_tracksbase);
 
-struct MovieTrackingTrack *BKE_tracking_track_get_active(struct MovieTracking *tracking);
-
 float *BKE_tracking_track_get_mask(int frame_width,
                                    int frame_height,
                                    const struct MovieTrackingTrack *track,
@@ -377,9 +361,6 @@ bool BKE_tracking_plane_track_has_marker_at_frame(struct MovieTrackingPlaneTrack
                                                   int framenr);
 bool BKE_tracking_plane_track_has_enabled_marker_at_frame(
     struct MovieTrackingPlaneTrack *plane_track, int framenr);
-
-struct MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(
-    struct MovieTracking *tracking);
 
 void BKE_tracking_plane_tracks_deselect_all(struct ListBase *plane_tracks_base);
 
@@ -836,7 +817,7 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 
 #define MARKER_VISIBLE(sc, track, marker) \
   (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || \
-   (BKE_tracking_track_get_active(&(sc)->clip->tracking) == track))
+   (BKE_tracking_object_get_active(&(sc)->clip->tracking)->active_track == track))
 
 #ifdef __cplusplus
 }

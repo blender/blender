@@ -51,11 +51,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
     BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
 
-    const MovieTrackingPlaneTrack *active_plane_track = BKE_tracking_plane_track_get_active(
-        tracking);
-    if (active_plane_track) {
-      BLI_strncpy(
-          data->plane_track_name, active_plane_track->name, sizeof(data->plane_track_name));
+    if (tracking_object->active_plane_track) {
+      BLI_strncpy(data->plane_track_name,
+                  tracking_object->active_plane_track->name,
+                  sizeof(data->plane_track_name));
     }
   }
 }

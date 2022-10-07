@@ -355,28 +355,6 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   BKE_tracking_object_add(tracking, DATA_("Camera"));
 }
 
-ListBase *BKE_tracking_get_active_tracks(MovieTracking *tracking)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  BLI_assert(tracking_object != NULL);
-
-  return &tracking_object->tracks;
-}
-
-ListBase *BKE_tracking_get_active_plane_tracks(MovieTracking *tracking)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  BLI_assert(tracking_object != NULL);
-
-  return &tracking_object->plane_tracks;
-}
-
-MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(MovieTracking *tracking)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  return &tracking_object->reconstruction;
-}
-
 void BKE_tracking_get_camera_object_matrix(Object *camera_object, float mat[4][4])
 {
   BLI_assert(camera_object != NULL);
@@ -648,8 +626,8 @@ int BKE_tracking_count_selected_tracks_in_list(const ListBase *tracks_list)
 
 int BKE_tracking_count_selected_tracks_in_active_object(/*const*/ MovieTracking *tracking)
 {
-  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
-  return BKE_tracking_count_selected_tracks_in_list(tracks_list);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  return BKE_tracking_count_selected_tracks_in_list(&tracking_object->tracks);
 }
 
 MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking *tracking,
@@ -657,10 +635,7 @@ MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking
 {
   *r_num_tracks = 0;
 
-  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
-  if (tracks_list == NULL) {
-    return NULL;
-  }
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
   /* Initialize input. */
   const int num_selected_tracks = BKE_tracking_count_selected_tracks_in_active_object(tracking);
@@ -671,7 +646,7 @@ MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking
   MovieTrackingTrack **source_tracks = MEM_malloc_arrayN(
       num_selected_tracks, sizeof(MovieTrackingTrack *), "selected tracks array");
   int source_track_index = 0;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_list) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (!TRACK_SELECTED(track)) {
       continue;
     }
@@ -1056,19 +1031,6 @@ MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking,
   *r_tracksbase = NULL;
 
   return NULL;
-}
-
-MovieTrackingTrack *BKE_tracking_track_get_active(MovieTracking *tracking)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  if (tracking_object->active_track == NULL) {
-    return NULL;
-  }
-
-  /* Perform data consistency check. */
-  BLI_assert(BLI_findindex(&tracking_object->tracks, tracking_object->active_track) != -1);
-
-  return tracking_object->active_track;
 }
 
 static bGPDlayer *track_mask_gpencil_layer_get(const MovieTrackingTrack *track)
@@ -1667,20 +1629,6 @@ void BKE_tracking_plane_track_free(MovieTrackingPlaneTrack *plane_track)
   MEM_freeN(plane_track->point_tracks);
 }
 
-MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(struct MovieTracking *tracking)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  if (tracking_object->active_plane_track == NULL) {
-    return NULL;
-  }
-
-  /* Perform data consistency check. */
-  BLI_assert(BLI_findindex(&tracking_object->plane_tracks, tracking_object->active_plane_track) !=
-             -1);
-
-  return tracking_object->active_plane_track;
-}
-
 void BKE_tracking_plane_tracks_deselect_all(ListBase *plane_tracks_base)
 {
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
@@ -1725,13 +1673,14 @@ bool BKE_tracking_plane_track_remove_point_track(MovieTrackingPlaneTrack *plane_
 void BKE_tracking_plane_tracks_remove_point_track(MovieTracking *tracking,
                                                   MovieTrackingTrack *track)
 {
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  LISTBASE_FOREACH_MUTABLE (
+      MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
       if (!BKE_tracking_plane_track_remove_point_track(plane_track, track)) {
         /* Delete planes with less than 3 point tracks in it. */
         BKE_tracking_plane_track_free(plane_track);
-        BLI_freelinkN(plane_tracks_base, plane_track);
+        BLI_freelinkN(&tracking_object->plane_tracks, plane_track);
       }
     }
   }
@@ -1753,8 +1702,8 @@ void BKE_tracking_plane_tracks_replace_point_track(MovieTracking *tracking,
                                                    MovieTrackingTrack *old_track,
                                                    MovieTrackingTrack *new_track)
 {
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     if (BKE_tracking_plane_track_has_point_track(plane_track, old_track)) {
       BKE_tracking_plane_track_replace_point_track(plane_track, old_track, new_track);
     }

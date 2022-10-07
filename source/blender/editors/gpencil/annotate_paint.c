@@ -1348,7 +1348,9 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
 
       if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
         int framenr = ED_space_clip_get_clip_frame_number(sc);
-        MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+        const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+            &clip->tracking);
+        MovieTrackingTrack *track = tracking_object->active_track;
         MovieTrackingMarker *marker = track ? BKE_tracking_marker_get(track, framenr) : NULL;
 
         if (marker) {

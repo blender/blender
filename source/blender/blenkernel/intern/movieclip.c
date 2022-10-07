@@ -1769,7 +1769,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
     return;
   }
 
-  MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *track = tracking_object->active_track;
   if (track == NULL) {
     return;
   }

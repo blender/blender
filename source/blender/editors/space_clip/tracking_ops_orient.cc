@@ -107,9 +107,9 @@ static int count_selected_bundles(bContext *C)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   int tot = 0;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       tot++;
     }
@@ -394,7 +394,6 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   }
 
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  const MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
   Object *object = get_orientation_object(C);
   if (object == NULL) {
@@ -411,7 +410,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
     while (track && tot < 3) {
       if (track->flag & TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
         mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
-        if (tot == 0 || track == act_track) {
+        if (tot == 0 || track == tracking_object->active_track) {
           copy_v3_v3(orig, vec[tot]);
         }
         else {
@@ -590,11 +589,9 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  MovieTrackingTrack *track;
   Scene *scene = CTX_data_scene(C);
   Object *object = NULL;
   Object *camera = get_camera_with_movieclip(scene, clip);
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
   int tot = 0;
   float vec[2][3], mat[4][4], scale;
   float dist = RNA_float_get(op->ptr, "distance");
@@ -614,13 +611,11 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
 
   BKE_tracking_get_camera_object_matrix(camera, mat);
 
-  track = static_cast<MovieTrackingTrack *>(tracksbase->first);
-  while (track) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track)) {
       mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
       tot++;
     }
-    track = track->next;
   }
 
   sub_v3_v3(vec[0], vec[1]);
@@ -629,13 +624,11 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
     scale = dist / len_v3(vec[0]);
     if (apply_scale) {
       /* Apply scale on reconstructed scene itself. */
-      MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(
-          tracking);
+      MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
       MovieReconstructedCamera *reconstructed_cameras;
       int i;
 
-      for (track = static_cast<MovieTrackingTrack *>(tracksbase->first); track;
-           track = static_cast<MovieTrackingTrack *>(track->next)) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
         mul_v3_fl(track->bundle_pos, scale);
       }
 

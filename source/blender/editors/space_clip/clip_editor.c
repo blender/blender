@@ -374,21 +374,16 @@ bool ED_clip_view_selection(const bContext *C, ARegion *UNUSED(region), bool fit
 void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
-  MovieTracking *tracking = &clip->tracking;
-  MovieTrackingTrack *track = NULL;            /* selected track */
-  MovieTrackingPlaneTrack *plane_track = NULL; /* selected plane track */
-  MovieTrackingMarker *marker;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
   bool has_selection = false;
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
-    for (track = tracksbase->first; track; track = track->next) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if (TRACK_VIEW_SELECTED(sc, track)) {
-        marker = BKE_tracking_marker_get(track, framenr);
+        const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
         if (MARKER_VISIBLE(sc, track, marker)) {
           action = SEL_DESELECT;
@@ -397,7 +392,7 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
       }
     }
 
-    for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
+    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
       if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
         action = SEL_DESELECT;
         break;
@@ -405,9 +400,9 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
     }
   }
 
-  for (track = tracksbase->first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if ((track->flag & TRACK_HIDDEN) == 0) {
-      marker = BKE_tracking_marker_get(track, framenr);
+      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
       if (MARKER_VISIBLE(sc, track, marker)) {
         switch (action) {
@@ -435,7 +430,7 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
     }
   }
 
-  for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
       switch (action) {
         case SEL_SELECT:

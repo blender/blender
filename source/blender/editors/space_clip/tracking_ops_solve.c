@@ -130,10 +130,11 @@ static void solve_camera_freejob(void *scv)
     }
   }
   else {
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
     BKE_reportf(scj->reports,
                 RPT_INFO,
                 "Average re-projection error: %.2f px",
-                BKE_tracking_get_active_reconstruction(tracking)->error);
+                tracking_object->reconstruction.error);
   }
 
   /* Set currently solved clip as active for scene. */
@@ -192,7 +193,8 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
   wmJob *wm_job;
   char error_msg[256] = "\0";
 
@@ -279,11 +281,10 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     track->flag &= ~TRACK_HAS_BUNDLE;
   }
 

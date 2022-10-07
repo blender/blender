@@ -134,9 +134,9 @@ static void rna_tracking_active_object_index_range(
 static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
-  MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, act_track);
+  return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, tracking_object->active_track);
 }
 
 static void rna_tracking_active_track_set(PointerRNA *ptr,
@@ -160,9 +160,10 @@ static void rna_tracking_active_track_set(PointerRNA *ptr,
 static PointerRNA rna_tracking_active_plane_track_get(PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
-  MovieTrackingPlaneTrack *act_plane_track = BKE_tracking_plane_track_get_active(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingPlaneTrack, act_plane_track);
+  return rna_pointer_inherit_refine(
+      ptr, &RNA_MovieTrackingPlaneTrack, tracking_object->active_plane_track);
 }
 
 static void rna_tracking_active_plane_track_set(PointerRNA *ptr,

@@ -49,9 +49,8 @@ static void init(const bContext *C, PointerRNA *ptr)
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
     BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
 
-    const MovieTrackingTrack *active_track = BKE_tracking_track_get_active(tracking);
-    if (active_track) {
-      BLI_strncpy(data->track_name, active_track->name, sizeof(data->track_name));
+    if (tracking_object->active_track) {
+      BLI_strncpy(data->track_name, tracking_object->active_track->name, sizeof(data->track_name));
     }
   }
 }
