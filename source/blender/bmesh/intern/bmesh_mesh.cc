@@ -2108,7 +2108,7 @@ bool BM_defragment_vertex(BMesh *bm,
 
   int vidx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
   const int count = 5;
-  BMVert **elems = BLI_array_alloca(elems, count);
+  BMVert **elems = static_cast<BMVert **>(BLI_array_alloca(elems, count));
 
   do {
     BMVert *v2 = BM_edge_other_vert(e, v);
