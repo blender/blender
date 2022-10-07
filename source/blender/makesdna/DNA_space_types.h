@@ -1083,6 +1083,8 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_VOLUME = (1 << 19),
 
   FILE_TYPE_ASSET = (1 << 28),
+  /** Directory is a Blender project root directory. */
+  FILE_TYPE_BLENDER_PROJECT = (1 << 29),
   /** An FS directory (i.e. S_ISDIR on its path is true). */
   FILE_TYPE_DIR = (1 << 30),
   FILE_TYPE_BLENDERLIB = (1u << 31),

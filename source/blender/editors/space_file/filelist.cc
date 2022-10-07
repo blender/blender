@@ -42,6 +42,7 @@
 
 #include "BKE_asset.h"
 #include "BKE_asset_library.h"
+#include "BKE_blender_project.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -1170,6 +1171,10 @@ static int filelist_geticon_ex(const FileDirEntry *file,
                                const bool ignore_libdir)
 {
   const eFileSel_File_Types typeflag = (eFileSel_File_Types)file->typeflag;
+
+  if ((typeflag & FILE_TYPE_DIR) && (typeflag & FILE_TYPE_BLENDER_PROJECT)) {
+    return ICON_FUND;
+  }
 
   if ((typeflag & FILE_TYPE_DIR) &&
       !(ignore_libdir && (typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER)))) {
@@ -2938,6 +2943,12 @@ static int filelist_readjob_list_dir(const char *root,
           if (filter_glob[0] && BLI_path_extension_check_glob(target, filter_glob)) {
             entry->typeflag |= FILE_TYPE_OPERATOR;
           }
+        }
+      }
+
+      if ((entry->typeflag & FILE_TYPE_DIR) && !(entry->typeflag & FILE_TYPE_BLENDER)) {
+        if (BKE_project_is_path_project_root(target)) {
+          entry->typeflag |= FILE_TYPE_BLENDER_PROJECT;
         }
       }
 

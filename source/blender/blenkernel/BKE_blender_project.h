@@ -29,7 +29,12 @@ BlenderProject *BKE_project_active_get(void) ATTR_WARN_UNUSED_RESULT;
  */
 void BKE_project_active_unset(void);
 /**
- * Check if \a path points into the project root path (i.e. if one of the ancestors of the
+ * Check if \a path references a project root directory. Will return false for paths pointing into
+ * the project root directory.
+ */
+bool BKE_project_is_path_project_root(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Check if \a path points to or into a project root path (i.e. if one of the ancestors of the
  * referenced file/directory is a project root directory).
  */
 bool BKE_project_contains_path(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

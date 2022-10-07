@@ -318,6 +318,11 @@ void BKE_project_active_unset(void)
   bke::BlenderProject::set_active_from_settings(nullptr);
 }
 
+bool BKE_project_is_path_project_root(const char *path)
+{
+  return bke::path_contains_project_settings(path);
+}
+
 bool BKE_project_contains_path(const char *path)
 {
   const StringRef found_root_path = bke::BlenderProject::project_root_path_find_from_path(path);
