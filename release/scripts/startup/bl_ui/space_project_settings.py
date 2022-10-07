@@ -113,7 +113,7 @@ class PROJECTSETTINGS_PT_save_project_settings(Panel):
         PROJECTSETTINGS_HT_header.draw_buttons(layout, context)
 
 
-class PROJECTSETTINGS_PT_no_project(CenterAlignMixIn, Panel):
+class PROJECTSETTINGS_PT_no_project(Panel):
     bl_space_type = 'PROJECT_SETTINGS'
     bl_region_type = 'WINDOW'
     # Special hardcoded context.
@@ -125,10 +125,17 @@ class PROJECTSETTINGS_PT_no_project(CenterAlignMixIn, Panel):
     def poll(cls, context):
         return (context.project is None)
 
-    def draw_centered(self, context, layout):
+    def draw(self, context):
         layout = self.layout
 
         layout.label(text="No active project.", icon='INFO')
+        col = layout.column(align=True)
+        col.label(text="Open/store a file inside of a project directory, or set up a new project")
+        col.label(text="by choosing a project directory.")
+
+        row = layout.row()
+        split = row.split(factor=0.3)
+        split.operator("wm.new_project", text="Set up Project...")
 
 
 class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):

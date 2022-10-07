@@ -2359,7 +2359,6 @@ static bool wm_project_has_active_poll(bContext *C)
   return active_project != NULL;
 }
 
-/* Only save the prefs block. operator entry */
 static int wm_save_project_settings_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
   BlenderProject *active_project = CTX_wm_project();
@@ -2487,7 +2486,7 @@ void WM_OT_delete_project_setup(wmOperatorType *ot)
   ot->idname = "WM_OT_delete_project_setup";
   ot->description =
       "Remove the configuration of the current project with all settings, but keep project files "
-      "(such as .blend files) untouched.";
+      "(such as .blend files) untouched";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_delete_project_setup_exec;
