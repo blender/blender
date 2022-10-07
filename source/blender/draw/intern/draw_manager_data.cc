@@ -695,7 +695,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -2145,7 +2145,7 @@ static void draw_view_matrix_state_update(DRWView *view,
                                           const float viewmat[4][4],
                                           const float winmat[4][4])
 {
-  ViewInfos *storage = &view->storage;
+  ViewMatrices *storage = &view->storage;
 
   copy_m4_m4(storage->viewmat.values, viewmat);
   invert_m4_m4(storage->viewinv.values, storage->viewmat.values);
@@ -2354,14 +2354,14 @@ float DRW_view_far_distance_get(const DRWView *view)
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const ViewInfos *storage = &view->storage;
+  const ViewMatrices *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->viewinv.values : storage->viewmat.values);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const ViewInfos *storage = &view->storage;
+  const ViewMatrices *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->wininv.values : storage->winmat.values);
 }
 

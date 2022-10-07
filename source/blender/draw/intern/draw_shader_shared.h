@@ -8,7 +8,7 @@
 #  include "draw_defines.h"
 
 typedef struct ViewCullingData ViewCullingData;
-typedef struct ViewInfos ViewInfos;
+typedef struct ViewMatrices ViewMatrices;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
 typedef struct ObjectBounds ObjectBounds;
@@ -60,14 +60,13 @@ struct ViewCullingData {
 };
 BLI_STATIC_ASSERT_ALIGN(ViewCullingData, 16)
 
-struct ViewInfos {
-  /* View matrices */
+struct ViewMatrices {
   float4x4 viewmat;
   float4x4 viewinv;
   float4x4 winmat;
   float4x4 wininv;
 };
-BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
+BLI_STATIC_ASSERT_ALIGN(ViewMatrices, 16)
 
 /* Do not override old definitions if the shader uses this header but not shader info. */
 #ifdef USE_GPU_SHADER_CREATE_INFO

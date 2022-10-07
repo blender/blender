@@ -218,7 +218,7 @@ void View::bind()
 void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze)
 {
   if (debug_freeze && frozen_ == false) {
-    data_freeze_ = static_cast<ViewInfos>(data_);
+    data_freeze_ = static_cast<ViewMatrices>(data_);
     data_freeze_.push_update();
     culling_freeze_ = static_cast<ViewCullingData>(culling_);
     culling_freeze_.push_update();

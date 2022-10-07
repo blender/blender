@@ -45,7 +45,7 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewInfos", "drw_view", Frequency::PASS)
+    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view", Frequency::PASS)
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_view_culling)

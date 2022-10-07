@@ -25,10 +25,10 @@ class View {
   friend Manager;
 
  private:
-  UniformBuffer<ViewInfos> data_;
+  UniformBuffer<ViewMatrices> data_;
   UniformBuffer<ViewCullingData> culling_;
   /** Frozen version of data_ used for debugging culling. */
-  UniformBuffer<ViewInfos> data_freeze_;
+  UniformBuffer<ViewMatrices> data_freeze_;
   UniformBuffer<ViewCullingData> culling_freeze_;
   /** Result of the visibility computation. 1 bit per resource ID. */
   VisibilityBuf visibility_buf_;

@@ -298,7 +298,6 @@ const float *DRW_viewport_invert_size_get(void)
   return DST.inv_size;
 }
 
-
 const float *DRW_viewport_pixelsize_get(void)
 {
   return &DST.pixsize;
@@ -599,7 +598,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   }
 
   if (G_draw.view_ubo == NULL) {
-    G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(ViewInfos), NULL, "G_draw.view_ubo");
+    G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(ViewMatrices), NULL, "G_draw.view_ubo");
   }
 
   if (G_draw.clipping_ubo == NULL) {
