@@ -86,6 +86,20 @@ static void output_handle_done(void *data, struct wl_output *wl_output);
 static bool use_gnome_confine_hack = false;
 #endif
 
+/**
+ * GNOME (mutter 42.5) doesn't follow the WAYLAND spec regarding keyboard handling,
+ * unlike (other compositors: KDE-plasma, River & Sway which work without problems).
+ *
+ * This means GNOME can't know which modifiers are held when activating windows,
+ * so we guess the left modifiers are held.
+ *
+ * This define could be removed without changing any functionality,
+ * it just means GNOME users will see verbose warning messages that alert them about
+ * a known problem that needs to be fixed up-stream.
+ * See: https://gitlab.gnome.org/GNOME/mutter/-/issues/2457
+ */
+#define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Event Codes
  *
@@ -384,6 +398,13 @@ struct GWL_Seat {
 
   /** Keys held matching `xkb_state`. */
   struct WGL_KeyboardDepressedState key_depressed;
+
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  struct {
+    bool any_mod_held = false;
+    bool any_keys_held_on_enter = false;
+  } key_depressed_suppress_warning;
+#endif
 
   /**
    * Cache result of `xkb_keymap_mod_get_index`
@@ -2312,6 +2333,10 @@ static void keyboard_handle_enter(void *data,
   }
 
   keyboard_depressed_state_push_events_from_change(seat, key_depressed_prev);
+
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  seat->key_depressed_suppress_warning.any_keys_held_on_enter = keys->size != 0;
+#endif
 }
 
 /**
@@ -2337,6 +2362,11 @@ static void keyboard_handle_leave(void *data,
   if (seat->key_repeat.timer) {
     keyboard_handle_key_repeat_cancel(seat);
   }
+
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  seat->key_depressed_suppress_warning.any_mod_held = false;
+  seat->key_depressed_suppress_warning.any_keys_held_on_enter = false;
+#endif
 }
 
 /**
@@ -2555,6 +2585,10 @@ static void keyboard_handle_modifiers(void *data,
   if (seat->key_repeat.timer) {
     keyboard_handle_key_repeat_reset(seat, true);
   }
+
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  seat->key_depressed_suppress_warning.any_mod_held = mods_depressed != 0;
+#endif
 }
 
 static void keyboard_repeat_handle_info(void *data,
@@ -3164,6 +3198,15 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
+  bool show_warning = true;
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  if ((seat->key_depressed_suppress_warning.any_mod_held == true) &&
+      (seat->key_depressed_suppress_warning.any_keys_held_on_enter == false)) {
+    /* The compositor gave us invalid information, don't show a warning. */
+    show_warning = false;
+  }
+#endif
+
   /* Use local #WGL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
   for (int i = 0; i < MOD_INDEX_NUM; i++) {
@@ -3179,18 +3222,22 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
      * Warn so if this happens it can be investigated. */
     if (val) {
       if (UNLIKELY(!(val_l || val_r))) {
-        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                  "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
-                  mod_info.display_name);
+        if (show_warning) {
+          CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                    "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
+                    mod_info.display_name);
+        }
         /* Picking the left is arbitrary. */
         val_l = true;
       }
     }
     else {
       if (UNLIKELY(val_l || val_r)) {
-        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                  "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
-                  mod_info.display_name);
+        if (show_warning) {
+          CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                    "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
+                    mod_info.display_name);
+        }
         val_l = false;
         val_r = false;
       }
