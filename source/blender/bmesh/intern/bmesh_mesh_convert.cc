@@ -512,7 +512,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
   /* Only copy these values over if the source mesh is flagged to be using them.
    * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
-                                                   -1;
+  -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
@@ -1470,9 +1470,10 @@ void BM_mesh_bm_to_me(
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
-    eCustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
+    eCustomDataMask extra2 = !params->ignore_mesh_id_layers ? (eCustomDataMask)CD_MASK_MESH_ID :
+                                                              (eCustomDataMask)0;
 
-    // copy id layers? temporarily clear cd_temporary and cd_flag_elem_nocopy flags
+    /* Copy id layers? temporarily clear cd_temporary and cd_flag_elem_nocopy flags. */
     if (!params->ignore_mesh_id_layers) {
       for (int i = 0; i < 4; i++) {
         int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
