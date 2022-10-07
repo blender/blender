@@ -27,6 +27,7 @@
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"
+#  include <stdio.h>
 #endif
 
 #include "BKE_armature.h"
