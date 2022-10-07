@@ -519,6 +519,11 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data);
 
 void ANIM_animdata_freelist(ListBase *anim_data);
 
+/**
+ * Check if the given animation container can contain grease pencil layer keyframes.
+ */
+bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type);
+
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */
 /* anim_channels_*.c */
