@@ -1707,6 +1707,10 @@ static void ed_surf_delete_selected(Object *obedit)
       bp++;
     }
     if (a == 0) {
+      if (cu->actnu == BLI_findindex(editnurb, nu)) {
+        cu->actnu = CU_ACT_NONE;
+      }
+
       BLI_remlink(editnurb, nu);
       keyIndex_delNurb(cu->editnurb, nu);
       BKE_nurb_free(nu);
@@ -6483,6 +6487,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
     }
     else if (type == CURVE_SEGMENT) {
       changed = curve_delete_segments(obedit, v3d, false);
+      cu->actnu = CU_ACT_NONE;
     }
     else {
       BLI_assert(0);
@@ -6490,7 +6495,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       changed_multi = true;
-      cu->actnu = cu->actvert = CU_ACT_NONE;
+      cu->actvert = CU_ACT_NONE;
 
       if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
