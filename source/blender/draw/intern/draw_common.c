@@ -180,7 +180,6 @@ void DRW_globals_update(void)
 
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
-  /* Deprecated, use drw_view.viewport_size instead */
   copy_v2_v2(&gb->size_viewport[0], DRW_viewport_size_get());
   copy_v2_v2(&gb->size_viewport[2], &gb->size_viewport[0]);
   invert_v2(&gb->size_viewport[2]);

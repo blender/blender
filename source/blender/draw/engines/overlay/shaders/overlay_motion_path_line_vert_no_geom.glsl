@@ -124,7 +124,7 @@ void main()
    * Each vertex shader invocation is one vertex in the output primitive, so outptut
    * required ID. */
   vec2 t;
-  vec2 edge_dir = compute_dir(ssPos[0], ssPos[1]) * drw_view.viewport_size_inverse;
+  vec2 edge_dir = compute_dir(ssPos[0], ssPos[1]) * sizeViewportInv;
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   float line_size = float(lineThickness) * sizePixel;

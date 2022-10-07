@@ -36,7 +36,7 @@ void main()
   vec2 line = ss_pos[0] - ss_pos[1];
   vec2 line_dir = normalize(line);
   vec2 line_perp = vec2(-line_dir.y, line_dir.x);
-  vec2 edge_ofs = line_perp * drw_view.viewport_size_inverse * ceil(half_size);
+  vec2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
   float selectFac0 = geom_in[0].selectionFac;
   float selectFac1 = geom_in[1].selectionFac;
 #ifdef USE_EDGE_SELECT

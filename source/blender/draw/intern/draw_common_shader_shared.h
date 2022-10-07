@@ -228,6 +228,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorFaceFront globalsBlock.color_face_front
 #  define colorUVShadow globalsBlock.color_uv_shadow
 #  define sizeViewport globalsBlock.size_viewport.xy
+#  define sizeViewportInv globalsBlock.size_viewport.zw
 #  define sizePixel globalsBlock.size_pixel
 #  define pixelFac globalsBlock.pixel_fac
 #  define sizeObjectCenter globalsBlock.size_object_center
