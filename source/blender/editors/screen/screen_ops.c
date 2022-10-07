@@ -5131,10 +5131,15 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 /** \name Show Project Settings Operator
  * \{ */
 
+bool ED_project_settings_window_show(bContext *C, ReportList *reports)
+{
+  return settings_window_show(
+      C, SPACE_PROJECT_SETTINGS, IFACE_("Blender Project Settings"), reports);
+}
+
 static int project_settings_show_exec(bContext *C, wmOperator *op)
 {
-  if (settings_window_show(
-          C, SPACE_PROJECT_SETTINGS, IFACE_("Blender Project Settings"), op->reports)) {
+  if (ED_project_settings_window_show(C, op->reports)) {
     return OPERATOR_FINISHED;
   }
 

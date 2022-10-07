@@ -2422,6 +2422,12 @@ static int wm_new_project_exec(bContext *C, wmOperator *op)
                 "project is not active");
   }
 
+  PropertyRNA *prop_open_settings = RNA_struct_find_property(op->ptr, "open_settings_after");
+  if (RNA_property_is_set(op->ptr, prop_open_settings) &&
+      RNA_property_boolean_get(op->ptr, prop_open_settings)) {
+    ED_project_settings_window_show(C, op->reports);
+  }
+
   return OPERATOR_FINISHED;
 }
 
@@ -2455,6 +2461,14 @@ void WM_OT_new_project(wmOperatorType *ot)
                                  WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "open_settings_after",
+                         false,
+                         "",
+                         "Open the project settings window after successfully creating a project");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
