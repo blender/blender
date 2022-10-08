@@ -434,16 +434,17 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             copy_v3_v3(fno, ss->vert_normals[ml->v]);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
 
-            const float fade2 = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                         brush,
-                                                                         v->co,
-                                                                         sqrtf(test.dist),
-                                                                         ss->vert_normals[ml->v],
-                                                                         fno,
-                                                                         mask,
-                                                                         (PBVHVertRef){.i = ml->v},
-                                                                         thread_id,
-                                                                         &automask_data);
+            const float fade2 = bstrength *
+                                SCULPT_brush_strength_factor(ss,
+                                                             brush,
+                                                             v->co,
+                                                             sqrtf(test.dist),
+                                                             ss->vert_normals[ml->v],
+                                                             fno,
+                                                             mask,
+                                                             BKE_pbvh_make_vref((intptr_t)ml->v),
+                                                             thread_id,
+                                                             &automask_data);
 
             if (fade2 < test_limit) {
               ok = false;
@@ -527,7 +528,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                l->v->no,
                                                                l->f->no,
                                                                mask,
-                                                               (PBVHVertRef){.i = (intptr_t)l->v},
+                                                               BKE_pbvh_make_vref((intptr_t)l->v),
                                                                thread_id,
                                                                &automask_data);
 
