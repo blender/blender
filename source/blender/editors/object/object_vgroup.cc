@@ -2850,8 +2850,9 @@ static bool vertex_group_vert_select_unlocked_poll(bContext *C)
   if (def_nr != 0) {
     const ListBase *defbase = BKE_object_defgroup_list(ob);
     const bDeformGroup *dg = static_cast<const bDeformGroup *>(BLI_findlink(defbase, def_nr - 1));
-    if (dg) {
-      return !(dg->flag & DG_LOCK_WEIGHT);
+    if (dg && (dg->flag & DG_LOCK_WEIGHT)) {
+      CTX_wm_operator_poll_msg_set(C, "The active vertex group is locked");
+      return false;
     }
   }
   return true;
