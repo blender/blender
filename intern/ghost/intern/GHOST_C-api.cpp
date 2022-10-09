@@ -52,6 +52,13 @@ GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle)
   return system->disposeSystem();
 }
 
+#if !(defined(WIN32) || defined(__APPLE__))
+const char *GHOST_SystemBackend()
+{
+  return GHOST_ISystem::getSystemBackend();
+}
+#endif
+
 void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
                           const char *title,
                           const char *message,
