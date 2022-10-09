@@ -13,7 +13,7 @@ namespace blender::eevee {
 
 class Instance;
 
-static const float cubeface_mat[6][4][4] = {
+inline constexpr float cubeface_mat[6][4][4] = {
     /* Pos X */
     {{0.0f, 0.0f, -1.0f, 0.0f},
      {0.0f, -1.0f, 0.0f, 0.0f},
