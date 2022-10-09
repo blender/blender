@@ -33,7 +33,7 @@
 
 BLI_INLINE wmGizmoProperty *wm_gizmo_target_property_array(wmGizmo *gz)
 {
-  return (wmGizmoProperty *)(POINTER_OFFSET(gz, gz->type->struct_size));
+  return (wmGizmoProperty *)POINTER_OFFSET(gz, gz->type->struct_size);
 }
 
 wmGizmoProperty *WM_gizmo_target_property_array(wmGizmo *gz)

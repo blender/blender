@@ -61,18 +61,18 @@ void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *v
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+        const auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
         BLO_write_struct(writer, IDViewerPathElem, typed_elem);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-        auto typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
+        const auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
         BLO_write_struct(writer, ModifierViewerPathElem, typed_elem);
         BLO_write_string(writer, typed_elem->modifier_name);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_NODE: {
-        auto typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
+        const auto *typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
         BLO_write_struct(writer, NodeViewerPathElem, typed_elem);
         BLO_write_string(writer, typed_elem->node_name);
         break;
@@ -90,12 +90,12 @@ void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath 
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-        auto typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
+        auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
         BLO_read_data_address(reader, &typed_elem->modifier_name);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_NODE: {
-        auto typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
+        auto *typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
         BLO_read_data_address(reader, &typed_elem->node_name);
         break;
       }
@@ -108,7 +108,7 @@ void BKE_viewer_path_blend_read_lib(BlendLibReader *reader, Library *lib, Viewer
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+        auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
         BLO_read_id_address(reader, lib, &typed_elem->id);
         break;
       }
@@ -125,7 +125,7 @@ void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_p
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+        auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
         BKE_LIB_FOREACHID_PROCESS_ID(data, typed_elem->id, IDWALK_CB_NOP);
         break;
       }
@@ -142,7 +142,7 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const IDRemapper *mapping
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+        auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
         BKE_id_remapper_apply(mappings, &typed_elem->id, ID_REMAP_APPLY_DEFAULT);
         break;
       }
@@ -199,22 +199,22 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
   ViewerPathElem *dst = BKE_viewer_path_elem_new(ViewerPathElemType(src->type));
   switch (ViewerPathElemType(src->type)) {
     case VIEWER_PATH_ELEM_TYPE_ID: {
-      auto old_elem = reinterpret_cast<const IDViewerPathElem *>(src);
-      auto new_elem = reinterpret_cast<IDViewerPathElem *>(dst);
+      const auto *old_elem = reinterpret_cast<const IDViewerPathElem *>(src);
+      auto *new_elem = reinterpret_cast<IDViewerPathElem *>(dst);
       new_elem->id = old_elem->id;
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-      auto old_elem = reinterpret_cast<const ModifierViewerPathElem *>(src);
-      auto new_elem = reinterpret_cast<ModifierViewerPathElem *>(dst);
+      const auto *old_elem = reinterpret_cast<const ModifierViewerPathElem *>(src);
+      auto *new_elem = reinterpret_cast<ModifierViewerPathElem *>(dst);
       if (old_elem->modifier_name != nullptr) {
         new_elem->modifier_name = BLI_strdup(old_elem->modifier_name);
       }
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_NODE: {
-      auto old_elem = reinterpret_cast<const NodeViewerPathElem *>(src);
-      auto new_elem = reinterpret_cast<NodeViewerPathElem *>(dst);
+      const auto *old_elem = reinterpret_cast<const NodeViewerPathElem *>(src);
+      auto *new_elem = reinterpret_cast<NodeViewerPathElem *>(dst);
       if (old_elem->node_name != nullptr) {
         new_elem->node_name = BLI_strdup(old_elem->node_name);
       }
@@ -231,18 +231,18 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b
   }
   switch (ViewerPathElemType(a->type)) {
     case VIEWER_PATH_ELEM_TYPE_ID: {
-      auto a_elem = reinterpret_cast<const IDViewerPathElem *>(a);
-      auto b_elem = reinterpret_cast<const IDViewerPathElem *>(b);
+      const auto *a_elem = reinterpret_cast<const IDViewerPathElem *>(a);
+      const auto *b_elem = reinterpret_cast<const IDViewerPathElem *>(b);
       return a_elem->id == b_elem->id;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-      auto a_elem = reinterpret_cast<const ModifierViewerPathElem *>(a);
-      auto b_elem = reinterpret_cast<const ModifierViewerPathElem *>(b);
+      const auto *a_elem = reinterpret_cast<const ModifierViewerPathElem *>(a);
+      const auto *b_elem = reinterpret_cast<const ModifierViewerPathElem *>(b);
       return StringRef(a_elem->modifier_name) == StringRef(b_elem->modifier_name);
     }
     case VIEWER_PATH_ELEM_TYPE_NODE: {
-      auto a_elem = reinterpret_cast<const NodeViewerPathElem *>(a);
-      auto b_elem = reinterpret_cast<const NodeViewerPathElem *>(b);
+      const auto *a_elem = reinterpret_cast<const NodeViewerPathElem *>(a);
+      const auto *b_elem = reinterpret_cast<const NodeViewerPathElem *>(b);
       return StringRef(a_elem->node_name) == StringRef(b_elem->node_name);
     }
   }
@@ -256,12 +256,12 @@ void BKE_viewer_path_elem_free(ViewerPathElem *elem)
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-      auto typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
+      auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
       MEM_SAFE_FREE(typed_elem->modifier_name);
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_NODE: {
-      auto typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
+      auto *typed_elem = reinterpret_cast<NodeViewerPathElem *>(elem);
       MEM_SAFE_FREE(typed_elem->node_name);
       break;
     }

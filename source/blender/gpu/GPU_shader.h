@@ -145,6 +145,7 @@ typedef enum {
   GPU_UNIFORM_BLOCK_DRW_VIEW,
   GPU_UNIFORM_BLOCK_DRW_MODEL,
   GPU_UNIFORM_BLOCK_DRW_INFOS,
+  GPU_UNIFORM_BLOCK_DRW_CLIPPING,
 
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;

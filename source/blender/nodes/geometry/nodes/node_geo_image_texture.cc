@@ -31,13 +31,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryImageTexture *tex = MEM_cnew<NodeGeometryImageTexture>(__func__);
   node->storage = tex;
@@ -189,22 +189,22 @@ class ImageFieldsFunction : public fn::MultiFunction {
     v[2] = ((-0.5f * ty + 0.5f) * ty + 0.5f) * ty + (1.0f / 6.0f);
     v[3] = (1.0f / 6.0f) * ty * ty * ty;
 
-    return (v[0] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[0])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[0])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[0])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[0])))) +
-           (v[1] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[1])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[1])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[1])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[1])))) +
-           (v[2] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[2])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[2])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[2])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[2])))) +
-           (v[3] * (u[0] * (image_pixel_lookup(ibuf, xc[0], yc[3])) +
-                    u[1] * (image_pixel_lookup(ibuf, xc[1], yc[3])) +
-                    u[2] * (image_pixel_lookup(ibuf, xc[2], yc[3])) +
-                    u[3] * (image_pixel_lookup(ibuf, xc[3], yc[3]))));
+    return (v[0] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[0]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[0]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[0]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[0]))) +
+           (v[1] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[1]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[1]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[1]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[1]))) +
+           (v[2] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[2]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[2]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[2]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[2]))) +
+           (v[3] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[3]) +
+                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[3]) +
+                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[3]) +
+                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[3])));
   }
 
   static float4 image_linear_texture_lookup(const ImBuf *ibuf,
@@ -285,7 +285,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
     }
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
     MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(

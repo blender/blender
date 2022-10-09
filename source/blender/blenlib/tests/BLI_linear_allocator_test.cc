@@ -130,7 +130,7 @@ TEST(linear_allocator, ManyAllocations)
   RandomNumberGenerator rng;
   for (int i = 0; i < 1000; i++) {
     int size = rng.get_int32(10000);
-    int alignment = 1 << (rng.get_int32(7));
+    int alignment = 1 << rng.get_int32(7);
     void *buffer = allocator.allocate(size, alignment);
     EXPECT_NE(buffer, nullptr);
   }

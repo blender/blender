@@ -1679,7 +1679,7 @@ class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
         if part.use_roughness_curve:
             sub = col.column()
             sub.template_curve_mapping(part, "roughness_curve")
-            sub.prop(part, "roughness_1", text=iface_("Roughness", i18n_contexts.id_particlesettings))
+            sub.prop(part, "roughness_1", text="Roughness", text_ctxt=i18n_contexts.id_particlesettings)
             sub.prop(part, "roughness_1_size", text="Size")
         else:
             sub = col.column(align=True)

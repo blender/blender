@@ -343,7 +343,7 @@ Nurb *ED_curve_add_nurbs_primitive(
             bp->vec[0] += fac * grid;
             fac = (float)b - 1.5f;
             bp->vec[1] += fac * grid;
-            if ((ELEM(a, 1, 2)) && (ELEM(b, 1, 2))) {
+            if (ELEM(a, 1, 2) && ELEM(b, 1, 2)) {
               bp->vec[2] += grid;
             }
             mul_m4_v3(mat, bp->vec);

@@ -629,6 +629,7 @@ static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 
   bAction *act = BKE_action_add(bmain, safe_name);
   id_fake_user_clear(&act->id);
+  id_us_min(&act->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
 
@@ -701,6 +702,7 @@ static Mask *rna_Main_mask_new(Main *bmain, const char *name)
   rna_idname_validate(name, safe_name);
 
   Mask *mask = BKE_mask_new(bmain, safe_name);
+  id_us_min(&mask->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
 

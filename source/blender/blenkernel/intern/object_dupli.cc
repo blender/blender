@@ -50,16 +50,19 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_type_conversions.hh"
 #include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
+#include "DNA_world_types.h"
 
 #include "NOD_geometry_nodes_log.hh"
 #include "RNA_access.h"
 #include "RNA_path.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 using blender::Array;
@@ -101,6 +104,8 @@ struct DupliContext {
   Vector<Object *> *instance_stack;
 
   int persistent_id[MAX_DUPLI_RECUR];
+  int64_t instance_idx[MAX_DUPLI_RECUR];
+  const GeometrySet *instance_data[MAX_DUPLI_RECUR];
   int level;
 
   const struct DupliGenerator *gen;
@@ -151,8 +156,13 @@ static void init_context(DupliContext *r_ctx,
 /**
  * Create sub-context for recursive duplis.
  */
-static bool copy_dupli_context(
-    DupliContext *r_ctx, const DupliContext *ctx, Object *ob, const float mat[4][4], int index)
+static bool copy_dupli_context(DupliContext *r_ctx,
+                               const DupliContext *ctx,
+                               Object *ob,
+                               const float mat[4][4],
+                               int index,
+                               const GeometrySet *geometry = nullptr,
+                               int64_t instance_index = 0)
 {
   *r_ctx = *ctx;
 
@@ -168,6 +178,8 @@ static bool copy_dupli_context(
     mul_m4_m4m4(r_ctx->space_mat, (float(*)[4])ctx->space_mat, mat);
   }
   r_ctx->persistent_id[r_ctx->level] = index;
+  r_ctx->instance_idx[r_ctx->level] = instance_index;
+  r_ctx->instance_data[r_ctx->level] = geometry;
   ++r_ctx->level;
 
   if (r_ctx->level == MAX_DUPLI_RECUR - 1) {
@@ -184,8 +196,13 @@ static bool copy_dupli_context(
  *
  * \param mat: is transform of the object relative to current context (including #Object.obmat).
  */
-static DupliObject *make_dupli(
-    const DupliContext *ctx, Object *ob, const ID *object_data, const float mat[4][4], int index)
+static DupliObject *make_dupli(const DupliContext *ctx,
+                               Object *ob,
+                               const ID *object_data,
+                               const float mat[4][4],
+                               int index,
+                               const GeometrySet *geometry = nullptr,
+                               int64_t instance_index = 0)
 {
   DupliObject *dob;
   int i;
@@ -219,6 +236,23 @@ static DupliObject *make_dupli(
     dob->persistent_id[i] = INT_MAX;
   }
 
+  /* Store geometry set data for attribute lookup in innermost to outermost
+   * order, copying only non-null entries to save space. */
+  const int max_instance = sizeof(dob->instance_data) / sizeof(void *);
+  int next_instance = 0;
+  if (geometry != nullptr) {
+    dob->instance_idx[next_instance] = int(instance_index);
+    dob->instance_data[next_instance] = geometry;
+    next_instance++;
+  }
+  for (i = ctx->level - 1; i >= 0 && next_instance < max_instance; i--) {
+    if (ctx->instance_data[i] != nullptr) {
+      dob->instance_idx[next_instance] = int(ctx->instance_idx[i]);
+      dob->instance_data[next_instance] = ctx->instance_data[i];
+      next_instance++;
+    }
+  }
+
   /* Meta-balls never draw in duplis, they are instead merged into one by the basis
    * meta-ball outside of the group. this does mean that if that meta-ball is not in the
    * scene, they will not show up at all, limitation that should be solved once. */
@@ -249,9 +283,11 @@ static DupliObject *make_dupli(
 static DupliObject *make_dupli(const DupliContext *ctx,
                                Object *ob,
                                const float mat[4][4],
-                               int index)
+                               int index,
+                               const GeometrySet *geometry = nullptr,
+                               int64_t instance_index = 0)
 {
-  return make_dupli(ctx, ob, static_cast<ID *>(ob->data), mat, index);
+  return make_dupli(ctx, ob, static_cast<ID *>(ob->data), mat, index, geometry, instance_index);
 }
 
 /**
@@ -262,7 +298,9 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 static void make_recursive_duplis(const DupliContext *ctx,
                                   Object *ob,
                                   const float space_mat[4][4],
-                                  int index)
+                                  int index,
+                                  const GeometrySet *geometry = nullptr,
+                                  int64_t instance_index = 0)
 {
   if (ctx->instance_stack->contains(ob)) {
     /* Avoid recursive instances. */
@@ -272,7 +310,7 @@ static void make_recursive_duplis(const DupliContext *ctx,
   /* Simple preventing of too deep nested collections with #MAX_DUPLI_RECUR. */
   if (ctx->level < MAX_DUPLI_RECUR) {
     DupliContext rctx;
-    if (!copy_dupli_context(&rctx, ctx, ob, space_mat, index)) {
+    if (!copy_dupli_context(&rctx, ctx, ob, space_mat, index, geometry, instance_index)) {
       return;
     }
     if (rctx.gen) {
@@ -875,12 +913,12 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         Object &object = reference.object();
         float matrix[4][4];
         mul_m4_m4m4(matrix, parent_transform, instance_offset_matrices[i].values);
-        make_dupli(ctx_for_instance, &object, matrix, id);
+        make_dupli(ctx_for_instance, &object, matrix, id, &geometry_set, i);
 
         float space_matrix[4][4];
         mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.imat);
         mul_m4_m4_pre(space_matrix, parent_transform);
-        make_recursive_duplis(ctx_for_instance, &object, space_matrix, id);
+        make_recursive_duplis(ctx_for_instance, &object, space_matrix, id, &geometry_set, i);
         break;
       }
       case InstanceReference::Type::Collection: {
@@ -892,8 +930,13 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4_pre(collection_matrix, parent_transform);
 
         DupliContext sub_ctx;
-        if (!copy_dupli_context(
-                &sub_ctx, ctx_for_instance, ctx_for_instance->object, nullptr, id)) {
+        if (!copy_dupli_context(&sub_ctx,
+                                ctx_for_instance,
+                                ctx_for_instance->object,
+                                nullptr,
+                                id,
+                                &geometry_set,
+                                i)) {
           break;
         }
 
@@ -918,8 +961,13 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].values);
 
         DupliContext sub_ctx;
-        if (copy_dupli_context(
-                &sub_ctx, ctx_for_instance, ctx_for_instance->object, nullptr, id)) {
+        if (copy_dupli_context(&sub_ctx,
+                               ctx_for_instance,
+                               ctx_for_instance->object,
+                               nullptr,
+                               id,
+                               &geometry_set,
+                               i)) {
           make_duplis_geometry_set_impl(
               &sub_ctx, reference.geometry_set(), new_transform, true, false);
         }
@@ -1719,6 +1767,41 @@ void free_object_duplilist(ListBase *lb)
 /** \name Uniform attribute lookup
  * \{ */
 
+/** Lookup instance attributes assigned via geometry nodes. */
+static bool find_geonode_attribute_rgba(const DupliObject *dupli,
+                                        const char *name,
+                                        float r_value[4])
+{
+  using namespace blender;
+
+  /* Loop over layers from innermost to outermost. */
+  for (const int i : IndexRange(sizeof(dupli->instance_data) / sizeof(void *))) {
+    /* Skip non-geonode layers. */
+    if (dupli->instance_data[i] == nullptr) {
+      continue;
+    }
+
+    const InstancesComponent *component =
+        dupli->instance_data[i]->get_component_for_read<InstancesComponent>();
+
+    if (component == nullptr) {
+      continue;
+    }
+
+    /* Attempt to look up the attribute. */
+    std::optional<bke::AttributeAccessor> attributes = component->attributes();
+    const VArray data = attributes->lookup<ColorGeometry4f>(name);
+
+    /* If the attribute was found and converted to float RGBA successfully, output it. */
+    if (data) {
+      copy_v4_v4(r_value, data[dupli->instance_idx[i]]);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /** Lookup an arbitrary RNA property and convert it to RGBA if possible. */
 static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
 {
@@ -1759,7 +1842,7 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
       value = RNA_property_float_get(&ptr, prop);
     }
     else if (type == PROP_INT) {
-      value = static_cast<float>(RNA_property_int_get(&ptr, prop));
+      value = float(RNA_property_int_get(&ptr, prop));
     }
     else if (type == PROP_BOOLEAN) {
       value = RNA_property_boolean_get(&ptr, prop) ? 1.0f : 0.0f;
@@ -1782,7 +1865,7 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
     int tmp[4] = {0, 0, 0, 1};
     RNA_property_int_get_array(&ptr, prop, tmp);
     for (int i = 0; i < 4; i++) {
-      r_data[i] = static_cast<float>(tmp[i]);
+      r_data[i] = float(tmp[i]);
     }
     return true;
   }
@@ -1809,6 +1892,11 @@ bool BKE_object_dupli_find_rgba_attribute(
     }
   }
 
+  /* Check geometry node dupli instance attributes. */
+  if (dupli && find_geonode_attribute_rgba(dupli, name, r_value)) {
+    return true;
+  }
+
   /* Check the dupli parent object. */
   if (dupli_parent && find_rna_property_rgba(&dupli_parent->id, name, r_value)) {
     return true;
@@ -1824,6 +1912,32 @@ bool BKE_object_dupli_find_rgba_attribute(
     if (ob->data && find_rna_property_rgba((ID *)ob->data, name, r_value)) {
       return true;
     }
+  }
+
+  copy_v4_fl(r_value, 0.0f);
+  return false;
+}
+
+bool BKE_view_layer_find_rgba_attribute(struct Scene *scene,
+                                        struct ViewLayer *layer,
+                                        const char *name,
+                                        float r_value[4])
+{
+  if (layer) {
+    PointerRNA layer_ptr;
+    RNA_pointer_create(&scene->id, &RNA_ViewLayer, layer, &layer_ptr);
+
+    if (find_rna_property_rgba(&layer_ptr, name, r_value)) {
+      return true;
+    }
+  }
+
+  if (find_rna_property_rgba(&scene->id, name, r_value)) {
+    return true;
+  }
+
+  if (scene->world && find_rna_property_rgba(&scene->world->id, name, r_value)) {
+    return true;
   }
 
   copy_v4_fl(r_value, 0.0f);

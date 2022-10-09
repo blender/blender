@@ -583,7 +583,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_el
 }
 
 char *RNA_path_append(const char *path,
-                      const PointerRNA *UNUSED(ptr),
+                      const PointerRNA * /*ptr*/,
                       PropertyRNA *prop,
                       int intkey,
                       const char *strkey)
@@ -1333,7 +1333,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
   return ret;
 }
 
-char *RNA_path_property_py(const PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
+char *RNA_path_property_py(const PointerRNA * /*ptr*/, PropertyRNA *prop, int index)
 {
   const bool is_rna = (prop->magic == RNA_MAGIC);
   const char *propname = RNA_property_identifier(prop);

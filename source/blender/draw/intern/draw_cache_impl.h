@@ -279,8 +279,6 @@ struct GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(struct Mesh *me);
 
 int DRW_mesh_material_count_get(const struct Object *object, const struct Mesh *me);
 
-/* See 'common_globals_lib.glsl' for duplicate defines. */
-
 /* Edit mesh bitflags (is this the right place?) */
 enum {
   VFLAG_VERT_ACTIVE = 1 << 0,

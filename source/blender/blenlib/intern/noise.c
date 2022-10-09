@@ -939,9 +939,9 @@ void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me
       break;
   }
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
   da[0] = da[1] = da[2] = da[3] = 1e10f;
   for (int xx = xi - 1; xx <= xi + 1; xx++) {
     for (int yy = yi - 1; yy <= yi + 1; yy++) {
@@ -1112,9 +1112,9 @@ static float BLI_cellNoiseU(float x, float y, float z)
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
   uint n = xi + yi * 1301 + zi * 314159;
   n ^= (n << 13);
   return ((float)(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
@@ -1132,9 +1132,9 @@ void BLI_noise_cell_v3(float x, float y, float z, float r_ca[3])
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
   const float *p = HASHPNT(xi, yi, zi);
   r_ca[0] = p[0];
   r_ca[1] = p[1];
@@ -1329,8 +1329,8 @@ float BLI_noise_mg_fbm(
 float BLI_noise_mg_multi_fractal(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-  /* This one is in fact rather confusing,
-   * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+  /* This one is in fact rather confusing, there seem to be errors in the original source code
+   * (in all three versions of `proc.text & mod`),
    * I modified it to something that made sense to me, so it might be wrong. */
 
   float (*noisefunc)(float, float, float);

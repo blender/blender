@@ -226,7 +226,7 @@ static uint txtfmt_py_numeral_string_count_hexadecimal(const char *string)
 /* Zeros. */
 static bool txtfmt_py_numeral_char_is_zero(const char c)
 {
-  return (ELEM(c, '0', '_'));
+  return ELEM(c, '0', '_');
 }
 static uint txtfmt_py_numeral_string_count_zeros(const char *string)
 {

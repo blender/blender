@@ -498,6 +498,115 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
 /** \name Text Drawing: Buffer
  * \{ */
 
+/**
+ * Draw glyph `g` into `buf_info` pixels.
+ */
+static void blf_glyph_draw_buffer(FontBufInfoBLF *buf_info,
+                                  GlyphBLF *g,
+                                  const ft_pix pen_x,
+                                  const ft_pix pen_y_basis)
+{
+  const int chx = ft_pix_to_int(pen_x + ft_pix_from_int(g->pos[0]));
+  const int chy = ft_pix_to_int(pen_y_basis + ft_pix_from_int(g->dims[1]));
+
+  ft_pix pen_y = (g->pitch < 0) ? (pen_y_basis + ft_pix_from_int(g->dims[1] - g->pos[1])) :
+                                  (pen_y_basis - ft_pix_from_int(g->dims[1] - g->pos[1]));
+
+  if ((chx + g->dims[0]) < 0 ||                  /* Out of bounds: left. */
+      chx >= buf_info->dims[0] ||                /* Out of bounds: right. */
+      (ft_pix_to_int(pen_y) + g->dims[1]) < 0 || /* Out of bounds: bottom. */
+      ft_pix_to_int(pen_y) >= buf_info->dims[1]  /* Out of bounds: top. */
+  ) {
+    return;
+  }
+
+  /* Don't draw beyond the buffer bounds. */
+  int width_clip = g->dims[0];
+  int height_clip = g->dims[1];
+  int yb_start = g->pitch < 0 ? 0 : g->dims[1] - 1;
+
+  if (width_clip + chx > buf_info->dims[0]) {
+    width_clip -= chx + width_clip - buf_info->dims[0];
+  }
+  if (height_clip + ft_pix_to_int(pen_y) > buf_info->dims[1]) {
+    height_clip -= ft_pix_to_int(pen_y) + height_clip - buf_info->dims[1];
+  }
+
+  /* Clip drawing below the image. */
+  if (pen_y < 0) {
+    yb_start += (g->pitch < 0) ? -ft_pix_to_int(pen_y) : ft_pix_to_int(pen_y);
+    height_clip += ft_pix_to_int(pen_y);
+    pen_y = 0;
+  }
+
+  /* Avoid conversions in the pixel writing loop. */
+  const int pen_y_px = ft_pix_to_int(pen_y);
+
+  const float *b_col_float = buf_info->col_float;
+  const uchar *b_col_char = buf_info->col_char;
+
+  if (buf_info->fbuf) {
+    int yb = yb_start;
+    for (int y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
+      for (int x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
+        const char a_byte = *(g->bitmap + x + (yb * g->pitch));
+        if (a_byte) {
+          const float a = (a_byte / 255.0f) * b_col_float[3];
+          const size_t buf_ofs = (((size_t)(chx + x) +
+                                   ((size_t)(pen_y_px + y) * (size_t)buf_info->dims[0])) *
+                                  (size_t)buf_info->ch);
+          float *fbuf = buf_info->fbuf + buf_ofs;
+
+          float font_pixel[4];
+          font_pixel[0] = b_col_float[0] * a;
+          font_pixel[1] = b_col_float[1] * a;
+          font_pixel[2] = b_col_float[2] * a;
+          font_pixel[3] = a;
+          blend_color_mix_float(fbuf, fbuf, font_pixel);
+        }
+      }
+
+      if (g->pitch < 0) {
+        yb++;
+      }
+      else {
+        yb--;
+      }
+    }
+  }
+
+  if (buf_info->cbuf) {
+    int yb = yb_start;
+    for (int y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
+      for (int x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
+        const char a_byte = *(g->bitmap + x + (yb * g->pitch));
+
+        if (a_byte) {
+          const float a = (a_byte / 255.0f) * b_col_float[3];
+          const size_t buf_ofs = (((size_t)(chx + x) +
+                                   ((size_t)(pen_y_px + y) * (size_t)buf_info->dims[0])) *
+                                  (size_t)buf_info->ch);
+          uchar *cbuf = buf_info->cbuf + buf_ofs;
+
+          uchar font_pixel[4];
+          font_pixel[0] = b_col_char[0];
+          font_pixel[1] = b_col_char[1];
+          font_pixel[2] = b_col_char[2];
+          font_pixel[3] = unit_float_to_uchar_clamp(a);
+          blend_color_mix_byte(cbuf, cbuf, font_pixel);
+        }
+      }
+
+      if (g->pitch < 0) {
+        yb++;
+      }
+      else {
+        yb--;
+      }
+    }
+  }
+}
+
 /* Sanity checks are done by BLF_draw_buffer() */
 static void blf_font_draw_buffer_ex(FontBLF *font,
                                     GlyphCacheBLF *gc,
@@ -513,10 +622,6 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
 
   /* buffer specific vars */
   FontBufInfoBLF *buf_info = &font->buf_info;
-  const float *b_col_float = buf_info->col_float;
-  const uchar *b_col_char = buf_info->col_char;
-  int chx, chy;
-  int y, x;
 
   /* another buffer specific call for color conversion */
 
@@ -528,101 +633,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
     }
     pen_x += blf_kerning(font, g_prev, g);
 
-    chx = ft_pix_to_int(pen_x + ft_pix_from_int(g->pos[0]));
-    chy = ft_pix_to_int(pen_y_basis + ft_pix_from_int(g->dims[1]));
-
-    if (g->pitch < 0) {
-      pen_y = pen_y_basis + ft_pix_from_int(g->dims[1] - g->pos[1]);
-    }
-    else {
-      pen_y = pen_y_basis - ft_pix_from_int(g->dims[1] - g->pos[1]);
-    }
-
-    if ((chx + g->dims[0]) >= 0 && chx < buf_info->dims[0] &&
-        (ft_pix_to_int(pen_y) + g->dims[1]) >= 0 && ft_pix_to_int(pen_y) < buf_info->dims[1]) {
-      /* don't draw beyond the buffer bounds */
-      int width_clip = g->dims[0];
-      int height_clip = g->dims[1];
-      int yb_start = g->pitch < 0 ? 0 : g->dims[1] - 1;
-
-      if (width_clip + chx > buf_info->dims[0]) {
-        width_clip -= chx + width_clip - buf_info->dims[0];
-      }
-      if (height_clip + ft_pix_to_int(pen_y) > buf_info->dims[1]) {
-        height_clip -= ft_pix_to_int(pen_y) + height_clip - buf_info->dims[1];
-      }
-
-      /* drawing below the image? */
-      if (pen_y < 0) {
-        yb_start += (g->pitch < 0) ? -ft_pix_to_int(pen_y) : ft_pix_to_int(pen_y);
-        height_clip += ft_pix_to_int(pen_y);
-        pen_y = 0;
-      }
-
-      /* Avoid conversions in the pixel writing loop. */
-      const int pen_y_px = ft_pix_to_int(pen_y);
-
-      if (buf_info->fbuf) {
-        int yb = yb_start;
-        for (y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
-          for (x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-            const char a_byte = *(g->bitmap + x + (yb * g->pitch));
-            if (a_byte) {
-              const float a = (a_byte / 255.0f) * b_col_float[3];
-              const size_t buf_ofs = (((size_t)(chx + x) +
-                                       ((size_t)(pen_y_px + y) * (size_t)buf_info->dims[0])) *
-                                      (size_t)buf_info->ch);
-              float *fbuf = buf_info->fbuf + buf_ofs;
-
-              float font_pixel[4];
-              font_pixel[0] = b_col_float[0] * a;
-              font_pixel[1] = b_col_float[1] * a;
-              font_pixel[2] = b_col_float[2] * a;
-              font_pixel[3] = a;
-              blend_color_mix_float(fbuf, fbuf, font_pixel);
-            }
-          }
-
-          if (g->pitch < 0) {
-            yb++;
-          }
-          else {
-            yb--;
-          }
-        }
-      }
-
-      if (buf_info->cbuf) {
-        int yb = yb_start;
-        for (y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
-          for (x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-            const char a_byte = *(g->bitmap + x + (yb * g->pitch));
-
-            if (a_byte) {
-              const float a = (a_byte / 255.0f) * b_col_float[3];
-              const size_t buf_ofs = (((size_t)(chx + x) +
-                                       ((size_t)(pen_y_px + y) * (size_t)buf_info->dims[0])) *
-                                      (size_t)buf_info->ch);
-              uchar *cbuf = buf_info->cbuf + buf_ofs;
-
-              uchar font_pixel[4];
-              font_pixel[0] = b_col_char[0];
-              font_pixel[1] = b_col_char[1];
-              font_pixel[2] = b_col_char[2];
-              font_pixel[3] = unit_float_to_uchar_clamp(a);
-              blend_color_mix_byte(cbuf, cbuf, font_pixel);
-            }
-          }
-
-          if (g->pitch < 0) {
-            yb++;
-          }
-          else {
-            yb--;
-          }
-        }
-      }
-    }
+    blf_glyph_draw_buffer(buf_info, g, pen_x, pen_y_basis);
 
     pen_x = ft_pix_round_advance(pen_x, g->advance_x);
     g_prev = g;

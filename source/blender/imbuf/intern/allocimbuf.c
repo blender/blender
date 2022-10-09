@@ -402,7 +402,7 @@ bool imb_addrectImBuf(ImBuf *ibuf)
     ibuf->mall |= IB_rect;
     ibuf->flags |= IB_rect;
     if (ibuf->planes > 32) {
-      return (addzbufImBuf(ibuf));
+      return addzbufImBuf(ibuf);
     }
 
     return true;

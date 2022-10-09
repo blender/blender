@@ -114,4 +114,13 @@ TEST(generic_array, InContainer)
   }
 }
 
+TEST(generic_array, ReinitEmpty)
+{
+  GArray<> array(CPPType::get<int>());
+  array.reinitialize(10);
+  array.as_mutable_span().typed<int>()[9] = 7;
+  EXPECT_EQ(array.size(), 10);
+  EXPECT_EQ(array.as_span().typed<int>()[9], 7);
+}
+
 }  // namespace blender::tests

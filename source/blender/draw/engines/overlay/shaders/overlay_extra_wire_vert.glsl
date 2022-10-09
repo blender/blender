@@ -16,8 +16,7 @@ void main()
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w *
-                    ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif
 
   stipple_coord = stipple_start = screen_position(gl_Position);

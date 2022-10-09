@@ -93,7 +93,7 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
     return 1;
   }
 
-  return (BLI_strcasecmp_natural(entry1->relname, entry2->relname));
+  return BLI_strcasecmp_natural(entry1->relname, entry2->relname);
 }
 
 struct BuildDirCtx {

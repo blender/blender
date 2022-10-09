@@ -31,7 +31,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
 
-    if ((!(n_e->flags & LRT_EDGE_FLAG_ALL_TYPE)) || (n_e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
+    if (!(n_e->flags & LRT_EDGE_FLAG_ALL_TYPE) || (n_e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
       continue;
     }
 
@@ -186,7 +186,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
 
   LRT_ITER_ALL_LINES_BEGIN
   {
-    if ((!(e->flags & LRT_EDGE_FLAG_ALL_TYPE)) || (e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
+    if (!(e->flags & LRT_EDGE_FLAG_ALL_TYPE) || (e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
       LRT_ITER_ALL_LINES_NEXT
       continue;
     }
@@ -809,8 +809,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
       if (!ld->conf.fuzzy_everything) {
         if (ld->conf.fuzzy_intersections) {
           /* If none of those are intersection lines... */
-          if ((!(cre->ec->type & LRT_EDGE_FLAG_INTERSECTION)) &&
-              (!(ec->type & LRT_EDGE_FLAG_INTERSECTION))) {
+          if (!(cre->ec->type & LRT_EDGE_FLAG_INTERSECTION) &&
+              !(ec->type & LRT_EDGE_FLAG_INTERSECTION)) {
             continue; /* We don't want to chain along different objects at the moment. */
           }
         }
@@ -1092,7 +1092,7 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
            eci = next_eci) {
         LineartEdgeChainItem *eci2, *eci3, *eci4;
 
-        if ((!(eci2 = eci->next)) || (!(eci3 = eci2->next))) {
+        if (!(eci2 = eci->next) || !(eci3 = eci2->next)) {
           /* Not enough points to simplify. */
           next_eci = eci->next;
           continue;

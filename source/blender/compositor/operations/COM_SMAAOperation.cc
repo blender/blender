@@ -196,7 +196,7 @@ bool SMAAEdgeDetectionOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAAEdgeDetectionOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAAEdgeDetectionOperation::get_area_of_interest(const int /*input_idx*/,
                                                       const rcti &output_area,
                                                       rcti &r_input_area)
 {
@@ -505,14 +505,14 @@ void SMAABlendingWeightCalculationOperation::execute_pixel(float output[4],
 }
 
 void SMAABlendingWeightCalculationOperation::update_memory_buffer_started(
-    MemoryBuffer *UNUSED(output), const rcti &UNUSED(out_area), Span<MemoryBuffer *> inputs)
+    MemoryBuffer * /*output*/, const rcti & /*out_area*/, Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *image = inputs[0];
   sample_image_fn_ = [=](int x, int y, float *out) { image->read_elem_checked(x, y, out); };
 }
 
 void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
-    MemoryBuffer *output, const rcti &out_area, Span<MemoryBuffer *> UNUSED(inputs))
+    MemoryBuffer *output, const rcti &out_area, Span<MemoryBuffer *> /*inputs*/)
 {
   for (BuffersIterator<float> it = output->iterate_with({}, out_area); !it.is_end(); ++it) {
     const int x = it.x;
@@ -631,7 +631,7 @@ bool SMAABlendingWeightCalculationOperation::determine_depending_area_of_interes
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int /*input_idx*/,
                                                                   const rcti &output_area,
                                                                   rcti &r_input_area)
 {
@@ -1123,7 +1123,7 @@ bool SMAANeighborhoodBlendingOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAANeighborhoodBlendingOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAANeighborhoodBlendingOperation::get_area_of_interest(const int /*input_idx*/,
                                                              const rcti &output_area,
                                                              rcti &r_input_area)
 {

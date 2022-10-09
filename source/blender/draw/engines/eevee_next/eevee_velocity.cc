@@ -51,8 +51,8 @@ void VelocityModule::init()
 
 static void step_object_sync_render(void *velocity,
                                     Object *ob,
-                                    RenderEngine *UNUSED(engine),
-                                    Depsgraph *UNUSED(depsgraph))
+                                    RenderEngine * /*engine*/,
+                                    Depsgraph * /*depsgraph*/)
 {
   ObjectKey object_key(ob);
   /* NOTE: Dummy resource handle since this will not be used for drawing. */

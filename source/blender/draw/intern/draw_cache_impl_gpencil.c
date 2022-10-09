@@ -315,7 +315,7 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
   /* Encode fill opacity defined by opacity modifier in vertex color alpha. If
    * no opacity modifier, the value will be always 1.0f. The opacity factor can be any
    * value between 0.0f and 2.0f */
-  col->fcol[3] = (((int)(col->fcol[3] * 10000.0f)) * 10.0f) + gps->fill_opacity_fac;
+  col->fcol[3] = ((int)(col->fcol[3] * 10000.0f) * 10.0f) + gps->fill_opacity_fac;
 
   vert->strength = (round_cap0) ? pt->strength : -pt->strength;
   vert->u_stroke = pt->uv_fac;

@@ -209,8 +209,8 @@ void DisplaceOperation::get_area_of_interest(const int input_idx,
   }
 }
 
-void DisplaceOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                     const rcti &UNUSED(area),
+void DisplaceOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                     const rcti & /*area*/,
                                                      Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *vector = inputs[1];

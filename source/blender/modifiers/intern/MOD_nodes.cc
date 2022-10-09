@@ -349,7 +349,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree,
   return false;
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -387,9 +387,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
@@ -1733,7 +1731,7 @@ static void output_attribute_panel_draw(const bContext *C, Panel *panel)
   }
 }
 
-static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void internal_dependencies_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -1821,7 +1819,7 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
@@ -1872,7 +1870,7 @@ static void freeData(ModifierData *md)
   clear_runtime_data(nmd);
 }
 
-static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* We don't know what the node tree will need. If there are vertex groups, it is likely that the
    * node tree wants to access them. */

@@ -192,7 +192,7 @@ PyDoc_STRVAR(UnaryPredicate1D_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void *UNUSED(closure))
+static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }

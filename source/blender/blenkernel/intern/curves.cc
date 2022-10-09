@@ -63,7 +63,7 @@ static void curves_init_data(ID *id)
   new (&curves->geometry) blender::bke::CurvesGeometry();
 }
 
-static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   using namespace blender;
 
@@ -263,7 +263,7 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_curves_attribute_required(const Curves *UNUSED(curves), const char *name)
+bool BKE_curves_attribute_required(const Curves * /*curves*/, const char *name)
 {
   return STREQ(name, ATTR_POSITION);
 }

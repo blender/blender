@@ -126,7 +126,7 @@ static float (*bm_face_array_calc_unique_uv_coords(
       BMEdge *e_first = v_pivot->e;
       const BMEdge *e = e_first;
       do {
-        if (e->l != NULL) {
+        if (e->l != nullptr) {
           const BMLoop *l_radial = e->l;
           do {
             if (l_radial->v == l_iter->v) {
@@ -368,7 +368,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   const int group_len = BM_mesh_calc_face_groups(bm,
                                                  groups_array,
                                                  &group_index,
-                                                 NULL,
+                                                 nullptr,
                                                  bm_loop_uv_shared_edge_check,
                                                  &user_data,
                                                  hflag_face_test,
@@ -435,7 +435,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       }
     }
 
-    ListBase island_list = {NULL};
+    ListBase island_list = {nullptr};
     bm_mesh_calc_uv_islands(scene,
                             em->bm,
                             &island_list,
@@ -536,7 +536,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
   float base_offset[2] = {0.0f, 0.0f};
 
   /* CASE: ignore UDIM. */
-  if (udim_params == NULL) {
+  if (udim_params == nullptr) {
     /* pass */
   }
   /* CASE: Active/specified(smart uv project) UDIM. */

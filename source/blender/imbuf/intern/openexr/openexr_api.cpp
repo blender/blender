@@ -456,7 +456,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 static void openexr_header_metadata_callback(void *data,
                                              const char *propname,
                                              char *prop,
-                                             int UNUSED(len))
+                                             int /*len*/)
 {
   Header *header = (Header *)data;
   header->insert(propname, StringAttribute(prop));
@@ -1859,7 +1859,7 @@ static bool imb_exr_is_multilayer_file(MultiPartInputFile &file)
    * channels without a layer name will be single layer. */
   channels.layers(layerNames);
 
-  return (!layerNames.empty());
+  return !layerNames.empty();
 }
 
 static void imb_exr_type_by_channels(ChannelList &channels,
@@ -2159,7 +2159,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
 }
 
 struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                                  const int UNUSED(flags),
+                                                  const int /*flags*/,
                                                   const size_t max_thumb_size,
                                                   char colorspace[],
                                                   size_t *r_width,

@@ -19,8 +19,8 @@ namespace blender::draw {
  * \{ */
 
 static void extract_points_init(const MeshRenderData *mr,
-                                MeshBatchCache *UNUSED(cache),
-                                void *UNUSED(buf),
+                                MeshBatchCache * /*cache*/,
+                                void * /*buf*/,
                                 void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
@@ -53,9 +53,9 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
   }
 }
 
-static void extract_points_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_points_iter_poly_bm(const MeshRenderData * /*mr*/,
                                         const BMFace *f,
-                                        const int UNUSED(f_index),
+                                        const int /*f_index*/,
                                         void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
@@ -70,7 +70,7 @@ static void extract_points_iter_poly_bm(const MeshRenderData *UNUSED(mr),
 
 static void extract_points_iter_poly_mesh(const MeshRenderData *mr,
                                           const MPoly *mp,
-                                          const int UNUSED(mp_index),
+                                          const int /*mp_index*/,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
@@ -113,7 +113,7 @@ static void extract_points_iter_lvert_bm(const MeshRenderData *mr,
 }
 
 static void extract_points_iter_lvert_mesh(const MeshRenderData *mr,
-                                           const MVert *UNUSED(mv),
+                                           const MVert * /*mv*/,
                                            const int lvert_index,
                                            void *_userdata)
 {
@@ -129,8 +129,8 @@ static void extract_points_task_reduce(void *_userdata_to, void *_userdata_from)
   GPU_indexbuf_join(elb_to, elb_from);
 }
 
-static void extract_points_finish(const MeshRenderData *UNUSED(mr),
-                                  MeshBatchCache *UNUSED(cache),
+static void extract_points_finish(const MeshRenderData * /*mr*/,
+                                  MeshBatchCache * /*cache*/,
                                   void *buf,
                                   void *_userdata)
 {
@@ -141,8 +141,8 @@ static void extract_points_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                        const MeshRenderData *mr,
-                                       MeshBatchCache *UNUSED(cache),
-                                       void *UNUSED(buffer),
+                                       MeshBatchCache * /*cache*/,
+                                       void * /*buffer*/,
                                        void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
@@ -194,7 +194,7 @@ static void extract_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
                                           const MeshRenderData *mr,
                                           void *_data,
                                           uint subdiv_quad_index,
-                                          const BMFace *UNUSED(coarse_quad))
+                                          const BMFace * /*coarse_quad*/)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index, true);
@@ -204,7 +204,7 @@ static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
                                             void *_data,
                                             uint subdiv_quad_index,
-                                            const MPoly *UNUSED(coarse_quad))
+                                            const MPoly * /*coarse_quad*/)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index, false);
@@ -212,7 +212,7 @@ static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
 
 static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                              const MeshRenderData *mr,
-                                             void *UNUSED(buffer),
+                                             void * /*buffer*/,
                                              void *data)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
@@ -281,9 +281,9 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
   }
 }
 
-static void extract_points_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
-                                         const MeshRenderData *UNUSED(mr),
-                                         MeshBatchCache *UNUSED(cache),
+static void extract_points_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
+                                         const MeshRenderData * /*mr*/,
+                                         MeshBatchCache * /*cache*/,
                                          void *buf,
                                          void *_userdata)
 {

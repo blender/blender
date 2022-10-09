@@ -165,6 +165,17 @@ typedef struct tGPDfill {
   /* Frame to use. */
   int active_cfra;
 
+  /** Center mouse position for extend length. */
+  float mouse_center[2];
+  /** Init mouse position for extend length. */
+  float mouse_init[2];
+  /** Last mouse position. */
+  float mouse_pos[2];
+  /** Use when mouse input is interpreted as spatial distance. */
+  float pixel_size;
+  /** Initial extend vector length. */
+  float initial_length;
+
   /** number of elements currently in cache */
   short sbuffer_used;
   /** temporary points */
@@ -429,7 +440,7 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
         for (int i = 0; i < gps->totpoints; i++) {
           bGPDspoint *pt = &gps->points[i];
           bGPDspoint pt2;
-          gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+          gpencil_point_to_world_space(pt, diff_mat, &pt2);
           gpencil_point_to_xy_fl(
               &tgpf->gsc, gps, &pt2, &stroke->points2d[i][0], &stroke->points2d[i][1]);
         }
@@ -597,11 +608,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
 
       /* First stroke. */
       bGPDspoint *pt = &gps_a->points[0];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a1xy[0], &a1xy[1]);
 
       pt = &gps_a->points[1];
-      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_world_space(pt, diff_mat, &pt2);
       gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a2xy[0], &a2xy[1]);
       bGPDspoint *extreme_a = &gps_a->points[1];
 
@@ -624,11 +635,11 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
         }
 
         pt = &gps_b->points[0];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b1xy[0], &b1xy[1]);
 
         pt = &gps_b->points[1];
-        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, diff_mat, &pt2);
         gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b2xy[0], &b2xy[1]);
         bGPDspoint *extreme_b = &gps_b->points[1];
 
@@ -1058,6 +1069,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
   Brush *brush = tgpf->brush;
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   ToolSettings *ts = tgpf->scene->toolsettings;
+  const bool extend_lines = (tgpf->fill_extend_fac > 0.0f);
 
   tGPDdraw tgpw;
   tgpw.rv3d = tgpf->rv3d;
@@ -1158,9 +1170,22 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
             ((gps->flag & GP_STROKE_HELP) == 0)) {
           ED_gpencil_draw_fill(&tgpw);
         }
+        /* In stroke mode, still must draw the extend lines. */
+        if (extend_lines && (tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE)) {
+          if ((gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_TAG)) {
+            gpencil_draw_basic_stroke(tgpf,
+                                      gps,
+                                      tgpw.diff_mat,
+                                      gps->flag & GP_STROKE_CYCLIC,
+                                      ink,
+                                      tgpf->flag,
+                                      tgpf->fill_threshold,
+                                      1.0f);
+          }
+        }
       }
 
-      /* 3D Lines with basic shapes and invisible lines */
+      /* 3D Lines with basic shapes and invisible lines. */
       if (ELEM(tgpf->fill_draw_mode, GP_FILL_DMODE_CONTROL, GP_FILL_DMODE_BOTH)) {
         gpencil_draw_basic_stroke(tgpf,
                                   gps,
@@ -2228,7 +2253,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   /* if parented change position relative to parent object */
   for (int a = 0; a < tgpf->sbuffer_used; a++) {
     pt = &gps->points[a];
-    gpencil_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
+    gpencil_world_to_object_space_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
   }
 
   /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
@@ -2256,7 +2281,8 @@ static void gpencil_fill_status_indicators(tGPDfill *tgpf)
   char status_str[UI_MAX_DRAW_STR];
   BLI_snprintf(status_str,
                sizeof(status_str),
-               TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, S: Switch Mode, D: "
+               TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
+                    "Switch Mode, D: "
                     "Stroke Collision | %s %s (%.3f)"),
                (is_extend) ? TIP_("Extend") : TIP_("Radius"),
                (is_extend && use_stroke_collide) ? TIP_("Stroke: ON") : TIP_("Stroke: OFF"),
@@ -2354,6 +2380,11 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   tgpf->sbuffer = NULL;
   tgpf->depth_arr = NULL;
 
+  /* Prepare extend handling for pen. */
+  tgpf->mouse_init[0] = -1.0f;
+  tgpf->mouse_init[1] = -1.0f;
+  tgpf->pixel_size = tgpf->rv3d ? ED_view3d_pixel_size(tgpf->rv3d, tgpf->ob->loc) : 1.0f;
+
   /* save filling parameters */
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   tgpf->brush = brush;
@@ -2430,6 +2461,7 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
     if (tgpf->draw_handle_3d) {
       ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
     }
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
 
     /* Remove depth buffer in cache. */
     if (tgpf->depths) {
@@ -2450,7 +2482,8 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
     gpd2->flag |= GP_DATA_CACHE_IS_DIRTY;
   }
 
-  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 static void gpencil_fill_cancel(bContext *C, wmOperator *op)
@@ -2792,6 +2825,12 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
         estate = OPERATOR_CANCELLED;
         break;
       }
+      /* if doing a extend transform with the pen, avoid false contacts of
+       * the pen with the tablet. */
+      if (tgpf->mouse_init[0] != -1.0f) {
+        break;
+      }
+      copy_v2fl_v2i(tgpf->mouse_center, event->mval);
 
       /* first time the event is not enabled to show help lines. */
       if ((tgpf->oldkey != -1) || (!help_lines)) {
@@ -2949,10 +2988,60 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case WHEELDOWNMOUSE:
       if (tgpf->oldkey == 1) {
         tgpf->fill_extend_fac += (event->modifier & KM_SHIFT) ? 0.01f : 0.1f;
-        CLAMP_MAX(tgpf->fill_extend_fac, 100.0f);
+        CLAMP_MAX(tgpf->fill_extend_fac, 10.0f);
         gpencil_update_extend(tgpf);
       }
       break;
+    case MIDDLEMOUSE: {
+      if (event->val == KM_PRESS) {
+        /* Consider initial offset as zero position. */
+        copy_v2fl_v2i(tgpf->mouse_init, event->mval);
+        float mlen[2];
+        sub_v2_v2v2(mlen, tgpf->mouse_init, tgpf->mouse_center);
+
+        /* Offset the center a little to get enough space to reduce the extend moving the pen. */
+        const float gap = 300.0f;
+        if (len_v2(mlen) < gap) {
+          tgpf->mouse_center[0] -= gap;
+          sub_v2_v2v2(mlen, tgpf->mouse_init, tgpf->mouse_center);
+        }
+
+        WM_cursor_set(CTX_wm_window(C), WM_CURSOR_EW_ARROW);
+
+        tgpf->initial_length = len_v2(mlen);
+      }
+      if (event->val == KM_RELEASE) {
+        WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+        tgpf->mouse_init[0] = -1.0f;
+        tgpf->mouse_init[1] = -1.0f;
+      }
+      /* Update cursor line. */
+      WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+      WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+      break;
+    }
+    case MOUSEMOVE: {
+      if (tgpf->mouse_init[0] == -1.0f) {
+        break;
+      }
+      copy_v2fl_v2i(tgpf->mouse_pos, event->mval);
+
+      float mlen[2];
+      sub_v2_v2v2(mlen, tgpf->mouse_pos, tgpf->mouse_center);
+      float delta = (len_v2(mlen) - tgpf->initial_length) * tgpf->pixel_size * 0.5f;
+      tgpf->fill_extend_fac += delta;
+      CLAMP(tgpf->fill_extend_fac, 0.0f, 10.0f);
+
+      /* Update cursor line and extend lines. */
+      WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+      WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+      gpencil_update_extend(tgpf);
+
+      break;
+    }
     default:
       break;
   }

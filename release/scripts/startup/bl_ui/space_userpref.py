@@ -109,7 +109,16 @@ class USERPREF_MT_save_load(Menu):
         sub_revert.operator("wm.read_userpref", text="Revert to Saved Preferences")
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.read_factory_userpref", text="Load Factory Preferences")
+
+        app_template = prefs.app_template
+        if app_template:
+            display_name = bpy.path.display_name(iface_(app_template))
+            layout.operator("wm.read_factory_userpref", text="Load Factory Blender Preferences")
+            props = layout.operator("wm.read_factory_userpref", text="Load Factory %s Preferences" % display_name)
+            props.use_factory_startup_app_template_only = True
+            del display_name
+        else:
+            layout.operator("wm.read_factory_userpref", text="Load Factory Preferences")
 
 
 class USERPREF_PT_save_preferences(Panel):

@@ -905,6 +905,45 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 /* ----------------------------------------------------------------- */
 
 /* property driven by the driver - duplicates Active FCurve, but useful for clarity */
+
+static void graph_draw_driven_property_enabled_btn(uiLayout *layout,
+                                                   ID *id,
+                                                   FCurve *fcu,
+                                                   const char *label)
+{
+  PointerRNA fcurve_ptr;
+  RNA_pointer_create(id, &RNA_FCurve, fcu, &fcurve_ptr);
+
+  uiBlock *block = uiLayoutGetBlock(layout);
+  uiDefButR(block,
+            UI_BTYPE_CHECKBOX_N,
+            0,
+            label,
+            0,
+            0,
+            UI_UNIT_X,
+            UI_UNIT_Y,
+            &fcurve_ptr,
+            "mute",
+            0,
+            0,
+            0,
+            0,
+            0,
+            TIP_("Let the driver determine this property's value"));
+}
+
+static void graph_panel_drivers_header(const bContext *C, Panel *panel)
+{
+  bAnimListElem *ale;
+  FCurve *fcu;
+  if (!graph_panel_context(C, &ale, &fcu)) {
+    return;
+  }
+
+  graph_draw_driven_property_enabled_btn(panel->layout, ale->id, fcu, IFACE_("Driver"));
+}
+
 static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *fcu)
 {
   PointerRNA fcu_ptr;
@@ -1315,7 +1354,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
       uiItemS(layout);
 
       /* Drivers Settings */
-      uiItemL(layout, IFACE_("Driver Settings:"), ICON_NONE);
+      graph_draw_driven_property_enabled_btn(panel->layout, id, fcu, IFACE_("Driver:"));
       graph_draw_driver_settings_panel(panel->layout, id, fcu, true);
     }
   }
@@ -1432,6 +1471,7 @@ void graph_buttons_register(ARegionType *art)
   strcpy(pt->category, "Drivers");
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_drivers;
+  pt->draw_header = graph_panel_drivers_header;
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 

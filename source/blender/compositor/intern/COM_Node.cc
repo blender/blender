@@ -53,10 +53,10 @@ Node::Node(bNode *editor_node, bool create_sockets)
 Node::~Node()
 {
   while (!outputs_.is_empty()) {
-    delete (outputs_.pop_last());
+    delete outputs_.pop_last();
   }
   while (!inputs_.is_empty()) {
-    delete (inputs_.pop_last());
+    delete inputs_.pop_last();
   }
 }
 

@@ -82,8 +82,8 @@ void UI_view2d_edge_pan_init(bContext *C,
   /* Calculate translation factor, based on size of view. */
   const float winx = float(BLI_rcti_size_x(&vpd->region->winrct) + 1);
   const float winy = float(BLI_rcti_size_y(&vpd->region->winrct) + 1);
-  vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
-  vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
+  vpd->facx = BLI_rctf_size_x(&vpd->v2d->cur) / winx;
+  vpd->facy = BLI_rctf_size_y(&vpd->v2d->cur) / winy;
 
   UI_view2d_edge_pan_reset(vpd);
 }

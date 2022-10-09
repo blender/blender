@@ -28,7 +28,7 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 }
 
-static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_wave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "wave_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   int type = RNA_enum_get(ptr, "wave_type");
@@ -42,7 +42,7 @@ static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "wave_profile", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_wave(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexWave *tex = MEM_cnew<NodeTexWave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -56,7 +56,7 @@ static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_wave(GPUMaterial *mat,
                                     bNode *node,
-                                    bNodeExecData *UNUSED(execdata),
+                                    bNodeExecData * /*execdata*/,
                                     GPUNodeStack *in,
                                     GPUNodeStack *out)
 {
@@ -113,7 +113,7 @@ class WaveFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");

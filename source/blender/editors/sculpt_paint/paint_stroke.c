@@ -1674,6 +1674,11 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
   stroke->mode_data = mode_data;
 }
 
+bool paint_stroke_started(PaintStroke *stroke)
+{
+  return stroke->stroke_started;
+}
+
 bool PAINT_brush_tool_poll(bContext *C)
 {
   Paint *p = BKE_paint_get_active_from_context(C);

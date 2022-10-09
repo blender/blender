@@ -326,7 +326,7 @@ static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
 {
   /* try step in a direction, if it fails we know do go the other way */
   BMVert *v_test = e->v1;
-  return (edbm_ripsel_edge_uid_step(e, &v_test)) ? e->v1 : e->v2;
+  return edbm_ripsel_edge_uid_step(e, &v_test) ? e->v1 : e->v2;
 }
 
 static void edbm_ripsel_deselect_helper(BMesh *bm,
@@ -914,7 +914,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
       /* NOTE: if the case of 3 edges has one change in loop stepping,
        * if this becomes more involved we may be better off splitting
        * the 3 edge case into its own else-if branch */
-      if ((ELEM(totedge_manifold, 4, 3)) || (all_manifold == false)) {
+      if (ELEM(totedge_manifold, 4, 3) || (all_manifold == false)) {
         BMLoop *l_a = e_best->l;
         BMLoop *l_b = l_a->radial_next;
 

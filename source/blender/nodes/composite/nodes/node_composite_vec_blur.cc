@@ -29,7 +29,7 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 }
 
 /* custom1: iterations, custom2: max_speed (0 = no_limit). */
-static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_vecblur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBlurData *nbd = MEM_cnew<NodeBlurData>(__func__);
   node->storage = nbd;
@@ -37,7 +37,7 @@ static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
   nbd->fac = 1.0f;
 }
 
-static void node_composit_buts_vecblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_vecblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

@@ -845,7 +845,7 @@ static void define_primitive_add_properties(wmOperatorType *ot)
 static int primitive_circle_add_exec(bContext *C, wmOperator *op)
 {
   const float points[4][2] = {{0.0f, 0.5f}, {0.5f, 1.0f}, {1.0f, 0.5f}, {0.5f, 0.0f}};
-  int num_points = sizeof(points) / (sizeof(float[2]));
+  int num_points = sizeof(points) / sizeof(float[2]);
 
   create_primitive_from_points(C, op, points, num_points, HD_AUTO);
 
@@ -880,7 +880,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
 static int primitive_square_add_exec(bContext *C, wmOperator *op)
 {
   const float points[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}};
-  int num_points = sizeof(points) / (sizeof(float[2]));
+  int num_points = sizeof(points) / sizeof(float[2]);
 
   create_primitive_from_points(C, op, points, num_points, HD_VECT);
 

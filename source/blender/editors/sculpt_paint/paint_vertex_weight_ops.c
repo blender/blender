@@ -7,7 +7,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "DNA_brush_types.h"

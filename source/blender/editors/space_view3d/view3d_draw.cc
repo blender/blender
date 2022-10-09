@@ -5,7 +5,7 @@
  * \ingroup spview3d
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
@@ -1144,7 +1144,7 @@ static void view3d_draw_border(const bContext *C, ARegion *region)
 /**
  * Draw Info
  */
-static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
+static void view3d_draw_grease_pencil(const bContext * /*C*/)
 {
   /* TODO: viewport. */
 }
@@ -2362,10 +2362,11 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   if (viewport != nullptr) {
     switch (mode) {
       case V3D_DEPTH_NO_GPENCIL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport);
+        DRW_draw_depth_loop(
+            depsgraph, region, v3d, viewport, false, true, (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
-        DRW_draw_depth_loop_gpencil(depsgraph, region, v3d, viewport);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, false);
         break;
       case V3D_DEPTH_OBJECT_ONLY:
         DRW_draw_depth_object(
@@ -2406,7 +2407,7 @@ void ED_view3d_depths_free(ViewDepths *depths)
  * \{ */
 
 void ED_view3d_datamask(const bContext *C,
-                        const Scene *UNUSED(scene),
+                        const Scene * /*scene*/,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {

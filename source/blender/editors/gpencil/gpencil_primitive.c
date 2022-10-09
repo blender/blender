@@ -1073,7 +1073,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   /* if parented change position relative to parent object */
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
-    gpencil_apply_parent_point(tgpi->depsgraph, tgpi->ob, tgpi->gpl, pt);
+    gpencil_world_to_object_space_point(tgpi->depsgraph, tgpi->ob, tgpi->gpl, pt);
   }
 
   /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
@@ -1515,7 +1515,7 @@ static void gpencil_primitive_edit_event_handling(
       break;
     }
     case EVT_MKEY: {
-      if ((event->val == KM_PRESS) && (tgpi->curve) && (ELEM(tgpi->orign_type, GP_STROKE_ARC))) {
+      if ((event->val == KM_PRESS) && (tgpi->curve) && ELEM(tgpi->orign_type, GP_STROKE_ARC)) {
         tgpi->flip ^= 1;
         gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
@@ -1808,14 +1808,14 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               (!ELEM(tgpi->type, GP_STROKE_POLYLINE))) {
+               !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
         /* set control points and enter edit mode */
         tgpi->flag = IN_CURVE_EDIT;
         gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               (!ELEM(tgpi->type, GP_STROKE_CURVE, GP_STROKE_POLYLINE))) {
+               !ELEM(tgpi->type, GP_STROKE_CURVE, GP_STROKE_POLYLINE)) {
         /* stop drawing primitive */
         tgpi->flag = IDLE;
         gpencil_primitive_interaction_end(C, op, win, tgpi);
@@ -1823,7 +1823,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         return OPERATOR_FINISHED;
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               (ELEM(tgpi->type, GP_STROKE_POLYLINE))) {
+               ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
         /* set control points and enter edit mode */
         tgpi->flag = IN_POLYLINE;
         gpencil_primitive_update(C, op, tgpi);

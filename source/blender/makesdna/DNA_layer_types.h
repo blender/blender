@@ -71,27 +71,23 @@ typedef enum eViewLayerCryptomatteFlags {
 typedef struct Base {
   struct Base *next, *prev;
 
-  /* Flags which are based on the collections flags evaluation, does not
-   * include flags from object's restrictions. */
-  short flag_from_collection;
-
-  /* Final flags, including both accumulated collection flags and object's
-   * restriction flags. */
-  short flag;
-
-  unsigned short local_view_bits;
-  short sx, sy;
-  char _pad1[6];
   struct Object *object;
-  unsigned int lay DNA_DEPRECATED;
-  int flag_legacy;
-  unsigned short local_collections_bits;
-  short _pad2[3];
 
   /* Pointer to an original base. Is initialized for evaluated view layer.
    * NOTE: Only allowed to be accessed from within active dependency graph. */
   struct Base *base_orig;
-  void *_pad;
+
+  unsigned int lay DNA_DEPRECATED;
+  /* Final flags, including both accumulated collection flags and object's
+   * restriction flags. */
+  short flag;
+  /* Flags which are based on the collections flags evaluation, does not
+   * include flags from object's restrictions. */
+  short flag_from_collection;
+  short flag_legacy;
+  unsigned short local_view_bits;
+  unsigned short local_collections_bits;
+  char _pad1[2];
 } Base;
 
 typedef struct ViewLayerEngineData {

@@ -38,7 +38,7 @@ static bool angle_obtuse(WVertex *v, WFace *f)
 
 // FIXME
 // WVvertex is useless but kept for history reasons
-static bool triangle_obtuse(WVertex *UNUSED(v), WFace *f)
+static bool triangle_obtuse(WVertex * /*v*/, WFace *f)
 {
   bool b = false;
   for (int i = 0; i < 3; i++) {
@@ -80,7 +80,7 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
   /* NOTE(Ray Jones): I assume this is what they mean by using #atan2. */
 
   /* tan = denom/udotv = y/x (see man page for atan2) */
-  return (fabs(atan2(denom, udotv)));
+  return fabs(atan2(denom, udotv));
 }
 
 bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)

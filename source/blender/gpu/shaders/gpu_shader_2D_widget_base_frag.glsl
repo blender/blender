@@ -6,7 +6,7 @@ vec3 compute_masks(vec2 uv)
   bool right_half = uv.x > outRectSize.x * 0.5;
   float corner_rad;
 
-  /* Correct aspect ratio for 2D views not using uniform scalling.
+  /* Correct aspect ratio for 2D views not using uniform scaling.
    * uv is already in pixel space so a uniform scale should give us a ratio of 1. */
   float ratio = (butCo != -2.0) ? (dFdy(uv.y) / dFdx(uv.x)) : 1.0;
   vec2 uv_sdf = uv;

@@ -179,7 +179,7 @@ static void buttons_texture_modifier_geonodes_users_add(Object *ob,
       prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
-      Tex *tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? (Tex *)texptr.data : NULL;
+      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? (Tex *)texptr.data : NULL;
       if (tex != NULL) {
         buttons_texture_user_socket_property_add(users,
                                                  &ob->id,
@@ -414,7 +414,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 
         /* Get texture datablock pointer if it's a property. */
         texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
-        tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
+        tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? texptr.data : NULL;
 
         ct->texture = tex;
       }
@@ -449,7 +449,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
   }
   if (user->ptr.data) {
     texptr = RNA_property_pointer_get(&user->ptr, user->prop);
-    tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
+    tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? texptr.data : NULL;
 
     ct->texture = tex;
 

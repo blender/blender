@@ -15,15 +15,15 @@ namespace blender::draw {
  * \{ */
 
 static void extract_fdots_init(const MeshRenderData *mr,
-                               MeshBatchCache *UNUSED(cache),
-                               void *UNUSED(buf),
+                               MeshBatchCache * /*cache*/,
+                               void * /*buf*/,
                                void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
   GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->poly_len, mr->poly_len);
 }
 
-static void extract_fdots_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
                                        const BMFace *f,
                                        const int f_index,
                                        void *_userdata)
@@ -69,8 +69,8 @@ static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_fdots_finish(const MeshRenderData *UNUSED(mr),
-                                 MeshBatchCache *UNUSED(cache),
+static void extract_fdots_finish(const MeshRenderData * /*mr*/,
+                                 MeshBatchCache * /*cache*/,
                                  void *buf,
                                  void *_userdata)
 {

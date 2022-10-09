@@ -226,7 +226,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
     }
     else {
       /* XXX Is this piece of code ever used now? Simple loop select is now
-       *     in editmesh_select.c (around line 1000)... */
+       *     in editmesh_select.cc (around line 1000)... */
       /* sets as active, useful for other tools */
       if (em->selectmode & SCE_SELECT_VERTEX) {
         /* low priority TODO: get vertrex close to mouse. */
@@ -473,7 +473,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* When accessed as a tool, get the active edge from the preselection gizmo. */
+  /* When accessed as a tool, get the active edge from the pre-selection gizmo. */
   {
     ARegion *region = CTX_wm_region(C);
     wmGizmoMap *gzmap = region->gizmo_map;
@@ -763,6 +763,7 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 
   /* For redo only. */
   prop = RNA_def_int(ot->srna, "object_index", -1, -1, INT_MAX, "Object Index", "", 0, INT_MAX);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "Edge Index", "", 0, INT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);

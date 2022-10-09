@@ -147,7 +147,7 @@ PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
 
   for (link = listbase->first; link; link = link->next) {
     PropertyRNA *prop = ((PropertyDefRNA *)link)->prop;
-    if (prop && (STREQ(prop->identifier, identifier))) {
+    if (prop && STREQ(prop->identifier, identifier)) {
       return (PropertyDefRNA *)link;
     }
   }
@@ -916,8 +916,8 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
   DefRNA.laststruct = srna;
 
   if (srnafrom) {
-    /* copy from struct to derive stuff, a bit clumsy since we can't
-     * use MEM_dupallocN, data structs may not be alloced but builtin */
+    /* Copy from struct to derive stuff, a bit clumsy since we can't
+     * use #MEM_dupallocN, data structs may not be allocated but builtin. */
     memcpy(srna, srnafrom, sizeof(StructRNA));
     srna->cont.prophash = NULL;
     BLI_listbase_clear(&srna->cont.properties);

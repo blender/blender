@@ -1,6 +1,6 @@
 
 /**
- * Debug Shader outputing a gradient of orange - white - blue to mark culling hotspots.
+ * Debug Shader outputting a gradient of orange - white - blue to mark culling hotspots.
  * Green pixels are error pixels that are missing lights from the culling pass (i.e: when culling
  * pass is not conservative enough).
  */

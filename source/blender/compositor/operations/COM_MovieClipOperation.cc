@@ -53,7 +53,7 @@ void MovieClipBaseOperation::deinit_execution()
   }
 }
 
-void MovieClipBaseOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void MovieClipBaseOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   r_area = COM_AREA_NONE;
   if (movie_clip_) {
@@ -94,7 +94,7 @@ void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
 
 void MovieClipBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           const rcti &area,
-                                                          Span<MemoryBuffer *> UNUSED(inputs))
+                                                          Span<MemoryBuffer *> /*inputs*/)
 {
   if (movie_clip_buffer_) {
     output->copy_from(movie_clip_buffer_, area);
@@ -126,7 +126,7 @@ void MovieClipAlphaOperation::execute_pixel_sampled(float output[4],
 
 void MovieClipAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
-                                                           Span<MemoryBuffer *> UNUSED(inputs))
+                                                           Span<MemoryBuffer *> /*inputs*/)
 {
   if (movie_clip_buffer_) {
     output->copy_from(movie_clip_buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);

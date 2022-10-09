@@ -58,8 +58,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     frame->framenr = BLI_path_sequence_decode(filename, head, tail, &digits);
 
     /* still in the same sequence */
-    if (do_frame_range && (range != NULL) && (STREQLEN(base_head, head, FILE_MAX)) &&
-        (STREQLEN(base_tail, tail, FILE_MAX))) {
+    if (do_frame_range && (range != NULL) && STREQLEN(base_head, head, FILE_MAX) &&
+        STREQLEN(base_tail, tail, FILE_MAX)) {
       /* Set filepath to first frame in the range. */
       if (frame->framenr < range_first_frame) {
         BLI_join_dirfile(range->filepath, sizeof(range->filepath), dir, filename);

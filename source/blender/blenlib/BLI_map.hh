@@ -1332,7 +1332,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
     map_.clear();
   }
 
-  void print_stats(StringRef UNUSED(name) = "") const
+  void print_stats(StringRef /*name*/ = "") const
   {
   }
 };

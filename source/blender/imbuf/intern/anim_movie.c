@@ -131,7 +131,7 @@ static int an_stringdec(const char *string, char *head, char *tail, ushort *numl
     strcpy(head, string);
     head[nums] = '\0';
     *numlen = nume - nums + 1;
-    return ((int)atoi(&(string[nums])));
+    return (int)atoi(&(string[nums]));
   }
   tail[0] = '\0';
   strcpy(head, string);

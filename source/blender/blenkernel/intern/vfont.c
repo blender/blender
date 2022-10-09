@@ -1044,7 +1044,7 @@ static bool vfont_to_curve(Object *ob,
 
       CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
 
-      if ((tb_scale.h != 0.0f) && ((-(yof - tb_scale.y)) > (tb_scale.h - linedist) - yof_scale)) {
+      if ((tb_scale.h != 0.0f) && (-(yof - tb_scale.y) > (tb_scale.h - linedist) - yof_scale)) {
         if (cu->totbox > (curbox + 1)) {
           maxlen = 0;
           curbox++;
@@ -1175,7 +1175,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
       for (i = 0; i <= slen; i++) {
-        for (j = i; (!ELEM(mem[j], '\0', '\n')) && (chartransdata[j].dobreak == 0) && (j < slen);
+        for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
              j++) {
           /* do nothing */
         }

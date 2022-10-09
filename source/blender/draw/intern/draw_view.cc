@@ -21,17 +21,11 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat)
   data_.viewinv = view_mat.inverted();
   data_.winmat = win_mat;
   data_.wininv = win_mat.inverted();
-  data_.persmat = data_.winmat * data_.viewmat;
-  data_.persinv = data_.persmat.inverted();
-  /* Should not be used anymore. */
-  data_.viewcamtexcofac = float4(1.0f, 1.0f, 0.0f, 0.0f);
 
-  data_.is_inverted = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
+  is_inverted_ = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 
-  update_view_vectors();
-
-  BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&data_.frustum_corners);
-  BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&data_.frustum_bound_sphere);
+  BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&culling_.corners);
+  BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&culling_.bound_sphere);
   frustum_boundbox_calc(bound_box);
   frustum_culling_planes_calc();
   frustum_culling_sphere_calc(bound_box, bound_sphere);
@@ -83,17 +77,18 @@ void View::frustum_boundbox_calc(BoundBox &bbox)
 
 void View::frustum_culling_planes_calc()
 {
-  planes_from_projmat(data_.persmat.ptr(),
-                      data_.frustum_planes[0],
-                      data_.frustum_planes[5],
-                      data_.frustum_planes[1],
-                      data_.frustum_planes[3],
-                      data_.frustum_planes[4],
-                      data_.frustum_planes[2]);
+  float4x4 persmat = data_.winmat * data_.viewmat;
+  planes_from_projmat(persmat.ptr(),
+                      culling_.planes[0],
+                      culling_.planes[5],
+                      culling_.planes[1],
+                      culling_.planes[3],
+                      culling_.planes[4],
+                      culling_.planes[2]);
 
   /* Normalize. */
   for (int p = 0; p < 6; p++) {
-    data_.frustum_planes[p].w /= normalize_v3(data_.frustum_planes[p]);
+    culling_.planes[p].w /= normalize_v3(culling_.planes[p]);
   }
 }
 
@@ -208,97 +203,30 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
   }
 }
 
-void View::set_clip_planes(Span<float4> planes)
-{
-  BLI_assert(planes.size() <= ARRAY_SIZE(data_.clip_planes));
-  int i = 0;
-  for (const auto &plane : planes) {
-    data_.clip_planes[i++] = plane;
-  }
-}
-
-void View::update_viewport_size()
-{
-  float4 viewport;
-  GPU_viewport_size_get_f(viewport);
-  float2 viewport_size = float2(viewport.z, viewport.w);
-  if (assign_if_different(data_.viewport_size, viewport_size)) {
-    dirty_ = true;
-  }
-}
-
-void View::update_view_vectors()
-{
-  bool is_persp = data_.winmat[3][3] == 0.0f;
-
-  /* Near clip distance. */
-  data_.viewvecs[0][3] = (is_persp) ? -data_.winmat[3][2] / (data_.winmat[2][2] - 1.0f) :
-                                      -(data_.winmat[3][2] + 1.0f) / data_.winmat[2][2];
-
-  /* Far clip distance. */
-  data_.viewvecs[1][3] = (is_persp) ? -data_.winmat[3][2] / (data_.winmat[2][2] + 1.0f) :
-                                      -(data_.winmat[3][2] - 1.0f) / data_.winmat[2][2];
-
-  /* View vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  float3 view_vecs[4] = {
-      {-1.0f, -1.0f, -1.0f},
-      {1.0f, -1.0f, -1.0f},
-      {-1.0f, 1.0f, -1.0f},
-      {-1.0f, -1.0f, 1.0f},
-  };
-
-  /* Convert the view vectors to view space */
-  for (int i = 0; i < 4; i++) {
-    mul_project_m4_v3(data_.wininv.ptr(), view_vecs[i]);
-    /* Normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    if (is_persp) {
-      view_vecs[i].x /= view_vecs[i].z;
-      view_vecs[i].y /= view_vecs[i].z;
-    }
-  }
-
-  /**
-   * - If orthographic:
-   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
-   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
-   *   the far-top-right corner.
-   * - If perspective:
-   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
-   *   when `Z = 1`, and top-left corner if `Z = 1`.
-   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
-   *   distance from the near plane to the far clip plane.
-   */
-  copy_v3_v3(data_.viewvecs[0], view_vecs[0]);
-
-  /* we need to store the differences */
-  data_.viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
-  data_.viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-  data_.viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
-}
-
 void View::bind()
 {
-  update_viewport_size();
-
   if (dirty_) {
     dirty_ = false;
     data_.push_update();
+    culling_.push_update();
   }
 
   GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
+  GPU_uniformbuf_bind(culling_, DRW_VIEW_CULLING_UBO_SLOT);
 }
 
 void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze)
 {
   if (debug_freeze && frozen_ == false) {
-    data_freeze_ = static_cast<ViewInfos>(data_);
+    data_freeze_ = static_cast<ViewMatrices>(data_);
     data_freeze_.push_update();
+    culling_freeze_ = static_cast<ViewCullingData>(culling_);
+    culling_freeze_.push_update();
   }
 #ifdef DEBUG
   if (debug_freeze) {
-    drw_debug_matrix_as_bbox(data_freeze_.persinv, float4(0, 1, 0, 1));
+    float4x4 persmat = data_freeze_.winmat * data_freeze_.viewmat;
+    drw_debug_matrix_as_bbox(persmat.inverted(), float4(0, 1, 0, 1));
   }
 #endif
   frozen_ = debug_freeze;

@@ -365,7 +365,7 @@ static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement,
   for (size_t y = 0; y < logImage->height; y++) {
     for (size_t x = 0; x < logImage->width * logImage->depth; x++) {
       row[x] = swap_ushort(
-          ((ushort)float_uint(data[y * logImage->width * logImage->depth + x], 4095)) << 4,
+          (ushort)float_uint(data[y * logImage->width * logImage->depth + x], 4095) << 4,
           logImage->isMSB);
     }
 

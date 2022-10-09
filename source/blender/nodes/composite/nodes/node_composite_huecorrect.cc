@@ -31,7 +31,7 @@ static void cmp_node_huecorrect_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_huecorrect(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 

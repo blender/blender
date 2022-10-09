@@ -291,6 +291,12 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
   return attrs->count > 0 ? attrs : NULL;
 }
 
+const ListBase *GPU_material_layer_attributes(const GPUMaterial *material)
+{
+  const ListBase *attrs = &material->graph.layer_attrs;
+  return !BLI_listbase_is_empty(attrs) ? attrs : NULL;
+}
+
 #if 1 /* End of life code. */
 /* Eevee Subsurface scattering. */
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */

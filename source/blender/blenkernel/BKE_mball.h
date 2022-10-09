@@ -68,7 +68,7 @@ struct BoundBox *BKE_mball_boundbox_get(struct Object *ob);
  * `MBall`, `MBall.001`, `MBall.002`, etc). The most important is to copy properties to the base
  * meta-ball, because this meta-ball influences polygonization of meta-balls.
  */
-void BKE_mball_properties_copy(struct Main *bmain, struct MetaBall *active_metaball);
+void BKE_mball_properties_copy(struct Main *bmain, struct MetaBall *metaball_src);
 
 bool BKE_mball_minmax_ex(
     const struct MetaBall *mb, float min[3], float max[3], const float obmat[4][4], short flag);

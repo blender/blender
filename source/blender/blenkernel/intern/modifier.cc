@@ -165,8 +165,8 @@ ModifierData *BKE_modifier_new(int type)
   return md;
 }
 
-static void modifier_free_data_id_us_cb(void *UNUSED(userData),
-                                        Object *UNUSED(ob),
+static void modifier_free_data_id_us_cb(void * /*userData*/,
+                                        Object * /*ob*/,
                                         ID **idpoin,
                                         int cb_flag)
 {
@@ -253,7 +253,7 @@ bool BKE_modifier_is_preview(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  /* Constructive modifiers are highly likely to also modify data like vgroups or vcol! */
+  /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
   if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
         (mti->type == eModifierTypeType_Constructive))) {
     return false;
@@ -336,12 +336,12 @@ ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
 
 void BKE_modifier_copydata_generic(const ModifierData *md_src,
                                    ModifierData *md_dst,
-                                   const int UNUSED(flag))
+                                   const int /*flag*/)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_src->type));
 
-  /* md_dst may have already be fully initialized with some extra allocated data,
-   * we need to free it now to avoid memleak. */
+  /* `md_dst` may have already be fully initialized with some extra allocated data,
+   * we need to free it now to avoid a memory leak. */
   if (mti->freeData) {
     mti->freeData(md_dst);
   }
@@ -356,8 +356,8 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
   md_dst->runtime = nullptr;
 }
 
-static void modifier_copy_data_id_us_cb(void *UNUSED(userData),
-                                        Object *UNUSED(ob),
+static void modifier_copy_data_id_us_cb(void * /*userData*/,
+                                        Object * /*ob*/,
                                         ID **idpoin,
                                         int cb_flag)
 {
@@ -406,7 +406,7 @@ bool BKE_modifier_supports_cage(struct Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  return ((!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
+  return ((!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
           (mti->flags & eModifierTypeFlag_SupportsEditmode) && BKE_modifier_supports_mapping(md));
 }
 
@@ -415,7 +415,7 @@ bool BKE_modifier_couldbe_cage(struct Scene *scene, ModifierData *md)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
   return ((md->mode & eModifierMode_Realtime) && (md->mode & eModifierMode_Editmode) &&
-          (!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
+          (!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
           BKE_modifier_supports_mapping(md));
 }
 
@@ -513,7 +513,7 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
     bool supports_mapping;
 
-    if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+    if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
       continue;
     }
     if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) {

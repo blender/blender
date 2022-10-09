@@ -19,61 +19,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef WITH_ONEAPI
-static OneAPIDLLInterface oneapi_dll;
-#endif
-
-#ifdef _WIN32
-#  define LOAD_ONEAPI_SHARED_LIBRARY(path) (void *)(LoadLibrary(path))
-#  define LOAD_ONEAPI_SHARED_LIBRARY_ERROR() GetLastError()
-#  define FREE_SHARED_LIBRARY(handle) FreeLibrary((HMODULE)handle)
-#  define GET_SHARED_LIBRARY_SYMBOL(handle, name) GetProcAddress((HMODULE)handle, name)
-#elif __linux__
-#  define LOAD_ONEAPI_SHARED_LIBRARY(path) dlopen(path, RTLD_NOW)
-#  define LOAD_ONEAPI_SHARED_LIBRARY_ERROR() dlerror()
-#  define FREE_SHARED_LIBRARY(handle) dlclose(handle)
-#  define GET_SHARED_LIBRARY_SYMBOL(handle, name) dlsym(handle, name)
-#endif
-
 bool device_oneapi_init()
 {
 #if !defined(WITH_ONEAPI)
   return false;
 #else
-
-  string lib_path = path_get("lib");
-#  ifdef _WIN32
-  lib_path = path_join(lib_path, "cycles_kernel_oneapi.dll");
-#  else
-  lib_path = path_join(lib_path, "cycles_kernel_oneapi.so");
-#  endif
-  void *lib_handle = LOAD_ONEAPI_SHARED_LIBRARY(lib_path.c_str());
-
-  /* This shouldn't happen, but it still makes sense to have a branch for this. */
-  if (lib_handle == NULL) {
-    LOG(ERROR) << "oneAPI kernel shared library cannot be loaded: "
-               << LOAD_ONEAPI_SHARED_LIBRARY_ERROR();
-    return false;
-  }
-
-#  define DLL_INTERFACE_CALL(function, return_type, ...) \
-    (oneapi_dll.function) = reinterpret_cast<decltype(oneapi_dll.function)>( \
-        GET_SHARED_LIBRARY_SYMBOL(lib_handle, #function)); \
-    if (oneapi_dll.function == NULL) { \
-      LOG(ERROR) << "oneAPI shared library function \"" << #function \
-                 << "\" has not been loaded from kernel shared  - disable oneAPI " \
-                    "library disable oneAPI implementation due to this"; \
-      FREE_SHARED_LIBRARY(lib_handle); \
-      return false; \
-    }
-#  include "kernel/device/oneapi/dll_interface_template.h"
-#  undef DLL_INTERFACE_CALL
-
-  VLOG_INFO << "oneAPI kernel shared library has been loaded successfully";
-
-  /* We need to have this oneapi kernel shared library during all life-span of the Blender.
-   * So it is not unloaded because of this.
-   * FREE_SHARED_LIBRARY(lib_handle); */
 
   /* NOTE(@nsirgien): we need to enable JIT cache from here and
    * right now this cache policy is controlled by env. variables. */
@@ -109,17 +59,10 @@ bool device_oneapi_init()
 #endif
 }
 
-#if defined(_WIN32) || defined(__linux__)
-#  undef LOAD_SYCL_SHARED_LIBRARY
-#  undef LOAD_ONEAPI_SHARED_LIBRARY
-#  undef FREE_SHARED_LIBRARY
-#  undef GET_SHARED_LIBRARY_SYMBOL
-#endif
-
 Device *device_oneapi_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 {
 #ifdef WITH_ONEAPI
-  return new OneapiDevice(info, oneapi_dll, stats, profiler);
+  return new OneapiDevice(info, stats, profiler);
 #else
   (void)info;
   (void)stats;
@@ -165,7 +108,7 @@ static void device_iterator_cb(const char *id, const char *name, int num, void *
 void device_oneapi_info(vector<DeviceInfo> &devices)
 {
 #ifdef WITH_ONEAPI
-  (oneapi_dll.oneapi_iterate_devices)(device_iterator_cb, &devices);
+  OneapiDevice::iterate_devices(device_iterator_cb, &devices);
 #else  /* WITH_ONEAPI */
   (void)devices;
 #endif /* WITH_ONEAPI */
@@ -175,10 +118,10 @@ string device_oneapi_capabilities()
 {
   string capabilities;
 #ifdef WITH_ONEAPI
-  char *c_capabilities = (oneapi_dll.oneapi_device_capabilities)();
+  char *c_capabilities = OneapiDevice::device_capabilities();
   if (c_capabilities) {
     capabilities = c_capabilities;
-    (oneapi_dll.oneapi_free)(c_capabilities);
+    free(c_capabilities);
   }
 #endif
   return capabilities;

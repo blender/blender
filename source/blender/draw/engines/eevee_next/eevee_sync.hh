@@ -139,6 +139,15 @@ struct WorldHandle : public DrawData {
   }
 };
 
+struct SceneHandle : public DrawData {
+  void reset_recalc_flag()
+  {
+    if (recalc != 0) {
+      recalc = 0;
+    }
+  }
+};
+
 class SyncModule {
  private:
   Instance &inst_;
@@ -149,6 +158,7 @@ class SyncModule {
 
   ObjectHandle &sync_object(Object *ob);
   WorldHandle &sync_world(::World *world);
+  SceneHandle &sync_scene(::Scene *scene);
 
   void sync_mesh(Object *ob,
                  ObjectHandle &ob_handle,

@@ -624,10 +624,10 @@ void BLI_ewa_filter(const int width,
 
   U0 = uv[0] * (float)width;
   V0 = uv[1] * (float)height;
-  u1 = (int)(floorf(U0 - ue));
-  u2 = (int)(ceilf(U0 + ue));
-  v1 = (int)(floorf(V0 - ve));
-  v2 = (int)(ceilf(V0 + ve));
+  u1 = (int)floorf(U0 - ue);
+  u2 = (int)ceilf(U0 + ue);
+  v1 = (int)floorf(V0 - ve);
+  v2 = (int)ceilf(V0 + ve);
 
   /* sane clamping to avoid unnecessarily huge loops */
   /* NOTE: if eccentricity gets clamped (see above),

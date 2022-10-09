@@ -17,8 +17,6 @@
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
-
 #include "ED_paint.h"
 #include "ED_view3d.h"
 
@@ -28,11 +26,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "ED_image.h"
@@ -81,14 +76,14 @@ class ImagePaintMode : public AbstractPaintMode {
  public:
   void *paint_new_stroke(bContext *C,
                          wmOperator *op,
-                         Object *UNUSED(ob),
+                         Object * /*ob*/,
                          const float UNUSED(mouse[2]),
                          int mode) override
   {
     return paint_2d_new_stroke(C, op, mode);
   }
 
-  void paint_stroke(bContext *UNUSED(C),
+  void paint_stroke(bContext * /*C*/,
                     void *stroke_handle,
                     float prev_mouse[2],
                     float mouse[2],
@@ -111,9 +106,9 @@ class ImagePaintMode : public AbstractPaintMode {
   }
 
   void paint_gradient_fill(const bContext *C,
-                           const Scene *UNUSED(scene),
+                           const Scene * /*scene*/,
                            Brush *brush,
-                           struct PaintStroke *UNUSED(stroke),
+                           struct PaintStroke * /*stroke*/,
                            void *stroke_handle,
                            float mouse_start[2],
                            float mouse_end[2]) override
@@ -143,7 +138,7 @@ class ImagePaintMode : public AbstractPaintMode {
 class ProjectionPaintMode : public AbstractPaintMode {
  public:
   void *paint_new_stroke(
-      bContext *C, wmOperator *UNUSED(op), Object *ob, const float mouse[2], int mode) override
+      bContext *C, wmOperator * /*op*/, Object *ob, const float mouse[2], int mode) override
   {
     return paint_proj_new_stroke(C, ob, mouse, mode);
   }
@@ -240,7 +235,7 @@ struct PaintOperation {
   }
 };
 
-static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customdata)
+static void gradient_draw_line(bContext * /*C*/, int x, int y, void *customdata)
 {
   PaintOperation *pop = (PaintOperation *)customdata;
 
@@ -330,7 +325,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 }
 
 static void paint_stroke_update_step(bContext *C,
-                                     wmOperator *UNUSED(op),
+                                     wmOperator * /*op*/,
                                      struct PaintStroke *stroke,
                                      PointerRNA *itemptr)
 {

@@ -19,7 +19,7 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewMap *iViewMap)
   return Tesselate(viewedges.begin(), viewedges.end());
 }
 
-NodeGroup *ViewMapTesselator::Tesselate(WShape *UNUSED(iWShape))
+NodeGroup *ViewMapTesselator::Tesselate(WShape * /*iWShape*/)
 {
   return nullptr;
 }

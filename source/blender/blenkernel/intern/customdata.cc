@@ -232,7 +232,7 @@ static void layerFree_mdeformvert(void *data, const int count, const int size)
 
 static void layerInterp_mdeformvert(const void **sources,
                                     const float *weights,
-                                    const float *UNUSED(sub_weights),
+                                    const float * /*sub_weights*/,
                                     const int count,
                                     void *dest)
 {
@@ -331,7 +331,7 @@ static void layerConstruct_mdeformvert(void *data, const int count)
 
 static void layerInterp_normal(const void **sources,
                                const float *weights,
-                               const float *UNUSED(sub_weights),
+                               const float * /*sub_weights*/,
                                const int count,
                                void *dest)
 {
@@ -472,7 +472,7 @@ static void layerCopy_propFloat(const void *source, void *dest, const int count)
 
 static void layerInterp_propFloat(const void **sources,
                                   const float *weights,
-                                  const float *UNUSED(sub_weights),
+                                  const float * /*sub_weights*/,
                                   const int count,
                                   void *dest)
 {
@@ -510,7 +510,7 @@ static bool layerValidate_propFloat(void *data, const uint totitems, const bool 
 
 static void layerInterp_propInt(const void **sources,
                                 const float *weights,
-                                const float *UNUSED(sub_weights),
+                                const float * /*sub_weights*/,
                                 const int count,
                                 void *dest)
 {
@@ -659,7 +659,7 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
   }
 }
 
-static void layerFree_mdisps(void *data, const int count, const int UNUSED(size))
+static void layerFree_mdisps(void *data, const int count, const int /*size*/)
 {
   MDisps *d = static_cast<MDisps *>(data);
 
@@ -714,7 +714,7 @@ static bool layerWrite_mdisps(CDataFile *cdf, const void *data, const int count)
   return true;
 }
 
-static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), const void *data, const int count)
+static size_t layerFilesize_mdisps(CDataFile * /*cdf*/, const void *data, const int count)
 {
   const MDisps *d = static_cast<const MDisps *>(data);
   size_t size = 0;
@@ -733,7 +733,7 @@ static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), const void *data, con
  * \{ */
 
 /* copy just zeros in this case */
-static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest, const int count)
+static void layerCopy_bmesh_elem_py_ptr(const void * /*source*/, void *dest, const int count)
 {
   const int size = sizeof(void *);
 
@@ -744,7 +744,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest, 
 }
 
 #ifndef WITH_PYTHON
-void bpy_bm_generic_invalidate(struct BPy_BMGeneric *UNUSED(self))
+void bpy_bm_generic_invalidate(struct BPy_BMGeneric * /*self*/)
 {
   /* dummy */
 }
@@ -768,7 +768,7 @@ static void layerFree_bmesh_elem_py_ptr(void *data, const int count, const int s
 
 static void layerInterp_paint_mask(const void **sources,
                                    const float *weights,
-                                   const float *UNUSED(sub_weights),
+                                   const float * /*sub_weights*/,
                                    int count,
                                    void *dest)
 {
@@ -804,7 +804,7 @@ static void layerCopy_grid_paint_mask(const void *source, void *dest, const int 
   }
 }
 
-static void layerFree_grid_paint_mask(void *data, const int count, const int UNUSED(size))
+static void layerFree_grid_paint_mask(void *data, const int count, const int /*size*/)
 {
   GridPaintMask *gpm = static_cast<GridPaintMask *>(data);
 
@@ -977,7 +977,7 @@ static void layerDefault_mloopcol(void *data, const int count)
 
 static void layerInterp_mloopcol(const void **sources,
                                  const float *weights,
-                                 const float *UNUSED(sub_weights),
+                                 const float * /*sub_weights*/,
                                  int count,
                                  void *dest)
 {
@@ -1075,7 +1075,7 @@ static void layerAdd_mloopuv(void *data1, const void *data2)
 
 static void layerInterp_mloopuv(const void **sources,
                                 const float *weights,
-                                const float *UNUSED(sub_weights),
+                                const float * /*sub_weights*/,
                                 int count,
                                 void *dest)
 {
@@ -1118,8 +1118,8 @@ static bool layerValidate_mloopuv(void *data, const uint totitems, const bool do
 /* origspace is almost exact copy of mloopuv's, keep in sync */
 static void layerCopyValue_mloop_origspace(const void *source,
                                            void *dest,
-                                           const int UNUSED(mixmode),
-                                           const float UNUSED(mixfactor))
+                                           const int /*mixmode*/,
+                                           const float /*mixfactor*/)
 {
   const OrigSpaceLoop *luv1 = static_cast<const OrigSpaceLoop *>(source);
   OrigSpaceLoop *luv2 = static_cast<OrigSpaceLoop *>(dest);
@@ -1169,7 +1169,7 @@ static void layerAdd_mloop_origspace(void *data1, const void *data2)
 
 static void layerInterp_mloop_origspace(const void **sources,
                                         const float *weights,
-                                        const float *UNUSED(sub_weights),
+                                        const float * /*sub_weights*/,
                                         int count,
                                         void *dest)
 {
@@ -1267,7 +1267,7 @@ static void layerDefault_origindex(void *data, const int count)
 
 static void layerInterp_bweight(const void **sources,
                                 const float *weights,
-                                const float *UNUSED(sub_weights),
+                                const float * /*sub_weights*/,
                                 int count,
                                 void *dest)
 {
@@ -1290,7 +1290,7 @@ static void layerInterp_bweight(const void **sources,
 
 static void layerInterp_shapekey(const void **sources,
                                  const float *weights,
-                                 const float *UNUSED(sub_weights),
+                                 const float * /*sub_weights*/,
                                  int count,
                                  void *dest)
 {
@@ -1335,7 +1335,7 @@ static void layerCopy_mvert_skin(const void *source, void *dest, const int count
 
 static void layerInterp_mvert_skin(const void **sources,
                                    const float *weights,
-                                   const float *UNUSED(sub_weights),
+                                   const float * /*sub_weights*/,
                                    int count,
                                    void *dest)
 {
@@ -1498,7 +1498,7 @@ static void layerDefault_propcol(void *data, const int count)
 
 static void layerInterp_propcol(const void **sources,
                                 const float *weights,
-                                const float *UNUSED(sub_weights),
+                                const float * /*sub_weights*/,
                                 int count,
                                 void *dest)
 {
@@ -1520,7 +1520,7 @@ static void layerInterp_propcol(const void **sources,
 
 static void layerInterp_propfloat3(const void **sources,
                                    const float *weights,
-                                   const float *UNUSED(sub_weights),
+                                   const float * /*sub_weights*/,
                                    int count,
                                    void *dest)
 {
@@ -1573,7 +1573,7 @@ static bool layerValidate_propfloat3(void *data, const uint totitems, const bool
 
 static void layerInterp_propfloat2(const void **sources,
                                    const float *weights,
-                                   const float *UNUSED(sub_weights),
+                                   const float * /*sub_weights*/,
                                    int count,
                                    void *dest)
 {
@@ -1624,7 +1624,7 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
 
 static void layerInterp_propbool(const void **sources,
                                  const float *weights,
-                                 const float *UNUSED(sub_weights),
+                                 const float * /*sub_weights*/,
                                  int count,
                                  void *dest)
 {
@@ -3163,7 +3163,7 @@ void *CustomData_duplicate_referenced_layer_named(CustomData *data,
 }
 
 void *CustomData_duplicate_referenced_layer_anonymous(CustomData *data,
-                                                      const int UNUSED(type),
+                                                      const int /*type*/,
                                                       const AnonymousAttributeID *anonymous_id,
                                                       const int totelem)
 {
@@ -4594,10 +4594,7 @@ static void customdata_external_filename(char filepath[FILE_MAX],
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(id));
 }
 
-void CustomData_external_reload(CustomData *data,
-                                ID *UNUSED(id),
-                                eCustomDataMask mask,
-                                int totelem)
+void CustomData_external_reload(CustomData *data, ID * /*id*/, eCustomDataMask mask, int totelem)
 {
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
@@ -4791,11 +4788,8 @@ void CustomData_external_write(
   cdf_free(cdf);
 }
 
-void CustomData_external_add(CustomData *data,
-                             ID *UNUSED(id),
-                             const int type,
-                             const int UNUSED(totelem),
-                             const char *filepath)
+void CustomData_external_add(
+    CustomData *data, ID * /*id*/, const int type, const int /*totelem*/, const char *filepath)
 {
   CustomDataExternal *external = data->external;
 

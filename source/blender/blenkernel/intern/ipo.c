@@ -1542,7 +1542,7 @@ static void icu_to_fcurves(ID *id,
           }
 
           /* correct values, by checking if the flag of interest is set */
-          if (((int)(dst->vec[1][1])) & (abp->bit)) {
+          if ((int)(dst->vec[1][1]) & (abp->bit)) {
             dst->vec[0][1] = dst->vec[1][1] = dst->vec[2][1] = 1.0f;
           }
           else {

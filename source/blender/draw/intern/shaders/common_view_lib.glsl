@@ -11,22 +11,10 @@
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform viewBlock
 {
-  /* Same order as DRWViewportMatrixType */
-  mat4 ViewProjectionMatrix;
-  mat4 ViewProjectionMatrixInverse;
   mat4 ViewMatrix;
   mat4 ViewMatrixInverse;
   mat4 ProjectionMatrix;
   mat4 ProjectionMatrixInverse;
-
-  vec4 clipPlanes[6];
-
-  /* View frustum corners [NDC(-1.0, -1.0, -1.0) & NDC(1.0, 1.0, 1.0)].
-   * Fourth components are near and far values. */
-  vec4 ViewVecs[2];
-
-  /* TODO: move it elsewhere. */
-  vec4 CameraTexCoFactors;
 };
 
 #endif /* USE_GPU_SHADER_CREATE_INFO */
@@ -37,11 +25,9 @@ layout(std140) uniform viewBlock
 #  endif
 #endif
 
-#define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
+/* Not supported anymore. TODO(fclem): Add back support. */
+// #define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
 #define IS_FIRST_INVOCATION (gl_GlobalInvocationID == uvec3(0))
-
-#define ViewNear (ViewVecs[0].w)
-#define ViewFar (ViewVecs[1].w)
 
 #define cameraForward ViewMatrixInverse[2].xyz
 #define cameraPos ViewMatrixInverse[3].xyz
@@ -51,18 +37,13 @@ vec3 cameraVec(vec3 P)
 }
 #define viewCameraVec(vP) ((ProjectionMatrix[3][3] == 0.0) ? normalize(-vP) : vec3(0.0, 0.0, 1.0))
 
-#ifdef world_clip_planes_calc_clip_distance
-#  undef world_clip_planes_calc_clip_distance
-#  define world_clip_planes_calc_clip_distance(p) \
-    _world_clip_planes_calc_clip_distance(p, clipPlanes)
-#endif
-
 #ifdef COMMON_GLOBALS_LIB
 /* TODO move to overlay engine. */
 float mul_project_m4_v3_zfac(in vec3 co)
 {
-  return pixelFac * ((ViewProjectionMatrix[0][3] * co.x) + (ViewProjectionMatrix[1][3] * co.y) +
-                     (ViewProjectionMatrix[2][3] * co.z) + ViewProjectionMatrix[3][3]);
+  vec3 vP = (ViewMatrix * vec4(co, 1.0)).xyz;
+  return pixelFac * ((ProjectionMatrix[0][3] * vP.x) + (ProjectionMatrix[1][3] * vP.y) +
+                     (ProjectionMatrix[2][3] * vP.z) + ProjectionMatrix[3][3]);
 }
 #endif
 
@@ -93,7 +74,7 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
     edge /= len;
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
-    /* Add 0.1 to diffenrentiate with cleared pixels. */
+    /* Add 0.1 to differentiate with cleared pixels. */
     return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
   }
   else {
@@ -228,7 +209,7 @@ layout(std140) uniform modelBlock
 #  ifndef USE_GPU_SHADER_CREATE_INFO
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
-/* Note that this is also a workaround of a problem on osx (amd or nvidia)
+/* Note that this is also a workaround of a problem on OSX (AMD or NVIDIA)
  * and older amd driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
@@ -267,13 +248,14 @@ uniform mat4 ModelMatrixInverse;
 #define normal_world_to_view(n) (mat3(ViewMatrix) * n)
 #define normal_view_to_world(n) (mat3(ViewMatrixInverse) * n)
 
-#define point_object_to_ndc(p) (ViewProjectionMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0))
+#define point_object_to_ndc(p) \
+  (ProjectionMatrix * (ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)))
 #define point_object_to_view(p) ((ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)).xyz)
 #define point_object_to_world(p) ((ModelMatrix * vec4(p, 1.0)).xyz)
 #define point_view_to_ndc(p) (ProjectionMatrix * vec4(p, 1.0))
 #define point_view_to_object(p) ((ModelMatrixInverse * (ViewMatrixInverse * vec4(p, 1.0))).xyz)
 #define point_view_to_world(p) ((ViewMatrixInverse * vec4(p, 1.0)).xyz)
-#define point_world_to_ndc(p) (ViewProjectionMatrix * vec4(p, 1.0))
+#define point_world_to_ndc(p) (ProjectionMatrix * (ViewMatrix * vec4(p, 1.0)))
 #define point_world_to_object(p) ((ModelMatrixInverse * vec4(p, 1.0)).xyz)
 #define point_world_to_view(p) ((ViewMatrix * vec4(p, 1.0)).xyz)
 
@@ -314,24 +296,26 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 
 float get_view_z_from_depth(float depth)
 {
+  float d = 2.0 * depth - 1.0;
   if (ProjectionMatrix[3][3] == 0.0) {
-    float d = 2.0 * depth - 1.0;
-    return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
+    d = -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
   }
   else {
-    return ViewVecs[0].z + depth * ViewVecs[1].z;
+    d = (d - ProjectionMatrix[3][2]) / ProjectionMatrix[2][2];
   }
+  return d;
 }
 
 float get_depth_from_view_z(float z)
 {
+  float d;
   if (ProjectionMatrix[3][3] == 0.0) {
-    float d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
-    return d * 0.5 + 0.5;
+    d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
   }
   else {
-    return (z - ViewVecs[0].z) / ViewVecs[1].z;
+    d = ProjectionMatrix[2][2] * z + ProjectionMatrix[3][2];
   }
+  return d * 0.5 + 0.5;
 }
 
 vec2 get_uvs_from_view(vec3 view)
@@ -342,12 +326,9 @@ vec2 get_uvs_from_view(vec3 view)
 
 vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 {
-  if (ProjectionMatrix[3][3] == 0.0) {
-    return vec3(ViewVecs[0].xy + uvcoords * ViewVecs[1].xy, 1.0) * get_view_z_from_depth(depth);
-  }
-  else {
-    return ViewVecs[0].xyz + vec3(uvcoords, depth) * ViewVecs[1].xyz;
-  }
+  vec3 ndc = vec3(uvcoords, depth) * 2.0 - 1.0;
+  vec4 p = ProjectionMatrixInverse * vec4(ndc, 1.0);
+  return p.xyz / p.w;
 }
 
 vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
@@ -355,14 +336,18 @@ vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
   return (ViewMatrixInverse * vec4(get_view_space_from_depth(uvcoords, depth), 1.0)).xyz;
 }
 
-vec3 get_view_vector_from_screen_uv(vec2 uv)
+vec3 get_view_vector_from_screen_uv(vec2 uvcoords)
 {
   if (ProjectionMatrix[3][3] == 0.0) {
-    return normalize(vec3(ViewVecs[0].xy + uv * ViewVecs[1].xy, 1.0));
+    vec2 ndc = vec2(uvcoords * 2.0 - 1.0);
+    /* This is the manual inversion of the ProjectionMatrix. */
+    vec3 vV = vec3((-ndc - ProjectionMatrix[2].xy) /
+                       vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]),
+                   -ProjectionMatrix[2][2] - ProjectionMatrix[3][2]);
+    return normalize(vV);
   }
-  else {
-    return vec3(0.0, 0.0, 1.0);
-  }
+  /* Orthographic case. */
+  return vec3(0.0, 0.0, 1.0);
 }
 
 #endif /* COMMON_VIEW_LIB_GLSL */

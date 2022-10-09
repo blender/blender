@@ -1115,11 +1115,11 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     }
     return NULL;
   }
-  if ((ob) && (ELEM(ob->mode,
-                    OB_MODE_PAINT_GPENCIL,
-                    OB_MODE_SCULPT_GPENCIL,
-                    OB_MODE_WEIGHT_GPENCIL,
-                    OB_MODE_VERTEX_GPENCIL))) {
+  if (ob && ELEM(ob->mode,
+                 OB_MODE_PAINT_GPENCIL,
+                 OB_MODE_SCULPT_GPENCIL,
+                 OB_MODE_WEIGHT_GPENCIL,
+                 OB_MODE_VERTEX_GPENCIL)) {
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
     return NULL;
   }

@@ -48,13 +48,13 @@ static void geo_node_distribute_points_in_volume_declare(NodeDeclarationBuilder 
 }
 
 static void geo_node_distribute_points_in_volume_layout(uiLayout *layout,
-                                                        bContext *UNUSED(C),
+                                                        bContext * /*C*/,
                                                         PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_distribute_points_in_volume_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_distribute_points_in_volume_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryDistributePointsInVolume *data = MEM_cnew<NodeGeometryDistributePointsInVolume>(
       __func__);

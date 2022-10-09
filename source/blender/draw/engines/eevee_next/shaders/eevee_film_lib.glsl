@@ -187,7 +187,7 @@ void film_cryptomatte_layer_accum_and_store(
   if (pass_id == -1) {
     return;
   }
-  /* x = hash, y = accumed weight. Only keep track of 4 highest weighted samples. */
+  /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
   vec2 crypto_samples[4] = vec2[4](vec2(0.0), vec2(0.0), vec2(0.0), vec2(0.0));
   for (int i = 0; i < film_buf.samples_len; i++) {
     FilmSample src = film_sample_get(i, texel_film);

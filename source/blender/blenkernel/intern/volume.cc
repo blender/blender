@@ -363,7 +363,7 @@ struct VolumeGrid {
     is_loaded = false;
   }
 
-  void clear_reference(const char *UNUSED(volume_name))
+  void clear_reference(const char * /*volume_name*/)
   {
     /* Clear any reference to a grid in the file cache. */
     local_grid = grid()->copyGridWithNewTree();
@@ -515,10 +515,7 @@ static void volume_init_data(ID *id)
   BLI_strncpy(volume->velocity_grid, "velocity", sizeof(volume->velocity_grid));
 }
 
-static void volume_copy_data(Main *UNUSED(bmain),
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int UNUSED(flag))
+static void volume_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Volume *volume_dst = (Volume *)id_dst;
   const Volume *volume_src = (const Volume *)id_src;

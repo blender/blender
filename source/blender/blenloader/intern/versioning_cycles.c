@@ -1194,7 +1194,7 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
       if (tex->distance == SHD_VORONOI_EUCLIDEAN &&
-          (ELEM(tex->feature, SHD_VORONOI_F1, SHD_VORONOI_F2)) && socket_is_used(sockDistance)) {
+          ELEM(tex->feature, SHD_VORONOI_F1, SHD_VORONOI_F2) && socket_is_used(sockDistance)) {
         bNode *multiplyNode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
         multiplyNode->custom1 = NODE_MATH_MULTIPLY;
         multiplyNode->locx = node->locx + node->width + 20.0f;

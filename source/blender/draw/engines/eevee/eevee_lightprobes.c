@@ -329,7 +329,6 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
         DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &lcache->cube_tx.tex);
         DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
         DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-        DRW_shgroup_uniform_vec3(grp, "screen_vecs", DRW_viewport_screenvecs_get(), 2);
         DRW_shgroup_uniform_float_copy(
             grp, "sphere_size", scene_eval->eevee.gi_cubemap_draw_size * 0.5f);
         /* TODO(fclem): get rid of those UBO. */
@@ -353,7 +352,6 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
           DRW_shgroup_uniform_vec3(shgrp, "increment_x", egrid->increment_x, 1);
           DRW_shgroup_uniform_vec3(shgrp, "increment_y", egrid->increment_y, 1);
           DRW_shgroup_uniform_vec3(shgrp, "increment_z", egrid->increment_z, 1);
-          DRW_shgroup_uniform_vec3(shgrp, "screen_vecs", DRW_viewport_screenvecs_get(), 2);
           DRW_shgroup_uniform_texture_ref(shgrp, "irradianceGrid", &lcache->grid_tx.tex);
           DRW_shgroup_uniform_float_copy(
               shgrp, "sphere_size", scene_eval->eevee.gi_irradiance_draw_size * 0.5f);
@@ -796,6 +794,7 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
                                int ref_count)
 {
   EEVEE_StorageList *stl = user_data->vedata->stl;
+  EEVEE_ViewLayerData *sldata = user_data->sldata;
   DRWView *main_view = stl->effects->taa_view;
   DRWView **views = stl->g_data->planar_views;
   /* Prepare views at the same time for faster culling. */
@@ -804,6 +803,8 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
   }
 
   for (int i = 0; i < ref_count; i++) {
+    copy_v4_v4(sldata->common_data.planar_clip_plane, planar_data[i].plane_equation);
+    sldata->common_data.planar_clip_plane[3] += planar_data[i].clipsta;
     DRW_view_set_active(views[i]);
     callback(i, user_data);
   }

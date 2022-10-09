@@ -253,7 +253,7 @@ PyDoc_STRVAR(StrokeShader_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *StrokeShader_name_get(BPy_StrokeShader *self, void *UNUSED(closure))
+static PyObject *StrokeShader_name_get(BPy_StrokeShader *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }

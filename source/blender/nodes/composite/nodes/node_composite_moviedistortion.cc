@@ -26,7 +26,7 @@ static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
+static void label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
 {
   if (node->custom1 == 0) {
     BLI_strncpy(label, IFACE_("Undistortion"), maxlen);
@@ -54,7 +54,7 @@ static void storage_free(bNode *node)
   node->storage = nullptr;
 }
 
-static void storage_copy(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
+static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   if (src_node->storage) {
     dest_node->storage = BKE_tracking_distortion_copy((MovieDistortion *)src_node->storage);

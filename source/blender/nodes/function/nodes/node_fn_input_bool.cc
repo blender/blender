@@ -14,7 +14,7 @@ static void fn_node_input_bool_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Boolean"));
 }
 
-static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_input_bool_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "boolean", UI_ITEM_R_EXPAND, IFACE_("Value"), ICON_NONE);
@@ -27,7 +27,7 @@ static void fn_node_input_bool_build_multi_function(NodeMultiFunctionBuilder &bu
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<bool>>(node_storage->boolean);
 }
 
-static void fn_node_input_bool_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_input_bool_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeInputBool *data = MEM_cnew<NodeInputBool>(__func__);
   node->storage = data;

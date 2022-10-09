@@ -96,7 +96,7 @@ void BokehImageOperation::execute_pixel_sampled(float output[4],
 
 void BokehImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
-                                                       Span<MemoryBuffer *> UNUSED(inputs))
+                                                       Span<MemoryBuffer *> /*inputs*/)
 {
   const float shift = data_->lensshift;
   const float shift2 = shift / 2.0f;

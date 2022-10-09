@@ -2103,7 +2103,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
   /* Adding the hold offset value (seq->anim_startofs) to the start frame. Position of image not
    * affected, but frame loaded affected. */
   float upper_thumb_bound = SEQ_time_has_right_still_frames(scene, seq) ?
-                                (seq->start + seq->len) :
+                                SEQ_time_content_end_frame_get(scene, seq) :
                                 SEQ_time_right_handle_frame_get(scene, seq);
   upper_thumb_bound = (upper_thumb_bound > view_area->xmax) ? view_area->xmax + frame_step :
                                                               upper_thumb_bound;
@@ -2137,9 +2137,10 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Scene *scene, const Sequence *seq)
 {
-  const int content_start = max_ii(SEQ_time_left_handle_frame_get(scene, seq), seq->start);
+  const int content_start = max_ii(SEQ_time_left_handle_frame_get(scene, seq),
+                                   SEQ_time_start_frame_get(seq));
   const int content_end = min_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                                 seq->start + seq->len);
+                                 SEQ_time_content_end_frame_get(scene, seq));
   const int content_len = content_end - content_start;
 
   /* Arbitrary, but due to performance reasons should be as low as possible. */

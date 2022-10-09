@@ -70,7 +70,7 @@ static void pointcloud_init_data(ID *id)
                              POINTCLOUD_ATTR_POSITION);
 }
 
-static void pointcloud_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void pointcloud_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   PointCloud *pointcloud_dst = (PointCloud *)id_dst;
   const PointCloud *pointcloud_src = (const PointCloud *)id_src;
@@ -339,7 +339,7 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_pointcloud_attribute_required(const PointCloud *UNUSED(pointcloud), const char *name)
+bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)
 {
   return STREQ(name, POINTCLOUD_ATTR_POSITION);
 }

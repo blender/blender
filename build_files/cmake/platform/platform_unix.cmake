@@ -335,10 +335,18 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
   endif()
 
-  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to DPC++ and SYCL installation")
+  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
     set(SYCL_ROOT_DIR ${CYCLES_SYCL})
   endif()
+  file(GLOB _sycl_runtime_libraries
+    ${SYCL_ROOT_DIR}/lib/libsycl.so
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9]
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
+    ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
+  )
+  list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
+  unset(_sycl_runtime_libraries)
 endif()
 
 if(WITH_OPENVDB)
@@ -584,6 +592,18 @@ if(WITH_HARU)
   endif()
 endif()
 
+if(WITH_CYCLES_PATH_GUIDING)
+  find_package_wrapper(openpgl)
+  if(openpgl_FOUND)
+    get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
+    get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
+    message(STATUS "Found OpenPGL: ${OPENPGL_LIBRARIES}")
+  else()
+    set(WITH_CYCLES_PATH_GUIDING OFF)
+    message(STATUS "OpenPGL not found, disabling WITH_CYCLES_PATH_GUIDING")
+  endif()
+endif()
+
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()
@@ -679,14 +699,23 @@ endif()
 
 if(WITH_GHOST_WAYLAND)
   find_package(PkgConfig)
-  pkg_check_modules(wayland-client wayland-client>=1.12)
-  pkg_check_modules(wayland-egl wayland-egl)
-  pkg_check_modules(wayland-scanner wayland-scanner)
   pkg_check_modules(xkbcommon xkbcommon)
-  pkg_check_modules(wayland-cursor wayland-cursor)
-  pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
 
-  if(${wayland-protocols_FOUND})
+  # When dynamically linked WAYLAND is used and `${LIBDIR}/wayland` is present,
+  # there is no need to search for the libraries as they are not needed for building.
+  # Only the headers are needed which can reference the known paths.
+  if(EXISTS "${LIBDIR}/wayland" AND WITH_GHOST_WAYLAND_DYNLOAD)
+    set(_use_system_wayland OFF)
+  else()
+    set(_use_system_wayland ON)
+  endif()
+
+  if(_use_system_wayland)
+    pkg_check_modules(wayland-client wayland-client>=1.12)
+    pkg_check_modules(wayland-egl wayland-egl)
+    pkg_check_modules(wayland-scanner wayland-scanner)
+    pkg_check_modules(wayland-cursor wayland-cursor)
+    pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
     # CentOS 7 packages have too old a version, a newer version exist in the
@@ -700,6 +729,15 @@ if(WITH_GHOST_WAYLAND)
     if(EXISTS ${WAYLAND_PROTOCOLS_DIR})
       set(wayland-protocols_FOUND ON)
     endif()
+
+    set(wayland-client_INCLUDE_DIRS "${LIBDIR}/wayland/include")
+    set(wayland-egl_INCLUDE_DIRS "${LIBDIR}/wayland/include")
+    set(wayland-cursor_INCLUDE_DIRS "${LIBDIR}/wayland/include")
+
+    set(wayland-client_FOUND ON)
+    set(wayland-egl_FOUND ON)
+    set(wayland-scanner_FOUND ON)
+    set(wayland-cursor_FOUND ON)
   endif()
 
   if (NOT ${wayland-client_FOUND})
@@ -733,7 +771,11 @@ if(WITH_GHOST_WAYLAND)
     endif()
 
     if(WITH_GHOST_WAYLAND_LIBDECOR)
-      pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+      if(_use_system_wayland)
+        pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+      else()
+        set(libdecor_INCLUDE_DIRS "${LIBDIR}/wayland_libdecor/include/libdecor-0")
+      endif()
     endif()
 
     list(APPEND PLATFORM_LINKLIBS
@@ -803,6 +845,8 @@ if(WITH_GHOST_WAYLAND)
     # End wayland-scanner version check.
 
   endif()
+
+  unset(_use_system_wayland)
 endif()
 
 if(WITH_GHOST_X11)

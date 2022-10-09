@@ -344,8 +344,8 @@ static bool asset_clear_poll(bContext *C)
   return true;
 }
 
-static char *asset_clear_get_description(struct bContext *UNUSED(C),
-                                         struct wmOperatorType *UNUSED(op),
+static char *asset_clear_get_description(struct bContext * /*C*/,
+                                         struct wmOperatorType * /*op*/,
                                          struct PointerRNA *values)
 {
   const bool set_fake_user = RNA_boolean_get(values, "set_fake_user");
@@ -397,7 +397,7 @@ static bool asset_library_refresh_poll(bContext *C)
   return ED_assetlist_storage_has_list_for_library(library);
 }
 
-static int asset_library_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
+static int asset_library_refresh_exec(bContext *C, wmOperator * /*unused*/)
 {
   /* Execution mode #1: Inside the Asset Browser. */
   if (ED_operator_asset_browsing_active(C)) {
@@ -773,9 +773,9 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
-                                                                 PointerRNA *UNUSED(ptr),
-                                                                 PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
+                                                                 PointerRNA * /*ptr*/,
+                                                                 PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
   const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(false);

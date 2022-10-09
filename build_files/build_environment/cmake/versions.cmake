@@ -464,6 +464,12 @@ set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.21.0
 set(WAYLAND_HASH f2653a2293bcd882d756c6a83d278903)
 set(WAYLAND_HASH_TYPE MD5)
 
+set(WAYLAND_LIBDECOR_VERSION 0.1.0)
+set(WAYLAND_LIBDECOR_FILE libdecor-${WAYLAND_LIBDECOR_VERSION}.tar.xz)
+set(WAYLAND_LIBDECOR_URI https://gitlab.gnome.org/jadahl/libdecor/uploads/81adf91d27620e20bcc5f6b9b312d768/libdecor-${WAYLAND_LIBDECOR_VERSION}.tar.xz )
+set(WAYLAND_LIBDECOR_HASH 47b59eba76faa3787f0878bf8700e912)
+set(WAYLAND_LIBDECOR_HASH_TYPE MD5)
+
 set(ISPC_VERSION v1.17.0)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
 set(ISPC_HASH 4f476a3109332a77fe839a9014c60ca9)

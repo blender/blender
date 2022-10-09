@@ -334,7 +334,7 @@ class ComponentAttributeProviders {
 namespace attribute_accessor_functions {
 
 template<const ComponentAttributeProviders &providers>
-inline bool is_builtin(const void *UNUSED(owner), const AttributeIDRef &attribute_id)
+inline bool is_builtin(const void * /*owner*/, const AttributeIDRef &attribute_id)
 {
   if (!attribute_id.is_named()) {
     return false;

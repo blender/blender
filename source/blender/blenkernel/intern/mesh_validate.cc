@@ -1361,13 +1361,13 @@ static int vergedgesort(const void *v1, const void *v2)
 /* Create edges based on known verts and faces,
  * this function is only used when loading very old blend files */
 
-static void mesh_calc_edges_mdata(const MVert *UNUSED(allvert),
+static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
                                   const MFace *allface,
                                   MLoop *allloop,
                                   const MPoly *allpoly,
-                                  int UNUSED(totvert),
+                                  int /*totvert*/,
                                   int totface,
-                                  int UNUSED(totloop),
+                                  int /*totloop*/,
                                   int totpoly,
                                   const bool use_old,
                                   MEdge **r_medge,

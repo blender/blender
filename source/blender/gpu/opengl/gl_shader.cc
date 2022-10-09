@@ -568,7 +568,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   std::string pre_main;
 
   ss << "\n/* Interfaces. */\n";
-  const Vector<StageInterfaceInfo *> &in_interfaces = (info.geometry_source_.is_empty()) ?
+  const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
                                                           info.vertex_out_interfaces_ :
                                                           info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {

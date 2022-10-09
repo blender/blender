@@ -23,6 +23,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -1210,6 +1211,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      const Object *old_active_object,
                                                      const bool is_resync)
 {
+  /* If there is an old active object, there should also always be a given view layer. */
+  BLI_assert(old_active_object == nullptr || view_layer != nullptr);
+
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
    * do not do anything about it. */
 
@@ -1269,7 +1273,12 @@ static void lib_override_library_create_post_process(Main *bmain,
     }
   }
 
-  BKE_view_layer_synced_ensure(scene, view_layer);
+  if (view_layer != nullptr) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+  }
+  else {
+    BKE_scene_view_layers_synced_ensure(scene);
+  }
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
   Collection *default_instantiating_collection = residual_storage;
@@ -1379,8 +1388,14 @@ bool BKE_lib_override_library_create(Main *bmain,
   if (id_hierarchy_root_reference == nullptr) {
     id_hierarchy_root_reference = id_root_reference;
   }
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
+
+  /* While in theory it _should_ be enough to ensure sync of given view-layer (if any), or at least
+   * of given scene, think for now it's better to get a fully synced Main at this point, this code
+   * may do some very wide remapping/data access in some cases. */
+  BKE_main_view_layers_synced_ensure(bmain);
+  const Object *old_active_object = (view_layer != nullptr) ?
+                                        BKE_view_layer_active_object_get(view_layer) :
+                                        nullptr;
 
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
@@ -3131,7 +3146,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
-void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
+void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *reports)
 {
   if (id->override_library == nullptr) {
     return;
@@ -3815,9 +3830,8 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   /* This temporary swap of G_MAIN is rather ugly,
    * but necessary to avoid asserts checks in some RNA assignment functions,
-   * since those always use on G_MAIN when they need access to a Main database. */
-  Main *orig_gmain = G_MAIN;
-  G_MAIN = bmain;
+   * since those always use G_MAIN when they need access to a Main database. */
+  Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
@@ -3830,7 +3844,9 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
-  G_MAIN = orig_gmain;
+  Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
+  BLI_assert(tmp_gmain == bmain);
+  UNUSED_VARS_NDEBUG(tmp_gmain);
 }
 
 bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
@@ -3938,8 +3954,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-void BKE_lib_override_library_operations_store_end(
-    OverrideLibraryStorage *UNUSED(override_storage), ID *local)
+void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage * /*override_storage*/,
+                                                   ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 

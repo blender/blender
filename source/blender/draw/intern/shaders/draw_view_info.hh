@@ -45,7 +45,11 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewInfos", "drw_view", Frequency::PASS)
+    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view", Frequency::PASS)
+    .typedef_source("draw_shader_shared.h");
+
+GPU_SHADER_CREATE_INFO(draw_view_culling)
+    .uniform_buf(DRW_VIEW_CULLING_UBO_SLOT, "ViewCullingData", "drw_view_culling")
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
@@ -71,7 +75,10 @@ GPU_SHADER_CREATE_INFO(draw_modelmat_instanced_attr)
 /** \name Draw View
  * \{ */
 
-GPU_SHADER_CREATE_INFO(drw_clipped).define("USE_WORLD_CLIP_PLANES");
+GPU_SHADER_CREATE_INFO(drw_clipped)
+    /* TODO(fclem): Move to engine side. */
+    .uniform_buf(DRW_CLIPPING_UBO_SLOT, "vec4", "drw_clipping[6]", Frequency::PASS)
+    .define("USE_WORLD_CLIP_PLANES");
 
 /** \} */
 
@@ -160,7 +167,7 @@ GPU_SHADER_CREATE_INFO(draw_visibility_compute)
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
     .push_constant(Type::INT, "resource_len")
     .compute_source("draw_visibility_comp.glsl")
-    .additional_info("draw_view");
+    .additional_info("draw_view", "draw_view_culling");
 
 GPU_SHADER_CREATE_INFO(draw_command_generate)
     .do_static_compilation(true)

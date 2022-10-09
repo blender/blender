@@ -23,7 +23,7 @@
  * (sRGB conversion happens for LGG),
  * but this keeps settings comparable. */
 
-void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
+void ntreeCompositColorBalanceSyncFromLGG(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = (NodeColorBalance *)node->storage;
 
@@ -34,7 +34,7 @@ void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
   }
 }
 
-void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
+void ntreeCompositColorBalanceSyncFromCDL(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = (NodeColorBalance *)node->storage;
 
@@ -64,7 +64,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = MEM_cnew<NodeColorBalance>(__func__);
 
@@ -78,7 +78,7 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = n;
 }
 
-static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *split, *col, *row;
 
@@ -123,9 +123,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
   }
 }
 
-static void node_composit_buts_colorbalance_ex(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 

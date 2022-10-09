@@ -47,7 +47,7 @@ void main()
                                col1,
                                col2,
                                fcol1,
-                               vec4(drw_view.viewport_size, drw_view.viewport_size_inverse),
+                               vec4(viewportSize, 1.0 / viewportSize),
                                gp_flag,
                                gp_mat._alignment_rot,
                                gp_interp.pos,

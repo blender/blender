@@ -10,8 +10,8 @@ void main()
 
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
-  /* Add offset in Z to avoid zfighting and render selected wires on top. */
-  /* TODO: scale this bias using znear and zfar range. */
+  /* Add offset in Z to avoid Z-fighting and render selected wires on top. */
+  /* TODO: scale this bias using Z-near and Z-far range. */
   gl_Position.z -= (is_select ? 2e-4 : 1e-4);
 
   if (is_hidden) {

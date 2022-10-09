@@ -751,7 +751,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
         /* Update offset accordingly to new offset_type. */
-        if (!has_numinput && (ELEM(opdata->value_mode, OFFSET_VALUE, OFFSET_VALUE_PERCENT))) {
+        if (!has_numinput && ELEM(opdata->value_mode, OFFSET_VALUE, OFFSET_VALUE_PERCENT)) {
           edbm_bevel_mouse_set_value(op, event);
         }
         edbm_bevel_calc(op);

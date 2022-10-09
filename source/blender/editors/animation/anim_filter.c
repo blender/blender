@@ -417,6 +417,11 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   return ANIM_animdata_context_getdata(ac);
 }
 
+bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
+{
+  return ELEM(type, ANIMCONT_GPENCIL, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE);
+}
+
 /* ************************************************************ */
 /* Blender Data <-- Filter --> Channels to be operated on */
 
@@ -1122,7 +1127,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* Check for selected nodes. */
     if (fcu->rna_path &&
-        (BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name)))) {
+        BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name))) {
       /* Get strip name, and check if this strip is selected. */
       node = nodeFindNodebyName(ntree, node_name);
 

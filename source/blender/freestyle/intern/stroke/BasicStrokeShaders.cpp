@@ -614,7 +614,7 @@ int GuidingLinesShader::shade(Stroke &stroke) const
     n[0] = -n[0];
     n[1] = -n[1];
   }
-  float offset = (piece.error()) / 2.0f * _offset;
+  float offset = piece.error() / 2.0f * _offset;
   StrokeInternal::StrokeVertexIterator v, vend;
   for (v = a, vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     v->setPoint(piece.A.x() + v->u() * u.x() + n.x() * offset,

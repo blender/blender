@@ -4,7 +4,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -79,7 +79,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
   }
 }
 
-typedef struct UVWarpData {
+struct UVWarpData {
   const MPoly *mpoly;
   const MLoop *mloop;
   MLoopUV *mloopuv;
@@ -89,13 +89,13 @@ typedef struct UVWarpData {
 
   float (*warp_mat)[4];
   bool invert_vgroup;
-} UVWarpData;
+};
 
 static void uv_warp_compute(void *__restrict userdata,
                             const int i,
                             const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  const UVWarpData *data = userdata;
+  const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
 
   const MPoly *mp = &data->mpoly[i];
   const MLoop *ml = &data->mloop[mp->loopstart];
@@ -130,7 +130,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
   int polys_num, loops_num;
-  MLoopUV *mloopuv;
   const MDeformVert *dvert;
   int defgrp_index;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -144,7 +143,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return mesh;
   }
 
-  if (!ELEM(NULL, umd->object_src, umd->object_dst)) {
+  if (!ELEM(nullptr, umd->object_src, umd->object_dst)) {
     float mat_src[4][4];
     float mat_dst[4][4];
     float imat_dst[4][4];
@@ -199,19 +198,19 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   loops_num = mesh->totloop;
 
   /* make sure we are not modifying the original UV map */
-  mloopuv = CustomData_duplicate_referenced_layer_named(
-      &mesh->ldata, CD_MLOOPUV, uvname, loops_num);
+  MLoopUV *mloopuv = static_cast<MLoopUV *>(
+      CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, loops_num));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
-  UVWarpData data = {
-      .mpoly = polys,
-      .mloop = loops,
-      .mloopuv = mloopuv,
-      .dvert = dvert,
-      .defgrp_index = defgrp_index,
-      .warp_mat = warp_mat,
-      .invert_vgroup = invert_vgroup,
-  };
+  UVWarpData data{};
+  data.mpoly = polys;
+  data.mloop = loops;
+  data.mloopuv = mloopuv;
+  data.dvert = dvert;
+  data.defgrp_index = defgrp_index;
+  data.warp_mat = warp_mat;
+  data.invert_vgroup = invert_vgroup;
+
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (polys_num > 1000);
@@ -255,31 +254,31 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  uiItemPointerR(layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "center", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "center", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "axis_u", 0, IFACE_("Axis U"), ICON_NONE);
   uiItemR(col, ptr, "axis_v", 0, IFACE_("V"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "object_from", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "object_from", 0, nullptr, ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_from", &warp_obj_data_ptr, "bones", NULL, ICON_NONE);
+    uiItemPointerR(col, ptr, "bone_from", &warp_obj_data_ptr, "bones", nullptr, ICON_NONE);
   }
 
   uiItemR(col, ptr, "object_to", 0, IFACE_("To"), ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_to", &warp_obj_data_ptr, "bones", NULL, ICON_NONE);
+    uiItemPointerR(col, ptr, "bone_to", &warp_obj_data_ptr, "bones", nullptr, ICON_NONE);
   }
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
@@ -288,20 +287,20 @@ static void transform_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "scale", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_UVWarp, panel_draw);
   modifier_subpanel_register(
-      region_type, "offset", "Transform", NULL, transform_panel_draw, panel_type);
+      region_type, "offset", "Transform", nullptr, transform_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_UVWarp = {
@@ -316,24 +315,24 @@ ModifierTypeInfo modifierType_UVWarp = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

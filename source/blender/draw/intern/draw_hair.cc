@@ -202,8 +202,8 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
 }
 
 void DRW_hair_duplimat_get(Object *object,
-                           ParticleSystem *UNUSED(psys),
-                           ModifierData *UNUSED(md),
+                           ParticleSystem * /*psys*/,
+                           ModifierData * /*md*/,
                            float (*dupli_mat)[4])
 {
   Object *dupli_parent = DRW_object_get_dupli_parent(object);

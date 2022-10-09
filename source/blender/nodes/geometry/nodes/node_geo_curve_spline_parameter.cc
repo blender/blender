@@ -106,7 +106,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 }
 
 static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry &curves,
-                                                      const IndexMask UNUSED(mask),
+                                                      const IndexMask /*mask*/,
                                                       const eAttrDomain domain)
 {
   VArray<bool> cyclic = curves.cyclic();
@@ -169,7 +169,7 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
 }
 
 static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGeometry &curves,
-                                                             const IndexMask UNUSED(mask),
+                                                             const IndexMask /*mask*/,
                                                              const eAttrDomain domain)
 {
   curves.ensure_evaluated_lengths();
@@ -188,7 +188,7 @@ static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGe
 }
 
 static VArray<int> construct_index_on_spline_varray(const bke::CurvesGeometry &curves,
-                                                    const IndexMask UNUSED(mask),
+                                                    const IndexMask /*mask*/,
                                                     const eAttrDomain domain)
 {
   if (domain == ATTR_DOMAIN_POINT) {

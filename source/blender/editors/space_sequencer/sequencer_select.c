@@ -117,13 +117,13 @@ static void select_active_side(
     if (channel == seq->machine) {
       switch (sel_side) {
         case SEQ_SIDE_LEFT:
-          if (frame > (SEQ_time_left_handle_frame_get(scene, seq))) {
+          if (frame > SEQ_time_left_handle_frame_get(scene, seq)) {
             seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
             seq->flag |= SELECT;
           }
           break;
         case SEQ_SIDE_RIGHT:
-          if (frame < (SEQ_time_left_handle_frame_get(scene, seq))) {
+          if (frame < SEQ_time_left_handle_frame_get(scene, seq)) {
             seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
             seq->flag |= SELECT;
           }
@@ -154,13 +154,13 @@ static void select_active_side_range(const Scene *scene,
       }
       switch (sel_side) {
         case SEQ_SIDE_LEFT:
-          if (frame > (SEQ_time_left_handle_frame_get(scene, seq))) {
+          if (frame > SEQ_time_left_handle_frame_get(scene, seq)) {
             seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
             seq->flag |= SELECT;
           }
           break;
         case SEQ_SIDE_RIGHT:
-          if (frame < (SEQ_time_left_handle_frame_get(scene, seq))) {
+          if (frame < SEQ_time_left_handle_frame_get(scene, seq)) {
             seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
             seq->flag |= SELECT;
           }
@@ -276,13 +276,13 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
       switch (lr) {
         case SEQ_SIDE_LEFT:
           if (SEQ_time_left_handle_frame_get(scene, test) ==
-              (SEQ_time_right_handle_frame_get(scene, seq))) {
+              SEQ_time_right_handle_frame_get(scene, seq)) {
             return seq;
           }
           break;
         case SEQ_SIDE_RIGHT:
           if (SEQ_time_right_handle_frame_get(scene, test) ==
-              (SEQ_time_left_handle_frame_get(scene, seq))) {
+              SEQ_time_left_handle_frame_get(scene, seq)) {
             return seq;
           }
           break;
@@ -1815,7 +1815,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 #define SEQ_USE_DATA(_seq) \
   (ELEM(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
-#define SEQ_CHANNEL_CHECK(_seq, _chan) (ELEM((_chan), 0, (_seq)->machine))
+#define SEQ_CHANNEL_CHECK(_seq, _chan) ELEM((_chan), 0, (_seq)->machine)
 
 static bool select_grouped_type(SeqCollection *strips,
                                 ListBase *UNUSED(seqbase),

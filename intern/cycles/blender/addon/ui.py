@@ -1880,6 +1880,12 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             layout.prop(rd, "use_bake_multires")
             layout.prop(cscene, "bake_type")
 
+        if not rd.use_bake_multires and cscene.bake_type not in {
+                "AO", "POSITION", "NORMAL", "UV", "ROUGHNESS", "ENVIRONMENT"}:
+            row = layout.row()
+            row.prop(cbk, "view_from")
+            row.active = scene.camera is not None
+
 
 class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
     bl_label = "Influence"

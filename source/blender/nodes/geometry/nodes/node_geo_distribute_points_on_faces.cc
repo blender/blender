@@ -62,7 +62,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
 }
@@ -185,7 +185,7 @@ BLI_NOINLINE static void update_elimination_mask_for_close_points(
         kdtree,
         positions[i],
         minimum_distance,
-        [](void *user_data, int index, const float *UNUSED(co), float UNUSED(dist_sq)) {
+        [](void *user_data, int index, const float * /*co*/, float /*dist_sq*/) {
           CallbackData &callback_data = *static_cast<CallbackData *>(user_data);
           if (index != callback_data.index) {
             callback_data.elimination_mask[index] = true;

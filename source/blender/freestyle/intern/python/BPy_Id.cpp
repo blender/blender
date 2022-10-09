@@ -97,7 +97,7 @@ static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
     case Py_GT:
       return PyBool_from_bool(!(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id))));
     case Py_GE:
-      return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
+      return PyBool_from_bool(!o1->id->operator<(*(o2->id)));
   }
   Py_RETURN_NONE;
 }
@@ -109,12 +109,12 @@ PyDoc_STRVAR(Id_first_doc,
              "\n"
              ":type: int");
 
-static PyObject *Id_first_get(BPy_Id *self, void *UNUSED(closure))
+static PyObject *Id_first_get(BPy_Id *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->id->getFirst());
 }
 
-static int Id_first_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+static int Id_first_set(BPy_Id *self, PyObject *value, void * /*closure*/)
 {
   int scalar;
   if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
@@ -130,12 +130,12 @@ PyDoc_STRVAR(Id_second_doc,
              "\n"
              ":type: int");
 
-static PyObject *Id_second_get(BPy_Id *self, void *UNUSED(closure))
+static PyObject *Id_second_get(BPy_Id *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->id->getSecond());
 }
 
-static int Id_second_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+static int Id_second_set(BPy_Id *self, PyObject *value, void * /*closure*/)
 {
   int scalar;
   if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {

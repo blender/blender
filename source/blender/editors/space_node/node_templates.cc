@@ -494,7 +494,7 @@ static int ui_node_item_name_compare(const void *a, const void *b)
   return BLI_strcasecmp_natural(type_a->ui_name, type_b->ui_name);
 }
 
-static bool ui_node_item_special_poll(const bNodeTree *UNUSED(ntree), const bNodeType *ntype)
+static bool ui_node_item_special_poll(const bNodeTree * /*ntree*/, const bNodeType *ntype)
 {
   if (STREQ(ntype->idname, "ShaderNodeUVAlongStroke")) {
     /* TODO(sergey): Currently we don't have Freestyle nodes edited from

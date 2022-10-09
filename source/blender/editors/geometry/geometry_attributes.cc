@@ -67,8 +67,8 @@ static bool geometry_attributes_remove_poll(bContext *C)
 }
 
 static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
-                                                               PointerRNA *UNUSED(ptr),
-                                                               PropertyRNA *UNUSED(prop),
+                                                               PointerRNA * /*ptr*/,
+                                                               PropertyRNA * /*prop*/,
                                                                bool *r_free)
 {
   if (C == nullptr) {
@@ -352,7 +352,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void geometry_color_attribute_add_ui(bContext *UNUSED(C), wmOperator *op)
+static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
@@ -566,7 +566,7 @@ void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void geometry_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
+static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
@@ -585,7 +585,7 @@ static void geometry_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
 
 static int geometry_attribute_convert_invoke(bContext *C,
                                              wmOperator *op,
-                                             const wmEvent *UNUSED(event))
+                                             const wmEvent * /*event*/)
 {
   return WM_operator_props_dialog_popup(C, op, 300);
 }

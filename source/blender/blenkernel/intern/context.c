@@ -634,7 +634,7 @@ ListBase CTX_data_dir_get(const bContext *C)
 
 bool CTX_data_equals(const char *member, const char *str)
 {
-  return (STREQ(member, str));
+  return STREQ(member, str);
 }
 
 bool CTX_data_dir(const char *member)

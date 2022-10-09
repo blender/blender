@@ -17,14 +17,14 @@ static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
-static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_vec(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_vec(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
@@ -78,7 +78,7 @@ class CurveVecFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<float3> &vec_in = params.readonly_single_input<float3>(1, "Vector");
@@ -132,14 +132,14 @@ static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_rgb(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
@@ -218,7 +218,7 @@ class CurveRGBFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col_in = params.readonly_single_input<ColorGeometry4f>(1,
@@ -278,14 +278,14 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_shader_init_curve_float(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_float(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_float(GPUMaterial *mat,
                                   bNode *node,
-                                  bNodeExecData *UNUSED(execdata),
+                                  bNodeExecData * /*execdata*/,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
@@ -339,7 +339,7 @@ class CurveFloatFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<float> &val_in = params.readonly_single_input<float>(1, "Value");

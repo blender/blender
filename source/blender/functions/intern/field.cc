@@ -552,9 +552,9 @@ GVArray IndexFieldInput::get_index_varray(IndexMask mask)
   return VArray<int>::ForFunc(mask.min_array_size(), index_func);
 }
 
-GVArray IndexFieldInput::get_varray_for_context(const fn::FieldContext &UNUSED(context),
+GVArray IndexFieldInput::get_varray_for_context(const fn::FieldContext & /*context*/,
                                                 IndexMask mask,
-                                                ResourceScope &UNUSED(scope)) const
+                                                ResourceScope & /*scope*/) const
 {
   /* TODO: Investigate a similar method to IndexRange::as_span() */
   return get_index_varray(mask);
@@ -743,7 +743,7 @@ int FieldEvaluator::add(GField field, GVArray *varray_ptr)
   const int field_index = fields_to_evaluate_.append_and_get_index(std::move(field));
   dst_varrays_.append(nullptr);
   output_pointer_infos_.append(OutputPointerInfo{
-      varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &UNUSED(scope)) {
+      varray_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
         *static_cast<GVArray *>(dst) = varray;
       }});
   return field_index;

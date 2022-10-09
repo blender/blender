@@ -134,8 +134,7 @@ class NoDiscard : public BaseDiscard {
    *
    * Will never discard any pixels.
    */
-  bool should_discard(const TransformUserData &UNUSED(user_data),
-                      const float UNUSED(uv[2])) override
+  bool should_discard(const TransformUserData & /*user_data*/, const float UNUSED(uv[2])) override
   {
     return false;
   }
@@ -216,12 +215,12 @@ class BaseUVWrapping {
  */
 class PassThroughUV : public BaseUVWrapping {
  public:
-  float modify_u(const ImBuf *UNUSED(source_buffer), float u) override
+  float modify_u(const ImBuf * /*source_buffer*/, float u) override
   {
     return u;
   }
 
-  float modify_v(const ImBuf *UNUSED(source_buffer), float v) override
+  float modify_v(const ImBuf * /*source_buffer*/, float v) override
   {
     return v;
   }

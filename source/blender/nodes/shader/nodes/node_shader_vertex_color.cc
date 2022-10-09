@@ -29,7 +29,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
   }
 }
 
-static void node_shader_init_vertex_color(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_vertex_color(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderVertexColor *vertexColor = MEM_cnew<NodeShaderVertexColor>("NodeShaderVertexColor");
   node->storage = vertexColor;
@@ -37,7 +37,7 @@ static void node_shader_init_vertex_color(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_vertex_color(GPUMaterial *mat,
                                         bNode *node,
-                                        bNodeExecData *UNUSED(execdata),
+                                        bNodeExecData * /*execdata*/,
                                         GPUNodeStack *in,
                                         GPUNodeStack *out)
 {

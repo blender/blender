@@ -22,7 +22,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTonemap *ntm = MEM_cnew<NodeTonemap>(__func__);
   ntm->type = 1;
@@ -38,7 +38,7 @@ static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ntm;
 }
 
-static void node_composit_buts_tonemap(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_tonemap(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

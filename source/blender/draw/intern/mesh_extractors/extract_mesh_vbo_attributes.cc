@@ -280,7 +280,7 @@ static void extract_attr_generic(const MeshRenderData *mr,
 }
 
 static void extract_attr_init(
-    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *UNUSED(tls_data), int index)
+    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void * /*tls_data*/, int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
@@ -327,7 +327,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *mr,
                                      MeshBatchCache *cache,
                                      void *buffer,
-                                     void *UNUSED(tls_data),
+                                     void * /*tls_data*/,
                                      int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
@@ -435,9 +435,9 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
 }
 
 static void extract_mesh_attr_viewer_init(const MeshRenderData *mr,
-                                          MeshBatchCache *UNUSED(cache),
+                                          MeshBatchCache * /*cache*/,
                                           void *buf,
-                                          void *UNUSED(tls_data))
+                                          void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};

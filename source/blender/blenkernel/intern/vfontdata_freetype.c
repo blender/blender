@@ -34,10 +34,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"
 
-/* local variables */
-static FT_Library library;
-static FT_Error err;
-
 static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
   const float scale = vfd->scale;
@@ -60,7 +56,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
    *
    * Get the FT Glyph index and load the Glyph */
   glyph_index = FT_Get_Char_Index(face, charcode);
-  err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
+  FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 
   /* If loading succeeded, convert the FT glyph to the internal format */
   if (!err) {
@@ -240,7 +236,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
   return NULL;
 }
 
-static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
+static VChar *objchr_to_ftvfontdata(FT_Library library, VFont *vfont, FT_ULong charcode)
 {
   VChar *che;
 
@@ -249,13 +245,13 @@ static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 
   /* Load the font to memory */
   if (vfont->temp_pf) {
-    err = FT_New_Memory_Face(library, vfont->temp_pf->data, vfont->temp_pf->size, 0, &face);
+    FT_Error err = FT_New_Memory_Face(
+        library, vfont->temp_pf->data, vfont->temp_pf->size, 0, &face);
     if (err) {
       return NULL;
     }
   }
   else {
-    err = true;
     return NULL;
   }
 
@@ -266,33 +262,22 @@ static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
   return che;
 }
 
-static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
+static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *pf)
 {
-  /* Variables */
-  FT_Face face;
-  const FT_ULong charcode_reserve = 256;
-  FT_ULong charcode = 0, lcode;
-  FT_UInt glyph_index;
-  VFontData *vfd;
-
-  /* load the freetype font */
-  err = FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
-
-  if (err) {
+  FT_Face face = NULL;
+  FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
+  if (!face) {
     return NULL;
   }
 
-  /* allocate blender font */
-  vfd = MEM_callocN(sizeof(*vfd), "FTVFontData");
-
-  /* Get the name. */
-  if (face->family_name) {
-    BLI_snprintf(vfd->name, sizeof(vfd->name), "%s %s", face->family_name, face->style_name);
-    BLI_str_utf8_invalid_strip(vfd->name, strlen(vfd->name));
+  /* Font must contain vectors, not bitmaps. */
+  if (!(face->face_flags & FT_FACE_FLAG_SCALABLE)) {
+    FT_Done_Face(face);
+    return NULL;
   }
 
   /* Select a character map. */
-  err = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+  FT_Error err = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
   if (err) {
     err = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
   }
@@ -301,12 +286,42 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   }
   if (err) {
     FT_Done_Face(face);
-    MEM_freeN(vfd);
     return NULL;
   }
 
-  /* Extract the first 256 character from TTF */
-  lcode = charcode = FT_Get_First_Char(face, &glyph_index);
+  /* Test that we can load glyphs from this font. */
+  FT_UInt glyph_index = 0;
+  FT_Get_First_Char(face, &glyph_index);
+  if (!glyph_index ||
+      FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok) {
+    FT_Done_Face(face);
+    return NULL;
+  }
+
+  return face;
+}
+
+VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
+{
+  FT_Library library = NULL;
+  if (FT_Init_FreeType(&library) != FT_Err_Ok) {
+    return NULL;
+  }
+
+  FT_Face face = vfont_face_load_from_packed_file(library, pf);
+  if (!face) {
+    FT_Done_FreeType(library);
+    return NULL;
+  }
+
+  /* allocate blender font */
+  VFontData *vfd = MEM_callocN(sizeof(*vfd), "FTVFontData");
+
+  /* Get the name. */
+  if (face->family_name) {
+    BLI_snprintf(vfd->name, sizeof(vfd->name), "%s %s", face->family_name, face->style_name);
+    BLI_str_utf8_invalid_strip(vfd->name, strlen(vfd->name));
+  }
 
   /* Blender default BFont is not "complete". */
   const bool complete_font = (face->ascender != 0) && (face->descender != 0) &&
@@ -335,67 +350,21 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
     vfd->scale = 1.0f / 1000.0f;
   }
 
-  /* Load characters */
-  vfd->characters = BLI_ghash_int_new_ex(__func__, charcode_reserve);
+  /* Load the first 256 glyphs. */
 
-  while (charcode < charcode_reserve) {
-    /* Generate the font data */
-    freetypechar_to_vchar(face, charcode, vfd);
+  const FT_ULong preload_count = 256;
+  vfd->characters = BLI_ghash_int_new_ex(__func__, preload_count);
 
-    /* Next glyph */
+  FT_ULong charcode = 0;
+  FT_UInt glyph_index;
+  for (int i = 0; i < preload_count; i++) {
     charcode = FT_Get_Next_Char(face, charcode, &glyph_index);
-
-    /* Check that we won't start infinite loop */
-    if (charcode <= lcode) {
+    if (!charcode || !glyph_index) {
       break;
     }
-    lcode = charcode;
+    freetypechar_to_vchar(face, charcode, vfd);
   }
 
-  return vfd;
-}
-
-static bool check_freetypefont(PackedFile *pf)
-{
-  FT_Face face = NULL;
-  FT_UInt glyph_index = 0;
-  bool success = false;
-
-  err = FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
-  if (err) {
-    return false;
-    // XXX error("This is not a valid font");
-  }
-
-  FT_Get_First_Char(face, &glyph_index);
-  if (glyph_index) {
-    err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
-    if (!err) {
-      success = (face->glyph->format == ft_glyph_format_outline);
-    }
-  }
-
-  FT_Done_Face(face);
-
-  return success;
-}
-
-VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
-{
-  VFontData *vfd = NULL;
-
-  /* init Freetype */
-  err = FT_Init_FreeType(&library);
-  if (err) {
-    /* XXX error("Failed to load the Freetype font library"); */
-    return NULL;
-  }
-
-  if (check_freetypefont(pf)) {
-    vfd = objfnt_to_ftvfontdata(pf);
-  }
-
-  /* free Freetype */
   FT_Done_FreeType(library);
 
   return vfd;
@@ -427,14 +396,15 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   }
 
   /* Init Freetype */
-  err = FT_Init_FreeType(&library);
+  FT_Library library = NULL;
+  FT_Error err = FT_Init_FreeType(&library);
   if (err) {
     /* XXX error("Failed to load the Freetype font library"); */
     return NULL;
   }
 
   /* Load the character */
-  che = objchr_to_ftvfontdata(vfont, character);
+  che = objchr_to_ftvfontdata(library, vfont, character);
 
   /* Free Freetype */
   FT_Done_FreeType(library);

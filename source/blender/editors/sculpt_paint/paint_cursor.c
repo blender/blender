@@ -27,7 +27,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
@@ -1089,7 +1088,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   float location[3], symm_rot_mat[4][4];
 
   for (int i = 0; i <= symm; i++) {
-    if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (!ELEM(i, 3, 5))))) {
+    if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)))) {
 
       /* Axis Symmetry. */
       flip_v3_v3(location, true_location, (char)i);

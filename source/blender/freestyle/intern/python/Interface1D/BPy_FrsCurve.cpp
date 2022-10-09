@@ -146,7 +146,7 @@ PyDoc_STRVAR(FrsCurve_is_empty_doc,
              "\n"
              ":type: bool");
 
-static PyObject *FrsCurve_is_empty_get(BPy_FrsCurve *self, void *UNUSED(closure))
+static PyObject *FrsCurve_is_empty_get(BPy_FrsCurve *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->c->empty());
 }
@@ -156,7 +156,7 @@ PyDoc_STRVAR(FrsCurve_segments_size_doc,
              "\n"
              ":type: int");
 
-static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void *UNUSED(closure))
+static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->c->nSegments());
 }

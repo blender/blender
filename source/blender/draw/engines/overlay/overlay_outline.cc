@@ -122,21 +122,25 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 
     pd->outlines_grp = grp = DRW_shgroup_create(sh_geom, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     GPUShader *sh_geom_ptcloud = OVERLAY_shader_outline_prepass_pointcloud();
 
     pd->outlines_ptcloud_grp = grp = DRW_shgroup_create(sh_geom_ptcloud, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     GPUShader *sh_gpencil = OVERLAY_shader_outline_prepass_gpencil();
 
     pd->outlines_gpencil_grp = grp = DRW_shgroup_create(sh_gpencil, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
     DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", 0.0);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     GPUShader *sh_curves = OVERLAY_shader_outline_prepass_curves();
     pd->outlines_curves_grp = grp = DRW_shgroup_create(sh_curves, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
 
   /* outlines_prepass_ps is still needed for selection of probes. */
@@ -174,8 +178,8 @@ typedef struct iterData {
 } iterData;
 
 static void gpencil_layer_cache_populate(bGPDlayer *gpl,
-                                         bGPDframe *UNUSED(gpf),
-                                         bGPDstroke *UNUSED(gps),
+                                         bGPDframe * /*gpf*/,
+                                         bGPDstroke * /*gps*/,
                                          void *thunk)
 {
   iterData *iter = (iterData *)thunk;
@@ -197,8 +201,8 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
 }
 
-static void gpencil_stroke_cache_populate(bGPDlayer *UNUSED(gpl),
-                                          bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
+                                          bGPDframe * /*gpf*/,
                                           bGPDstroke *gps,
                                           void *thunk)
 {

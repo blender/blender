@@ -29,7 +29,8 @@ void main()
                                col1,
                                col2,
                                fcol1,
-                               vec4(drw_view.viewport_size, drw_view.viewport_size_inverse),
+                               /* TODO */
+                               vec4(1024.0, 1024.0, 1.0 / 1024.0, 1.0 / 1024.0),
                                interp.P,
                                interp.N,
                                g_color,

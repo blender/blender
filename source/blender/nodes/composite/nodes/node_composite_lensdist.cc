@@ -52,14 +52,14 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeLensDist *nld = MEM_cnew<NodeLensDist>(__func__);
   nld->jit = nld->proj = nld->fit = 0;
   node->storage = nld;
 }
 
-static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

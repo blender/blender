@@ -16,6 +16,7 @@ struct ListBase;
 struct Object;
 struct ParticleSystem;
 struct Scene;
+struct ViewLayer;
 struct ViewerPath;
 struct GeometrySet;
 
@@ -60,6 +61,17 @@ typedef struct DupliObject {
   /* Particle this dupli was generated from. */
   struct ParticleSystem *particle_system;
 
+  /* Geometry set stack for instance attributes; for each level lists the
+   * geometry set and instance index within it.
+   *
+   * Only non-null entries are stored, ordered from innermost to outermost.
+   * To save memory, these arrays are allocated smaller than persistent_id,
+   * assuming that not every entry will be associated with a GeometrySet; any
+   * size between 1 and MAX_DUPLI_RECUR can be used without issues.
+   */
+  int instance_idx[4];
+  const struct GeometrySet *instance_data[4];
+
   /* Random ID for shading */
   unsigned int random_id;
 } DupliObject;
@@ -71,6 +83,13 @@ bool BKE_object_dupli_find_rgba_attribute(struct Object *ob,
                                           struct Object *dupli_parent,
                                           const char *name,
                                           float r_value[4]);
+
+/** Look up the RGBA value of a view layer/scene/world shader attribute.
+ *  \return true if the attribute was found; if not, r_value is also set to zero. */
+bool BKE_view_layer_find_rgba_attribute(struct Scene *scene,
+                                        struct ViewLayer *layer,
+                                        const char *name,
+                                        float r_value[4]);
 
 #ifdef __cplusplus
 }

@@ -23,11 +23,13 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("Factor"), "Factor_Float")
+      .no_muted_links()
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Factor"), "Factor_Vector")
+      .no_muted_links()
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR);
 
@@ -50,7 +52,7 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Result"), "Result_Color");
 };
 
-static void sh_node_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeShaderMix &data = node_storage(*static_cast<const bNode *>(ptr->data));
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
@@ -67,7 +69,7 @@ static void sh_node_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA
   }
 }
 
-static void sh_node_mix_label(const bNodeTree *UNUSED(ntree),
+static void sh_node_mix_label(const bNodeTree * /*ntree*/,
                               const bNode *node,
                               char *label,
                               int maxlen)
@@ -165,7 +167,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_mix_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_mix_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeShaderMix *data = MEM_cnew<NodeShaderMix>(__func__);
   data->data_type = SOCK_FLOAT;
@@ -235,7 +237,7 @@ static const char *gpu_shader_get_name(eNodeSocketDatatype data_type,
 
 static int gpu_shader_mix(GPUMaterial *mat,
                           bNode *node,
-                          bNodeExecData *UNUSED(execdata),
+                          bNodeExecData * /*execdata*/,
                           GPUNodeStack *in,
                           GPUNodeStack *out)
 {
@@ -315,7 +317,7 @@ class MixColorFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1, "A");

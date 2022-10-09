@@ -221,7 +221,7 @@ class MeshFairingContext : public FairingContext {
       }
     }
 
-    loop_to_poly_map_ = blender::mesh_topology::build_corner_to_poly_map(mpoly_, mloop_.size());
+    loop_to_poly_map_ = blender::mesh_topology::build_loop_to_poly_map(mpoly_, mloop_.size());
   }
 
   ~MeshFairingContext() override
@@ -440,7 +440,7 @@ class VoronoiVertexWeight : public VertexWeight {
 
 class UniformLoopWeight : public LoopWeight {
  public:
-  float weight_at_index(const int UNUSED(index)) override
+  float weight_at_index(const int /*index*/) override
   {
     return 1.0f;
   }

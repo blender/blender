@@ -34,7 +34,7 @@ static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_bilateralblur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBilateralBlurData *nbbd = MEM_cnew<NodeBilateralBlurData>(__func__);
   node->storage = nbbd;
@@ -43,9 +43,7 @@ static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *no
   nbbd->sigma_space = 5.0;
 }
 
-static void node_composit_buts_bilateralblur(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_composit_buts_bilateralblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

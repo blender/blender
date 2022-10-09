@@ -41,12 +41,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 
 #include "bmesh.h"
-#include "bmesh_tools.h"
 #include "tools/bmesh_boolean.h"
 
 #include "paint_intern.h"

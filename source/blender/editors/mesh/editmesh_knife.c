@@ -3016,7 +3016,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       knife_project_v2(kcd, v->cageco, s);
       float d = dist_squared_to_line_segment_v2(s, s1, s2);
       if ((d <= vert_tol_sq) &&
-          (point_is_visible(kcd, v->cageco, s, bm_elem_from_knife_vert(v, &kfe_hit)))) {
+          point_is_visible(kcd, v->cageco, s, bm_elem_from_knife_vert(v, &kfe_hit))) {
         kfv_is_in_cut = true;
       }
     }

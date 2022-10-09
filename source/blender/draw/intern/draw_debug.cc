@@ -21,7 +21,7 @@
 
 #include <iomanip>
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(WITH_DRAW_DEBUG)
 #  define DRAW_DEBUG
 #else
 /* Uncomment to forcibly enable debug draw in release mode. */
@@ -556,6 +556,9 @@ void DebugDraw::display_prints()
   GPUShader *shader = DRW_shader_debug_print_display_get();
   GPU_batch_set_shader(batch, shader);
   int slot = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+  float f_viewport[4];
+  GPU_viewport_size_get_f(f_viewport);
+  GPU_shader_uniform_4fv(shader, "viewport_size", f_viewport);
 
   if (gpu_print_buf_used) {
     GPU_debug_group_begin("GPU");

@@ -31,7 +31,7 @@ ccl_device_forceinline float transform_inverse_dot(const float3 a, const float3 
   return dot(a, b);
 }
 
-ccl_device_inline Transform transform_inverse_impl(const Transform tfm)
+ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)
 {
   /* This implementation matches the one in Embree exactly, to ensure consistent
    * results with the ray intersection of instances. */

@@ -228,6 +228,7 @@ typedef enum {
   /** outside range (mainly for short), (can't avoid) */
   V3D_PROJ_RET_OVERFLOW = 6,
 } eV3DProjStatus;
+ENUM_OPERATORS(eV3DProjStatus, V3D_PROJ_RET_OVERFLOW);
 
 /* some clipping tests are optional */
 typedef enum {
@@ -350,7 +351,7 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const uchar color_point[4],
                                      eSnapMode snap_elem_type);
 
-/* view3d_iterators.c */
+/* view3d_iterators.cc */
 
 /* foreach iterators */
 
@@ -456,7 +457,9 @@ void ED_view3d_project_float_v3_m4(const struct ARegion *region,
                                    float r_co[3],
                                    const float mat[4][4]);
 
-eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base);
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
+                                      struct Base *base,
+                                      float r_co[2]);
 
 /* *** short *** */
 eV3DProjStatus ED_view3d_project_short_ex(const struct ARegion *region,

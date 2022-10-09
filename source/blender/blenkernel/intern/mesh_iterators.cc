@@ -151,9 +151,9 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
                                   MeshForeachFlag flag)
 {
 
-  /* We can't use dm->getLoopDataLayout(dm) here,
-   * we want to always access dm->loopData, EditDerivedBMesh would
-   * return loop data from bmesh itself. */
+  /* We can't use `dm->getLoopDataLayout(dm)` here,
+   * we want to always access `dm->loopData`, `EditDerivedBMesh` would
+   * return loop data from BMesh itself. */
   if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;

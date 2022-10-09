@@ -91,7 +91,7 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
   }
 
   if (ibuf1->x <= 1) {
-    return (IMB_dupImBuf(ibuf1));
+    return IMB_dupImBuf(ibuf1);
   }
 
   ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, ibuf1->y, ibuf1->planes, ibuf1->flags);
@@ -244,7 +244,7 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
   }
 
   if (ibuf1->y <= 1) {
-    return (IMB_dupImBuf(ibuf1));
+    return IMB_dupImBuf(ibuf1);
   }
 
   ibuf2 = IMB_allocImBuf(ibuf1->x, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);
@@ -441,10 +441,10 @@ ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
   }
 
   if (ibuf1->x <= 1) {
-    return (IMB_half_y(ibuf1));
+    return IMB_half_y(ibuf1);
   }
   if (ibuf1->y <= 1) {
-    return (IMB_half_x(ibuf1));
+    return IMB_half_x(ibuf1);
   }
 
   ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);

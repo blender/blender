@@ -22,8 +22,8 @@ struct MeshExtract_EditUvElem_Data {
 };
 
 static void extract_edituv_tris_init(const MeshRenderData *mr,
-                                     MeshBatchCache *UNUSED(cache),
-                                     void *UNUSED(ibo),
+                                     MeshBatchCache * /*cache*/,
+                                     void * /*ibo*/,
                                      void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -39,9 +39,9 @@ BLI_INLINE void edituv_tri_add(
   }
 }
 
-static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData *UNUSED(mr),
+static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData * /*mr*/,
                                                 BMLoop **elt,
-                                                const int UNUSED(elt_index),
+                                                const int /*elt_index*/,
                                                 void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
@@ -55,7 +55,7 @@ static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData *UNUSED(mr)
 
 static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData *mr,
                                                   const MLoopTri *mlt,
-                                                  const int UNUSED(elt_index),
+                                                  const int /*elt_index*/,
                                                   void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
@@ -66,8 +66,8 @@ static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData *mr,
   edituv_tri_add(data, mp_hidden, mp_select, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
 }
 
-static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
-                                       MeshBatchCache *UNUSED(cache),
+static void extract_edituv_tris_finish(const MeshRenderData * /*mr*/,
+                                       MeshBatchCache * /*cache*/,
                                        void *buf,
                                        void *_data)
 {
@@ -78,8 +78,8 @@ static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_edituv_tris_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
-                                            MeshBatchCache *UNUSED(cache),
-                                            void *UNUSED(buf),
+                                            MeshBatchCache * /*cache*/,
+                                            void * /*buf*/,
                                             void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -90,8 +90,8 @@ static void extract_edituv_tris_init_subdiv(const DRWSubdivCache *subdiv_cache,
   data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 }
 
-static void extract_edituv_tris_iter_subdiv_bm(const DRWSubdivCache *UNUSED(subdiv_cache),
-                                               const MeshRenderData *UNUSED(mr),
+static void extract_edituv_tris_iter_subdiv_bm(const DRWSubdivCache * /*subdiv_cache*/,
+                                               const MeshRenderData * /*mr*/,
                                                void *_data,
                                                uint subdiv_quad_index,
                                                const BMFace *coarse_quad)
@@ -114,7 +114,7 @@ static void extract_edituv_tris_iter_subdiv_bm(const DRWSubdivCache *UNUSED(subd
                  loop_idx + 3);
 }
 
-static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache *UNUSED(subdiv_cache),
+static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache * /*subdiv_cache*/,
                                                  const MeshRenderData *mr,
                                                  void *_data,
                                                  uint subdiv_quad_index,
@@ -131,9 +131,9 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache *UNUSED(su
   edituv_tri_add(data, mp_hidden, mp_select, loop_idx, loop_idx + 2, loop_idx + 3);
 }
 
-static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
-                                              const MeshRenderData *UNUSED(mr),
-                                              MeshBatchCache *UNUSED(cache),
+static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+                                              const MeshRenderData * /*mr*/,
+                                              MeshBatchCache * /*cache*/,
                                               void *buf,
                                               void *_data)
 {
@@ -167,8 +167,8 @@ constexpr MeshExtract create_extractor_edituv_tris()
  * \{ */
 
 static void extract_edituv_lines_init(const MeshRenderData *mr,
-                                      MeshBatchCache *UNUSED(cache),
-                                      void *UNUSED(ibo),
+                                      MeshBatchCache * /*cache*/,
+                                      void * /*ibo*/,
                                       void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -184,9 +184,9 @@ BLI_INLINE void edituv_edge_add(
   }
 }
 
-static void extract_edituv_lines_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_edituv_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
                                               const BMFace *f,
-                                              const int UNUSED(f_index),
+                                              const int /*f_index*/,
                                               void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
@@ -234,8 +234,8 @@ static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
-                                        MeshBatchCache *UNUSED(cache),
+static void extract_edituv_lines_finish(const MeshRenderData * /*mr*/,
+                                        MeshBatchCache * /*cache*/,
                                         void *buf,
                                         void *_data)
 {
@@ -246,8 +246,8 @@ static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_edituv_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                              const MeshRenderData *mr,
-                                             MeshBatchCache *UNUSED(cache),
-                                             void *UNUSED(buf),
+                                             MeshBatchCache * /*cache*/,
+                                             void * /*buf*/,
                                              void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -318,9 +318,9 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
   }
 }
 
-static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
-                                               const MeshRenderData *UNUSED(mr),
-                                               MeshBatchCache *UNUSED(cache),
+static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+                                               const MeshRenderData * /*mr*/,
+                                               MeshBatchCache * /*cache*/,
                                                void *buf,
                                                void *_data)
 {
@@ -354,8 +354,8 @@ constexpr MeshExtract create_extractor_edituv_lines()
  * \{ */
 
 static void extract_edituv_points_init(const MeshRenderData *mr,
-                                       MeshBatchCache *UNUSED(cache),
-                                       void *UNUSED(ibo),
+                                       MeshBatchCache * /*cache*/,
+                                       void * /*ibo*/,
                                        void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -373,9 +373,9 @@ BLI_INLINE void edituv_point_add(MeshExtract_EditUvElem_Data *data,
   }
 }
 
-static void extract_edituv_points_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_edituv_points_iter_poly_bm(const MeshRenderData * /*mr*/,
                                                const BMFace *f,
-                                               const int UNUSED(f_index),
+                                               const int /*f_index*/,
                                                void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
@@ -410,8 +410,8 @@ static void extract_edituv_points_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
-                                         MeshBatchCache *UNUSED(cache),
+static void extract_edituv_points_finish(const MeshRenderData * /*mr*/,
+                                         MeshBatchCache * /*cache*/,
                                          void *buf,
                                          void *_data)
 {
@@ -422,8 +422,8 @@ static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_edituv_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                               const MeshRenderData *mr,
-                                              MeshBatchCache *UNUSED(cache),
-                                              void *UNUSED(buf),
+                                              MeshBatchCache * /*cache*/,
+                                              void * /*buf*/,
                                               void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -433,7 +433,7 @@ static void extract_edituv_points_init_subdiv(const DRWSubdivCache *subdiv_cache
 }
 
 static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
-                                                 const MeshRenderData *UNUSED(mr),
+                                                 const MeshRenderData * /*mr*/,
                                                  void *_data,
                                                  uint subdiv_quad_index,
                                                  const BMFace *coarse_quad)
@@ -475,9 +475,9 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
   }
 }
 
-static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
-                                                const MeshRenderData *UNUSED(mr),
-                                                MeshBatchCache *UNUSED(cache),
+static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+                                                const MeshRenderData * /*mr*/,
+                                                MeshBatchCache * /*cache*/,
                                                 void *buf,
                                                 void *_data)
 {
@@ -511,8 +511,8 @@ constexpr MeshExtract create_extractor_edituv_points()
  * \{ */
 
 static void extract_edituv_fdots_init(const MeshRenderData *mr,
-                                      MeshBatchCache *UNUSED(cache),
-                                      void *UNUSED(ibo),
+                                      MeshBatchCache * /*cache*/,
+                                      void * /*ibo*/,
                                       void *tls_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
@@ -533,7 +533,7 @@ BLI_INLINE void edituv_facedot_add(MeshExtract_EditUvElem_Data *data,
   }
 }
 
-static void extract_edituv_fdots_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_edituv_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
                                               const BMFace *f,
                                               const int f_index,
                                               void *_data)
@@ -575,8 +575,8 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edituv_fdots_finish(const MeshRenderData *UNUSED(mr),
-                                        MeshBatchCache *UNUSED(cache),
+static void extract_edituv_fdots_finish(const MeshRenderData * /*mr*/,
+                                        MeshBatchCache * /*cache*/,
                                         void *buf,
                                         void *_data)
 {

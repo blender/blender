@@ -68,6 +68,20 @@ WorldHandle &SyncModule::sync_world(::World *world)
   return eevee_dd;
 }
 
+SceneHandle &SyncModule::sync_scene(::Scene *scene)
+{
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  struct DrawData *dd = DRW_drawdata_ensure(
+      (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
+  SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
+
+  const int recalc_flags = ID_RECALC_ALL;
+  if ((eevee_dd.recalc & recalc_flags) != 0) {
+    inst_.sampling.reset();
+  }
+  return eevee_dd;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -215,8 +229,8 @@ static void gpencil_drawcall_add(gpIterData &iter,
   iter.vcount = v_first + v_count - iter.vfirst;
 }
 
-static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
+                                bGPDframe * /*gpf*/,
                                 bGPDstroke *gps,
                                 void *thunk)
 {

@@ -144,7 +144,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(Scene *UNUSED(scene), ModifierData *md)
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 
@@ -172,10 +172,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
   bool need_transform_relation = false;
 
-  if (wmd->mask_texture != NULL) {
+  if (wmd->mask_texture != nullptr) {
     DEG_add_generic_id_relation(ctx->node, &wmd->mask_texture->id, "WeightVGMix Modifier");
 
-    if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
+    if (wmd->mask_tex_map_obj != nullptr && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
       MOD_depsgraph_update_object_bone_relation(
           ctx->node, wmd->mask_tex_map_obj, wmd->mask_tex_map_bone, "WeightVGMix Modifier");
       need_transform_relation = true;
@@ -190,9 +190,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
   /* If no vertex group, bypass. */
@@ -201,14 +199,14 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  BLI_assert(mesh != NULL);
+  BLI_assert(mesh != nullptr);
 
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 
   MDeformWeight **dw1, **tdw1, **dw2, **tdw2;
   float *org_w;
   float *new_w;
-  int *tidx, *indices = NULL;
+  int *tidx, *indices = nullptr;
   int index_num = 0;
   int i;
   const bool invert_vgroup_mask = (wmd->flag & MOD_WVG_MIX_INVERT_VGROUP_MASK) != 0;
@@ -253,7 +251,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   const bool has_mdef = CustomData_has_layer(&mesh->vdata, CD_MDEFORMVERT);
-  /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
+  /* If no vertices were ever added to an object's vgroup, dvert might be nullptr. */
   if (!has_mdef) {
     /* If not affecting all vertices, just return. */
     if (wmd->mix_set != MOD_WVG_SET_ALL) {
@@ -269,9 +267,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   /* Find out which vertices to work on. */
-  tidx = MEM_malloc_arrayN(verts_num, sizeof(int), "WeightVGMix Modifier, tidx");
-  tdw1 = MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw1");
-  tdw2 = MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw2");
+  tidx = static_cast<int *>(MEM_malloc_arrayN(verts_num, sizeof(int), __func__));
+  tdw1 = static_cast<MDeformWeight **>(
+      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
+  tdw2 = static_cast<MDeformWeight **>(
+      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
   switch (wmd->mix_set) {
     case MOD_WVG_SET_A:
       /* All vertices in first vgroup. */
@@ -281,7 +281,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           tdw1[index_num] = dw;
           tdw2[index_num] = (defgrp_index_other >= 0) ?
                                 BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                                NULL;
+                                nullptr;
           tidx[index_num++] = i;
         }
       }
@@ -291,7 +291,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       for (i = 0; i < verts_num; i++) {
         MDeformWeight *dw = (defgrp_index_other >= 0) ?
                                 BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                                NULL;
+                                nullptr;
         if (dw) {
           tdw1[index_num] = BKE_defvert_find_index(&dvert[i], defgrp_index);
           tdw2[index_num] = dw;
@@ -305,7 +305,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
                                  BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                                 NULL;
+                                 nullptr;
         if (adw || bdw) {
           tdw1[index_num] = adw;
           tdw2[index_num] = bdw;
@@ -319,7 +319,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
                                  BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                                 NULL;
+                                 nullptr;
         if (adw && bdw) {
           tdw1[index_num] = adw;
           tdw2[index_num] = bdw;
@@ -334,7 +334,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         tdw1[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
         tdw2[i] = (defgrp_index_other >= 0) ?
                       BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                      NULL;
+                      nullptr;
       }
       index_num = -1;
       break;
@@ -347,12 +347,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return mesh;
   }
   if (index_num != -1) {
-    indices = MEM_malloc_arrayN(index_num, sizeof(int), "WeightVGMix Modifier, indices");
+    indices = static_cast<int *>(MEM_malloc_arrayN(index_num, sizeof(int), __func__));
     memcpy(indices, tidx, sizeof(int) * index_num);
-    dw1 = MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw1");
+    dw1 = static_cast<MDeformWeight **>(
+        MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), __func__));
     memcpy(dw1, tdw1, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw1);
-    dw2 = MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw2");
+    dw2 = static_cast<MDeformWeight **>(
+        MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), __func__));
     memcpy(dw2, tdw2, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw2);
   }
@@ -365,8 +367,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   MEM_freeN(tidx);
 
-  org_w = MEM_malloc_arrayN(index_num, sizeof(float), "WeightVGMix Modifier, org_w");
-  new_w = MEM_malloc_arrayN(index_num, sizeof(float), "WeightVGMix Modifier, new_w");
+  org_w = static_cast<float *>(MEM_malloc_arrayN(index_num, sizeof(float), __func__));
+  new_w = static_cast<float *>(MEM_malloc_arrayN(index_num, sizeof(float), __func__));
 
   /* Mix weights. */
   for (i = 0; i < index_num; i++) {
@@ -388,7 +390,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   /* Do masking. */
-  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   weightvg_do_mask(ctx,
                    index_num,
                    indices,
@@ -451,20 +453,20 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", nullptr);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_b", "invert_vertex_group_b", IFACE_("B"));
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "default_weight_a", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "default_weight_a", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "default_weight_b", 0, IFACE_("B"), ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "mix_set", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "mix_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_set", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", 0, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "normalize", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "normalize", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -484,7 +486,7 @@ static void panelRegister(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_WeightVGMix, panel_draw);
   modifier_subpanel_register(
-      region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
+      region_type, "influence", "Influence", nullptr, influence_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_WeightVGMix = {
@@ -499,24 +501,24 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
+    /* freeData */ nullptr,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ NULL,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

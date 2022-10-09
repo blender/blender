@@ -62,7 +62,7 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *
   }
 }
 
-static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_sky(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexSky *tex = MEM_cnew<NodeTexSky>("NodeTexSky");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -146,7 +146,7 @@ static void sky_precompute_old(SkyModelPreetham *sunsky, const float sun_angles[
 
 static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                                    bNode *node,
-                                   bNodeExecData *UNUSED(execdata),
+                                   bNodeExecData * /*execdata*/,
                                    GPUNodeStack *in,
                                    GPUNodeStack *out)
 {

@@ -31,7 +31,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Matte"));
 }
 
-static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_channel_matte(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
@@ -46,9 +46,7 @@ static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *no
   node->custom2 = 2; /* Green Channel. */
 }
 
-static void node_composit_buts_channel_matte(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col, *row;
 

@@ -22,7 +22,7 @@ static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Boolean"));
 }
 
-static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_boolean_math_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
@@ -34,7 +34,7 @@ static void node_boolean_math_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }
 
-static void node_boolean_math_label(const bNodeTree *UNUSED(ntree),
+static void node_boolean_math_label(const bNodeTree * /*tree*/,
                                     const bNode *node,
                                     char *label,
                                     int maxlen)

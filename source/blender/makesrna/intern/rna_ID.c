@@ -1392,6 +1392,19 @@ static void rna_Library_version_get(PointerRNA *ptr, int *value)
   value[2] = lib->subversionfile;
 }
 
+static void rna_Library_reload(Library *lib, bContext *C, ReportList *reports)
+{
+#  ifdef WITH_PYTHON
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
+  WM_lib_reload(lib, C, reports);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -2239,7 +2252,7 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_THICK_WRAP);
 
-  func = RNA_def_function(srna, "reload", "WM_lib_reload");
+  func = RNA_def_function(srna, "reload", "rna_Library_reload");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Reload this library and all its linked data-blocks");
 }

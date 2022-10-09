@@ -18,7 +18,7 @@ vec2 proj(vec4 pos)
 
 void main()
 {
-  gl_Position = drw_view.persmat * vec4(pos, 1.0);
+  gl_Position = drw_view.winmat * (drw_view.viewmat * vec4(pos, 1.0));
 
   interp.ss_pos = proj(gl_Position);
 

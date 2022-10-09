@@ -90,6 +90,8 @@
 #define VELOCITY_CAMERA_CURR_BUF 4
 #define VELOCITY_CAMERA_NEXT_BUF 5
 
+#define CAMERA_BUF_SLOT 6
+
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0
 #define LIGHT_BUF_SLOT 1

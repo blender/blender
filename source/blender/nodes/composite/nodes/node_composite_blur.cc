@@ -42,14 +42,14 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBlurData *data = MEM_cnew<NodeBlurData>(__func__);
   data->filtertype = R_FILTER_GAUSS;
   node->storage = data;
 }
 
-static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col, *row;
 

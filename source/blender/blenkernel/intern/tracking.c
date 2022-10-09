@@ -2660,9 +2660,9 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width,
   if (from_anchor) {
     for (int a = 0; a < 5; a++) {
       src_pixel_x[a] += (double)((track->offset[0] * frame_width) -
-                                 ((int)(track->offset[0] * frame_width)));
+                                 (int)(track->offset[0] * frame_width));
       src_pixel_y[a] += (double)((track->offset[1] * frame_height) -
-                                 ((int)(track->offset[1] * frame_height)));
+                                 (int)(track->offset[1] * frame_height));
 
       /* when offset is negative, rounding happens in opposite direction */
       if (track->offset[0] < 0.0f) {

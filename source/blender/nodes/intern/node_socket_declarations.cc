@@ -50,7 +50,7 @@ static bool sockets_can_connect(const SocketDeclaration &socket_decl,
   return true;
 }
 
-static bool basic_types_can_connect(const SocketDeclaration &UNUSED(socket_decl),
+static bool basic_types_can_connect(const SocketDeclaration & /*socket_decl*/,
                                     const bNodeSocket &other_socket)
 {
   return ELEM(other_socket.type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA);

@@ -724,7 +724,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_antialiasing_end(data);
 }
 
-static void OVERLAY_engine_free(void)
+static void OVERLAY_engine_free()
 {
   OVERLAY_shader_free();
 }

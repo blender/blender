@@ -279,7 +279,7 @@ typedef struct ParticleSettings {
   struct PartDeflect *pd;
   struct PartDeflect *pd2;
 
-  /* modified dm support */
+  /* Evaluated mesh support. */
   short use_modifier_stack;
   char _pad5[2];
 

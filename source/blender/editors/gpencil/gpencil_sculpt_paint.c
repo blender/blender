@@ -544,8 +544,10 @@ static void gpencil_brush_grab_apply_cached(tGP_BrushEditData *gso,
     return;
   }
 
-  float inverse_diff_mat[4][4];
-  invert_m4_m4(inverse_diff_mat, diff_mat);
+  float matrix[4][4], inverse_diff_mat[4][4];
+  copy_m4_m4(matrix, diff_mat);
+  zero_axis_bias_m4(matrix);
+  invert_m4_m4(inverse_diff_mat, matrix);
 
   /* Apply dvec to all of the stored points */
   for (int i = 0; i < data->size; i++) {
@@ -1169,7 +1171,10 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->scene = scene;
   gso->object = ob;
   if (ob) {
-    invert_m4_m4(gso->inv_mat, ob->obmat);
+    float matrix[4][4];
+    copy_m4_m4(matrix, ob->obmat);
+    zero_axis_bias_m4(matrix);
+    invert_m4_m4(gso->inv_mat, matrix);
     gso->vrgroup = gso->gpd->vertex_group_active_index - 1;
     if (!BLI_findlink(&gso->gpd->vertex_group_names, gso->vrgroup)) {
       gso->vrgroup = -1;
@@ -1462,12 +1467,12 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
     bGPDspoint pt_temp;
     pt = &gps->points[0];
     if ((is_masking && (pt->flag & GP_SPOINT_SELECT) != 0) || (!is_masking)) {
-      gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+      gpencil_point_to_world_space(gps->points, diff_mat, &pt_temp);
       gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
       pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
       /* Do bound-box check first. */
-      if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
+      if (!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
         /* only check if point is inside */
         int mval_i[2];
         round_v2i_v2fl(mval_i, gso->mval);
@@ -1499,15 +1504,15 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
         }
       }
       bGPDspoint npt;
-      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_world_space(pt1, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_world_space(pt2, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the bound-box of the selection stroke. */
-      if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
-          ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
+      if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
+          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
         /* Check if point segment of stroke had anything to do with
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that line-width is irrelevant.
@@ -1615,14 +1620,14 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
 
     {
       bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
-      if ((is_automasking) && (!BLI_ghash_haskey(gso->automasking_strokes, gps_active))) {
+      if ((is_automasking) && !BLI_ghash_haskey(gso->automasking_strokes, gps_active)) {
         continue;
       }
     }
 
     /* Check if the stroke collide with brush. */
     if ((gps->totpoints > 1) &&
-        (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat))) {
+        !ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
       continue;
     }
 
@@ -1803,7 +1808,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
         bGPDspoint npt;
 
         if (gps->totpoints == 1) {
-          gpencil_point_to_parent_space(gps->points, bound_mat, &npt);
+          gpencil_point_to_world_space(gps->points, bound_mat, &npt);
           gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
           /* Only check if point is inside. */
@@ -1821,7 +1826,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
             pt2 = gps->points + i + 1;
 
             /* Check first point. */
-            gpencil_point_to_parent_space(pt1, bound_mat, &npt);
+            gpencil_point_to_world_space(pt1, bound_mat, &npt);
             gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
             if (len_v2v2_int(mval_i, pc1) <= radius) {
               BLI_ghash_insert(gso->automasking_strokes, gps, gps);
@@ -1830,7 +1835,7 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
             }
 
             /* Check second point. */
-            gpencil_point_to_parent_space(pt2, bound_mat, &npt);
+            gpencil_point_to_world_space(pt2, bound_mat, &npt);
             gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
             if (len_v2v2_int(mval_i, pc2) <= radius) {
               BLI_ghash_insert(gso->automasking_strokes, gps, gps);
@@ -1903,7 +1908,7 @@ static bool gpencil_sculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *
   /* Find visible strokes, and perform operations on those if hit */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* If no active frame, don't do anything... */
-    if ((!BKE_gpencil_layer_is_editable(gpl)) || (gpl->actframe == NULL)) {
+    if (!BKE_gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
       continue;
     }
 

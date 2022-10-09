@@ -16,13 +16,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "attribute_type", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Type"), ICON_NONE);
   uiItemR(layout, ptr, "attribute_name", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Name"), ICON_NONE);
 }
 
-static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderAttribute *attr = MEM_cnew<NodeShaderAttribute>("NodeShaderAttribute");
   node->storage = attr;
@@ -30,7 +30,7 @@ static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_attribute(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
@@ -42,6 +42,16 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 
   if (is_varying) {
     cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
+
+    if (STREQ(attr->name, "color")) {
+      GPU_link(mat, "node_attribute_color", cd_attr, &cd_attr);
+    }
+    else if (STREQ(attr->name, "temperature")) {
+      GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
+    }
+  }
+  else if (attr->type == SHD_ATTRIBUTE_VIEW_LAYER) {
+    cd_attr = GPU_layer_attribute(mat, attr->name);
   }
   else {
     cd_attr = GPU_uniform_attribute(mat,
@@ -50,13 +60,6 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
                                     reinterpret_cast<uint32_t *>(&attr_hash));
 
     GPU_link(mat, "node_attribute_uniform", cd_attr, GPU_constant(&attr_hash), &cd_attr);
-  }
-
-  if (STREQ(attr->name, "color")) {
-    GPU_link(mat, "node_attribute_color", cd_attr, &cd_attr);
-  }
-  else if (STREQ(attr->name, "temperature")) {
-    GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
   }
 
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);

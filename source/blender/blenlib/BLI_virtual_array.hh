@@ -155,7 +155,7 @@ template<typename T> class VArrayImpl {
    * arrays in all cases.
    * Return true when the virtual array was assigned and false when nothing was done.
    */
-  virtual bool try_assign_GVArray(GVArray &UNUSED(varray)) const
+  virtual bool try_assign_GVArray(GVArray & /*varray*/) const
   {
     return false;
   }
@@ -164,7 +164,7 @@ template<typename T> class VArrayImpl {
    * Return true when the other virtual array should be considered to be the same, e.g. because it
    * shares the same underlying memory.
    */
-  virtual bool is_same(const VArrayImpl<T> &UNUSED(other)) const
+  virtual bool is_same(const VArrayImpl<T> & /*other*/) const
   {
     return false;
   }
@@ -201,7 +201,7 @@ template<typename T> class VMutableArrayImpl : public VArrayImpl<T> {
   /**
    * Similar to #VArrayImpl::try_assign_GVArray but for mutable virtual arrays.
    */
-  virtual bool try_assign_GVMutableArray(GVMutableArray &UNUSED(varray)) const
+  virtual bool try_assign_GVMutableArray(GVMutableArray & /*varray*/) const
   {
     return false;
   }
@@ -346,7 +346,7 @@ template<typename T> class VArrayImpl_For_Single final : public VArrayImpl<T> {
   }
 
  protected:
-  T get(const int64_t UNUSED(index)) const override
+  T get(const int64_t /*index*/) const override
   {
     return value_;
   }

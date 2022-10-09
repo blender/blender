@@ -129,7 +129,7 @@ static bool fcc_is_data(int fcc)
   fccs[2] = fcc >> 16;
   fccs[3] = fcc >> 24;
 
-  if (!isdigit(fccs[0]) || !isdigit(fccs[1]) || (!ELEM(fccs[2], 'd', 'w'))) {
+  if (!isdigit(fccs[0]) || !isdigit(fccs[1]) || !ELEM(fccs[2], 'd', 'w')) {
     return 0;
   }
   if (!ELEM(fccs[3], 'b', 'c')) {

@@ -713,7 +713,7 @@ static void tree_element_sequence_activate(bContext *C,
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 }
 
-static void tree_element_sequence_dup_activate(Scene *scene, TreeElement *UNUSED(te))
+static void tree_element_sequence_dup_activate(Scene *scene, TreeElement * /*te*/)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -2017,7 +2017,7 @@ static void outliner_walk_scroll(SpaceOutliner *space_outliner, ARegion *region,
   }
 }
 
-static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);

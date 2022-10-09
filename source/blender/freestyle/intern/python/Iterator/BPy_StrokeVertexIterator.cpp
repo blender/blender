@@ -206,7 +206,7 @@ PyDoc_STRVAR(StrokeVertexIterator_object_doc,
              ":type: :class:`StrokeVertex`");
 
 static PyObject *StrokeVertexIterator_object_get(BPy_StrokeVertexIterator *self,
-                                                 void *UNUSED(closure))
+                                                 void * /*closure*/)
 {
   if (self->sv_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
@@ -224,7 +224,7 @@ PyDoc_STRVAR(StrokeVertexIterator_t_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertexIterator_t_get(BPy_StrokeVertexIterator *self, void *UNUSED(closure))
+static PyObject *StrokeVertexIterator_t_get(BPy_StrokeVertexIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv_it->t());
 }
@@ -234,7 +234,7 @@ PyDoc_STRVAR(StrokeVertexIterator_u_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertexIterator_u_get(BPy_StrokeVertexIterator *self, void *UNUSED(closure))
+static PyObject *StrokeVertexIterator_u_get(BPy_StrokeVertexIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv_it->u());
 }

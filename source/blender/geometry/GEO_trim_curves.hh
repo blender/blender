@@ -26,11 +26,11 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
  * \param curves: Curve geometry to sample.
  * \param lengths: Distance along the curve on form [0.0, length] to determine the point for.
  * \param curve_indices: Curve index to lookup for each 'length', negative index are set to 0.
- * \param is_normalized: If true, 'lengths' are normalized to the interval [0.0, 1.0].
+ * \param normalized_factors: If true, 'lengths' are normalized to the interval [0.0, 1.0].
  */
 Array<bke::curves::CurvePoint, 12> lookup_curve_points(const bke::CurvesGeometry &curves,
                                                        Span<float> lengths,
                                                        Span<int64_t> curve_indices,
-                                                       bool is_normalized);
+                                                       bool normalized_factors);
 
 }  // namespace blender::geometry

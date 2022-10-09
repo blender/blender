@@ -59,7 +59,7 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
   /* sanity check */
-#if 0 /* disable in mutlti-object edit. */
+#if 0 /* disable in multi-object edit. */
 #  ifndef NDEBUG
   if (((Mesh *)ob->data)->edit_mesh) {
     BLI_assert(((Mesh *)ob->data)->edit_mesh->ob == ob);
@@ -85,9 +85,9 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em,
 
   BMLoop *(*looptris)[3];
 
-  /* this means no reallocs for quad dominant models, for */
+  /* This means no reallocations for quad dominant models. */
   if ((em->looptris != nullptr) &&
-      /* (*em->tottri >= looptris_tot)) */
+      // (*em->tottri >= looptris_tot))
       /* Check against allocated size in case we over allocated a little. */
       ((looptris_tot_prev_alloc >= looptris_tot) &&
        (looptris_tot_prev_alloc <= looptris_tot * 2))) {
@@ -193,7 +193,7 @@ static void cage_mapped_verts_callback(void *userData,
 {
   CageUserData *data = static_cast<CageUserData *>(userData);
 
-  if ((index >= 0 && index < data->totvert) && (!BLI_BITMAP_TEST(data->visit_bitmap, index))) {
+  if ((index >= 0 && index < data->totvert) && !BLI_BITMAP_TEST(data->visit_bitmap, index)) {
     BLI_BITMAP_ENABLE(data->visit_bitmap, index);
     copy_v3_v3(data->cos_cage[index], co);
   }
@@ -290,7 +290,7 @@ void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
   }
 }
 
-BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh *UNUSED(em))
+BoundBox *BKE_editmesh_cage_boundbox_get(Object *object, BMEditMesh * /*em*/)
 {
   if (object->runtime.editmesh_bb_cage == nullptr) {
     float min[3], max[3];

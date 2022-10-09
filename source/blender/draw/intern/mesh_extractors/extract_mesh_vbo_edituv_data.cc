@@ -43,7 +43,7 @@ static void extract_edituv_data_init_common(const MeshRenderData *mr,
 }
 
 static void extract_edituv_data_init(const MeshRenderData *mr,
-                                     MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache * /*cache*/,
                                      void *buf,
                                      void *tls_data)
 {
@@ -54,7 +54,7 @@ static void extract_edituv_data_init(const MeshRenderData *mr,
 
 static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
                                              const BMFace *f,
-                                             const int UNUSED(f_index),
+                                             const int /*f_index*/,
                                              void *_data)
 {
   BMLoop *l_iter, *l_first;
@@ -114,7 +114,7 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_edituv_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
-                                            MeshBatchCache *UNUSED(cache),
+                                            MeshBatchCache * /*cache*/,
                                             void *buf,
                                             void *tls_data)
 {
