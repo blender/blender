@@ -709,117 +709,130 @@ HalfEdge *BevelVertexData::find_half_edge(int edge) const
   return nullptr;
 }
 
-/** BevelData holds the global data needed for a bevel. */
-class BevelData {
-  /* BevelVertexData for just the affected vertices. */
-  Array<BevelVertexData> bevel_vert_data_;
-  /* A map from mesh vertex index to index in bevel_vert_data_.
-   * If we wanted  more speed at expense of space, we could also use
-   * an Array of size equal to the number of mesh vertices here.
-   */
-  Map<int, int> vert_to_bvd_index_;
-  /* All the BevelEdges, when edge beveling. */
-  Array<BevelEdge> bevel_edge_;
-  /* Map from mesh edge indiex inot bevel_edge_. */
-  Map<int, int> edge_to_bevel_edge_;
-
+/** BevelSpec holds the data the specifies what the user wants beveled.
+ * There will be a derived class for each type of bevel.
+ */
+class BevelSpec {
  public:
-  MeshTopology topo;
+  /* Are we beveling vertices, edges, or faces? */
+  GeometryNodeBevelMeshMode bevel_mode;
+  /* A mask over the elements of the beveled type, saying what is to bovel. */
+  IndexMask to_bevel;
 
-  BevelData(const Mesh &mesh) : topo(mesh)
+  BevelSpec(GeometryNodeBevelMeshMode mode, IndexMask to_bevel)
+      : bevel_mode(mode), to_bevel(to_bevel)
   {
   }
-  ~BevelData()
-  {
-  }
 
-  /* Initial calculation of vertex bevels. */
-  void calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts);
-
-  /* Calculation of edge bevels. */
-  void calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts);
-
-  /* Sets up internal Map for fast access to the BevelVertexData for a given mesh vert. */
-  void setup_vert_map();
-
-  /* What is the BevelVertexData for mesh vertex `vert`? May return nullptr if `vert` isn't
-   * involved in beveling. */
-  BevelVertexData *bevel_vertex_data(int vert)
-  {
-    int slot = vert_to_bvd_index_.lookup_default(vert, -1);
-    if (slot != -1) {
-      return &bevel_vert_data_[slot];
-    }
-    return nullptr;
-  }
-
-  Span<BevelVertexData> beveled_vertices_data() const
-  {
-    return bevel_vert_data_.as_span();
-  }
-
-  MutableSpan<BevelVertexData> mutable_beveled_vertices_data()
-  {
-    return bevel_vert_data_.as_mutable_span();
-  }
-
-  void print(const std::string &label) const;
+  virtual void dump_spec() = 0;
 };
 
-/** Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
-void BevelData::setup_vert_map()
-{
-  vert_to_bvd_index_.reserve(bevel_vert_data_.size());
-  for (const int i : bevel_vert_data_.index_range()) {
-    vert_to_bvd_index_.add_new(bevel_vert_data_[i].vertex_cap().vert, i);
-  }
-}
+class VertexBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh vertex index, the amount to slide along all edges
+   * attached to the vertex. */
+  VArray<float> amount;
 
-void BevelData::print(const std::string &label) const
-{
-  if (label.size() > 0) {
-    std::cout << label << " ";
+  VertexBevelSpec(IndexMask to_bevel, VArray<float> amount)
+      : BevelSpec{GEO_NODE_BEVEL_MESH_VERTICES, to_bevel}, amount(amount)
+  {
   }
-  std::cout << "BevelData\n";
-  for (const BevelVertexData &bvd : bevel_vert_data_.as_span()) {
-    std::cout << bvd;
-  }
-}
 
-/** Calculate the BevelData for a vertex bevel of all specified vertices of the mesh.
- * `to_bevel` gives the mesh indices of vertices to be beveled.
- * `amounts` should have (virtual) length that matches the number of vertices in the mesh,
- * and gives, per vertex, the magnitude of the bevel at that vertex.
- */
-void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts)
+  void dump_spec();
+};
+
+void VertexBevelSpec::dump_spec()
 {
-  // BLI_assert(amounts.size() == topo.num_verts());
-
-  bevel_vert_data_.reinitialize(to_bevel.size());
-  threading::parallel_for(to_bevel.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      const int vert = to_bevel[i];
-      bevel_vert_data_[i].construct_vertex_bevel(vert, amounts[vert], topo);
+  std::cout << "VertexBevelSpec\n";
+  for (const int v : to_bevel.index_range()) {
+    if (to_bevel[v]) {
+      std::cout << v << ": " << amount[v] << "\n";
     }
-  });
-  setup_vert_map();
+  }
 }
 
-/** Calculate the BevelData for an edge bevel off all the specified edges of the mesh.
- * `to_bevel` gives the mesh indics of the edges to be beveled.
- * `amounts` should have (virtual) length that matches the number of edges in the mesh,
- * and gives, per edge, the magnitude of the bevel for that edge.
- */
-void BevelData::calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts)
-{
-  bevel_edge_.reinitialize(to_bevel.size());
-  Set<int> need_vert;
-  for (const int e : to_bevel) {
-    need_vert.add(topo.edge_v1(e));
-    need_vert.add(topo.edge_v2(e));
+class FaceBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh poly index, the amount to inset the face by. */
+  VArray<float> amount;
+  /* Indexed by Mesh poly index, the slope to follow when insetting the face. */
+  VArray<float> slope;
+  bool use_regions;
+
+  FaceBevelSpec(IndexMask to_bevel, VArray<float> amount, VArray<float> slope, bool use_regions)
+      : BevelSpec{GEO_NODE_BEVEL_MESH_FACES, to_bevel},
+        amount(amount),
+        slope(slope),
+        use_regions(use_regions)
+  {
   }
-  const int tot_need_vert = need_vert.size();
-  bevel_vert_data_.reinitialize(tot_need_vert);
+
+  void dump_spec();
+};
+
+void FaceBevelSpec::dump_spec()
+{
+  std::cout << "FaceBevelSpec\n";
+  if (use_regions) {
+    std::cout << "use regions\n";
+  }
+  for (const int f : to_bevel.index_range()) {
+    if (to_bevel[f]) {
+      std::cout << f << ": " << amount[f] << ", slope=" << slope[f] << "\n";
+    }
+  }
+}
+
+class EdgeBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh edge index, the amounts to bevel the edge.
+   * `left_amount[0]` is the left side amount for the source end and
+   * `right_amount[0]` is the right side amount for the source end,
+   * where "left" and "right" mean: those sides as you look
+   * along the edge to the source.
+   * Similarly, the 1-indexed elements of those arrays are for the
+   * destination end, with left and right as you look towards the dest end.
+   */
+  VArray<float> left_amount[2];
+  VArray<float> right_amount[2];
+
+  EdgeBevelSpec(IndexMask to_bevel, VArray<float> amount)
+      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
+        left_amount{amount, amount},
+        right_amount{amount, amount}
+  {
+  }
+
+  EdgeBevelSpec(IndexMask to_bevel,
+                VArray<float> src_left_amount,
+                VArray<float> src_right_amount,
+                VArray<float> dst_left_amount,
+                VArray<float> dst_right_amount)
+      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
+        left_amount{src_left_amount, dst_left_amount},
+        right_amount{src_right_amount, dst_right_amount}
+  {
+  }
+
+  void dump_spec();
+};
+
+void EdgeBevelSpec::dump_spec()
+{
+  std::cout << "EdgeBevelSpec\n";
+  for (const int e : to_bevel.index_range()) {
+    if (to_bevel[e]) {
+      std::cout << e << ": ";
+      if (left_amount[0] == right_amount[0] && left_amount[0] == left_amount[1] &&
+          left_amount[1] == right_amount[1]) {
+        std::cout << left_amount[0][e] << "\n";
+      }
+      else {
+        std::cout << "0(" << left_amount[0][e] << ", " << right_amount[0][e] << ") 1("
+                  << left_amount[1][e] << ", " << right_amount[1][e] << ")\n";
+      }
+    }
+  }
 }
 
 /** IndexAlloc allocates sequential integers, starting from a given start value. */
@@ -1474,6 +1487,101 @@ void MeshDelta::print(const std::string &label) const
   std::cout << "\n";
 }
 
+/** BevelData holds the global data needed for a bevel. */
+class BevelData {
+  /* The specification of the bevel. */
+  const BevelSpec *spec_;
+  /* The original Mesh. */
+  const Mesh *mesh_;
+  /* Topology for mesh_. */
+  const MeshTopology *topo_;
+  /* Will accumulate delta from mesh_ to desired answer. */
+  MeshDelta mesh_delta_;
+  /* BevelVertexData for just the affected vertices. */
+  Array<BevelVertexData> bevel_vert_data_;
+  /* A map from mesh vertex index to index in bevel_vert_data_.
+   * If we wanted  more speed at expense of space, we could also use
+   * an Array of size equal to the number of mesh vertices here.
+   */
+  Map<int, int> vert_to_bvd_index_;
+  /* All the BevelEdges, when edge beveling. */
+  Array<BevelEdge> bevel_edge_;
+  /* Map from mesh edge indiex inot bevel_edge_. */
+  Map<int, int> edge_to_bevel_edge_;
+
+ public:
+  BevelData(const Mesh *mesh, const BevelSpec *spec, const MeshTopology *topo)
+      : spec_(spec), mesh_(mesh), topo_(topo), mesh_delta_(*mesh, *topo)
+  {
+  }
+  ~BevelData()
+  {
+  }
+
+  /* Calculate vertex bevels based on spec_, with answer in mesh_delta_. */
+  void calculate_vertex_bevel();
+  /* Calculate edge bevels based on spec_, with answer in mesh_delta_. */
+  void calculate_edge_bevel();
+  /* Calculate face bevels based on spec_, with answer in mesh_delta_. */
+  void calculate_face_bevel();
+
+  /* Return the Mesh that is the result of applying mesh_delta_ to mesh_. */
+  Mesh *get_output_mesh(GeometrySet geometry_set, const MeshComponent &component);
+
+ private:
+  /* Initial calculation of vertex bevels. */
+  void calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts);
+
+  /* Calculation of edge bevels. */
+  void calculate_edge_bevels(const IndexMask to_bevel, VArray<float> amounts);
+
+  /* Sets up internal Map for fast access to the BevelVertexData for a given mesh vert. */
+  void setup_vert_map();
+
+  /* What is the BevelVertexData for mesh vertex `vert`? May return nullptr if `vert` isn't
+   * involved in beveling. */
+  BevelVertexData *bevel_vertex_data(int vert)
+  {
+    int slot = vert_to_bvd_index_.lookup_default(vert, -1);
+    if (slot != -1) {
+      return &bevel_vert_data_[slot];
+    }
+    return nullptr;
+  }
+
+  Span<BevelVertexData> beveled_vertices_data() const
+  {
+    return bevel_vert_data_.as_span();
+  }
+
+  MutableSpan<BevelVertexData> mutable_beveled_vertices_data()
+  {
+    return bevel_vert_data_.as_mutable_span();
+  }
+
+  void print(const std::string &label) const;
+};
+
+/** Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
+void BevelData::setup_vert_map()
+{
+  vert_to_bvd_index_.reserve(bevel_vert_data_.size());
+  for (const int i : bevel_vert_data_.index_range()) {
+    vert_to_bvd_index_.add_new(bevel_vert_data_[i].vertex_cap().vert, i);
+  }
+}
+
+void BevelData::print(const std::string &label) const
+{
+  if (label.size() > 0) {
+    std::cout << label << " ";
+  }
+  std::cout << "BevelData\n";
+  for (const BevelVertexData &bvd : bevel_vert_data_.as_span()) {
+    std::cout << bvd;
+  }
+}
+
 /** Pick a face to be a representative for a beveled vertex. */
 static int face_rep_for_beveled_vert(const BevelVertexData &bvd)
 {
@@ -1486,22 +1594,27 @@ static int face_rep_for_beveled_vert(const BevelVertexData &bvd)
   return -1;
 }
 
-/* This function is temporary, to test the MeshDelta functions. */
-static Mesh *finish_vertex_bevel(BevelData &bd,
-                                 const Mesh &mesh,
-                                 GeometrySet geometry_set,
-                                 const MeshComponent &component)
+void BevelData::calculate_vertex_bevel()
 {
-  MeshDelta mesh_delta(mesh, bd.topo);
-  MutableSpan<BevelVertexData> beveled_bvds = bd.mutable_beveled_vertices_data();
+  const VertexBevelSpec *spec = dynamic_cast<const VertexBevelSpec *>(spec_);
+  bevel_vert_data_.reinitialize(spec_->to_bevel.size());
+  const IndexMask &to_bevel = spec_->to_bevel;
+  threading::parallel_for(to_bevel.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int vert = to_bevel[i];
+      bevel_vert_data_[i].construct_vertex_bevel(vert, spec->amount[vert], *topo_);
+    }
+  });
+
+  setup_vert_map();
 
   /* Make the polygons that will replace the beveled vertices. */
-  for (BevelVertexData &bvd : beveled_bvds) {
+  for (BevelVertexData &bvd : bevel_vert_data_) {
     /* Allocate vertices for the boundary vertices. */
     MutableSpan<BoundaryVert> boundary_verts = bvd.mutable_boundary_verts();
     int n = boundary_verts.size();
     for (BoundaryVert &bv : boundary_verts) {
-      bv.mesh_index = mesh_delta.new_vert(bv.co, bvd.beveled_vert());
+      bv.mesh_index = mesh_delta_.new_vert(bv.co, bvd.beveled_vert());
     }
     /* Allocate the edges and loops for the polygon. */
     Array<int> edges(n);
@@ -1513,9 +1626,9 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
       const BoundaryVert &bv_next = boundary_verts[i == n - 1 ? 0 : i + 1];
       int v1 = bv.mesh_index;
       int v2 = bv_next.mesh_index;
-      int e = mesh_delta.new_edge(v1, v2, -1);
+      int e = mesh_delta_.new_edge(v1, v2, -1);
       bvd.set_boundary_connection(i, BoundaryConnector(e));
-      int l = mesh_delta.new_loop(v1, e, -1);
+      int l = mesh_delta_.new_loop(v1, e, -1);
       if (i == 0) {
         lfirst = l;
       }
@@ -1523,14 +1636,14 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
     }
     /* Now make the face. Assert that we allocated contiguous loop indices. */
     BLI_assert(lfirst != -1 && lprev == lfirst + n - 1);
-    mesh_delta.new_face(lfirst, n, face_rep_for_beveled_vert(bvd));
+    mesh_delta_.new_face(lfirst, n, face_rep_for_beveled_vert(bvd));
     /* Delete the beveled vertex, which is now being replaced.
      * TODO: only do this if there is no extra stuff attached to it.
      */
-    mesh_delta.delete_vert(bvd.vertex_cap().vert);
+    mesh_delta_.delete_vert(bvd.vertex_cap().vert);
     /* We also delete any edges that were using that vertex. */
-    for (int e : bd.topo.vert_edges(bvd.vertex_cap().vert)) {
-      mesh_delta.delete_edge(e);
+    for (int e : topo_->vert_edges(bvd.vertex_cap().vert)) {
+      mesh_delta_.delete_edge(e);
     }
   }
 
@@ -1538,16 +1651,16 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
    * For now, go through all faces to see which ones are affected.
    * TODO: gather affected faces via connections to beveled vertices.
    */
-  Span<MPoly> polys = mesh.polys();
-  Span<MLoop> loops = mesh.loops();
-  for (int f : IndexRange(mesh.totpoly)) {
+  Span<MPoly> polys = mesh_->polys();
+  Span<MLoop> loops = mesh_->loops();
+  for (int f : IndexRange(mesh_->totpoly)) {
     const MPoly &mpoly = polys[f];
 
     /* Are there any beveled vertices in f? */
     int any_affected_vert = false;
     for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
       const int v = loops[l].v;
-      const BevelVertexData *bvd = bd.bevel_vertex_data(v);
+      const BevelVertexData *bvd = bevel_vertex_data(v);
       if (bvd != nullptr) {
         any_affected_vert = true;
         break;
@@ -1566,8 +1679,8 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
         int v1 = mloop.v;
         int v2 = mloop_next.v;
         int e = mloop.e;
-        BevelVertexData *bvd1 = bd.bevel_vertex_data(v1);
-        BevelVertexData *bvd2 = bd.bevel_vertex_data(v2);
+        BevelVertexData *bvd1 = bevel_vertex_data(v1);
+        BevelVertexData *bvd2 = bevel_vertex_data(v2);
         HalfEdge *he1 = bvd1 == nullptr ? nullptr : bvd1->find_half_edge(e);
         HalfEdge *he2 = bvd2 == nullptr ? nullptr : bvd2->find_half_edge(e);
         const BoundaryVert *bv1 = he1 == nullptr ? nullptr : &bvd1->boundary_vert(he1->bv_index);
@@ -1585,9 +1698,9 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
           int econn = bvd1->boundary_connector_edge(bv1->vc_index, 0);
           BLI_assert(econn != -1);
           int econn_v1, econn_v2;
-          mesh_delta.get_edge_verts(econn, &econn_v1, &econn_v2);
+          mesh_delta_.get_edge_verts(econn, &econn_v1, &econn_v2);
           BLI_assert(econn_v1 == bv1->mesh_index);
-          lnew = mesh_delta.new_loop(econn_v2, econn, l);
+          lnew = mesh_delta_.new_loop(econn_v2, econn, l);
           if (l == mpoly.loopstart) {
             lfirst = lnew;
           }
@@ -1603,9 +1716,9 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
               e = he1->mesh_index;
             }
             else {
-              e = mesh_delta.new_edge(bv1->mesh_index, v2, mloop.e);
+              e = mesh_delta_.new_edge(bv1->mesh_index, v2, mloop.e);
             }
-            lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
+            lnew = mesh_delta_.new_loop(bv1->mesh_index, e, l);
           }
           else {
             if (he1->mesh_index != -1) {
@@ -1615,10 +1728,10 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
               e = he2->mesh_index;
             }
             else {
-              e = mesh_delta.new_edge(bv1->mesh_index, bv2->mesh_index, mloop.e);
+              e = mesh_delta_.new_edge(bv1->mesh_index, bv2->mesh_index, mloop.e);
               he2->mesh_index = e;
             }
-            lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
+            lnew = mesh_delta_.new_loop(bv1->mesh_index, e, l);
           }
           he1->mesh_index = e;
         }
@@ -1628,14 +1741,14 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
             e = he2->mesh_index;
           }
           else {
-            e = mesh_delta.new_edge(v1, bv2->mesh_index, mloop.e);
+            e = mesh_delta_.new_edge(v1, bv2->mesh_index, mloop.e);
             he2->mesh_index = e;
           }
-          lnew = mesh_delta.new_loop(v1, e, l);
+          lnew = mesh_delta_.new_loop(v1, e, l);
         }
         else {
           /* Neither v1 nor v2 is beveled, so we can use the existing e. */
-          lnew = mesh_delta.new_loop(v1, e, l);
+          lnew = mesh_delta_.new_loop(v1, e, l);
         }
         totloop++;
 
@@ -1643,32 +1756,37 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
           lfirst = lnew;
         }
       }
-      mesh_delta.new_face(lfirst, totloop, f);
+      mesh_delta_.new_face(lfirst, totloop, f);
       /* Delete the old face (which also deletes its loops). */
-      mesh_delta.delete_face(f);
+      mesh_delta_.delete_face(f);
     }
   }
-  Mesh *mesh_out = mesh_delta.apply_delta_to_mesh(geometry_set, component);
-  return mesh_out;
 }
 
-/* Temporary face bevel function. TODO: expand to regional face bevels. */
-static Mesh *calculate_face_bevel(BevelData &bd,
-                                  const Mesh &mesh,
-                                  GeometrySet geometry_set,
-                                  const MeshComponent &component,
-                                  const IndexMask &to_bevel,
-                                  const VArray<float> amounts,
-                                  const VArray<float> slopes,
-                                  bool use_regions)
+void BevelData::calculate_edge_bevel()
 {
-  if (use_regions) {
+  const EdgeBevelSpec *spec = dynamic_cast<const EdgeBevelSpec *>(spec_);
+  const IndexMask &to_bevel = spec->to_bevel;
+  bevel_edge_.reinitialize(to_bevel.size());
+  Set<int> need_vert;
+  for (const int e : to_bevel) {
+    need_vert.add(topo_->edge_v1(e));
+    need_vert.add(topo_->edge_v2(e));
+  }
+  const int tot_need_vert = need_vert.size();
+  bevel_vert_data_.reinitialize(tot_need_vert);
+}
+
+void BevelData::calculate_face_bevel()
+{
+  const FaceBevelSpec *spec = dynamic_cast<const FaceBevelSpec *>(spec_);
+  if (spec->use_regions) {
     std::cout << "TODO: Implement use_regions";
   }
-  Span<MPoly> faces = mesh.polys();
-  Span<MVert> verts = mesh.verts();
-  Span<MLoop> loops = mesh.loops();
-  MeshDelta delta(mesh, bd.topo);
+  Span<MPoly> faces = mesh_->polys();
+  Span<MVert> verts = mesh_->verts();
+  Span<MLoop> loops = mesh_->loops();
+  const IndexMask &to_bevel = spec_->to_bevel;
   for (const int i : to_bevel.index_range()) {
     const int face_index = to_bevel[i];
     const MPoly &face = faces[face_index];
@@ -1689,8 +1807,8 @@ static Mesh *calculate_face_bevel(BevelData &bd,
     mi_input.vert = vert_co.as_span();
     mi_input.face = mi_faces.as_span();
     mi_input.contour = mi_faces.as_span();
-    mi_input.inset_amount = amounts[face_index];
-    mi_input.slope = slopes[face_index];
+    mi_input.inset_amount = spec->amount[face_index];
+    mi_input.slope = spec->slope[face_index];
     meshinset::MeshInset_Result mi_result = meshinset::mesh_inset_calc(mi_input);
     /* Mapping from the result output vert indices to mesh indices. */
     Array<int> mr_vert_to_mesh_vert(mi_result.vert.size());
@@ -1699,7 +1817,7 @@ static Mesh *calculate_face_bevel(BevelData &bd,
         mr_vert_to_mesh_vert[i] = mi_vert_to_mesh_vert[mi_result.orig_vert[i]];
       }
       else {
-        mr_vert_to_mesh_vert[i] = delta.new_vert(mi_result.vert[i], 0);  // TODO: better rep!
+        mr_vert_to_mesh_vert[i] = mesh_delta_.new_vert(mi_result.vert[i], 0);  // TODO: better rep!
       }
     }
     /* Construct the output faces. */
@@ -1710,20 +1828,23 @@ static Mesh *calculate_face_bevel(BevelData &bd,
       for (const int i : IndexRange(m)) {
         int v = mr_vert_to_mesh_vert[mr_face[i]];
         int v_next = mr_vert_to_mesh_vert[mr_face[(i + 1) % m]];
-        int e = delta.find_or_add_edge(v, v_next, 0);  // TODO: better rep!
-        int l = delta.new_loop(v, e, 0);               // TODO: better rep!
+        int e = mesh_delta_.find_or_add_edge(v, v_next, 0);  // TODO: better rep!
+        int l = mesh_delta_.new_loop(v, e, 0);               // TODO: better rep!
         if (lfirst == -1) {
           lfirst = l;
         }
       }
-      delta.new_face(lfirst, m, face_index);  // TODO: better rep!
+      mesh_delta_.new_face(lfirst, m, face_index);  // TODO: better rep!
     }
     /* The following also deletes the loops. The edges in the original faces should have all been
      * reused. */
-    delta.delete_face(face_index);
+    mesh_delta_.delete_face(face_index);
   }
-  Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
-  return mesh_out;
+}
+
+Mesh *BevelData::get_output_mesh(GeometrySet geometry_set, const MeshComponent &component)
+{
+  return mesh_delta_.apply_delta_to_mesh(geometry_set, component);
 }
 
 static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
@@ -1740,11 +1861,11 @@ static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
   evaluator.evaluate();
   VArray<float> amounts = evaluator.get_evaluated<float>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-
-  BevelData bdata(mesh);
-  bdata.calculate_vertex_bevels(selection, amounts);
-  // bdata.print("After calculate_vertex_bevels");  // DEBUG
-  return finish_vertex_bevel(bdata, mesh, geometry_set, component);
+  VertexBevelSpec spec(selection, amounts);
+  MeshTopology topo(mesh);
+  BevelData bdata(&mesh, &spec, &topo);
+  bdata.calculate_vertex_bevel();
+  return bdata.get_output_mesh(geometry_set, component);
 }
 
 static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
@@ -1761,12 +1882,11 @@ static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
   evaluator.evaluate();
   VArray<float> amounts = evaluator.get_evaluated<float>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-
-  BevelData bdata(mesh);
-  MeshDelta delta(mesh, bdata.topo);
-  bdata.calculate_edge_bevels(selection, amounts);
-  Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
-  return mesh_out;
+  EdgeBevelSpec spec(selection, amounts);
+  MeshTopology topo(mesh);
+  BevelData bdata(&mesh, &spec, &topo);
+  bdata.calculate_edge_bevel();
+  return bdata.get_output_mesh(geometry_set, component);
 }
 
 static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
@@ -1786,10 +1906,11 @@ static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
   VArray<float> amounts = evaluator.get_evaluated<float>(0);
   VArray<float> slopes = evaluator.get_evaluated<float>(1);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-
-  BevelData bdata(mesh);
-  return calculate_face_bevel(
-      bdata, mesh, geometry_set, component, selection, amounts, slopes, use_regions);
+  FaceBevelSpec spec(selection, amounts, slopes, use_regions);
+  MeshTopology topo(mesh);
+  BevelData bdata(&mesh, &spec, &topo);
+  bdata.calculate_face_bevel();
+  return bdata.get_output_mesh(geometry_set, component);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
