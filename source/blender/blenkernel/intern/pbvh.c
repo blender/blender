@@ -2030,13 +2030,13 @@ void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw;
+                PBVH_UpdateRedraw | PBVH_UpdateTris;
 }
 
 void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir;
+                PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir | PBVH_UpdateTris;
 }
 
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node)

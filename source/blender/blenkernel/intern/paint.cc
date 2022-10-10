@@ -2330,7 +2330,7 @@ bool *BKE_sculpt_hide_poly_ensure(Object *ob)
   params.permanent = true;
 
   ob->sculpt->attrs.hide_poly = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_BOOL, ".hide_poly", &params);
+      ob, ATTR_DOMAIN_FACE, CD_PROP_BOOL, ".hide_poly", &params);
 
   return ob->sculpt->hide_poly = static_cast<bool *>(ob->sculpt->attrs.hide_poly->data);
 }

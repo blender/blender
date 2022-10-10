@@ -1199,8 +1199,20 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
+      
+      if (!ss->attrs.hide_poly) {
+        BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+          BMLoop *l = f->l_first;
+          do {
+            BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
+            BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
+          } while ((l = l->next) != f->l_first);
+        }
 
-      int cd_hide_poly = CustomData_get_offset_named(&ss->bm->pdata, CD_PROP_INT32, ".hide_poly");
+        return;
+      }
+
+      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
       /* Hide all verts and edges attached to faces.*/
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {

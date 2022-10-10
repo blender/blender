@@ -1316,7 +1316,7 @@ static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool state)
+ATTR_NO_OPT void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool state)
 {
   for (int i = 0; i < ss->totfaces; i++) {
     PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
@@ -1334,7 +1334,7 @@ void SCULPT_face_sets_visibility_invert(SculptSession *ss)
   }
 }
 
-static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
+ATTR_NO_OPT static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1346,6 +1346,8 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_face_sets_ensure(ob);
   BKE_sculpt_hide_poly_ensure(ob);
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
 
   const int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -1434,10 +1436,14 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     ups->last_stroke_valid = true;
   }
 
+  /* Sync face sets visibility and vertex visibility. */
+  SCULPT_visibility_sync_all_from_faces(ob);
+
   SCULPT_undo_push_end(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
+    BKE_pbvh_bmesh_check_tris(ss->pbvh, nodes[i]);
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
