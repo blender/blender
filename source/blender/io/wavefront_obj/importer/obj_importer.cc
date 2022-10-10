@@ -42,9 +42,6 @@ static void geometry_to_blender_objects(Main *bmain,
 {
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
 
-  /* Don't do collection syncs for each object, will do once after the loop. */
-  BKE_layer_collection_resync_forbid();
-
   /* Sort objects by name: creating many objects is much faster if the creation
    * order is sorted by name. */
   blender::parallel_sort(
@@ -73,12 +70,8 @@ static void geometry_to_blender_objects(Main *bmain,
     }
   }
 
-  /* Sync the collection after all objects are created. */
-  BKE_layer_collection_resync_allow();
-  BKE_main_collection_sync(bmain);
+  /* Do object selections in a separate loop (allows just one view layer sync). */
   BKE_view_layer_synced_ensure(scene, view_layer);
-
-  /* After collection sync, select objects in the view layer and do DEG updates. */
   for (Object *obj : objects) {
     Base *base = BKE_view_layer_base_find(view_layer, obj);
     BKE_view_layer_base_select_and_set_active(view_layer, base);
