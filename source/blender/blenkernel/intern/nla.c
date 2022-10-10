@@ -1272,6 +1272,34 @@ float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
   return limit_next;
 }
 
+NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitions)
+{
+  NlaStrip *next = strip->next;
+  while (next != NULL) {
+    if (skip_transitions && (next->type & NLASTRIP_TYPE_TRANSITION)) {
+      next = next->next;
+    }
+    else {
+      return next;
+    }
+  }
+  return NULL;
+}
+
+NlaStrip *BKE_nlastrip_prev_in_track(struct NlaStrip *strip, bool skip_transitions)
+{
+  NlaStrip *prev = strip->prev;
+  while (prev != NULL) {
+    if (skip_transitions && (prev->type & NLASTRIP_TYPE_TRANSITION)) {
+      prev = prev->prev;
+    }
+    else {
+      return prev;
+    }
+  }
+  return NULL;
+}
+
 NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
 {
   if (nlt == NULL) {
