@@ -7515,6 +7515,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, rna_enum_clip_editor_mode_items);
   RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
 
   /* view */

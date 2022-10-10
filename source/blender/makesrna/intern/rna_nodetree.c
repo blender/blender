@@ -5509,6 +5509,7 @@ static void def_sh_tex_image(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
@@ -5573,6 +5574,7 @@ static void def_geo_image_texture(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
