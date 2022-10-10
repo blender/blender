@@ -410,7 +410,7 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
 }
 
 void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
-{
+{ 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
