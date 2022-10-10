@@ -422,7 +422,8 @@ static void draw_prune_vlattrs(DRWData *drw_data)
   /* Forget known attributes after they are unused for a few frames. */
   LISTBASE_FOREACH_MUTABLE (GPULayerAttr *, attr, &drw_data->vlattrs_name_list) {
     if (++attr->users > 10) {
-      BLI_ghash_remove(drw_data->vlattrs_name_cache, (void *)attr->hash_code, NULL, NULL);
+      BLI_ghash_remove(
+          drw_data->vlattrs_name_cache, POINTER_FROM_UINT(attr->hash_code), NULL, NULL);
       BLI_freelinkN(&drw_data->vlattrs_name_list, attr);
     }
   }
