@@ -261,7 +261,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 
     BLI_assert(tot_count == attribute.size());
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
       ColorGeometry4f linear = attribute.get(i);
       float srgb[3];
       linearrgb_to_srgb_v3_v3(srgb, linear);
@@ -270,7 +270,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   }
   else {
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
       buf.write_obj_vertex(vertex[0], vertex[1], vertex[2]);
     });
   }
@@ -435,7 +435,7 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
     const int total_vertices = obj_nurbs_data.total_spline_vertices(spline_idx);
     for (int vertex_idx = 0; vertex_idx < total_vertices; vertex_idx++) {
       const float3 vertex_coords = obj_nurbs_data.vertex_coordinates(
-          spline_idx, vertex_idx, export_params_.scaling_factor);
+          spline_idx, vertex_idx, export_params_.global_scale);
       fh.write_obj_vertex(vertex_coords[0], vertex_coords[1], vertex_coords[2]);
     }
 

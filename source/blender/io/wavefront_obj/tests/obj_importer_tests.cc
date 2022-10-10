@@ -60,6 +60,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     }
 
     OBJImportParams params;
+    params.global_scale = 1.0f;
     params.clamp_size = 0;
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
