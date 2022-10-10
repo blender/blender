@@ -1099,6 +1099,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const eUSDAttrImportMode attr_import_mode = RNA_enum_get(op->ptr, "attr_import_mode");
 
+  const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -1109,8 +1111,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   if (obedit) {
     ED_object_mode_set(C, OB_MODE_EDIT);
   }
-
-  const bool validate_meshes = false;
 
   struct USDImportParams params = {.scale = scale,
                                    .is_sequence = is_sequence,
@@ -1177,6 +1177,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Mesh Data"));
   uiItemR(col, ptr, "read_mesh_uvs", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "read_mesh_colors", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "validate_meshes", 0, NULL, ICON_NONE);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
   uiItemR(col, ptr, "import_subdiv", 0, IFACE_("Subdivision"), ICON_NONE);
   uiItemR(col, ptr, "import_instance_proxies", 0, NULL, ICON_NONE);
@@ -1386,6 +1387,12 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                USD_ATTR_IMPORT_NONE,
                "Import Attributes",
                "Behavior when importing USD attributes as Blender custom properties");
+
+  RNA_def_boolean(ot->srna,
+                  "validate_meshes",
+                  false,
+                  "Validate Meshes",
+                  "Validate meshes for degenerate geometry on import");
 }
 
 #endif /* WITH_USD */

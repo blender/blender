@@ -14,10 +14,8 @@
 #include "BKE_object.h"
 
 #include "BLI_math.h"
-#include "BLI_math_geom.h"
 #include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -299,6 +297,7 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
   mesh_prim_.GetFaceVertexCountsAttr().Get(&face_counts_, motionSampleTime);
   mesh_prim_.GetPointsAttr().Get(&positions_, motionSampleTime);
 
+
   /* TODO(makowalski): Reading normals probably doesn't belong in this function,
    * as this is not required to determine if the topology has changed. */
 
@@ -325,8 +324,24 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
 
   int loop_index = 0;
 
+  std::vector<int> degenerate_faces;
+
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
+
+    /* Check for faces with the same vertex specified twice in a row. */
+    if (face_indices_[loop_index] == face_indices_[loop_index+face_size-1]) {
+      /* Loop below does not test first to last. */
+      degenerate_faces.push_back(i);
+    }
+    else {
+      for (int j = loop_index+1; j < loop_index + face_size; j++) {
+        if (face_indices_[j] == face_indices_[j-1]) {
+          degenerate_faces.push_back(i);
+          break;
+        }
+      }
+    }
 
     MPoly &poly = mpolys[i];
     poly.loopstart = loop_index;
@@ -351,6 +366,10 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
+
+  if (!degenerate_faces.empty() && !import_params_.validate_meshes) {
+    WM_reportf(RPT_WARNING, "Prim %s has degenerate faces-- please consider importing with Validate Meshes enabled.", prim_.GetName().GetText());
+  }
 }
 
 void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bool load_uvs)
@@ -931,7 +950,10 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
    * the topology is consistent, as in the Alembic importer. */
 
   ImportSettings settings;
-  settings.read_flag |= read_flag;
+  if (settings_) {
+    settings.validate_meshes = settings_->validate_meshes;
+  }
+  settings.read_flag |= read_flag;  settings.read_flag |= read_flag;
 
   if (topology_changed(existing_mesh, motionSampleTime)) {
     new_mesh = true;
@@ -954,6 +976,12 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     if (num_polys > 0 && import_params_.import_materials) {
       std::map<pxr::SdfPath, int> mat_map;
       assign_facesets_to_mpoly(motionSampleTime, active_mesh->mpoly, num_polys, &mat_map);
+    }
+  }
+
+  if (settings.validate_meshes) {
+    if (BKE_mesh_validate(active_mesh, false, false)) {
+      WM_reportf(RPT_INFO, "Fixed mesh for prim: %s", mesh_prim_.GetPath().GetText());
     }
   }
 
