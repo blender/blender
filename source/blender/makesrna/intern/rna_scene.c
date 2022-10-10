@@ -7861,6 +7861,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WORLD);
   RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_world_update");
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);

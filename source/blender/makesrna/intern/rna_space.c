@@ -4087,6 +4087,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   prop = RNA_def_property(srna, "background_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, background_type_items);
   RNA_def_property_ui_text(prop, "Background", "Way to display the background");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "background_color", PROP_FLOAT, PROP_COLOR);
@@ -5265,6 +5266,7 @@ static void rna_def_space_properties(BlenderRNA *brna)
   RNA_def_property_enum_funcs(
       prop, NULL, "rna_SpaceProperties_context_set", "rna_SpaceProperties_context_itemf");
   RNA_def_property_ui_text(prop, "", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_context_update");
 
@@ -6562,6 +6564,7 @@ static void rna_def_fileselect_entry(BlenderRNA *brna)
       prop,
       "Data-block Type",
       "The type of the data-block, if the file represents one ('NONE' otherwise)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 
   prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
@@ -7314,12 +7317,14 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "texfrom");
   RNA_def_property_enum_items(prop, texture_id_type_items);
   RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
   prop = RNA_def_property(srna, "shader_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "shaderfrom");
   RNA_def_property_enum_items(prop, shader_type_items);
   RNA_def_property_ui_text(prop, "Shader Type", "Type of data to take shader from");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);

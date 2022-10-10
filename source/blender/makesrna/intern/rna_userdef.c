@@ -4057,6 +4057,7 @@ static void rna_def_userdef_studiolights(BlenderRNA *brna)
                       STUDIOLIGHT_TYPE_WORLD,
                       "Type",
                       "The type for the new studio light");
+  RNA_def_property_translation_context(parm, BLT_I18NCONTEXT_ID_LIGHT);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
   RNA_def_function_return(func, parm);
@@ -4117,6 +4118,7 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_type_get", NULL, NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
