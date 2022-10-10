@@ -43,6 +43,10 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
 
   device = Device::create(params.device, stats, profiler);
 
+  if (device->have_error()) {
+    progress.set_error(device->error_message());
+  }
+
   scene = new Scene(scene_params, device);
 
   /* Configure path tracer. */
