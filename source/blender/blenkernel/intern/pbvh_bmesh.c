@@ -265,7 +265,9 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
     do {
       BMVert *v = l_iter->v;
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+
+      int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+      *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
       if (!BLI_table_gset_haskey(n->bm_unique_verts, v)) {
         if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
@@ -1666,6 +1668,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol,
+                                   int cd_boundary_flag,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
@@ -1678,20 +1681,21 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   int newflag = mv->flag;
   int oldflag = newflag;
   int oldval = mv->valence;
+  int boundflag = 0;
 
   BMEdge *e = v->e;
-  newflag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-               SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER |
-               SCULPTVERT_NEED_VALENCE | SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY |
-               SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY |
-               SCULPTVERT_UV_BOUNDARY | SCULPTVERT_UV_CORNER);
+  newflag &= ~(SCULPTVERT_VERT_FSET_HIDDEN | SCULPTVERT_PBVH_BOUNDARY);
 
   ushort stroke_id = (ushort)mv->stroke_id;
 
   if (!e) {
-    newflag |= SCULPTVERT_BOUNDARY;
+    boundflag |= SCULPT_BOUNDARY_MESH;
+
+    int oldboundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
 
     atomic_cas_int32(&mv->flag, oldflag, newflag);
+    atomic_cas_int32((int *)BM_ELEM_CD_GET_VOID_P(v, cd_boundary_flag), oldboundflag, boundflag);
+
     atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, 0, stroke_id);
 
     return;
@@ -1752,11 +1756,11 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     }
 
     if (e->head.hflag & BM_ELEM_SEAM) {
-      newflag |= SCULPTVERT_SEAM_BOUNDARY;
+      boundflag |= SCULPT_BOUNDARY_SEAM;
       seamcount++;
 
       if (seamcount > 2) {
-        newflag |= SCULPTVERT_SEAM_CORNER;
+        boundflag |= SCULPT_CORNER_SEAM;
       }
     }
 
@@ -1773,17 +1777,17 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       int colorkey2 = color_boundary_key(color2);
 
       if (colorkey1 != colorkey2) {
-        newflag |= SCULPTVERT_FSET_BOUNDARY;
+        boundflag |= SCUKPT_BOUNDARY_FACE_SETS;
       }
     }
 #endif
 
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
-      newflag |= SCULPTVERT_SHARP_BOUNDARY;
+      boundflag |= SCULPT_BOUNDARY_SHARP;
       sharpcount++;
 
       if (sharpcount > 2) {
-        newflag |= SCULPTVERT_SHARP_CORNER;
+        boundflag |= SCULPT_CORNER_SHARP;
       }
     }
 
@@ -1814,11 +1818,11 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                           len_squared_v2v2(lastuv2[i], luv->uv) > uv_snap_limit;
 
             if (!same) {
-              newflag |= SCULPTVERT_UV_BOUNDARY;
+              boundflag |= SCULPT_BOUNDARY_UV;
             }
 
             if (corner) {
-              newflag |= SCULPTVERT_UV_CORNER;
+              boundflag |= SCULPT_CORNER_UV;
             }
 
             if (!same) {
@@ -1903,30 +1907,30 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     }
 
     if (!e->l || e->l->radial_next == e->l) {
-      newflag |= SCULPTVERT_BOUNDARY;
+      boundflag |= SCULPT_BOUNDARY_MESH;
     }
 
     val++;
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
   if (BLI_array_len(fsets) > 1) {
-    newflag |= SCULPTVERT_FSET_BOUNDARY;
+    boundflag |= SCULPT_BOUNDARY_FACE_SET;
   }
 
   if (BLI_array_len(fsets) > 2) {
-    newflag |= SCULPTVERT_FSET_CORNER;
+    boundflag |= SCULPT_CORNER_FACE_SET;
   }
 
   if (sharpcount == 1) {
-    newflag |= SCULPTVERT_SHARP_CORNER;
+    boundflag |= SCULPT_CORNER_SHARP;
   }
 
   if (seamcount == 1) {
-    newflag |= SCULPTVERT_SEAM_CORNER;
+    boundflag |= SCULPT_CORNER_SEAM;
   }
 
-  if ((newflag & SCULPTVERT_BOUNDARY) && quadcount >= 3) {
-    newflag |= SCULPTVERT_CORNER;
+  if ((boundflag & SCULPT_BOUNDARY_MESH) && quadcount >= 3) {
+    boundflag |= SCULPT_CORNER_MESH;
   }
 
 #if 0
@@ -1947,7 +1951,11 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   }
 #endif
 
+  int oldboundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
+
   atomic_cas_int32(&mv->flag, oldflag, newflag);
+  atomic_cas_int32((int *)BM_ELEM_CD_GET_VOID_P(v, cd_boundary_flag), oldboundflag, boundflag);
+
   atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, (ushort)val, stroke_id);
 
   /* no atomic_cas_int16, so do origmask and curv at once */
@@ -1971,6 +1979,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol,
+                                   int cd_boundary_flag,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
@@ -1982,6 +1991,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                 cd_vert_node_offset,
                                 cd_face_node_offset,
                                 cd_vcol,
+                                cd_boundary_flag,
                                 v,
                                 bound_symmetry,
                                 ldata,
@@ -2000,93 +2010,11 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
+                                  pbvh->cd_boundary_flag,
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
-  }
-}
-
-void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
-{
-  // update boundary flags in a hopefully faster manner then v->e iteration
-  // XXX or not, it's slower
-
-  BMIter iter;
-  BMEdge *e;
-  BMVert *v;
-
-  const int cd_fset = CustomData_get_offset_named(
-      &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-    mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-                  SCULPTVERT_VERT_FSET_HIDDEN);
-
-    if (cd_fset != -1 && v->e && v->e->l) {
-      mv->flag |= SCULPTVERT_VERT_FSET_HIDDEN;
-    }
-  }
-
-  BM_ITER_MESH (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH) {
-    if (!e->l || e->l == e->l->radial_next) {
-      MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
-      MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
-
-      mv1->flag |= SCULPTVERT_BOUNDARY;
-      mv2->flag |= SCULPTVERT_BOUNDARY;
-    }
-
-    if (!e->l) {
-      continue;
-    }
-
-    if (cd_fset == -1) {
-      MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
-      MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
-
-      BMLoop *l = e->l;
-
-      do {
-        if (l->f->len > 3) {
-          mv1->flag |= SCULPTVERT_NEED_TRIANGULATE;
-          mv2->flag |= SCULPTVERT_NEED_TRIANGULATE;
-          break;
-        }
-
-        l = l->radial_next;
-      } while (l != e->l);
-      continue;
-    }
-
-    MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
-
-    BMLoop *l = e->l;
-    int lastfset = cd_fset != -1 ? BM_ELEM_CD_GET_INT(l->f, cd_fset) : 0;
-    do {
-      int fset = cd_fset != -1 ? BM_ELEM_CD_GET_INT(l->f, cd_fset) : 0;
-
-      if (l->f->len > 3) {
-        mv1->flag |= SCULPTVERT_NEED_TRIANGULATE;
-        mv2->flag |= SCULPTVERT_NEED_TRIANGULATE;
-      }
-
-      if (fset > 0) {
-        MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
-        mv->flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
-      }
-
-      if (lastfset != fset) {
-        mv1->flag |= SCULPTVERT_FSET_BOUNDARY;
-        mv2->flag |= SCULPTVERT_FSET_BOUNDARY;
-      }
-
-      lastfset = fset;
-
-      l = l->radial_next;
-    } while (l != e->l);
   }
 }
 
@@ -2244,6 +2172,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
+                          const int cd_boundary_flag,
                           bool fast_draw,
                           bool update_sculptverts)
 {
@@ -2256,6 +2185,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
+  pbvh->cd_boundary_flag = cd_boundary_flag;
 
   pbvh->mesh = me;
 
@@ -2327,8 +2257,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
-    mv->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
-                SCULPTVERT_NEED_DISK_SORT;
+    mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT;
+
+    int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+    *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
@@ -3115,9 +3047,10 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
+    int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+    *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    MV_ADD_FLAG(
-        mv, SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
+    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
     BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
   }
 }
@@ -3210,8 +3143,8 @@ static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *paren
   TGSET_ITER (v, node->bm_unique_verts) {
     BLI_table_gset_add(parent->bm_unique_verts, v);
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);  // need to update SCULPTVERT_PBVH_BOUNDARY flags
+    int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+    *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
@@ -3651,8 +3584,8 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
             TGSET_ITER_END;
 
             TGSET_ITER (v, node2->bm_unique_verts) {
-              MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-              MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+              int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+              *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
               BM_ELEM_CD_SET_INT(v, cd_vert_node, DYNTOPO_NODE_NONE);
             }
@@ -4006,7 +3939,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_hide_poly)
+                             const int cd_hide_poly,
+                             const int cd_boundary_flag)
 {
   pbvh->cd_hide_poly = cd_hide_poly;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -4018,6 +3952,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_MLOOPUV);
+  pbvh->cd_boundary_flag = cd_boundary_flag;
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
@@ -5505,6 +5440,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
   BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
   BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, ".sculpt_boundary_flags");
 
   BM_data_layer_add(bm, &bm->vdata, CD_PAINT_MASK);
   BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
@@ -5627,8 +5563,11 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
       &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
   int cd_face_area = CustomData_get_named_layer_index(
       &bm->pdata, CD_PROP_FLOAT2, "__dyntopo_face_areas");
+  int cd_boundary_flag = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, ".sculpt_boundary_flags");
 
   cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
+  cd_boundary_flag = bm->vdata.layers[cd_boundary_flag].offset;
   cd_face_node = bm->pdata.layers[cd_face_node].offset;
   cd_face_area = bm->pdata.layers[cd_face_area].offset;
 
@@ -5651,6 +5590,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
                        cd_face_node,
                        cd_sculpt_vert,
                        cd_face_area,
+                       cd_boundary_flag,
                        false,
                        true);
 

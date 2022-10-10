@@ -30,6 +30,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -37,7 +38,6 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_mesh_mapping.h"
 
 #include "DEG_depsgraph.h"
 
@@ -514,7 +514,7 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = ob->data;
+  Mesh *me = BKE_object_get_original_mesh(ob);
 
   customdata_strip_templayers(&me->vdata, me->totvert);
   customdata_strip_templayers(&me->pdata, me->totpoly);
@@ -594,11 +594,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   const BMAllocTemplate allocsize = {
       .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
-
-  if (ss->msculptverts) {
-    MEM_freeN(ss->msculptverts);
-    ss->msculptverts = NULL;
-  }
 
   if (ss->face_areas) {
     MEM_freeN(ss->face_areas);
@@ -1004,6 +999,7 @@ typedef struct UVSolver {
 
   double strength;
   int cd_sculpt_vert;
+  int cd_boundary_flag;
 } UVSolver;
 
 /*that that currently this tool is *not* threaded*/
@@ -1055,9 +1051,9 @@ void *uvsolver_calc_loop_key(UVSolver *solver, BMLoop *l)
   intptr_t x = (intptr_t)(uv->uv[0] * 16384.0);
   intptr_t y = (intptr_t)(uv->uv[1] * 16384.0);
   intptr_t key;
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->v);
+  int boundflag = BM_ELEM_CD_GET_INT(l->v, solver->cd_boundary_flag);
 
-  if ((mv->flag & (SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_UV_BOUNDARY)) ||
+  if ((boundflag & (SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV)) ||
       (l->e->head.hflag | l->prev->e->head.hflag) & BM_ELEM_SEAM) {
     key = y * 16384LL + x;
   }
@@ -1084,8 +1080,12 @@ static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->prev->v);
     MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->next->v);
 
-    v->boundary = mv->flag & SCULPTVERT_SEAM_BOUNDARY;
-    if ((mv->flag | mv2->flag | mv3->flag) & SCULPTVERT_SHARP_CORNER) {
+    int bound1 = BM_ELEM_CD_GET_INT(l->v, solver->cd_boundary_flag);
+    int bound2 = BM_ELEM_CD_GET_INT(l->prev->v, solver->cd_boundary_flag);
+    int bound3 = BM_ELEM_CD_GET_INT(l->next->v, solver->cd_boundary_flag);
+
+    v->boundary = bound1 & SCULPT_BOUNDARY_SEAM;
+    if ((bound1 | bound2 | bound3) & SCULPT_CORNER_SHARP) {
       v->pinned = true;
     }
 
@@ -1515,9 +1515,9 @@ static float uvsolver_solve_step(UVSolver *solver)
 
     for (int i = 0; i < con->totvert; i++) {
       UVSmoothVert *sv = con->vs[i];
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, sv->v);
 
-      mv->flag |= SCULPTVERT_NEED_BOUNDARY;
+      *(int *)BM_ELEM_CD_GET_VOID_P(sv->v,
+                                    solver->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
       double w = uvsolver_vert_weight(sv) * totw;
       w = MIN2(w, 1.0);
@@ -1699,6 +1699,8 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_curvemapping_init(brush->curve);
 
   UVSolver *solver = uvsolver_new(cd_uv);
+
+  solver->cd_boundary_flag = ss->attrs.boundary_flags->bmesh_cd_offset;
   solver->cd_sculpt_vert = ss->cd_sculpt_vert;
   // solver->strength = powf(fabs(ss->cache->bstrength), 0.25) * signf(ss->cache->bstrength);
   solver->strength = ss->cache->bstrength;

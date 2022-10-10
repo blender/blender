@@ -597,6 +597,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
       case PBVH_BMESH: {
         const int cd_fset = CustomData_get_named_offset(
             &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+        const int cd_boundary_flag = CustomData_get_offset_named(
+            &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
 
         if (ss->bm && cd_fset != -1) {
           const int cd_sculptvert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
@@ -607,11 +609,16 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
           const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
 
-          const int updateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_VALENCE |
-                                 SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT;
+          const int updateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
+                                 SCULPTVERT_NEED_DISK_SORT;
 
           BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
             MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_sculptvert);
+
+            if (cd_boundary_flag != -1) {
+              int *flag = BM_ELEM_CD_GET_VOID_P(v, cd_boundary_flag);
+              *flag |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+            }
 
             mv->flag |= updateflag;
           }

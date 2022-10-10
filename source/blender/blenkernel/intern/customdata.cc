@@ -4890,11 +4890,11 @@ void CustomData_bmesh_interp(CustomData *data,
   }
 }
 
-void CustomData_to_bmesh_block(const CustomData *source,
-                               CustomData *dest,
-                               int src_index,
-                               void **dest_block,
-                               bool use_default_init)
+ATTR_NO_OPT void CustomData_to_bmesh_block(const CustomData *source,
+                                           CustomData *dest,
+                                           int src_index,
+                                           void **dest_block,
+                                           bool use_default_init)
 {
   if (*dest_block == nullptr) {
     CustomData_bmesh_alloc_block(dest, dest_block);

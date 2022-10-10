@@ -735,6 +735,7 @@ typedef struct SculptAttributePointers {
   SculptAttribute *smooth_bdist;
   SculptAttribute *smooth_vel;
 
+  SculptAttribute *boundary_flags;
   SculptAttribute *sculpt_vert;
   SculptAttribute *stroke_id;
 
@@ -971,7 +972,7 @@ typedef struct SculptSession {
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
   struct MSculptVert *msculptverts;  // for non-bmesh
-  int msculptverts_size;
+  int last_msculptverts_count;
 
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
@@ -989,7 +990,7 @@ typedef struct SculptSession {
    */
   bool sticky_shading_color;
 
-  uchar stroke_id;
+  ushort stroke_id;
 
   /**
    * Last used painting canvas key.
@@ -1006,6 +1007,28 @@ typedef struct SculptSession {
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
 } SculptSession;
+
+typedef enum eSculptBoundary {
+  SCULPT_BOUNDARY_MESH = 1 << 0,
+  SCULPT_BOUNDARY_FACE_SET = 1 << 1,
+  SCULPT_BOUNDARY_SEAM = 1 << 2,
+  SCULPT_BOUNDARY_SHARP = 1 << 3,
+  SCULPT_BOUNDARY_UV = 1 << 4,
+  SCULPT_BOUNDARY_NEEDS_UPDATE = 1 << 5,
+  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
+} eSculptBoundary;
+
+
+/* Note: This is stored in a single attribute with boundary flags */
+typedef enum eSculptCorner {
+  SCULPT_CORNER_NONE = 0,
+  SCULPT_CORNER_MESH = 1 << 6,
+  SCULPT_CORNER_FACE_SET = 1 << 7,
+  SCULPT_CORNER_SEAM = 1 << 8,
+  SCULPT_CORNER_SHARP = 1 << 9,
+  SCULPT_CORNER_UV = 1 << 10,
+} eSculptCorner;
 
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
@@ -1083,7 +1106,13 @@ BLI_INLINE void *BKE_sculpt_face_attr_get(const PBVHFaceRef vertex, const Sculpt
   return NULL;
 }
 
-bool BKE_sculptsession_check_sculptverts(SculptSession *ss, struct PBVH *pbvh, int totvert);
+BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)
+{
+  int *flags = (int *)BKE_sculpt_vertex_attr_get(vertex, ss->attrs.boundary_flags);
+  *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+}
+
+bool BKE_sculptsession_check_sculptverts(struct Object *ob, struct PBVH *pbvh, int totvert);
 
 struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
@@ -1135,7 +1164,7 @@ int *BKE_sculpt_face_sets_ensure(struct Object *ob);
  * Note that changes to the face visibility have to be propagated to other domains
  * (see #SCULPT_visibility_sync_all_from_faces).
  */
-bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
+bool *BKE_sculpt_hide_poly_ensure(struct Object *ob);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 

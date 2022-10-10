@@ -918,10 +918,11 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
 
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set)
 {
+  BKE_sculpt_boundary_flag_update(ss, vertex);
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MSculptVert *mv = ss->msculptverts + vertex.i;
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 
       BLI_assert(ss->face_sets != NULL);
       const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
@@ -936,8 +937,8 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
         const MLoop *ml = ss->mloop + mp->loopstart;
 
         for (int k = 0; k < mp->totloop; k++, ml++) {
-          MSculptVert *mv2 = ss->msculptverts + ml->v;
-          MV_ADD_FLAG(mv2, SCULPTVERT_NEED_BOUNDARY);
+          PBVHVertRef vertex2 = {ml->v};
+          BKE_sculpt_boundary_flag_update(ss, vertex2);
         }
 
         ss->face_sets[poly_index] = face_set;
@@ -952,17 +953,14 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
 
       int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
-
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
         if (!BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly) && fset != face_set) {
           BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
         }
 
-        MSculptVert *mv_l = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, l->v);
-        MV_ADD_FLAG(mv_l, SCULPTVERT_NEED_BOUNDARY);
+        PBVHVertRef vertex2 = {(intptr_t)l->v};
+        BKE_sculpt_boundary_flag_update(ss, vertex2);
       }
 
       break;
@@ -1830,9 +1828,9 @@ void SCULPT_vertex_neighbors_get(const SculptSession *ss,
   }
 }
 
-SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
-                                           const PBVHEdgeRef edge,
-                                           SculptBoundaryType typemask)
+eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
+                                        const PBVHEdgeRef edge,
+                                        eSculptBoundary typemask)
 {
 
   int ret = 0;
@@ -1851,9 +1849,10 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
           MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v1);
           MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v2);
 
-          bool ok = (mv1->flag & SCULPTVERT_FSET_BOUNDARY) &&
-                    (mv2->flag & SCULPTVERT_FSET_BOUNDARY);
-          ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
+          int boundflag1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
+          int boundflag2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
+
+          ret |= (boundflag1 | boundflag2) & SCULPT_BOUNDARY_FACE_SET;
         }
         else {
           int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
@@ -1868,11 +1867,10 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
       }
 
       if (typemask & SCULPT_BOUNDARY_UV) {
-        MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v1);
-        MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v2);
+        int boundflag1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
+        int boundflag2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
 
-        bool ok = (mv1->flag & SCULPTVERT_UV_BOUNDARY) && (mv2->flag & SCULPTVERT_UV_BOUNDARY);
-        ret |= ok ? SCULPT_BOUNDARY_UV : 0;
+        ret |= (boundflag1 | boundflag2) & SCULPT_BOUNDARY_UV;
       }
 
       if (typemask & SCULPT_BOUNDARY_SHARP) {
@@ -1892,8 +1890,8 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
       SCULPT_edge_get_verts(ss, edge, &v1, &v2);
 
       if (mask) {  // use less accurate approximation for now
-        SculptBoundaryType a = SCULPT_vertex_is_boundary(ss, v1, mask);
-        SculptBoundaryType b = SCULPT_vertex_is_boundary(ss, v2, mask);
+        eSculptBoundary a = SCULPT_vertex_is_boundary(ss, v1, mask);
+        eSculptBoundary b = SCULPT_vertex_is_boundary(ss, v2, mask);
 
         ret |= a & b;
       }
@@ -1914,7 +1912,7 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
     }
   }
 
-  return (SculptBoundaryType)ret;
+  return (eSculptBoundary)ret;
 }
 
 void SCULPT_edge_get_verts(const SculptSession *ss,
@@ -1963,9 +1961,9 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, i
 static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef vertex)
 {
   MSculptVert *mv = ss->msculptverts + vertex.i;
+  int *flag = (int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
 
-  mv->flag &= ~(SCULPTVERT_CORNER | SCULPTVERT_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-                SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_FSET_CORNER);
+  *flag = 0;
 
   int index = (int)vertex.i;
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
@@ -1981,20 +1979,20 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
   switch (adjacency) {
     case SUBDIV_CCG_ADJACENT_VERTEX:
       if (sculpt_check_unique_face_set_in_base_mesh(ss, v1)) {
-        mv->flag |= SCULPTVERT_FSET_BOUNDARY;
+        *flag |= SCULPT_BOUNDARY_FACE_SET;
       }
       if (sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
-        mv->flag |= SCULPTVERT_BOUNDARY;
+        *flag |= SCULPT_BOUNDARY_MESH;
       }
       break;
     case SUBDIV_CCG_ADJACENT_EDGE:
       if (sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2)) {
-        mv->flag |= SCULPTVERT_FSET_BOUNDARY;
+        *flag |= SCULPT_BOUNDARY_FACE_SET;
       }
 
       if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
           sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
-        mv->flag |= SCULPTVERT_BOUNDARY;
+        *flag |= SCULPT_BOUNDARY_MESH;
       }
       break;
     case SUBDIV_CCG_ADJACENT_NONE:
@@ -2004,7 +2002,8 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
 static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertRef vertex)
 {
-  BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
+  BKE_pbvh_update_vert_boundary_faces((int *)ss->attrs.boundary_flags->data,
+                                      ss->face_sets,
                                       ss->hide_poly,
                                       ss->mvert,
                                       ss->medge,
@@ -2013,13 +2012,14 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                       ss->msculptverts,
                                       ss->pmap->pmap,
                                       vertex);
-  // have to handle boundary here
-  MSculptVert *mv = ss->msculptverts + vertex.i;
 
-  mv->flag &= ~(SCULPTVERT_CORNER | SCULPTVERT_BOUNDARY);
+  /* We have to handle boundary here seperately. */
+
+  int *flag = SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
+  *flag &= ~(SCULPT_CORNER_MESH | SCULPT_BOUNDARY_MESH);
 
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i)) {
-    mv->flag |= SCULPTVERT_BOUNDARY;
+    *flag |= SCULPT_BOUNDARY_MESH;
 
     if (ss->pmap->pmap[vertex.i].count < 4) {
       bool ok = true;
@@ -2031,32 +2031,34 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
         }
       }
       if (ok) {
-        mv->flag |= SCULPTVERT_CORNER;
+        *flag |= SCULPT_CORNER_MESH;
       }
       else {
-        mv->flag &= ~SCULPTVERT_CORNER;
+        *flag &= ~SCULPT_CORNER_MESH;
       }
     }
   }
 }
-SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
-                                         const PBVHVertRef vertex,
-                                         SculptCornerType cornertype)
+eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
+                                      const PBVHVertRef vertex,
+                                      eSculptCorner cornertype)
 {
-  SculptCornerType ret = 0;
-  MSculptVert *mv = NULL;
+  eSculptCorner ret = 0;
+
+  int flag = *(int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
+  bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)vertex.i;
-      mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
-      if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+      if (needs_update) {
         BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
-                                      -1,
+                                      ss->cd_vcol_offset,
+                                      ss->attrs.boundary_flags->bmesh_cd_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
@@ -2067,59 +2069,38 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
       break;
     }
     case PBVH_FACES:
-      mv = ss->msculptverts + vertex.i;
-
-      if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+      if (needs_update) {
         faces_update_boundary_flags(ss, vertex);
       }
       break;
     case PBVH_GRIDS: {
-      mv = ss->msculptverts + vertex.i;
-
-      if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+      if (needs_update) {
         grids_update_boundary_flags(ss, vertex);
       }
       break;
     }
   }
 
-  ret = 0;
-
-  if (cornertype & SCULPT_CORNER_MESH) {
-    ret |= (mv->flag & SCULPTVERT_CORNER) ? SCULPT_CORNER_MESH : 0;
-  }
-  if (cornertype & SCULPT_CORNER_FACE_SET) {
-    ret |= (mv->flag & SCULPTVERT_FSET_CORNER) ? SCULPT_CORNER_FACE_SET : 0;
-  }
-  if (cornertype & SCULPT_CORNER_SEAM) {
-    ret |= (mv->flag & SCULPTVERT_SEAM_CORNER) ? SCULPT_CORNER_SEAM : 0;
-  }
-  if (cornertype & SCULPT_CORNER_SHARP) {
-    ret |= (mv->flag & SCULPTVERT_SHARP_CORNER) ? SCULPT_CORNER_SHARP : 0;
-  }
-  if (cornertype & SCULPT_CORNER_UV) {
-    ret |= (mv->flag & SCULPTVERT_UV_CORNER) ? SCULPT_CORNER_UV : 0;
-  }
-
-  return ret;
+  return flag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM |
+                 SCULPT_CORNER_SHARP | SCULPT_CORNER_UV);
 }
 
-SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
-                                             const PBVHVertRef vertex,
-                                             SculptBoundaryType boundary_types)
+eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
+                                          const PBVHVertRef vertex,
+                                          eSculptBoundary boundary_types)
 {
-  MSculptVert *mv = NULL;
+  int flag = *(int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
+  bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
-      mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, ((BMVert *)(vertex.i)));
-
-      if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+      if (needs_update) {
         BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
-                                      -1,
+                                      ss->cd_vcol_offset,
+                                      ss->attrs.boundary_flags->bmesh_cd_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
@@ -2130,9 +2111,7 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
       break;
     }
     case PBVH_FACES: {
-      mv = ss->msculptverts + vertex.i;
-
-      if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+      if (needs_update) {
         faces_update_boundary_flags(ss, vertex);
       }
       break;
@@ -2163,24 +2142,8 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
     }
   }
 
-  int flag = 0;
-  if (boundary_types & SCULPT_BOUNDARY_MESH) {
-    flag |= (mv->flag & SCULPTVERT_BOUNDARY) ? SCULPT_BOUNDARY_MESH : 0;
-  }
-  if (boundary_types & SCULPT_BOUNDARY_FACE_SET) {
-    flag |= (mv->flag & SCULPTVERT_FSET_BOUNDARY) ? SCULPT_BOUNDARY_FACE_SET : 0;
-  }
-  if (boundary_types & SCULPT_BOUNDARY_SHARP) {
-    flag |= (mv->flag & SCULPTVERT_SHARP_BOUNDARY) ? SCULPT_BOUNDARY_SHARP : 0;
-  }
-  if (boundary_types & SCULPT_BOUNDARY_SEAM) {
-    flag |= (mv->flag & SCULPTVERT_SEAM_BOUNDARY) ? SCULPT_BOUNDARY_SEAM : 0;
-  }
-  if (boundary_types & SCULPT_BOUNDARY_UV) {
-    flag |= (mv->flag & SCULPTVERT_UV_BOUNDARY) ? SCULPT_BOUNDARY_UV : 0;
-  }
-
-  return flag;
+  return flag & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
+                 SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_UV);
 }
 
 /* Utilities */
@@ -9498,6 +9461,8 @@ SculptAttribute *SCULPT_stroke_id_attribute_ensure(Object *ob)
   if (!ss->attrs.stroke_id) {
     SculptAttributeParams params = {0};
 
+    params.nointerp = true;
+
     ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(
         ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(stroke_id), &params);
   }
@@ -9577,21 +9542,6 @@ void SCULPT_stroke_id_next(Object *ob)
    * sanitizers.
    */
   ob->sculpt->stroke_id = (uchar)(((int)ob->sculpt->stroke_id + 1) & 255);
-}
-
-void SCULPT_stroke_id_ensure(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  if (!ss->attrs.automasking_stroke_id) {
-    SculptAttributeParams params = {0};
-    ss->attrs.automasking_stroke_id = BKE_sculpt_attribute_ensure(
-        ob,
-        ATTR_DOMAIN_POINT,
-        CD_PROP_INT8,
-        SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
-        &params);
-  }
 }
 
 /** \} */

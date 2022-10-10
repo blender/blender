@@ -136,7 +136,7 @@ void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
       ss->totvert = mesh->totvert;
     }
 
-    BKE_sculptsession_check_sculptverts(ss, ss->pbvh, SCULPT_vertex_count_get(ss));
+    BKE_sculptsession_check_sculptverts(ob, ss->pbvh, SCULPT_vertex_count_get(ss));
   }
 #endif
 

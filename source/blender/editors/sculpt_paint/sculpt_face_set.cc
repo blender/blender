@@ -429,7 +429,9 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             MSculptVert *mv = ss->msculptverts + ml->v;
 
-            MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+            *(int *)SCULPT_vertex_attr_get(
+                BKE_pbvh_make_vref(ml->v),
+                ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
             copy_v3_v3(fno, ss->vert_normals[ml->v]);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
@@ -537,8 +539,9 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                 break;
               }
 
-              MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, l->v);
-              MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+              *(int *)SCULPT_vertex_attr_get(
+                  BKE_pbvh_make_vref((intptr_t)l->v),
+                  ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
             } while ((l = l->next) != f->l_first);
 
             if (ok) {
@@ -650,7 +653,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_relax_vertex(ss,
                         &vd,
                         fade * bstrength,
-                        (SculptBoundaryType)(SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET),
+                        (eSculptBoundary)(SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET),
                         vd.co);
     if (vd.mvert) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
@@ -1340,9 +1343,11 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-  BKE_sculpt_face_sets_ensure(ob);
 
-  const int cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
+  BKE_sculpt_face_sets_ensure(ob);
+  BKE_sculpt_hide_poly_ensure(ob);
+
+  const int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int tot_vert = SCULPT_vertex_count_get(ss);
   const int active_face_set = SCULPT_active_face_set_get(ss);
@@ -1430,6 +1435,10 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_end(ob);
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+  }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
@@ -2190,8 +2199,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   BM_mesh_select_mode_set(bm, SCE_SELECT_FACE);
 
-  int mupdateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT |
-                    SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_VALENCE;
+  int mupdateflag = SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE |
+                    SCULPTVERT_NEED_VALENCE;
 
   Vector<BMVert *> retvs, vs;
   Vector<BMEdge *> es;
@@ -2342,6 +2351,9 @@ static void sculpt_face_set_extrude_id(Object *ob,
   cd_faceset_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");  // recalc in case bmop changed it
 
+  const int cd_boundary_flag = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
+
   BMOIter siter;
   BMElem *ele;
 
@@ -2427,6 +2439,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
           if (cd_sculpt_vert != -1) {
             BMLoop *l = f->l_first;
             do {
+              *(int *)BM_ELEM_CD_GET_VOID_P(l->v,
+                                            cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
               MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
               MV_ADD_FLAG(mv, mupdateflag);
             } while ((l = l->next) != f->l_first);
@@ -2467,6 +2481,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
     if (cd_sculpt_vert >= 0) {
       BMLoop *l = f->l_first;
       do {
+        *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+
         MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
         MV_ADD_FLAG(mv, mupdateflag);
       } while ((l = l->next) != f->l_first);
@@ -2500,7 +2516,11 @@ static void sculpt_face_set_extrude_id(Object *ob,
     int count = 0;
 
     do {
-      if (cd_sculpt_vert >= 0) {
+      if (cd_boundary_flag != -1) {
+        *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+      }
+
+      if (cd_sculpt_vert != -1) {
         MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert);
 
         MV_ADD_FLAG(mv, mupdateflag);

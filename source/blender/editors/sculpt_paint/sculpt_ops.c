@@ -1390,10 +1390,12 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
     for (int i = 0; i < bm->totvert; i++) {
       BMVert *v = verts[i];
+      PBVHVertRef vertex = {(intptr_t)v};
 
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-      if (mv->flag & (SCULPTVERT_CORNER | SCULPTVERT_FSET_CORNER | SCULPTVERT_SHARP_CORNER |
-                      SCULPTVERT_SEAM_CORNER)) {
+      int *boundflag = (int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
+
+      if (*boundflag & (SCULPT_CORNER_MESH, SCULPT_CORNER_FACE_SET, SCULPT_CORNER_SHARP, SCULPT_CORNER_SEAM)) {
         continue;
       }
 
@@ -1414,8 +1416,8 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       BLI_BITMAP_SET(visit, v->head.index, true);
 
       ListBase queue = {node, node};
-      const int boundflag = SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY |
-                            SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY;
+      const int boundtest = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET |
+                            SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP;
       while (queue.first) {
         BMLinkItem *node2 = BLI_poptail(&queue);
         BMVert *v2 = node2->item;
@@ -1491,7 +1493,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
         bool sing = thsum >= M_PI * 0.5f;
 
         // still apply smoothing even with singularity?
-        if (tot > 0.0f && !(mv->flag & boundflag)) {
+        if (tot > 0.0f && !(*boundflag & boundtest)) {
           mul_v3_fl(avg, 1.0 / tot);
           interp_v3_v3v3(dir2, dir2, avg, sing ? 0.15 : 0.25);
           normalize_v3(dir2);
@@ -1541,10 +1543,15 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
           // int bits = closest_vec_to_perp(dir2, dir32, v2->no, buckets, 1.0f);
 
+#if 0
           MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v3);
-          if (mv3->flag & boundflag) {
-            // continue;
+          PBVHVertRef vertex3 = {(intptr_t)v3};
+
+          int *boundflag3 = (int *)SCULPT_vertex_attr_get(vertex3, ss->attrs.boundary_flags);
+          if (*boundflag3 & boundtest) {
+             continue;
           }
+#endif
 
           BLI_BITMAP_SET(visit, v3->head.index, true);
 

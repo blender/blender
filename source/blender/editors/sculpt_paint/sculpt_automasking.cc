@@ -243,12 +243,12 @@ static float automasking_view_normal_factor(AutomaskingCache *automasking,
 static float automasking_view_occlusion_factor(AutomaskingCache *automasking,
                                                SculptSession *ss,
                                                PBVHVertRef vertex,
-                                               uchar stroke_id,
+                                               bool vertex_needs_update,
                                                AutomaskingNodeData * /*automask_data*/)
 {
   char f = *(char *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_occlusion);
 
-  if (stroke_id != automasking->current_stroke_id) {
+  if (vertex_needs_update) {
     f = *(char *)SCULPT_vertex_attr_get(
         vertex,
         ss->attrs.automasking_occlusion) = SCULPT_vertex_is_occluded(ss, vertex, true) ? 2 : 1;
@@ -263,10 +263,6 @@ static float automasking_factor_end(SculptSession *ss,
                                     PBVHVertRef vertex,
                                     float value)
 {
-  if (ss->attrs.automasking_stroke_id) {
-    *(uchar *)SCULPT_vertex_attr_get(
-        vertex, ss->attrs.automasking_stroke_id) = automasking->current_stroke_id;
-  }
 
   return value;
 }
@@ -477,11 +473,10 @@ int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking)
 
 static float sculpt_automasking_cavity_factor(AutomaskingCache *automasking,
                                               SculptSession *ss,
-                                              PBVHVertRef vertex)
+                                              PBVHVertRef vertex,
+                                              bool vertex_needs_update)
 {
-  uchar stroke_id = *(uchar *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_stroke_id);
-
-  if (stroke_id != automasking->current_stroke_id) {
+  if (vertex_needs_update) {
     sculpt_calc_blurred_cavity(ss, automasking, automasking->settings.cavity_blur_steps, vertex);
   }
 
@@ -507,6 +502,8 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     return 1.0f;
   }
 
+  bool vertex_needs_update = SCULPT_stroke_id_test(ss, vert, STROKEID_USER_AUTOMASKING);
+
   /* If the cache is initialized with valid info, use the cache. This is used when the
    * automasking information can't be computed in real time per vertex and needs to be
    * initialized for the whole mesh when the stroke starts. */
@@ -514,21 +511,17 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     float factor = *(float *)SCULPT_vertex_attr_get(vert, ss->attrs.automasking_factor);
 
     if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-      factor *= sculpt_automasking_cavity_factor(automasking, ss, vert);
+      factor *= sculpt_automasking_cavity_factor(automasking, ss, vert, vertex_needs_update);
     }
 
     return factor;
   }
 
-  uchar stroke_id = ss->attrs.automasking_stroke_id ?
-                        *(uchar *)(SCULPT_vertex_attr_get(vert, ss->attrs.automasking_stroke_id)) :
-                        -1;
-
   bool do_occlusion = (automasking->settings.flags &
                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
-  if (do_occlusion &&
-      automasking_view_occlusion_factor(automasking, ss, vert, stroke_id, automask_data)) {
+  if (do_occlusion && automasking_view_occlusion_factor(
+                          automasking, ss, vert, vertex_needs_update, automask_data)) {
     return automasking_factor_end(ss, automasking, vert, 0.0f);
   }
 
@@ -563,7 +556,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    mask *= sculpt_automasking_cavity_factor(automasking, ss, vert);
+    mask *= sculpt_automasking_cavity_factor(automasking, ss, vert, true);
   }
 
   return automasking_factor_end(ss, automasking, vert, mask);
@@ -788,9 +781,8 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
       f *= automasking_view_normal_factor(automasking, ss, vertex, &nodedata);
     }
 
-    if (ss->attrs.automasking_stroke_id) {
-      *(uchar *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_stroke_id) = ss->stroke_id;
-    }
+    /* Flag vertex as updated for this stroke. */
+    SCULPT_stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
 
     *(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor) = f;
   }
@@ -813,6 +805,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   if (!SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return nullptr;
   }
+
+  SCULPT_stroke_id_attribute_ensure(ob);
 
   AutomaskingCache *automasking = (AutomaskingCache *)MEM_callocN(sizeof(AutomaskingCache),
                                                                   "automasking cache");
@@ -862,7 +856,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   }
 
   if (use_stroke_id) {
-    SCULPT_stroke_id_ensure(ob);
+    SCULPT_stroke_id_attribute_ensure(ob);
 
     bool have_occlusion = (mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
                           (mode & BRUSH_AUTOMASKING_VIEW_NORMAL);

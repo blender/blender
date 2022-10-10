@@ -1443,6 +1443,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->cd_face_node_offset,
                          sgcontext->ss->cd_sculpt_vert,
                          sgcontext->ss->cd_face_areas,
+                         sgcontext->ss->attrs.boundary_flags->bmesh_cd_offset,
                          sgcontext->ss->fast_draw,
                          true);
   }

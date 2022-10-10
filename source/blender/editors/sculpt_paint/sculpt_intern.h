@@ -111,26 +111,6 @@ typedef struct SculptVertexNeighborIter {
   bool no_free;
 } SculptVertexNeighborIter;
 
-/* this is a bitmask */
-typedef enum SculptCornerType {
-  SCULPT_CORNER_NONE = 0,
-  SCULPT_CORNER_MESH = 1 << 0,
-  SCULPT_CORNER_FACE_SET = 1 << 1,
-  SCULPT_CORNER_SEAM = 1 << 2,
-  SCULPT_CORNER_SHARP = 1 << 3,
-  SCULPT_CORNER_UV = 1 << 4,
-} SculptCornerType;
-
-typedef enum SculptBoundaryType {
-  SCULPT_BOUNDARY_MESH = 1 << 0,
-  SCULPT_BOUNDARY_FACE_SET = 1 << 1,
-  SCULPT_BOUNDARY_SEAM = 1 << 2,
-  SCULPT_BOUNDARY_SHARP = 1 << 3,
-  SCULPT_BOUNDARY_UV = 1 << 4,
-  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
-  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
-} SculptBoundaryType;
-
 typedef struct SculptFaceSetIsland {
   PBVHFaceRef *faces;
   int totface;
@@ -1300,14 +1280,14 @@ void SCULPT_fake_neighbors_free(struct Object *ob);
 void SCULPT_boundary_info_ensure(Object *object);
 
 /* Boundary Info needs to be initialized in order to use this function. */
-SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
-                                         const PBVHVertRef index,
-                                         SculptCornerType cornertype);
+eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
+                                      const PBVHVertRef index,
+                                      eSculptCorner cornertype);
 
 /* Boundary Info needs to be initialized in order to use this function. */
-SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
-                                             const PBVHVertRef index,
-                                             SculptBoundaryType boundary_types);
+eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
+                                          const PBVHVertRef index,
+                                          eSculptBoundary boundary_types);
 
 void SCULPT_connected_components_ensure(Object *ob);
 
@@ -1915,7 +1895,7 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 void SCULPT_relax_vertex(SculptSession *ss,
                          PBVHVertexIter *vd,
                          float factor,
-                         SculptBoundaryType boundary_mask,
+                         eSculptBoundary boundary_mask,
                          float *r_final_pos);
 
 /** \} */
@@ -2356,9 +2336,9 @@ void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */
 
-SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
-                                           const PBVHEdgeRef edge,
-                                           SculptBoundaryType typemask);
+eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
+                                        const PBVHEdgeRef edge,
+                                        eSculptBoundary typemask);
 void SCULPT_edge_get_verts(const SculptSession *ss,
                            const PBVHEdgeRef edge,
                            PBVHVertRef *r_v1,
@@ -2555,6 +2535,52 @@ bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
 #define SCULPT_face_attr_get BKE_sculpt_face_attr_get
 
 SculptAttribute *SCULPT_stroke_id_attribute_ensure(struct Object *ob);
+
+typedef struct StrokeID {
+  short id;
+  short userflag;
+} StrokeID;
+
+typedef enum StrokeIDUser {
+  STROKEID_USER_AUTOMASKING = 1 << 0,
+  STROKEID_USER_BOUNDARY = 1 << 1,
+  STROKEID_USER_SCULPTVERT = 1 << 2,
+  STROKEID_USER_PREV_COLOR = 1 << 3,
+} StrokeIDUser;
+
+BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
+{
+  StrokeID *id = (StrokeID *)SCULPT_vertex_attr_get(vertex, ss->attrs.stroke_id);
+  bool ret;
+
+  if (id->id != ss->stroke_id) {
+    id->id = ss->stroke_id;
+    id->userflag = 0;
+    ret = true;
+  }
+  else {
+    ret = !(id->userflag & (int)user);
+  }
+
+  id->userflag |= (int)user;
+
+  return ret;
+}
+
+BLI_INLINE bool SCULPT_stroke_id_test_no_update(SculptSession *ss,
+                                                PBVHVertRef vertex,
+                                                StrokeIDUser user)
+{
+  StrokeID *id = (StrokeID *)SCULPT_vertex_attr_get(vertex, ss->attrs.stroke_id);
+
+  if (id->id != ss->stroke_id) {
+    return true;
+  }
+
+  return !(id->userflag & (int)user);
+}
+
+#define SCULPT_boundary_flag_update BKE_sculpt_boundary_flag_update
 
 #ifdef __cplusplus
 }

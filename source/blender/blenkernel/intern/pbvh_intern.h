@@ -9,6 +9,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_paint.h" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
@@ -280,6 +281,8 @@ struct PBVH {
   bool draw_cache_invalid;
 
   struct PBVHGPUFormat *vbo_id;
+  int *boundary_flags;
+  int cd_boundary_flag;
 };
 
 /* pbvh.c */
@@ -422,21 +425,25 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol_offset,
-                                   BMVert *v,
+                                   int cd_boundary_flags,
+                                   BMVert * v,
                                    int bound_symmetry,
                                    const struct CustomData *ldata,
                                    const int totuv);
+void pbvh_boundary_update_bmesh(PBVH *pbvh, struct BMVert *v);
+bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, struct BMVert *v);
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
-  MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
+  int *flag = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
 
-  if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+  if (*flag & SCULPT_BOUNDARY_NEEDS_UPDATE) {
     bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
+                                  pbvh->cd_boundary_flag,
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,

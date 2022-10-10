@@ -550,7 +550,7 @@ typedef struct BmeshUndoData {
   bool do_full_recalc;
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
-  int cd_sculpt_vert;
+  int cd_sculpt_vert, cd_boundary_flag;
   bool regen_all_unique_verts;
   bool is_redo;
 } BmeshUndoData;
@@ -586,10 +586,11 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   // let face add vert
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
+  *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
   MV_ADD_FLAG(mv,
-              SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
-                  SCULPTVERT_NEED_BOUNDARY);
+              SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE);
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -621,8 +622,10 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
+    *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_BOUNDARY);
+    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT);
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
 
@@ -658,12 +661,13 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
 
+  *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+  *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+
   MV_ADD_FLAG(mv1,
-              SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
-                  SCULPTVERT_NEED_VALENCE);
+              SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
   MV_ADD_FLAG(mv2,
-              SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
-                  SCULPTVERT_NEED_VALENCE);
+              SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 }
 
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
@@ -673,10 +677,11 @@ static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
 
-  mv1->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
-               SCULPTVERT_NEED_VALENCE;
-  mv2->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
-               SCULPTVERT_NEED_VALENCE;
+  *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+  *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+
+  mv1->flag |= SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
+  mv2->flag |= SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -777,6 +782,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                         ss->cd_face_node_offset,
                         ss->cd_vert_node_offset,
                         ss->cd_sculpt_vert,
+                        ss->attrs.boundary_flags->bmesh_cd_offset,
                         false,
                         !unode->applied};
 
@@ -3056,6 +3062,7 @@ void SCULPT_substep_undo(bContext *C, int dir)
                         ss->cd_face_node_offset,
                         ss->cd_vert_node_offset,
                         ss->cd_sculpt_vert,
+                        ss->attrs.boundary_flags->bmesh_cd_offset,
                         false,
                         false};
 

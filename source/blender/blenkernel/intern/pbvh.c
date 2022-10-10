@@ -620,11 +620,6 @@ void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas)
   pbvh->face_areas = face_areas;
 }
 
-void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, MSculptVert *sverts)
-{
-  pbvh->msculptverts = sverts;
-}
-
 /* XXX investigate this global. */
 bool pbvh_show_orig_co;
 
@@ -1541,8 +1536,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
   Mesh me_query;
   BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
-
-  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get(&me_query.id);
 
   if (!pbvh->header.bm) {
     vdata = pbvh->vdata;
@@ -4128,15 +4121,17 @@ ATTR_NO_OPT void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
     return;
   }
 
-  if (pbvh->header.type == PBVH_BMESH && (!node->tribuf || !node->tribuf->tottri)) {
-    return;
+  if (pbvh->header.type == PBVH_BMESH) {
+    if (node->flag & PBVH_UpdateTris) {
+      BKE_pbvh_bmesh_check_tris(pbvh, node);
+    }
+
+    if (!node->tribuf || !node->tribuf->tottri) {
+      return;
+    }
   }
 
   node->flag &= ~PBVH_UpdateTriAreas;
-
-  if (pbvh->header.type == PBVH_BMESH && (node->flag & PBVH_UpdateTris)) {
-    BKE_pbvh_bmesh_check_tris(pbvh, node);
-  }
 
   const int cur_i = pbvh->face_area_i ^ 1;
 
@@ -4467,9 +4462,7 @@ static void pbvh_boundaries_flag_update(PBVH *pbvh)
     BMIter iter;
 
     BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-      MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
-
-      mv->flag |= SCULPTVERT_NEED_BOUNDARY;
+      pbvh_boundary_update_bmesh(pbvh, v);
     }
   }
   else {
@@ -4480,7 +4473,7 @@ static void pbvh_boundaries_flag_update(PBVH *pbvh)
     }
 
     for (int i = 0; i < totvert; i++) {
-      pbvh->msculptverts[i].flag |= SCULPTVERT_NEED_BOUNDARY;
+      pbvh->boundary_flags[i] |= SCULPT_BOUNDARY_NEEDS_UPDATE;
     }
   }
 }
@@ -4497,9 +4490,9 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
   pbvh_boundaries_flag_update(pbvh);
 }
 
-void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts)
+void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *msculptverts)
 {
-  pbvh->msculptverts = mdyntopoverts;
+  pbvh->msculptverts = msculptverts;
 }
 
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
@@ -4508,9 +4501,10 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
 {
   MSculptVert *mv = pbvh->msculptverts + vertex.i;
 
-  mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-                SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER | SCULPTVERT_SEAM_BOUNDARY |
-                SCULPTVERT_SHARP_BOUNDARY | SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER);
+  int *flags = pbvh->boundary_flags + vertex.i;
+  *flags = 0;
+
+  /* TODO: finish this function. */
 
   int index = (int)vertex.i;
 
@@ -4532,7 +4526,8 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   mv->flag &= ~SCULPTVERT_NEED_VALENCE;
 }
 
-void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
+void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
+                                         const int *face_sets,
                                          const bool *hide_poly,
                                          const MVert *mvert,
                                          const MEdge *medge,
@@ -4545,12 +4540,13 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
   MSculptVert *mv = msculptverts + vertex.i;
   const MeshElemMap *vert_map = &pmap[vertex.i];
 
+  mv->flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
+
   int last_fset = -1;
   int last_fset2 = -1;
 
-  mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-                SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER | SCULPTVERT_SEAM_BOUNDARY |
-                SCULPTVERT_SHARP_BOUNDARY | SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER);
+  int *flags = boundary_flags + vertex.i;
+  *flags = 0;
 
   int totsharp = 0, totseam = 0;
   int visible = false;
@@ -4571,12 +4567,12 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
     if (j < mp->totloop) {
       const MEdge *me = medge + ml->e;
       if (me->flag & ME_SHARP) {
-        mv->flag |= SCULPTVERT_SHARP_BOUNDARY;
+        *flags |= SCULPT_BOUNDARY_SHARP;
         totsharp++;
       }
 
       if (me->flag & ME_SEAM) {
-        mv->flag |= SCULPTVERT_SEAM_BOUNDARY;
+        *flags |= SCULPT_BOUNDARY_SEAM;
         totseam++;
       }
     }
@@ -4588,11 +4584,11 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
     }
 
     if (i > 0 && fset != last_fset) {
-      mv->flag |= SCULPTVERT_FSET_BOUNDARY;
+      *flags |= SCULPT_BOUNDARY_FACE_SET;
 
       if (i > 1 && last_fset2 != last_fset && last_fset != -1 && last_fset2 != -1 && fset != -1 &&
           last_fset2 != fset) {
-        mv->flag |= SCULPTVERT_FSET_CORNER;
+        *flags |= SCULPT_CORNER_FACE_SET;
       }
     }
 
@@ -4608,11 +4604,11 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
   }
 
   if (totsharp > 2) {
-    mv->flag |= SCULPTVERT_SHARP_CORNER;
+    *flags |= SCULPT_CORNER_SHARP;
   }
 
   if (totseam > 2) {
-    mv->flag |= SCULPTVERT_SEAM_CORNER;
+    *flags |= SCULPT_CORNER_SEAM;
   }
 }
 
@@ -4832,9 +4828,9 @@ void BKE_pbvh_invalidate_cache(Object *ob)
   char key[PBVH_CACHE_KEY_SIZE];
   pbvh_make_cached_key(ob_orig, key);
 
+#ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
 
-#ifdef WITH_PBVH_CACHE
   if (pbvh) {
     BKE_pbvh_cache_remove(pbvh);
   }
@@ -5272,4 +5268,9 @@ bool BKE_pbvh_get_origvert(
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node)
 {
   return node->debug_draw_gen;
+}
+
+void BKE_pbvh_set_boundary_flags(PBVH *pbvh, int *boundary_flags)
+{
+  pbvh->boundary_flags = boundary_flags;
 }

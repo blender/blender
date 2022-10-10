@@ -98,7 +98,6 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   float hue_offset = data->hue_offset;
 
   const SculptAttribute *buffer_scl = data->scl;
-  const SculptAttribute *stroke_id_scl = data->scl2;
 
   const bool do_accum = SCULPT_get_int(ss, accumulate, NULL, brush);
 
@@ -165,12 +164,9 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     // our temp layer.  do this here before the brush check
     // to ensure any geomtry dyntopo might subdivide has
     // valid state.
-    int *stroke_id = (int *)SCULPT_vertex_attr_get(vd.vertex, stroke_id_scl);
     float *color_buffer = (float *)SCULPT_vertex_attr_get(vd.vertex,
                                                           buffer_scl);  // mv->origcolor;
-
-    if (*stroke_id != ss->stroke_id) {
-      *stroke_id = ss->stroke_id;
+    if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_PREV_COLOR)) {
       zero_v4(color_buffer);
     }
 
@@ -428,7 +424,6 @@ void SCULPT_do_paint_brush(
   }
 
   SculptAttribute *buffer_scl;
-  SculptAttribute *stroke_id_scl;
 
   SculptAttributeParams params = {.permanent = false, .simple_array = false, .stroke_only = true};
   SculptAttributeParams params_id = {.permanent = false,
@@ -443,7 +438,7 @@ void SCULPT_do_paint_brush(
   }
 
   buffer_scl = ss->attrs.smear_previous;
-  stroke_id_scl = SCULPT_stroke_id_attribute_ensure(ob);
+  SCULPT_stroke_id_attribute_ensure(ob);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -455,7 +450,6 @@ void SCULPT_do_paint_brush(
       .mat = mat,
       .hue_offset = SCULPT_get_float(ss, hue_offset, sd, brush),
       .scl = buffer_scl,
-      .scl2 = stroke_id_scl,
       .brush_color = brush_color,
   };
 

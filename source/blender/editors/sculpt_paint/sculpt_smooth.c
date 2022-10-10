@@ -400,7 +400,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
     bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
   }
 
-  const SculptBoundaryType is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
+  const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
 
   const float *co = do_origco ? mv->origco : SCULPT_vertex_co_get(ss, vertex);
   float no[3];
@@ -423,7 +423,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
   const bool weighted = args->do_weighted_smooth && !is_boundary;
   float *areas = NULL;
 
-  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  eSculptCorner ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
     ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV;
   }
@@ -489,7 +489,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
     /*use the new edge api if edges are available, if not estimate boundary
       from verts*/
 
-    SculptBoundaryType final_boundary = 0;
+    eSculptBoundary final_boundary = 0;
 
     if (ni.has_edge) {
       final_boundary = SCULPT_edge_is_boundary(ss, ni.edge, bflag);
@@ -692,7 +692,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
 
   PBVH_CHECK_NAN(co);
 
-  SculptCornerType c = SCULPT_vertex_is_corner(ss, vertex, ctype);
+  eSculptCorner c = SCULPT_vertex_is_corner(ss, vertex, ctype);
   float corner_smooth;
 
   if (c == 0) {
@@ -748,7 +748,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
   }
 
-  const SculptBoundaryType is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
+  const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
 
   const float *co = do_origco ? mv->origco : SCULPT_vertex_co_get(ss, vertex);
   float no[3];
@@ -769,7 +769,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   const bool weighted = args->do_weighted_smooth && !is_boundary;
   float *areas = NULL;
 
-  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  eSculptCorner ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
     ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV;
   }
@@ -834,7 +834,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     /* use the new edge api if edges are available, if not estimate boundary
        from verts
      */
-    SculptBoundaryType final_boundary = 0;
+    eSculptBoundary final_boundary = 0;
 
     if (ni.has_edge) {
       final_boundary = SCULPT_edge_is_boundary(ss, ni.edge, bflag);
@@ -958,7 +958,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   PBVH_CHECK_NAN(co);
 
-  SculptCornerType c = SCULPT_vertex_is_corner(ss, vertex, ctype);
+  eSculptCorner c = SCULPT_vertex_is_corner(ss, vertex, ctype);
 
   if (!c) {
     return;
@@ -1123,7 +1123,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       co2 = mv2->origco;
     }
 
-    SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
+    eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
                                SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
     int bound = SCULPT_edge_is_boundary(ss, (PBVHEdgeRef){.i = (intptr_t)e}, bflag);

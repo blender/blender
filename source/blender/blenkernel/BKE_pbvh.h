@@ -426,6 +426,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
+                          const int cd_boundary_flag,
                           bool fast_draw,
                           bool update_sculptverts);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
@@ -433,7 +434,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_hide_poly);
+                             const int cd_hide_poly,
+                             const int cd_boudnary_flags);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
@@ -1017,6 +1019,7 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 /*recalculates boundary flags for *all* vertices.  used by
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
+void BKE_pbvh_set_boundary_flags(PBVH *pbvh, int *boundary_flags);
 
 /* saves all bmesh references to internal indices, to be restored later */
 void BKE_pbvh_bmesh_save_indices(PBVH *pbvh);
@@ -1052,6 +1055,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol,
+                                   int cd_boundary_flag,
                                    struct BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
@@ -1163,7 +1167,8 @@ typedef struct SculptLayerEntry {
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
-void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
+void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
+                                         const int *face_sets,
                                          const bool *hide_poly,
                                          const struct MVert *mvert,
                                          const struct MEdge *medge,
@@ -1175,8 +1180,6 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
                                          PBVHVertRef vertex);
-
-void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts);
 
 #if 0
 #  include "DNA_meshdata_types.h"

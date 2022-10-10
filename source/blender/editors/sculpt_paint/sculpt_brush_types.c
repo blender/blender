@@ -3341,7 +3341,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
 void SCULPT_relax_vertex(SculptSession *ss,
                          PBVHVertexIter *vd,
                          float factor,
-                         SculptBoundaryType boundary_mask,
+                         eSculptBoundary boundary_mask,
                          float *r_final_pos)
 {
   float smooth_pos[3];
@@ -3357,7 +3357,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
     bset |= SCULPT_BOUNDARY_FACE_SET;
   }
 
-  if (SCULPT_vertex_is_corner(ss, vd->vertex, (SculptCornerType)bset)) {
+  if (SCULPT_vertex_is_corner(ss, vd->vertex, (eSculptCorner)bset)) {
     copy_v3_v3(r_final_pos, vd->co);
     return;
   }
@@ -4106,8 +4106,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     if (have_bmesh) {
       BMVert *v = (BMVert *)vd.vertex.i;
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+      int *flag = SCULPT_vertex_attr_get(vd.vertex, ss->attrs.boundary_flags);
 
-       if (mv->flag & (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY)) {
+       if (*flag & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SETS)) {
         continue;
       }
     }
