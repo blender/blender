@@ -369,7 +369,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_TO_POINTS, def_geo_mesh_to_points, "MESH_TO_
 DefNode(GeometryNode, GEO_NODE_MESH_TO_VOLUME, def_geo_mesh_to_volume, "MESH_TO_VOLUME", MeshToVolume, "Mesh to Volume", "Create a fog volume with the shape of the input mesh's surface")
 DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_FACE, 0, "CORNERS_OF_FACE", CornersOfFace, "Corners of Face", "Retrieve corners that make up a face")
 DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_VERTEX, 0, "CORNERS_OF_VERTEX", CornersOfVertex, "Corners of Vertex", "Retrieve face corners connected to vertices")
-DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER, 0, "EDGES_OF_CORNER", EdgesOfCorner, "Edges of Corner", "Retrieve the edges on boths sides of a face corner")
+DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER, 0, "EDGES_OF_CORNER", EdgesOfCorner, "Edges of Corner", "Retrieve the edges on both sides of a face corner")
 DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_EDGES_OF_VERTEX, 0, "EDGES_OF_VERTEX", EdgesOfVertex, "Edges of Vertex", "Retrieve the edges connected to each vertex")
 DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_FACE_OF_CORNER, 0, "FACE_OF_CORNER", FaceOfCorner, "Face of Corner", "Retrieve the face each face corner is part of")
 DefNode(GeometryNode, GEO_NODE_MESH_TOPOLOGY_OFFSET_CORNER_IN_FACE, 0, "OFFSET_CORNER_IN_FACE", OffsetCornerInFace, "Offset Corner in Face", "Retrieve corners in the same face as another")

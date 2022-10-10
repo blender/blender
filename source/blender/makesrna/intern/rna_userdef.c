@@ -5742,8 +5742,8 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_NO_MULTITOUCH_GESTURES);
   RNA_def_property_ui_text(
       prop,
-      "Multitouch Gestures",
-      "Use multitouch gestures for navigation with touchpad, instead of scroll wheel emulation");
+      "Multi-touch Gestures",
+      "Use multi-touch gestures for navigation with touchpad, instead of scroll wheel emulation");
   RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
 
   prop = RNA_def_property(srna, "invert_mouse_zoom", PROP_BOOLEAN, PROP_NONE);
