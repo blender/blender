@@ -534,7 +534,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         state_shaded_smooth = false;
         state_group_name = "";
         /* Reset object-local material index that's used in face infos.
-         * Note: do not reset the material name; that has to carry over
+         * NOTE: do not reset the material name; that has to carry over
          * into the next object if needed. */
         state_material_index = -1;
         curr_geom = create_geometry(

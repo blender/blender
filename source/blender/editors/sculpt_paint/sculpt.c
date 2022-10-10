@@ -5749,15 +5749,14 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     /* Did the stroke never start? If so push a blank sculpt undo
      * step to prevent a global undo step (which is triggered by the
-     * OPTYPE_UNDO flag in SCULPT_OT_brush_stroke).
+     * #OPTYPE_UNDO flag in #SCULPT_OT_brush_stroke).
      *
      * Having blank global undo steps interleaved with sculpt steps
      * corrupts the DynTopo undo stack.
      * See T101430.
      *
-     * Note: simply returning OPERATOR_CANCELLED was not
-     * sufficient to prevent this.
-     */
+     * NOTE: simply returning #OPERATOR_CANCELLED was not
+     * sufficient to prevent this. */
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
 

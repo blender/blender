@@ -101,7 +101,7 @@ struct UndoMesh {
   int shapenr;
 
 #ifdef USE_ARRAY_STORE
-  /* N`ull arrays are considered empty */
+  /* Null arrays are considered empty. */
   struct { /* most data is stored as 'custom' data */
     BArrayCustomData *vdata, *edata, *ldata, *pdata;
     BArrayState **keyblocks;
