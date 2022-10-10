@@ -1158,8 +1158,17 @@ struct PBVHBatches {
     }
 
     for (PBVHBatch &batch : batches.values()) {
-      GPU_batch_elembuf_set(batch.tris, tri_index, false);
-      GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      if (tri_index) {
+        GPU_batch_elembuf_set(batch.tris, tri_index, false);
+      }
+      else {
+        /* Still flag the batch as dirty even if we're using the default index layout. */
+        batch.tris->flag |= GPU_BATCH_DIRTY;
+      }
+
+      if (lines_index) {
+        GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      }
     }
   }
 
