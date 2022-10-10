@@ -88,18 +88,26 @@ BVHLayoutMask OneapiDevice::get_bvh_layout_mask() const
 bool OneapiDevice::load_kernels(const uint requested_features)
 {
   assert(device_queue_);
-  /* NOTE(@nsirgien): oneAPI can support compilation of kernel code with certain feature set
-   * with specialization constants, but it hasn't been implemented yet. */
-  (void)requested_features;
 
   bool is_finished_ok = oneapi_run_test_kernel(device_queue_);
   if (is_finished_ok == false) {
-    set_error("oneAPI kernel load: got runtime exception \"" + oneapi_error_string_ + "\"");
+    set_error("oneAPI test kernel execution: got a runtime exception \"" + oneapi_error_string_ +
+              "\"");
+    return false;
   }
   else {
-    VLOG_INFO << "Runtime compilation done for \"" << info.description << "\"";
+    VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
     assert(device_queue_);
   }
+
+  is_finished_ok = oneapi_load_kernels(device_queue_, (const unsigned int)requested_features);
+  if (is_finished_ok == false) {
+    set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
+  }
+  else {
+    VLOG_INFO << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
+  }
+
   return is_finished_ok;
 }
 
