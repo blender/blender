@@ -6813,11 +6813,11 @@ static void def_cmp_levels(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem channel_items[] = {
-      {1, "COMBINED_RGB", 0, "Combined", "Combined RGB"},
-      {2, "RED", 0, "Red", "Red Channel"},
-      {3, "GREEN", 0, "Green", "Green Channel"},
-      {4, "BLUE", 0, "Blue", "Blue Channel"},
-      {5, "LUMINANCE", 0, "Luminance", "Luminance Channel"},
+      {CMP_NODE_LEVLES_LUMINANCE, "COMBINED_RGB", 0, "Combined", "Combined RGB"},
+      {CMP_NODE_LEVLES_RED, "RED", 0, "Red", "Red Channel"},
+      {CMP_NODE_LEVLES_GREEN, "GREEN", 0, "Green", "Green Channel"},
+      {CMP_NODE_LEVLES_BLUE, "BLUE", 0, "Blue", "Blue Channel"},
+      {CMP_NODE_LEVLES_LUMINANCE_BT709, "LUMINANCE", 0, "Luminance", "Luminance Channel"},
       {0, NULL, 0, NULL, NULL},
   };
 
