@@ -128,7 +128,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   subdiv_ccg->num_grids = num_grids;
   subdiv_ccg->grids = static_cast<CCGElem **>(
       MEM_calloc_arrayN(num_grids, sizeof(CCGElem *), "subdiv ccg grids"));
-  subdiv_ccg->grids_storage = static_cast<unsigned char *>(
+  subdiv_ccg->grids_storage = static_cast<uchar *>(
       MEM_calloc_arrayN(num_grids, size_t(grid_area) * element_size, "subdiv ccg grids storage"));
   const size_t grid_size_in_bytes = size_t(grid_area) * element_size;
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
