@@ -7,7 +7,7 @@
  * \brief Volume API for render engines
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -39,7 +39,7 @@ static void volume_batch_cache_clear(Volume *volume);
 /* ---------------------------------------------------------------------- */
 /* Volume GPUBatch Cache */
 
-typedef struct VolumeBatchCache {
+struct VolumeBatchCache {
   /* 3D textures */
   ListBase grids;
 
@@ -54,22 +54,22 @@ typedef struct VolumeBatchCache {
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
-} VolumeBatchCache;
+};
 
 /* GPUBatch cache management. */
 
 static bool volume_batch_cache_valid(Volume *volume)
 {
-  VolumeBatchCache *cache = volume->batch_cache;
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
   return (cache && cache->is_dirty == false);
 }
 
 static void volume_batch_cache_init(Volume *volume)
 {
-  VolumeBatchCache *cache = volume->batch_cache;
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
   if (!cache) {
-    cache = volume->batch_cache = MEM_callocN(sizeof(*cache), __func__);
+    volume->batch_cache = cache = MEM_cnew<VolumeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -89,13 +89,13 @@ void DRW_volume_batch_cache_validate(Volume *volume)
 static VolumeBatchCache *volume_batch_cache_get(Volume *volume)
 {
   DRW_volume_batch_cache_validate(volume);
-  return volume->batch_cache;
+  return static_cast<VolumeBatchCache *>(volume->batch_cache);
 }
 
 void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 {
-  VolumeBatchCache *cache = volume->batch_cache;
-  if (cache == NULL) {
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  if (cache == nullptr) {
     return;
   }
   switch (mode) {
@@ -109,7 +109,7 @@ void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 
 static void volume_batch_cache_clear(Volume *volume)
 {
-  VolumeBatchCache *cache = volume->batch_cache;
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
   if (!cache) {
     return;
   }
@@ -130,18 +130,18 @@ void DRW_volume_batch_cache_free(Volume *volume)
   volume_batch_cache_clear(volume);
   MEM_SAFE_FREE(volume->batch_cache);
 }
-typedef struct VolumeWireframeUserData {
+struct VolumeWireframeUserData {
   Volume *volume;
   Scene *scene;
-} VolumeWireframeUserData;
+};
 
 static void drw_volume_wireframe_cb(
     void *userdata, const float (*verts)[3], const int (*edges)[2], int totvert, int totedge)
 {
-  VolumeWireframeUserData *data = userdata;
+  VolumeWireframeUserData *data = static_cast<VolumeWireframeUserData *>(userdata);
   Scene *scene = data->scene;
   Volume *volume = data->volume;
-  VolumeBatchCache *cache = volume->batch_cache;
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
@@ -181,7 +181,7 @@ static void drw_volume_wireframe_cb(
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS) {
     /* Create batch. */
     cache->face_wire.batch = GPU_batch_create(
-        GPU_PRIM_POINTS, cache->face_wire.pos_nor_in_order, NULL);
+        GPU_PRIM_POINTS, cache->face_wire.pos_nor_in_order, nullptr);
   }
   else {
     /* Create edge index buffer. */
@@ -203,15 +203,15 @@ static void drw_volume_wireframe_cb(
 GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
 {
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_NONE) {
-    return NULL;
+    return nullptr;
   }
 
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
 
-  if (cache->face_wire.batch == NULL) {
+  if (cache->face_wire.batch == nullptr) {
     const VolumeGrid *volume_grid = BKE_volume_grid_active_get_for_read(volume);
-    if (volume_grid == NULL) {
-      return NULL;
+    if (volume_grid == nullptr) {
+      return nullptr;
     }
 
     /* Create wireframe from OpenVDB tree. */
@@ -228,8 +228,8 @@ GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
 static void drw_volume_selection_surface_cb(
     void *userdata, float (*verts)[3], int (*tris)[3], int totvert, int tottris)
 {
-  Volume *volume = userdata;
-  VolumeBatchCache *cache = volume->batch_cache;
+  Volume *volume = static_cast<Volume *>(userdata);
+  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
   static GPUVertFormat format = {0};
   static uint pos_id;
@@ -257,10 +257,10 @@ static void drw_volume_selection_surface_cb(
 GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
-  if (cache->selection_surface == NULL) {
+  if (cache->selection_surface == nullptr) {
     const VolumeGrid *volume_grid = BKE_volume_grid_active_get_for_read(volume);
-    if (volume_grid == NULL) {
-      return NULL;
+    if (volume_grid == nullptr) {
+      return nullptr;
     }
     BKE_volume_grid_selection_surface(
         volume, volume_grid, drw_volume_selection_surface_cb, volume);
@@ -275,15 +275,14 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   const char *name = BKE_volume_grid_name(grid);
 
   /* Return cached grid. */
-  DRWVolumeGrid *cache_grid;
-  for (cache_grid = cache->grids.first; cache_grid; cache_grid = cache_grid->next) {
+  LISTBASE_FOREACH (DRWVolumeGrid *, cache_grid, &cache->grids) {
     if (STREQ(cache_grid->name, name)) {
       return cache_grid;
     }
   }
 
   /* Allocate new grid. */
-  cache_grid = MEM_callocN(sizeof(DRWVolumeGrid), __func__);
+  DRWVolumeGrid *cache_grid = MEM_cnew<DRWVolumeGrid>(__func__);
   cache_grid->name = BLI_strdup(name);
   BLI_addtail(&cache->grids, cache_grid);
 
@@ -316,7 +315,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
                                                 dense_grid.voxels);
     /* The texture can be null if the resolution along one axis is larger than
      * GL_MAX_3D_TEXTURE_SIZE. */
-    if (cache_grid->texture != NULL) {
+    if (cache_grid->texture != nullptr) {
       GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
       GPU_texture_wrap_mode(cache_grid->texture, false, false);
       BKE_volume_dense_float_grid_clear(&dense_grid);
@@ -339,7 +338,7 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume, const VolumeGrid 
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   DRWVolumeGrid *grid = volume_grid_cache_get(volume, volume_grid, cache);
-  return (grid->texture != NULL) ? grid : NULL;
+  return (grid->texture != nullptr) ? grid : nullptr;
 }
 
 int DRW_volume_material_count_get(Volume *volume)
