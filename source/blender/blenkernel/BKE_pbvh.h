@@ -669,7 +669,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
                                     float (**r_orco_coords)[3],
-                                    struct BMVert **r_orco_verts);
+                                    struct BMVert ***r_orco_verts);
 
 /**
  * \note doing a full search on all vertices here seems expensive,
