@@ -12,6 +12,8 @@
 #include "COM_context.hh"
 #include "COM_utilities.hh"
 
+#include "COM_algorithm_parallel_reduction.hh"
+
 namespace blender::realtime_compositor {
 
 /* Reduces the given texture into a single value and returns it. The return value should be freed
