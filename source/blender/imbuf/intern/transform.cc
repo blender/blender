@@ -134,7 +134,7 @@ class NoDiscard : public BaseDiscard {
    *
    * Will never discard any pixels.
    */
-  bool should_discard(const TransformUserData & /*user_data*/, const float UNUSED(uv[2])) override
+  bool should_discard(const TransformUserData & /*user_data*/, const float /*uv*/[2]) override
   {
     return false;
   }

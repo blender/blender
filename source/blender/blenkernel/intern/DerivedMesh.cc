@@ -1899,7 +1899,7 @@ struct MappedUserData {
 static void make_vertexcos__mapFunc(void *userData,
                                     int index,
                                     const float co[3],
-                                    const float UNUSED(no[3]))
+                                    const float /*no*/[3])
 {
   MappedUserData *mappedData = (MappedUserData *)userData;
 

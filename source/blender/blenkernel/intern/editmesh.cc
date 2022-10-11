@@ -189,7 +189,7 @@ struct CageUserData {
 static void cage_mapped_verts_callback(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no[3]))
+                                       const float /*no*/[3])
 {
   CageUserData *data = static_cast<CageUserData *>(userData);
 

@@ -96,7 +96,7 @@ static bool is_node_parent_select(bNode *node)
   return false;
 }
 
-static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
+static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);

@@ -57,7 +57,7 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
 
 /* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
-                            const ModifierEvalContext *UNUSED(ctx),
+                            const ModifierEvalContext * /*ctx*/,
                             Object *ob,
                             Mesh *mesh,
                             float (*cos)[3],

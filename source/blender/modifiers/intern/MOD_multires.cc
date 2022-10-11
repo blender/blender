@@ -343,7 +343,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -406,7 +406,7 @@ static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
 }
 
-static void shape_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -421,7 +421,7 @@ static void shape_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
 }
 
-static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col, *row;
   uiLayout *layout = panel->layout;
@@ -449,7 +449,7 @@ static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;

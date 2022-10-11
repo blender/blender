@@ -93,7 +93,7 @@ struct UVWarpData {
 
 static void uv_warp_compute(void *__restrict userdata,
                             const int i,
-                            const TaskParallelTLS *__restrict UNUSED(tls))
+                            const TaskParallelTLS *__restrict /*tls*/)
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
 
@@ -241,7 +241,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_depends_on_transform_relation(ctx->node, "UVWarp Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -283,7 +283,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void transform_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 

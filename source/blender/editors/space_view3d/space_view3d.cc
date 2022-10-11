@@ -631,7 +631,7 @@ static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEven
 
 static char *view3d_object_data_drop_tooltip(bContext * /*C*/,
                                              wmDrag * /*drag*/,
-                                             const int UNUSED(xy[2]),
+                                             const int /*xy*/[2],
                                              wmDropBox * /*drop*/)
 {
   return BLI_strdup(TIP_("Create object instance from object-data"));

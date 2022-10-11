@@ -364,7 +364,7 @@ struct MappedVCosData {
 static void get_vertexcos__mapFunc(void *user_data,
                                    int index,
                                    const float co[3],
-                                   const float UNUSED(no[3]))
+                                   const float /*no*/[3])
 {
   MappedVCosData *mapped_vcos_data = (MappedVCosData *)user_data;
 

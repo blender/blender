@@ -888,7 +888,7 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
 static char *datastack_drop_tooltip(bContext * /*C*/,
                                     wmDrag *drag,
-                                    const int UNUSED(xy[2]),
+                                    const int /*xy*/[2],
                                     struct wmDropBox * /*drop*/)
 {
   StackDropData *drop_data = static_cast<StackDropData *>(drag->poin);
