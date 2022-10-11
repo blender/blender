@@ -4272,7 +4272,8 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mval[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+  UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
@@ -4405,6 +4406,14 @@ static void sculpt_update_cache_invariants(
         cache->original = false;
       }
     }
+  }
+
+  /* Original coordinates require the sculpt undo system, which isn't used
+   * for image brushes.  It's also not necassary, just disable it.
+   */
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    cache->original = false;
   }
 
   cache->first_time = true;
