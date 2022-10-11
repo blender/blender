@@ -47,7 +47,6 @@ def main():
     idiff = args.idiff[0]
     output_dir = args.outdir[0]
 
-
     from modules import render_report
     report = render_report.Report('IO Curve SVG', output_dir, idiff)
     report.set_pixelated(True)

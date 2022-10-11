@@ -231,7 +231,7 @@ static void um_arraystore_cd_compact(CustomData *cdata,
           }
 
           bcd->states[i] = BLI_array_store_state_add(
-              bs, layer->data, (size_t)data_len * stride, state_reference);
+              bs, layer->data, size_t(data_len) * stride, state_reference);
         }
         else {
           bcd->states[i] = nullptr;
@@ -334,7 +334,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
                                            um_ref->store.keyblocks[i] :
                                            nullptr;
         um->store.keyblocks[i] = BLI_array_store_state_add(
-            bs, keyblock->data, (size_t)keyblock->totelem * stride, state_reference);
+            bs, keyblock->data, size_t(keyblock->totelem) * stride, state_reference);
       }
 
       if (keyblock->data) {
@@ -352,7 +352,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
       BArrayStore *bs = BLI_array_store_at_size_ensure(
           &um_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE);
       um->store.mselect = BLI_array_store_state_add(
-          bs, me->mselect, (size_t)me->totselect * stride, state_reference);
+          bs, me->mselect, size_t(me->totselect) * stride, state_reference);
     }
 
     /* keep me->totselect for validation */

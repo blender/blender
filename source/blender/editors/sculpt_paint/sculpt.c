@@ -4409,8 +4409,7 @@ static void sculpt_update_cache_invariants(
   }
 
   /* Original coordinates require the sculpt undo system, which isn't used
-   * for image brushes.  It's also not necassary, just disable it.
-   */
+   * for image brushes. It's also not necessary, just disable it. */
   if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
       SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
     cache->original = false;
