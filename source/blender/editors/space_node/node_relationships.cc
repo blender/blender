@@ -1750,29 +1750,31 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
   }
 
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->flag & NODE_SELECT) {
-      if (node->parent == nullptr) {
-        /* disallow moving a parent into its child */
-        if (nodeAttachNodeCheck(frame, node) == false) {
-          /* attach all unparented nodes */
-          nodeAttachNode(node, frame);
+    if (!(node->flag & NODE_SELECT)) {
+      continue;
+    }
+
+    if (node->parent == nullptr) {
+      /* disallow moving a parent into its child */
+      if (nodeAttachNodeCheck(frame, node) == false) {
+        /* attach all unparented nodes */
+        nodeAttachNode(node, frame);
+      }
+    }
+    else {
+      /* attach nodes which share parent with the frame */
+      bNode *parent;
+      for (parent = frame->parent; parent; parent = parent->parent) {
+        if (parent == node->parent) {
+          break;
         }
       }
-      else {
-        /* attach nodes which share parent with the frame */
-        bNode *parent;
-        for (parent = frame->parent; parent; parent = parent->parent) {
-          if (parent == node->parent) {
-            break;
-          }
-        }
 
-        if (parent) {
-          /* disallow moving a parent into its child */
-          if (nodeAttachNodeCheck(frame, node) == false) {
-            nodeDetachNode(node);
-            nodeAttachNode(node, frame);
-          }
+      if (parent) {
+        /* disallow moving a parent into its child */
+        if (nodeAttachNodeCheck(frame, node) == false) {
+          nodeDetachNode(node);
+          nodeAttachNode(node, frame);
         }
       }
     }
