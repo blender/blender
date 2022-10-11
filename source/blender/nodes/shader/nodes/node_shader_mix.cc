@@ -145,12 +145,14 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
     const eNodeSocketDatatype type = ELEM(sock_type, SOCK_BOOLEAN, SOCK_INT) ? SOCK_FLOAT :
                                                                                sock_type;
 
+    const int weight = ELEM(params.other_socket().type, SOCK_RGBA) ? 0 : -1;
     const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
     for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
          item++) {
       if (item->name != nullptr && item->identifier[0] != '\0') {
         params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{socket_name, item->value});
+                        SocketSearchOp{socket_name, item->value},
+                        weight);
       }
     }
 
