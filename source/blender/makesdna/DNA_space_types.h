@@ -1184,6 +1184,12 @@ typedef struct SpaceImageOverlay {
   char _pad[4];
 } SpaceImageOverlay;
 
+typedef enum eSpaceImage_GridShapeSource {
+  SI_GRID_SHAPE_DYNAMIC = 0,
+  SI_GRID_SHAPE_FIXED = 1,
+  SI_GRID_SHAPE_PIXEL = 2,
+} eSpaceImage_GridShapeSource;
+
 typedef struct SpaceImage {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1230,7 +1236,9 @@ typedef struct SpaceImage {
   char around;
 
   char gizmo_flag;
-  char _pad1[3];
+
+  char grid_shape_source;
+  char _pad1[2];
 
   int flag;
 
@@ -1239,7 +1247,7 @@ typedef struct SpaceImage {
   int tile_grid_shape[2];
   /**
    * UV editor custom-grid. Value of `{M,N}` will produce `MxN` grid.
-   * Use when #SI_CUSTOM_GRID is set.
+   * Use when `custom_grid_shape == SI_GRID_SHAPE_FIXED`.
    */
   int custom_grid_subdiv[2];
 
@@ -1266,7 +1274,7 @@ typedef enum eSpaceImage_PixelRoundMode {
   SI_PIXEL_ROUND_DISABLED = 0,
   SI_PIXEL_ROUND_CENTER = 1,
   SI_PIXEL_ROUND_CORNER = 2,
-} eSpaceImage_Round_Mode;
+} eSpaceImage_PixelRoundMode;
 
 /** #SpaceImage.mode */
 typedef enum eSpaceImage_Mode {
@@ -1300,7 +1308,7 @@ typedef enum eSpaceImage_Flag {
   SI_FULLWINDOW = (1 << 16),
 
   SI_FLAG_UNUSED_17 = (1 << 17),
-  SI_CUSTOM_GRID = (1 << 18),
+  SI_FLAG_UNUSED_18 = (1 << 18),
 
   /**
    * This means that the image is drawn until it reaches the view edge,

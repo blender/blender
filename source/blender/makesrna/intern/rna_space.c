@@ -3510,6 +3510,13 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem grid_shape_source_items[] = {
+      {SI_GRID_SHAPE_DYNAMIC, "DYNAMIC", 0, "Dynamic", "Dynamic grid"},
+      {SI_GRID_SHAPE_FIXED, "FIXED", 0, "Fixed", "Manually set grid divisions"},
+      {SI_GRID_SHAPE_PIXEL, "PIXEL", 0, "Pixel", "Grid aligns with pixels from image"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SpaceUVEditor", NULL);
   RNA_def_struct_sdna(srna, "SpaceImage");
   RNA_def_struct_nested(brna, srna, "SpaceImageEditor");
@@ -3583,10 +3590,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Grid Over Image", "Show the grid over the image");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-  prop = RNA_def_property(srna, "use_custom_grid", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_CUSTOM_GRID);
-  RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Custom Grid", "Use a grid with a user-defined number of steps");
+  prop = RNA_def_property(srna, "grid_shape_source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, grid_shape_source_items);
+  RNA_def_property_ui_text(prop, "Grid Shape Source", "Specify source for the grid shape");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "custom_grid_subdivisions", PROP_INT, PROP_XYZ);
