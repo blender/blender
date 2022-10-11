@@ -1,4 +1,4 @@
-sphinx==5.1.1
+sphinx==5.2.3
 
 # Sphinx dependencies that are important
 Jinja2==3.1.2
@@ -6,7 +6,7 @@ Pygments==2.13.0
 docutils==0.17.1
 snowballstemmer==2.2.0
 babel==2.10.3
-requests==2.27.1
+requests==2.28.1
 
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
