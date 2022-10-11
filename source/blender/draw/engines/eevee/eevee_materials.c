@@ -812,6 +812,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
   bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                          !DRW_state_is_image_render();
 
+  if (ob->sculpt && ob->sculpt->pbvh) {
+    BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, use_sculpt_pbvh);
+  }
+
   /* First get materials for this mesh. */
   if (ELEM(ob->type, OB_MESH, OB_SURF)) {
     const int materials_len = DRW_cache_object_material_count_get(ob);

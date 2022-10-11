@@ -1116,10 +1116,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-
-  /* Unlike other operators we do not tag the ID for update here;
-   * it triggers a PBVH rebuild which is too slow and ruins
-   * the interactivity of the tool. */
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
