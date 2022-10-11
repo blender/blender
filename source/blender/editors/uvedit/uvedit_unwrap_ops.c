@@ -1125,7 +1125,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   }
 
   /* RNA props */
-  const bool rotate = RNA_boolean_get(op->ptr, "rotate");
   const int udim_source = RNA_enum_get(op->ptr, "udim_source");
   if (RNA_struct_property_is_set(op->ptr, "margin")) {
     scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
@@ -1139,20 +1138,35 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
       sima, use_active, &udim_params);
 
-  ED_uvedit_pack_islands_multi(scene,
-                               objects,
-                               objects_len,
-                               use_udim_params ? &udim_params : NULL,
-                               &(struct UVPackIsland_Params){
-                                   .rotate = rotate,
-                                   .only_selected_uvs = true,
-                                   .only_selected_faces = true,
-                                   .correct_aspect = true,
-                               });
+  struct UVPackIsland_Params params = {
+      .rotate = RNA_boolean_get(op->ptr, "rotate"),
+      .only_selected_uvs = true,
+      .only_selected_faces = true,
+      .correct_aspect = true,
+      .margin_method = RNA_enum_get(op->ptr, "margin_method"),
+      .margin = RNA_float_get(op->ptr, "margin"),
+  };
+  ED_uvedit_pack_islands_multi(
+      scene, objects, objects_len, use_udim_params ? &udim_params : NULL, &params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
+
+const EnumPropertyItem pack_margin_method[] = {
+    {ED_UVPACK_MARGIN_SCALED,
+     "SCALED",
+     0,
+     "Scaled",
+     "Use scale of existing UVs to multiply margin"},
+    {ED_UVPACK_MARGIN_ADD, "ADD", 0, "Add", "Just add the margin, ignoring any UV scale"},
+    {ED_UVPACK_MARGIN_FRACTION,
+     "FRACTION",
+     0,
+     "Fraction",
+     "Specify a precise fraction of final UV output"},
+    {0, NULL, 0, NULL, NULL},
+};
 
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
@@ -1180,6 +1194,8 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
   RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -2098,6 +2114,8 @@ void UV_OT_unwrap(wmOperatorType *ot)
       0,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -2118,7 +2136,6 @@ typedef struct ThickFace {
 
 static int smart_uv_project_thickface_area_cmp_fn(const void *tf_a_p, const void *tf_b_p)
 {
-
   const ThickFace *tf_a = (ThickFace *)tf_a_p;
   const ThickFace *tf_b = (ThickFace *)tf_b_p;
 
@@ -2412,17 +2429,17 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
     /* Depsgraph refresh functions are called here. */
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
-    ED_uvedit_pack_islands_multi(scene,
-                                 objects_changed,
-                                 object_changed_len,
-                                 NULL,
-                                 &(struct UVPackIsland_Params){
-                                     .rotate = true,
-                                     .only_selected_uvs = only_selected_uvs,
-                                     .only_selected_faces = true,
-                                     .correct_aspect = correct_aspect,
-                                     .use_seams = true,
-                                 });
+
+    const struct UVPackIsland_Params params = {
+        .rotate = true,
+        .only_selected_uvs = only_selected_uvs,
+        .only_selected_faces = true,
+        .correct_aspect = correct_aspect,
+        .use_seams = true,
+        .margin_method = RNA_enum_get(op->ptr, "margin_method"),
+        .margin = RNA_float_get(op->ptr, "island_margin"),
+    };
+    ED_uvedit_pack_islands_multi(scene, objects_changed, object_changed_len, NULL, &params);
 
     /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
@@ -2464,6 +2481,8 @@ void UV_OT_smart_project(wmOperatorType *ot)
                                 DEG2RADF(89.0f));
   RNA_def_property_float_default(prop, DEG2RADF(66.0f));
 
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float(ot->srna,
                 "island_margin",
                 0.0f,
