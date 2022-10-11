@@ -132,22 +132,21 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
   ViewContext vc;
   em_setup_viewcontext(C, &vc);
 
-  /* TODO: Ideally meshes would occlude each other, currently they don't
-   * since each knife-project runs as a separate operation. */
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &objects_len);
+
+  EDBM_mesh_knife(&vc, objects, objects_len, polys, true, cut_through);
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ED_view3d_viewcontext_init_object(&vc, obedit);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    EDBM_mesh_knife(&vc, polys, true, cut_through);
-
     /* select only tagged faces */
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-    EDBM_selectmode_disable_multi(C, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
+    EDBM_selectmode_disable(scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 
     BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 

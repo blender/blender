@@ -218,6 +218,7 @@ typedef struct KnifeTool_OpData {
   /* Used for swapping current object when in multi-object edit mode. */
   Object **objects;
   uint objects_len;
+  bool objects_free;
 
   /** Array `objects_len` length of additional per-object data. */
   KnifeObjectInfo *objects_info;
@@ -4081,6 +4082,8 @@ static void knife_init_colors(KnifeColors *colors)
 /* called when modal loop selection gets set up... */
 static void knifetool_init(ViewContext *vc,
                            KnifeTool_OpData *kcd,
+                           Object **objects,
+                           const int objects_len,
                            const bool only_select,
                            const bool cut_through,
                            const bool xray,
@@ -4101,8 +4104,16 @@ static void knifetool_init(ViewContext *vc,
   kcd->scene = scene;
   kcd->region = vc->region;
 
-  kcd->objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc->scene, vc->view_layer, vc->v3d, &kcd->objects_len);
+  if (objects) {
+    kcd->objects = objects;
+    kcd->objects_len = objects_len;
+    kcd->objects_free = false;
+  }
+  else {
+    kcd->objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        vc->scene, vc->view_layer, vc->v3d, &kcd->objects_len);
+    kcd->objects_free = true;
+  }
 
   Object *ob;
   BMEditMesh *em;
@@ -4225,7 +4236,9 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   }
 
   /* Free object bases. */
-  MEM_freeN(kcd->objects);
+  if (kcd->objects_free) {
+    MEM_freeN(kcd->objects);
+  }
 
   /* Destroy kcd itself. */
   MEM_freeN(kcd);
@@ -4318,9 +4331,15 @@ static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *
 /* Called on tool confirmation. */
 static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 {
+  /* Separate pre/post passes are needed because `em->looptris` recalculation from the 'post' pass
+   * causes causes triangle indices in #KnifeTool_OpData.bvh to get out of sync.
+   * So perform all the cuts before doing any mesh recalculation, see: T101721. */
   for (uint b = 0; b < kcd->objects_len; b++) {
     Object *ob = kcd->objects[b];
     knifetool_finish_single_pre(kcd, ob);
+  }
+  for (uint b = 0; b < kcd->objects_len; b++) {
+    Object *ob = kcd->objects[b];
     knifetool_finish_single_post(kcd, ob);
   }
 }
@@ -4789,6 +4808,8 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   knifetool_init(&vc,
                  kcd,
+                 NULL,
+                 0,
                  only_select,
                  cut_through,
                  xray,
@@ -4942,7 +4963,12 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   return false;
 }
 
-void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
+void EDBM_mesh_knife(ViewContext *vc,
+                     Object **objects,
+                     const int objects_len,
+                     LinkNode *polys,
+                     bool use_tag,
+                     bool cut_through)
 {
   KnifeTool_OpData *kcd;
 
@@ -4959,6 +4985,8 @@ void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_th
 
     knifetool_init(vc,
                    kcd,
+                   objects,
+                   objects_len,
                    only_select,
                    cut_through,
                    xray,
@@ -5000,18 +5028,21 @@ void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_th
 
   /* Finish. */
   {
-    Object *ob;
-    BMEditMesh *em;
+    /* See #knifetool_finish_ex for why multiple passes are needed. */
     for (uint b = 0; b < kcd->objects_len; b++) {
-
-      ob = kcd->objects[b];
-      em = BKE_editmesh_from_object(ob);
+      Object *ob = kcd->objects[b];
+      BMEditMesh *em = BKE_editmesh_from_object(ob);
 
       if (use_tag) {
         BM_mesh_elem_hflag_enable_all(em->bm, BM_EDGE, BM_ELEM_TAG, false);
       }
 
       knifetool_finish_single_pre(kcd, ob);
+    }
+
+    for (uint b = 0; b < kcd->objects_len; b++) {
+      Object *ob = kcd->objects[b];
+      BMEditMesh *em = BKE_editmesh_from_object(ob);
 
       /* Tag faces inside! */
       if (use_tag) {
@@ -5104,9 +5135,12 @@ void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_th
 #undef F_ISECT_SET_UNKNOWN
 #undef F_ISECT_SET_OUTSIDE
       }
+    }
 
+    for (uint b = 0; b < kcd->objects_len; b++) {
       /* Defer freeing data until the BVH tree is finished with, see: #point_is_visible and
        * the doc-string for #knifetool_finish_single_post. */
+      Object *ob = kcd->objects[b];
       knifetool_finish_single_post(kcd, ob);
     }
 
