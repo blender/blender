@@ -2287,9 +2287,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
-  sculpt_attribute_update_refs(ob);
-
   ob->sculpt->pbvh = pbvh;
+
+  sculpt_attribute_update_refs(ob);
   return pbvh;
 }
 
