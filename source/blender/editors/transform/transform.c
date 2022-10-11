@@ -1518,26 +1518,26 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  bool use_prop_edit = false;
-  int prop_edit_flag = 0;
-  if (t->flag & T_PROP_EDIT_ALL) {
-    if (t->flag & T_PROP_EDIT) {
-      use_prop_edit = true;
+  /* Save proportional edit settings.
+   * Skip saving proportional edit if it was not actually used. */
+  if (!(t->options & CTX_NO_PET)) {
+    bool use_prop_edit = false;
+    int prop_edit_flag = 0;
+    if (t->flag & T_PROP_EDIT_ALL) {
+      if (t->flag & T_PROP_EDIT) {
+        use_prop_edit = true;
+      }
+      if (t->flag & T_PROP_CONNECTED) {
+        prop_edit_flag |= PROP_EDIT_CONNECTED;
+      }
+      if (t->flag & T_PROP_PROJECTED) {
+        prop_edit_flag |= PROP_EDIT_PROJECTED;
+      }
     }
-    if (t->flag & T_PROP_CONNECTED) {
-      prop_edit_flag |= PROP_EDIT_CONNECTED;
-    }
-    if (t->flag & T_PROP_PROJECTED) {
-      prop_edit_flag |= PROP_EDIT_PROJECTED;
-    }
-  }
 
-  /* If modal, save settings back in scene if not set as operator argument */
-  if ((t->flag & T_MODAL) || (op->flag & OP_IS_REPEAT)) {
-    /* save settings if not set in operator */
-
-    /* skip saving proportional edit if it was not actually used */
-    if (!(t->options & CTX_NO_PET)) {
+    /* If modal, save settings back in scene if not set as operator argument */
+    if ((t->flag & T_MODAL) || (op->flag & OP_IS_REPEAT)) {
+      /* save settings if not set in operator */
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
         BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -1575,6 +1575,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           !RNA_property_is_set(op->ptr, prop)) {
         ts->prop_mode = t->prop_mode;
       }
+    }
+
+    if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
+      RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
+      RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
+      RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
+      RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
+      RNA_float_set(op->ptr, "proportional_size", t->prop_size);
     }
   }
 
@@ -1633,14 +1641,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         }
       }
     }
-  }
-
-  if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
-    RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
-    RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
-    RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
-    RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
-    RNA_float_set(op->ptr, "proportional_size", t->prop_size);
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
