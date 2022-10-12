@@ -39,10 +39,10 @@
 #include "BLT_translation.h"
 
 #include "BKE_appdir.h"
+#include "BKE_asset_library_custom.h"
 #include "BKE_context.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
-#include "BKE_preferences.h"
 
 #include "BLF_api.h"
 
@@ -409,14 +409,14 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
   AssetLibraryReference *library = &asset_params->asset_library_ref;
   FileSelectParams *base_params = &asset_params->base_params;
-  bUserAssetLibrary *user_library = NULL;
+  CustomAssetLibraryDefinition *user_library = NULL;
 
   /* Ensure valid repository, or fall-back to local one. */
   if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
-    user_library = BKE_preferences_asset_library_find_from_index(&U,
-                                                                 library->custom_library_index);
+    user_library = BKE_asset_library_custom_find_from_index(&U.asset_libraries,
+                                                            library->custom_library_index);
     if (!user_library) {
       library->type = ASSET_LIBRARY_LOCAL;
     }

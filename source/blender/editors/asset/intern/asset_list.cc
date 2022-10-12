@@ -12,6 +12,7 @@
 #include <optional>
 #include <string>
 
+#include "BKE_asset_library_custom.h"
 #include "BKE_context.h"
 
 #include "BLI_map.hh"
@@ -19,8 +20,6 @@
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"
-
-#include "BKE_preferences.h"
 
 #include "ED_fileselect.h"
 
@@ -131,14 +130,14 @@ void AssetList::setup()
 {
   FileList *files = filelist_;
 
-  bUserAssetLibrary *user_library = nullptr;
+  CustomAssetLibraryDefinition *user_library = nullptr;
 
   /* Ensure valid repository, or fall-back to local one. */
   if (library_ref_.type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library_ref_.custom_library_index >= 0);
 
-    user_library = BKE_preferences_asset_library_find_from_index(
-        &U, library_ref_.custom_library_index);
+    user_library = BKE_asset_library_custom_find_from_index(&U.asset_libraries,
+                                                            library_ref_.custom_library_index);
   }
 
   /* Relevant bits from file_refresh(). */

@@ -556,7 +556,6 @@ const EnumPropertyItem rna_enum_project_settings_section_items[] = {
 #  include "BKE_layer.h"
 #  include "BKE_nla.h"
 #  include "BKE_paint.h"
-#  include "BKE_preferences.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
 #  include "BKE_workspace.h"

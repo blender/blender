@@ -2,6 +2,9 @@
 
 /** \file
  * \ingroup DNA
+ *
+ * Only contains types that need writing to files or that are accessed directly via RNA (as opposed
+ * to being opaque types accessed via an API).
  */
 
 #pragma once
@@ -88,10 +91,8 @@ typedef enum eAssetLibraryType {
   // ASSET_LIBRARY_PROJECT = 2,
 
   /** Display assets from custom asset libraries, as defined in the preferences
-   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
-   * then.
-   * In RNA, we add the index of the custom library to this to identify it by index. So keep
-   * this last! */
+   * (#CustomAssetLibraryDefinition). In RNA, we add the index of the custom library to this to
+   * identify it by index. So keep this last! */
   ASSET_LIBRARY_CUSTOM = 100,
 } eAssetLibraryType;
 
@@ -107,11 +108,18 @@ typedef struct AssetLibraryReference {
   char _pad1[2];
   /**
    * If showing a custom asset library (#ASSET_LIBRARY_CUSTOM), this is the index of the
-   * #bUserAssetLibrary within #UserDef.asset_libraries.
+   * #CustomAssetLibraryDefinition within #UserDef.asset_libraries.
    * Should be ignored otherwise (but better set to -1 then, for sanity and debugging).
    */
   int custom_library_index;
 } AssetLibraryReference;
+
+typedef struct CustomAssetLibraryDefinition {
+  struct CustomAssetLibraryDefinition *next, *prev;
+
+  char name[64];   /* MAX_NAME */
+  char path[1024]; /* FILE_MAX */
+} CustomAssetLibraryDefinition;
 
 /**
  * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry

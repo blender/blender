@@ -22,6 +22,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_addon.h"
+#include "BKE_asset_library_custom.h"
 #include "BKE_blender_version.h"
 #include "BKE_colorband.h"
 #include "BKE_idprop.h"
@@ -679,7 +680,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(292, 9)) {
     if (BLI_listbase_is_empty(&userdef->asset_libraries)) {
-      BKE_preferences_asset_library_default_add(userdef);
+      BKE_preferences_custom_asset_library_default_add(userdef);
     }
   }
 
@@ -732,11 +733,11 @@ void blo_do_versions_userdef(UserDef *userdef)
      * since it doesn't handle translations and ignores user changes. But this was an alpha build
      * (experimental) feature and the name is just for display in the UI anyway. So it doesn't have
      * to work perfectly at all. */
-    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+    LISTBASE_FOREACH (CustomAssetLibraryDefinition *, asset_library, &userdef->asset_libraries) {
       /* Ignores translations, since that would depend on the current preferences (global `U`). */
       if (STREQ(asset_library->name, "Default")) {
-        BKE_preferences_asset_library_name_set(
-            userdef, asset_library, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME);
+        BKE_asset_library_custom_name_set(
+            &userdef->asset_libraries, asset_library, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME);
       }
     }
   }

@@ -19,6 +19,7 @@
 
 #  include "BKE_asset.h"
 #  include "BKE_asset_library.h"
+#  include "BKE_asset_library_custom.h"
 #  include "BKE_context.h"
 #  include "BKE_idprop.h"
 
@@ -29,6 +30,9 @@
 #  include "ED_fileselect.h"
 
 #  include "RNA_access.h"
+
+#  include "WM_api.h"
+#  include "WM_types.h"
 
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
                                                      const AssetMetaData *asset_data,
@@ -252,6 +256,41 @@ void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *
 
   AssetMetaData *asset_data = ptr->data;
   BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+}
+
+static bool rna_CustomAssetLibraryDefinition_is_from_prefs(
+    const CustomAssetLibraryDefinition *library)
+{
+  return BLI_findindex(&U.asset_libraries, library) > -1;
+}
+
+static void rna_CustomAssetLibraryDefinition_name_set(PointerRNA *ptr, const char *value)
+{
+  CustomAssetLibraryDefinition *library = (CustomAssetLibraryDefinition *)ptr->data;
+  if (!rna_CustomAssetLibraryDefinition_is_from_prefs(library)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  BKE_asset_library_custom_name_set(&U.asset_libraries, library, value);
+}
+
+static void rna_CustomAssetLibraryDefinition_path_set(PointerRNA *ptr, const char *value)
+{
+  CustomAssetLibraryDefinition *library = (CustomAssetLibraryDefinition *)ptr->data;
+  if (!rna_CustomAssetLibraryDefinition_is_from_prefs(library)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  BKE_asset_library_custom_path_set(library, value);
+}
+
+void rna_AssetLibrary_settings_update(Main *UNUSED(bmain),
+                                      Scene *UNUSED(scene),
+                                      PointerRNA *UNUSED(ptr))
+{
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIBRARY, NULL);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
@@ -479,6 +518,30 @@ static void rna_def_asset_library_reference(BlenderRNA *brna)
       srna, "Asset Library Reference", "Identifier to refer to the asset library");
 }
 
+static void rna_def_asset_library_reference_custom(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CustomAssetLibraryDefinition", NULL);
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(
+      srna, "Asset Library", "Settings to define a reusable library for Asset Browsers to use");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Name", "Identifier (not necessarily unique) for the asset library");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CustomAssetLibraryDefinition_name_set");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_ui_text(
+      prop, "Path", "Path to a directory with .blend files to use as an asset library");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CustomAssetLibraryDefinition_path_set");
+  RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
+}
+
 PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
                                                     const char *get,
                                                     const char *set)
@@ -497,6 +560,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_tag(brna);
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
+  rna_def_asset_library_reference_custom(brna);
   rna_def_asset_handle(brna);
 
   RNA_define_animate_sdna(true);

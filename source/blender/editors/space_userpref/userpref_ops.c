@@ -16,9 +16,9 @@
 #endif
 #include "BLI_path_util.h"
 
+#include "BKE_asset_library_custom.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_preferences.h"
 
 #include "BKE_report.h"
 
@@ -134,7 +134,7 @@ static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *o
   BLI_split_file_part(path, dirname, sizeof(dirname));
 
   /* NULL is a valid directory path here. A library without path will be created then. */
-  BKE_preferences_asset_library_add(&U, dirname, path);
+  BKE_asset_library_custom_add(&U.asset_libraries, dirname, path);
   U.runtime.is_dirty = true;
 
   /* There's no dedicated notifier for the Preferences. */
@@ -185,9 +185,9 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 static int preferences_asset_library_remove_exec(bContext *UNUSED(C), wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
-  bUserAssetLibrary *library = BLI_findlink(&U.asset_libraries, index);
+  CustomAssetLibraryDefinition *library = BLI_findlink(&U.asset_libraries, index);
   if (library) {
-    BKE_preferences_asset_library_remove(&U, library);
+    BKE_asset_library_custom_remove(&U.asset_libraries, library);
     U.runtime.is_dirty = true;
     /* Trigger refresh for the Asset Browser. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);

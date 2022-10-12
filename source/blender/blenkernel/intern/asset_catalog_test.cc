@@ -3,7 +3,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_asset_catalog.hh"
-#include "BKE_preferences.h"
+#include "BKE_asset_library_custom.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -213,8 +213,8 @@ class AssetCatalogTest : public testing::Test {
     BLI_path_slash_native(cdf_in_subdir.data());
 
     /* Set up a temporary asset library for testing. */
-    bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_add(
-        &U, "Test", registered_asset_lib.c_str());
+    CustomAssetLibraryDefinition *asset_lib_pref = BKE_asset_library_custom_add(
+        &U.asset_libraries, "Test", registered_asset_lib.c_str());
     ASSERT_NE(nullptr, asset_lib_pref);
     ASSERT_TRUE(BLI_dir_create_recursive(asset_lib_subdir.c_str()));
 
@@ -265,7 +265,7 @@ class AssetCatalogTest : public testing::Test {
     /* Test that the "red herring" CDF has not been touched. */
     EXPECT_EQ(0, BLI_file_size(cdf_in_subdir.c_str()));
 
-    BKE_preferences_asset_library_remove(&U, asset_lib_pref);
+    BKE_asset_library_custom_remove(&U.asset_libraries, asset_lib_pref);
   }
 };
 

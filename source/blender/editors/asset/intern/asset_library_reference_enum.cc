@@ -11,7 +11,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_preferences.h"
+#include "BKE_asset_library_custom.h"
 
 #include "DNA_userdef_types.h"
 
@@ -30,8 +30,8 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
 
   /* Note that the path isn't checked for validity here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, library->custom_library_index);
+  const CustomAssetLibraryDefinition *user_library = BKE_asset_library_custom_find_from_index(
+      &U.asset_libraries, library->custom_library_index);
   if (user_library) {
     return ASSET_LIBRARY_CUSTOM + library->custom_library_index;
   }
@@ -51,8 +51,8 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
     return library;
   }
 
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, value - ASSET_LIBRARY_CUSTOM);
+  const CustomAssetLibraryDefinition *user_library = BKE_asset_library_custom_find_from_index(
+      &U.asset_libraries, value - ASSET_LIBRARY_CUSTOM);
 
   /* Note that there is no check if the path exists here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
@@ -98,7 +98,7 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
   }
 
   int i;
-  LISTBASE_FOREACH_INDEX (bUserAssetLibrary *, user_library, &U.asset_libraries, i) {
+  LISTBASE_FOREACH_INDEX (CustomAssetLibraryDefinition *, user_library, &U.asset_libraries, i) {
     /* Note that the path itself isn't checked for validity here. If an invalid library path is
      * used, the Asset Browser can give a nice hint on what's wrong. */
     const bool is_valid = (user_library->name[0] && user_library->path[0]);

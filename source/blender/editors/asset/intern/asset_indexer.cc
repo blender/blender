@@ -26,7 +26,6 @@
 #include "BKE_asset.h"
 #include "BKE_asset_catalog.hh"
 #include "BKE_idprop.hh"
-#include "BKE_preferences.h"
 
 #include "CLG_log.h"
 

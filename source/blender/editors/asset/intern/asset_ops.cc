@@ -5,12 +5,12 @@
  */
 
 #include "BKE_asset_library.hh"
+#include "BKE_asset_library_custom.h"
 #include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_preferences.h"
 #include "BKE_report.h"
 
 #include "BLI_fileops.h"
@@ -669,7 +669,7 @@ static void ASSET_OT_catalogs_save(struct wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 
 static bool could_be_asset_bundle(const Main *bmain);
-static const bUserAssetLibrary *selected_asset_library(struct wmOperator *op);
+static const CustomAssetLibraryDefinition *selected_asset_library(struct wmOperator *op);
 static bool is_contained_in_selected_asset_library(struct wmOperator *op, const char *filepath);
 static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op);
 static bool has_external_files(Main *bmain, struct ReportList *reports);
@@ -691,8 +691,8 @@ static bool asset_bundle_install_poll(bContext *C)
   }
 
   /* Check whether this file is already located inside any asset library. */
-  const struct bUserAssetLibrary *asset_lib = BKE_preferences_asset_library_containing_path(
-      &U, bmain->filepath);
+  const struct CustomAssetLibraryDefinition *asset_lib = BKE_asset_library_custom_containing_path(
+      &U.asset_libraries, bmain->filepath);
   if (asset_lib) {
     return false;
   }
@@ -763,7 +763,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
     return operator_result;
   }
 
-  const bUserAssetLibrary *lib = selected_asset_library(op);
+  const CustomAssetLibraryDefinition *lib = selected_asset_library(op);
   BLI_assert_msg(lib, "If the asset library is not known, how did we get here?");
   BKE_reportf(op->reports,
               RPT_INFO,
@@ -823,18 +823,18 @@ static bool could_be_asset_bundle(const Main *bmain)
   return fnmatch("*_bundle.blend", bmain->filepath, FNM_CASEFOLD) == 0;
 }
 
-static const bUserAssetLibrary *selected_asset_library(struct wmOperator *op)
+static const CustomAssetLibraryDefinition *selected_asset_library(struct wmOperator *op)
 {
   const int enum_value = RNA_enum_get(op->ptr, "asset_library_ref");
   const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
-  const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_from_index(
-      &U, lib_ref.custom_library_index);
+  const CustomAssetLibraryDefinition *lib = BKE_asset_library_custom_find_from_index(
+      &U.asset_libraries, lib_ref.custom_library_index);
   return lib;
 }
 
 static bool is_contained_in_selected_asset_library(struct wmOperator *op, const char *filepath)
 {
-  const bUserAssetLibrary *lib = selected_asset_library(op);
+  const CustomAssetLibraryDefinition *lib = selected_asset_library(op);
   if (!lib) {
     return false;
   }
@@ -848,7 +848,7 @@ static bool is_contained_in_selected_asset_library(struct wmOperator *op, const 
 static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
 {
   /* Find the directory path of the selected asset library. */
-  const bUserAssetLibrary *lib = selected_asset_library(op);
+  const CustomAssetLibraryDefinition *lib = selected_asset_library(op);
   if (lib == nullptr) {
     return false;
   }

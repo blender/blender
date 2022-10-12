@@ -74,6 +74,7 @@ set(SRC
   intern/asset_catalog.cc
   intern/asset_catalog_path.cc
   intern/asset_library.cc
+  intern/asset_library_custom.cc
   intern/asset_library_service.cc
   intern/attribute.cc
   intern/attribute_access.cc
@@ -324,6 +325,7 @@ set(SRC
   BKE_asset_catalog_path.hh
   BKE_asset_library.h
   BKE_asset_library.hh
+  BKE_asset_library_custom.h
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh

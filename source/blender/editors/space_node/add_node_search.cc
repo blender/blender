@@ -123,7 +123,8 @@ static void gather_search_items_for_all_assets(const bContext &C,
                                                Vector<AddNodeItem> &search_items)
 {
   int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+  LISTBASE_FOREACH_INDEX (
+      const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
     library_ref.type = ASSET_LIBRARY_CUSTOM;

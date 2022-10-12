@@ -498,6 +498,9 @@ typedef struct wmNotifier {
  * reloading of asset libraries & their catalogs should happen. That only happens on explicit user
  * action. */
 #define ND_ASSET_CATALOGS (4 << 16)
+/* Some settings of an asset library were changed, and UIs showing asset library information should
+ * redraw. */
+#define ND_ASSET_LIBRARY (5 << 16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE 0x0000FF00

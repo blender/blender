@@ -2,26 +2,17 @@
 
 /** \file
  * \ingroup bke
- *
- * User defined asset library API.
  */
 
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_string_utils.h"
 
 #include "BKE_appdir.h"
+#include "BKE_asset_library_custom.h"
 #include "BKE_preferences.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
@@ -30,79 +21,7 @@
 /** \name Asset Libraries
  * \{ */
 
-bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
-                                                     const char *name,
-                                                     const char *path)
-{
-  bUserAssetLibrary *library = MEM_callocN(sizeof(*library), "bUserAssetLibrary");
-
-  BLI_addtail(&userdef->asset_libraries, library);
-
-  if (name) {
-    BKE_preferences_asset_library_name_set(userdef, library, name);
-  }
-  if (path) {
-    BLI_strncpy(library->path, path, sizeof(library->path));
-  }
-
-  return library;
-}
-
-void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
-{
-  BLI_freelinkN(&userdef->asset_libraries, library);
-}
-
-void BKE_preferences_asset_library_name_set(UserDef *userdef,
-                                            bUserAssetLibrary *library,
-                                            const char *name)
-{
-  BLI_strncpy_utf8(library->name, name, sizeof(library->name));
-  BLI_uniquename(&userdef->asset_libraries,
-                 library,
-                 name,
-                 '.',
-                 offsetof(bUserAssetLibrary, name),
-                 sizeof(library->name));
-}
-
-void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
-{
-  BLI_strncpy(library->path, path, sizeof(library->path));
-  if (BLI_is_file(library->path)) {
-    BLI_path_parent_dir(library->path);
-  }
-}
-
-bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(const UserDef *userdef, int index)
-{
-  return BLI_findlink(&userdef->asset_libraries, index);
-}
-
-bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(const UserDef *userdef,
-                                                                const char *name)
-{
-  return BLI_findstring(&userdef->asset_libraries, name, offsetof(bUserAssetLibrary, name));
-}
-
-bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *userdef,
-                                                                 const char *path)
-{
-  LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
-    if (BLI_path_contains(asset_lib_pref->path, path)) {
-      return asset_lib_pref;
-    }
-  }
-  return NULL;
-}
-
-int BKE_preferences_asset_library_get_index(const UserDef *userdef,
-                                            const bUserAssetLibrary *library)
-{
-  return BLI_findindex(&userdef->asset_libraries, library);
-}
-
-void BKE_preferences_asset_library_default_add(UserDef *userdef)
+void BKE_preferences_custom_asset_library_default_add(UserDef *userdef)
 {
   char documents_path[FILE_MAXDIR];
 
@@ -111,8 +30,8 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
     return;
   }
 
-  bUserAssetLibrary *library = BKE_preferences_asset_library_add(
-      userdef, DATA_(BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME), NULL);
+  CustomAssetLibraryDefinition *library = BKE_asset_library_custom_add(
+      &userdef->asset_libraries, DATA_(BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME), NULL);
 
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
   BLI_path_join(

@@ -42,6 +42,7 @@
 
 #include "BKE_asset.h"
 #include "BKE_asset_library.h"
+#include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -50,7 +51,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_idmap.h"
-#include "BKE_preferences.h"
 #include "BLO_readfile.h"
 
 #include "DNA_asset_types.h"
@@ -1040,8 +1040,8 @@ static bool filelist_compare_asset_libraries(const AssetLibraryReference *librar
   }
   if (library_a->type == ASSET_LIBRARY_CUSTOM) {
     /* Don't only check the index, also check that it's valid. */
-    bUserAssetLibrary *library_ptr_a = BKE_preferences_asset_library_find_from_index(
-        &U, library_a->custom_library_index);
+    CustomAssetLibraryDefinition *library_ptr_a = BKE_asset_library_custom_find_from_index(
+        &U.asset_libraries, library_a->custom_library_index);
     return (library_ptr_a != nullptr) &&
            (library_a->custom_library_index == library_b->custom_library_index);
   }

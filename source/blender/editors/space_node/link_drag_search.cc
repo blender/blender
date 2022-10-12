@@ -243,7 +243,8 @@ static void gather_search_link_ops_for_all_assets(const bContext &C,
                                                   Vector<SocketLinkOperation> &search_link_ops)
 {
   int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+  LISTBASE_FOREACH_INDEX (
+      const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
     library_ref.type = ASSET_LIBRARY_CUSTOM;

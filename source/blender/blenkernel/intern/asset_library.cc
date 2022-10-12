@@ -7,8 +7,8 @@
 #include <memory>
 
 #include "BKE_asset_library.hh"
+#include "BKE_asset_library_custom.h"
 #include "BKE_main.h"
-#include "BKE_preferences.h"
 
 #include "BLI_path_util.h"
 
@@ -45,8 +45,8 @@ bool BKE_asset_library_has_any_unsaved_catalogs()
 bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
                                                          char *r_library_path)
 {
-  if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
-          &U, input_path)) {
+  if (CustomAssetLibraryDefinition *preferences_lib = BKE_asset_library_custom_containing_path(
+          &U.asset_libraries, input_path)) {
     BLI_strncpy(r_library_path, preferences_lib->path, FILE_MAXDIR);
     return true;
   }
