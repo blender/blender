@@ -627,9 +627,9 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
+        layout.operator("screen.project_settings_show", text="Project Settings...")
         layout.operator("screen.userpref_show",
                         text="Preferences...", icon='PREFERENCES')
-        layout.operator("screen.project_settings_show", text="Project Settings...")
 
 
 class TOPBAR_MT_window(Menu):
@@ -753,9 +753,9 @@ class TOPBAR_MT_file_context_menu(Menu):
 
         layout.separator()
 
+        layout.operator("screen.project_settings_show", text="Project Settings...")
         layout.operator("screen.userpref_show",
                         text="Preferences...", icon='PREFERENCES')
-        layout.operator("screen.project_settings_show", text="Project Settings...")
 
 
 class TOPBAR_MT_workspace_menu(Menu):
