@@ -110,12 +110,12 @@ GPU_SHADER_CREATE_INFO(overlay_extra_wire)
 GPU_SHADER_CREATE_INFO(overlay_extra_wire_select)
     .do_static_compilation(true)
     .define("SELECT_EDGES")
-    .additional_info("overlay_extra_wire", "drw_clipped");
+    .additional_info("overlay_extra_wire");
 
 GPU_SHADER_CREATE_INFO(overlay_extra_wire_object)
     .do_static_compilation(true)
     .define("OBJECT_WIRE")
-    .additional_info("overlay_extra_wire", "drw_clipped");
+    .additional_info("overlay_extra_wire");
 
 GPU_SHADER_CREATE_INFO(overlay_extra_wire_select_clipped)
     .do_static_compilation(true)

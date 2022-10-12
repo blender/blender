@@ -5242,6 +5242,11 @@ static void def_sh_attribute(StructRNA *srna)
        "The attribute is associated with the instancer particle system or object, "
        "falling back to the Object mode if the attribute isn't found, or the object "
        "is not instanced"},
+      {SHD_ATTRIBUTE_VIEW_LAYER,
+       "VIEW_LAYER",
+       0,
+       "View Layer",
+       "The attribute is associated with the View Layer, Scene or World that is being rendered"},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop;
@@ -5504,6 +5509,7 @@ static void def_sh_tex_image(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
@@ -5568,6 +5574,7 @@ static void def_geo_image_texture(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 

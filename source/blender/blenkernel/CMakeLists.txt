@@ -226,7 +226,7 @@ set(SRC
   intern/mesh_wrapper.cc
   intern/modifier.cc
   intern/movieclip.c
-  intern/multires.c
+  intern/multires.cc
   intern/multires_reshape.c
   intern/multires_reshape_apply_base.c
   intern/multires_reshape_ccg.c
@@ -270,14 +270,14 @@ set(SRC
   intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
-  intern/shrinkwrap.c
+  intern/shrinkwrap.cc
   intern/simulation.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
   intern/studiolight.c
   intern/subdiv.c
-  intern/subdiv_ccg.c
+  intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.c
   intern/subdiv_ccg_material.c
   intern/subdiv_converter.c
@@ -288,7 +288,7 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.cc
-  intern/subdiv_modifier.c
+  intern/subdiv_modifier.cc
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c

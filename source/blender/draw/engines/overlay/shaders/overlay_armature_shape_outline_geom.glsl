@@ -56,7 +56,7 @@ void main(void)
 
   gl_Position = geom_in[1].pPos;
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += (edge_dir - perp) * drw_view.viewport_size_inverse * gl_Position.w;
+  gl_Position.xy += (edge_dir - perp) * sizeViewportInv * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
   gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
@@ -65,7 +65,7 @@ void main(void)
 
   gl_Position = geom_in[2].pPos;
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += (edge_dir + perp) * drw_view.viewport_size_inverse * gl_Position.w;
+  gl_Position.xy += (edge_dir + perp) * sizeViewportInv * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
   gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;

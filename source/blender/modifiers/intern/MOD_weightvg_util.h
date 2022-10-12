@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CurveMapping;
 struct MDeformVert;
 struct MDeformWeight;
@@ -101,3 +105,7 @@ void weightvg_update_vg(struct MDeformVert *dvert,
  * Common vertex weight mask interface elements for the modifier panels.
  */
 void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, uiLayout *layout);
+
+#ifdef __cplusplus
+}
+#endif

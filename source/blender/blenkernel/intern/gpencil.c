@@ -83,8 +83,8 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     /* Apply local layer transform to all frames. Calc the active frame is not enough
      * because onion skin can use more frames. This is more slow but required here. */
     if (gpl_dst->actframe != NULL) {
-      bool transformed = ((!is_zero_v3(gpl_dst->location)) || (!is_zero_v3(gpl_dst->rotation)) ||
-                          (!is_one_v3(gpl_dst->scale)));
+      bool transformed = (!is_zero_v3(gpl_dst->location) || !is_zero_v3(gpl_dst->rotation) ||
+                          !is_one_v3(gpl_dst->scale));
       if (transformed) {
         loc_eul_size_to_mat4(
             gpl_dst->layer_mat, gpl_dst->location, gpl_dst->rotation, gpl_dst->scale);
@@ -2013,7 +2013,7 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       /* Read secondary material to compare with primary material. */
       ma_secondary = BKE_gpencil_material(ob, idx_secondary + 1);
       if ((ma_secondary == NULL) ||
-          (BLI_ghash_haskey(r_mat_table, POINTER_FROM_INT(idx_secondary)))) {
+          BLI_ghash_haskey(r_mat_table, POINTER_FROM_INT(idx_secondary))) {
         continue;
       }
       gp_style_primary = ma_primary->gp_style;
@@ -2063,17 +2063,17 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       rgb_to_hsv_compat_v(col, f_hsv_b);
 
       /* Check stroke and fill color. */
-      if ((!compare_ff(s_hsv_a[0], s_hsv_b[0], hue_threshold)) ||
-          (!compare_ff(s_hsv_a[1], s_hsv_b[1], sat_threshold)) ||
-          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold)) ||
-          (!compare_ff(f_hsv_a[0], f_hsv_b[0], hue_threshold)) ||
-          (!compare_ff(f_hsv_a[1], f_hsv_b[1], sat_threshold)) ||
-          (!compare_ff(f_hsv_a[2], f_hsv_b[2], val_threshold)) ||
-          (!compare_ff(gp_style_primary->stroke_rgba[3],
-                       gp_style_secondary->stroke_rgba[3],
-                       val_threshold)) ||
-          (!compare_ff(
-              gp_style_primary->fill_rgba[3], gp_style_secondary->fill_rgba[3], val_threshold))) {
+      if (!compare_ff(s_hsv_a[0], s_hsv_b[0], hue_threshold) ||
+          !compare_ff(s_hsv_a[1], s_hsv_b[1], sat_threshold) ||
+          !compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold) ||
+          !compare_ff(f_hsv_a[0], f_hsv_b[0], hue_threshold) ||
+          !compare_ff(f_hsv_a[1], f_hsv_b[1], sat_threshold) ||
+          !compare_ff(f_hsv_a[2], f_hsv_b[2], val_threshold) ||
+          !compare_ff(gp_style_primary->stroke_rgba[3],
+                      gp_style_secondary->stroke_rgba[3],
+                      val_threshold) ||
+          !compare_ff(
+              gp_style_primary->fill_rgba[3], gp_style_secondary->fill_rgba[3], val_threshold)) {
         continue;
       }
 
@@ -2337,7 +2337,7 @@ bool BKE_gpencil_from_image(
 static bool gpencil_is_layer_mask(ViewLayer *view_layer, bGPdata *gpd, bGPDlayer *gpl_mask)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    if ((gpl->viewlayername[0] != '\0') && (!STREQ(view_layer->name, gpl->viewlayername))) {
+    if ((gpl->viewlayername[0] != '\0') && !STREQ(view_layer->name, gpl->viewlayername)) {
       continue;
     }
 
@@ -2412,7 +2412,7 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
                                               int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && (!GPENCIL_PLAY_ON(gpd)));
+  const bool is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !GPENCIL_PLAY_ON(gpd));
   const bool is_onion = do_onion && ((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0);
   const bool is_drawing = (gpd->runtime.sbuffer_used > 0);
 
@@ -2444,7 +2444,7 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
      * generate renders, putting only selected GP layers for each View Layer.
      * This is used only in final render and never in Viewport. */
     if ((view_layer != NULL) && (gpl->viewlayername[0] != '\0') &&
-        (!STREQ(view_layer->name, gpl->viewlayername))) {
+        !STREQ(view_layer->name, gpl->viewlayername)) {
       /* Do not skip masks when rendering the view-layer so that it can still be used to clip
        * other layers. Instead set their opacity to zero. */
       if (gpencil_is_layer_mask(view_layer, gpd, gpl)) {
@@ -2786,8 +2786,8 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
     }
 
     /* Calc local layer transform. Early out if we have non-animated zero transforms. */
-    bool transformed = ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) ||
-                        (!is_one_v3(gpl->scale)));
+    bool transformed = (!is_zero_v3(gpl->location) || !is_zero_v3(gpl->rotation) ||
+                        !is_one_v3(gpl->scale));
     float tmp_mat[4][4];
     loc_eul_size_to_mat4(tmp_mat, gpl->location, gpl->rotation, gpl->scale);
     transformed |= !equals_m4m4(gpl->layer_mat, tmp_mat);
@@ -2834,7 +2834,7 @@ int BKE_gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_
   for (int i = 0; i < ob->totcol; i++) {
     Material *ma = BKE_object_material_get(ob, i + 1);
     if ((ma != NULL) && (ma->gp_style != NULL) &&
-        (STREQLEN(ma->id.name + 2, name_prefix, name_prefix_len))) {
+        STREQLEN(ma->id.name + 2, name_prefix, name_prefix_len)) {
       return i;
     }
   }

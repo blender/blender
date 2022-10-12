@@ -162,7 +162,8 @@ static void materials_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "material_offset", 0, NULL, ICON_NONE);
   col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_rim"));
-  uiItemR(col, ptr, "material_offset_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
+  uiItemR(
+      col, ptr, "material_offset_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
 }
 
 static void edge_data_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -216,7 +217,13 @@ static void vertex_group_panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiItemPointerR(
       col, ptr, "shell_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Shell"), ICON_NONE);
-  uiItemPointerR(col, ptr, "rim_vertex_group", &ob_ptr, "vertex_groups", CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
+  uiItemPointerR(col,
+                 ptr,
+                 "rim_vertex_group",
+                 &ob_ptr,
+                 "vertex_groups",
+                 CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"),
+                 ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

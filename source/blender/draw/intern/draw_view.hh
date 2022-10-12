@@ -25,14 +25,17 @@ class View {
   friend Manager;
 
  private:
-  UniformBuffer<ViewInfos> data_;
+  UniformBuffer<ViewMatrices> data_;
+  UniformBuffer<ViewCullingData> culling_;
   /** Frozen version of data_ used for debugging culling. */
-  UniformBuffer<ViewInfos> data_freeze_;
+  UniformBuffer<ViewMatrices> data_freeze_;
+  UniformBuffer<ViewCullingData> culling_freeze_;
   /** Result of the visibility computation. 1 bit per resource ID. */
   VisibilityBuf visibility_buf_;
 
   const char *debug_name_;
 
+  bool is_inverted_ = false;
   bool do_visibility_ = true;
   bool dirty_ = true;
   bool frozen_ = false;
@@ -48,8 +51,6 @@ class View {
     this->sync(view_mat, win_mat);
   }
 
-  void set_clip_planes(Span<float4> planes);
-
   void sync(const float4x4 &view_mat, const float4x4 &win_mat);
 
   bool is_persp() const
@@ -59,7 +60,7 @@ class View {
 
   bool is_inverted() const
   {
-    return data_.is_inverted;
+    return is_inverted_;
   }
 
   float far_clip() const
@@ -83,7 +84,6 @@ class View {
   void bind();
   void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
 
-  void update_view_vectors();
   void update_viewport_size();
 
   void frustum_boundbox_calc(BoundBox &bbox);

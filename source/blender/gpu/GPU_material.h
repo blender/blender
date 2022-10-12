@@ -162,6 +162,7 @@ GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
                                    const char *name,
                                    bool use_dupli,
                                    uint32_t *r_hash);
+GPUNodeLink *GPU_layer_attribute(GPUMaterial *mat, const char *name);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,
@@ -356,6 +357,20 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+typedef struct GPULayerAttr {
+  struct GPULayerAttr *next, *prev;
+
+  /* Meaningful part of the attribute set key. */
+  char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  /** Hash of name[64]. */
+  uint32_t hash_code;
+
+  /* Helper fields used by code generation. */
+  int users;
+} GPULayerAttr;
+
+const ListBase *GPU_material_layer_attributes(const GPUMaterial *material);
 
 /* A callback passed to GPU_material_from_callbacks to construct the material graph by adding and
  * linking the necessary GPU material nodes. */

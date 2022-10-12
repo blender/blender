@@ -683,8 +683,6 @@ const DRWView *DRW_view_get_active(void);
  * \note planes must be in world space.
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
-void DRW_view_camtexco_set(DRWView *view, float texco[4]);
-void DRW_view_camtexco_get(const DRWView *view, float r_texco[4]);
 
 /* For all getters, if view is NULL, default view is assumed. */
 
@@ -740,7 +738,6 @@ void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4]);
 
 const float *DRW_viewport_size_get(void);
 const float *DRW_viewport_invert_size_get(void);
-const float *DRW_viewport_screenvecs_get(void);
 const float *DRW_viewport_pixelsize_get(void);
 
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);

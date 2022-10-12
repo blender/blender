@@ -1777,6 +1777,8 @@ typedef struct Scene {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
+  /* runtime (must be immediately after id for utilities to use it). */
+  DrawDataList drawdata;
 
   struct Object *camera;
   struct World *world;

@@ -96,8 +96,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     /* convert border to 3d coordinates */
-    if ((!ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p)) ||
-        (!ED_view3d_unproject_v3(region, rect.xmin, rect.ymin, depth_close, p_corner))) {
+    if (!ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p) ||
+        !ED_view3d_unproject_v3(region, rect.xmin, rect.ymin, depth_close, p_corner)) {
       return OPERATOR_CANCELLED;
     }
 

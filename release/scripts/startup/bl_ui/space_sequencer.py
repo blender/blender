@@ -683,7 +683,7 @@ class SEQUENCER_MT_add(Menu):
         elif bpy_data_movieclips_len > 0:
             layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip", icon='TRACKER')
         else:
-            layout.menu("SEQUENCER_MT_add_empty", text="Clip", icon='TRACKER')
+            layout.menu("SEQUENCER_MT_add_empty", text="Clip", text_ctxt=i18n_contexts.id_movieclip, icon='TRACKER')
         del bpy_data_movieclips_len
 
         bpy_data_masks_len = len(bpy.data.masks)

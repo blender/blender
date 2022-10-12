@@ -1199,7 +1199,7 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
-      
+
       if (!ss->attrs.hide_poly) {
         BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
           BMLoop *l = f->l_first;
@@ -2288,7 +2288,7 @@ PBVHVertRef SCULPT_nearest_vertex_get(
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 {
-  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)));
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)));
 }
 
 bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
@@ -4702,7 +4702,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For area normal. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
@@ -4711,7 +4711,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For flatten center. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }
@@ -8709,15 +8709,14 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     /* Did the stroke never start? If so push a blank sculpt undo
      * step to prevent a global undo step (which is triggered by the
-     * OPTYPE_UNDO flag in SCULPT_OT_brush_stroke).
+     * #OPTYPE_UNDO flag in #SCULPT_OT_brush_stroke).
      *
      * Having blank global undo steps interleaved with sculpt steps
      * corrupts the DynTopo undo stack.
      * See T101430.
      *
-     * Note: simply returning OPERATOR_CANCELLED was not
-     * sufficient to prevent this.
-     */
+     * NOTE: simply returning #OPERATOR_CANCELLED was not
+     * sufficient to prevent this. */
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -9462,6 +9461,21 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
 
     mv->valence = tot;
   }
+  #if 0
+  else {
+
+    int tot = 0;
+
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      tot++;
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (tot != mv->valence) {
+      printf("%s: error: valence error!\n", __func__);
+    }
+  }
+  #endif
 
   return mv->valence;
 }

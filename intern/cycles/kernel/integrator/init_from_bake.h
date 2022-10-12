@@ -239,7 +239,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
       }
 
       /* We don't want to bake the back face, so make sure the ray direction never
-       * goes behind the geometry (flat) normal. This is a failsafe, and should rarely happen. */
+       * goes behind the geometry (flat) normal. This is a fail-safe, and should rarely happen. */
       const float true_normal_epsilon = 0.00001f;
 
       if (dot(D, Ng) <= true_normal_epsilon) {

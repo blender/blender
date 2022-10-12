@@ -1618,7 +1618,7 @@ static bool gpencil_strokes_paste_poll(bContext *C)
    * 2) Copy buffer must at least have something (though it may be the wrong sort...).
    */
   return (ED_gpencil_data_get_active(C) != NULL) &&
-         (!BLI_listbase_is_empty(&gpencil_strokes_copypastebuf));
+         !BLI_listbase_is_empty(&gpencil_strokes_copypastebuf);
 }
 
 typedef enum eGP_PasteMode {
@@ -5014,7 +5014,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if ((mode == GP_SEPARATE_LAYER) && (BLI_listbase_is_single(&gpd_src->layers))) {
+  if ((mode == GP_SEPARATE_LAYER) && BLI_listbase_is_single(&gpd_src->layers)) {
     BKE_report(op->reports, RPT_ERROR, "Cannot separate an object with one layer only");
     return OPERATOR_CANCELLED;
   }
@@ -5463,7 +5463,7 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   gpencil_point_to_world_space(pt, diff_mat, &pt2);
   gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso */
-  return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
+  return (!ELEM(V2D_IS_CLIPPED, x0, y0) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
           BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, x0, y0, INT_MAX));
 }
 

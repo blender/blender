@@ -1935,7 +1935,7 @@ static void calc_bevel_sin_cos(
     t02 = M_PI_2;
   }
   else {
-    t02 = (saacos(t02)) / 2.0f;
+    t02 = saacos(t02) / 2.0f;
   }
 
   t02 = sinf(t02);
@@ -4085,12 +4085,12 @@ void BKE_nurb_bezt_handle_test(BezTriple *bezt,
     }
 
     if (bezt->h1 == HD_VECT) {
-      if ((!(flag & SEL_F1)) != (!(flag & SEL_F2))) {
+      if (!(flag & SEL_F1) != !(flag & SEL_F2)) {
         bezt->h1 = HD_FREE;
       }
     }
     if (bezt->h2 == HD_VECT) {
-      if ((!(flag & SEL_F3)) != (!(flag & SEL_F2))) {
+      if (!(flag & SEL_F3) != !(flag & SEL_F2)) {
         bezt->h2 = HD_FREE;
       }
     }
@@ -5101,7 +5101,7 @@ bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
   ListBase temp_nurb_lb = {nullptr, nullptr};
-  const bool is_font = (BLI_listbase_is_empty(nurb_lb)) && (cu->len != 0);
+  const bool is_font = BLI_listbase_is_empty(nurb_lb) && (cu->len != 0);
   /* For font curves we generate temp list of splines.
    *
    * This is likely to be fine, this function is not supposed to be called

@@ -1076,6 +1076,13 @@ elseif(WIN32)
       DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
     )
   endif()
+
+  if(PLATFORM_BUNDLED_LIBRARIES)
+    install(
+      FILES ${PLATFORM_BUNDLED_LIBRARIES}
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  endif()
 elseif(APPLE)
   if(NOT WITH_PYTHON_MODULE)
     # Uppercase name for app bundle.

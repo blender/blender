@@ -24,6 +24,8 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -1191,6 +1193,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Texture_update");
 
   prop = RNA_def_property(srna, "repeat_x", PROP_INT, PROP_NONE);

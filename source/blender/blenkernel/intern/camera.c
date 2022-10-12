@@ -713,10 +713,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
       plane_from_point_normal_v3(plane_tx[i], co, data->plane_tx[i]);
     }
 
-    if ((!isect_plane_plane_v3(
-            plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no)) ||
-        (!isect_plane_plane_v3(
-            plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))) {
+    if (!isect_plane_plane_v3(plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no) ||
+        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no)) {
       return false;
     }
 

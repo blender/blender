@@ -922,7 +922,7 @@ static void curve_select_more(Object *obedit)
       bp = nu->bp;
       selbpoints = BLI_BITMAP_NEW(a, "selectlist");
       while (a > 0) {
-        if ((!BLI_BITMAP_TEST(selbpoints, a)) && (bp->hide == 0) && (bp->f1 & SELECT)) {
+        if (!BLI_BITMAP_TEST(selbpoints, a) && (bp->hide == 0) && (bp->f1 & SELECT)) {
           /* upper control point */
           if (a % nu->pntsu != 0) {
             tempbp = bp - 1;

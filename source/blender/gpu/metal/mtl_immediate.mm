@@ -125,7 +125,7 @@ void MTLImmediate::end()
      * TODO(Metal): Cache this vertex state based on Vertex format and shaders. */
     for (int i = 0; i < interface->get_total_attributes(); i++) {
 
-      /* Note: Attribute in VERTEX FORMAT does not necessarily share the same array index as
+      /* NOTE: Attribute in VERTEX FORMAT does not necessarily share the same array index as
        * attributes in shader interface. */
       GPUVertAttr *attr = nullptr;
       const MTLShaderInputAttribute &mtl_shader_attribute = interface->get_attribute(i);

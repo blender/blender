@@ -195,7 +195,7 @@ static void imm_draw_circle_partial(GPUPrimType prim_type,
                                     float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
@@ -219,7 +219,7 @@ static void imm_draw_circle_partial_3d(GPUPrimType prim_type,
                                        float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)(M_PI / 2);
+  const float angle_start = -DEG2RADF(start) + (float)(M_PI / 2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
@@ -259,7 +259,7 @@ static void imm_draw_disk_partial(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);
@@ -289,7 +289,7 @@ static void imm_draw_disk_partial_3d(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);

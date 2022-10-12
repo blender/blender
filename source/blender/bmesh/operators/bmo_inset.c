@@ -721,7 +721,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
 
         /* tag if edge is an interior edge in between a tagged and untagged face */
-        (bm_edge_is_mixed_face_tag(e->l))) {
+        bm_edge_is_mixed_face_tag(e->l)) {
       /* tag */
       BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
       BM_elem_flag_enable(e->v2, BM_ELEM_TAG);

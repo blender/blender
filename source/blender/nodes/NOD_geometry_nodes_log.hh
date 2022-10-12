@@ -169,7 +169,7 @@ using TimePoint = Clock::time_point;
 class GeoTreeLogger {
  public:
   std::optional<ComputeContextHash> parent_hash;
-  std::optional<StringRefNull> group_node_name;
+  std::optional<std::string> group_node_name;
   Vector<ComputeContextHash> children_hashes;
 
   LinearAllocator<> *allocator = nullptr;

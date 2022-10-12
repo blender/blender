@@ -525,8 +525,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     use_deterministic_guiding: BoolProperty(
         name="Deterministic",
-        description="Makes path guiding deterministic which means renderings will be"
-        "reproducible with the same pixel values every time. This feature slows down"
+        description="Makes path guiding deterministic which means renderings will be "
+        "reproducible with the same pixel values every time. This feature slows down "
         "training",
         default=True,
     )
@@ -562,7 +562,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="The maximum number of samples used for training path guiding. "
         "Higher samples lead to more accurate guiding, however may also unnecessarily slow "
         "down rendering once guiding is accurate enough. "
-        "A value 0 will continue training until the last sample",
+        "A value of 0 will continue training until the last sample",
         min=0,
         soft_min=1,
         default=128,

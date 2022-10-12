@@ -1316,7 +1316,7 @@ static void draw_seq_strip(const bContext *C,
                                                     SEQ_time_left_handle_frame_get(scene, seq);
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   x2 = SEQ_time_has_right_still_frames(scene, seq) ? SEQ_time_content_end_frame_get(scene, seq) :
-           SEQ_time_right_handle_frame_get(scene, seq);
+                                                     SEQ_time_right_handle_frame_get(scene, seq);
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
@@ -1371,7 +1371,7 @@ static void draw_seq_strip(const bContext *C,
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
-      (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))) {
+      ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     draw_seq_strip_thumbnail(
         v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
@@ -2287,8 +2287,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         continue;
       }
       if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                 SEQ_time_content_end_frame_get(scene, seq)) <
-          v2d->cur.xmin) {
+                 SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin) {
         continue;
       }
       if (seq->machine + 1.0f < v2d->cur.ymin) {

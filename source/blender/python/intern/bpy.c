@@ -29,6 +29,8 @@
 
 #include "GPU_state.h"
 
+#include "WM_api.h" /* For #WM_ghost_backend */
+
 #include "bpy.h"
 #include "bpy_app.h"
 #include "bpy_capi_utils.h"
@@ -536,6 +538,17 @@ static PyObject *bpy_rna_enum_items_static(PyObject *UNUSED(self))
   return result;
 }
 
+/* This is only exposed for (Unix/Linux), see: #GHOST_ISystem::getSystemBackend for details. */
+PyDoc_STRVAR(bpy_ghost_backend_doc,
+             ".. function:: _ghost_backend()\n"
+             "\n"
+             "   :return: An identifier for the GHOST back-end.\n"
+             "   :rtype: string\n");
+static PyObject *bpy_ghost_backend(PyObject *UNUSED(self))
+{
+  return PyUnicode_FromString(WM_ghost_backend());
+}
+
 static PyMethodDef bpy_methods[] = {
     {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc},
     {"blend_paths",
@@ -552,10 +565,6 @@ static PyMethodDef bpy_methods[] = {
      (PyCFunction)bpy_resource_path,
      METH_VARARGS | METH_KEYWORDS,
      bpy_resource_path_doc},
-    {"_driver_secure_code_test",
-     (PyCFunction)bpy_driver_secure_code_test,
-     METH_VARARGS | METH_KEYWORDS,
-     bpy_driver_secure_code_test_doc},
     {"escape_identifier", (PyCFunction)bpy_escape_identifier, METH_O, bpy_escape_identifier_doc},
     {"unescape_identifier",
      (PyCFunction)bpy_unescape_identifier,
@@ -566,6 +575,14 @@ static PyMethodDef bpy_methods[] = {
      (PyCFunction)bpy_rna_enum_items_static,
      METH_NOARGS,
      bpy_rna_enum_items_static_doc},
+
+    /* Private functions (not part of the public API and may be removed at any time). */
+    {"_driver_secure_code_test",
+     (PyCFunction)bpy_driver_secure_code_test,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_driver_secure_code_test_doc},
+    {"_ghost_backend", (PyCFunction)bpy_ghost_backend, METH_NOARGS, bpy_ghost_backend_doc},
+
     {NULL, NULL, 0, NULL},
 };
 

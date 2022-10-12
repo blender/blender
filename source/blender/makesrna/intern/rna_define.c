@@ -147,7 +147,7 @@ PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
 
   for (link = listbase->first; link; link = link->next) {
     PropertyRNA *prop = ((PropertyDefRNA *)link)->prop;
-    if (prop && (STREQ(prop->identifier, identifier))) {
+    if (prop && STREQ(prop->identifier, identifier)) {
       return (PropertyDefRNA *)link;
     }
   }

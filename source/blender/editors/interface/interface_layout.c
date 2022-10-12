@@ -2112,11 +2112,11 @@ void uiItemFullR(uiLayout *layout,
             icon = ICON_CHECKBOX_DEHLT; /* but->iconadd will set to correct icon */
           }
           else if (is_array) {
-            icon = (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT :
-                                                                        ICON_CHECKBOX_DEHLT;
+            icon = RNA_property_boolean_get_index(ptr, prop, index) ? ICON_CHECKBOX_HLT :
+                                                                      ICON_CHECKBOX_DEHLT;
           }
           else {
-            icon = (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+            icon = RNA_property_boolean_get(ptr, prop) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
           }
         }
       }

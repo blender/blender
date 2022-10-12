@@ -53,7 +53,7 @@ vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
   window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
-  window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
+  window.xy = window.xy * cameraUvScaleBias.xy + cameraUvScaleBias.zw;
   return window;
 }
 

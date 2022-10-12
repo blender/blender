@@ -83,6 +83,9 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
         case GPU_SOURCE_UNIFORM_ATTR:
           input->uniform_attr->users++;
           break;
+        case GPU_SOURCE_LAYER_ATTR:
+          input->layer_attr->users++;
+          break;
         case GPU_SOURCE_TEX:
         case GPU_SOURCE_TEX_TILED_MAPPING:
           input->texture->users++;
@@ -132,6 +135,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     case GPU_NODE_LINK_UNIFORM_ATTR:
       input->source = GPU_SOURCE_UNIFORM_ATTR;
       input->uniform_attr = link->uniform_attr;
+      break;
+    case GPU_NODE_LINK_LAYER_ATTR:
+      input->source = GPU_SOURCE_LAYER_ATTR;
+      input->layer_attr = link->layer_attr;
       break;
     case GPU_NODE_LINK_CONSTANT:
       input->source = (type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
@@ -430,6 +437,34 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
   return attr;
 }
 
+/** Add a new uniform attribute of given type and name. Returns NULL if out of slots. */
+static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, const char *name)
+{
+  /* Find existing attribute. */
+  ListBase *attrs = &graph->layer_attrs;
+  GPULayerAttr *attr = attrs->first;
+
+  for (; attr; attr = attr->next) {
+    if (STREQ(attr->name, name)) {
+      break;
+    }
+  }
+
+  /* Add new requested attribute to the list. */
+  if (attr == NULL) {
+    attr = MEM_callocN(sizeof(*attr), __func__);
+    STRNCPY(attr->name, name);
+    attr->hash_code = BLI_ghashutil_strhash_p(attr->name);
+    BLI_addtail(attrs, attr);
+  }
+
+  if (attr != NULL) {
+    attr->users++;
+  }
+
+  return attr;
+}
+
 static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       Image *ima,
                                                       ImageUser *iuser,
@@ -543,6 +578,17 @@ GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_UNIFORM_ATTR;
   link->uniform_attr = attr;
+  return link;
+}
+
+GPUNodeLink *GPU_layer_attribute(GPUMaterial *mat, const char *name)
+{
+  GPUNodeGraph *graph = gpu_material_node_graph(mat);
+  GPULayerAttr *attr = gpu_node_graph_add_layer_attribute(graph, name);
+
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_LAYER_ATTR;
+  link->layer_attr = attr;
   return link;
 }
 
@@ -767,14 +813,22 @@ static void gpu_inputs_free(ListBase *inputs)
   GPUInput *input;
 
   for (input = inputs->first; input; input = input->next) {
-    if (input->source == GPU_SOURCE_ATTR) {
-      input->attr->users--;
-    }
-    else if (input->source == GPU_SOURCE_UNIFORM_ATTR) {
-      input->uniform_attr->users--;
-    }
-    else if (ELEM(input->source, GPU_SOURCE_TEX, GPU_SOURCE_TEX_TILED_MAPPING)) {
-      input->texture->users--;
+    switch (input->source) {
+      case GPU_SOURCE_ATTR:
+        input->attr->users--;
+        break;
+      case GPU_SOURCE_UNIFORM_ATTR:
+        input->uniform_attr->users--;
+        break;
+      case GPU_SOURCE_LAYER_ATTR:
+        input->layer_attr->users--;
+        break;
+      case GPU_SOURCE_TEX:
+      case GPU_SOURCE_TEX_TILED_MAPPING:
+        input->texture->users--;
+        break;
+      default:
+        break;
     }
 
     if (input->link) {
@@ -826,6 +880,7 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
   BLI_freelistN(&graph->textures);
   BLI_freelistN(&graph->attributes);
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
+  BLI_freelistN(&graph->layer_attrs);
 
   if (graph->used_libraries) {
     BLI_gset_free(graph->used_libraries, NULL);
@@ -906,6 +961,12 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     if (attr->users == 0) {
       BLI_freelinkN(&uattrs->list, attr);
       uattrs->count--;
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (GPULayerAttr *, attr, &graph->layer_attrs) {
+    if (attr->users == 0) {
+      BLI_freelinkN(&graph->layer_attrs, attr);
     }
   }
 }

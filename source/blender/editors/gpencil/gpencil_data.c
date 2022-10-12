@@ -623,6 +623,7 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
                          true,
                          "Only Active",
                          "Copy only active Layer, uncheck to append all layers");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -3686,6 +3687,7 @@ void GPENCIL_OT_materials_copy_to_object(wmOperatorType *ot)
                          true,
                          "Only Active",
                          "Append only active material, uncheck to append all materials");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

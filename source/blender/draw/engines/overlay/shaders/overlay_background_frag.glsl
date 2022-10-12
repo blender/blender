@@ -18,8 +18,8 @@ float dither(void)
 void main()
 {
   /* The blend equation is:
-   * resutl.rgb = SRC.rgb * (1 - DST.a) + DST.rgb * (SRC.a)
-   * result.a = SRC.a * 0 + DST.a * SRC.a
+   * `result.rgb = SRC.rgb * (1 - DST.a) + DST.rgb * (SRC.a)`
+   * `result.a = SRC.a * 0 + DST.a * SRC.a`
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */

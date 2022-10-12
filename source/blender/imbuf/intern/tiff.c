@@ -142,7 +142,7 @@ static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
   }
 
   /* all set -> do the read (copy) */
-  srcAddr = (void *)(&(mfile->mem[mfile->offset]));
+  srcAddr = (void *)&(mfile->mem[mfile->offset]);
   memcpy((void *)data, srcAddr, nCopy);
   mfile->offset += nCopy; /* advance file ptr by copied bytes */
   return nCopy;
@@ -437,7 +437,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
   }
 
   /* simple RGBA image */
-  if (!(ELEM(bitspersample, 32, 16))) {
+  if (!ELEM(bitspersample, 32, 16)) {
     success |= TIFFReadRGBAImage(image, ibuf->x, ibuf->y, tmpibuf->rect, 0);
   }
   /* contiguous channels: RGBRGBRGB */

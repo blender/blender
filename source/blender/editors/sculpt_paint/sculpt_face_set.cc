@@ -1334,7 +1334,21 @@ void SCULPT_face_sets_visibility_invert(SculptSession *ss)
   }
 }
 
-ATTR_NO_OPT static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
+bool sculpt_has_face_sets(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (ss->bm) {
+    return CustomData_get_offset_named(&ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set") != -1;
+  }
+  else {
+    Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+    return CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  }
+}
+
+static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1344,88 +1358,103 @@ ATTR_NO_OPT static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOp
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  BKE_sculpt_face_sets_ensure(ob);
-  BKE_sculpt_hide_poly_ensure(ob);
-  SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_face_random_access_ensure(ss);
-
-  const int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int tot_vert = SCULPT_vertex_count_get(ss);
-  const int active_face_set = SCULPT_active_face_set_get(ss);
-
-  SCULPT_undo_push_begin(ob, op);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (totnode == 0) {
     MEM_SAFE_FREE(nodes);
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
 
-  if (mode == SCULPT_FACE_SET_VISIBILITY_TOGGLE) {
-    bool hidden_vertex = false;
+  const int active_face_set = SCULPT_active_face_set_get(ss);
 
-    /* This can fail with regular meshes with non-manifold geometry as the visibility state can't
-     * be synced from face sets to non-manifold vertices. */
-    if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      for (int i = 0; i < tot_vert; i++) {
-        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-        if (!SCULPT_vertex_visible_get(ss, vertex)) {
-          hidden_vertex = true;
-          break;
-        }
-      }
-    }
-    else if (ss->bm) {
-      BMIter iter;
-      BMFace *f;
-
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        if (cd_hide_poly != -1 && BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
-          hidden_vertex = true;
-          break;
-        }
-      }
-    }
-    else {
-      for (int i = 0; i < ss->totfaces; i++) {
-        if (ss->hide_poly && ss->hide_poly[i]) {
-          hidden_vertex = true;
-          break;
-        }
-      }
-    }
-
-    SCULPT_face_sets_visibility_all_set(ss, hidden_vertex);
-
-    if (!hidden_vertex) {
-      SCULPT_face_set_visibility_set(ss, active_face_set, true);
-    }
+  SCULPT_undo_push_begin(ob, op);
+  for (int i = 0; i < totnode; i++) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_HIDDEN);
   }
 
-  if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE) {
-    SCULPT_face_sets_visibility_all_set(ss, false);
-    SCULPT_face_set_visibility_set(ss, active_face_set, true);
-  }
+  switch (mode) {
+    case SCULPT_FACE_SET_VISIBILITY_TOGGLE: {
+      bool hidden_vertex = false;
 
-  if (mode == SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE) {
-    SCULPT_face_set_visibility_set(ss, active_face_set, false);
-  }
+      /* This can fail with regular meshes with non-manifold geometry as the visibility state can't
+       * be synced from face sets to non-manifold vertices. */
+      if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+        for (int i = 0; i < tot_vert; i++) {
+          PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-  if (mode == SCULPT_FACE_SET_VISIBILITY_INVERT) {
-    SCULPT_face_sets_visibility_invert(ss);
+          if (!SCULPT_vertex_visible_get(ss, vertex)) {
+            hidden_vertex = true;
+            break;
+          }
+        }
+      }
+
+      if (!hidden_vertex && ss->attrs.hide_poly) {
+        for (int i = 0; i < ss->totfaces; i++) {
+          PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
+
+          if (*(bool *)SCULPT_face_attr_get(face, ss->attrs.hide_poly)) {
+            hidden_vertex = true;
+            break;
+          }
+        }
+      }
+
+      if (hidden_vertex) {
+        SCULPT_face_visibility_all_set(ss, true);
+      }
+      else {
+        if (sculpt_has_face_sets(ob)) {
+          SCULPT_face_visibility_all_set(ss, false);
+          SCULPT_face_set_visibility_set(ss, active_face_set, true);
+        }
+        else {
+          SCULPT_face_visibility_all_set(ss, true);
+        }
+      }
+      break;
+    }
+    case SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE:
+      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+
+      if (sculpt_has_face_sets(ob)) {
+        SCULPT_face_visibility_all_set(ss, false);
+        SCULPT_face_set_visibility_set(ss, active_face_set, true);
+      }
+      else {
+        SCULPT_face_set_visibility_set(ss, active_face_set, true);
+      }
+      break;
+    case SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE:
+      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+
+      if (sculpt_has_face_sets(ob)) {
+        SCULPT_face_set_visibility_set(ss, active_face_set, false);
+      }
+      else {
+        SCULPT_face_visibility_all_set(ss, false);
+      }
+
+      break;
+    case SCULPT_FACE_SET_VISIBILITY_INVERT:
+      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+      SCULPT_face_visibility_all_invert(ss);
+      break;
   }
 
   /* For modes that use the cursor active vertex, update the rotation origin for viewport
-   * navigation. */
+   * navigation.
+   */
   if (ELEM(mode, SCULPT_FACE_SET_VISIBILITY_TOGGLE, SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE)) {
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
@@ -1440,7 +1469,6 @@ ATTR_NO_OPT static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOp
   SCULPT_visibility_sync_all_from_faces(ob);
 
   SCULPT_undo_push_end(ob);
-
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
     BKE_pbvh_bmesh_check_tris(ss->pbvh, nodes[i]);

@@ -84,8 +84,6 @@
 
 #include "BLO_read_write.h"
 
-#include "MOD_nodes.h"
-
 #define NODE_DEFAULT_MAX_WIDTH 700
 
 using blender::Array;

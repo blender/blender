@@ -300,7 +300,7 @@ static void node_free(SpaceLink *sl)
 
   if (snode->runtime) {
     snode->runtime->linkdrag.reset();
-    MEM_freeN(snode->runtime);
+    MEM_delete(snode->runtime);
   }
 }
 

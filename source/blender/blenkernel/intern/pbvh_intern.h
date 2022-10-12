@@ -126,8 +126,7 @@ struct PBVHNode {
   PBVHProxyNode *proxies;
 
   /* GSet of pointers to the BMFaces used by this node.
-   * NOTE: PBVH_BMESH only. Faces are always triangles
-   * (dynamic topology forcibly triangulates the mesh).
+   * NOTE: PBVH_BMESH only.
    */
   TableGSet *bm_faces;
   TableGSet *bm_unique_verts;

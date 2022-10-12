@@ -3198,7 +3198,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
    * (which making new strips doesn't do due to the troublesome nature of that). */
   calc_action_range(r_action_strip->act, &r_action_strip->actstart, &r_action_strip->actend, 1);
   r_action_strip->start = r_action_strip->actstart;
-  r_action_strip->end = (IS_EQF(r_action_strip->actstart, r_action_strip->actend)) ?
+  r_action_strip->end = IS_EQF(r_action_strip->actstart, r_action_strip->actend) ?
                             (r_action_strip->actstart + 1.0f) :
                             (r_action_strip->actend);
 

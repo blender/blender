@@ -572,15 +572,15 @@ void draw_image_cache(const bContext *C, ARegion *region)
 float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
 {
   /* UV-space length per pixel */
-  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / ((float)(v2d->mask.xmax - v2d->mask.xmin));
-  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / ((float)(v2d->mask.ymax - v2d->mask.ymin));
+  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / (float)(v2d->mask.xmax - v2d->mask.xmin);
+  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / (float)(v2d->mask.ymax - v2d->mask.ymin);
 
   /* Zoom_factor for UV/Image editor is calculated based on:
    * - Default grid size on startup, which is 256x256 pixels
    * - How blend factor for grid lines is set up in the fragment shader `grid_frag.glsl`. */
   float zoom_factor;
   zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy. */
-  zoom_factor *= 256.0f / (powf(grid_dimension, 2));
+  zoom_factor *= 256.0f / powf(grid_dimension, 2);
   return zoom_factor;
 }
 

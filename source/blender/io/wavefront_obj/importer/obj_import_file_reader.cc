@@ -508,6 +508,15 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       }
       /* Faces. */
       else if (parse_keyword(p, end, "f")) {
+        /* If we don't have a material index assigned yet, get one.
+         * It means "usemtl" state came from the previous object. */
+        if (state_material_index == -1 && !state_material_name.empty() &&
+            curr_geom->material_indices_.is_empty()) {
+          curr_geom->material_indices_.add_new(state_material_name, 0);
+          curr_geom->material_order_.append(state_material_name);
+          state_material_index = 0;
+        }
+
         geom_add_polygon(curr_geom,
                          p,
                          end,
@@ -524,7 +533,10 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       else if (parse_keyword(p, end, "o")) {
         state_shaded_smooth = false;
         state_group_name = "";
-        state_material_name = "";
+        /* Reset object-local material index that's used in face infos.
+         * NOTE: do not reset the material name; that has to carry over
+         * into the next object if needed. */
+        state_material_index = -1;
         curr_geom = create_geometry(
             curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
       }

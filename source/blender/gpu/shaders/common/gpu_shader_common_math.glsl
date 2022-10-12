@@ -126,7 +126,7 @@ void math_pingpong(float a, float b, float c, out float result)
   result = (b != 0.0) ? abs(fract((a - b) / (b * 2.0)) * b * 2.0 - b) : 0.0;
 }
 
-/* Adapted from godotengine math_funcs.h. */
+/* Adapted from GODOT-engine math_funcs.h. */
 void math_wrap(float a, float b, float c, out float result)
 {
   result = wrap(a, b, c);

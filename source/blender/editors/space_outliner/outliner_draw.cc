@@ -3362,7 +3362,7 @@ static void outliner_draw_tree_element(bContext *C,
     offsx += UI_UNIT_X;
 
     /* Data-type icon. */
-    if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) &&
+    if (!ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE) &&
         tselem_draw_icon(block,
                          xmax,
                          float(startx) + offsx,

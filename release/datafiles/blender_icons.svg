@@ -18997,6 +18997,36 @@
          id="path4817-4"
          inkscape:connector-curvature="0" />
     </g>
+    <g
+       id="g24638">
+      <path
+         style="color:#000000;fill:none;stroke-linecap:round;-inkscape-stroke:none;opacity:1;stroke:#ffffff;stroke-opacity:1;stroke-linejoin:round"
+         d="m 374.12695,305.31445 c -1.10721,0 -1.93616,0.24199 -2.97851,0.63086 -1.04236,0.38888 -2.18224,0.95849 -3.30078,1.77735 -2.2371,1.63771 -4.46485,4.54533 -4.46485,8.40625 a 3.0581999,3.0581999 0 0 0 3.0586,3.05859 3.0581999,3.0581999 0 0 0 3.05859,-3.05859 c 0,-1.63187 0.77567,-2.603 1.96094,-3.47071 0.59263,-0.43385 1.26841,-0.77311 1.82422,-0.98047 0.5558,-0.20735 1.10962,-0.24804 0.84179,-0.24804 a 3.0581999,3.0581999 0 0 0 3.05664,-3.0586 3.0581999,3.0581999 0 0 0 -3.05664,-3.05664 z"
+         id="path6454-6" />
+      <path
+         style="display:inline;opacity:0.5;fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;enable-background:new"
+         d="m 366.4419,316.12916 c 0,-5.49278 6.00534,-7.75723 7.68412,-7.75723"
+         id="path15424"
+         sodipodi:nodetypes="cc" />
+    </g>
+    <g
+       id="g24643">
+      <path
+         style="opacity:0.5;fill:#ffffff;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 343.45275,317.52104 4.51631,-3.99333"
+         id="path4694"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 342.44508,318.83525 c 14.125,0.14581 -0.42233,-12.9179 13.5429,-12.85486"
+         id="path6454"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="opacity:0.5;fill:#ffffff;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 350.84964,311.18794 4.21454,-3.72502"
+         id="path19640"
+         sodipodi:nodetypes="cc" />
+    </g>
   </g>
   <g
      inkscape:groupmode="layer"

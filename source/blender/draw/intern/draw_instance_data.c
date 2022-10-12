@@ -622,6 +622,62 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
+GPUUniformBuf *drw_ensure_layer_attribute_buffer()
+{
+  DRWData *data = DST.vmempool;
+
+  if (data->vlattrs_ubo_ready && data->vlattrs_ubo != NULL) {
+    return data->vlattrs_ubo;
+  }
+
+  /* Allocate the buffer data. */
+  const int buf_size = DRW_RESOURCE_CHUNK_LEN;
+
+  if (data->vlattrs_buf == NULL) {
+    data->vlattrs_buf = MEM_calloc_arrayN(
+        buf_size, sizeof(LayerAttribute), "View Layer Attr Data");
+  }
+
+  /* Look up attributes.
+   *
+   * Mirrors code in draw_resource.cc and cycles/blender/shader.cpp.
+   */
+  LayerAttribute *buffer = data->vlattrs_buf;
+  int count = 0;
+
+  LISTBASE_FOREACH (GPULayerAttr *, attr, &data->vlattrs_name_list) {
+    float value[4];
+
+    if (BKE_view_layer_find_rgba_attribute(
+            DST.draw_ctx.scene, DST.draw_ctx.view_layer, attr->name, value)) {
+      LayerAttribute *item = &buffer[count++];
+
+      memcpy(item->data, value, sizeof(item->data));
+      item->hash_code = attr->hash_code;
+
+      /* Check if the buffer is full just in case. */
+      if (count >= buf_size) {
+        break;
+      }
+    }
+  }
+
+  buffer[0].buffer_length = count;
+
+  /* Update or create the UBO object. */
+  if (data->vlattrs_ubo != NULL) {
+    GPU_uniformbuf_update(data->vlattrs_ubo, buffer);
+  }
+  else {
+    data->vlattrs_ubo = GPU_uniformbuf_create_ex(
+        sizeof(*buffer) * buf_size, buffer, "View Layer Attributes");
+  }
+
+  data->vlattrs_ubo_ready = true;
+
+  return data->vlattrs_ubo;
+}
+
 DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
                                                      const struct GPUUniformAttrList *key)
 {

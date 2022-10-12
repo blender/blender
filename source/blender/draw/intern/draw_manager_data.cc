@@ -1630,6 +1630,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->uniforms = nullptr;
   shgroup->uniform_attrs = nullptr;
 
+  int clipping_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_DRW_CLIPPING);
   int view_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_VIEW);
   int model_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_MODEL);
   int info_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_INFO);
@@ -1701,6 +1702,16 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   if (view_ubo_location != -1) {
     drw_shgroup_uniform_create_ex(
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, GPU_SAMPLER_DEFAULT, 0, 1);
+  }
+
+  if (clipping_ubo_location) {
+    drw_shgroup_uniform_create_ex(shgroup,
+                                  clipping_ubo_location,
+                                  DRW_UNIFORM_BLOCK,
+                                  G_draw.clipping_ubo,
+                                  GPU_SAMPLER_DEFAULT,
+                                  0,
+                                  1);
   }
 
 #ifdef DEBUG
@@ -1829,6 +1840,13 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
     drw_shgroup_uniform_create_ex(
         grp, loc, DRW_UNIFORM_BLOCK_OBATTRS, uattrs, GPU_SAMPLER_DEFAULT, 0, 1);
     grp->uniform_attrs = uattrs;
+  }
+
+  if (GPU_material_layer_attributes(material) != NULL) {
+    int loc = GPU_shader_get_uniform_block_binding(grp->shader,
+                                                   GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME);
+    drw_shgroup_uniform_create_ex(
+        grp, loc, DRW_UNIFORM_BLOCK_VLATTRS, nullptr, GPU_SAMPLER_DEFAULT, 0, 1);
   }
 }
 
@@ -2135,7 +2153,7 @@ static void draw_view_matrix_state_update(DRWView *view,
                                           const float viewmat[4][4],
                                           const float winmat[4][4])
 {
-  ViewInfos *storage = &view->storage;
+  ViewMatrices *storage = &view->storage;
 
   copy_m4_m4(storage->viewmat.values, viewmat);
   invert_m4_m4(storage->viewinv.values, storage->viewmat.values);
@@ -2145,54 +2163,6 @@ static void draw_view_matrix_state_update(DRWView *view,
 
   mul_m4_m4m4(view->persmat.values, winmat, viewmat);
   invert_m4_m4(view->persinv.values, view->persmat.values);
-
-  const bool is_persp = (winmat[3][3] == 0.0f);
-
-  /* Near clip distance. */
-  storage->viewvecs[0][3] = (is_persp) ? -winmat[3][2] / (winmat[2][2] - 1.0f) :
-                                         -(winmat[3][2] + 1.0f) / winmat[2][2];
-
-  /* Far clip distance. */
-  storage->viewvecs[1][3] = (is_persp) ? -winmat[3][2] / (winmat[2][2] + 1.0f) :
-                                         -(winmat[3][2] - 1.0f) / winmat[2][2];
-
-  /* view vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  float view_vecs[4][3] = {
-      {-1.0f, -1.0f, -1.0f},
-      {1.0f, -1.0f, -1.0f},
-      {-1.0f, 1.0f, -1.0f},
-      {-1.0f, -1.0f, 1.0f},
-  };
-
-  /* convert the view vectors to view space */
-  for (int i = 0; i < 4; i++) {
-    mul_project_m4_v3(storage->wininv.values, view_vecs[i]);
-    /* normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    if (is_persp) {
-      /* Divide XY by Z. */
-      mul_v2_fl(view_vecs[i], 1.0f / view_vecs[i][2]);
-    }
-  }
-
-  /**
-   * - When orthographic:
-   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
-   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
-   *   the far-top-right corner.
-   * - When perspective:
-   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
-   *   when Z = 1, and top-left corner if `Z = 1`.
-   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
-   *   distance from the near plane to the far clip plane.
-   */
-  copy_v3_v3(storage->viewvecs[0], view_vecs[0]);
-
-  /* we need to store the differences */
-  storage->viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
-  storage->viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-  storage->viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
 }
 
 DRWView *DRW_view_create(const float viewmat[4][4],
@@ -2213,15 +2183,6 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->clip_planes_len = 0;
   view->visibility_fn = visibility_fn;
   view->parent = nullptr;
-
-  copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
-
-  if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
-    int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
-    wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
-    wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
-    sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
-  }
 
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 
@@ -2322,14 +2283,6 @@ void DRW_view_update(DRWView *view,
   draw_frustum_bound_sphere_calc(
       &view->frustum_corners, viewinv, winmat, wininv, &view->frustum_bsphere);
 
-  /* TODO(fclem): Deduplicate. */
-  for (int i = 0; i < 8; i++) {
-    copy_v3_v3(view->storage.frustum_corners[i], view->frustum_corners.vec[i]);
-  }
-  for (int i = 0; i < 6; i++) {
-    copy_v4_v4(view->storage.frustum_planes[i], view->frustum_planes[i]);
-  }
-
 #ifdef DRW_DEBUG_CULLING
   if (G.debug_value != 0) {
     DRW_debug_sphere(
@@ -2362,18 +2315,8 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
   view->clip_planes_len = plane_len;
   if (plane_len > 0) {
-    memcpy(view->storage.clip_planes, planes, sizeof(float[4]) * plane_len);
+    memcpy(view->clip_planes, planes, sizeof(float[4]) * plane_len);
   }
-}
-
-void DRW_view_camtexco_set(DRWView *view, float texco[4])
-{
-  copy_v4_v4(view->storage.viewcamtexcofac, texco);
-}
-
-void DRW_view_camtexco_get(const DRWView *view, float r_texco[4])
-{
-  copy_v4_v4(r_texco, view->storage.viewcamtexcofac);
 }
 
 void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)
@@ -2419,14 +2362,14 @@ float DRW_view_far_distance_get(const DRWView *view)
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const ViewInfos *storage = &view->storage;
+  const ViewMatrices *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->viewinv.values : storage->viewmat.values);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const ViewInfos *storage = &view->storage;
+  const ViewMatrices *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->wininv.values : storage->winmat.values);
 }
 

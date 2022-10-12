@@ -10,7 +10,7 @@
 #  include "device/queue.h"
 
 #  include "device/oneapi/device.h"
-#  include "device/oneapi/dll_interface.h"
+#  include "kernel/device/oneapi/kernel.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -41,9 +41,7 @@ class OneapiDeviceQueue : public DeviceQueue {
 
  protected:
   OneapiDevice *oneapi_device_;
-  OneAPIDLLInterface oneapi_dll_;
   KernelContext *kernel_context_;
-  bool with_kernel_statistics_;
 };
 
 CCL_NAMESPACE_END

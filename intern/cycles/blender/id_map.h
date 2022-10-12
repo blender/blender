@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
  * Utility class to map between Blender datablocks and Cycles data structures,
  * and keep track of recalc tags from the dependency graph. */
 
-template<typename K, typename T> class id_map {
+template<typename K, typename T, typename Flags = uint> class id_map {
  public:
   id_map(Scene *scene_) : scene(scene_)
   {
@@ -61,6 +61,11 @@ template<typename K, typename T> class id_map {
   void set_recalc(void *id_ptr)
   {
     b_recalc.insert(id_ptr);
+  }
+
+  bool check_recalc(const BL::ID &id)
+  {
+    return id.ptr.data && b_recalc.find(id.ptr.data) != b_recalc.end();
   }
 
   bool has_recalc()
@@ -154,6 +159,7 @@ template<typename K, typename T> class id_map {
       TMapPair &pair = *jt;
 
       if (do_delete && used_set.find(pair.second) == used_set.end()) {
+        flags.erase(pair.second);
         scene->delete_node(pair.second);
       }
       else {
@@ -171,9 +177,33 @@ template<typename K, typename T> class id_map {
     return b_map;
   }
 
+  bool test_flag(T *data, Flags val)
+  {
+    typename map<T *, uint>::iterator it = flags.find(data);
+    return it != flags.end() && (it->second & (1 << val)) != 0;
+  }
+
+  void set_flag(T *data, Flags val)
+  {
+    flags[data] |= (1 << val);
+  }
+
+  void clear_flag(T *data, Flags val)
+  {
+    typename map<T *, uint>::iterator it = flags.find(data);
+    if (it != flags.end()) {
+      it->second &= ~(1 << val);
+
+      if (it->second == 0) {
+        flags.erase(it);
+      }
+    }
+  }
+
  protected:
   map<K, T *> b_map;
   set<T *> used_set;
+  map<T *, uint> flags;
   set<void *> b_recalc;
   Scene *scene;
 };

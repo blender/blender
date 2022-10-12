@@ -559,7 +559,7 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
+  pup = UI_popup_menu_begin(C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
   UI_menutype_draw(C, mt, layout);

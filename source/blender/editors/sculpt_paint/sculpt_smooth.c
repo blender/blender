@@ -30,7 +30,6 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
-#include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -365,10 +364,10 @@ MINLINE float safe_shell_angle_to_dist(const float angle)
   return (UNLIKELY(angle < 1.e-8f)) ? 1.0f : fabsf(1.0f / th);
 }
 
-static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
-                                                             float result[3],
-                                                             PBVHVertRef vertex,
-                                                             SculptSmoothArgs *args)
+ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
+                                                                         float result[3],
+                                                                         PBVHVertRef vertex,
+                                                                         SculptSmoothArgs *args)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
@@ -710,10 +709,10 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
   PBVH_CHECK_NAN(co);
 }
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             PBVHVertRef vertex,
-                                             SculptSmoothArgs *args)
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         PBVHVertRef vertex,
+                                                         SculptSmoothArgs *args)
 {
   if (args->bound_smooth > 0.0f && args->bound_scl) {
     SCULPT_neighbor_coords_average_interior_boundary(ss, result, vertex, args);
@@ -930,9 +929,11 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     cross_v3_v3v3(tan, bound, no);
     normalize_v3(tan);
 
+    float w = total / (float) neighbor_count;
+
     /* project to plane, remember we negated bound2 earlier */
-    madd_v3_v3fl(avg, tan, -dot_v3v3(bound1, tan) * 0.75);
-    madd_v3_v3fl(avg, tan, dot_v3v3(bound2, tan) * 0.75);
+    madd_v3_v3fl(avg, tan, -w*dot_v3v3(bound1, tan) * 0.75);
+    madd_v3_v3fl(avg, tan, w*dot_v3v3(bound2, tan) * 0.75);
   }
 
   if (args->vel_scl && totvel != 0.0f) {
@@ -1124,7 +1125,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     }
 
     eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
-                               SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
+                            SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
     int bound = SCULPT_edge_is_boundary(ss, (PBVHEdgeRef){.i = (intptr_t)e}, bflag);
     float dirw = 1.0f;

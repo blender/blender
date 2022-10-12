@@ -172,20 +172,14 @@ void DRW_globals_update(void)
 
   /* M_SQRT2 to be at least the same size of the old square */
   gb->size_vertex = U.pixelsize *
-                    (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
+                    max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
   gb->size_vertex_gpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->size_face_dot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
   gb->size_edge = U.pixelsize * (1.0f / 2.0f); /* TODO: Theme. */
   gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->size_edge * (float)M_SQRT1_2)));
 
-  const float(*screen_vecs)[3] = (float(*)[3])DRW_viewport_screenvecs_get();
-  for (int i = 0; i < 2; i++) {
-    copy_v3_v3(gb->screen_vecs[i], screen_vecs[i]);
-  }
-
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
-  /* Deprecated, use drw_view.viewport_size instead */
   copy_v2_v2(&gb->size_viewport[0], DRW_viewport_size_get());
   copy_v2_v2(&gb->size_viewport[2], &gb->size_viewport[0]);
   invert_v2(&gb->size_viewport[2]);

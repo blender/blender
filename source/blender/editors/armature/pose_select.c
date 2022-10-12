@@ -1237,7 +1237,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
         int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;
 
         if ((pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) &&
-            (PBONE_VISIBLE(arm, pchan_mirror->bone))) {
+            PBONE_VISIBLE(arm, pchan_mirror->bone)) {
           const int flag_mirror = PBONE_PREV_FLAG_GET(pchan_mirror);
           flag_new |= flag_mirror;
 

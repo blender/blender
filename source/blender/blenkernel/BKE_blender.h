@@ -30,7 +30,7 @@ void BKE_blender_globals_main_replace(struct Main *bmain);
  * Replace current global Main by the given one, returning the old one.
  *
  * \warning Advanced, risky workaround addressing the issue that current RNA is not able to process
- * correectly non-G_MAIN data, use with (a lot of) care.
+ * correctly non-G_MAIN data, use with (a lot of) care.
  */
 struct Main *BKE_blender_globals_main_swap(struct Main *new_gmain);
 

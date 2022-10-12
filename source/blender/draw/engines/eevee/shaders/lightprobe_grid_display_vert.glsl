@@ -8,7 +8,6 @@ uniform vec3 corner;
 uniform vec3 increment_x;
 uniform vec3 increment_y;
 uniform vec3 increment_z;
-uniform vec3 screen_vecs[2];
 
 flat out int cellOffset;
 out vec2 quadCoord;
@@ -39,7 +38,8 @@ void main()
                            increment_z * ls_cell_location.z);
 
   quadCoord = pos[vert_id];
-  vec3 screen_pos = screen_vecs[0] * quadCoord.x + screen_vecs[1] * quadCoord.y;
+  vec3 screen_pos = ViewMatrixInverse[0].xyz * quadCoord.x +
+                    ViewMatrixInverse[1].xyz * quadCoord.y;
   ws_cell_location += screen_pos * sphere_size;
 
   gl_Position = ProjectionMatrix * (ViewMatrix * vec4(ws_cell_location, 1.0));

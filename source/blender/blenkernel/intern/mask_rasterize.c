@@ -1282,8 +1282,8 @@ BLI_INLINE uint layer_bucket_index_from_xy(MaskRasterLayer *layer, const float x
 {
   BLI_assert(BLI_rctf_isect_pt_v(&layer->bounds, xy));
 
-  return ((uint)((xy[0] - layer->bounds.xmin) * layer->buckets_xy_scalar[0])) +
-         (((uint)((xy[1] - layer->bounds.ymin) * layer->buckets_xy_scalar[1])) * layer->buckets_x);
+  return (uint)((xy[0] - layer->bounds.xmin) * layer->buckets_xy_scalar[0]) +
+         ((uint)((xy[1] - layer->bounds.ymin) * layer->buckets_xy_scalar[1]) * layer->buckets_x);
 }
 
 static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2])

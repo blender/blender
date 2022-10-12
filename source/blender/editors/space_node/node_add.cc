@@ -194,15 +194,16 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     }
 
     /* Place the new reroute at the average location of all connected cuts. */
-    const float2 loc = std::accumulate(cuts.values().begin(), cuts.values().end(), float2(0)) /
-                       cuts.size() / UI_DPI_FAC;
-    reroute->locx = loc.x;
-    reroute->locy = loc.y;
+    const float2 insert_point = std::accumulate(
+                                    cuts.values().begin(), cuts.values().end(), float2(0)) /
+                                cuts.size();
+    reroute->locx = insert_point.x / UI_DPI_FAC;
+    reroute->locy = insert_point.y / UI_DPI_FAC;
 
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
-      if (BLI_rctf_isect_pt_v(&frame_node->totr, loc)) {
+      if (BLI_rctf_isect_pt_v(&frame_node->totr, insert_point)) {
         nodeAttachNode(reroute, frame_node);
         break;
       }

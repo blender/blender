@@ -68,6 +68,20 @@ WorldHandle &SyncModule::sync_world(::World *world)
   return eevee_dd;
 }
 
+SceneHandle &SyncModule::sync_scene(::Scene *scene)
+{
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  struct DrawData *dd = DRW_drawdata_ensure(
+      (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
+  SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
+
+  const int recalc_flags = ID_RECALC_ALL;
+  if ((eevee_dd.recalc & recalc_flags) != 0) {
+    inst_.sampling.reset();
+  }
+  return eevee_dd;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -132,6 +132,7 @@ struct DRW_Global {
   struct GPUTexture *weight_ramp;
 
   struct GPUUniformBuf *view_ubo;
+  struct GPUUniformBuf *clipping_ubo;
 };
 extern struct DRW_Global G_draw;
 

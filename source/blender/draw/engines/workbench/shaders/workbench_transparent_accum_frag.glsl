@@ -14,7 +14,8 @@ float linear_zdepth(float depth, mat4 proj_mat)
   }
   else {
     /* Return depth from near plane. */
-    return depth * drw_view.viewvecs[1].z;
+    float z_delta = -2.0 / proj_mat[2][2];
+    return depth * z_delta;
   }
 }
 

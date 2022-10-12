@@ -45,7 +45,7 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
 
   /* Used for planar reflections */
-  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), clipPlanes[0]);
+  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), planarClipPlane);
 
 #ifdef MESH_SHADER
   worldPosition = world_pos;

@@ -161,7 +161,7 @@ class OBJMesh : NonCopyable {
   /**
    * Calculate coordinates of the vertex at the given index.
    */
-  float3 calc_vertex_coords(int vert_index, float scaling_factor) const;
+  float3 calc_vertex_coords(int vert_index, float global_scale) const;
   /**
    * Calculate vertex indices of all vertices of the polygon at the given index.
    */

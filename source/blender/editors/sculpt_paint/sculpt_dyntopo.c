@@ -595,11 +595,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   const BMAllocTemplate allocsize = {
       .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
 
-  if (ss->face_areas) {
-    MEM_freeN(ss->face_areas);
-    ss->face_areas = NULL;
-  }
-
   /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
   BKE_mesh_mselect_clear(me);
 

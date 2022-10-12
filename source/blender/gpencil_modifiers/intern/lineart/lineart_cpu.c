@@ -2891,7 +2891,7 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
   if ((e->flags & LRT_EDGE_FLAG_PROJECTED_SHADOW) &&
       (e->target_reference == tri->target_reference)) {
     if (((dot_f > 0) && (e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)) ||
-        ((dot_f < 0) && (!(e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)))) {
+        ((dot_f < 0) && !(e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT))) {
       *from = 0.0f;
       *to = 1.0f;
       return true;
@@ -3217,8 +3217,7 @@ static bool lineart_triangle_2v_intersection_math(
     return false;
   }
 
-  if (!(lineart_point_inside_triangle3d(
-          gloc, tri->v[0]->gloc, tri->v[1]->gloc, tri->v[2]->gloc))) {
+  if (!lineart_point_inside_triangle3d(gloc, tri->v[0]->gloc, tri->v[1]->gloc, tri->v[2]->gloc)) {
     return false;
   }
 
@@ -5256,11 +5255,11 @@ static void lineart_gpencil_generate(LineartCache *cache,
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
         /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
         if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
-            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED))) {
+            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)) {
           continue;
         }
         if (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED))) {
+            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)) {
           continue;
         }
         if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {

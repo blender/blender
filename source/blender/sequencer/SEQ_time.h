@@ -43,7 +43,7 @@ void SEQ_timeline_boundbox(const struct Scene *scene,
                            const struct ListBase *seqbase,
                            struct rctf *rect);
 /**
- * Get FPS rate of source media. Movie, scene and movieclip strips are supported.
+ * Get FPS rate of source media. Movie, scene and movie-clip strips are supported.
  * Returns 0 for unsupported strip or if media can't be loaded.
  */
 float SEQ_time_sequence_get_fps(struct Scene *scene, struct Sequence *seq);
@@ -132,7 +132,7 @@ float SEQ_time_content_end_frame_get(const struct Scene *scene, const struct Seq
  */
 void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
 /**
- * Update length of metastrip after any contained strip length or position has changed.
+ * Update length of meta-strip after any contained strip length or position has changed.
  * \note this function is currently only used internally and in versioning code.
  */
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);

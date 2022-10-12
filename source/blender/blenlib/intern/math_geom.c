@@ -2748,7 +2748,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
   edotv = dot_v3v3(e1, vel);
   edotbv = dot_v3v3(e1, bv);
 
-  a = elen2 * (-dot_v3v3(vel, vel)) + edotv * edotv;
+  a = elen2 * -dot_v3v3(vel, vel) + edotv * edotv;
   b = 2.0f * (elen2 * dot_v3v3(vel, bv) - edotv * edotbv);
   c = elen2 * (radius2 - dot_v3v3(bv, bv)) + edotbv * edotbv;
 
@@ -2770,7 +2770,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
   edotv = dot_v3v3(e2, vel);
   edotbv = dot_v3v3(e2, bv);
 
-  a = elen2 * (-dot_v3v3(vel, vel)) + edotv * edotv;
+  a = elen2 * -dot_v3v3(vel, vel) + edotv * edotv;
   b = 2.0f * (elen2 * dot_v3v3(vel, bv) - edotv * edotbv);
   c = elen2 * (radius2 - dot_v3v3(bv, bv)) + edotbv * edotbv;
 
@@ -2797,7 +2797,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
   edotv = dot_v3v3(e3, vel);
   edotbv = dot_v3v3(e3, bv);
 
-  a = elen2 * (-dot_v3v3(vel, vel)) + edotv * edotv;
+  a = elen2 * -dot_v3v3(vel, vel) + edotv * edotv;
   b = 2.0f * (elen2 * dot_v3v3(vel, bv) - edotv * edotbv);
   c = elen2 * (radius2 - dot_v3v3(bv, bv)) + edotbv * edotbv;
 

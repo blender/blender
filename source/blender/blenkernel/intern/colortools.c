@@ -1738,7 +1738,7 @@ void BKE_scopes_update(Scopes *scopes,
   }
 
   /* hmmmm */
-  if (!(ELEM(ibuf->channels, 3, 4))) {
+  if (!ELEM(ibuf->channels, 3, 4)) {
     return;
   }
 

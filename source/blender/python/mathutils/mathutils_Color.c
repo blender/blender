@@ -73,9 +73,8 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     case 0:
       break;
     case 1:
-      if ((mathutils_array_parse(
-              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) ==
-          -1) {
+      if (mathutils_array_parse(
+              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()") == -1) {
         return NULL;
       }
       break;

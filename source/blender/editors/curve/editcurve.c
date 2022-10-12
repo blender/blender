@@ -1707,6 +1707,10 @@ static void ed_surf_delete_selected(Object *obedit)
       bp++;
     }
     if (a == 0) {
+      if (cu->actnu == BLI_findindex(editnurb, nu)) {
+        cu->actnu = CU_ACT_NONE;
+      }
+
       BLI_remlink(editnurb, nu);
       keyIndex_delNurb(cu->editnurb, nu);
       BKE_nurb_free(nu);
@@ -6483,6 +6487,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
     }
     else if (type == CURVE_SEGMENT) {
       changed = curve_delete_segments(obedit, v3d, false);
+      cu->actnu = CU_ACT_NONE;
     }
     else {
       BLI_assert(0);
@@ -6490,7 +6495,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       changed_multi = true;
-      cu->actnu = cu->actvert = CU_ACT_NONE;
+      cu->actvert = CU_ACT_NONE;
 
       if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
@@ -6817,7 +6822,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  int clear = (STREQ(op->idname, "CURVE_OT_shade_flat"));
+  int clear = STREQ(op->idname, "CURVE_OT_shade_flat");
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);

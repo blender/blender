@@ -32,7 +32,7 @@ static bool ndof_has_translate(const wmNDOFMotionData *ndof,
                                const View3D *v3d,
                                const RegionView3D *rv3d)
 {
-  return !is_zero_v3(ndof->tvec) && (!ED_view3d_offset_lock_check(v3d, rv3d));
+  return !is_zero_v3(ndof->tvec) && !ED_view3d_offset_lock_check(v3d, rv3d);
 }
 
 static bool ndof_has_rotate(const wmNDOFMotionData *ndof, const RegionView3D *rv3d)
@@ -376,6 +376,9 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
   float pan_vec[3];
   WM_event_ndof_pan_get(ndof, pan_vec, true);
 
+  mul_v2_fl(pan_vec, ndof->dt);
+  pan_vec[2] *= -ndof->dt;
+
   /* NOTE(@campbellbarton): In principle rotating could pass through to regular
    * non-camera NDOF behavior (exiting the camera-view and rotating).
    * Disabled this block since in practice it's difficult to control NDOF devices
@@ -390,7 +393,7 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
   bool changed = false;
 
   if (has_translate) {
-    const float speed = ndof->dt * NDOF_PIXELS_PER_SECOND;
+    const float speed = NDOF_PIXELS_PER_SECOND;
     float event_ofs[2] = {pan_vec[0] * speed, pan_vec[1] * speed};
     if (ED_view3d_camera_view_pan(region, event_ofs)) {
       changed = true;
@@ -398,7 +401,7 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
   }
 
   if (has_zoom) {
-    const float scale = 1.0f + (ndof->dt * pan_vec[2]);
+    const float scale = 1.0f + pan_vec[2];
     if (ED_view3d_camera_view_zoom_scale(rv3d, scale)) {
       changed = true;
     }

@@ -73,7 +73,7 @@ static void findOccludee(FEdge *fe,
 #endif
       oface = occluders.getWFace();
       Polygon3r *p = occluders.getCameraSpacePolygon();
-      real d = -((p->getVertices())[0] * p->getNormal());
+      real d = -(p->getVertices()[0] * p->getNormal());
       real t, t_u, t_v;
 
       if (nullptr != face) {
@@ -286,7 +286,7 @@ static int computeVisibility(ViewMap *viewMap,
            << ", norm: " << p1.getNormal() << endl;
     }
 #else
-    real d = -((p->getVertices())[0] * p->getNormal());
+    real d = -(p->getVertices()[0] * p->getNormal());
 #endif
 
     if (face) {
@@ -1289,7 +1289,7 @@ void ViewMapBuilder::computeCusps(ViewMap *ioViewMap)
     if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
       break;
     }
-    if (!((*ve)->getNature() & Nature::SILHOUETTE) || !((*ve)->fedgeA()->isSmooth())) {
+    if (!((*ve)->getNature() & Nature::SILHOUETTE) || !(*ve)->fedgeA()->isSmooth()) {
       continue;
     }
     FEdge *fe = (*ve)->fedgeA();
@@ -1916,7 +1916,7 @@ void ViewMapBuilder::FindOccludee(FEdge *fe,
       //-------------------------------------------------------------
       // first let us compute the plane equation.
       oface = (WFace *)(*p)->userdata;
-      Vec3r v1(((*p)->getVertices())[0]);
+      Vec3r v1((*p)->getVertices()[0]);
       Vec3r normal((*p)->getNormal());
       real d = -(v1 * normal);
       real t, t_u, t_v;
@@ -2115,7 +2115,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
            << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")" << endl;
     }
 #endif
-    Vec3r v1(((*p)->getVertices())[0]);
+    Vec3r v1((*p)->getVertices()[0]);
     Vec3r normal((*p)->getNormal());
     real d = -(v1 * normal);
     real t, t_u, t_v;

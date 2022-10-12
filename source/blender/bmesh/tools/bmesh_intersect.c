@@ -1263,7 +1263,7 @@ bool BM_mesh_intersect(BMesh *bm,
         /* only start on an edge-case */
         /* pass */
       }
-      else if ((!BM_elem_flag_test(v_a, BM_ELEM_TAG)) && (!BM_elem_flag_test(v_b, BM_ELEM_TAG))) {
+      else if (!BM_elem_flag_test(v_a, BM_ELEM_TAG) && !BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
         /* simple case, single edge spans face */
         BMVert **splice_pair;
         BM_elem_flag_enable(e_pair[1], BM_ELEM_TAG);

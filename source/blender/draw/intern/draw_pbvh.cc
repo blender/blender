@@ -851,6 +851,14 @@ struct PBVHBatches {
         break;
     }
 
+#if 0 /* Enable to fuzz GPU data (to check for over-allocation). */
+    existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
+    uchar *c = static_cast<uchar *>(existing_data);
+    for (int i : IndexRange(vert_count * access.stride)) {
+      *c++ = i & 255;
+    }
+#endif
+
     switch (vbo.type) {
       case CD_MLOOPUV: {
         const int cd_uv = CustomData_get_offset_named(
@@ -1368,8 +1376,17 @@ struct PBVHBatches {
     }
 
     for (PBVHBatch &batch : batches.values()) {
-      GPU_batch_elembuf_set(batch.tris, tri_index, false);
-      GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      if (tri_index) {
+        GPU_batch_elembuf_set(batch.tris, tri_index, false);
+      }
+      else {
+        /* Still flag the batch as dirty even if we're using the default index layout. */
+        batch.tris->flag |= GPU_BATCH_DIRTY;
+      }
+
+      if (lines_index) {
+        GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      }
     }
   }
 

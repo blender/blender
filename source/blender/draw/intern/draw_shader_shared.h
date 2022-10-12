@@ -7,13 +7,15 @@
 #  include "GPU_shader_shared_utils.h"
 #  include "draw_defines.h"
 
-typedef struct ViewInfos ViewInfos;
+typedef struct ViewCullingData ViewCullingData;
+typedef struct ViewMatrices ViewMatrices;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
 typedef struct ObjectBounds ObjectBounds;
 typedef struct VolumeInfos VolumeInfos;
 typedef struct CurvesInfos CurvesInfos;
 typedef struct ObjectAttribute ObjectAttribute;
+typedef struct LayerAttribute LayerAttribute;
 typedef struct DrawCommand DrawCommand;
 typedef struct DispatchCommand DispatchCommand;
 typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
@@ -23,8 +25,10 @@ typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 #  ifdef __cplusplus
 /* C++ only forward declarations. */
 struct Object;
+struct ViewLayer;
 struct ID;
 struct GPUUniformAttr;
+struct GPULayerAttr;
 
 namespace blender::draw {
 
@@ -50,36 +54,22 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
  * This should be kept in sync with `GPU_ATTR_MAX` */
 #define DRW_ATTRIBUTE_PER_CURVES_MAX 15
 
-struct ViewInfos {
-  /* View matrices */
+struct ViewCullingData {
+  /** \note vec3 array padded to vec4. */
+  /** Frustum corners. */
+  float4 corners[8];
+  float4 planes[6];
+  float4 bound_sphere;
+};
+BLI_STATIC_ASSERT_ALIGN(ViewCullingData, 16)
+
+struct ViewMatrices {
   float4x4 viewmat;
   float4x4 viewinv;
   float4x4 winmat;
   float4x4 wininv;
-
-  float4 clip_planes[6];
-  float4 viewvecs[2];
-  /* Should not be here. Not view dependent (only main view). */
-  float4 viewcamtexcofac;
-
-  float2 viewport_size;
-  float2 viewport_size_inverse;
-
-  /** Frustum culling data. */
-  /** \note vec3 array padded to vec4. */
-  float4 frustum_corners[8];
-  float4 frustum_planes[6];
-  float4 frustum_bound_sphere;
-
-  /** For debugging purpose */
-  /* Mouse pixel. */
-  int2 mouse_pixel;
-
-  /** True if facing needs to be inverted. */
-  bool1 is_inverted;
-  int _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
+BLI_STATIC_ASSERT_ALIGN(ViewMatrices, 16)
 
 /* Do not override old definitions if the shader uses this header but not shader info. */
 #ifdef USE_GPU_SHADER_CREATE_INFO
@@ -88,9 +78,6 @@ BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 #  define ViewMatrixInverse drw_view.viewinv
 #  define ProjectionMatrix drw_view.winmat
 #  define ProjectionMatrixInverse drw_view.wininv
-#  define clipPlanes drw_view.clip_planes
-#  define ViewVecs drw_view.viewvecs
-#  define CameraTexCoFactors drw_view.viewcamtexcofac
 #endif
 
 /** \} */
@@ -207,6 +194,20 @@ struct ObjectAttribute {
 /** \note we only align to 4 bytes and fetch data manually so make sure
  * C++ compiler gives us the same size. */
 BLI_STATIC_ASSERT_ALIGN(ObjectAttribute, 20)
+
+#pragma pack(push, 4)
+struct LayerAttribute {
+  float4 data;
+  uint hash_code;
+  uint buffer_length; /* Only in the first record. */
+  uint _pad1, _pad2;
+
+#if !defined(GPU_SHADER) && defined(__cplusplus)
+  bool sync(Scene *scene, ViewLayer *layer, const GPULayerAttr &attr);
+#endif
+};
+#pragma pack(pop)
+BLI_STATIC_ASSERT_ALIGN(LayerAttribute, 32)
 
 /** \} */
 

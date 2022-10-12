@@ -77,7 +77,7 @@ extern ModifierTypeInfo modifierType_VolumeDisplace;
 extern ModifierTypeInfo modifierType_VolumeToMesh;
 extern ModifierTypeInfo modifierType_BassRelief;
 
-/* MOD_util.c */
+/* MOD_util.cc */
 
 /**
  * Only called by `BKE_modifier.h/modifier.cc`

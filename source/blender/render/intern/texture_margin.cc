@@ -290,8 +290,8 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_ = blender::mesh_topology::build_corner_to_poly_map({mpoly_, totpoly_},
-                                                                         totloop_);
+    loop_to_poly_map_ = blender::mesh_topology::build_loop_to_poly_map({mpoly_, totpoly_},
+                                                                       totloop_);
 
     loop_adjacency_map_.resize(totloop_, -1);
 

@@ -2295,6 +2295,7 @@ void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
  * GPU (which is far more expensive!) See: T47232.
  */
+
 bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
@@ -4192,12 +4193,19 @@ ATTR_NO_OPT void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         BMFace *f = (BMFace *)tri->f.i;
 
         float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
-
-        float area = area_tri_v3(v1->co, v2->co, v3->co);
-        float farea = BM_ELEM_CD_GET_FLOAT(f, cd_face_area);
-
-        areabuf[cur_i] = farea + area;
+        areabuf[cur_i] += area_tri_v3(v1->co, v2->co, v3->co);
       }
+
+      TGSET_ITER (f, node->bm_faces) {
+        float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
+
+        /* sanity check on read side of read write buffer */
+        if (areabuf[cur_i ^ 1] == 0.0f) {
+          areabuf[cur_i ^ 1] = areabuf[cur_i];
+        }
+      }
+      TGSET_ITER_END;
+
       break;
     }
     default:
@@ -4304,7 +4312,10 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
   pbvh->vemap = vemap;
 }
 
-void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
+ATTR_NO_OPT void BKE_pbvh_get_vert_face_areas(PBVH *pbvh,
+                                              PBVHVertRef vertex,
+                                              float *r_areas,
+                                              int valence)
 {
   const int cur_i = pbvh->face_area_i;
 

@@ -200,7 +200,7 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   ColorBand *coba;
   float in, out[4];
 
-  if (!(PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in))) {
+  if (!PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in)) {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
@@ -239,7 +239,7 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   int cur;
   float value;
 
-  if (!(PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value))) {
+  if (!PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value)) {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {

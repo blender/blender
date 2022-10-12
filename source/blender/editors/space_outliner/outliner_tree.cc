@@ -1598,7 +1598,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
       /* flag as not a found item */
       tselem->flag &= ~TSE_SEARCHMATCH;
 
-      if ((!TSELEM_OPEN(tselem, space_outliner)) ||
+      if (!TSELEM_OPEN(tselem, space_outliner) ||
           outliner_filter_subtree(
               space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter) ==
               0) {

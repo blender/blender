@@ -727,7 +727,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
                                                                   mesh->totpoly);
   }
 
-  uint32_t *flags_data = (uint32_t *)(GPU_vertbuf_get_data(cache->extra_coarse_face_data));
+  uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(cache->extra_coarse_face_data);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     draw_subdiv_cache_extra_coarse_face_data_bm(cache->bm, mr->efa_act, flags_data);

@@ -82,7 +82,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Generate dot-dash styled strokes"},
     {eGpencilModifierType_Envelope,
      "GP_ENVELOPE",
-     ICON_MOD_SKIN,
+     ICON_MOD_ENVELOPE,
      "Envelope",
      "Create an envelope shape"},
     {eGpencilModifierType_Length,
@@ -107,7 +107,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Produce multiple strokes along one stroke"},
     {eGpencilModifierType_Outline,
      "GP_OUTLINE",
-     ICON_MOD_SKIN,
+     ICON_MOD_OUTLINE,
      "Outline",
      "Convert stroke to perimeter"},
     {eGpencilModifierType_Simplify,
@@ -2139,8 +2139,7 @@ static void rna_def_modifier_gpenciloutline(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "OutlineGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Outline Modifier", "Outline of Strokes modifier from camera view");
   RNA_def_struct_sdna(srna, "OutlineGpencilModifierData");
-  // TODO: add new icon
-  RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_OUTLINE);
 
   RNA_define_lib_overridable(true);
 
@@ -4431,7 +4430,7 @@ static void rna_def_modifier_gpencilenvelope(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "EnvelopeGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Envelope Modifier", "Envelope stroke effect modifier");
   RNA_def_struct_sdna(srna, "EnvelopeGpencilModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_ENVELOPE);
 
   RNA_define_lib_overridable(true);
 
