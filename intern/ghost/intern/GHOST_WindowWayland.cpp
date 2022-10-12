@@ -497,6 +497,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * when the `w->scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
+  /* This value is expected to match the base name of the `.desktop` file. see T101779. */
+  const char *xdg_app_id = "org.blender.Blender";
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
     w->libdecor = new WGL_LibDecor_Window;
@@ -508,6 +511,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     libdecor_frame_map(w->libdecor->frame);
 
     libdecor_frame_set_min_content_size(decor.frame, UNPACK2(size_min));
+    libdecor_frame_set_app_id(decor.frame, xdg_app_id);
 
     if (parentWindow) {
       WGL_LibDecor_Window &decor_parent =
@@ -524,6 +528,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     decor.toplevel = xdg_surface_get_toplevel(decor.surface);
 
     xdg_toplevel_set_min_size(decor.toplevel, UNPACK2(size_min));
+    xdg_toplevel_set_app_id(decor.toplevel, xdg_app_id);
 
     if (m_system->xdg_decor_manager()) {
       decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
@@ -636,7 +641,6 @@ void GHOST_WindowWayland::setTitle(const char *title)
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
     WGL_LibDecor_Window &decor = *w->libdecor;
-    libdecor_frame_set_app_id(decor.frame, title);
     libdecor_frame_set_title(decor.frame, title);
   }
   else
@@ -644,7 +648,6 @@ void GHOST_WindowWayland::setTitle(const char *title)
   {
     WGL_XDG_Decor_Window &decor = *w->xdg_decor;
     xdg_toplevel_set_title(decor.toplevel, title);
-    xdg_toplevel_set_app_id(decor.toplevel, title);
   }
 
   this->title = title;
