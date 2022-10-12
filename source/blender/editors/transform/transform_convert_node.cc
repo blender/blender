@@ -160,7 +160,9 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 
 static void flushTransNodes(TransInfo *t)
 {
+  using namespace blender::ed;
   const float dpi_fac = UI_DPI_FAC;
+  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
   TransCustomDataNode *customdata = (TransCustomDataNode *)t->custom.type.data;
 
@@ -220,7 +222,7 @@ static void flushTransNodes(TransInfo *t)
 
     /* handle intersection with noodles */
     if (tc->data_len == 1) {
-      ED_node_link_intersect_test(t->area, 1);
+      space_node::node_insert_on_link_flags_set(*snode, *t->region);
     }
   }
 }
@@ -233,13 +235,15 @@ static void flushTransNodes(TransInfo *t)
 
 static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
+  using namespace blender::ed;
   Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
+  bNodeTree *ntree = snode->edittree;
+
   const bool canceled = (t->state == TRANS_CANCEL);
 
-  SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
   if (canceled && t->remove_on_cancel) {
     /* remove selected nodes on cancel */
-    bNodeTree *ntree = snode->edittree;
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
@@ -252,11 +256,10 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
   if (!canceled) {
     ED_node_post_apply_transform(C, snode->edittree);
-    ED_node_link_insert(bmain, t->area);
+    space_node::node_insert_on_link_flags(*bmain, *snode);
   }
 
-  /* clear link line */
-  ED_node_link_intersect_test(t->area, 0);
+  space_node::node_insert_on_link_flags_clear(*ntree);
 }
 
 /** \} */
