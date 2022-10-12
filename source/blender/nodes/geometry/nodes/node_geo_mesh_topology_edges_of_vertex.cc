@@ -60,8 +60,8 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
   {
     const IndexRange vert_range(mesh.totvert);
     const Span<MEdge> edges = mesh.edges();
-    Array<Vector<int>> vert_to_edge_map = mesh_topology::build_vert_to_edge_map(edges,
-                                                                                mesh.totvert);
+    Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(edges,
+                                                                                     mesh.totvert);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
