@@ -415,7 +415,8 @@ void register_node_type_cmp_cryptomatte_legacy()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte", NODE_CLASS_MATTE);
+  cmp_node_type_base(
+      &ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte (Legacy)", NODE_CLASS_MATTE);
   node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_cryptomatte_out);
   node_type_init(&ntype, legacy_file_ns::node_init_cryptomatte_legacy);
   node_type_storage(
