@@ -2501,7 +2501,7 @@ void ED_vgroup_mirror(Object *ob,
 
                 if (sel || sel_mirr) {
                   MDeformVert *dvert = &dverts[vidx];
-                  dvert_mirr = &dvert[vidx_mirr];
+                  dvert_mirr = &dverts[vidx_mirr];
 
                   VGROUP_MIRR_OP;
                   totmirr++;
