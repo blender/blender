@@ -125,7 +125,9 @@ static bool use_gnome_confine_hack = false;
  * This is a hack because it seems there is no way to check if the compositor supports
  * server side decorations when initializing WAYLAND.
  */
-#define USE_GNOME_NEEDS_LIBDECOR_HACK
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_GHOST_X11)
+#  define USE_GNOME_NEEDS_LIBDECOR_HACK
+#endif
 
 /** \} */
 
@@ -3094,16 +3096,12 @@ static void global_handle_add(void *data,
     found = false;
 
 #ifdef USE_GNOME_NEEDS_LIBDECOR_HACK
-#  ifdef WITH_GHOST_X11
-#    ifdef WITH_GHOST_WAYLAND_LIBDECOR
     if (STRPREFIX(interface, "gtk_shell")) { /* `gtk_shell1` at time of writing. */
-      /* Only require libdecor when built with X11 support,
+      /* Only require `libdecor` when built with X11 support,
        * otherwise there is nothing to fall back on. */
       display->libdecor_required = true;
     }
-#    endif /* WITH_GHOST_WAYLAND_LIBDECOR */
-#  endif   /* WITH_GHOST_X11 */
-#endif     /* USE_GNOME_NEEDS_LIBDECOR_HACK */
+#endif
   }
 
   CLOG_INFO(LOG,
@@ -4141,8 +4139,6 @@ wl_compositor *GHOST_SystemWayland::compositor()
 
 libdecor *GHOST_SystemWayland::libdecor_context()
 {
-  GHOST_ASSERT(use_libdecor, "X");
-  GHOST_ASSERT(d->libdecor != nullptr, "X");
   return d->libdecor->context;
 }
 

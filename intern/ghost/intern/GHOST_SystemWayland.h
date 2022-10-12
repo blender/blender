@@ -27,8 +27,6 @@
 
 class GHOST_WindowWayland;
 
-struct GWL_Display;
-
 bool ghost_wl_output_own(const struct wl_output *wl_output);
 void ghost_wl_output_tag(struct wl_output *wl_output);
 struct GWL_Output *ghost_wl_output_user_data(struct wl_output *wl_output);
