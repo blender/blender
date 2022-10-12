@@ -335,6 +335,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             offset++;
           }
         }
+        IMB_gpu_clamp_half_float(&extracted_buffer);
 
         GPU_texture_update_sub(texture,
                                GPU_DATA_FLOAT,
@@ -391,6 +392,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       }
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }
+    IMB_gpu_clamp_half_float(&texture_buffer);
     GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.rect_float);
     imb_freerectImbuf_all(&texture_buffer);
   }

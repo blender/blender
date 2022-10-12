@@ -290,3 +290,19 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
 
   return tex;
 }
+
+void IMB_gpu_clamp_half_float(ImBuf *image_buffer)
+{
+  const float half_min = -65504;
+  const float half_max = 65504;
+  if (!image_buffer->rect_float) {
+    return;
+  }
+
+  int rect_float_len = image_buffer->x * image_buffer->y *
+                       (image_buffer->channels == 0 ? 4 : image_buffer->channels);
+
+  for (int i = 0; i < rect_float_len; i++) {
+    image_buffer->rect_float[i] = clamp_f(image_buffer->rect_float[i], half_min, half_max);
+  }
+}
