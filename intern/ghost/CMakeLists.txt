@@ -349,16 +349,16 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${INC_DST}
     )
 
-    if(NOT WITH_GHOST_WAYLAND_LIBDECOR)
-      # `xdg-shell`.
-      generate_protocol_bindings(
-        "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
-      )
-      # `xdg-decoration`.
-      generate_protocol_bindings(
-        "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
-      )
-    endif()
+    # Used when: LIBDECOR is not needed.
+    # `xdg-shell`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
+    )
+    # `xdg-decoration`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+    )
+    # End LIBDECOR alternative.
 
     # `xdg-output`.
     generate_protocol_bindings(

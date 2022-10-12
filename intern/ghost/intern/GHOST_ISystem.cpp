@@ -48,7 +48,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     /* Pass. */
 #elif defined(WITH_GHOST_WAYLAND)
 #  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
-    const bool has_wayland_libraries = ghost_wl_dynload_libraries();
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init();
 #  else
     const bool has_wayland_libraries = true;
 #  endif
@@ -66,6 +66,9 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
       catch (const std::runtime_error &) {
         delete m_system;
         m_system = nullptr;
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+        ghost_wl_dynload_libraries_exit();
+#  endif
       }
     }
     else {
@@ -101,6 +104,9 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
       catch (const std::runtime_error &) {
         delete m_system;
         m_system = nullptr;
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+        ghost_wl_dynload_libraries_exit();
+#  endif
       }
     }
     else {
