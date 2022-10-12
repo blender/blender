@@ -924,6 +924,35 @@ class TextureFromPool : public Texture, NonMovable {
   GPUTexture *stencil_view() = delete;
 };
 
+class TextureRef : public Texture {
+ public:
+  TextureRef() = default;
+
+  ~TextureRef()
+  {
+    this->tx_ = nullptr;
+  }
+
+  void wrap(GPUTexture *tex)
+  {
+    this->tx_ = tex;
+  }
+
+  /** Remove methods that are forbidden with this type of textures. */
+  bool ensure_1d(int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_1d_array(int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_2d(int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_3d(int, int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_cube(int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_cube_array(int, int, int, eGPUTextureFormat, float *) = delete;
+  void filter_mode(bool) = delete;
+  void free() = delete;
+  GPUTexture *mip_view(int) = delete;
+  GPUTexture *layer_view(int) = delete;
+  GPUTexture *stencil_view() = delete;
+};
+
 /**
  * Dummy type to bind texture as image.
  * It is just a GPUTexture in disguise.
