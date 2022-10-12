@@ -254,6 +254,10 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
       break;
   }
 
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
+  global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
+
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
