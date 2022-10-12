@@ -2376,18 +2376,6 @@ void ED_vgroup_mirror(Object *ob,
   /* TODO: vgroup locking.
    * TODO: face masking. */
 
-#define VGROUP_MIRR_OP \
-  dvert_mirror_op(dvert, \
-                  dvert_mirr, \
-                  sel, \
-                  sel_mirr, \
-                  flip_map, \
-                  flip_map_len, \
-                  mirror_weights, \
-                  flip_vgroups, \
-                  all_vgroups, \
-                  def_nr)
-
   BMVert *eve, *eve_mirr;
   MDeformVert *dvert_mirr;
   char sel, sel_mirr;
@@ -2452,7 +2440,16 @@ void ED_vgroup_mirror(Object *ob,
                   dvert_mirr = static_cast<MDeformVert *>(
                       BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset));
 
-                  VGROUP_MIRR_OP;
+                  dvert_mirror_op(dvert,
+                                  dvert_mirr,
+                                  sel,
+                                  sel_mirr,
+                                  flip_map,
+                                  flip_map_len,
+                                  mirror_weights,
+                                  flip_vgroups,
+                                  all_vgroups,
+                                  def_nr);
                   totmirr++;
                 }
 
@@ -2503,7 +2500,16 @@ void ED_vgroup_mirror(Object *ob,
                   MDeformVert *dvert = &dverts[vidx];
                   dvert_mirr = &dverts[vidx_mirr];
 
-                  VGROUP_MIRR_OP;
+                  dvert_mirror_op(dvert,
+                                  dvert_mirr,
+                                  sel,
+                                  sel_mirr,
+                                  flip_map,
+                                  flip_map_len,
+                                  mirror_weights,
+                                  flip_vgroups,
+                                  all_vgroups,
+                                  def_nr);
                   totmirr++;
                 }
 
@@ -2557,7 +2563,16 @@ void ED_vgroup_mirror(Object *ob,
               MDeformVert *dvert = &lt->dvert[i1];
               dvert_mirr = &lt->dvert[i2];
 
-              VGROUP_MIRR_OP;
+              dvert_mirror_op(dvert,
+                              dvert_mirr,
+                              sel,
+                              sel_mirr,
+                              flip_map,
+                              flip_map_len,
+                              mirror_weights,
+                              flip_vgroups,
+                              all_vgroups,
+                              def_nr);
               totmirr++;
             }
           }
