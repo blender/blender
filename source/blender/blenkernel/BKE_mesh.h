@@ -490,7 +490,7 @@ void BKE_mesh_calc_normals(struct Mesh *me);
  * Called after calculating all modifiers.
  */
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
-void BKE_mesh_calc_normals_looptri(struct MVert *mverts,
+void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
                                    int numVerts,
                                    const struct MLoop *mloop,
                                    const struct MLoopTri *looptri,

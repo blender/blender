@@ -470,7 +470,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #endif
 }
 
-void BKE_mesh_calc_normals_looptri(MVert *mverts,
+void BKE_mesh_calc_normals_looptri(const MVert *mverts,
                                    int numVerts,
                                    const MLoop *mloop,
                                    const MLoopTri *looptri,
@@ -508,7 +508,7 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
 
   /* Following Mesh convention; we use vertex coordinate itself for normal in this case. */
   for (int i = 0; i < numVerts; i++) {
-    MVert *mv = &mverts[i];
+    const MVert *mv = &mverts[i];
     float *no = tnorms[i];
 
     if (UNLIKELY(normalize_v3(no) == 0.0f)) {
