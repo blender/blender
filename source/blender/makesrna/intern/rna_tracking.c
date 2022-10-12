@@ -36,6 +36,7 @@
 #  include "BKE_anim_data.h"
 #  include "BKE_animsys.h"
 #  include "BKE_node.h"
+#  include "BKE_report.h"
 
 #  include "DEG_depsgraph.h"
 
@@ -141,7 +142,7 @@ static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
 
 static void rna_tracking_active_track_set(PointerRNA *ptr,
                                           PointerRNA value,
-                                          struct ReportList *UNUSED(reports))
+                                          struct ReportList *reports)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingTrack *track = (MovieTrackingTrack *)value.data;
@@ -152,8 +153,11 @@ static void rna_tracking_active_track_set(PointerRNA *ptr,
     tracking_object->active_track = track;
   }
   else {
-    /* TODO(sergey): Raise an error. */
-    tracking_object->active_track = NULL;
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Track '%s' is not found in the tracking object %s",
+                track->name,
+                tracking_object->name);
   }
 }
 
@@ -168,7 +172,7 @@ static PointerRNA rna_tracking_active_plane_track_get(PointerRNA *ptr)
 
 static void rna_tracking_active_plane_track_set(PointerRNA *ptr,
                                                 PointerRNA value,
-                                                struct ReportList *UNUSED(reports))
+                                                struct ReportList *reports)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)value.data;
@@ -179,8 +183,11 @@ static void rna_tracking_active_plane_track_set(PointerRNA *ptr,
     tracking_object->active_plane_track = plane_track;
   }
   else {
-    /* TODO(sergey): Raise an error. */
-    tracking_object->active_plane_track = NULL;
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Plane track '%s' is not found in the tracking object %s",
+                plane_track->name,
+                tracking_object->name);
   }
 }
 
