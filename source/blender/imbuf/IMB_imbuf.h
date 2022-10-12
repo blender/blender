@@ -895,6 +895,13 @@ eGPUTextureFormat IMB_gpu_get_texture_format(const struct ImBuf *ibuf,
                                              bool use_grayscale);
 
 /**
+ * Ensures that values stored in the float rect can safely loaded into half float gpu textures.
+ *
+ * Does nothing when given image_buffer doesn't contain a float rect.
+ */
+void IMB_gpu_clamp_half_float(struct ImBuf *image_buffer);
+
+/**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
  */
