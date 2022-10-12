@@ -2318,10 +2318,31 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &collection->id;
     user_overrides_from_selected_objects = true;
   }
-  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
+  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true, or that it is already an existing
+   * liboverride. */
   else {
+    BLI_assert(ID_IS_LINKED(obact) || ID_IS_OVERRIDE_LIBRARY_REAL(obact));
     id_root = &obact->id;
     user_overrides_from_selected_objects = true;
+  }
+
+  /* Make already existing selected liboverrides editable. */
+  bool is_active_override = false;
+  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
+      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      is_active_override = is_active_override || (&ob_iter->id == id_root);
+      DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
+    }
+  }
+  FOREACH_SELECTED_OBJECT_END;
+  /* If the active object is a liboverride, there is no point going further, since in the weird
+   * case where some other selected objects would be linked ones, there is no way to properly
+   * create overrides for them currently.
+   *
+   * Could be added later if really needed, but would rather avoid that extra complexity here. */
+  if (is_active_override) {
+    return OPERATOR_FINISHED;
   }
 
   const bool do_fully_editable = !user_overrides_from_selected_objects;
@@ -2330,14 +2351,6 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
                                                           BLI_gset_new(BLI_ghashutil_inthash_p,
                                                                        BLI_ghashutil_intcmp,
                                                                        __func__);
-
-  /* Make already existing selected liboverrides editable. */
-  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
-      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
-    }
-  }
-  FOREACH_SELECTED_OBJECT_END;
 
   if (do_fully_editable) {
     /* Pass. */
