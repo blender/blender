@@ -2168,6 +2168,7 @@ static void rna_def_trackingTracks(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
 
 static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
@@ -2192,6 +2193,7 @@ static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(
       prop, "Active Plane Track", "Active plane track in this tracking data object");
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
 
 static void rna_def_trackingObjectTracks(BlenderRNA *brna)
@@ -2229,6 +2231,7 @@ static void rna_def_trackingObjectTracks(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
 
 static void rna_def_trackingObjectPlaneTracks(BlenderRNA *brna)
@@ -2251,6 +2254,7 @@ static void rna_def_trackingObjectPlaneTracks(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
 
 static void rna_def_trackingObject(BlenderRNA *brna)
