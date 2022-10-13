@@ -1050,25 +1050,6 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 /** \name Pack UV Islands Operator
  * \{ */
 
-static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
-{
-  const UnwrapOptions options = {
-      .topology_from_uvs = true,
-      .only_selected_faces = false,
-      .only_selected_uvs = true,
-      .fill_holes = false,
-      .correct_aspect = false,
-  };
-
-  bool rotate = true;
-  bool ignore_pinned = false;
-
-  ParamHandle *handle = construct_param_handle(scene, ob, bm, &options, NULL);
-  GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
-}
-
 /**
  * \warning Since this uses #ParamHandle it doesn't work with non-manifold meshes (see T82637).
  * Use #ED_uvedit_pack_islands_multi for a more general solution.
@@ -1147,7 +1128,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
       .margin = RNA_float_get(op->ptr, "margin"),
   };
   ED_uvedit_pack_islands_multi(
-      scene, objects, objects_len, use_udim_params ? &udim_params : NULL, &params);
+      scene, objects, objects_len, NULL, use_udim_params ? &udim_params : NULL, &params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -2439,7 +2420,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
         .margin_method = RNA_enum_get(op->ptr, "margin_method"),
         .margin = RNA_float_get(op->ptr, "island_margin"),
     };
-    ED_uvedit_pack_islands_multi(scene, objects_changed, object_changed_len, NULL, &params);
+    ED_uvedit_pack_islands_multi(scene, objects_changed, object_changed_len, NULL, NULL, &params);
 
     /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
@@ -3180,13 +3161,24 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
                          .calc_face_normal = true,
                          .calc_vert_normal = true,
                      }));
-  /* select all uv loops first - pack parameters needs this to make sure charts are registered */
+  /* Select all UVs for cube_project. */
   ED_uvedit_select_all(bm);
   /* A cube size of 2.0 maps [-1..1] vertex coords to [0.0..1.0] in UV coords. */
   uvedit_unwrap_cube_project(scene, bm, 2.0, false, false, NULL);
-  /* Set the margin really quickly before the packing operation. */
-  scene->toolsettings->uvcalc_margin = 0.001f;
-  uvedit_pack_islands(scene, ob, bm);
+
+  /* Pack UVs. */
+  const struct UVPackIsland_Params params = {
+      .rotate = true,
+      .only_selected_uvs = false,
+      .only_selected_faces = false,
+      .correct_aspect = false,
+      .use_seams = true,
+      .margin_method = ED_UVPACK_MARGIN_SCALED,
+      .margin = 0.001f,
+  };
+  ED_uvedit_pack_islands_multi(scene, &ob, 1, &bm, NULL, &params);
+
+  /* Write back from BMesh to Mesh. */
   BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));
   BM_mesh_free(bm);
 
