@@ -14,7 +14,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vec_types.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
@@ -224,12 +223,10 @@ static void curves_batch_cache_fill_segments_proc_pos(
     MutableSpan<PositionAndParameter> posTime_data,
     MutableSpan<float> hairLength_data)
 {
-  SCOPED_TIMER_AVERAGED(__func__);
   using namespace blender;
   /* TODO: use hair radius layer if available. */
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_id.geometry);
-  Span<float3> positions = curves.positions();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const Span<float3> positions = curves.positions();
 
   threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int i_curve : range) {
@@ -241,8 +238,7 @@ static void curves_batch_cache_fill_segments_proc_pos(
       float total_len = 0.0f;
       for (const int i_point : curve_positions.index_range()) {
         if (i_point > 0) {
-          total_len += blender::math::distance(curve_positions[i_point - 1],
-                                               curve_positions[i_point]);
+          total_len += math::distance(curve_positions[i_point - 1], curve_positions[i_point]);
         }
         curve_posTime_data[i_point].position = curve_positions[i_point];
         curve_posTime_data[i_point].parameter = total_len;
@@ -276,7 +272,7 @@ static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
     GPU_vertbuf_data_alloc(cache.proc_point_buf, cache.point_len);
 
     MutableSpan posTime_data{
-        reinterpret_cast<PositionAndParameter *>(GPU_vertbuf_get_data(cache.proc_point_buf)),
+        static_cast<PositionAndParameter *>(GPU_vertbuf_get_data(cache.proc_point_buf)),
         cache.point_len};
 
     GPUVertFormat length_format = {0};
@@ -286,8 +282,8 @@ static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
         &length_format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
     GPU_vertbuf_data_alloc(cache.proc_length_buf, cache.strands_len);
 
-    MutableSpan hairLength_data{
-        reinterpret_cast<float *>(GPU_vertbuf_get_data(cache.proc_length_buf)), cache.strands_len};
+    MutableSpan hairLength_data{static_cast<float *>(GPU_vertbuf_get_data(cache.proc_length_buf)),
+                                cache.strands_len};
 
     curves_batch_cache_fill_segments_proc_pos(curves, posTime_data, hairLength_data);
 
@@ -311,15 +307,15 @@ static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
 static void curves_batch_cache_ensure_data_edit_points(const Curves &curves_id,
                                                        CurvesEvalCache &cache)
 {
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_id.geometry);
+  using namespace blender;
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
   static GPUVertFormat format_data = {0};
   uint data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
   GPU_vertbuf_init_with_format(cache.data_edit_points, &format_data);
   GPU_vertbuf_data_alloc(cache.data_edit_points, curves.points_num());
 
-  blender::VArray<float> selection;
+  VArray<float> selection;
   switch (curves_id.selection_domain) {
     case ATTR_DOMAIN_POINT:
       selection = curves.selection_point_float();
@@ -381,6 +377,7 @@ static void curves_batch_ensure_attribute(const Curves &curves,
                                           const int subdiv,
                                           const int index)
 {
+  using namespace blender;
   GPU_VERTBUF_DISCARD_SAFE(cache.proc_attributes_buf[index]);
   DRW_TEXTURE_FREE_SAFE(cache.proc_attributes_tex[index]);
 
@@ -400,15 +397,15 @@ static void curves_batch_ensure_attribute(const Curves &curves,
                          request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
                                                                curves.geometry.curve_num);
 
-  const blender::bke::AttributeAccessor attributes =
-      blender::bke::CurvesGeometry::wrap(curves.geometry).attributes();
+  const bke::AttributeAccessor attributes =
+      bke::CurvesGeometry::wrap(curves.geometry).attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
    * by OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  blender::VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+  VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   MutableSpan<ColorGeometry4f> vbo_span{
