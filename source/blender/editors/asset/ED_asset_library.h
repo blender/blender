@@ -34,6 +34,8 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
 const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
     bool include_local_library);
 
+struct CustomAssetLibraryDefinition *ED_asset_library_find_custom_library_from_reference(
+    const AssetLibraryReference *library_ref);
 #ifdef __cplusplus
 }
 #endif

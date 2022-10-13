@@ -40,12 +40,14 @@
 
 #include "BKE_appdir.h"
 #include "BKE_asset_library_custom.h"
+#include "BKE_blender_project.h"
 #include "BKE_context.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 
 #include "BLF_api.h"
 
+#include "ED_asset_library.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 
@@ -409,27 +411,42 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
   AssetLibraryReference *library = &asset_params->asset_library_ref;
   FileSelectParams *base_params = &asset_params->base_params;
-  CustomAssetLibraryDefinition *user_library = NULL;
+  CustomAssetLibraryDefinition *custom_library =
+      ED_asset_library_find_custom_library_from_reference(library);
 
-  /* Ensure valid repository, or fall-back to local one. */
-  if (library->type == ASSET_LIBRARY_CUSTOM) {
-    BLI_assert(library->custom_library_index >= 0);
-
-    user_library = BKE_asset_library_custom_find_from_index(&U.asset_libraries,
-                                                            library->custom_library_index);
-    if (!user_library) {
-      library->type = ASSET_LIBRARY_LOCAL;
-    }
+  /* Ensure valid asset library, or fall-back to local one. */
+  if (!custom_library) {
+    library->type = ASSET_LIBRARY_LOCAL;
   }
 
   switch (library->type) {
     case ASSET_LIBRARY_LOCAL:
       base_params->dir[0] = '\0';
       break;
-    case ASSET_LIBRARY_CUSTOM:
-      BLI_assert(user_library);
-      BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+      BLI_assert(custom_library);
+      BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));
       break;
+      /* Project asset libraries typically use relative paths (relative to project root directory).
+       */
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
+      BlenderProject *project = CTX_wm_project();
+      BLI_assert(custom_library);
+      BLI_assert(project);
+
+      if (BLI_path_is_rel(custom_library->path)) {
+        const char *project_root_path = BKE_project_root_path_get(project);
+        BLI_path_join(base_params->dir,
+                      sizeof(base_params->dir),
+                      project_root_path,
+                      custom_library->path,
+                      NULL);
+      }
+      else {
+        BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));
+      }
+      break;
+    }
   }
   base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET :
                                                                FILE_ASSET_LIBRARY;

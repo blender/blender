@@ -92,23 +92,26 @@ typedef enum eAssetLibraryType {
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#CustomAssetLibraryDefinition). In RNA, we add the index of the custom library to this to
-   * identify it by index. So keep this last! */
-  ASSET_LIBRARY_CUSTOM = 100,
+   * identify it by index. */
+  ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES = 100,
+  /** Same as #ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES, but the library is defined for a specific
+     project only. */
+  ASSET_LIBRARY_CUSTOM_FROM_PROJECT = 500,
 } eAssetLibraryType;
 
 /**
- * Information to identify an asset library. May be either one of the predefined types (current
- * 'Main', builtin library, project library), or a custom type as defined in the Preferences.
+ * Information to identify an asset library. May be either one of the predefined types ("Current
+ * File" builtin library), or a custom type as defined in the Preferences/Project.
  *
- * If the type is set to #ASSET_LIBRARY_CUSTOM, `custom_library_index` must be set to identify the
- * custom library. Otherwise it is not used.
  */
 typedef struct AssetLibraryReference {
+  /* If set to #ASSET_LIBRARY_CUSTOM_XXX, `custom_library_index` must be set to identify
+   * the custom library. Otherwise it is not used. */
   short type; /* eAssetLibraryType */
   char _pad1[2];
   /**
-   * If showing a custom asset library (#ASSET_LIBRARY_CUSTOM), this is the index of the
-   * #CustomAssetLibraryDefinition within #UserDef.asset_libraries.
+   * If showing a custom asset library (#ASSET_LIBRARY_CUSTOM_XXX), this is the index of the
+   * #CustomAssetLibraryDefinition within its owner (preferences or project settings).
    * Should be ignored otherwise (but better set to -1 then, for sanity and debugging).
    */
   int custom_library_index;

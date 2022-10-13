@@ -56,6 +56,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
+#include "ED_asset_library.h"
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -1038,12 +1039,18 @@ static bool filelist_compare_asset_libraries(const AssetLibraryReference *librar
   if (library_a->type != library_b->type) {
     return false;
   }
-  if (library_a->type == ASSET_LIBRARY_CUSTOM) {
+
+  const bool is_custom_library = ELEM(
+      library_a->type, ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES, ASSET_LIBRARY_CUSTOM_FROM_PROJECT);
+  if (is_custom_library) {
+    if (library_a->custom_library_index != library_b->custom_library_index) {
+      return false;
+    }
+
     /* Don't only check the index, also check that it's valid. */
-    CustomAssetLibraryDefinition *library_ptr_a = BKE_asset_library_custom_find_from_index(
-        &U.asset_libraries, library_a->custom_library_index);
-    return (library_ptr_a != nullptr) &&
-           (library_a->custom_library_index == library_b->custom_library_index);
+    if (!ED_asset_library_find_custom_library_from_reference(library_a)) {
+      return false;
+    }
   }
 
   return true;

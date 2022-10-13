@@ -13,6 +13,7 @@
 #include <string>
 
 #include "BKE_asset_library_custom.h"
+#include "BKE_blender_project.h"
 #include "BKE_context.h"
 
 #include "BLI_map.hh"
@@ -31,6 +32,7 @@
 
 #include "ED_asset_handle.h"
 #include "ED_asset_indexer.h"
+#include "ED_asset_library.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
 #include "asset_library_reference.hh"
@@ -130,15 +132,8 @@ void AssetList::setup()
 {
   FileList *files = filelist_;
 
-  CustomAssetLibraryDefinition *user_library = nullptr;
-
-  /* Ensure valid repository, or fall-back to local one. */
-  if (library_ref_.type == ASSET_LIBRARY_CUSTOM) {
-    BLI_assert(library_ref_.custom_library_index >= 0);
-
-    user_library = BKE_asset_library_custom_find_from_index(&U.asset_libraries,
-                                                            library_ref_.custom_library_index);
-  }
+  CustomAssetLibraryDefinition *custom_library =
+      ED_asset_library_find_custom_library_from_reference(&library_ref_);
 
   /* Relevant bits from file_refresh(). */
   /* TODO pass options properly. */
@@ -160,8 +155,18 @@ void AssetList::setup()
   filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
   char path[FILE_MAXDIR] = "";
-  if (user_library) {
-    BLI_strncpy(path, user_library->path, sizeof(path));
+  if (custom_library) {
+    /* Project asset libraries typically use relative paths (relative to project root directory).
+     */
+    if ((library_ref_.type == ASSET_LIBRARY_CUSTOM_FROM_PROJECT) &&
+        BLI_path_is_rel(custom_library->path)) {
+      BlenderProject *project = CTX_wm_project();
+      const char *project_root_path = BKE_project_root_path_get(project);
+      BLI_path_join(path, sizeof(path), project_root_path, custom_library->path, NULL);
+    }
+    else {
+      BLI_strncpy(path, custom_library->path, sizeof(path));
+    }
     filelist_setdir(files, path);
   }
   else {
@@ -376,7 +381,8 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
     const AssetLibraryReference &library_reference)
 {
   switch (library_reference.type) {
-    case ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
       return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;

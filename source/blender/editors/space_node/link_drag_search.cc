@@ -247,7 +247,7 @@ static void gather_search_link_ops_for_all_assets(const bContext &C,
       const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
-    library_ref.type = ASSET_LIBRARY_CUSTOM;
+    library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES;
     /* Skip local assets to avoid duplicates when the asset is part of the local file library. */
     gather_search_link_ops_for_asset_library(
         C, node_tree, socket, library_ref, true, search_link_ops);

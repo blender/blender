@@ -5138,11 +5138,25 @@ bool ED_project_settings_window_show(bContext *C, ReportList *reports)
 
 static int project_settings_show_exec(bContext *C, wmOperator *op)
 {
-  if (ED_project_settings_window_show(C, op->reports)) {
-    return OPERATOR_FINISHED;
+  if (!ED_project_settings_window_show(C, op->reports)) {
+    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_CANCELLED;
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
+  SpaceProjectSettings *space_project = CTX_wm_space_project_settings(C);
+  if (space_project && prop && RNA_property_is_set(op->ptr, prop)) {
+    /* Set active section via RNA, so it can fail properly. */
+
+    bScreen *screen = CTX_wm_screen(C);
+    PointerRNA space_ptr;
+    RNA_pointer_create(&screen->id, &RNA_SpaceProjectSettings, space_project, &space_ptr);
+    PropertyRNA *active_section_prop = RNA_struct_find_property(&space_ptr, "active_section");
+
+    RNA_property_enum_set(&space_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));
+    RNA_property_update(C, &space_ptr, active_section_prop);
+  }
+
+  return OPERATOR_FINISHED;
 }
 
 static void SCREEN_OT_project_settings_show(struct wmOperatorType *ot)
@@ -5155,6 +5169,15 @@ static void SCREEN_OT_project_settings_show(struct wmOperatorType *ot)
   /* api callbacks */
   ot->exec = project_settings_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna,
+                      "section",
+                      rna_enum_project_settings_section_items,
+                      0,
+                      "",
+                      "Section to activate in the project settings");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

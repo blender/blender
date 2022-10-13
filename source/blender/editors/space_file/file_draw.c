@@ -1118,13 +1118,17 @@ static void file_draw_invalid_library_hint(const bContext *C,
   {
     UI_icon_draw(sx, sy - UI_UNIT_Y, ICON_INFO);
 
+    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+
     const char *suggestion = TIP_(
         "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-        "Manage Asset Libraries from the File Paths section in Preferences");
+        "Manage Asset Libraries from the File Paths section in the Preferences or in the Project "
+        "Settings.");
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, NULL, &sy);
 
-    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+    const short but_offset_y = line_height + UI_UNIT_Y * 1.2f;
+    const short but_width = UI_UNIT_X * 8;
     uiBut *but = uiDefIconTextButO(block,
                                    UI_BTYPE_BUT,
                                    "SCREEN_OT_userpref_show",
@@ -1132,12 +1136,25 @@ static void file_draw_invalid_library_hint(const bContext *C,
                                    ICON_PREFERENCES,
                                    NULL,
                                    sx + UI_UNIT_X,
-                                   sy - line_height - UI_UNIT_Y * 1.2f,
-                                   UI_UNIT_X * 8,
+                                   sy - but_offset_y,
+                                   but_width,
                                    UI_UNIT_Y,
                                    NULL);
     PointerRNA *but_opptr = UI_but_operator_ptr_get(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
+
+    but = uiDefButO(block,
+                    UI_BTYPE_BUT,
+                    "SCREEN_OT_project_settings_show",
+                    WM_OP_INVOKE_DEFAULT,
+                    NULL,
+                    sx + UI_UNIT_X + but_width + UI_UNIT_X,
+                    sy - but_offset_y,
+                    but_width,
+                    UI_UNIT_Y,
+                    NULL);
+    but_opptr = UI_but_operator_ptr_get(but);
+    RNA_enum_set(but_opptr, "section", PROJECT_SETTINGS_SECTION_ASSET_LIBRARIES);
 
     UI_block_end(C, block);
     UI_block_draw(C, block);
