@@ -789,7 +789,9 @@ static bool modifier_apply_obdata(
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
-          reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
+          reports,
+          RPT_ERROR,
+          "Cannot apply constructive modifiers on curve. Convert curve to mesh in order to apply");
       return false;
     }
 
