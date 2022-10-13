@@ -30,6 +30,8 @@
 
 #include "BKE_asset_library_custom.h"
 
+using namespace blender;
+
 /* -------------------------------------------------------------------- */
 /** \name Asset Libraries
  * \{ */
@@ -75,9 +77,6 @@ void BKE_asset_library_custom_name_set(ListBase *custom_libraries,
 void BKE_asset_library_custom_path_set(CustomAssetLibraryDefinition *library, const char *path)
 {
   BLI_strncpy(library->path, path, sizeof(library->path));
-  if (BLI_is_file(library->path)) {
-    BLI_path_parent_dir(library->path);
-  }
 }
 
 CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_index(

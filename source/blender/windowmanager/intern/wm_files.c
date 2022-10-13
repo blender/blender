@@ -97,6 +97,7 @@
 #include "ED_fileselect.h"
 #include "ED_image.h"
 #include "ED_outliner.h"
+#include "ED_project.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -2408,18 +2409,37 @@ static int wm_new_project_exec(bContext *C, wmOperator *op)
 
   BKE_reportf(op->reports, RPT_INFO, "Project created and loaded successfully");
 
+  bool activated_new_project = false;
   if (blendfile_path[0] && BLI_path_contains(project_root_dir, blendfile_path)) {
-    BKE_project_active_load_from_path(blendfile_path);
+    if (BKE_project_active_load_from_path(blendfile_path)) {
+      activated_new_project = true;
 
-    WM_main_add_notifier(NC_PROJECT, NULL);
-    /* Update the window title. */
-    WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+      WM_main_add_notifier(NC_PROJECT, NULL);
+      /* Update the window title. */
+      WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+    }
   }
   else {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "The current file is not located inside of the new project. This means the new "
                 "project is not active");
+  }
+
+  /* Some default settings for the project. It has to be loaded for that. */
+  BlenderProject *new_project = activated_new_project ?
+                                    CTX_wm_project() :
+                                    BKE_project_load_from_path(project_root_dir);
+  if (new_project) {
+    ED_project_set_defaults(new_project);
+
+    /* Write defaults to the hard drive. */
+    BKE_project_settings_save(new_project);
+
+    /* We just temporary loaded the project, free it again. */
+    if (!activated_new_project) {
+      BKE_project_free(&new_project);
+    }
   }
 
   PropertyRNA *prop_open_settings = RNA_struct_find_property(op->ptr, "open_settings_after");

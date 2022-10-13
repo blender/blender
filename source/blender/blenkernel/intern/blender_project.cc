@@ -190,6 +190,8 @@ static std::unique_ptr<ExtractedSettings> extract_settings(
               "Unexpected asset_library entry in settings.json, expected path to be string");
         }
 
+        /* TODO this isn't really extracting, should be creating data from the settings be a
+         * separate step? */
         CustomAssetLibraryDefinition *library = BKE_asset_library_custom_add(
             &extracted_settings->asset_libraries);
         /* Name or path may not be set, this is fine. */
@@ -265,6 +267,16 @@ std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef proje
   }
 
   return loaded_settings;
+}
+
+std::unique_ptr<ProjectSettings> ProjectSettings::load_from_path(StringRef path)
+{
+  StringRef project_root = bke::BlenderProject::project_root_path_find_from_path(path);
+  if (project_root.is_empty()) {
+    return nullptr;
+  }
+
+  return bke::ProjectSettings::load_from_disk(project_root);
 }
 
 std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() const
@@ -448,22 +460,36 @@ bool BKE_project_contains_path(const char *path)
   return !found_root_path.is_empty();
 }
 
+BlenderProject *BKE_project_load_from_path(const char *path)
+{
+  std::unique_ptr<bke::ProjectSettings> project_settings = bke::ProjectSettings::load_from_path(
+      path);
+  if (!project_settings) {
+    return nullptr;
+  }
+
+  return reinterpret_cast<BlenderProject *>(
+      MEM_new<bke::BlenderProject>(__func__, std::move(project_settings)));
+}
+
+void BKE_project_free(BlenderProject **project_handle)
+{
+  bke::BlenderProject *project = reinterpret_cast<bke::BlenderProject *>(*project_handle);
+  BLI_assert_msg(project != bke::BlenderProject::get_active(),
+                 "Projects loaded with #BKE_project_load_from_path() must never be set active.");
+
+  MEM_delete(project);
+  *project_handle = nullptr;
+}
+
 BlenderProject *BKE_project_active_load_from_path(const char *path)
 {
   /* Project should be unset if the path doesn't contain a project root. Unset in the beginning so
    * early exiting behaves correctly. */
   BKE_project_active_unset();
 
-  StringRef project_root = bke::BlenderProject::project_root_path_find_from_path(path);
-  if (project_root.is_empty()) {
-    return nullptr;
-  }
-
-  std::unique_ptr project_settings = bke::ProjectSettings::load_from_disk(project_root);
-  if (!project_settings) {
-    return nullptr;
-  }
-
+  std::unique_ptr<bke::ProjectSettings> project_settings = bke::ProjectSettings::load_from_path(
+      path);
   bke::BlenderProject::set_active_from_settings(std::move(project_settings));
 
   return BKE_project_active_get();

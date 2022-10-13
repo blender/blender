@@ -6,6 +6,7 @@ set(INC
   ../include
   ../../blenkernel
   ../../blenlib
+  ../../blentranslation
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -16,6 +17,7 @@ set(INC_SYS
 )
 
 set(SRC
+    project.cc
     project_ops.cc
 )
 

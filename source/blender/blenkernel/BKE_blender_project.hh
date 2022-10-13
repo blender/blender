@@ -12,6 +12,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 
+struct BlenderProject;
+
 namespace blender::io::serialize {
 class DictionaryValue;
 }
@@ -39,10 +41,11 @@ class BlenderProject {
    */
   static auto project_root_path_find_from_path [[nodiscard]] (StringRef path) -> StringRef;
 
+  explicit BlenderProject(std::unique_ptr<ProjectSettings> settings);
+
   auto get_settings [[nodiscard]] () const -> ProjectSettings &;
 
  private:
-  explicit BlenderProject(std::unique_ptr<ProjectSettings> settings);
   static std::unique_ptr<BlenderProject> &active_project_ptr();
 };
 
@@ -83,6 +86,13 @@ class ProjectSettings {
    */
   static auto load_from_disk [[nodiscard]] (StringRef project_path)
   -> std::unique_ptr<ProjectSettings>;
+  /**
+   * Read project settings from the given \a path, which may point to some directory or file inside
+   * of the project directory. Both Unix and Windows style slashes are allowed. Path is expected to
+   * be normalized.
+   * \return The read project settings or null in case of failure.
+   */
+  static auto load_from_path [[nodiscard]] (StringRef path) -> std::unique_ptr<ProjectSettings>;
   /**
    * Write project settings to the given \a project_path, which may be either a project root
    * directory or the .blender_project directory. The .blender_project directory must exist.

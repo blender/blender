@@ -36,8 +36,9 @@ void BKE_asset_library_custom_name_set(struct ListBase *custom_libraries,
 /**
  * Set the library path, ensuring it is pointing to a directory.
  * Single blend files can only act as "Current File" library; libraries on disk
- * should always be directories. If the path does not exist, that's fine; it can
- * created as directory if necessary later.
+ * should always be directories. Blindly sets the path without additional checks. The asset system
+ * can ignore libraries that it can't resolve to a valid location. If the path does not exist,
+ * that's fine; it can created as directory if necessary later.
  */
 void BKE_asset_library_custom_path_set(struct CustomAssetLibraryDefinition *library,
                                        const char *path) ATTR_NONNULL();

@@ -283,7 +283,12 @@ static void rna_CustomAssetLibraryDefinition_path_set(PointerRNA *ptr, const cha
     return;
   }
 
-  BKE_asset_library_custom_path_set(library, value);
+  char dirpath[FILE_MAX];
+  BLI_strncpy(dirpath, value, sizeof(dirpath));
+  if (BLI_is_file(dirpath)) {
+    BLI_path_parent_dir(dirpath);
+  }
+  BKE_asset_library_custom_path_set(library, dirpath);
 }
 
 void rna_AssetLibrary_settings_update(Main *UNUSED(bmain),
