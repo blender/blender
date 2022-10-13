@@ -8,7 +8,6 @@ set(OPENPGL_EXTRA_ARGS
     -DOPENPGL_BUILD_STATIC=ON
     -DOPENPGL_TBB_ROOT=${LIBDIR}/tbb
     -DTBB_ROOT=${LIBDIR}/tbb
-    -Dembree_DIR=${LIBDIR}/embree/lib/cmake/embree-${EMBREE_VERSION}
     -DCMAKE_DEBUG_POSTFIX=_d
 )
 
@@ -31,7 +30,6 @@ ExternalProject_Add(external_openpgl
 add_dependencies(
     external_openpgl
     external_tbb
-    external_embree
 )
 
 if(WIN32)
