@@ -10,6 +10,7 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_asset_library_custom.h"
 #  include "BKE_blender_project.h"
 
 #  include "BLT_translation.h"
@@ -92,6 +93,14 @@ static int rna_BlenderProject_root_path_editable(PointerRNA *UNUSED(ptr), const 
   return 0;
 }
 
+static void rna_BlenderProject_asset_libraries_begin(CollectionPropertyIterator *iter,
+                                                     PointerRNA *ptr)
+{
+  BlenderProject *project = ptr->data;
+  ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
+  rna_iterator_listbase_begin(iter, asset_libraries, NULL);
+}
+
 static bool rna_BlenderProject_is_dirty_get(PointerRNA *ptr)
 {
   const BlenderProject *project = ptr->data;
@@ -127,6 +136,19 @@ void RNA_def_blender_project(BlenderRNA *brna)
                                 "rna_BlenderProject_root_path_set");
   RNA_def_property_editable_func(prop, "rna_BlenderProject_root_path_editable");
   RNA_def_property_ui_text(prop, "Location", "The location of the project on disk");
+
+  prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CustomAssetLibraryDefinition");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BlenderProject_asset_libraries_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop, "Asset Libraries", "");
 
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_BlenderProject_is_dirty_get", NULL);

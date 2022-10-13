@@ -156,6 +156,7 @@ static int preferences_asset_library_add_invoke(bContext *C,
   return preferences_asset_library_add_exec(C, op);
 }
 
+/* Similar to #PROJECT_OT_custom_asset_library_add. */
 static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 {
   ot->name = "Add Asset Library";
@@ -195,6 +196,7 @@ static int preferences_asset_library_remove_exec(bContext *UNUSED(C), wmOperator
   return OPERATOR_FINISHED;
 }
 
+/* Similar to #PROJECT_OT_custom_asset_library_add. */
 static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 {
   ot->name = "Remove Asset Library";

@@ -152,6 +152,48 @@ class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):
         layout.prop(project, "root_path", text="Location")
 
 
+class PROJECTSETTINGS_PT_asset_libraries(Panel):
+    bl_space_type = 'PROJECT_SETTINGS'
+    bl_region_type = 'WINDOW'
+    bl_context = "asset_libraries"
+    bl_label = "Asset Libraries"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False
+
+        project = context.project
+
+        box = layout.box()
+        split = box.split(factor=0.35)
+        name_col = split.column()
+        path_col = split.column()
+
+        row = name_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Name")
+
+        row = path_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Path")
+
+        for i, library in enumerate(project.asset_libraries):
+            row = name_col.row()
+            row.alert = not library.name
+            row.prop(library, "name", text="")
+
+            row = path_col.row()
+            subrow = row.row()
+            subrow.alert = not library.path
+            subrow.prop(library, "path", text="")
+            row.operator("project.custom_asset_library_remove", text="", icon='X', emboss=False).index = i
+
+        row = box.row()
+        row.alignment = 'RIGHT'
+        row.operator("project.custom_asset_library_add", text="", icon='ADD', emboss=False)
+
+
 classes = (
     PROJECTSETTINGS_HT_header,
     PROJECTSETTINGS_MT_editor_menus,
@@ -161,6 +203,7 @@ classes = (
     PROJECTSETTINGS_PT_save_project_settings,
     PROJECTSETTINGS_PT_no_project,
     PROJECTSETTINGS_PT_setup,
+    PROJECTSETTINGS_PT_asset_libraries,
 )
 
 if __name__ == "__main__":  # only for live edit.

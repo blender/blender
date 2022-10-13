@@ -43,6 +43,7 @@
 #include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_physics.h"
+#include "ED_project.h"
 #include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
@@ -86,6 +87,7 @@ void ED_spacetypes_init(void)
 
   /* Register operator types for screen and all spaces. */
   ED_operatortypes_userpref();
+  ED_operatortypes_project();
   ED_operatortypes_workspace();
   ED_operatortypes_scene();
   ED_operatortypes_screen();

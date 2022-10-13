@@ -10,6 +10,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
 
 namespace blender::io::serialize {
 class DictionaryValue;
@@ -21,8 +22,6 @@ class ProjectSettings;
 struct CustomAssetLibraries;
 
 class BlenderProject {
-  inline static std::unique_ptr<BlenderProject> active_;
-
   std::unique_ptr<ProjectSettings> settings_;
 
  public:
@@ -44,13 +43,24 @@ class BlenderProject {
 
  private:
   explicit BlenderProject(std::unique_ptr<ProjectSettings> settings);
+  static std::unique_ptr<BlenderProject> &active_project_ptr();
+};
+
+struct CustomAssetLibraries : NonCopyable {
+  ListBase asset_libraries = {nullptr, nullptr}; /* CustomAssetLibraryDefinition */
+
+  CustomAssetLibraries() = default;
+  CustomAssetLibraries(ListBase asset_libraries);
+  CustomAssetLibraries(CustomAssetLibraries &&);
+  ~CustomAssetLibraries();
+  auto operator=(CustomAssetLibraries &&) -> CustomAssetLibraries &;
 };
 
 class ProjectSettings {
   /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;
   std::string project_name_;
-  std::unique_ptr<CustomAssetLibraries> asset_libraries_;
+  CustomAssetLibraries asset_libraries_ = {};
   bool has_unsaved_changes_ = false;
 
  public:
@@ -94,17 +104,23 @@ class ProjectSettings {
   void project_name(StringRef new_name);
   auto project_name [[nodiscard]] () const -> StringRefNull;
   auto asset_library_definitions() const -> const ListBase &;
+  auto asset_library_definitions() -> ListBase &;
+  /**
+   * Forcefully tag the project settings for having unsaved changes. This needs to be done if
+   * project settings data is modified directly by external code, not via a project settings API
+   * function. The API functions set the tag for all changes they manage.
+   */
+  void tag_has_unsaved_changes();
+  /**
+   * Returns true if there were any changes done to the settings that have not been written to
+   * disk yet. Project settings API functions that change data set this, however when external
+   * code modifies project settings data it may have to manually set the tag, see
+   * #tag_has_unsaved_changes().
+   */
   auto has_unsaved_changes [[nodiscard]] () const -> bool;
 
  private:
   auto to_dictionary() const -> std::unique_ptr<io::serialize::DictionaryValue>;
-};
-
-struct CustomAssetLibraries {
-  ListBase asset_libraries = {nullptr, nullptr}; /* CustomAssetLibraryDefinition */
-
-  CustomAssetLibraries(ListBase asset_libraries);
-  ~CustomAssetLibraries();
 };
 
 }  // namespace blender::bke

@@ -31,21 +31,30 @@ BlenderProject::BlenderProject(std::unique_ptr<ProjectSettings> settings)
 {
 }
 
+/* Construct on First Use idiom. */
+std::unique_ptr<BlenderProject> &BlenderProject::active_project_ptr()
+{
+  static std::unique_ptr<BlenderProject> active_;
+  return active_;
+}
+
 BlenderProject *BlenderProject::set_active_from_settings(std::unique_ptr<ProjectSettings> settings)
 {
+  std::unique_ptr<BlenderProject> &active = active_project_ptr();
   if (settings) {
-    active_ = std::make_unique<BlenderProject>(BlenderProject(std::move(settings)));
+    active = std::make_unique<BlenderProject>(BlenderProject(std::move(settings)));
   }
   else {
-    active_ = nullptr;
+    active = nullptr;
   }
 
-  return active_.get();
+  return active.get();
 }
 
 BlenderProject *BlenderProject::get_active()
 {
-  return active_.get();
+  std::unique_ptr<BlenderProject> &active = active_project_ptr();
+  return active.get();
 }
 
 StringRef BlenderProject::project_root_path_find_from_path(StringRef path)
@@ -252,8 +261,7 @@ std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef proje
   if (extracted_settings) {
     loaded_settings->project_name_ = extracted_settings->project_name;
     /* Moves ownership. */
-    loaded_settings->asset_libraries_ = std::make_unique<CustomAssetLibraries>(
-        extracted_settings->asset_libraries);
+    loaded_settings->asset_libraries_ = CustomAssetLibraries(extracted_settings->asset_libraries);
   }
 
   return loaded_settings;
@@ -273,11 +281,11 @@ std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() con
     root_attributes.append_as("project", std::move(project_dict));
   }
   /* "asset_libraries": */ {
-    if (asset_libraries_ && !BLI_listbase_is_empty(&asset_libraries_->asset_libraries)) {
+    if (!BLI_listbase_is_empty(&asset_libraries_.asset_libraries)) {
       std::unique_ptr<ArrayValue> asset_libs_array = std::make_unique<ArrayValue>();
       ArrayValue::Items &asset_libs_elements = asset_libs_array->elements();
       LISTBASE_FOREACH (
-          const CustomAssetLibraryDefinition *, library, &asset_libraries_->asset_libraries) {
+          const CustomAssetLibraryDefinition *, library, &asset_libraries_.asset_libraries) {
         std::unique_ptr<DictionaryValue> library_dict = std::make_unique<DictionaryValue>();
         DictionaryValue::Items &library_attributes = library_dict->elements();
 
@@ -356,7 +364,17 @@ StringRefNull ProjectSettings::project_name() const
 
 const ListBase &ProjectSettings::asset_library_definitions() const
 {
-  return asset_libraries_->asset_libraries;
+  return asset_libraries_.asset_libraries;
+}
+
+ListBase &ProjectSettings::asset_library_definitions()
+{
+  return asset_libraries_.asset_libraries;
+}
+
+void ProjectSettings::tag_has_unsaved_changes()
+{
+  has_unsaved_changes_ = true;
 }
 
 bool ProjectSettings::has_unsaved_changes() const
@@ -369,6 +387,18 @@ bool ProjectSettings::has_unsaved_changes() const
 CustomAssetLibraries::CustomAssetLibraries(ListBase asset_libraries)
     : asset_libraries(asset_libraries)
 {
+}
+
+CustomAssetLibraries::CustomAssetLibraries(CustomAssetLibraries &&other)
+{
+  *this = std::move(other);
+}
+
+CustomAssetLibraries &CustomAssetLibraries::operator=(CustomAssetLibraries &&other)
+{
+  asset_libraries = other.asset_libraries;
+  BLI_listbase_clear(&other.asset_libraries);
+  return *this;
 }
 
 CustomAssetLibraries::~CustomAssetLibraries()
@@ -466,6 +496,22 @@ const char *BKE_project_name_get(const BlenderProject *project_handle)
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
   return project->get_settings().project_name().c_str();
+}
+
+ListBase *BKE_project_custom_asset_libraries_get(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  bke::ProjectSettings &settings = project->get_settings();
+  return &settings.asset_library_definitions();
+}
+
+void BKE_project_tag_has_unsaved_changes(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  bke::ProjectSettings &settings = project->get_settings();
+  settings.tag_has_unsaved_changes();
 }
 
 bool BKE_project_has_unsaved_changes(const BlenderProject *project_handle)
