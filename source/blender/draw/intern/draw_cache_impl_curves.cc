@@ -78,7 +78,7 @@ static void curves_batch_cache_init(Curves &curves)
     curves.batch_cache = cache;
   }
   else {
-    cache = {};
+    cache->curves_cache = {};
   }
 
   cache->is_dirty = false;
