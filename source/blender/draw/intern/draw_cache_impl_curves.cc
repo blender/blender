@@ -17,6 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_curves_types.h"
@@ -223,38 +224,41 @@ static void curves_batch_cache_fill_segments_proc_pos(
     MutableSpan<PositionAndParameter> posTime_data,
     MutableSpan<float> hairLength_data)
 {
+  SCOPED_TIMER_AVERAGED(__func__);
+  using namespace blender;
   /* TODO: use hair radius layer if available. */
-  const int curve_num = curves_id.geometry.curve_num;
   const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_id.geometry);
   Span<float3> positions = curves.positions();
 
-  for (const int i_curve : IndexRange(curve_num)) {
-    const IndexRange points = curves.points_for_curve(i_curve);
+  threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
+    for (const int i_curve : range) {
+      const IndexRange points = curves.points_for_curve(i_curve);
 
-    Span<float3> curve_positions = positions.slice(points);
-    MutableSpan<PositionAndParameter> curve_posTime_data = posTime_data.slice(points);
+      Span<float3> curve_positions = positions.slice(points);
+      MutableSpan<PositionAndParameter> curve_posTime_data = posTime_data.slice(points);
 
-    float total_len = 0.0f;
-    for (const int i_point : curve_positions.index_range()) {
-      if (i_point > 0) {
-        total_len += blender::math::distance(curve_positions[i_point - 1],
-                                             curve_positions[i_point]);
-      }
-      curve_posTime_data[i_point].position = curve_positions[i_point];
-      curve_posTime_data[i_point].parameter = total_len;
-    }
-    hairLength_data[i_curve] = total_len;
-
-    /* Assign length value. */
-    if (total_len > 0.0f) {
-      const float factor = 1.0f / total_len;
-      /* Divide by total length to have a [0-1] number. */
+      float total_len = 0.0f;
       for (const int i_point : curve_positions.index_range()) {
-        curve_posTime_data[i_point].parameter *= factor;
+        if (i_point > 0) {
+          total_len += blender::math::distance(curve_positions[i_point - 1],
+                                               curve_positions[i_point]);
+        }
+        curve_posTime_data[i_point].position = curve_positions[i_point];
+        curve_posTime_data[i_point].parameter = total_len;
+      }
+      hairLength_data[i_curve] = total_len;
+
+      /* Assign length value. */
+      if (total_len > 0.0f) {
+        const float factor = 1.0f / total_len;
+        /* Divide by total length to have a [0-1] number. */
+        for (const int i_point : curve_positions.index_range()) {
+          curve_posTime_data[i_point].parameter *= factor;
+        }
       }
     }
-  }
+  });
 }
 
 static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
