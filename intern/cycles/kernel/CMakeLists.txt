@@ -727,16 +727,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     ${SRC_UTIL_HEADERS}
   )
 
-  set (ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS 1)
+  set (SYCL_OFFLINE_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for device binaries compilation (expect ~8GB peak memory usage per instance).")
   if (WITH_CYCLES_ONEAPI_BINARIES)
-    cmake_host_system_information(RESULT AVAILABLE_MEMORY_AMOUNT QUERY AVAILABLE_PHYSICAL_MEMORY)
-    # Conservative value of peak consumption here, just to be fully sure that other backend compilers will have enough memory as well
-    set(ONEAPI_GPU_COMPILER_MEMORY_AT_PEAK_MB 8150)
-    math(EXPR ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS "${AVAILABLE_MEMORY_AMOUNT} / ${ONEAPI_GPU_COMPILER_MEMORY_AT_PEAK_MB}")
-    if (ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS LESS 1)
-      set(ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS 1)
-    endif()
-    message(STATUS "${ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS} instance(s) of oneAPI offline compiler will be used.")
+    message(STATUS "${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS} instance(s) of oneAPI offline compiler will be used.")
   endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
   set(sycl_compiler_flags
@@ -747,7 +740,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -mllvm -inlinedefault-threshold=250
       -mllvm -inlinehint-threshold=350
       -fsycl-device-code-split=per_kernel
-      -fsycl-max-parallel-link-jobs=${ONEAPI_OFFLINE_COMPILER_PARALLEL_JOBS}
+      -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
       -shared
       -DWITH_ONEAPI
       -ffast-math
