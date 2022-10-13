@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# This script is part of the official build environment, see WIKI page for details.
+# https://wiki.blender.org/wiki/Building_Blender/Other/CentOS7ReleaseEnvironment
 
 set -e
 
@@ -22,18 +26,50 @@ yum -y install centos-release-scl
 yum -y install devtoolset-9
 
 # Install packages needed for Blender's dependencies.
-yum -y install -y  \
-    git subversion bzip2 tar cmake3 patch make autoconf automake libtool  \
-    meson ninja-build \
-    libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel  \
-    libX11-devel libXt-devel  \
-    mesa-libEGL-devel mesa-libGL-devel mesa-libGLU-devel \
-    zlib-devel  \
-    rubygem-asciidoctor \
-    wget tcl yasm python36 python-setuptools bison flex \
-    ncurses-devel \
-    wayland-devel libwayland-client libwayland-server \
 
+PACKAGES=(
+    git
+    subversion
+    bzip2
+    tar
+    cmake3
+    patch
+    make
+    autoconf
+    automake
+    libtool
+    meson
+    ninja-build
+
+    libXrandr-devel
+    libXinerama-devel
+    libXcursor-devel
+    libXi-devel
+    libX11-devel libXt-devel
+
+    mesa-libEGL-devel
+    mesa-libGL-devel
+    mesa-libGLU-devel
+
+    zlib-devel
+    rubygem-asciidoctor
+    wget
+    tcl
+    yasm
+
+    python36
+    python-setuptools
+
+    bison
+    flex
+    ncurses-devel
+
+    wayland-devel
+    libwayland-client
+    libwayland-server
+)
+
+yum -y install -y ${PACKAGES[@]}
 
 # Dependencies for Mesa
 yum -y install expat-devel
