@@ -615,7 +615,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv *subdiv,
     return nullptr;
   }
   Mesh *result = BKE_mesh_new_nomain_from_template(coarse_mesh, 0, 0, 0, 0, 0);
-  result->runtime.subdiv_ccg = subdiv_ccg;
+  result->runtime->subdiv_ccg = subdiv_ccg;
   return result;
 }
 

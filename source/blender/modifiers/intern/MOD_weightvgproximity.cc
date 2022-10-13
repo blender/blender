@@ -639,7 +639,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   TIMEIT_END(perf);
 #endif
 
-  mesh->runtime.is_original_bmesh = false;
+  mesh->runtime->is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;

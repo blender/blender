@@ -732,7 +732,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   invert_m4_m4(to_imat, to_mat);
 
   const bool use_dm_final_indices = (target_psys->part->use_modifier_stack &&
-                                     !target_psmd->mesh_final->runtime.deformed_only);
+                                     !BKE_mesh_is_deformed_only(target_psmd->mesh_final));
 
   if (use_dm_final_indices || !target_psmd->mesh_original) {
     mesh = target_psmd->mesh_final;

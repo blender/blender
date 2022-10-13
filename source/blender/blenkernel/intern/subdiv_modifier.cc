@@ -11,6 +11,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_subdiv.h"
 
@@ -143,7 +144,7 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
 
 bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh)
 {
-  SubsurfRuntimeData *runtime_data = mesh->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
   return runtime_data && runtime_data->has_gpu_subdiv;
 }
 

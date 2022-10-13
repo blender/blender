@@ -463,7 +463,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
-    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : nullptr;
+    mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
 
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
@@ -499,8 +499,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     /* Use bmesh directly when the object is in edit mode unchanged by any modifiers.
      * For non-final UVs, always use original bmesh since the UV editor does not support
      * using the cage mesh with deformed coordinates. */
-    if ((is_mode_active && mr->me->runtime.is_original_bmesh &&
-         mr->me->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
+    if ((is_mode_active && mr->me->runtime->is_original_bmesh &&
+         mr->me->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
         (do_uvedit && !do_final)) {
       mr->extract_type = MR_EXTRACT_BMESH;
     }

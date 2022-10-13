@@ -22,7 +22,9 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
+#include "BKE_mesh.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -1065,8 +1067,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       {
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph,
                                                      static_cast<ID *>(obedit->data));
-        if (me_eval->runtime.edit_data) {
-          coords = me_eval->runtime.edit_data->vertexCos;
+        if (me_eval->runtime->edit_data) {
+          coords = me_eval->runtime->edit_data->vertexCos;
         }
       }
 

@@ -230,7 +230,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if ((ctx->object->mode & OB_MODE_SCULPT) && !for_orco && !for_render && !sculpt_base_mesh) {
     /* NOTE: CCG takes ownership over Subdiv. */
     result = multires_as_ccg(mmd, ctx, mesh, subdiv);
-    result->runtime.subdiv_ccg_tot_level = mmd->totlvl;
+    result->runtime->subdiv_ccg_tot_level = mmd->totlvl;
     /* TODO(sergey): Usually it is sculpt stroke's update variants which
      * takes care of this, but is possible that we need this before the
      * stroke: i.e. when exiting blender right after stroke is done.
@@ -238,7 +238,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * surely there is a better way of solving this. */
     if (ctx->object->sculpt != nullptr) {
       SculptSession *sculpt_session = ctx->object->sculpt;
-      sculpt_session->subdiv_ccg = result->runtime.subdiv_ccg;
+      sculpt_session->subdiv_ccg = result->runtime->subdiv_ccg;
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;

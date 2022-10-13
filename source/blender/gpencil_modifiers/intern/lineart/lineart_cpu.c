@@ -1953,8 +1953,6 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   LineartEdgeNeighbor *edge_nabr = MEM_mallocN(sizeof(LineartEdgeNeighbor) * total_edges,
                                                "LineartEdgeNeighbor arr");
 
-  MLoopTri *mlooptri = me->runtime.looptris.array;
-
   TaskParallelSettings en_settings;
   BLI_parallel_range_settings_defaults(&en_settings);
   /* Set the minimum amount of edges a thread has to process. */
@@ -1963,7 +1961,7 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   EdgeNeighborData en_data;
   en_data.adj_e = adj_e;
   en_data.edge_nabr = edge_nabr;
-  en_data.mlooptri = mlooptri;
+  en_data.mlooptri = BKE_mesh_runtime_looptri_ensure(me);
   en_data.mloop = BKE_mesh_loops(me);
 
   BLI_task_parallel_range(0, total_edges, &en_data, lineart_edge_neighbor_init_task, &en_settings);

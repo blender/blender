@@ -48,6 +48,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
 
 #include "BKE_bvhutils.h"
@@ -319,7 +320,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
   PARTICLE_P;
 
   /* CACHE LOCATIONS */
-  if (!mesh_final->runtime.deformed_only) {
+  if (!BKE_mesh_is_deformed_only(mesh_final)) {
     /* Will use later to speed up subsurf/evaluated mesh. */
     LinkNode *node, *nodedmelem, **nodearray;
     int totdmelem, totelem, i;

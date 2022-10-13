@@ -77,7 +77,7 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
 
   const MVert *mvert = mr->mvert;
   const MLoop *mloop = mr->mloop;
-  const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
+  const BLI_bitmap *facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {

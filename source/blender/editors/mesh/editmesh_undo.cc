@@ -597,6 +597,11 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
    * on it. Necessary to use the attribute API. */
   strcpy(um->me.id.name, "MEundomesh_from_editmesh");
 
+  /* Runtime data is necessary for some asserts in other code, and the overhead of creating it for
+   * undo meshes should be low. */
+  BLI_assert(um->me.runtime == nullptr);
+  um->me.runtime = new blender::bke::MeshRuntime();
+
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_SHAPE_KEYINDEX;
   BMeshToMeshParams params{};
