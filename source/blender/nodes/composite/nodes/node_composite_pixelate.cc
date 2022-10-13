@@ -36,7 +36,10 @@ class PixelateOperation : public NodeOperation {
      * matches its apparent size, that is, its size after the domain transformation. The pixelate
      * node has no effect if the input is scaled-up. See the compute_domain method for more
      * information. */
-    get_input("Color").pass_through(get_result("Color"));
+    Result &result = get_result("Color");
+    get_input("Color").pass_through(result);
+
+    result.get_realization_options().interpolation = Interpolation::Nearest;
   }
 
   /* Compute a smaller-sized domain that matches the apparent size of the input while having a unit

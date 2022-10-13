@@ -88,7 +88,6 @@ class ScaleOperation : public NodeOperation {
         get_translation(), 0.0f, get_scale());
 
     result.transform(transformation);
-    result.get_realization_options().interpolation = Interpolation::Bilinear;
   }
 
   float2 get_scale()
