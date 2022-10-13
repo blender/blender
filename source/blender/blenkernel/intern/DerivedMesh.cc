@@ -1123,8 +1123,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   else {
     blender::bke::MeshRuntime *runtime = mesh_input->runtime;
     if (runtime->mesh_eval == nullptr) {
-      BLI_assert(runtime->eval_mutex != nullptr);
-      BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
+      std::lock_guard lock{mesh_input->runtime->eval_mutex};
       if (runtime->mesh_eval == nullptr) {
         /* Not yet finalized by any instance, do it now
          * Isolate since computing normals is multithreaded and we are holding a lock. */
@@ -1140,7 +1139,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         /* Already finalized by another instance, reuse. */
         mesh_final = runtime->mesh_eval;
       }
-      BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }
     else if (!mesh_has_modifier_final_normals(mesh_input, &final_datamask, runtime->mesh_eval)) {
       /* Modifier stack was (re-)evaluated with a request for additional normals

@@ -1017,8 +1017,7 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,
   BLI_assert(gpumat_array_len == cache->mat_len);
 
   mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
-  ThreadMutex *mesh_render_mutex = (ThreadMutex *)me->runtime->render_mutex;
-  drw_attributes_merge(&cache->attr_needed, &attrs_needed, mesh_render_mutex);
+  drw_attributes_merge(&cache->attr_needed, &attrs_needed, me->runtime->render_mutex);
   mesh_batch_cache_request_surface_batches(cache);
   return cache->surface_per_mat;
 }
@@ -1046,8 +1045,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Object *object, Mesh *me)
   DRW_Attributes attrs_needed{};
   request_active_and_default_color_attributes(*object, *me, attrs_needed);
 
-  ThreadMutex *mesh_render_mutex = (ThreadMutex *)me->runtime->render_mutex;
-  drw_attributes_merge(&cache->attr_needed, &attrs_needed, mesh_render_mutex);
+  drw_attributes_merge(&cache->attr_needed, &attrs_needed, me->runtime->render_mutex);
 
   mesh_batch_cache_request_surface_batches(cache);
   return cache->batch.surface;
@@ -1060,8 +1058,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(Object *object, Mesh *me)
   DRW_Attributes attrs_needed{};
   request_active_and_default_color_attributes(*object, *me, attrs_needed);
 
-  ThreadMutex *mesh_render_mutex = (ThreadMutex *)me->runtime->render_mutex;
-  drw_attributes_merge(&cache->attr_needed, &attrs_needed, mesh_render_mutex);
+  drw_attributes_merge(&cache->attr_needed, &attrs_needed, me->runtime->render_mutex);
 
   mesh_batch_cache_request_surface_batches(cache);
   return cache->batch.surface;
@@ -1446,7 +1443,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
       }
     }
 
-    ThreadMutex *mesh_render_mutex = (ThreadMutex *)me->runtime->render_mutex;
 
     /* Verify that all surface batches have needed attribute layers.
      */
@@ -1485,12 +1481,12 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
       cache->batch_ready &= ~(MBC_SURFACE);
 
       mesh_cd_layers_type_merge(&cache->cd_used, cache->cd_needed);
-      drw_attributes_merge(&cache->attr_used, &cache->attr_needed, mesh_render_mutex);
+      drw_attributes_merge(&cache->attr_used, &cache->attr_needed, me->runtime->render_mutex);
     }
     mesh_cd_layers_type_merge(&cache->cd_used_over_time, cache->cd_needed);
     mesh_cd_layers_type_clear(&cache->cd_needed);
 
-    drw_attributes_merge(&cache->attr_used_over_time, &cache->attr_needed, mesh_render_mutex);
+    drw_attributes_merge(&cache->attr_used_over_time, &cache->attr_needed, me->runtime->render_mutex);
     drw_attributes_clear(&cache->attr_needed);
   }
 

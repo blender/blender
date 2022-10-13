@@ -356,11 +356,9 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     return nullptr;
   }
 
-  ThreadMutex *normals_mutex = (ThreadMutex *)mesh->runtime->normals_mutex;
-  BLI_mutex_lock(normals_mutex);
+  std::lock_guard lock{mesh->runtime->normals_mutex};
   if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime->vert_normals != nullptr);
-    BLI_mutex_unlock(normals_mutex);
     return mesh->runtime->vert_normals;
   }
 
@@ -390,7 +388,6 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
 
-  BLI_mutex_unlock(normals_mutex);
   return vert_normals;
 }
 
@@ -405,11 +402,9 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
     return nullptr;
   }
 
-  ThreadMutex *normals_mutex = (ThreadMutex *)mesh->runtime->normals_mutex;
-  BLI_mutex_lock(normals_mutex);
+  std::lock_guard lock{mesh->runtime->normals_mutex};
   if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime->poly_normals != nullptr);
-    BLI_mutex_unlock(normals_mutex);
     return mesh->runtime->poly_normals;
   }
 
@@ -435,7 +430,6 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
 
-  BLI_mutex_unlock(normals_mutex);
   return poly_normals;
 }
 

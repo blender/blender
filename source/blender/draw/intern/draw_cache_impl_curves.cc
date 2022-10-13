@@ -60,7 +60,7 @@ struct CurvesBatchCache {
    * some locking would be necessary because multiple objects can use the same curves data with
    * different materials, etc. This is a placeholder to make multi-threading easier in the future.
    */
-  ThreadMutex render_mutex;
+  std::mutex render_mutex;
 };
 
 static bool curves_batch_cache_valid(const Curves &curves)
@@ -74,14 +74,12 @@ static void curves_batch_cache_init(Curves &curves)
   CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves.batch_cache);
 
   if (!cache) {
-    cache = MEM_cnew<CurvesBatchCache>(__func__);
+    cache = MEM_new<CurvesBatchCache>(__func__);
     curves.batch_cache = cache;
   }
   else {
-    memset(cache, 0, sizeof(*cache));
+    cache = {};
   }
-
-  BLI_mutex_init(&cache->render_mutex);
 
   cache->is_dirty = false;
 }
@@ -172,9 +170,8 @@ void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
 void DRW_curves_batch_cache_free(Curves *curves)
 {
   curves_batch_cache_clear(*curves);
-  CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
-  BLI_mutex_end(&cache->render_mutex);
-  MEM_SAFE_FREE(curves->batch_cache);
+  MEM_delete(static_cast<CurvesBatchCache *>(curves->batch_cache));
+  curves->batch_cache = nullptr;
 }
 
 void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
@@ -554,7 +551,6 @@ static bool curves_ensure_attributes(const Curves &curves,
                                      GPUMaterial *gpu_material,
                                      int subdiv)
 {
-  ThreadMutex *render_mutex = &cache.render_mutex;
   const CustomData *cd_curve = &curves.geometry.curve_data;
   const CustomData *cd_point = &curves.geometry.point_data;
   CurvesEvalFinalCache &final_cache = cache.curves_cache.final[subdiv];
@@ -588,9 +584,9 @@ static bool curves_ensure_attributes(const Curves &curves,
         GPU_VERTBUF_DISCARD_SAFE(cache.curves_cache.proc_attributes_buf[i]);
         DRW_TEXTURE_FREE_SAFE(cache.curves_cache.proc_attributes_tex[i]);
       }
-      drw_attributes_merge(&final_cache.attr_used, &attrs_needed, render_mutex);
+      drw_attributes_merge(&final_cache.attr_used, &attrs_needed, cache.render_mutex);
     }
-    drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed, render_mutex);
+    drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed, cache.render_mutex);
   }
 
   bool need_tf_update = false;
@@ -689,7 +685,7 @@ static void request_attribute(Curves &curves, const char *name)
   drw_attributes_add_request(
       &attributes, name, type, CustomData_get_named_layer(&custom_data, type, name), domain);
 
-  drw_attributes_merge(&final_cache.attr_used, &attributes, &cache.render_mutex);
+  drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }
 
 GPUTexture **DRW_curves_texture_for_evaluated_attribute(Curves *curves,

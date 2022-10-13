@@ -95,11 +95,8 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
 
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime->eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
-
+  std::lock_guard lock{me->runtime->eval_mutex};
   if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return;
   }
 
@@ -149,8 +146,6 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
      * the underlying data has been initialized. */
     me->runtime->wrapper_type = ME_WRAPPER_TYPE_MDATA;
   });
-
-  BLI_mutex_unlock(mesh_eval_mutex);
 }
 
 bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
@@ -371,11 +366,9 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime->eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
+  std::lock_guard lock{me->runtime->eval_mutex};
 
   if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me->runtime->mesh_eval;
   }
 
@@ -384,7 +377,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(me); });
 
-  BLI_mutex_unlock(mesh_eval_mutex);
   return result;
 }
 

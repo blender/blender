@@ -36,39 +36,6 @@ void BKE_mesh_runtime_free_data(Mesh *mesh)
   BKE_mesh_runtime_clear_cache(mesh);
 }
 
-namespace blender::bke {
-
-MeshRuntime::MeshRuntime()
-{
-  this->eval_mutex = MEM_new<ThreadMutex>("mesh runtime eval_mutex");
-  BLI_mutex_init(static_cast<ThreadMutex *>(this->eval_mutex));
-  this->normals_mutex = MEM_new<ThreadMutex>("mesh runtime normals_mutex");
-  BLI_mutex_init(static_cast<ThreadMutex *>(this->normals_mutex));
-  this->render_mutex = MEM_new<ThreadMutex>("mesh runtime render_mutex");
-  BLI_mutex_init(static_cast<ThreadMutex *>(this->render_mutex));
-}
-
-MeshRuntime::~MeshRuntime()
-{
-  if (this->eval_mutex != nullptr) {
-    BLI_mutex_end(static_cast<ThreadMutex *>(this->eval_mutex));
-    MEM_freeN(this->eval_mutex);
-    this->eval_mutex = nullptr;
-  }
-  if (this->normals_mutex != nullptr) {
-    BLI_mutex_end(static_cast<ThreadMutex *>(this->normals_mutex));
-    MEM_freeN(this->normals_mutex);
-    this->normals_mutex = nullptr;
-  }
-  if (this->render_mutex != nullptr) {
-    BLI_mutex_end(static_cast<ThreadMutex *>(this->render_mutex));
-    MEM_freeN(this->render_mutex);
-    this->render_mutex = nullptr;
-  }
-}
-
-}  // namespace blender::bke
-
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
   if (mesh->runtime->mesh_eval != nullptr) {
@@ -166,8 +133,7 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime->eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
+  std::lock_guard lock{mesh->runtime->eval_mutex};
 
   MLoopTri *looptri = mesh->runtime->looptris.array;
 
@@ -180,8 +146,6 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
         [&]() { BKE_mesh_runtime_looptri_recalc(const_cast<Mesh *>(mesh)); });
     looptri = mesh->runtime->looptris.array;
   }
-
-  BLI_mutex_unlock(mesh_eval_mutex);
 
   return looptri;
 }

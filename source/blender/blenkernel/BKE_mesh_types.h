@@ -9,6 +9,8 @@
 
 #ifdef __cplusplus
 
+#  include <mutex>
+
 #  include "BLI_span.hh"
 
 #  include "DNA_customdata_types.h"
@@ -73,14 +75,14 @@ struct MeshRuntime {
    * This mesh is used as a result of modifier stack evaluation.
    * Since modifier stack evaluation is threaded on object level we need some synchronization. */
   Mesh *mesh_eval = nullptr;
-  void *eval_mutex = nullptr;
+  std::mutex eval_mutex;
 
   /* A separate mutex is needed for normal calculation, because sometimes
    * the normals are needed while #eval_mutex is already locked. */
-  void *normals_mutex = nullptr;
+  std::mutex normals_mutex;
 
   /** Needed to ensure some thread-safety during render data pre-processing. */
-  void *render_mutex = nullptr;
+  std::mutex render_mutex;
 
   /** Lazily initialized SoA data from the #edit_mesh field in #Mesh. */
   EditMeshData *edit_data = nullptr;
@@ -148,9 +150,9 @@ struct MeshRuntime {
    */
   uint32_t *subsurf_face_dot_tags = nullptr;
 
-  MeshRuntime();
+  MeshRuntime() = default;
   /** \warning This does not free all data currently. See #BKE_mesh_runtime_free_data. */
-  ~MeshRuntime();
+  ~MeshRuntime() = default;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshRuntime")
 };

@@ -457,7 +457,7 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
                                     4,
                                     BVHTREE_FROM_EM_LOOPTRI,
                                     &sod->mesh_runtime->bvh_cache,
-                                    static_cast<ThreadMutex *>(sod->mesh_runtime->eval_mutex));
+                                    &sod->mesh_runtime->eval_mutex);
     }
   }
   if (treedata == nullptr || treedata->tree == nullptr) {
@@ -2923,7 +2923,7 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                                       2,
                                       BVHTREE_FROM_EM_VERTS,
                                       &sod->mesh_runtime->bvh_cache,
-                                      (ThreadMutex *)sod->mesh_runtime->eval_mutex);
+                                      &sod->mesh_runtime->eval_mutex);
       }
       sod->bvhtree[0] = treedata.tree;
       sod->cached[0] = treedata.cached;
@@ -2955,7 +2955,7 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                                       2,
                                       BVHTREE_FROM_EM_EDGES,
                                       &sod->mesh_runtime->bvh_cache,
-                                      static_cast<ThreadMutex *>(sod->mesh_runtime->eval_mutex));
+                                      &sod->mesh_runtime->eval_mutex);
       }
       sod->bvhtree[1] = treedata.tree;
       sod->cached[1] = treedata.cached;
