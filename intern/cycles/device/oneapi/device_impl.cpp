@@ -43,7 +43,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   }
 
   size_t globals_segment_size;
-  is_finished_ok = kernel_globals_size(device_queue_, globals_segment_size);
+  is_finished_ok = kernel_globals_size(globals_segment_size);
   if (is_finished_ok == false) {
     set_error("oneAPI constant memory initialization got runtime exception \"" +
               oneapi_error_string_ + "\"");
@@ -433,6 +433,11 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
          ((device_type == sycl::info::device_type::host ||
            device_type == sycl::info::device_type::cpu || allow_host) &&
           usm_type == sycl::usm::alloc::host));
+#  else
+  /* Silence warning about unused arguments. */
+  (void)queue_;
+  (void)usm_ptr;
+  (void)allow_host;
 #  endif
 }
 
@@ -560,7 +565,7 @@ bool OneapiDevice::queue_synchronize(SyclQueue *queue_)
   }
 }
 
-bool OneapiDevice::kernel_globals_size(SyclQueue *queue_, size_t &kernel_global_size)
+bool OneapiDevice::kernel_globals_size(size_t &kernel_global_size)
 {
   kernel_global_size = sizeof(KernelGlobalsGPU);
 
