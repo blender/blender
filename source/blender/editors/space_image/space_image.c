@@ -5,6 +5,7 @@
  * \ingroup spimage
  */
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mask_types.h"
@@ -112,6 +113,8 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->tile_grid_shape[1] = 1;
 
   simage->custom_grid_subdiv = 10;
+
+  simage->mask_info = *DNA_struct_default_get(MaskSpaceInfo);
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for image");
