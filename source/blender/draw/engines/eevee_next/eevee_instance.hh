@@ -162,6 +162,7 @@ class Instance {
   void render_sample();
   void render_read_result(RenderLayer *render_layer, const char *view_name);
 
+  void scene_sync();
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
   void update_eval_members();

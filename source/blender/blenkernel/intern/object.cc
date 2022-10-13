@@ -1691,7 +1691,7 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (mesh_eval == nullptr) {
     return;
   }
-  SubdivCCG *subdiv_ccg = mesh_eval->runtime.subdiv_ccg;
+  SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
   if (subdiv_ccg == nullptr) {
     return;
   }
@@ -1699,7 +1699,7 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (!subdiv_ccg->dirty.coords && !subdiv_ccg->dirty.hidden) {
     return;
   }
-  const int tot_level = mesh_eval->runtime.subdiv_ccg_tot_level;
+  const int tot_level = mesh_eval->runtime->subdiv_ccg_tot_level;
   Object *object_orig = DEG_get_original_object(object);
   Mesh *mesh_orig = (Mesh *)object_orig->data;
   multiresModifier_reshapeFromCCG(tot_level, mesh_orig, subdiv_ccg);
@@ -3218,7 +3218,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
       int count = 0;
       int numVerts = me_eval->totvert;
 
-      if (em && me_eval->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+      if (em && me_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
         numVerts = em->bm->totvert;
         if (em->bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
@@ -3233,8 +3233,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
 #endif
         }
         if (nr < numVerts) {
-          if (me_eval && me_eval->runtime.edit_data && me_eval->runtime.edit_data->vertexCos) {
-            add_v3_v3(vec, me_eval->runtime.edit_data->vertexCos[nr]);
+          if (me_eval && me_eval->runtime->edit_data && me_eval->runtime->edit_data->vertexCos) {
+            add_v3_v3(vec, me_eval->runtime->edit_data->vertexCos[nr]);
           }
           else {
             const BMVert *v = BM_vert_at_index(em->bm, nr);
@@ -3352,7 +3352,7 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
     case PAROBJECT: {
       bool ok = false;
       if (par->type == OB_CURVES_LEGACY) {
-        if ((((Curve *)par->data)->flag & CU_PATH) && (ob_parcurve(ob, par, tmat))) {
+        if ((((Curve *)par->data)->flag & CU_PATH) && ob_parcurve(ob, par, tmat)) {
           ok = true;
         }
       }

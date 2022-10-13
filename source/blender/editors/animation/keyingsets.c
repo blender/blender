@@ -888,7 +888,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
     /* TODO: check for missing callbacks! */
 
     /* check if it can be used in the current context */
-    return (ksi->poll(ksi, C));
+    return ksi->poll(ksi, C);
   }
 
   return true;

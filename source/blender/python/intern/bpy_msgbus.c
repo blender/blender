@@ -265,7 +265,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
   }
 
   if (py_options &&
-      (pyrna_enum_bitfield_from_set(py_options_enum, py_options, &options, error_prefix)) == -1) {
+      (pyrna_enum_bitfield_from_set(py_options_enum, py_options, &options, error_prefix) == -1)) {
     return NULL;
   }
 

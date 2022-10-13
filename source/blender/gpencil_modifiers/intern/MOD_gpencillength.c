@@ -138,7 +138,7 @@ static void applyLength(GpencilModifierData *md,
     seed += BLI_hash_string(md->name);
 
     if (lmd->flag & GP_LENGTH_USE_RANDOM) {
-      seed += ((int)DEG_get_ctime(depsgraph)) / lmd->step;
+      seed += (int)DEG_get_ctime(depsgraph) / lmd->step;
     }
 
     float rand_offset = BLI_hash_int_01(seed);

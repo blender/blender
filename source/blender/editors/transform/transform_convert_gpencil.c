@@ -750,7 +750,7 @@ static void recalcData_gpencil_strokes(TransInfo *t)
   for (int i = 0; i < tc->data_len; i++, td++) {
     bGPDstroke *gps = td->extra;
 
-    if ((gps != NULL) && (!BLI_ghash_haskey(strokes, gps))) {
+    if ((gps != NULL) && !BLI_ghash_haskey(strokes, gps)) {
       BLI_ghash_insert(strokes, gps, gps);
       if (is_curve_edit && gps->editcurve != NULL) {
         BKE_gpencil_editcurve_recalculate_handles(gps);

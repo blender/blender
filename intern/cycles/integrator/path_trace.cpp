@@ -43,8 +43,11 @@ PathTrace::PathTrace(Device *device,
   /* Create path tracing work in advance, so that it can be reused by incremental sampling as much
    * as possible. */
   device_->foreach_device([&](Device *path_trace_device) {
-    path_trace_works_.emplace_back(PathTraceWork::create(
-        path_trace_device, film, device_scene, &render_cancel_.is_requested));
+    unique_ptr<PathTraceWork> work = PathTraceWork::create(
+        path_trace_device, film, device_scene, &render_cancel_.is_requested);
+    if (work) {
+      path_trace_works_.emplace_back(std::move(work));
+    }
   });
 
   work_balance_infos_.resize(path_trace_works_.size());

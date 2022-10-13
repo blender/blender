@@ -520,7 +520,7 @@ static bool do_add_image_extension(char *string,
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-    if (!(BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr))) {
+    if (!BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr)) {
       extension = extension_test;
     }
   }

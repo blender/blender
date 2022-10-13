@@ -1683,7 +1683,7 @@ bool transform_snap_grid(TransInfo *t, float *val)
     return false;
   }
 
-  if ((!(t->tsnap.mode & SCE_SNAP_MODE_GRID)) || validSnap(t)) {
+  if (!(t->tsnap.mode & SCE_SNAP_MODE_GRID) || validSnap(t)) {
     /* Don't do grid snapping if there is a valid snap point. */
     return false;
   }

@@ -339,12 +339,20 @@ bool ED_uvedit_udim_params_from_image_space(const struct SpaceImage *sima,
                                             bool use_active,
                                             struct UVMapUDIM_Params *udim_params);
 
+typedef enum {
+  ED_UVPACK_MARGIN_SCALED = 0, /* Use scale of existing UVs to multiply margin. */
+  ED_UVPACK_MARGIN_ADD,        /* Just add the margin, ignoring any UV scale. */
+  ED_UVPACK_MARGIN_FRACTION,   /* Specify a precise fraction of final UV output. */
+} eUVPackIsland_MarginMethod;
+
 struct UVPackIsland_Params {
   uint rotate : 1;
   uint only_selected_uvs : 1;
   uint only_selected_faces : 1;
   uint use_seams : 1;
   uint correct_aspect : 1;
+  eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
+  float margin;                             /* Additional space to add around each island. */
 };
 
 /**

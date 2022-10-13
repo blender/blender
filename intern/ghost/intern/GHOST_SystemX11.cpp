@@ -2435,11 +2435,11 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     utf8Str,
                     8,
                     PropModeReplace,
-                    (const unsigned char *)title,
+                    (const uchar *)title,
                     int(strlen(title)));
 
     XChangeProperty(
-        m_display, window, winType, XA_ATOM, 32, PropModeReplace, (unsigned char *)&typeDialog, 1);
+        m_display, window, winType, XA_ATOM, 32, PropModeReplace, (uchar *)&typeDialog, 1);
   }
 
   /* Create buttons GC */

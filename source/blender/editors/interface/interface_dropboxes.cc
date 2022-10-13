@@ -89,7 +89,7 @@ static void ui_drop_material_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *dro
 
 static char *ui_drop_material_tooltip(bContext *C,
                                       wmDrag *drag,
-                                      const int UNUSED(xy[2]),
+                                      const int /*xy*/[2],
                                       struct wmDropBox * /*drop*/)
 {
   PointerRNA rna_ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);

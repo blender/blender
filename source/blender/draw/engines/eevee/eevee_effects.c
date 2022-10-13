@@ -29,7 +29,7 @@ static struct {
 
 #define SETUP_BUFFER(tex, fb, fb_color) \
   { \
-    eGPUTextureFormat format = (DRW_state_is_scene_render()) ? GPU_RGBA32F : GPU_RGBA16F; \
+    eGPUTextureFormat format = DRW_state_is_scene_render() ? GPU_RGBA32F : GPU_RGBA16F; \
     DRW_texture_ensure_fullscreen_2d(&tex, format, DRW_TEX_FILTER); \
     GPU_framebuffer_ensure_config(&fb, \
                                   { \

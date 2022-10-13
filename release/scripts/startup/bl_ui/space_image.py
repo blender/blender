@@ -1528,36 +1528,23 @@ class IMAGE_PT_overlay_guides(Panel):
         layout.active = overlay.show_overlays
 
         row = layout.row()
-        row_el = row.column()
-        row_el.prop(overlay, "show_grid_background", text="Grid")
+        row.prop(overlay, "show_grid_background", text="Grid")
 
         if overlay.show_grid_background:
-            layout.use_property_split = True
-
-            col = layout.column(align=False, heading="Grid Over Image")
-            col.use_property_decorate = False
-            row = col.row(align=True)
-            sub = row.row(align=True)
-            sub.prop(uvedit, "show_grid_over_image", text="")
+            sub = row.row()
+            sub.prop(uvedit, "show_grid_over_image", text="Over Image")
             sub.active = sima.image is not None
 
-            col = layout.column(align=False, heading="Fixed Subdivisions")
-            col.use_property_decorate = False
+            layout.row().prop(uvedit, "grid_shape_source", expand=True)
 
-            row = col.row(align=True)
-            sub = row.row(align=True)
-            sub.prop(uvedit, "use_custom_grid", text="")
-            if uvedit.use_custom_grid:
-                row = layout.row()
-                row.use_property_split = True
-                row.use_property_decorate = False
-                sub = sub.row(align=True)
-                sub.prop(uvedit, "custom_grid_subdivisions", text="")
+            layout.use_property_split = True
+            layout.use_property_decorate = False
 
             row = layout.row()
-            row.use_property_split = True
-            row.use_property_decorate = False
-            row.prop(uvedit, "tile_grid_shape", text="Tiles")
+            row.prop(uvedit, "custom_grid_subdivisions", text="Fixed Subdivisions")
+            row.active = uvedit.grid_shape_source == 'FIXED'
+
+            layout.prop(uvedit, "tile_grid_shape", text="Tiles")
 
 
 class IMAGE_PT_overlay_uv_edit(Panel):

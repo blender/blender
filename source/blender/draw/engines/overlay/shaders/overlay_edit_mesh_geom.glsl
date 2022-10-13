@@ -56,7 +56,7 @@ void main()
     half_size += 0.5;
   }
 
-  vec3 edge_ofs = vec3(half_size * drw_view.viewport_size_inverse, 0.0);
+  vec3 edge_ofs = vec3(half_size * sizeViewportInv, 0.0);
 
   bool horizontal = line.x > line.y;
   edge_ofs = (horizontal) ? edge_ofs.zyz : edge_ofs.xzz;

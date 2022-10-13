@@ -279,7 +279,15 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 }
 
 /* Compute constraint derivatives. */
-ccl_device_forceinline bool mnee_compute_constraint_derivatives(
+
+#  if defined(__KERNEL_METAL__)
+/* Temporary workaround for front-end compilation bug (incorrect MNEE rendering when this is
+ * inlined). */
+__attribute__((noinline))
+#  else
+ccl_device_forceinline
+#  endif
+bool mnee_compute_constraint_derivatives(
     int vertex_count,
     ccl_private ManifoldVertex *vertices,
     ccl_private const float3 &surface_sample_pos,

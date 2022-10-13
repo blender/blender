@@ -407,7 +407,7 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
   for (iseq = seqbase->first; iseq; iseq = iseq->next) {
     Sequence *seq_found;
     if ((iseq->strip && iseq->strip->stripdata) &&
-        (ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len))) {
+        ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len)) {
       break;
     }
     if ((seq_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {

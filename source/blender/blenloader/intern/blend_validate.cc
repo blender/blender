@@ -61,7 +61,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   for (Main *curmain = bmain->next; curmain != nullptr; curmain = curmain->next) {
     Library *curlib = curmain->curlib;
     if (curlib == nullptr) {
-      BKE_report(reports, RPT_ERROR, "Library database with nullptr library data-block!");
+      BKE_report(reports, RPT_ERROR, "Library database with null library data-block pointer!");
       continue;
     }
 
@@ -103,7 +103,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
           is_valid = false;
           BKE_reportf(reports,
                       RPT_ERROR,
-                      "ID %s has nullptr lib pointer while being in library %s!",
+                      "ID %s has null lib pointer while being in library %s!",
                       id->name,
                       curlib->filepath);
           continue;

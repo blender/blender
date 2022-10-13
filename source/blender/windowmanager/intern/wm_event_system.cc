@@ -2230,7 +2230,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
     /* Should already be handled by #wm_user_modal_keymap_set_items. */
     BLI_assert(kmi->propvalue_str[0] == '\0');
     if (wm_eventmatch(event, kmi)) {
-      if ((keymap->poll_modal_item == nullptr) || (keymap->poll_modal_item(op, kmi->propvalue))) {
+      if ((keymap->poll_modal_item == nullptr) || keymap->poll_modal_item(op, kmi->propvalue)) {
         return kmi;
       }
     }

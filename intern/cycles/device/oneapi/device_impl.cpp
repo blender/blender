@@ -43,7 +43,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   }
 
   size_t globals_segment_size;
-  is_finished_ok = kernel_globals_size(device_queue_, globals_segment_size);
+  is_finished_ok = kernel_globals_size(globals_segment_size);
   if (is_finished_ok == false) {
     set_error("oneAPI constant memory initialization got runtime exception \"" +
               oneapi_error_string_ + "\"");
@@ -88,18 +88,26 @@ BVHLayoutMask OneapiDevice::get_bvh_layout_mask() const
 bool OneapiDevice::load_kernels(const uint requested_features)
 {
   assert(device_queue_);
-  /* NOTE(@nsirgien): oneAPI can support compilation of kernel code with certain feature set
-   * with specialization constants, but it hasn't been implemented yet. */
-  (void)requested_features;
 
   bool is_finished_ok = oneapi_run_test_kernel(device_queue_);
   if (is_finished_ok == false) {
-    set_error("oneAPI kernel load: got runtime exception \"" + oneapi_error_string_ + "\"");
+    set_error("oneAPI test kernel execution: got a runtime exception \"" + oneapi_error_string_ +
+              "\"");
+    return false;
   }
   else {
-    VLOG_INFO << "Runtime compilation done for \"" << info.description << "\"";
+    VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
     assert(device_queue_);
   }
+
+  is_finished_ok = oneapi_load_kernels(device_queue_, (const unsigned int)requested_features);
+  if (is_finished_ok == false) {
+    set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
+  }
+  else {
+    VLOG_INFO << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
+  }
+
   return is_finished_ok;
 }
 
@@ -425,6 +433,11 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
          ((device_type == sycl::info::device_type::host ||
            device_type == sycl::info::device_type::cpu || allow_host) &&
           usm_type == sycl::usm::alloc::host));
+#  else
+  /* Silence warning about unused arguments. */
+  (void)queue_;
+  (void)usm_ptr;
+  (void)allow_host;
 #  endif
 }
 
@@ -552,7 +565,7 @@ bool OneapiDevice::queue_synchronize(SyclQueue *queue_)
   }
 }
 
-bool OneapiDevice::kernel_globals_size(SyclQueue *queue_, size_t &kernel_global_size)
+bool OneapiDevice::kernel_globals_size(size_t &kernel_global_size)
 {
   kernel_global_size = sizeof(KernelGlobalsGPU);
 

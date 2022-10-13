@@ -2641,6 +2641,8 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 
 void NLA_OT_fmodifier_add(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add F-Modifier";
   ot->idname = "NLA_OT_fmodifier_add";
@@ -2659,11 +2661,12 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_enum_funcs(ot->prop, nla_fmodifier_itemf);
 
-  RNA_def_boolean(ot->srna,
-                  "only_active",
-                  true,
-                  "Only Active",
-                  "Only add a F-Modifier of the specified type to the active strip");
+  prop = RNA_def_boolean(ot->srna,
+                         "only_active",
+                         true,
+                         "Only Active",
+                         "Only add a F-Modifier of the specified type to the active strip");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
 /** \} */
@@ -2832,8 +2835,10 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(
+  ot->prop = RNA_def_boolean(
       ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active strip");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
+
   RNA_def_boolean(
       ot->srna,
       "replace",

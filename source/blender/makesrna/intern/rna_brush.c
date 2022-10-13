@@ -92,7 +92,7 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 #endif
 
 /* clang-format off */
-/* Note: we don't actually turn these into a single enum bitmask property,
+/* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
 const EnumPropertyItem RNA_automasking_flags[] = {
   {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},

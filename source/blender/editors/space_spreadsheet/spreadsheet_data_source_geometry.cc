@@ -487,37 +487,6 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
   return geometry_set;
 }
 
-class GeometryComponentCacheKey : public SpreadsheetCache::Key {
- public:
-  /* Use the pointer to the geometry component as a key to detect when the geometry changed. */
-  const GeometryComponent *component;
-
-  GeometryComponentCacheKey(const GeometryComponent &component) : component(&component)
-  {
-  }
-
-  uint64_t hash() const override
-  {
-    return get_default_hash(this->component);
-  }
-
-  bool is_equal_to(const Key &other) const override
-  {
-    if (const GeometryComponentCacheKey *other_geo =
-            dynamic_cast<const GeometryComponentCacheKey *>(&other)) {
-      return this->component == other_geo->component;
-    }
-    return false;
-  }
-};
-
-class GeometryComponentCacheValue : public SpreadsheetCache::Value {
- public:
-  /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
-   * to be reevaluated on every redraw. */
-  Map<std::pair<eAttrDomain, GField>, GArray<>> arrays;
-};
-
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);

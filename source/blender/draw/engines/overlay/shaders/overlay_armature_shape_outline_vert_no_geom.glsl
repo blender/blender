@@ -160,23 +160,19 @@ void main()
   if (line_vertex_id == 0) {
     gl_Position = pPos[1];
     /* Offset away from the center to avoid overlap with solid shape. */
-    gl_Position.xy += (edge_dir - perp) * drw_view.viewport_size_inverse * gl_Position.w;
+    gl_Position.xy += (edge_dir - perp) * sizeViewportInv * gl_Position.w;
     /* Improve AA bleeding inside bone silhouette. */
     gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
     edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_calc_clip_distance(wPos[1].xyz);
-#endif
+    view_clipping_distances(wPos[1].xyz);
   }
   else {
     gl_Position = pPos[2];
     /* Offset away from the center to avoid overlap with solid shape. */
-    gl_Position.xy += (edge_dir + perp) * drw_view.viewport_size_inverse * gl_Position.w;
+    gl_Position.xy += (edge_dir + perp) * sizeViewportInv * gl_Position.w;
     /* Improve AA bleeding inside bone silhouette. */
     gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
     edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_calc_clip_distance(wPos[2].xyz);
-#endif
+    view_clipping_distances(wPos[2].xyz);
   }
 }

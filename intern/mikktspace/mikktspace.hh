@@ -723,12 +723,11 @@ template<typename Mesh> class Mikktspace {
 
   void build4RuleGroups()
   {
-    /* Note: This could be parallelized by grouping all [t, i] pairs into
+    /* NOTE: This could be parallelized by grouping all [t, i] pairs into
      * shards by hash(triangles[t].vertices[i]). This way, each shard can be processed
      * independently and in parallel.
-     * However, the groupWithAny logic needs special handling (e.g. lock a mutex when
-     * encountering a groupWithAny triangle, then sort it out, then unlock and proceed).
-     */
+     * However, the `groupWithAny` logic needs special handling (e.g. lock a mutex when
+     * encountering a `groupWithAny` triangle, then sort it out, then unlock and proceed). */
     for (uint t = 0; t < nrTriangles; t++) {
       Triangle &triangle = triangles[t];
       for (uint i = 0; i < 3; i++) {

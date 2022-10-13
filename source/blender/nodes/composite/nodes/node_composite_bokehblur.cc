@@ -70,10 +70,20 @@ class BokehBlurOperation : public NodeOperation {
       return;
     }
 
+    if (get_input("Size").is_single_value() || !get_variable_size()) {
+      execute_constant_size();
+    }
+    else {
+      execute_variable_size();
+    }
+  }
+
+  void execute_constant_size()
+  {
     GPUShader *shader = shader_manager().get("compositor_blur");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1i(shader, "radius", compute_blur_radius());
+    GPU_shader_uniform_1i(shader, "radius", int(compute_blur_radius()));
     GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
 
     const Result &input_image = get_input("Image");
@@ -88,7 +98,7 @@ class BokehBlurOperation : public NodeOperation {
     Domain domain = compute_domain();
     if (get_extend_bounds()) {
       /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
-      domain.size += int2(compute_blur_radius() * 2);
+      domain.size += int2(int(compute_blur_radius()) * 2);
     }
 
     Result &output_image = get_result("Image");
@@ -104,7 +114,42 @@ class BokehBlurOperation : public NodeOperation {
     input_mask.unbind_as_texture();
   }
 
-  int compute_blur_radius()
+  void execute_variable_size()
+  {
+    GPUShader *shader = shader_manager().get("compositor_blur_variable_size");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1f(shader, "base_size", compute_blur_radius());
+    GPU_shader_uniform_1i(shader, "search_radius", get_max_size());
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Result &input_weights = get_input("Bokeh");
+    input_weights.bind_as_texture(shader, "weights_tx");
+
+    const Result &input_size = get_input("Size");
+    input_size.bind_as_texture(shader, "size_tx");
+
+    const Result &input_mask = get_input("Bounding box");
+    input_mask.bind_as_texture(shader, "mask_tx");
+
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
+    input_weights.unbind_as_texture();
+    input_size.unbind_as_texture();
+    input_mask.unbind_as_texture();
+  }
+
+  float compute_blur_radius()
   {
     const int2 image_size = get_input("Image").domain().size;
     const int max_size = math::max(image_size.x, image_size.y);
@@ -124,7 +169,7 @@ class BokehBlurOperation : public NodeOperation {
       return true;
     }
 
-    if (compute_blur_radius() == 0) {
+    if (compute_blur_radius() == 0.0f) {
       return true;
     }
 
@@ -141,6 +186,16 @@ class BokehBlurOperation : public NodeOperation {
   bool get_extend_bounds()
   {
     return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
+  }
+
+  bool get_variable_size()
+  {
+    return bnode().custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE;
+  }
+
+  int get_max_size()
+  {
+    return static_cast<int>(bnode().custom4);
   }
 };
 

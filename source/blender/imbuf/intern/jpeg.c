@@ -209,7 +209,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
  */
 #define INPUT_2BYTES(cinfo, V, action) \
   MAKESTMT(MAKE_BYTE_AVAIL(cinfo, action); bytes_in_buffer--; \
-           V = ((uint)GETJOCTET(*next_input_byte++)) << 8; \
+           V = (uint)GETJOCTET(*next_input_byte++) << 8; \
            MAKE_BYTE_AVAIL(cinfo, action); \
            bytes_in_buffer--; \
            V += GETJOCTET(*next_input_byte++);)

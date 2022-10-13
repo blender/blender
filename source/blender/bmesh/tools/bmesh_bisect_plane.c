@@ -463,7 +463,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
     }
 
     vert_is_center_disable(v);
-    BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
+    BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &BM_VERT_DIST(v));
 
     if (BM_VERT_DIR(v) == 0) {
       if (oflag_center) {

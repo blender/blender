@@ -192,7 +192,7 @@ void EDBM_automerge_and_split(struct Object *obedit,
                               char hflag,
                               float dist);
 
-/* editmesh_undo.c */
+/* editmesh_undo.cc */
 
 /** Export for ED_undo_sys. */
 void ED_mesh_undosys_type(struct UndoType *ut);

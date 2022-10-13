@@ -135,7 +135,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
   }
 
   /* Validate and cross-check offsets and sizes. */
-  if (x < 1 || !(ELEM(depth, 1, 4, 8, 16, 24, 32))) {
+  if (x < 1 || !ELEM(depth, 1, 4, 8, 16, 24, 32)) {
     return NULL;
   }
 

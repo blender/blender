@@ -1811,7 +1811,7 @@ static int pyrna_py_to_prop(
          * 'self.properties -> self'
          * class mixing. If this causes problems in the future it should be removed.
          */
-        if ((ptr_type == &RNA_AnyType) && (BPy_StructRNA_Check(value))) {
+        if ((ptr_type == &RNA_AnyType) && BPy_StructRNA_Check(value)) {
           const StructRNA *base_type = RNA_struct_base_child_of(
               ((const BPy_StructRNA *)value)->ptr.type, NULL);
           if (ELEM(base_type, &RNA_Operator, &RNA_Gizmo)) {
@@ -1957,7 +1957,7 @@ static int pyrna_py_to_prop(
             BKE_reports_init(&reports, RPT_STORE);
             RNA_property_pointer_set(
                 ptr, prop, (param == NULL) ? PointerRNA_NULL : param->ptr, &reports);
-            const int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+            const int err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
             if (err == -1) {
               Py_XDECREF(value_new);
               return -1;
@@ -2479,7 +2479,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
     ID *id = itemptr.data; /* Always an ID. */
-    if (id->lib == lib && (STREQLEN(keyname, id->name + 2, sizeof(id->name) - 2))) {
+    if (id->lib == lib && STREQLEN(keyname, id->name + 2, sizeof(id->name) - 2)) {
       found = true;
       if (r_ptr) {
         *r_ptr = itemptr;
@@ -5574,7 +5574,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
   else {
     const char f = buf.format ? buf.format[0] : 0;
-    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (!ELEM(f, 'l', 'i')))) ||
+    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || !ELEM(f, 'l', 'i'))) ||
         (prop_type == PROP_FLOAT && (buf.itemsize != sizeof(float) || f != 'f'))) {
       PyBuffer_Release(&buf);
       PyErr_Format(PyExc_TypeError, "incorrect sequence item type: %s", buf.format);
@@ -6404,7 +6404,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
     BKE_reports_init(&reports, RPT_STORE);
     RNA_function_call(C, &reports, self_ptr, self_func, &parms);
 
-    err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+    err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
 
     /* Return value. */
     if (err != -1) {
@@ -7668,7 +7668,7 @@ bool pyrna_id_FromPyObject(PyObject *obj, ID **id)
 
 bool pyrna_id_CheckPyObject(PyObject *obj)
 {
-  return BPy_StructRNA_Check(obj) && (RNA_struct_is_ID(((BPy_StructRNA *)obj)->ptr.type));
+  return BPy_StructRNA_Check(obj) && RNA_struct_is_ID(((BPy_StructRNA *)obj)->ptr.type);
 }
 
 void BPY_rna_init(void)
@@ -8796,7 +8796,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     ReportList *reports;
     /* Alert the user, else they won't know unless they see the console. */
     if ((!is_staticmethod) && (!is_classmethod) && (ptr->data) &&
-        (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
+        RNA_struct_is_a(ptr->type, &RNA_Operator) &&
         (is_valid_wm == (CTX_wm_manager(C) != NULL))) {
       wmOperator *op = ptr->data;
       reports = op->reports;

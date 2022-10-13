@@ -37,7 +37,7 @@
 
 void node_free_curves(bNode *node)
 {
-  BKE_curvemapping_free(node->storage);
+  BKE_curvemapping_free(static_cast<CurveMapping *>(node->storage));
 }
 
 void node_free_standard_storage(bNode *node)
@@ -49,7 +49,7 @@ void node_free_standard_storage(bNode *node)
 
 void node_copy_curves(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
 {
-  dest_node->storage = BKE_curvemapping_copy(src_node->storage);
+  dest_node->storage = BKE_curvemapping_copy(static_cast<CurveMapping *>(src_node->storage));
 }
 
 void node_copy_standard_storage(bNodeTree *UNUSED(dest_ntree),
@@ -63,7 +63,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
                            bNode *node,
                            bNodeInstanceKey UNUSED(key))
 {
-  BKE_curvemapping_init(node->storage);
+  BKE_curvemapping_init(static_cast<CurveMapping *>(node->storage));
   return NULL; /* unused return */
 }
 
@@ -87,9 +87,9 @@ void node_sock_label_clear(bNodeSocket *sock)
 
 void node_math_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock1 = BLI_findlink(&node->inputs, 0);
-  bNodeSocket *sock2 = BLI_findlink(&node->inputs, 1);
-  bNodeSocket *sock3 = BLI_findlink(&node->inputs, 2);
+  bNodeSocket *sock1 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
+  bNodeSocket *sock2 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
+  bNodeSocket *sock3 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
   nodeSetSocketAvailability(ntree,
                             sock2,
                             !ELEM(node->custom1,
@@ -305,7 +305,9 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
                                               bNode *node,
                                               bNodeSocket *to_socket)
 {
-  bNodeSocket *first = to_socket->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
+  bNodeSocket *first = to_socket->in_out == SOCK_IN ?
+                           static_cast<bNodeSocket *>(node->inputs.first) :
+                           static_cast<bNodeSocket *>((node->outputs.first));
 
   /* Wrap around the list end. */
   bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;

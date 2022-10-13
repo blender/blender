@@ -503,7 +503,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     PBVHVertRef vert,
                                     AutomaskingNodeData *automask_data)
 {
-  if (!automasking) {
+  if (!automasking || vert.i == PBVH_REF_NONE) {
     return 1.0f;
   }
 
@@ -521,7 +521,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   }
 
   uchar stroke_id = ss->attrs.automasking_stroke_id ?
-                        *(uchar *)(SCULPT_vertex_attr_get(vert, ss->attrs.automasking_stroke_id)) :
+                        *(uchar *)SCULPT_vertex_attr_get(vert, ss->attrs.automasking_stroke_id) :
                         -1;
 
   bool do_occlusion = (automasking->settings.flags &

@@ -57,13 +57,13 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   BKE_mesh_copy_parameters_for_eval(me, me_settings);
   BKE_mesh_runtime_ensure_edit_data(me);
 
-  me->runtime.wrapper_type = ME_WRAPPER_TYPE_BMESH;
+  me->runtime->wrapper_type = ME_WRAPPER_TYPE_BMESH;
   if (cd_mask_extra) {
-    me->runtime.cd_mask_extra = *cd_mask_extra;
+    me->runtime->cd_mask_extra = *cd_mask_extra;
   }
 
   /* Use edit-mesh directly where possible. */
-  me->runtime.is_original_bmesh = true;
+  me->runtime->is_original_bmesh = true;
 
   me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
@@ -81,7 +81,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   me->totloop = 0;
 #endif
 
-  EditMeshData *edit_data = me->runtime.edit_data;
+  EditMeshData *edit_data = me->runtime->edit_data;
   edit_data->vertexCos = vert_coords;
   return me;
 }
@@ -95,17 +95,14 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
 
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
-
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    BLI_mutex_unlock(mesh_eval_mutex);
+  std::lock_guard lock{me->runtime->eval_mutex};
+  if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     return;
   }
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   blender::threading::isolate_task([&]() {
-    switch (static_cast<eMeshWrapperType>(me->runtime.wrapper_type)) {
+    switch (static_cast<eMeshWrapperType>(me->runtime->wrapper_type)) {
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD: {
         break; /* Quiet warning. */
@@ -117,10 +114,10 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
         me->totloop = 0;
 
         BLI_assert(me->edit_mesh != nullptr);
-        BLI_assert(me->runtime.edit_data != nullptr);
+        BLI_assert(me->runtime->edit_data != nullptr);
 
         BMEditMesh *em = me->edit_mesh;
-        BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
+        BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime->cd_mask_extra);
 
         /* Adding original index layers assumes that all BMesh mesh wrappers are created from
          * original edit mode meshes (the only case where adding original indices makes sense).
@@ -132,32 +129,30 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
          * harmful. */
         BKE_mesh_ensure_default_orig_index_customdata_no_check(me);
 
-        EditMeshData *edit_data = me->runtime.edit_data;
+        EditMeshData *edit_data = me->runtime->edit_data;
         if (edit_data->vertexCos) {
           BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-          me->runtime.is_original_bmesh = false;
+          me->runtime->is_original_bmesh = false;
         }
         break;
       }
     }
 
-    if (me->runtime.wrapper_type_finalize) {
-      BKE_mesh_wrapper_deferred_finalize_mdata(me, &me->runtime.cd_mask_extra);
+    if (me->runtime->wrapper_type_finalize) {
+      BKE_mesh_wrapper_deferred_finalize_mdata(me, &me->runtime->cd_mask_extra);
     }
 
     /* Keep type assignment last, so that read-only access only uses the mdata code paths after all
      * the underlying data has been initialized. */
-    me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
+    me->runtime->wrapper_type = ME_WRAPPER_TYPE_MDATA;
   });
-
-  BLI_mutex_unlock(mesh_eval_mutex);
 }
 
 bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime.edit_data, min, max);
+      return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime->edit_data, min, max);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return BKE_mesh_minmax(me, min, max);
@@ -174,11 +169,11 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
                                        float (*vert_coords)[3],
                                        int vert_coords_len)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len <= bm->totvert);
-      EditMeshData *edit_data = me->runtime.edit_data;
+      EditMeshData *edit_data = me->runtime->edit_data;
       if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
@@ -212,11 +207,11 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
                                                  int vert_coords_len,
                                                  const float mat[4][4])
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
-      EditMeshData *edit_data = me->runtime.edit_data;
+      EditMeshData *edit_data = me->runtime->edit_data;
       if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           mul_v3_m4v3(vert_coords[i], mat, edit_data->vertexCos[i]);
@@ -253,7 +248,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
 
 int BKE_mesh_wrapper_vert_len(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totvert;
     case ME_WRAPPER_TYPE_MDATA:
@@ -266,7 +261,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *me)
 
 int BKE_mesh_wrapper_edge_len(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totedge;
     case ME_WRAPPER_TYPE_MDATA:
@@ -279,7 +274,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *me)
 
 int BKE_mesh_wrapper_loop_len(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totloop;
     case ME_WRAPPER_TYPE_MDATA:
@@ -292,7 +287,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *me)
 
 int BKE_mesh_wrapper_poly_len(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totface;
     case ME_WRAPPER_TYPE_MDATA:
@@ -311,7 +306,7 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 
 static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 {
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime->subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return me;
   }
@@ -359,24 +354,22 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
   }
 
   if (subdiv_mesh != me) {
-    if (me->runtime.mesh_eval != nullptr) {
-      BKE_id_free(nullptr, me->runtime.mesh_eval);
+    if (me->runtime->mesh_eval != nullptr) {
+      BKE_id_free(nullptr, me->runtime->mesh_eval);
     }
-    me->runtime.mesh_eval = subdiv_mesh;
-    me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;
+    me->runtime->mesh_eval = subdiv_mesh;
+    me->runtime->wrapper_type = ME_WRAPPER_TYPE_SUBD;
   }
 
-  return me->runtime.mesh_eval;
+  return me->runtime->mesh_eval;
 }
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
+  std::lock_guard lock{me->runtime->eval_mutex};
 
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
-    BLI_mutex_unlock(mesh_eval_mutex);
-    return me->runtime.mesh_eval;
+  if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    return me->runtime->mesh_eval;
   }
 
   Mesh *result;
@@ -384,7 +377,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(me); });
 
-  BLI_mutex_unlock(mesh_eval_mutex);
   return result;
 }
 

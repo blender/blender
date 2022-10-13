@@ -1611,8 +1611,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if ((!MAIN_VERSION_ATLEAST(bmain, 292, 14)) ||
-      ((bmain->versionfile == 293) && (!MAIN_VERSION_ATLEAST(bmain, 293, 1)))) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 14) ||
+      ((bmain->versionfile == 293) && !MAIN_VERSION_ATLEAST(bmain, 293, 1))) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_GEOMETRY) {
         continue;

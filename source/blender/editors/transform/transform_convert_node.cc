@@ -96,13 +96,13 @@ static bool is_node_parent_select(bNode *node)
   return false;
 }
 
-static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
+static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
-  SpaceNode *snode = t->area->spacedata.first;
+  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
   /* Custom data to enable edge panning during the node transform */
-  struct TransCustomDataNode *customdata = MEM_callocN(sizeof(*customdata), __func__);
+  TransCustomDataNode *customdata = MEM_cnew<TransCustomDataNode>(__func__);
   UI_view2d_edge_pan_init(t->context,
                           &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
@@ -125,7 +125,7 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
   }
 
   /* Nodes don't support PET and probably never will. */
-  t->flag &= ~T_PROP_EDIT_ALL;
+  t->flag = t->flag & ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
@@ -142,9 +142,8 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
     return;
   }
 
-  TransData *td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransNode TransData");
-  TransData2D *td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D),
-                                                "TransNode TransData2D");
+  TransData *td = tc->data = MEM_cnew_array<TransData>(tc->data_len, __func__);
+  TransData2D *td2d = tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
 
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & NODE_TRANSFORM) {
@@ -161,9 +160,11 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 static void flushTransNodes(TransInfo *t)
 {
+  using namespace blender::ed;
   const float dpi_fac = UI_DPI_FAC;
+  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
-  struct TransCustomDataNode *customdata = (struct TransCustomDataNode *)t->custom.type.data;
+  TransCustomDataNode *customdata = (TransCustomDataNode *)t->custom.type.data;
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
@@ -196,7 +197,7 @@ static void flushTransNodes(TransInfo *t)
     for (int i = 0; i < tc->data_len; i++) {
       TransData *td = &tc->data[i];
       TransData2D *td2d = &tc->data_2d[i];
-      bNode *node = td->extra;
+      bNode *node = static_cast<bNode *>(td->extra);
 
       float loc[2];
       add_v2_v2v2(loc, td2d->loc, offset);
@@ -221,7 +222,7 @@ static void flushTransNodes(TransInfo *t)
 
     /* handle intersection with noodles */
     if (tc->data_len == 1) {
-      ED_node_link_intersect_test(t->area, 1);
+      space_node::node_insert_on_link_flags_set(*snode, *t->region);
     }
   }
 }
@@ -234,13 +235,15 @@ static void flushTransNodes(TransInfo *t)
 
 static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
-  struct Main *bmain = CTX_data_main(C);
+  using namespace blender::ed;
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
+  bNodeTree *ntree = snode->edittree;
+
   const bool canceled = (t->state == TRANS_CANCEL);
 
-  SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
   if (canceled && t->remove_on_cancel) {
     /* remove selected nodes on cancel */
-    bNodeTree *ntree = snode->edittree;
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
@@ -253,11 +256,10 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
   if (!canceled) {
     ED_node_post_apply_transform(C, snode->edittree);
-    ED_node_link_insert(bmain, t->area);
+    space_node::node_insert_on_link_flags(*bmain, *snode);
   }
 
-  /* clear link line */
-  ED_node_link_intersect_test(t->area, 0);
+  space_node::node_insert_on_link_flags_clear(*ntree);
 }
 
 /** \} */

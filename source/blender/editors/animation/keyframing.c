@@ -1180,7 +1180,7 @@ static float *get_keyframe_values(ReportList *reports,
 {
   float *values;
 
-  if ((flag & INSERTKEY_MATRIX) && (visualkey_can_use(&ptr, prop))) {
+  if ((flag & INSERTKEY_MATRIX) && visualkey_can_use(&ptr, prop)) {
     /* visual-keying is only available for object and pchan datablocks, as
      * it works by keyframing using a value extracted from the final matrix
      * instead of using the kt system to extract a value.

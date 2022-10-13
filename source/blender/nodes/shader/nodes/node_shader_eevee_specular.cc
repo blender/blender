@@ -64,7 +64,7 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY);
 
-  float use_clear = (socket_not_zero(6)) ? 1.0f : 0.0f;
+  float use_clear = socket_not_zero(6) ? 1.0f : 0.0f;
 
   return GPU_stack_link(mat, node, "node_eevee_specular", in, out, GPU_constant(&use_clear));
 }

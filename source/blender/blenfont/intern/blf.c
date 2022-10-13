@@ -98,7 +98,7 @@ static int blf_search(const char *name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font && (STREQ(font->name, name))) {
+    if (font && STREQ(font->name, name)) {
       return i;
     }
   }
@@ -226,7 +226,7 @@ void BLF_unload(const char *name)
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
 
-    if (font && (STREQ(font->name, name))) {
+    if (font && STREQ(font->name, name)) {
       BLI_assert(font->reference_count > 0);
       font->reference_count--;
 

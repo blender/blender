@@ -123,6 +123,52 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
   return std::min(limit_work_group_size, preferred_work_group_size);
 }
 
+bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
+{
+  assert(queue_);
+  sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
+
+  try {
+    sycl::kernel_bundle<sycl::bundle_state::input> all_kernels_bundle =
+        sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(),
+                                                           {queue->get_device()});
+
+    for (const sycl::kernel_id &kernel_id : all_kernels_bundle.get_kernel_ids()) {
+      const std::string &kernel_name = kernel_id.get_name();
+
+      /* NOTE(@nsirgien): Names in this conditions below should match names from
+       * oneapi_call macro in oneapi_enqueue_kernel below */
+      if (((requested_features & KERNEL_FEATURE_VOLUME) == 0) &&
+          kernel_name.find("oneapi_kernel_integrator_shade_volume") != std::string::npos) {
+        continue;
+      }
+
+      if (((requested_features & KERNEL_FEATURE_MNEE) == 0) &&
+          kernel_name.find("oneapi_kernel_integrator_shade_surface_mnee") != std::string::npos) {
+        continue;
+      }
+
+      if (((requested_features & KERNEL_FEATURE_NODE_RAYTRACE) == 0) &&
+          kernel_name.find("oneapi_kernel_integrator_shade_surface_raytrace") !=
+              std::string::npos) {
+        continue;
+      }
+
+      sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle =
+          sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
+      sycl::build(one_kernel_bundle, {queue->get_device()}, sycl::property::queue::in_order());
+    }
+  }
+  catch (sycl::exception const &e) {
+    if (s_error_cb) {
+      s_error_cb(e.what(), s_error_user_ptr);
+    }
+    return false;
+  }
+
+  return true;
+}
+
 bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                            int kernel,
                            size_t global_size,

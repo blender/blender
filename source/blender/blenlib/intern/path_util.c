@@ -1347,7 +1347,7 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
   ssize_t a;
 
   /* first check the extension is already there */
-  if ((ext_len <= path_len) && (STREQ(path + (path_len - ext_len), ext))) {
+  if ((ext_len <= path_len) && STREQ(path + (path_len - ext_len), ext)) {
     return true;
   }
 

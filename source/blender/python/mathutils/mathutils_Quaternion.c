@@ -830,7 +830,7 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
       return NULL;
     }
 
-    ok = (EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1)) ? 0 : -1;
+    ok = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1) ? 0 : -1;
   }
 
   switch (op) {

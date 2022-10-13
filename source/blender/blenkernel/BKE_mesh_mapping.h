@@ -336,7 +336,7 @@ int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
 #endif
 
 #ifdef __cplusplus
-namespace blender::mesh_topology {
+namespace blender::bke::mesh_topology {
 
 Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);
 
@@ -348,5 +348,5 @@ inline int previous_poly_loop(const MPoly &poly, int loop_i)
   return loop_i - 1 + (loop_i == poly.loopstart) * poly.totloop;
 }
 
-}  // namespace blender::mesh_topology
+}  // namespace blender::bke::mesh_topology
 #endif

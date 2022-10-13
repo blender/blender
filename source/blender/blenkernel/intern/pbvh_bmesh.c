@@ -493,7 +493,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BLI_gset_insert(node->bm_unique_verts, v);
   BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, node_index);
 
-  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_TopologyUpdated;
 
   /* Log the new vertex */
   BM_log_vert_added(pbvh->bm_log, v, cd_vert_mask_offset);
@@ -519,7 +519,7 @@ static BMFace *pbvh_bmesh_face_create(
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, node_index);
 
   /* mark node for update */
-  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
+  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_TopologyUpdated;
   node->flag &= ~PBVH_FullyHidden;
 
   /* Log the new face */
@@ -594,7 +594,7 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *pbvh, PBVHNode *new_owner, 
 {
   PBVHNode *current_owner = pbvh_bmesh_node_from_vert(pbvh, v);
   /* mark node for update */
-  current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+  current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_TopologyUpdated;
 
   BLI_assert(current_owner != new_owner);
 
@@ -608,7 +608,7 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *pbvh, PBVHNode *new_owner, 
   BLI_assert(!BLI_gset_haskey(new_owner->bm_other_verts, v));
 
   /* mark node for update */
-  new_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+  new_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_TopologyUpdated;
 }
 
 static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
@@ -631,7 +631,7 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
       f_node_index_prev = f_node_index;
 
       PBVHNode *f_node = &pbvh->nodes[f_node_index];
-      f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+      f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_TopologyUpdated;
 
       /* Remove current ownership */
       BLI_gset_remove(f_node->bm_other_verts, v, NULL);
@@ -680,7 +680,7 @@ static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
   BM_log_face_removed(pbvh->bm_log, f);
 
   /* mark node for update */
-  f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
+  f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_TopologyUpdated;
 }
 
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
@@ -701,14 +701,9 @@ static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
 
 static void pbvh_bmesh_node_drop_orig(PBVHNode *node)
 {
-  if (node->bm_orco) {
-    MEM_freeN(node->bm_orco);
-  }
-  if (node->bm_ortri) {
-    MEM_freeN(node->bm_ortri);
-  }
-  node->bm_orco = NULL;
-  node->bm_ortri = NULL;
+  MEM_SAFE_FREE(node->bm_orco);
+  MEM_SAFE_FREE(node->bm_ortri);
+  MEM_SAFE_FREE(node->bm_orvert);
   node->bm_tot_ortri = 0;
 }
 
@@ -1507,29 +1502,51 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
 
+  BLI_assert(!use_original || (BLI_gset_len(node->bm_faces) > 0 && node->bm_tot_ortri));
+
+  use_original = use_original && node->bm_tot_ortri;
+
+  GSetIterator gs_iter;
+
   if (use_original && node->bm_tot_ortri) {
     for (int i = 0; i < node->bm_tot_ortri; i++) {
-      const int *t = node->bm_ortri[i];
-      hit |= ray_face_intersection_tri(ray_start,
-                                       isect_precalc,
-                                       node->bm_orco[t[0]],
-                                       node->bm_orco[t[1]],
-                                       node->bm_orco[t[2]],
-                                       depth);
+      float *cos[3];
+
+      cos[0] = node->bm_orco[node->bm_ortri[i][0]];
+      cos[1] = node->bm_orco[node->bm_ortri[i][1]];
+      cos[2] = node->bm_orco[node->bm_ortri[i][2]];
+
+      if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth)) {
+        hit = true;
+
+        if (r_face_normal) {
+          normal_tri_v3(r_face_normal, cos[0], cos[1], cos[2]);
+        }
+
+        if (r_active_vertex) {
+          float location[3] = {0.0f};
+          madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+          for (int j = 0; j < 3; j++) {
+            if (len_squared_v3v3(location, cos[j]) <
+                len_squared_v3v3(location, nearest_vertex_co)) {
+              copy_v3_v3(nearest_vertex_co, cos[j]);
+              r_active_vertex->i = (intptr_t)node->bm_orvert[node->bm_ortri[i][j]];
+            }
+          }
+        }
+      }
     }
   }
   else {
-    GSetIterator gs_iter;
-
     GSET_ITER (gs_iter, node->bm_faces) {
       BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
       BLI_assert(f->len == 3);
+
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         BMVert *v_tri[3];
 
         BM_face_as_array_vert_tri(f, v_tri);
-
         if (ray_face_intersection_tri(
                 ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth)) {
           hit = true;
@@ -2016,6 +2033,21 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   BLI_buffer_free(&edge_loops);
   BLI_buffer_free(&deleted_faces);
 
+  /* Go over all changed nodes and check if anything needs to be updated. */
+  for (int n = 0; n < pbvh->totnode; n++) {
+    PBVHNode *node = &pbvh->nodes[n];
+
+    if (node->flag & PBVH_Leaf && node->flag & PBVH_TopologyUpdated) {
+      node->flag &= ~PBVH_TopologyUpdated;
+
+      if (node->bm_ortri) {
+        /* Reallocate original triangle data. */
+        pbvh_bmesh_node_drop_orig(node);
+        BKE_pbvh_bmesh_node_save_orig(pbvh->header.bm, pbvh->bm_log, node, true);
+      }
+    }
+  }
+
 #ifdef USE_VERIFY
   pbvh_bmesh_verify(pbvh);
 #endif
@@ -2023,7 +2055,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   return modified;
 }
 
-void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, PBVHNode *node)
+void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool use_original)
 {
   /* Skip if original coords/triangles are already saved */
   if (node->bm_orco) {
@@ -2036,19 +2068,38 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, PBVHNode *node)
 
   node->bm_orco = MEM_mallocN(sizeof(*node->bm_orco) * totvert, __func__);
   node->bm_ortri = MEM_mallocN(sizeof(*node->bm_ortri) * tottri, __func__);
+  node->bm_orvert = MEM_mallocN(sizeof(*node->bm_orvert) * totvert, __func__);
 
   /* Copy out the vertices and assign a temporary index */
   int i = 0;
   GSetIterator gs_iter;
   GSET_ITER (gs_iter, node->bm_unique_verts) {
     BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-    copy_v3_v3(node->bm_orco[i], v->co);
+    const float *origco = BM_log_original_vert_co(log, v);
+
+    if (use_original && origco) {
+      copy_v3_v3(node->bm_orco[i], origco);
+    }
+    else {
+      copy_v3_v3(node->bm_orco[i], v->co);
+    }
+
+    node->bm_orvert[i] = v;
     BM_elem_index_set(v, i); /* set_dirty! */
     i++;
   }
   GSET_ITER (gs_iter, node->bm_other_verts) {
     BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-    copy_v3_v3(node->bm_orco[i], v->co);
+    const float *origco = BM_log_original_vert_co(log, v);
+
+    if (use_original && origco) {
+      copy_v3_v3(node->bm_orco[i], BM_log_original_vert_co(log, v));
+    }
+    else {
+      copy_v3_v3(node->bm_orco[i], v->co);
+    }
+
+    node->bm_orvert[i] = v;
     BM_elem_index_set(v, i); /* set_dirty! */
     i++;
   }

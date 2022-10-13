@@ -96,6 +96,13 @@ bool BlenderSync::object_is_light(BL::Object &b_ob)
   return (b_ob_data && b_ob_data.is_a(&RNA_Light));
 }
 
+bool BlenderSync::object_is_camera(BL::Object &b_ob)
+{
+  BL::ID b_ob_data = b_ob.data();
+
+  return (b_ob_data && b_ob_data.is_a(&RNA_Camera));
+}
+
 void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object)
 {
   /* Initialize motion blur for object, detecting if it's enabled and creating motion
@@ -400,7 +407,8 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
     std::string real_name;
     BlenderAttributeType type = blender_attribute_name_split_type(name, &real_name);
 
-    if (type != BL::ShaderNodeAttribute::attribute_type_GEOMETRY) {
+    if (type == BL::ShaderNodeAttribute::attribute_type_OBJECT ||
+        type == BL::ShaderNodeAttribute::attribute_type_INSTANCER) {
       bool use_instancer = (type == BL::ShaderNodeAttribute::attribute_type_INSTANCER);
       float4 value = lookup_instance_property(b_instance, real_name, use_instancer);
 

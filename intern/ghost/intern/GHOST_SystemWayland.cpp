@@ -54,6 +54,11 @@
 #include <tablet-unstable-v2-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
 
+/* Decorations `xdg_decor`. */
+#include <xdg-decoration-unstable-v1-client-protocol.h>
+#include <xdg-shell-client-protocol.h>
+/* End `xdg_decor`. */
+
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -63,6 +68,15 @@
 
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+static bool use_libdecor = true;
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+static bool has_libdecor = false;
+#  else
+static bool has_libdecor = true;
+#  endif
+#endif
 
 static void keyboard_handle_key_repeat_cancel(struct GWL_Seat *seat);
 
@@ -105,6 +119,15 @@ static bool use_gnome_confine_hack = false;
  * See: https://gitlab.gnome.org/GNOME/mutter/-/issues/2457
  */
 #define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+
+/**
+ * When GNOME is found, require `libdecor`.
+ * This is a hack because it seems there is no way to check if the compositor supports
+ * server side decorations when initializing WAYLAND.
+ */
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_GHOST_X11)
+#  define USE_GNOME_NEEDS_LIBDECOR_HACK
+#endif
 
 /** \} */
 
@@ -357,6 +380,36 @@ struct WGL_KeyboardDepressedState {
   int16_t mods[GHOST_KEY_MODIFIER_NUM] = {0};
 };
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+struct WGL_LibDecor_System {
+  struct libdecor *context = nullptr;
+};
+
+static void wgl_libdecor_system_destroy(WGL_LibDecor_System *decor)
+{
+  if (decor->context) {
+    libdecor_unref(decor->context);
+  }
+  delete decor;
+}
+#endif
+
+struct WGL_XDG_Decor_System {
+  struct xdg_wm_base *shell = nullptr;
+  struct zxdg_decoration_manager_v1 *manager = nullptr;
+};
+
+static void wgl_xdg_decor_system_destroy(WGL_XDG_Decor_System *decor)
+{
+  if (decor->manager) {
+    zxdg_decoration_manager_v1_destroy(decor->manager);
+  }
+  if (decor->shell) {
+    xdg_wm_base_destroy(decor->shell);
+  }
+  delete decor;
+}
+
 struct GWL_Seat {
   GHOST_SystemWayland *system = nullptr;
 
@@ -455,11 +508,10 @@ struct GWL_Display {
   struct wl_compositor *compositor = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  struct libdecor *decor_context = nullptr;
-#else
-  struct xdg_wm_base *xdg_shell = nullptr;
-  struct zxdg_decoration_manager_v1 *xdg_decoration_manager = nullptr;
+  WGL_LibDecor_System *libdecor = nullptr;
+  bool libdecor_required = false;
 #endif
+  WGL_XDG_Decor_System *xdg_decor = nullptr;
 
   struct zxdg_output_manager_v1 *xdg_output_manager = nullptr;
   struct wl_shm *shm = nullptr;
@@ -626,18 +678,18 @@ static void display_destroy(GWL_Display *d)
   }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (d->decor_context) {
-    libdecor_unref(d->decor_context);
+  if (use_libdecor) {
+    if (d->libdecor) {
+      wgl_libdecor_system_destroy(d->libdecor);
+    }
   }
-#else
-  if (d->xdg_decoration_manager) {
-    zxdg_decoration_manager_v1_destroy(d->xdg_decoration_manager);
+  else
+#endif
+  {
+    if (d->xdg_decor) {
+      wgl_xdg_decor_system_destroy(d->xdg_decor);
+    }
   }
-
-  if (d->xdg_shell) {
-    xdg_wm_base_destroy(d->xdg_shell);
-  }
-#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
 
   if (eglGetDisplay) {
     ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(d->display)));
@@ -2903,10 +2955,8 @@ static const struct wl_output_listener output_listener = {
 /** \name Listener (XDG WM Base), #xdg_wm_base_listener
  * \{ */
 
-#ifndef WITH_GHOST_WAYLAND_LIBDECOR
-
 static CLG_LogRef LOG_WL_XDG_WM_BASE = {"ghost.wl.handle.xdg_wm_base"};
-#  define LOG (&LOG_WL_XDG_WM_BASE)
+#define LOG (&LOG_WL_XDG_WM_BASE)
 
 static void shell_handle_ping(void * /*data*/,
                               struct xdg_wm_base *xdg_wm_base,
@@ -2920,9 +2970,7 @@ static const struct xdg_wm_base_listener shell_listener = {
     shell_handle_ping,
 };
 
-#  undef LOG
-
-#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
+#undef LOG
 
 /** \} */
 
@@ -2978,19 +3026,17 @@ static void global_handle_add(void *data,
     display->compositor = static_cast<wl_compositor *>(
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  /* Pass. */
-#else
   else if (STREQ(interface, xdg_wm_base_interface.name)) {
-    display->xdg_shell = static_cast<xdg_wm_base *>(
+    WGL_XDG_Decor_System &decor = *display->xdg_decor;
+    decor.shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
-    xdg_wm_base_add_listener(display->xdg_shell, &shell_listener, nullptr);
+    xdg_wm_base_add_listener(decor.shell, &shell_listener, nullptr);
   }
   else if (STREQ(interface, zxdg_decoration_manager_v1_interface.name)) {
-    display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
+    WGL_XDG_Decor_System &decor = *display->xdg_decor;
+    decor.manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
-#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
   else if (STREQ(interface, zxdg_output_manager_v1_interface.name)) {
     display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 2));
@@ -3048,6 +3094,14 @@ static void global_handle_add(void *data,
   }
   else {
     found = false;
+
+#ifdef USE_GNOME_NEEDS_LIBDECOR_HACK
+    if (STRPREFIX(interface, "gtk_shell")) { /* `gtk_shell1` at time of writing. */
+      /* Only require `libdecor` when built with X11 support,
+       * otherwise there is nothing to fall back on. */
+      display->libdecor_required = true;
+    }
+#endif
   }
 
   CLOG_INFO(LOG,
@@ -3102,6 +3156,9 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
     throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
+  /* This may be removed later if decorations are required, needed as part of registration. */
+  d->xdg_decor = new WGL_XDG_Decor_System;
+
   /* Register interfaces. */
   struct wl_registry *registry = wl_display_get_registry(d->display);
   wl_registry_add_listener(registry, &registry_listener, d);
@@ -3112,17 +3169,45 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
   wl_registry_destroy(registry);
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  d->decor_context = libdecor_new(d->display, &libdecor_interface);
-  if (!d->decor_context) {
-    display_destroy(d);
-    throw std::runtime_error("Wayland: unable to create window decorations!");
+  if (d->libdecor_required) {
+    wgl_xdg_decor_system_destroy(d->xdg_decor);
+    d->xdg_decor = nullptr;
+
+    if (!has_libdecor) {
+#  ifdef WITH_GHOST_X11
+      /* LIBDECOR was the only reason X11 was used, let the user know they need it installed. */
+      fprintf(stderr,
+              "WAYLAND found but libdecor was not, install libdecor for Wayland support, "
+              "falling back to X11\n");
+#  endif
+      display_destroy(d);
+      throw std::runtime_error("Wayland: unable to find libdecor!");
+    }
   }
-#else
-  if (!d->xdg_shell) {
-    display_destroy(d);
-    throw std::runtime_error("Wayland: unable to access xdg_shell!");
+  else {
+    use_libdecor = false;
   }
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    d->libdecor = new WGL_LibDecor_System;
+    WGL_LibDecor_System &decor = *d->libdecor;
+    decor.context = libdecor_new(d->display, &libdecor_interface);
+    if (!decor.context) {
+      display_destroy(d);
+      throw std::runtime_error("Wayland: unable to create window decorations!");
+    }
+  }
+  else
 #endif
+  {
+    WGL_XDG_Decor_System &decor = *d->xdg_decor;
+    if (!decor.shell) {
+      display_destroy(d);
+      throw std::runtime_error("Wayland: unable to access xdg_shell!");
+    }
+  }
 
   /* Register data device per seat for IPC between Wayland clients. */
   if (d->data_device_manager) {
@@ -4052,24 +4137,24 @@ wl_compositor *GHOST_SystemWayland::compositor()
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 
-libdecor *GHOST_SystemWayland::decor_context()
+libdecor *GHOST_SystemWayland::libdecor_context()
 {
-  return d->decor_context;
-}
-
-#else /* WITH_GHOST_WAYLAND_LIBDECOR */
-
-xdg_wm_base *GHOST_SystemWayland::xdg_shell()
-{
-  return d->xdg_shell;
-}
-
-zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
-{
-  return d->xdg_decoration_manager;
+  return d->libdecor->context;
 }
 
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
+
+xdg_wm_base *GHOST_SystemWayland::xdg_decor_shell()
+{
+  return d->xdg_decor->shell;
+}
+
+zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decor_manager()
+{
+  return d->xdg_decor->manager;
+}
+
+/* End `xdg_decor`. */
 
 const std::vector<GWL_Output *> &GHOST_SystemWayland::outputs() const
 {
@@ -4317,35 +4402,52 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   return GHOST_kSuccess;
 }
 
-#ifdef WITH_GHOST_WAYLAND_DYNLOAD
-bool ghost_wl_dynload_libraries()
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+bool GHOST_SystemWayland::use_libdecor_runtime()
 {
-  /* Only report when `libwayland-client` is not found when building without X11,
-   * which will be used as a fallback. */
+  return use_libdecor;
+}
+#endif
+
+#ifdef WITH_GHOST_WAYLAND_DYNLOAD
+bool ghost_wl_dynload_libraries_init()
+{
 #  ifdef WITH_GHOST_X11
-  bool verbose = false;
+  /* When running in WAYLAND, let the user know when a missing library is the only reason
+   * WAYLAND could not be used. Otherwise it's not obvious why X11 is used as a fallback.
+   * Otherwise when X11 is used, reporting WAYLAND library warnings is unwelcome noise. */
+  bool verbose = getenv("WAYLAND_DISPLAY") != nullptr;
 #  else
   bool verbose = true;
-#  endif
+#  endif /* !WITH_GHOST_X11 */
 
   if (wayland_dynload_client_init(verbose) && /* `libwayland-client`. */
       wayland_dynload_cursor_init(verbose) && /* `libwayland-cursor`. */
-      wayland_dynload_egl_init(verbose) &&    /* `libwayland-egl`. */
+      wayland_dynload_egl_init(verbose)       /* `libwayland-egl`. */
+  ) {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      wayland_dynload_libdecor_init(verbose) && /* `libdecor-0`. */
+    has_libdecor = wayland_dynload_libdecor_init(verbose); /* `libdecor-0`. */
 #  endif
-      true) {
     return true;
   }
-#  ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  wayland_dynload_libdecor_exit();
-#  endif
+
   wayland_dynload_client_exit();
   wayland_dynload_cursor_exit();
   wayland_dynload_egl_exit();
 
   return false;
 }
+
+void ghost_wl_dynload_libraries_exit()
+{
+  wayland_dynload_client_exit();
+  wayland_dynload_cursor_exit();
+  wayland_dynload_egl_exit();
+#  ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  wayland_dynload_libdecor_exit();
+#  endif
+}
+
 #endif /* WITH_GHOST_WAYLAND_DYNLOAD */
 
 /** \} */

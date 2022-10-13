@@ -351,7 +351,7 @@ static void detect_workarounds()
   }
   /* Somehow fixes armature display issues (see T69743). */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY) &&
-      (strstr(version, "Build 20.19.15.4285"))) {
+      strstr(version, "Build 20.19.15.4285")) {
     GCaps.use_main_context_workaround = true;
   }
   /* See T70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`

@@ -85,8 +85,7 @@ static void basic_cache_init(void *vedata)
 
     DRW_PASS_CREATE(psl->depth_pass[i], state | clip_state | infront_state);
     stl->g_data->depth_shgrp[i] = grp = DRW_shgroup_create(sh, psl->depth_pass[i]);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewport", DRW_viewport_size_get(), 1);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewportInv", DRW_viewport_invert_size_get(), 1);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     sh = DRW_state_is_select() ?
              BASIC_shaders_pointcloud_depth_conservative_sh_get(draw_ctx->sh_cfg) :
@@ -94,22 +93,22 @@ static void basic_cache_init(void *vedata)
     DRW_PASS_CREATE(psl->depth_pass_pointcloud[i], state | clip_state | infront_state);
     stl->g_data->depth_pointcloud_shgrp[i] = grp = DRW_shgroup_create(
         sh, psl->depth_pass_pointcloud[i]);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewport", DRW_viewport_size_get(), 1);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewportInv", DRW_viewport_invert_size_get(), 1);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     stl->g_data->depth_hair_shgrp[i] = grp = DRW_shgroup_create(
         BASIC_shaders_depth_sh_get(draw_ctx->sh_cfg), psl->depth_pass[i]);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     stl->g_data->depth_curves_shgrp[i] = grp = DRW_shgroup_create(
         BASIC_shaders_curves_depth_sh_get(draw_ctx->sh_cfg), psl->depth_pass[i]);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     sh = DRW_state_is_select() ? BASIC_shaders_depth_conservative_sh_get(draw_ctx->sh_cfg) :
                                  BASIC_shaders_depth_sh_get(draw_ctx->sh_cfg);
     state |= DRW_STATE_CULL_BACK;
     DRW_PASS_CREATE(psl->depth_pass_cull[i], state | clip_state | infront_state);
     stl->g_data->depth_shgrp_cull[i] = grp = DRW_shgroup_create(sh, psl->depth_pass_cull[i]);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewport", DRW_viewport_size_get(), 1);
-    DRW_shgroup_uniform_vec2(grp, "sizeViewportInv", DRW_viewport_invert_size_get(), 1);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
 }
 

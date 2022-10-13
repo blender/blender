@@ -36,18 +36,18 @@ void BKE_mesh_foreach_mapped_vert(
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data != nullptr) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMVert *eve;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != nullptr) {
-      const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
+    if (mesh->runtime->edit_data->vertexCos != nullptr) {
+      const float(*vertexCos)[3] = mesh->runtime->edit_data->vertexCos;
       const float(*vertexNos)[3];
       if (flag & MESH_FOREACH_USE_NORMAL) {
-        BKE_editmesh_cache_ensure_vert_normals(em, mesh->runtime.edit_data);
-        vertexNos = mesh->runtime.edit_data->vertexNos;
+        BKE_editmesh_cache_ensure_vert_normals(em, mesh->runtime->edit_data);
+        vertexNos = mesh->runtime->edit_data->vertexNos;
       }
       else {
         vertexNos = nullptr;
@@ -96,14 +96,14 @@ void BKE_mesh_foreach_mapped_edge(
     void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
     void *userData)
 {
-  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != nullptr) {
-      const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
+    if (mesh->runtime->edit_data->vertexCos != nullptr) {
+      const float(*vertexCos)[3] = mesh->runtime->edit_data->vertexCos;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
 
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
@@ -154,13 +154,13 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   /* We can't use `dm->getLoopDataLayout(dm)` here,
    * we want to always access `dm->loopData`, `EditDerivedBMesh` would
    * return loop data from BMesh itself. */
-  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMFace *efa;
 
-    const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
+    const float(*vertexCos)[3] = mesh->runtime->edit_data->vertexCos;
 
     /* XXX: investigate using EditMesh data. */
     const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
@@ -231,7 +231,7 @@ void BKE_mesh_foreach_mapped_face_center(
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data != nullptr) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     const float(*polyCos)[3];
@@ -240,12 +240,12 @@ void BKE_mesh_foreach_mapped_face_center(
     BMIter iter;
     int i;
 
-    BKE_editmesh_cache_ensure_poly_centers(em, mesh->runtime.edit_data);
-    polyCos = mesh->runtime.edit_data->polyCos; /* always set */
+    BKE_editmesh_cache_ensure_poly_centers(em, mesh->runtime->edit_data);
+    polyCos = mesh->runtime->edit_data->polyCos; /* always set */
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      BKE_editmesh_cache_ensure_poly_normals(em, mesh->runtime.edit_data);
-      polyNos = mesh->runtime.edit_data->polyNos; /* maybe nullptr */
+      BKE_editmesh_cache_ensure_poly_normals(em, mesh->runtime->edit_data);
+      polyNos = mesh->runtime->edit_data->polyNos; /* maybe nullptr */
     }
     else {
       polyNos = nullptr;
@@ -317,7 +317,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
                                       BKE_mesh_vertex_normals_ensure(mesh) :
                                       nullptr;
   const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
-  const BLI_bitmap *facedot_tags = mesh->runtime.subsurf_face_dot_tags;
+  const BLI_bitmap *facedot_tags = mesh->runtime->subsurf_face_dot_tags;
   BLI_assert(facedot_tags != nullptr);
 
   if (index) {
@@ -364,7 +364,7 @@ struct MappedVCosData {
 static void get_vertexcos__mapFunc(void *user_data,
                                    int index,
                                    const float co[3],
-                                   const float UNUSED(no[3]))
+                                   const float /*no*/[3])
 {
   MappedVCosData *mapped_vcos_data = (MappedVCosData *)user_data;
 

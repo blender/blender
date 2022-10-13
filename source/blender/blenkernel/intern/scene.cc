@@ -244,7 +244,7 @@ static void scene_init_data(ID *id)
   /* Master Collection */
   scene->master_collection = BKE_collection_master_add(scene);
 
-  BKE_view_layer_add(scene, "ViewLayer", nullptr, VIEWLAYER_ADD_NEW);
+  BKE_view_layer_add(scene, DATA_("ViewLayer"), nullptr, VIEWLAYER_ADD_NEW);
 }
 
 static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const int flag)

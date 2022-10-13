@@ -209,6 +209,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
     BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
 
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
+      gps->flag &= ~GP_STROKE_TAG;
       convert_stroke(md, ob, gpl, gpf, gps, viewmat, diff_mat);
     }
   }

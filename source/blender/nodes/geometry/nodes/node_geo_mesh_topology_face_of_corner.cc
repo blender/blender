@@ -36,7 +36,7 @@ class CornerFaceIndexInput final : public bke::MeshFieldInput {
       return {};
     }
     return VArray<int>::ForContainer(
-        mesh_topology::build_loop_to_poly_map(mesh.polys(), mesh.totloop));
+        bke::mesh_topology::build_loop_to_poly_map(mesh.polys(), mesh.totloop));
   }
 
   uint64_t hash() const final
@@ -65,7 +65,7 @@ class CornerIndexInFaceInput final : public bke::MeshFieldInput {
       return {};
     }
     const Span<MPoly> polys = mesh.polys();
-    Array<int> loop_to_poly_map = mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
+    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
     return VArray<int>::ForFunc(
         mesh.totloop, [polys, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const int poly_i = loop_to_poly_map[corner_i];

@@ -2204,9 +2204,9 @@ static void adaptive_domain_adjust(
   /* add to total shift */
   add_v3_v3(fds->shift_f, frame_shift_f);
   /* convert to integer */
-  total_shift[0] = (int)(floorf(fds->shift_f[0]));
-  total_shift[1] = (int)(floorf(fds->shift_f[1]));
-  total_shift[2] = (int)(floorf(fds->shift_f[2]));
+  total_shift[0] = (int)floorf(fds->shift_f[0]);
+  total_shift[1] = (int)floorf(fds->shift_f[1]);
+  total_shift[2] = (int)floorf(fds->shift_f[2]);
   int temp_shift[3];
   copy_v3_v3_int(temp_shift, fds->shift);
   sub_v3_v3v3_int(new_shift, total_shift, fds->shift);

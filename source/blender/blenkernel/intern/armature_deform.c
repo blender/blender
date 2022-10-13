@@ -301,12 +301,22 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   }
 
   /* check if there's any  point in calculating for this vert */
-  if (armature_weight == 0.0f) {
-    return;
-  }
+  if (vert_coords_prev) {
+    if (prevco_weight == 1.0f) {
+      return;
+    }
 
-  /* get the coord we work on */
-  co = vert_coords_prev ? vert_coords_prev[i] : vert_coords[i];
+    /* get the coord we work on */
+    co = vert_coords_prev[i];
+  }
+  else {
+    if (armature_weight == 0.0f) {
+      return;
+    }
+
+    /* get the coord we work on */
+    co = vert_coords[i];
+  }
 
   /* Apply the object's matrix */
   mul_m4_v3(data->premat, co);

@@ -150,7 +150,7 @@ void register_node_type_sh_mix_rgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB_LEGACY, "Mix", NODE_CLASS_OP_COLOR);
+  sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB_LEGACY, "Mix (Legacy)", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_mix_rgb_declare;
   ntype.labelfunc = node_blend_label;
   node_type_gpu(&ntype, file_ns::gpu_shader_mix_rgb);

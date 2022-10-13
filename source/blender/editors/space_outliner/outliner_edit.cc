@@ -239,7 +239,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
     TreeStoreElem *tselem = TREESTORE(te);
 
     const bool open = (tselem->flag & TSE_CLOSED) ||
-                      (toggle_all && (outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1)));
+                      (toggle_all && outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1));
 
     outliner_item_openclose(te, open, toggle_all);
     outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);

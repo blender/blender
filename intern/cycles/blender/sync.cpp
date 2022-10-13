@@ -206,6 +206,9 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
           }
         }
       }
+      else if (object_is_camera(b_ob)) {
+        shader_map.set_recalc(b_ob);
+      }
     }
     /* Mesh */
     else if (b_id.is_a(&RNA_Mesh)) {
@@ -218,6 +221,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
       if (world_map == b_world.ptr.data) {
         world_recalc = true;
       }
+      shader_map.set_recalc(b_world);
+    }
+    /* World */
+    else if (b_id.is_a(&RNA_Scene)) {
+      shader_map.set_recalc(b_id);
     }
     /* Volume */
     else if (b_id.is_a(&RNA_Volume)) {

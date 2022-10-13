@@ -3356,8 +3356,7 @@ class VIEW3D_MT_face_sets(Menu):
         op = layout.operator("sculpt.face_set_change_visibility", text='Invert Visible Face Sets')
         op.mode = 'INVERT'
 
-        op = layout.operator("sculpt.face_set_change_visibility", text='Show All Face Sets')
-        op.mode = 'SHOW_ALL'
+        op = layout.operator("sculpt.reveal_all", text='Show All Face Sets')
 
         layout.separator()
 
@@ -5518,8 +5517,7 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         op = pie.operator("sculpt.face_set_change_visibility", text='Invert Visible')
         op.mode = 'INVERT'
 
-        op = pie.operator("sculpt.face_set_change_visibility", text='Show All')
-        op.mode = 'SHOW_ALL'
+        op = pie.operator("sculpt.reveal_all", text='Show All')
 
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):

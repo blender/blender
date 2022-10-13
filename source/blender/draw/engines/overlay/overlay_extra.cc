@@ -1552,7 +1552,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   /* Don't show fluid domain overlay extras outside of cache range. */
   const bool draw_volume = !from_dupli &&
                            (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
-                           (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
+                           BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
                            (((FluidModifierData *)md)->domain != nullptr) &&
                            (scene->r.cfra >=
                             (((FluidModifierData *)md)->domain->cache_frame_start)) &&

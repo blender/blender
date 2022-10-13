@@ -1783,7 +1783,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
   for (i = ikscene->targets.size(); i > 0; i--) {
     IK_Target *iktarget = ikscene->targets[i - 1];
     if (!(iktarget->blenderConstraint->flag & CONSTRAINT_OFF) && iktarget->constraint) {
-      unsigned int nvalues;
+      uint nvalues;
       const iTaSC::ConstraintValues *values;
       values = iktarget->constraint->getControlParameters(&nvalues);
       iktarget->errorCallback(values, nvalues, iktarget);

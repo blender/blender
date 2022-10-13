@@ -31,6 +31,7 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_UNIFORM,
   GPU_SOURCE_ATTR,
   GPU_SOURCE_UNIFORM_ATTR,
+  GPU_SOURCE_LAYER_ATTR,
   GPU_SOURCE_STRUCT,
   GPU_SOURCE_TEX,
   GPU_SOURCE_TEX_TILED_MAPPING,
@@ -42,6 +43,7 @@ typedef enum {
   GPU_NODE_LINK_NONE = 0,
   GPU_NODE_LINK_ATTR,
   GPU_NODE_LINK_UNIFORM_ATTR,
+  GPU_NODE_LINK_LAYER_ATTR,
   GPU_NODE_LINK_COLORBAND,
   GPU_NODE_LINK_CONSTANT,
   GPU_NODE_LINK_IMAGE,
@@ -95,6 +97,8 @@ struct GPUNodeLink {
     struct GPUMaterialAttribute *attr;
     /* GPU_NODE_LINK_UNIFORM_ATTR */
     struct GPUUniformAttr *uniform_attr;
+    /* GPU_NODE_LINK_LAYER_ATTR */
+    struct GPULayerAttr *layer_attr;
     /* GPU_NODE_LINK_IMAGE_BLENDER */
     struct GPUMaterialTexture *texture;
     /* GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN */
@@ -131,6 +135,8 @@ typedef struct GPUInput {
     struct GPUMaterialAttribute *attr;
     /* GPU_SOURCE_UNIFORM_ATTR */
     struct GPUUniformAttr *uniform_attr;
+    /* GPU_SOURCE_LAYER_ATTR */
+    struct GPULayerAttr *layer_attr;
     /* GPU_SOURCE_FUNCTION_CALL */
     char function_call[64];
   };
@@ -170,6 +176,9 @@ typedef struct GPUNodeGraph {
 
   /* The list of uniform attributes. */
   GPUUniformAttrList uniform_attrs;
+
+  /* The list of layer attributes. */
+  ListBase layer_attrs;
 
   /** Set of all the GLSL lib code blocks . */
   GSet *used_libraries;

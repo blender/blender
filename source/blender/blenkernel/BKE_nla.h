@@ -246,6 +246,24 @@ float BKE_nlastrip_compute_frame_from_previous_strip(struct NlaStrip *strip);
  */
 float BKE_nlastrip_compute_frame_to_next_strip(struct NlaStrip *strip);
 
+/**
+ * Returns the next strip in this strip's NLA track, or a null pointer.
+ *
+ * \param strip The strip to find the next trip from.
+ * \param check_transitions Whether or not to skip transitions.
+ * \return The next strip in the track, or NULL if none are present.
+ */
+struct NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitions);
+
+/**
+ * Returns the previous strip in this strip's NLA track, or a null pointer.
+ *
+ * \param strip The strip to find the previous trip from.
+ * \param check_transitions Whether or not to skip transitions.
+ * \return The previous strip in the track, or NULL if none are present.
+ */
+struct NlaStrip *BKE_nlastrip_prev_in_track(struct NlaStrip *strip, bool skip_transitions);
+
 /* ............ */
 
 /**

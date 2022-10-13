@@ -4102,7 +4102,7 @@ static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, CustomDataLay
       BMLoop *l = f->l_first;
 
       do {
-        if (!(use_vert_sel && !(BM_elem_flag_test(l->v, BM_ELEM_SELECT)))) {
+        if (!(use_vert_sel && !BM_elem_flag_test(l->v, BM_ELEM_SELECT))) {
           if constexpr (domain == ATTR_DOMAIN_CORNER) {
             color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset));
           }

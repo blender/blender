@@ -184,7 +184,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
 
   /* Smoke Simulation */
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
-      (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
+      BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
       ((FluidModifierData *)md)->domain != nullptr) {
     FluidModifierData *fmd = (FluidModifierData *)md;
     FluidDomainSettings *fds = fmd->domain;

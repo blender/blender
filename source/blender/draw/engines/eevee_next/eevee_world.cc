@@ -87,6 +87,9 @@ void World::sync()
                          default_tree.nodetree_get(bl_world);
 
   GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree);
+
+  inst_.manager->register_layer_attributes(gpumat);
+
   inst_.pipelines.world.sync(gpumat);
 }
 

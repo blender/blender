@@ -318,8 +318,8 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
   WXFace *fA = (WXFace *)iEdge->GetaOEdge()->GetaFace();
   WXFace *fB = (WXFace *)iEdge->GetaOEdge()->GetbFace();
 
-  if ((fA->front()) ^
-      (fB->front())) {  // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
+  if (fA->front() ^
+      fB->front()) {  // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
     // The only edges we want to set as silhouette edges in this way are the ones with 2 different
     // normals for 1 vertex for these two faces
     //--------------------
@@ -627,7 +627,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   real kr(0), kr1(0), kr2(0), t;
 
   for (uint i = 0; i < vertices_nb; ++i) {
-    v = (WXVertex *)(iFace->GetVertex(i));
+    v = (WXVertex *)iFace->GetVertex(i);
 
     // v is a singular vertex, skip it.
     if (v->isBoundary()) {

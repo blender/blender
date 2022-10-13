@@ -963,9 +963,9 @@ void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
  */
 static void modwrap_dependsOnNormals(Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      EditMeshData *edit_data = me->runtime.edit_data;
+      EditMeshData *edit_data = me->runtime->edit_data;
       if (edit_data->vertexCos) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
@@ -993,7 +993,7 @@ struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     if ((mti->flags & eModifierTypeFlag_AcceptsBMesh) == 0) {
       BKE_mesh_wrapper_ensure_mdata(me);
     }

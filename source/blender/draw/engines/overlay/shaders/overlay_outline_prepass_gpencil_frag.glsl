@@ -23,7 +23,7 @@ void main()
   if (!gpStrokeOrder3d) {
     /* Stroke order 2D. Project to gpDepthPlane. */
     bool is_persp = drw_view.winmat[3][3] == 0.0;
-    vec2 uvs = vec2(gl_FragCoord.xy) * drw_view.viewport_size_inverse;
+    vec2 uvs = vec2(gl_FragCoord.xy) * sizeViewportInv;
     vec3 pos_ndc = vec3(uvs, gl_FragCoord.z) * 2.0 - 1.0;
     vec4 pos_world = drw_view.viewinv * (drw_view.wininv * vec4(pos_ndc, 1.0));
     vec3 pos = pos_world.xyz / pos_world.w;

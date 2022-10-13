@@ -1089,7 +1089,7 @@ PBVHVertRef SCULPT_nearest_vertex_get(
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 {
-  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (!ELEM(i, 3, 5))));
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)));
 }
 
 bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
@@ -1981,7 +1981,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
     int(*orco_tris)[3];
     int orco_tris_num;
 
-    BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords);
+    BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords, NULL);
 
     for (int i = 0; i < orco_tris_num; i++) {
       const float *co_tri[3] = {
@@ -3024,7 +3024,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For area normal. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
@@ -3033,7 +3033,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For flatten center. */
-    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) &&
         (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }
@@ -3265,7 +3265,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
       BKE_pbvh_node_mark_topology_update(nodes[n]);
-      BKE_pbvh_bmesh_node_save_orig(ss->bm, nodes[n]);
+      BKE_pbvh_bmesh_node_save_orig(ss->bm, ss->bm_log, nodes[n], false);
     }
   }
 
@@ -4272,7 +4272,8 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mval[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+  UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
@@ -4405,6 +4406,13 @@ static void sculpt_update_cache_invariants(
         cache->original = false;
       }
     }
+  }
+
+  /* Original coordinates require the sculpt undo system, which isn't used
+   * for image brushes. It's also not necessary, just disable it. */
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    cache->original = false;
   }
 
   cache->first_time = true;
@@ -5204,7 +5212,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 
   /* Restore the mesh before continuing with anchored stroke. */
   if ((brush->flag & BRUSH_ANCHORED) ||
-      ((ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM)) &&
+      (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM) &&
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
@@ -5749,15 +5757,14 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     /* Did the stroke never start? If so push a blank sculpt undo
      * step to prevent a global undo step (which is triggered by the
-     * OPTYPE_UNDO flag in SCULPT_OT_brush_stroke).
+     * #OPTYPE_UNDO flag in #SCULPT_OT_brush_stroke).
      *
      * Having blank global undo steps interleaved with sculpt steps
      * corrupts the DynTopo undo stack.
      * See T101430.
      *
-     * Note: simply returning OPERATOR_CANCELLED was not
-     * sufficient to prevent this.
-     */
+     * NOTE: simply returning #OPERATOR_CANCELLED was not
+     * sufficient to prevent this. */
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
 

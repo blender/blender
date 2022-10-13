@@ -182,7 +182,7 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
     /* Same size as an edit mode vertex */
     immUniform1f("size",
                  2.0 * U.pixelsize *
-                     (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f)));
+                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 

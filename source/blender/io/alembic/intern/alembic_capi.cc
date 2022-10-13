@@ -608,15 +608,11 @@ static void import_endjob(void *user_data)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-    /* Add all objects to the collection (don't do sync for each object). */
-    BKE_layer_collection_resync_forbid();
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();
       BKE_collection_object_add(data->bmain, lc->collection, ob);
     }
-    /* Sync the collection, and do view layer operations. */
-    BKE_layer_collection_resync_allow();
-    BKE_main_collection_sync(data->bmain);
+    /* Sync and do the view layer operations. */
     BKE_view_layer_synced_ensure(scene, view_layer);
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();

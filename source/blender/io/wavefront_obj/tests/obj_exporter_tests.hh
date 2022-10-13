@@ -19,7 +19,7 @@ struct OBJExportParamsDefault {
 
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
-    params.scaling_factor = 1.f;
+    params.global_scale = 1.f;
 
     params.apply_modifiers = true;
     params.export_eval_mode = DAG_EVAL_VIEWPORT;

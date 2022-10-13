@@ -28,7 +28,7 @@
 
 BLI_INLINE uint void_hash_uint(const void *key)
 {
-  size_t y = (size_t)key >> (sizeof(void *));
+  size_t y = (size_t)key >> sizeof(void *);
   return (uint)y;
 }
 

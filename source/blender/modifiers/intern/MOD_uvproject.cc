@@ -52,7 +52,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for UV coordinates */
   r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
@@ -90,7 +90,7 @@ struct Projector {
 };
 
 static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
-                                  const ModifierEvalContext *UNUSED(ctx),
+                                  const ModifierEvalContext * /*ctx*/,
                                   Object *ob,
                                   Mesh *mesh)
 {
@@ -283,7 +283,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  mesh->runtime.is_original_bmesh = false;
+  mesh->runtime->is_original_bmesh = false;
 
   return mesh;
 }
@@ -298,7 +298,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub;
   uiLayout *layout = panel->layout;

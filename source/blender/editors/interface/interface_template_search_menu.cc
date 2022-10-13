@@ -473,8 +473,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
      * as the outliner only exposes functionality via the context menu. */
     GHashIterator iter;
 
-    for (WM_menutype_iter(&iter); (!BLI_ghashIterator_done(&iter));
-         (BLI_ghashIterator_step(&iter))) {
+    for (WM_menutype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
       MenuType *mt = (MenuType *)BLI_ghashIterator_getValue(&iter);
       if (BLI_str_endswith(mt->idname, "_context_menu")) {
         BLI_gset_add(menu_tagged, mt);

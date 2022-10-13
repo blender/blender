@@ -306,7 +306,7 @@ TEST_F(obj_exporter_regression_test, all_tris)
 TEST_F(obj_exporter_regression_test, all_quads)
 {
   OBJExportParamsDefault _export;
-  _export.params.scaling_factor = 2.0f;
+  _export.params.global_scale = 2.0f;
   _export.params.export_materials = false;
   compare_obj_export_to_golden(
       "io_tests/blend_geometry/all_quads.blend", "io_tests/obj/all_quads.obj", "", _export.params);
@@ -429,7 +429,7 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
 {
   OBJExportParamsDefault _export;
   _export.params.export_materials = false;
-  _export.params.scaling_factor = 2.0f;
+  _export.params.global_scale = 2.0f;
   compare_obj_export_to_golden("io_tests/blend_geometry/cubes_positioned.blend",
                                "io_tests/obj/cubes_positioned.obj",
                                "",

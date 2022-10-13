@@ -1856,6 +1856,10 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
     pt->strength = interpf(pt2->strength, pt1->strength, step);
     pt->flag = 0;
     interp_v4_v4v4(pt->vert_color, pt1->vert_color, pt2->vert_color, step);
+    /* Set point as selected. */
+    if (gps->flag & GP_STROKE_SELECT) {
+      pt->flag |= GP_SPOINT_SELECT;
+    }
 
     /* Set weights. */
     if (gps->dvert != nullptr) {

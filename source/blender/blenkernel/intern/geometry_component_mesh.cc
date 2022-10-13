@@ -13,6 +13,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "FN_multi_function_builder.hh"
 
@@ -213,11 +214,15 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
   }
 
   /* Deselect loose vertices without corners that are still selected from the 'true' default. */
-  for (const int vert_index : IndexRange(mesh.totvert)) {
-    if (loose_verts[vert_index]) {
-      r_values[vert_index] = false;
+  /* The record fact says that the value is true.
+   *Writing to the array from different threads is okay because each thread sets the same value. */
+  threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert_index : range) {
+      if (loose_verts[vert_index]) {
+        r_values[vert_index] = false;
+      }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_corner_to_point(const Mesh &mesh, const GVArray &varray)
@@ -413,16 +418,16 @@ void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
   const Span<MLoop> loops = mesh.loops();
 
   r_values.fill(false);
-  for (const int poly_index : polys.index_range()) {
-    const MPoly &poly = polys[poly_index];
-    if (old_values[poly_index]) {
-      for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-        const MLoop &loop = loops[loop_index];
-        const int vert_index = loop.v;
-        r_values[vert_index] = true;
+  threading::parallel_for(polys.index_range(), 2048, [&](const IndexRange range) {
+    for (const int poly_index : range) {
+      if (old_values[poly_index]) {
+        const MPoly &poly = polys[poly_index];
+        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+          r_values[loop.v] = true;
+        }
       }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &varray)
@@ -502,16 +507,16 @@ void adapt_mesh_domain_face_to_edge_impl(const Mesh &mesh,
   const Span<MLoop> loops = mesh.loops();
 
   r_values.fill(false);
-  for (const int poly_index : polys.index_range()) {
-    const MPoly &poly = polys[poly_index];
-    if (old_values[poly_index]) {
-      for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-        const MLoop &loop = loops[loop_index];
-        const int edge_index = loop.e;
-        r_values[edge_index] = true;
+  threading::parallel_for(polys.index_range(), 2048, [&](const IndexRange range) {
+    for (const int poly_index : range) {
+      if (old_values[poly_index]) {
+        const MPoly &poly = polys[poly_index];
+        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+          r_values[loop.e] = true;
+        }
       }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_face_to_edge(const Mesh &mesh, const GVArray &varray)
@@ -619,7 +624,7 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
 
     /* For every corner, mix the values from the adjacent edges on the face. */
     for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int loop_index_prev = loop_index - 1 + (loop_index == poly.loopstart) * poly.totloop;
+      const int loop_index_prev = mesh_topology::previous_poly_loop(poly, loop_index);
       const MLoop &loop = loops[loop_index];
       const MLoop &loop_prev = loops[loop_index_prev];
       mixer.mix_in(loop_index, old_values[loop.e]);
@@ -642,17 +647,19 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
 
   r_values.fill(false);
 
-  for (const int poly_index : polys.index_range()) {
-    const MPoly &poly = polys[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int loop_index_prev = loop_index - 1 + (loop_index == poly.loopstart) * poly.totloop;
-      const MLoop &loop = loops[loop_index];
-      const MLoop &loop_prev = loops[loop_index_prev];
-      if (old_values[loop.e] && old_values[loop_prev.e]) {
-        r_values[loop_index] = true;
+  threading::parallel_for(polys.index_range(), 2048, [&](const IndexRange range) {
+    for (const int poly_index : range) {
+      const MPoly &poly = polys[poly_index];
+      for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+        const int loop_index_prev = mesh_topology::previous_poly_loop(poly, loop_index);
+        const MLoop &loop = loops[loop_index];
+        const MLoop &loop_prev = loops[loop_index_prev];
+        if (old_values[loop.e] && old_values[loop_prev.e]) {
+          r_values[loop_index] = true;
+        }
       }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_edge_to_corner(const Mesh &mesh, const GVArray &varray)
@@ -697,14 +704,18 @@ void adapt_mesh_domain_edge_to_point_impl(const Mesh &mesh,
   BLI_assert(r_values.size() == mesh.totvert);
   const Span<MEdge> edges = mesh.edges();
 
+  /* Multiple threads can write to the same index here, but they are only
+   * writing true, and writing to single bytes is expected to be threadsafe. */
   r_values.fill(false);
-  for (const int edge_index : edges.index_range()) {
-    const MEdge &edge = edges[edge_index];
-    if (old_values[edge_index]) {
-      r_values[edge.v1] = true;
-      r_values[edge.v2] = true;
+  threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+    for (const int edge_index : range) {
+      if (old_values[edge_index]) {
+        const MEdge &edge = edges[edge_index];
+        r_values[edge.v1] = true;
+        r_values[edge.v2] = true;
+      }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_edge_to_point(const Mesh &mesh, const GVArray &varray)

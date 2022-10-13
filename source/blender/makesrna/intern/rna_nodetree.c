@@ -5242,6 +5242,11 @@ static void def_sh_attribute(StructRNA *srna)
        "The attribute is associated with the instancer particle system or object, "
        "falling back to the Object mode if the attribute isn't found, or the object "
        "is not instanced"},
+      {SHD_ATTRIBUTE_VIEW_LAYER,
+       "VIEW_LAYER",
+       0,
+       "View Layer",
+       "The attribute is associated with the View Layer, Scene or World that is being rendered"},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop;
@@ -5504,6 +5509,7 @@ static void def_sh_tex_image(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
@@ -5568,6 +5574,7 @@ static void def_geo_image_texture(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_image_extension);
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -6806,11 +6813,11 @@ static void def_cmp_levels(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem channel_items[] = {
-      {1, "COMBINED_RGB", 0, "Combined", "Combined RGB"},
-      {2, "RED", 0, "Red", "Red Channel"},
-      {3, "GREEN", 0, "Green", "Green Channel"},
-      {4, "BLUE", 0, "Blue", "Blue Channel"},
-      {5, "LUMINANCE", 0, "Luminance", "Luminance Channel"},
+      {CMP_NODE_LEVLES_LUMINANCE, "COMBINED_RGB", 0, "Combined", "Combined RGB"},
+      {CMP_NODE_LEVLES_RED, "RED", 0, "Red", "Red Channel"},
+      {CMP_NODE_LEVLES_GREEN, "GREEN", 0, "Green", "Green Channel"},
+      {CMP_NODE_LEVLES_BLUE, "BLUE", 0, "Blue", "Blue Channel"},
+      {CMP_NODE_LEVLES_LUMINANCE_BT709, "LUMINANCE", 0, "Luminance", "Luminance Channel"},
       {0, NULL, 0, NULL, NULL},
   };
 

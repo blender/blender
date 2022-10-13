@@ -2680,7 +2680,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
     size_from = axis_from;
   }
-  else if (((void)PyErr_Clear()), /* run but ignore the result */
+  else if ((void)PyErr_Clear(), /* run but ignore the result */
            (size_from = mathutils_array_parse(
                 vec_assign, 2, 4, value, "mathutils.Vector.**** = swizzle assignment")) == -1) {
     return -1;

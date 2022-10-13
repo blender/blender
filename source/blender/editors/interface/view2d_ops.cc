@@ -129,8 +129,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   /* calculate translation factor - based on size of view */
   const float winx = float(BLI_rcti_size_x(&vpd->region->winrct) + 1);
   const float winy = float(BLI_rcti_size_y(&vpd->region->winrct) + 1);
-  vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
-  vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
+  vpd->facx = BLI_rctf_size_x(&vpd->v2d->cur) / winx;
+  vpd->facy = BLI_rctf_size_y(&vpd->v2d->cur) / winy;
 
   vpd->v2d->flag |= V2D_IS_NAVIGATING;
 }
@@ -1863,7 +1863,7 @@ static void scroller_activate_init(bContext *C,
     vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
-    vsm->fac_round = (BLI_rctf_size_x(&v2d->cur)) / float(BLI_rcti_size_x(&region->winrct) + 1);
+    vsm->fac_round = BLI_rctf_size_x(&v2d->cur) / float(BLI_rcti_size_x(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
     vsm->zone = mouse_in_scroller_handle(
@@ -1883,7 +1883,7 @@ static void scroller_activate_init(bContext *C,
     vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
-    vsm->fac_round = (BLI_rctf_size_y(&v2d->cur)) / float(BLI_rcti_size_y(&region->winrct) + 1);
+    vsm->fac_round = BLI_rctf_size_y(&v2d->cur) / float(BLI_rcti_size_y(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
     vsm->zone = mouse_in_scroller_handle(

@@ -6663,8 +6663,8 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         /* enum property */
         ptr = &but->rnapoin;
         prop = but->rnaprop;
-        value = (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_TAB)) ? int(but->hardmax) :
-                                                                int(ui_but_value_get(but));
+        value = ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_TAB) ? int(but->hardmax) :
+                                                              int(ui_but_value_get(but));
       }
       else if (but->optype) {
         PointerRNA *opptr = UI_but_operator_ptr_get(but);

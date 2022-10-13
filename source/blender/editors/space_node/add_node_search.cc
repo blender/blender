@@ -179,6 +179,13 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
+    if ((StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname)) {
+      /* Skip the empty group type. */
+      continue;
+    }
+    if (StringRefNull(node_type->ui_name).endswith("(Legacy)")) {
+      continue;
+    }
 
     AddNodeItem item{};
     item.ui_name = IFACE_(node_type->ui_name);
@@ -272,7 +279,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
 static ARegion *add_node_search_tooltip_fn(
     bContext *C, ARegion *region, const rcti *item_rect, void * /*arg*/, void *active)
 {
-  const AddNodeItem *item = static_cast<AddNodeItem *>(active);
+  const AddNodeItem *item = static_cast<const AddNodeItem *>(active);
 
   uiSearchItemTooltipData tooltip_data{};
 

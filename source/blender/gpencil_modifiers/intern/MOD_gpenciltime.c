@@ -199,7 +199,7 @@ static int remapTime(struct GpencilModifierData *md,
           sequence_length += ((end - start) * mmd->segments[i].seg_repeat) * 2 + 1;
         }
         else {
-          sequence_length += (((end - start + 1)) * mmd->segments[i].seg_repeat);
+          sequence_length += ((end - start + 1) * mmd->segments[i].seg_repeat);
         }
       }
       segment_arr = MEM_malloc_arrayN(sequence_length, sizeof(int *), __func__);
@@ -389,7 +389,7 @@ static void custom_range_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetActive(layout,
                     (mode != GP_TIME_MODE_FIX && mode != GP_TIME_MODE_CHAIN) &&
-                        (RNA_boolean_get(ptr, "use_custom_frame_range")));
+                        RNA_boolean_get(ptr, "use_custom_frame_range"));
 
   col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "frame_start", 0, IFACE_("Frame Start"), ICON_NONE);

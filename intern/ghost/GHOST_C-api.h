@@ -36,6 +36,10 @@ extern GHOST_SystemHandle GHOST_CreateSystemBackground(void);
  */
 extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug);
 
+#if !(defined(WIN32) || defined(__APPLE__))
+extern const char *GHOST_SystemBackend(void);
+#endif
+
 /**
  * Disposes the one and only system.
  * \param systemhandle: The handle to the system.

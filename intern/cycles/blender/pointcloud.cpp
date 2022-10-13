@@ -194,7 +194,7 @@ static void export_pointcloud(Scene *scene,
   /* Export points. */
   for (int i = 0; i < num_points; i++) {
     const float3 co = get_float3(b_attr_position.data[i].vector());
-    const float radius = b_attr_radius ? b_attr_radius->data[i].value() : 0.0f;
+    const float radius = b_attr_radius ? b_attr_radius->data[i].value() : 0.01f;
     pointcloud->add_point(co, radius);
 
     /* Random number per point. */

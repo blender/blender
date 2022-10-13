@@ -388,7 +388,7 @@ static bool snap_selected_to_location(bContext *C,
       mul_v3_m4v3(snap_target_local, ob->imat, snap_target_global);
 
       for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-        if ((pchan->bone->flag & BONE_SELECTED) && (PBONE_VISIBLE(arm, pchan->bone)) &&
+        if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
              */

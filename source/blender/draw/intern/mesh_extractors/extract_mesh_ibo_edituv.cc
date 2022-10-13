@@ -557,7 +557,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
   if (mr->use_subsurf_fdots) {
-    const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
+    const BLI_bitmap *facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
     const MLoop *mloop = mr->mloop;
     const int ml_index_end = mp->loopstart + mp->totloop;

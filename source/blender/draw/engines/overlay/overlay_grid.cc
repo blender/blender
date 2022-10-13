@@ -59,8 +59,10 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
     const bool draw_grid = is_uv_edit || !ED_space_image_has_buffer(sima);
     if (background_enabled && draw_grid) {
       grid_flag |= SHOW_GRID;
-      if (is_uv_edit && (sima->flag & SI_CUSTOM_GRID) != 0) {
-        grid_flag |= CUSTOM_GRID;
+      if (is_uv_edit) {
+        if (sima->grid_shape_source != SI_GRID_SHAPE_DYNAMIC) {
+          grid_flag |= CUSTOM_GRID;
+        }
       }
     }
 

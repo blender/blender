@@ -17,6 +17,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -94,8 +95,8 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
 
     const MPoly *mp;
     int i;
-    if (me->runtime.looptris.array) {
-      const MLoopTri *mlt = me->runtime.looptris.array;
+    if (BKE_mesh_runtime_looptri_ensure(me)) {
+      const MLoopTri *mlt = BKE_mesh_runtime_looptri_ensure(me);
       for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
         if (facemap_data[i] == facemap) {
           for (int j = 2; j < mp->totloop; j++) {

@@ -797,8 +797,7 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "layer");
   const char *layer_name;
-  if (!(RNA_property_enum_identifier(
-          C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name))) {
+  if (!RNA_property_enum_identifier(C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name)) {
     return;
   }
 

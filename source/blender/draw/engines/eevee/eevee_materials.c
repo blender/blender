@@ -231,6 +231,13 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     eevee_init_noise_texture();
   }
 
+  if (draw_ctx->rv3d) {
+    copy_v4_v4(sldata->common_data.camera_uv_scale, draw_ctx->rv3d->viewcamtexcofac);
+  }
+  else {
+    copy_v4_fl4(sldata->common_data.camera_uv_scale, 1.0f, 1.0f, 0.0f, 0.0f);
+  }
+
   if (!DRW_state_is_image_render() && ((stl->effects->enabled_effects & EFFECT_TAA) == 0)) {
     sldata->common_data.alpha_hash_offset = 0.0f;
     sldata->common_data.alpha_hash_scale = 1.0f;
@@ -804,6 +811,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
   bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                          !DRW_state_is_image_render();
+
+  if (ob->sculpt && ob->sculpt->pbvh) {
+    BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, use_sculpt_pbvh);
+  }
 
   /* First get materials for this mesh. */
   if (ELEM(ob->type, OB_MESH, OB_SURF)) {

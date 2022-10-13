@@ -89,7 +89,7 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->pdata);
   CustomData_reset(&mesh->ldata);
 
-  BKE_mesh_runtime_init_data(mesh);
+  mesh->runtime = new blender::bke::MeshRuntime();
 
   /* A newly created mesh does not have normals, so tag them dirty. This will be cleared
    * by #BKE_mesh_vertex_normals_clear_dirty or #BKE_mesh_poly_normals_ensure. */
@@ -103,14 +103,19 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   Mesh *mesh_dst = (Mesh *)id_dst;
   const Mesh *mesh_src = (const Mesh *)id_src;
 
-  BKE_mesh_runtime_reset_on_copy(mesh_dst, flag);
+  mesh_dst->runtime = new blender::bke::MeshRuntime();
+  mesh_dst->runtime->deformed_only = mesh_src->runtime->deformed_only;
+  mesh_dst->runtime->wrapper_type = mesh_src->runtime->wrapper_type;
+  mesh_dst->runtime->wrapper_type_finalize = mesh_src->runtime->wrapper_type_finalize;
+  mesh_dst->runtime->subsurf_runtime_data = mesh_src->runtime->subsurf_runtime_data;
+  mesh_dst->runtime->cd_mask_extra = mesh_src->runtime->cd_mask_extra;
   /* Copy face dot tags, since meshes may be duplicated after a subsurf modifier
    * or node, but we still need to be able to draw face center vertices. */
-  mesh_dst->runtime.subsurf_face_dot_tags = static_cast<uint32_t *>(
-      MEM_dupallocN(mesh_src->runtime.subsurf_face_dot_tags));
+  mesh_dst->runtime->subsurf_face_dot_tags = static_cast<uint32_t *>(
+      MEM_dupallocN(mesh_src->runtime->subsurf_face_dot_tags));
   if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
-    mesh_dst->runtime.deformed_only = true;
+    mesh_dst->runtime->deformed_only = true;
   }
   /* This option is set for run-time meshes that have been copied from the current objects mode.
    * Currently this is used for edit-mesh although it could be used for sculpt or other
@@ -121,7 +126,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    *
    * While this could be the callers responsibility, keep here since it's
    * highly unlikely we want to create a duplicate and not use it for drawing. */
-  mesh_dst->runtime.is_original_bmesh = false;
+  mesh_dst->runtime->is_original_bmesh = false;
 
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
@@ -194,6 +199,8 @@ static void mesh_free_data(ID *id)
   BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
+
+  delete mesh->runtime;
 }
 
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -229,7 +236,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-  mesh->runtime = blender::dna::shallow_zero_initialize();
+  mesh->runtime = nullptr;
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
@@ -339,8 +346,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;
 
-  mesh->runtime = blender::dna::shallow_zero_initialize();
-  BKE_mesh_runtime_init_data(mesh);
+  mesh->runtime = new blender::bke::MeshRuntime();
 
   /* happens with old files */
   if (mesh->mselect == nullptr) {
@@ -1137,7 +1143,7 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
 
 void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
 {
-  BLI_assert(mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+  BLI_assert(mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA);
   BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
 }
 
@@ -2106,8 +2112,8 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     }
 
     /* Update normals manually to avoid recalculation after this operation. */
-    mesh->runtime.vert_normals = (float(*)[3])MEM_reallocN(mesh->runtime.vert_normals,
-                                                           sizeof(float[3]) * mesh->totvert);
+    mesh->runtime->vert_normals = (float(*)[3])MEM_reallocN(mesh->runtime->vert_normals,
+                                                            sizeof(float[3]) * mesh->totvert);
 
     /* Perform actual split of vertices and edges. */
     split_faces_split_new_verts(mesh, new_verts, num_new_verts);
@@ -2141,10 +2147,10 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
   /* We are here because something did change in the mesh. This means we can not trust the existing
    * evaluated mesh, and we don't know what parts of the mesh did change. So we simply delete the
    * evaluated mesh and let objects to re-create it with updated settings. */
-  if (mesh->runtime.mesh_eval != nullptr) {
-    mesh->runtime.mesh_eval->edit_mesh = nullptr;
-    BKE_id_free(nullptr, mesh->runtime.mesh_eval);
-    mesh->runtime.mesh_eval = nullptr;
+  if (mesh->runtime->mesh_eval != nullptr) {
+    mesh->runtime->mesh_eval->edit_mesh = nullptr;
+    BKE_id_free(nullptr, mesh->runtime->mesh_eval);
+    mesh->runtime->mesh_eval = nullptr;
   }
   if (DEG_is_active(depsgraph)) {
     Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);

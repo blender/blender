@@ -285,7 +285,7 @@ void PathTraceWorkCPU::cryptomatte_postproces()
 }
 
 #ifdef WITH_PATH_GUIDING
-/* Note: It seems that this is called before every rendering iteration/progression and not once per
+/* NOTE: It seems that this is called before every rendering iteration/progression and not once per
  * rendering. May be we find a way to call it only once per rendering. */
 void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
                                                    void *sample_data_storage,

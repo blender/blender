@@ -43,7 +43,7 @@ void (*MEM_set_error_callback)(void (*func)(const char *)) = MEM_lockfree_set_er
 bool (*MEM_consistency_check)(void) = MEM_lockfree_consistency_check;
 void (*MEM_set_memory_debug)(void) = MEM_lockfree_set_memory_debug;
 size_t (*MEM_get_memory_in_use)(void) = MEM_lockfree_get_memory_in_use;
-unsigned int (*MEM_get_memory_blocks_in_use)(void) = MEM_lockfree_get_memory_blocks_in_use;
+uint (*MEM_get_memory_blocks_in_use)(void) = MEM_lockfree_get_memory_blocks_in_use;
 void (*MEM_reset_peak_memory)(void) = MEM_lockfree_reset_peak_memory;
 size_t (*MEM_get_peak_memory)(void) = MEM_lockfree_get_peak_memory;
 

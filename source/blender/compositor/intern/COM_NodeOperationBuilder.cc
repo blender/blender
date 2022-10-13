@@ -576,7 +576,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
     /* try to find existing write buffer operation */
     if (target->get_operation().get_flags().is_write_buffer_operation) {
       BLI_assert(write_operation == nullptr); /* there should only be one write op connected */
-      write_operation = (WriteBufferOperation *)(&target->get_operation());
+      write_operation = (WriteBufferOperation *)&target->get_operation();
     }
     else {
       /* remove all links to other nodes */

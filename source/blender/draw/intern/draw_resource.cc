@@ -38,3 +38,16 @@ bool ObjectAttribute::sync(const blender::draw::ObjectRef &ref, const GPUUniform
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name LayerAttributes
+ * \{ */
+
+bool LayerAttribute::sync(Scene *scene, ViewLayer *layer, const GPULayerAttr &attr)
+{
+  hash_code = attr.hash_code;
+
+  return BKE_view_layer_find_rgba_attribute(scene, layer, attr.name, &data.x);
+}
+
+/** \} */

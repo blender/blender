@@ -406,10 +406,37 @@ static int rna_MeshLoopTriangle_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const MLoopTri *ltri = (MLoopTri *)ptr->data;
-  const int index = (int)(ltri - mesh->runtime.looptris.array);
+  const int index = (int)(ltri - BKE_mesh_runtime_looptri_ensure(mesh));
   BLI_assert(index >= 0);
-  BLI_assert(index < mesh->runtime.looptris.len);
+  BLI_assert(index < BKE_mesh_runtime_looptri_len(mesh));
   return index;
+}
+
+static void rna_Mesh_loop_triangles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(mesh);
+  rna_iterator_array_begin(
+      iter, (void *)looptris, sizeof(MLoopTri), BKE_mesh_runtime_looptri_len(mesh), false, NULL);
+}
+
+static int rna_Mesh_loop_triangles_length(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  return BKE_mesh_runtime_looptri_len(mesh);
+}
+
+int rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= BKE_mesh_runtime_looptri_len(mesh)) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshLoopTriangle;
+  r_ptr->data = (void *)&BKE_mesh_runtime_looptri_ensure(mesh)[index];
+  return true;
 }
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
@@ -1502,8 +1529,9 @@ static char *rna_MeshPolygon_path(const PointerRNA *ptr)
 
 static char *rna_MeshLoopTriangle_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("loop_triangles[%d]",
-                      (int)((MLoopTri *)ptr->data - rna_mesh(ptr)->runtime.looptris.array));
+  return BLI_sprintfN(
+      "loop_triangles[%d]",
+      (int)((MLoopTri *)ptr->data - BKE_mesh_runtime_looptri_ensure(rna_mesh(ptr))));
 }
 
 static char *rna_MeshEdge_path(const PointerRNA *ptr)
@@ -3684,7 +3712,15 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     NULL);
 
   prop = RNA_def_property(srna, "loop_triangles", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "runtime.looptris.array", "runtime.looptris.len");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_loop_triangles_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Mesh_loop_triangles_length",
+                                    "rna_Mesh_loop_triangles_lookup_int",
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "MeshLoopTriangle");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Loop Triangles", "Tessellation of mesh polygons into triangles");

@@ -64,14 +64,16 @@ struct NodeInsertOfsData {
   float offset_x; /* offset to apply to node chain */
 };
 
+namespace blender::ed::space_node {
+
+bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out);
+
 static void clear_picking_highlight(ListBase *links)
 {
   LISTBASE_FOREACH (bNodeLink *, link, links) {
     link->flag &= ~NODE_LINK_TEMP_HIGHLIGHT;
   }
 }
-
-namespace blender::ed::space_node {
 
 void update_multi_input_indices_for_removed_links(bNode &node);
 
@@ -1750,29 +1752,31 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
   }
 
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->flag & NODE_SELECT) {
-      if (node->parent == nullptr) {
-        /* disallow moving a parent into its child */
-        if (nodeAttachNodeCheck(frame, node) == false) {
-          /* attach all unparented nodes */
-          nodeAttachNode(node, frame);
+    if (!(node->flag & NODE_SELECT)) {
+      continue;
+    }
+
+    if (node->parent == nullptr) {
+      /* disallow moving a parent into its child */
+      if (nodeAttachNodeCheck(frame, node) == false) {
+        /* attach all unparented nodes */
+        nodeAttachNode(node, frame);
+      }
+    }
+    else {
+      /* attach nodes which share parent with the frame */
+      bNode *parent;
+      for (parent = frame->parent; parent; parent = parent->parent) {
+        if (parent == node->parent) {
+          break;
         }
       }
-      else {
-        /* attach nodes which share parent with the frame */
-        bNode *parent;
-        for (parent = frame->parent; parent; parent = parent->parent) {
-          if (parent == node->parent) {
-            break;
-          }
-        }
 
-        if (parent) {
-          /* disallow moving a parent into its child */
-          if (nodeAttachNodeCheck(frame, node) == false) {
-            nodeDetachNode(node);
-            nodeAttachNode(node, frame);
-          }
+      if (parent) {
+        /* disallow moving a parent into its child */
+        if (nodeAttachNodeCheck(frame, node) == false) {
+          nodeDetachNode(node);
+          nodeAttachNode(node, frame);
         }
       }
     }
@@ -1881,100 +1885,55 @@ void NODE_OT_detach(wmOperatorType *ot)
 /** \name Automatic Node Insert on Dragging
  * \{ */
 
-/* prevent duplicate testing code below */
-static bool ed_node_link_conditions(ScrArea *area,
-                                    bool test,
-                                    SpaceNode **r_snode,
-                                    bNode **r_select)
+static bNode *get_selected_node_for_insertion(bNodeTree &node_tree)
 {
-  SpaceNode *snode = area ? (SpaceNode *)area->spacedata.first : nullptr;
-
-  *r_snode = snode;
-  *r_select = nullptr;
-
-  /* no unlucky accidents */
-  if (area == nullptr || area->spacetype != SPACE_NODE) {
-    return false;
-  }
-
-  if (!test) {
-    /* no need to look for a node */
-    return true;
-  }
-
-  bNode *node;
-  bNode *select = nullptr;
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  bNode *selected_node = nullptr;
+  int selected_node_count = 0;
+  for (bNode *node : node_tree.all_nodes()) {
     if (node->flag & SELECT) {
-      if (select) {
-        break;
-      }
-      select = node;
+      selected_node = node;
+      selected_node_count++;
+    }
+    if (selected_node_count > 1) {
+      return nullptr;
     }
   }
-  /* only one selected */
-  if (node || select == nullptr) {
-    return false;
+  if (!selected_node) {
+    return nullptr;
   }
-
-  /* correct node */
-  if (BLI_listbase_is_empty(&select->inputs) || BLI_listbase_is_empty(&select->outputs)) {
-    return false;
+  if (selected_node->input_sockets().is_empty() || selected_node->output_sockets().is_empty()) {
+    return nullptr;
   }
-
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-
-  /* test node for links */
-  LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-    if (node_link_is_hidden_or_dimmed(region->v2d, *link)) {
-      continue;
-    }
-
-    if (link->tonode == select || link->fromnode == select) {
-      return false;
-    }
+  if (std::any_of(selected_node->input_sockets().begin(),
+                  selected_node->input_sockets().end(),
+                  [&](const bNodeSocket *socket) { return socket->is_directly_linked(); })) {
+    return nullptr;
   }
-
-  *r_select = select;
-  return true;
+  if (std::any_of(selected_node->output_sockets().begin(),
+                  selected_node->output_sockets().end(),
+                  [&](const bNodeSocket *socket) { return socket->is_directly_linked(); })) {
+    return nullptr;
+  };
+  return selected_node;
 }
 
-/** \} */
-
-}  // namespace blender::ed::space_node
-
-/* -------------------------------------------------------------------- */
-/** \name Node Line Intersection Test
- * \{ */
-
-void ED_node_link_intersect_test(ScrArea *area, int test)
+void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
 {
-  using namespace blender;
-  using namespace blender::ed::space_node;
+  bNodeTree &node_tree = *snode.edittree;
+  node_tree.ensure_topology_cache();
 
-  bNode *select;
-  SpaceNode *snode;
-  if (!ed_node_link_conditions(area, test, &snode, &select)) {
+  node_insert_on_link_flags_clear(node_tree);
+
+  bNode *node_to_insert = get_selected_node_for_insertion(node_tree);
+  if (!node_to_insert) {
     return;
   }
-
-  /* clear flags */
-  LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-    link->flag &= ~NODE_LINKFLAG_HILITE;
-  }
-
-  if (test == 0) {
-    return;
-  }
-
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   /* find link to select/highlight */
   bNodeLink *selink = nullptr;
   float dist_best = FLT_MAX;
-  LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-
-    if (node_link_is_hidden_or_dimmed(region->v2d, *link)) {
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
 
@@ -1986,10 +1945,10 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
      * upper left node edge of a intersected line segment */
     for (int i = 0; i < NODE_LINK_RESOL; i++) {
       /* Check if the node rectangle intersects the line from this point to next one. */
-      if (BLI_rctf_isect_segment(&select->totr, coords[i], coords[i + 1])) {
+      if (BLI_rctf_isect_segment(&node_to_insert->totr, coords[i], coords[i + 1])) {
         /* store the shortest distance to the upper left edge
          * of all intersections found so far */
-        const float node_xy[] = {select->totr.xmin, select->totr.ymax};
+        const float node_xy[] = {node_to_insert->totr.xmin, node_to_insert->totr.ymax};
 
         /* to be precise coords should be clipped by select->totr,
          * but not done since there's no real noticeable difference */
@@ -2009,9 +1968,89 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
   }
 }
 
-/** \} */
+void node_insert_on_link_flags_clear(bNodeTree &node_tree)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    link->flag &= ~NODE_LINKFLAG_HILITE;
+  }
+}
 
-namespace blender::ed::space_node {
+void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
+{
+  bNodeTree &node_tree = *snode.edittree;
+  node_tree.ensure_topology_cache();
+  bNode *node_to_insert = get_selected_node_for_insertion(node_tree);
+  if (!node_to_insert) {
+    return;
+  }
+
+  /* Find link to insert on. */
+  bNodeTree &ntree = *snode.edittree;
+  bNodeLink *old_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (link->flag & NODE_LINKFLAG_HILITE) {
+      old_link = link;
+      break;
+    }
+  }
+  if (old_link == nullptr) {
+    return;
+  }
+
+  old_link->flag &= ~NODE_LINKFLAG_HILITE;
+
+  bNodeSocket *best_input = get_main_socket(ntree, *node_to_insert, SOCK_IN);
+  bNodeSocket *best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
+
+  if (node_to_insert->type != NODE_REROUTE) {
+    /* Ignore main sockets when the types don't match. */
+    if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
+        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
+                                       static_cast<eNodeSocketDatatype>(best_input->type))) {
+      best_input = nullptr;
+    }
+    if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
+        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
+                                       static_cast<eNodeSocketDatatype>(old_link->tosock->type))) {
+      best_output = nullptr;
+    }
+  }
+
+  bNode *from_node = old_link->fromnode;
+  bNodeSocket *from_socket = old_link->fromsock;
+  bNode *to_node = old_link->tonode;
+
+  if (best_output != nullptr) {
+    /* Relink the "start" of the existing link to the newly inserted node. */
+    old_link->fromnode = node_to_insert;
+    old_link->fromsock = best_output;
+    BKE_ntree_update_tag_link_changed(&ntree);
+  }
+  else {
+    nodeRemLink(&ntree, old_link);
+  }
+
+  if (best_input != nullptr) {
+    /* Add a new link that connects the node on the left to the newly inserted node. */
+    nodeAddLink(&ntree, from_node, from_socket, node_to_insert, best_input);
+  }
+
+  /* Set up insert offset data, it needs stuff from here. */
+  if ((snode.flag & SNODE_SKIP_INSOFFSET) == 0) {
+    BLI_assert(snode.runtime->iofsd == nullptr);
+    NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
+
+    iofsd->insert = node_to_insert;
+    iofsd->prev = from_node;
+    iofsd->next = to_node;
+
+    snode.runtime->iofsd = iofsd;
+  }
+
+  ED_node_tree_propagate_change(nullptr, &bmain, &ntree);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Node Insert Offset Operator
@@ -2048,7 +2087,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
 }
 
 /** Get the "main" socket based on the node declaration or an heuristic. */
-static bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out)
+bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out)
 {
   ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
 
@@ -2426,85 +2465,3 @@ void NODE_OT_insert_offset(wmOperatorType *ot)
 /** \} */
 
 }  // namespace blender::ed::space_node
-
-/* -------------------------------------------------------------------- */
-/** \name Note Link Insert
- * \{ */
-
-void ED_node_link_insert(Main *bmain, ScrArea *area)
-{
-  using namespace blender::ed::space_node;
-
-  bNode *node_to_insert;
-  SpaceNode *snode;
-  if (!ed_node_link_conditions(area, true, &snode, &node_to_insert)) {
-    return;
-  }
-
-  /* Find link to insert on. */
-  bNodeTree &ntree = *snode->edittree;
-  bNodeLink *old_link = nullptr;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (link->flag & NODE_LINKFLAG_HILITE) {
-      old_link = link;
-      break;
-    }
-  }
-  if (old_link == nullptr) {
-    return;
-  }
-
-  old_link->flag &= ~NODE_LINKFLAG_HILITE;
-
-  bNodeSocket *best_input = get_main_socket(ntree, *node_to_insert, SOCK_IN);
-  bNodeSocket *best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
-
-  if (node_to_insert->type != NODE_REROUTE) {
-    /* Ignore main sockets when the types don't match. */
-    if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
-                                       static_cast<eNodeSocketDatatype>(best_input->type))) {
-      best_input = nullptr;
-    }
-    if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
-                                       static_cast<eNodeSocketDatatype>(old_link->tosock->type))) {
-      best_output = nullptr;
-    }
-  }
-
-  bNode *from_node = old_link->fromnode;
-  bNodeSocket *from_socket = old_link->fromsock;
-  bNode *to_node = old_link->tonode;
-
-  if (best_output != nullptr) {
-    /* Relink the "start" of the existing link to the newly inserted node. */
-    old_link->fromnode = node_to_insert;
-    old_link->fromsock = best_output;
-    BKE_ntree_update_tag_link_changed(&ntree);
-  }
-  else {
-    nodeRemLink(&ntree, old_link);
-  }
-
-  if (best_input != nullptr) {
-    /* Add a new link that connects the node on the left to the newly inserted node. */
-    nodeAddLink(&ntree, from_node, from_socket, node_to_insert, best_input);
-  }
-
-  /* Set up insert offset data, it needs stuff from here. */
-  if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
-    BLI_assert(snode->runtime->iofsd == nullptr);
-    NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
-
-    iofsd->insert = node_to_insert;
-    iofsd->prev = from_node;
-    iofsd->next = to_node;
-
-    snode->runtime->iofsd = iofsd;
-  }
-
-  ED_node_tree_propagate_change(nullptr, bmain, snode->edittree);
-}
-
-/** \} */

@@ -222,7 +222,7 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  pie = UI_pie_menu_begin(C, IFACE_(mt->label), ICON_NONE, event);
+  pie = UI_pie_menu_begin(C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
   layout = UI_pie_menu_layout(pie);
 
   UI_menutype_draw(C, mt, layout);

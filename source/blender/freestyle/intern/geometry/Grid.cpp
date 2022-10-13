@@ -36,7 +36,7 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
   // check whether the edge and the polygon plane are coincident:
   //-------------------------------------------------------------
   // first let us compute the plane equation.
-  Vec3r v1(((occ)->getVertices())[0]);
+  Vec3r v1((occ)->getVertices()[0]);
   Vec3d normal((occ)->getNormal());
   // soc unused - double d = -(v1 * normal);
 

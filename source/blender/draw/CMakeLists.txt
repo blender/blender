@@ -77,7 +77,7 @@ set(SRC
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.cc
   intern/draw_cache_impl_subdivision.cc
-  intern/draw_cache_impl_volume.c
+  intern/draw_cache_impl_volume.cc
   intern/draw_color_management.cc
   intern/draw_command.cc
   intern/draw_common.c
@@ -490,7 +490,6 @@ set(GLSL_SRC
   intern/shaders/common_debug_shape_lib.glsl
   intern/shaders/common_fullscreen_vert.glsl
   intern/shaders/common_fxaa_lib.glsl
-  intern/shaders/common_globals_lib.glsl
   intern/shaders/common_gpencil_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_comp.glsl
@@ -732,6 +731,21 @@ if(WITH_GTESTS)
   endif()
 endif()
 
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${TBB_LIBRARIES}
+  )
+endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
@@ -757,3 +771,4 @@ if(WITH_GTESTS)
     blender_add_test_lib(bf_draw_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 endif()
+

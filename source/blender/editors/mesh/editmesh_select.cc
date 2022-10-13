@@ -22,7 +22,9 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
+#include "BKE_mesh.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -1065,8 +1067,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       {
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph,
                                                      static_cast<ID *>(obedit->data));
-        if (me_eval->runtime.edit_data) {
-          coords = me_eval->runtime.edit_data->vertexCos;
+        if (me_eval->runtime->edit_data) {
+          coords = me_eval->runtime->edit_data->vertexCos;
         }
       }
 
@@ -1078,7 +1080,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BMEdge *e;
         BMIter eiter;
         BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-          if ((BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) && (BM_edge_is_boundary(e))) {
+          if ((BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) && BM_edge_is_boundary(e)) {
             if (use_vert && use_boundary_vertices) {
               for (uint j = 0; j < 2; j++) {
                 BMVert *v = *((&e->v1) + j);
@@ -4632,7 +4634,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
         if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
           if ((use_wire && BM_edge_is_wire(e)) || (use_boundary && BM_edge_is_boundary(e)) ||
               (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
-              (use_multi_face && (BM_edge_face_count_is_over(e, 2)))) {
+              (use_multi_face && BM_edge_face_count_is_over(e, 2))) {
             /* check we never select perfect edge (in test above) */
             BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));
 

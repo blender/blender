@@ -335,6 +335,7 @@ typedef enum {
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
   DRW_UNIFORM_BLOCK_OBATTRS,
+  DRW_UNIFORM_BLOCK_VLATTRS,
   DRW_UNIFORM_RESOURCE_CHUNK,
   DRW_UNIFORM_RESOURCE_ID,
   /** Legacy / Fallback */
@@ -441,7 +442,9 @@ struct DRWView {
   /** Parent view if this is a sub view. NULL otherwise. */
   struct DRWView *parent;
 
-  ViewInfos storage;
+  ViewMatrices storage;
+
+  float4 clip_planes[6];
 
   float4x4 persmat;
   float4x4 persinv;
@@ -525,6 +528,11 @@ typedef struct DRWData {
   struct GPUUniformBuf **matrices_ubo;
   struct GPUUniformBuf **obinfos_ubo;
   struct GHash *obattrs_ubo_pool;
+  struct GHash *vlattrs_name_cache;
+  struct ListBase vlattrs_name_list;
+  struct LayerAttribute *vlattrs_buf;
+  struct GPUUniformBuf *vlattrs_ubo;
+  bool vlattrs_ubo_ready;
   uint ubo_len;
   /** Per draw-call volume object data. */
   void *volume_grids_ubos; /* VolumeUniformBufPool */
@@ -596,7 +604,6 @@ typedef struct DRWManager {
   struct GPUFrameBuffer *default_framebuffer;
   float size[2];
   float inv_size[2];
-  float screenvecs[2][3];
   float pixsize;
 
   struct {
@@ -623,7 +630,7 @@ typedef struct DRWManager {
   uint primary_view_num;
   /** TODO(@fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
-  ViewInfos view_storage_cpy;
+  ViewMatrices view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;
@@ -689,6 +696,8 @@ void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct Object *ob,
                                    struct Object *dupli_parent,
                                    struct DupliObject *dupli_source);
+
+GPUUniformBuf *drw_ensure_layer_attribute_buffer(void);
 
 double *drw_engine_data_cache_time_get(GPUViewport *viewport);
 void *drw_engine_data_engine_data_create(GPUViewport *viewport, void *engine_type);

@@ -191,7 +191,7 @@ bool check_id_has_anim_component(ID *id)
   if (adt == nullptr) {
     return false;
   }
-  return (adt->action != nullptr) || (!BLI_listbase_is_empty(&adt->nla_tracks));
+  return (adt->action != nullptr) || !BLI_listbase_is_empty(&adt->nla_tracks);
 }
 
 bool check_id_has_driver_component(ID *id)

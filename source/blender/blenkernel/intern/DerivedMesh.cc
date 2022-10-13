@@ -35,6 +35,7 @@
 #include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
@@ -537,7 +538,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
                                   (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
   /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
-  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime->subsurf_runtime_data;
   if (subsurf_runtime_data) {
     subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
   }
@@ -585,11 +586,12 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
 void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *me_eval,
                                               const CustomData_MeshMasks *cd_mask_finalize)
 {
-  if (me_eval->runtime.wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
+  if (me_eval->runtime->wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
     editbmesh_calc_modifier_final_normals(me_eval, cd_mask_finalize);
-    me_eval->runtime.wrapper_type_finalize &= ~(1 << ME_WRAPPER_TYPE_BMESH);
+    me_eval->runtime->wrapper_type_finalize = eMeshWrapperType(
+        me_eval->runtime->wrapper_type_finalize & ~(1 << ME_WRAPPER_TYPE_BMESH));
   }
-  BLI_assert(me_eval->runtime.wrapper_type_finalize == 0);
+  BLI_assert(me_eval->runtime->wrapper_type_finalize == 0);
 }
 
 /**
@@ -1052,7 +1054,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         append_mask.lmask |= CD_MASK_PREVIEW_MLOOPCOL;
       }
 
-      mesh_final->runtime.deformed_only = false;
+      mesh_final->runtime->deformed_only = false;
     }
 
     isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
@@ -1119,10 +1121,9 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     mesh_calc_finalize(mesh_input, mesh_final);
   }
   else {
-    Mesh_Runtime *runtime = &mesh_input->runtime;
+    blender::bke::MeshRuntime *runtime = mesh_input->runtime;
     if (runtime->mesh_eval == nullptr) {
-      BLI_assert(runtime->eval_mutex != nullptr);
-      BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
+      std::lock_guard lock{mesh_input->runtime->eval_mutex};
       if (runtime->mesh_eval == nullptr) {
         /* Not yet finalized by any instance, do it now
          * Isolate since computing normals is multithreaded and we are holding a lock. */
@@ -1138,7 +1139,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         /* Already finalized by another instance, reuse. */
         mesh_final = runtime->mesh_eval;
       }
-      BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }
     else if (!mesh_has_modifier_final_normals(mesh_input, &final_datamask, runtime->mesh_eval)) {
       /* Modifier stack was (re-)evaluated with a request for additional normals
@@ -1207,7 +1207,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   const bool calc_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
                                   (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
-  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime->subsurf_runtime_data;
   if (subsurf_runtime_data) {
     subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
   }
@@ -1234,9 +1234,10 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
 static void editbmesh_calc_modifier_final_normals_or_defer(
     Mesh *mesh_final, const CustomData_MeshMasks *final_datamask)
 {
-  if (mesh_final->runtime.wrapper_type != ME_WRAPPER_TYPE_MDATA) {
+  if (mesh_final->runtime->wrapper_type != ME_WRAPPER_TYPE_MDATA) {
     /* Generated at draw time. */
-    mesh_final->runtime.wrapper_type_finalize = (1 << mesh_final->runtime.wrapper_type);
+    mesh_final->runtime->wrapper_type_finalize = eMeshWrapperType(
+        1 << mesh_final->runtime->wrapper_type);
     return;
   }
 
@@ -1450,7 +1451,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
           deformed_verts = nullptr;
         }
       }
-      mesh_final->runtime.deformed_only = false;
+      mesh_final->runtime->deformed_only = false;
     }
 
     if (r_cage && i == cageIndex) {
@@ -1469,7 +1470,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
           if (!BKE_mesh_runtime_ensure_edit_data(me_orig)) {
             BKE_mesh_runtime_reset_edit_data(me_orig);
           }
-          me_orig->runtime.edit_data->vertexCos = (const float(*)[3])MEM_dupallocN(deformed_verts);
+          me_orig->runtime->edit_data->vertexCos = (const float(*)[3])MEM_dupallocN(
+              deformed_verts);
         }
         mesh_cage = BKE_mesh_wrapper_from_editmesh_with_coords(
             em_input,
@@ -1583,7 +1585,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
    * object's runtime: this could cause access freed data on depsgraph destruction (mesh who owns
    * the final result might be freed prior to object). */
   Mesh *mesh = (Mesh *)ob->data;
-  const bool is_mesh_eval_owned = (mesh_eval != mesh->runtime.mesh_eval);
+  const bool is_mesh_eval_owned = (mesh_eval != mesh->runtime->mesh_eval);
   BKE_object_eval_assign_data(ob, &mesh_eval->id, is_mesh_eval_owned);
 
   /* Add the final mesh as a non-owning component to the geometry set. */
@@ -1643,7 +1645,7 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
     }
   }
 
-  const bool is_mesh_eval_owned = (me_final != mesh->runtime.mesh_eval);
+  const bool is_mesh_eval_owned = (me_final != mesh->runtime->mesh_eval);
   BKE_object_eval_assign_data(obedit, &me_final->id, is_mesh_eval_owned);
 
   obedit->runtime.editmesh_eval_cage = me_cage;
@@ -1899,7 +1901,7 @@ struct MappedUserData {
 static void make_vertexcos__mapFunc(void *userData,
                                     int index,
                                     const float co[3],
-                                    const float UNUSED(no[3]))
+                                    const float /*no*/[3])
 {
   MappedUserData *mappedData = (MappedUserData *)userData;
 
@@ -1914,7 +1916,7 @@ static void make_vertexcos__mapFunc(void *userData,
 
 void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], const int totcos)
 {
-  if (me_eval->runtime.deformed_only == false) {
+  if (me_eval->runtime->deformed_only == false) {
     MappedUserData userData;
     memset(r_cos, 0, sizeof(*r_cos) * totcos);
     userData.vertexcos = r_cos;

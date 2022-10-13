@@ -2376,22 +2376,6 @@ void ED_vgroup_mirror(Object *ob,
   /* TODO: vgroup locking.
    * TODO: face masking. */
 
-#define VGROUP_MIRR_OP \
-  dvert_mirror_op(dvert, \
-                  dvert_mirr, \
-                  sel, \
-                  sel_mirr, \
-                  flip_map, \
-                  flip_map_len, \
-                  mirror_weights, \
-                  flip_vgroups, \
-                  all_vgroups, \
-                  def_nr)
-
-  BMVert *eve, *eve_mirr;
-  MDeformVert *dvert_mirr;
-  char sel, sel_mirr;
-  int *flip_map = nullptr, flip_map_len;
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
   int totmirr = 0, totfail = 0;
 
@@ -2404,6 +2388,8 @@ void ED_vgroup_mirror(Object *ob,
     return;
   }
 
+  int *flip_map = nullptr;
+  int flip_map_len;
   if (flip_vgroups) {
     flip_map = all_vgroups ? BKE_object_defgroup_flip_map(ob, false, &flip_map_len) :
                              BKE_object_defgroup_flip_map_single(ob, false, def_nr, &flip_map_len);
@@ -2438,21 +2424,27 @@ void ED_vgroup_mirror(Object *ob,
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
       /* Go through the list of edit-vertices and assign them. */
+      BMVert *eve, *eve_mirr;
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (!BM_elem_flag_test(eve, BM_ELEM_TAG)) {
           if ((eve_mirr = EDBM_verts_mirror_get(em, eve))) {
             if (eve_mirr != eve) {
               if (!BM_elem_flag_test(eve_mirr, BM_ELEM_TAG)) {
-                sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
-                sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
+                const bool sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
+                const bool sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
                 if ((sel || sel_mirr) && (eve != eve_mirr)) {
-                  MDeformVert *dvert = static_cast<MDeformVert *>(
-                      BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
-                  dvert_mirr = static_cast<MDeformVert *>(
-                      BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset));
-
-                  VGROUP_MIRR_OP;
+                  dvert_mirror_op(
+                      static_cast<MDeformVert *>(BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset)),
+                      static_cast<MDeformVert *>(BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset)),
+                      sel,
+                      sel_mirr,
+                      flip_map,
+                      flip_map_len,
+                      mirror_weights,
+                      flip_vgroups,
+                      all_vgroups,
+                      def_nr);
                   totmirr++;
                 }
 
@@ -2471,15 +2463,10 @@ void ED_vgroup_mirror(Object *ob,
     }
     else {
       /* object mode / weight paint */
-      int vidx, vidx_mirr;
       const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
       if (me->deform_verts().is_empty()) {
         goto cleanup;
-      }
-
-      if (!use_vert_sel) {
-        sel = sel_mirr = true;
       }
 
       BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
@@ -2488,22 +2475,26 @@ void ED_vgroup_mirror(Object *ob,
       const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
           ".select_vert", ATTR_DOMAIN_POINT, false);
 
-      for (vidx = 0; vidx < me->totvert; vidx++) {
+      for (int vidx = 0; vidx < me->totvert; vidx++) {
         if (!BLI_BITMAP_TEST(vert_tag, vidx)) {
+          int vidx_mirr;
           if ((vidx_mirr = mesh_get_x_mirror_vert(ob, nullptr, vidx, use_topology)) != -1) {
             if (vidx != vidx_mirr) {
               if (!BLI_BITMAP_TEST(vert_tag, vidx_mirr)) {
-
-                if (use_vert_sel) {
-                  sel = select_vert[vidx];
-                  sel_mirr = select_vert[vidx_mirr];
-                }
+                const bool sel = use_vert_sel ? select_vert[vidx] : true;
+                const bool sel_mirr = use_vert_sel ? select_vert[vidx_mirr] : true;
 
                 if (sel || sel_mirr) {
-                  MDeformVert *dvert = &dverts[vidx];
-                  dvert_mirr = &dvert[vidx_mirr];
-
-                  VGROUP_MIRR_OP;
+                  dvert_mirror_op(&dverts[vidx],
+                                  &dverts[vidx_mirr],
+                                  sel,
+                                  sel_mirr,
+                                  flip_map,
+                                  flip_map_len,
+                                  mirror_weights,
+                                  flip_vgroups,
+                                  all_vgroups,
+                                  def_nr);
                   totmirr++;
                 }
 
@@ -2523,9 +2514,6 @@ void ED_vgroup_mirror(Object *ob,
   }
   else if (ob->type == OB_LATTICE) {
     Lattice *lt = vgroup_edit_lattice(ob);
-    int i1, i2;
-    int u, v, w;
-    int pntsu_half;
     /* half but found up odd value */
 
     if (lt->pntsu == 1 || lt->dvert == nullptr) {
@@ -2535,29 +2523,33 @@ void ED_vgroup_mirror(Object *ob,
     /* unlike editmesh we know that by only looping over the first half of
      * the 'u' indices it will cover all points except the middle which is
      * ok in this case */
-    pntsu_half = lt->pntsu / 2;
+    int pntsu_half = lt->pntsu / 2;
 
-    for (w = 0; w < lt->pntsw; w++) {
-      for (v = 0; v < lt->pntsv; v++) {
-        for (u = 0; u < pntsu_half; u++) {
+    for (int w = 0; w < lt->pntsw; w++) {
+      for (int v = 0; v < lt->pntsv; v++) {
+        for (int u = 0; u < pntsu_half; u++) {
           int u_inv = (lt->pntsu - 1) - u;
           if (u != u_inv) {
-            BPoint *bp, *bp_mirr;
+            const int i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
+            const int i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
 
-            i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
-            i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
+            const BPoint *bp = &lt->def[i1];
+            const BPoint *bp_mirr = &lt->def[i2];
 
-            bp = &lt->def[i1];
-            bp_mirr = &lt->def[i2];
-
-            sel = bp->f1 & SELECT;
-            sel_mirr = bp_mirr->f1 & SELECT;
+            const bool sel = bp->f1 & SELECT;
+            const bool sel_mirr = bp_mirr->f1 & SELECT;
 
             if (sel || sel_mirr) {
-              MDeformVert *dvert = &lt->dvert[i1];
-              dvert_mirr = &lt->dvert[i2];
-
-              VGROUP_MIRR_OP;
+              dvert_mirror_op(&lt->dvert[i1],
+                              &lt->dvert[i2],
+                              sel,
+                              sel_mirr,
+                              flip_map,
+                              flip_map_len,
+                              mirror_weights,
+                              flip_vgroups,
+                              all_vgroups,
+                              def_nr);
               totmirr++;
             }
           }
@@ -2850,8 +2842,9 @@ static bool vertex_group_vert_select_unlocked_poll(bContext *C)
   if (def_nr != 0) {
     const ListBase *defbase = BKE_object_defgroup_list(ob);
     const bDeformGroup *dg = static_cast<const bDeformGroup *>(BLI_findlink(defbase, def_nr - 1));
-    if (dg) {
-      return !(dg->flag & DG_LOCK_WEIGHT);
+    if (dg && (dg->flag & DG_LOCK_WEIGHT)) {
+      CTX_wm_operator_poll_msg_set(C, "The active vertex group is locked");
+      return false;
     }
   }
   return true;

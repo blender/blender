@@ -55,14 +55,14 @@ int OBJCurve::total_spline_vertices(const int spline_index) const
 
 float3 OBJCurve::vertex_coordinates(const int spline_index,
                                     const int vertex_index,
-                                    const float scaling_factor) const
+                                    const float global_scale) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
   float3 r_coord;
   const BPoint &bpoint = nurb->bp[vertex_index];
   copy_v3_v3(r_coord, bpoint.vec);
   mul_m4_v3(world_axes_transform_, r_coord);
-  mul_v3_fl(r_coord, scaling_factor);
+  mul_v3_fl(r_coord, global_scale);
   return r_coord;
 }
 

@@ -333,7 +333,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 
   invert_qt_normalized(q1);
   mul_qt_qtqt(quat, q1, q2);
-  angle = 2.0f * (saacos(quat[0]));
+  angle = 2.0f * saacos(quat[0]);
   angle = fabsf(angle);
 
   return (angle > (float)M_PI) ? (float)((2.0f * (float)M_PI) - angle) : (float)(angle);

@@ -2137,7 +2137,7 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
         int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
 
         if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
-            (EBONE_VISIBLE(arm, ebone_mirror))) {
+            EBONE_VISIBLE(arm, ebone_mirror)) {
           const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
           flag_new |= flag_mirror;
 

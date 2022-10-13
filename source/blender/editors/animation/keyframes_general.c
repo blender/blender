@@ -151,7 +151,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
        * if there is a considerable distance between the points, and also if the
        * current is further away than the next one is to the previous.
        */
-      if (beztn && (IS_EQT(cur[0], next[0], thresh)) && (IS_EQT(next[1], prev[1], thresh) == 0)) {
+      if (beztn && IS_EQT(cur[0], next[0], thresh) && (IS_EQT(next[1], prev[1], thresh) == 0)) {
         /* only add if current is further away from previous */
         if (cur[1] > next[1]) {
           if (IS_EQT(cur[1], prev[1], thresh) == 0) {
@@ -654,8 +654,8 @@ void sample_fcurve(FCurve *fcu)
          * keyframes while sampling will affect the outcome...
          * - only start sampling+adding from index=1, so that we don't overwrite original keyframe
          */
-        range = (int)(ceil(end->vec[1][0] - start->vec[1][0]));
-        sfra = (int)(floor(start->vec[1][0]));
+        range = (int)ceil(end->vec[1][0] - start->vec[1][0]);
+        sfra = (int)floor(start->vec[1][0]);
 
         if (range) {
           value_cache = MEM_callocN(sizeof(TempFrameValCache) * range, "IcuFrameValCache");

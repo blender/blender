@@ -81,7 +81,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
 
   export_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   export_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
-  export_params.scaling_factor = RNA_float_get(op->ptr, "scaling_factor");
+  export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.export_eval_mode = RNA_enum_get(op->ptr, "export_eval_mode");
 
@@ -122,7 +122,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(box, false);
   uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
@@ -301,15 +301,16 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_property_update_runtime(prop, (void *)up_axis_update);
-  RNA_def_float(ot->srna,
-                "scaling_factor",
-                1.0f,
-                0.001f,
-                10000.0f,
-                "Scale",
-                "Upscale the object by this factor",
-                0.01,
-                1000.0f);
+  RNA_def_float(
+      ot->srna,
+      "global_scale",
+      1.0f,
+      0.0001f,
+      10000.0f,
+      "Scale",
+      "Value by which to enlarge or shrink the objects with respect to the world's origin",
+      0.0001f,
+      10000.0f);
   /* File Writer options. */
   RNA_def_boolean(
       ot->srna, "apply_modifiers", true, "Apply Modifiers", "Apply modifiers to exported meshes");
@@ -405,6 +406,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   struct OBJImportParams import_params;
   RNA_string_get(op->ptr, "filepath", import_params.filepath);
+  import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
@@ -459,6 +461,7 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(box, IFACE_("Transform"), ICON_OBJECT_DATA);
   uiLayout *col = uiLayoutColumn(box, false);
   uiLayout *sub = uiLayoutColumn(col, false);
+  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
   uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
   sub = uiLayoutColumn(col, false);
 
@@ -489,7 +492,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   ot->invoke = wm_obj_import_invoke;
   ot->exec = wm_obj_import_exec;
@@ -504,6 +507,16 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                                      WM_FILESEL_DIRECTORY | WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+  RNA_def_float(
+      ot->srna,
+      "global_scale",
+      1.0f,
+      0.0001f,
+      10000.0f,
+      "Scale",
+      "Value by which to enlarge or shrink the objects with respect to the world's origin",
+      0.0001f,
+      10000.0f);
   RNA_def_float(
       ot->srna,
       "clamp_size",

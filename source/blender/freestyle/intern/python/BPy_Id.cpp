@@ -97,7 +97,7 @@ static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
     case Py_GT:
       return PyBool_from_bool(!(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id))));
     case Py_GE:
-      return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
+      return PyBool_from_bool(!o1->id->operator<(*(o2->id)));
   }
   Py_RETURN_NONE;
 }

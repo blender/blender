@@ -10,6 +10,10 @@
 
 #include "RE_engine.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;
@@ -244,7 +248,7 @@ extern TransConvertTypeInfo TransConvertType_MeshVertCData;
 
 extern TransConvertTypeInfo TransConvertType_NLA;
 
-/* transform_convert_node.c */
+/* transform_convert_node.cc */
 
 extern TransConvertTypeInfo TransConvertType_Node;
 
@@ -279,3 +283,7 @@ extern TransConvertTypeInfo TransConvertType_SequencerImage;
 /* transform_convert_tracking.c */
 
 extern TransConvertTypeInfo TransConvertType_Tracking;
+
+#ifdef __cplusplus
+}
+#endif

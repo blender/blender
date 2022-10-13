@@ -134,6 +134,15 @@ class GHOST_ISystem {
    * \return A pointer to the system.
    */
   static GHOST_ISystem *getSystem();
+  /**
+   * Return an identifier for the one and only system.
+   * \warning while it may be tempting this should never be used to check for supported features,
+   * in that case, the GHOST API should be extended to query capabilities.
+   * This is needed for X11/WAYLAND on Unix, without this - there is no convenient way for users to
+   * check if WAYLAND or XWAYLAND are in use since they are dynamically selected at startup.
+   * When dynamically switching between X11/WAYLAND is removed, this function can go too.
+   */
+  static const char *getSystemBackend();
 
   static GHOST_TBacktraceFn getBacktraceFn();
   static void setBacktraceFn(GHOST_TBacktraceFn backtrace_fn);
@@ -515,6 +524,7 @@ class GHOST_ISystem {
 
   /** The one and only system */
   static GHOST_ISystem *m_system;
+  static const char *m_system_backend_id;
 
   /** Function to call that sets the back-trace. */
   static GHOST_TBacktraceFn m_backtrace_fn;

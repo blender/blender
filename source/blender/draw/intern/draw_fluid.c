@@ -208,7 +208,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
   }
   else {
     /* We need to resize the input. */
-    int channels = (ELEM(texture_format, GPU_R8, GPU_R16F, GPU_R32F)) ? 1 : 4;
+    int channels = ELEM(texture_format, GPU_R8, GPU_R16F, GPU_R32F) ? 1 : 4;
     float *rescaled_data = rescale_3d(dim, final_dim, channels, data);
     if (rescaled_data) {
       GPU_texture_update_sub(tex, GPU_DATA_FLOAT, rescaled_data, 0, 0, 0, UNPACK3(final_dim));

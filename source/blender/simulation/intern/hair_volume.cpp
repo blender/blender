@@ -68,7 +68,7 @@ struct HairGrid {
 };
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) \
-  (min_ii(max_ii(int((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2))
+  min_ii(max_ii(int((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2)
 
 BLI_INLINE int hair_grid_offset(const float vec[3],
                                 const int res[3],
@@ -618,17 +618,17 @@ BLI_INLINE void hair_volume_eval_grid_vertex_sample(HairGridVert *vert,
 }
 
 void SIM_hair_volume_add_segment(HairGrid *grid,
-                                 const float UNUSED(x1[3]),
-                                 const float UNUSED(v1[3]),
+                                 const float /*x1*/[3],
+                                 const float /*v1*/[3],
                                  const float x2[3],
                                  const float v2[3],
                                  const float x3[3],
                                  const float v3[3],
-                                 const float UNUSED(x4[3]),
-                                 const float UNUSED(v4[3]),
-                                 const float UNUSED(dir1[3]),
-                                 const float UNUSED(dir2[3]),
-                                 const float UNUSED(dir3[3]))
+                                 const float /*x4*/[3],
+                                 const float /*v4*/[3],
+                                 const float /*dir1*/[3],
+                                 const float /*dir2*/[3],
+                                 const float /*dir3*/[3])
 {
   /* XXX simplified test implementation using a series of discrete sample along the segment,
    * instead of finding the closest point for all affected grid vertices. */

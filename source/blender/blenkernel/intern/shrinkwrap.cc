@@ -140,7 +140,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-    data->boundary = mesh->runtime.shrinkwrap_data;
+    data->boundary = mesh->runtime->shrinkwrap_data;
   }
 
   return true;
@@ -153,7 +153,7 @@ void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data)
 
 void BKE_shrinkwrap_discard_boundary_data(Mesh *mesh)
 {
-  ShrinkwrapBoundaryData *data = mesh->runtime.shrinkwrap_data;
+  ShrinkwrapBoundaryData *data = mesh->runtime->shrinkwrap_data;
 
   if (data != nullptr) {
     MEM_freeN((void *)data->edge_is_boundary);
@@ -164,7 +164,7 @@ void BKE_shrinkwrap_discard_boundary_data(Mesh *mesh)
     MEM_freeN(data);
   }
 
-  mesh->runtime.shrinkwrap_data = nullptr;
+  mesh->runtime->shrinkwrap_data = nullptr;
 }
 
 /* Accumulate edge for average boundary edge direction. */
@@ -199,7 +199,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   /* Count faces per edge (up to 2). */
   char *edge_mode = static_cast<char *>(
-      MEM_calloc_arrayN((size_t)mesh->totedge, sizeof(char), __func__));
+      MEM_calloc_arrayN(size_t(mesh->totedge), sizeof(char), __func__));
 
   for (int i = 0; i < mesh->totloop; i++) {
     uint eidx = mloop[i].e;
@@ -258,7 +258,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   /* Find boundary vertices and build a mapping table for compact storage of data. */
   int *vert_boundary_id = static_cast<int *>(
-      MEM_calloc_arrayN((size_t)mesh->totvert, sizeof(int), __func__));
+      MEM_calloc_arrayN(size_t(mesh->totvert), sizeof(int), __func__));
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
@@ -272,7 +272,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   uint num_boundary_verts = 0;
 
   for (int i = 0; i < mesh->totvert; i++) {
-    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? (int)num_boundary_verts++ : -1;
+    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? int(num_boundary_verts++) : -1;
   }
 
   data->vert_boundary_id = vert_boundary_id;
@@ -327,7 +327,7 @@ void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh)
 {
   BKE_shrinkwrap_discard_boundary_data(mesh);
 
-  mesh->runtime.shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
+  mesh->runtime->shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
 }
 
 /**
