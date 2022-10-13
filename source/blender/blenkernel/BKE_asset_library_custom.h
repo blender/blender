@@ -13,12 +13,15 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 struct CustomAssetLibraryDefinition;
 struct ListBase;
 
 struct CustomAssetLibraryDefinition *BKE_asset_library_custom_add(
-    struct ListBase *custom_libraries, const char *name, const char *path) ATTR_NONNULL(1);
+    struct ListBase *custom_libraries,
+    const char *name CPP_ARG_DEFAULT(nullptr),
+    const char *path CPP_ARG_DEFAULT(nullptr)) ATTR_NONNULL(1);
 /**
  * Unlink and free a library preference member.
  * \note Free's \a library itself.

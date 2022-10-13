@@ -161,12 +161,27 @@ TEST_F(ProjectTest, settings_load_from_project_settings_path)
   });
 }
 
+static void project_settings_match_expected_from_svn(const ProjectSettings &project_settings)
+{
+  EXPECT_EQ(project_settings.project_name(), "Ružena");
+
+  const ListBase &asset_libraries = project_settings.asset_library_definitions();
+  CustomAssetLibraryDefinition *first = (CustomAssetLibraryDefinition *)asset_libraries.first;
+  EXPECT_STREQ(first->name, "Lorem Ipsum");
+  EXPECT_STREQ(first->path, "assets");
+  EXPECT_EQ(first->next, asset_libraries.last);
+  CustomAssetLibraryDefinition *last = (CustomAssetLibraryDefinition *)asset_libraries.last;
+  EXPECT_EQ(last->prev, asset_libraries.first);
+  EXPECT_STREQ(last->name, "Материалы");
+  EXPECT_STREQ(last->path, "новый\\assets");
+}
+
 TEST_F(ProjectTest, settings_json_read)
 {
   SVNFiles svn_files{};
   std::unique_ptr from_project_settings = ProjectSettings::load_from_disk(svn_files.project_root);
   EXPECT_NE(from_project_settings, nullptr);
-  EXPECT_EQ(from_project_settings->project_name(), "Ružena");
+  project_settings_match_expected_from_svn(*from_project_settings);
 }
 
 TEST_F(ProjectTest, settings_json_write)
@@ -186,7 +201,7 @@ TEST_F(ProjectTest, settings_json_write)
         /* Now check if the settings written to disk match the expectations. */
         std::unique_ptr written_settings = ProjectSettings::load_from_disk(to_project_path);
         EXPECT_NE(written_settings, nullptr);
-        EXPECT_EQ(written_settings->project_name(), "Ružena");
+        project_settings_match_expected_from_svn(*written_settings);
       });
 }
 

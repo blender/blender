@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "BLI_listbase.h"
 #include "BLI_string_ref.hh"
 
 namespace blender::io::serialize {
@@ -17,6 +18,7 @@ class DictionaryValue;
 namespace blender::bke {
 
 class ProjectSettings;
+struct CustomAssetLibraries;
 
 class BlenderProject {
   inline static std::unique_ptr<BlenderProject> active_;
@@ -48,6 +50,7 @@ class ProjectSettings {
   /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;
   std::string project_name_;
+  std::unique_ptr<CustomAssetLibraries> asset_libraries_;
   bool has_unsaved_changes_ = false;
 
  public:
@@ -90,10 +93,18 @@ class ProjectSettings {
   auto project_root_path [[nodiscard]] () const -> StringRefNull;
   void project_name(StringRef new_name);
   auto project_name [[nodiscard]] () const -> StringRefNull;
+  auto asset_library_definitions() const -> const ListBase &;
   auto has_unsaved_changes [[nodiscard]] () const -> bool;
 
  private:
   auto to_dictionary() const -> std::unique_ptr<io::serialize::DictionaryValue>;
+};
+
+struct CustomAssetLibraries {
+  ListBase asset_libraries = {nullptr, nullptr}; /* CustomAssetLibraryDefinition */
+
+  CustomAssetLibraries(ListBase asset_libraries);
+  ~CustomAssetLibraries();
 };
 
 }  // namespace blender::bke

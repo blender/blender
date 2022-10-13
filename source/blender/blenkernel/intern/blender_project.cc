@@ -6,6 +6,7 @@
 
 #include <fstream>
 
+#include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 
@@ -109,6 +110,7 @@ static bool path_contains_project_settings(StringRef path)
 
 struct ExtractedSettings {
   std::string project_name;
+  ListBase asset_libraries = {nullptr, nullptr}; /* CustomAssetLibraryDefinition */
 };
 
 static std::unique_ptr<serialize::Value> read_settings_file(StringRef settings_filepath)
@@ -139,14 +141,60 @@ static std::unique_ptr<ExtractedSettings> extract_settings(
   std::unique_ptr extracted_settings = std::make_unique<ExtractedSettings>();
 
   const DictionaryValue::Lookup attributes = dictionary.create_lookup();
-  const DictionaryValue::LookupValue *project_value = attributes.lookup_ptr("project");
-  BLI_assert(project_value != nullptr);
 
-  const DictionaryValue *project_dict = (*project_value)->as_dictionary_value();
-  const StringValue *project_name_value =
-      project_dict->create_lookup().lookup("name")->as_string_value();
-  if (project_name_value) {
-    extracted_settings->project_name = project_name_value->value();
+  /* "project": */ {
+    const DictionaryValue::LookupValue *project_value = attributes.lookup_ptr("project");
+    BLI_assert(project_value != nullptr);
+
+    const DictionaryValue *project_dict = (*project_value)->as_dictionary_value();
+    const StringValue *project_name_value =
+        project_dict->create_lookup().lookup("name")->as_string_value();
+    if (project_name_value) {
+      extracted_settings->project_name = project_name_value->value();
+    }
+  }
+  /* "asset_libraries": */ {
+    const DictionaryValue::LookupValue *asset_libraries_value = attributes.lookup_ptr(
+        "asset_libraries");
+    if (asset_libraries_value) {
+      const ArrayValue *asset_libraries_array = (*asset_libraries_value)->as_array_value();
+      if (!asset_libraries_array) {
+        throw std::runtime_error(
+            "Unexpected asset_library format in settings.json, expected array");
+      }
+
+      for (const ArrayValue::Item &element : asset_libraries_array->elements()) {
+        const DictionaryValue *object_value = element->as_dictionary_value();
+        if (!object_value) {
+          throw std::runtime_error(
+              "Unexpected asset_library entry in settings.json, expected dictionary entries only");
+        }
+        const DictionaryValue::Lookup element_lookup = object_value->create_lookup();
+        const DictionaryValue::LookupValue *name_value = element_lookup.lookup_ptr("name");
+        if (name_value && (*name_value)->type() != eValueType::String) {
+          throw std::runtime_error(
+              "Unexpected asset_library entry in settings.json, expected name to be string");
+        }
+        const DictionaryValue::LookupValue *path_value = element_lookup.lookup_ptr("path");
+        if (path_value && (*path_value)->type() != eValueType::String) {
+          throw std::runtime_error(
+              "Unexpected asset_library entry in settings.json, expected path to be string");
+        }
+
+        CustomAssetLibraryDefinition *library = BKE_asset_library_custom_add(
+            &extracted_settings->asset_libraries);
+        /* Name or path may not be set, this is fine. */
+        if (name_value) {
+          std::string name = (*name_value)->as_string_value()->value();
+          BKE_asset_library_custom_name_set(
+              &extracted_settings->asset_libraries, library, name.c_str());
+        }
+        if (path_value) {
+          std::string path = (*path_value)->as_string_value()->value();
+          BKE_asset_library_custom_path_set(library, path.c_str());
+        }
+      }
+    }
   }
 
   return extracted_settings;
@@ -203,6 +251,9 @@ std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef proje
   std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>(paths.project_root_path);
   if (extracted_settings) {
     loaded_settings->project_name_ = extracted_settings->project_name;
+    /* Moves ownership. */
+    loaded_settings->asset_libraries_ = std::make_unique<CustomAssetLibraries>(
+        extracted_settings->asset_libraries);
   }
 
   return loaded_settings;
@@ -214,10 +265,29 @@ std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() con
 
   std::unique_ptr<DictionaryValue> root = std::make_unique<DictionaryValue>();
   DictionaryValue::Items &root_attributes = root->elements();
-  std::unique_ptr<DictionaryValue> project_dict = std::make_unique<DictionaryValue>();
-  DictionaryValue::Items &project_attributes = project_dict->elements();
-  project_attributes.append_as("name", new StringValue(project_name_));
-  root_attributes.append_as("project", std::move(project_dict));
+
+  /* "project": */ {
+    std::unique_ptr<DictionaryValue> project_dict = std::make_unique<DictionaryValue>();
+    DictionaryValue::Items &project_attributes = project_dict->elements();
+    project_attributes.append_as("name", new StringValue(project_name_));
+    root_attributes.append_as("project", std::move(project_dict));
+  }
+  /* "asset_libraries": */ {
+    if (asset_libraries_ && !BLI_listbase_is_empty(&asset_libraries_->asset_libraries)) {
+      std::unique_ptr<ArrayValue> asset_libs_array = std::make_unique<ArrayValue>();
+      ArrayValue::Items &asset_libs_elements = asset_libs_array->elements();
+      LISTBASE_FOREACH (
+          const CustomAssetLibraryDefinition *, library, &asset_libraries_->asset_libraries) {
+        std::unique_ptr<DictionaryValue> library_dict = std::make_unique<DictionaryValue>();
+        DictionaryValue::Items &library_attributes = library_dict->elements();
+
+        library_attributes.append_as("name", new StringValue(library->name));
+        library_attributes.append_as("path", new StringValue(library->path));
+        asset_libs_elements.append_as(std::move(library_dict));
+      }
+      root_attributes.append_as("asset_libraries", std::move(asset_libs_array));
+    }
+  }
 
   return root;
 }
@@ -284,9 +354,28 @@ StringRefNull ProjectSettings::project_name() const
   return project_name_;
 }
 
+const ListBase &ProjectSettings::asset_library_definitions() const
+{
+  return asset_libraries_->asset_libraries;
+}
+
 bool ProjectSettings::has_unsaved_changes() const
 {
   return has_unsaved_changes_;
+}
+
+/* ---------------------------------------------------------------------- */
+
+CustomAssetLibraries::CustomAssetLibraries(ListBase asset_libraries)
+    : asset_libraries(asset_libraries)
+{
+}
+
+CustomAssetLibraries::~CustomAssetLibraries()
+{
+  LISTBASE_FOREACH_MUTABLE (CustomAssetLibraryDefinition *, library, &asset_libraries) {
+    BKE_asset_library_custom_remove(&asset_libraries, library);
+  }
 }
 
 }  // namespace blender::bke
