@@ -5232,6 +5232,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Volume", "Causes volume data to be duplicated with the object");
 
+  prop = RNA_def_property(srna, "use_duplicate_node_tree", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_NTREE);
+  RNA_def_property_ui_text(prop,
+                           "Duplicate Node Tree",
+                           "Make copies of node groups when duplicating nodes in the node editor");
+
   /* Currently only used for insert offset (aka auto-offset),
    * maybe also be useful for later stuff though. */
   prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_PIXEL);

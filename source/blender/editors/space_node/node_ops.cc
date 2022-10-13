@@ -174,7 +174,17 @@ void ED_operatormacros_node()
                                     "Duplicate",
                                     "Duplicate selected nodes and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
-  WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  RNA_boolean_set(mot->ptr, "linked", false);
+  WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
+
+  ot = WM_operatortype_append_macro(
+      "NODE_OT_duplicate_move_linked",
+      "Duplicate Linked",
+      "Duplicate selected nodes, but not their node trees, and move them",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
+  mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  RNA_boolean_set(mot->ptr, "linked", true);
   WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
   /* modified operator call for duplicating with input links */
