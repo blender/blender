@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
@@ -855,8 +856,38 @@ static bool modifier_apply_obdata(
     Main *bmain = DEG_get_bmain(depsgraph);
     BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }
+  else if (ob->type == OB_POINTCLOUD) {
+    PointCloud &points = *static_cast<PointCloud *>(ob->data);
+    if (mti->modifyGeometrySet == nullptr) {
+      BLI_assert_unreachable();
+      return false;
+    }
+
+    /* Create a temporary geometry set and component. */
+    GeometrySet geometry_set;
+    geometry_set.get_component_for_write<PointCloudComponent>().replace(
+        &points, GeometryOwnershipType::ReadOnly);
+
+    ModifierEvalContext mectx = {depsgraph, ob, (ModifierApplyFlag)0};
+    mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
+    if (!geometry_set.has_pointcloud()) {
+      BKE_report(
+          reports, RPT_ERROR, "Evaluated geometry from modifier does not contain a point cloud");
+      return false;
+    }
+    PointCloud *pointcloud_eval =
+        geometry_set.get_component_for_write<PointCloudComponent>().release();
+
+    /* Anonymous attributes shouldn't be available on the applied geometry. */
+    pointcloud_eval->attributes_for_write().remove_anonymous();
+
+    /* Copy the relevant information to the original. */
+    Main *bmain = DEG_get_bmain(depsgraph);
+    BKE_object_material_from_eval_data(bmain, ob, &pointcloud_eval->id);
+    BKE_pointcloud_nomain_to_pointcloud(pointcloud_eval, &points, true);
+  }
   else {
-    /* TODO: implement for point clouds and volumes. */
+    /* TODO: implement for volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return false;
   }
