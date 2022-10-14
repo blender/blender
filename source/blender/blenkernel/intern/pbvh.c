@@ -719,6 +719,11 @@ PBVH *BKE_pbvh_new(PBVHType type)
   pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
   pbvh->header.type = type;
+
+  /* Initialize this to true, instead of waiting for a draw engine
+   * to set it.  Prevents a crash in draw manager instancing code.
+   */
+  pbvh->is_drawing = true;
   return pbvh;
 }
 
