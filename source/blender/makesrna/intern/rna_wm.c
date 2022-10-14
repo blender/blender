@@ -1644,12 +1644,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyop.idname)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Registering operator class: '%s' is too long, maximum length is %d",
-                identifier,
-                (int)sizeof(dummyop.idname));
+  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
     return NULL;
   }
 
@@ -1659,10 +1654,6 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     if (ot && ot->rna_ext.srna) {
       rna_Operator_unregister(bmain, ot->rna_ext.srna);
     }
-  }
-
-  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
-    return NULL;
   }
 
   char idname_conv[sizeof(dummyop.idname)];
@@ -1867,8 +1858,9 @@ static void rna_def_operator_common(StructRNA *srna)
   /* Registration */
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->idname");
-  /* Without setting the length the pointer size would be used. -3 because `.` -> `_OT_`. */
-  RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME - 3);
+  /* String stored here is the 'BL' identifier (`OPMODULE_OT_my_op`),
+   * not the 'python' identifier (`opmodule.my_op`). */
+  RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER);

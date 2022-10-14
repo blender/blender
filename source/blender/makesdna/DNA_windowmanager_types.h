@@ -364,7 +364,7 @@ typedef struct wmOperatorTypeMacro {
   struct wmOperatorTypeMacro *next, *prev;
 
   /* operator id */
-  char idname[64];
+  char idname[64]; /* OP_MAX_TYPENAME */
   /* rna pointer to access properties, like keymap */
   /** Operator properties, assigned to ptr->data and can be written to a file. */
   struct IDProperty *properties;
@@ -551,7 +551,7 @@ typedef struct wmOperator {
 
   /* saved */
   /** Used to retrieve type pointer. */
-  char idname[64];
+  char idname[64]; /* OP_MAX_TYPENAME */
   /** Saved, user-settable properties. */
   IDProperty *properties;
 
