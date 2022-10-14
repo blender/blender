@@ -765,16 +765,8 @@ void BKE_tracking_dopesheet_update(struct MovieTracking *tracking);
  */
 struct MovieTrackingObject *BKE_tracking_find_object_for_track(
     const struct MovieTracking *tracking, const struct MovieTrackingTrack *track);
-struct ListBase *BKE_tracking_find_tracks_list_for_track(struct MovieTracking *tracking,
-                                                         const struct MovieTrackingTrack *track);
-
-/**
- * \note Returns NULL if the track comes from camera object,.
- */
 struct MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
     const struct MovieTracking *tracking, const struct MovieTrackingPlaneTrack *plane_track);
-struct ListBase *BKE_tracking_find_tracks_list_for_plane_track(
-    struct MovieTracking *tracking, const struct MovieTrackingPlaneTrack *plane_track);
 
 void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
                                          const struct MovieTrackingTrack *track,

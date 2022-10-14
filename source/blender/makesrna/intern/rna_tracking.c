@@ -251,13 +251,14 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-  ListBase *tracksbase = BKE_tracking_find_tracks_list_for_track(&clip->tracking, track);
+  MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_track(&clip->tracking,
+                                                                            track);
   /* Store old name, for the animation fix later. */
   char old_name[sizeof(track->name)];
   BLI_strncpy(old_name, track->name, sizeof(track->name));
   /* Update the name, */
   BLI_strncpy(track->name, value, sizeof(track->name));
-  BKE_tracking_track_unique_name(tracksbase, track);
+  BKE_tracking_track_unique_name(&tracking_object->tracks, track);
   /* Fix animation paths. */
   AnimData *adt = BKE_animdata_from_id(&clip->id);
   if (adt != NULL) {
@@ -335,14 +336,14 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
-  ListBase *plane_tracks_base = BKE_tracking_find_tracks_list_for_plane_track(&clip->tracking,
-                                                                              plane_track);
+  MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(&clip->tracking,
+                                                                                  plane_track);
   /* Store old name, for the animation fix later. */
   char old_name[sizeof(plane_track->name)];
   BLI_strncpy(old_name, plane_track->name, sizeof(plane_track->name));
   /* Update the name, */
   BLI_strncpy(plane_track->name, value, sizeof(plane_track->name));
-  BKE_tracking_plane_track_unique_name(plane_tracks_base, plane_track);
+  BKE_tracking_plane_track_unique_name(&tracking_object->plane_tracks, plane_track);
   /* Fix animation paths. */
   AnimData *adt = BKE_animdata_from_id(&clip->id);
   if (adt != NULL) {

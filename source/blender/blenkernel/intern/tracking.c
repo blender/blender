@@ -3319,15 +3319,6 @@ MovieTrackingObject *BKE_tracking_find_object_for_track(const MovieTracking *tra
   return NULL;
 }
 
-ListBase *BKE_tracking_find_tracks_list_for_track(MovieTracking *tracking,
-                                                  const MovieTrackingTrack *track)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_track(tracking, track);
-  BLI_assert(tracking_object != NULL);
-
-  return &tracking_object->tracks;
-}
-
 MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
     const MovieTracking *tracking, const MovieTrackingPlaneTrack *plane_track)
 {
@@ -3337,16 +3328,6 @@ MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
     }
   }
   return NULL;
-}
-
-ListBase *BKE_tracking_find_tracks_list_for_plane_track(MovieTracking *tracking,
-                                                        const MovieTrackingPlaneTrack *plane_track)
-{
-  MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(tracking,
-                                                                                  plane_track);
-  BLI_assert(tracking_object != NULL);
-
-  return &tracking_object->plane_tracks;
 }
 
 void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
