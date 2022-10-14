@@ -75,8 +75,6 @@ static void clear_picking_highlight(ListBase *links)
   }
 }
 
-void update_multi_input_indices_for_removed_links(bNode &node);
-
 /* -------------------------------------------------------------------- */
 /** \name Add Node
  * \{ */

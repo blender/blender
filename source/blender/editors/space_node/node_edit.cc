@@ -2299,6 +2299,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
       newlink->tosock = socket_map.lookup(link->tosock);
       newlink->fromnode = node_map.lookup(link->fromnode);
       newlink->fromsock = socket_map.lookup(link->fromsock);
+      newlink->multi_input_socket_index = link->multi_input_socket_index;
 
       BKE_node_clipboard_add_link(newlink);
     }
@@ -2420,11 +2421,19 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, clipboard_links_lb) {
-    nodeAddLink(ntree,
-                node_map.lookup(link->fromnode),
-                socket_map.lookup(link->fromsock),
-                node_map.lookup(link->tonode),
-                socket_map.lookup(link->tosock));
+    bNodeLink *new_link = nodeAddLink(ntree,
+                                      node_map.lookup(link->fromnode),
+                                      socket_map.lookup(link->fromsock),
+                                      node_map.lookup(link->tonode),
+                                      socket_map.lookup(link->tosock));
+    new_link->multi_input_socket_index = link->multi_input_socket_index;
+  }
+
+  ntree->ensure_topology_cache();
+
+  for (bNode *new_node : node_map.values()) {
+    /* Update multi input socket indices in case all connected nodes weren't copied. */
+    update_multi_input_indices_for_removed_links(*new_node);
   }
 
   Main *bmain = CTX_data_main(C);
