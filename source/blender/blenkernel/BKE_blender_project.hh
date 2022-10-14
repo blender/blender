@@ -23,13 +23,25 @@ namespace blender::bke {
 class ProjectSettings;
 struct CustomAssetLibraries;
 
+/**
+ * The active project (if there is one) is stored in static memory here too, and can be queried
+ * using #BlenderProject::get_active().
+ */
 class BlenderProject {
+  friend class ProjectSettings;
+
   std::unique_ptr<ProjectSettings> settings_;
 
  public:
   static auto get_active [[nodiscard]] () -> BlenderProject *;
   static auto set_active_from_settings(std::unique_ptr<ProjectSettings> settings)
       -> BlenderProject *;
+
+  /**
+   * Check if the directory given by \a path contains a .blender_project directory and should thus
+   * be considered a project root directory.
+   */
+  static bool path_is_project_root(StringRef path);
 
   /**
    * Check if \a path points into a project and return the root directory path of that project (the

@@ -83,6 +83,7 @@ set(SRC
   intern/blender.c
   intern/blender_copybuffer.c
   intern/blender_project.cc
+  intern/blender_project_settings.cc
   intern/blender_undo.c
   intern/blender_user_menu.c
   intern/blendfile.c
