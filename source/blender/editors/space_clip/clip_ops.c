@@ -1641,14 +1641,14 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   float pan_vec[3];
 
   const wmNDOFMotionData *ndof = event->customdata;
-  const float speed = NDOF_PIXELS_PER_SECOND;
+  const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
   WM_event_ndof_pan_get(ndof, pan_vec, true);
 
-  mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
-  pan_vec[2] *= -ndof->dt;
+  mul_v3_fl(pan_vec, ndof->dt);
+  mul_v2_fl(pan_vec, pan_speed / sc->zoom);
 
-  sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL, false);
+  sclip_zoom_set_factor(C, max_ff(0.0f, 1.0f - pan_vec[2]), NULL, false);
   sc->xof += pan_vec[0];
   sc->yof += pan_vec[1];
 
