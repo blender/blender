@@ -278,7 +278,7 @@ class TOPBAR_MT_file(Menu):
         layout.operator("wm.revert_mainfile")
         layout.menu("TOPBAR_MT_file_recover")
 
-        props = layout.operator("wm.new_project", text="Set up Project...")
+        props = layout.operator("project.new", text="Set up Project...")
         props.open_settings_after = True
 
         layout.separator()

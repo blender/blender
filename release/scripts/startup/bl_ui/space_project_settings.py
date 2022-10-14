@@ -21,7 +21,7 @@ class PROJECTSETTINGS_HT_header(Header):
 
         # Show '*' to let users know the settings have been modified.
         layout.operator(
-            "wm.save_project_settings",
+            "project.save_settings",
             text=iface_("Save Settings") + (" *" if is_dirty else ""),
             translate=False,
         )
@@ -135,7 +135,7 @@ class PROJECTSETTINGS_PT_no_project(Panel):
 
         row = layout.row()
         split = row.split(factor=0.3)
-        split.operator("wm.new_project", text="Set up Project...")
+        split.operator("project.new", text="Set up Project...")
 
 
 class PROJECTSETTINGS_PT_setup(CenterAlignMixIn, Panel):

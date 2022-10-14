@@ -9,9 +9,11 @@
 #include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.h"
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "BLI_path_util.h"
+#include "BLT_translation.h"
 
 #include "DNA_space_types.h"
 
@@ -22,9 +24,155 @@
 #include "WM_types.h"
 
 #include "ED_project.h"
+#include "ED_screen.h"
 
 using namespace blender;
 
+static bool has_active_project_poll(bContext *C)
+{
+  const BlenderProject *active_project = CTX_wm_project();
+  CTX_wm_operator_poll_msg_set(C, TIP_("No active project loaded"));
+  return active_project != NULL;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name New project operator
+ * \{ */
+
+static int new_project_exec(bContext *C, wmOperator *op)
+{
+  const Main *bmain = CTX_data_main(C);
+
+  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
+    BKE_report(op->reports, RPT_ERROR, "No path defined for creating a new project in");
+    return OPERATOR_CANCELLED;
+  }
+  char project_root_dir[FILE_MAXDIR];
+  RNA_string_get(op->ptr, "directory", project_root_dir);
+
+  if (!ED_project_new(bmain, project_root_dir, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  PropertyRNA *prop_open_settings = RNA_struct_find_property(op->ptr, "open_settings_after");
+  if (RNA_property_is_set(op->ptr, prop_open_settings) &&
+      RNA_property_boolean_get(op->ptr, prop_open_settings)) {
+    ED_project_settings_window_show(C, op->reports);
+  }
+
+  WM_main_add_notifier(NC_PROJECT, NULL);
+  /* Update the window title. */
+  WM_main_add_notifier(NC_WM | ND_DATACHANGED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static int new_project_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  const Main *bmain = CTX_data_main(C);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  if (blendfile_path[0]) {
+    /* Open at the .blend file location if any. */
+    RNA_string_set(op->ptr, "directory", blendfile_path);
+  }
+
+  WM_event_add_fileselect(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static void PROJECT_OT_new(wmOperatorType *ot)
+{
+  ot->name = "New Project";
+  ot->idname = "PROJECT_OT_new";
+  ot->description = "Choose a directory to use as the root of a project";
+
+  ot->invoke = new_project_invoke;
+  ot->exec = new_project_exec;
+  /* omit window poll so this can work in background mode */
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER,
+                                 FILE_BLENDER,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "open_settings_after",
+                         false,
+                         "",
+                         "Open the project settings window after successfully creating a project");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Write Project Settings Operator
+ * \{ */
+
+static int save_settings_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  BlenderProject *active_project = CTX_wm_project();
+
+  if (!BKE_project_settings_save(active_project)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void PROJECT_OT_save_settings(wmOperatorType *ot)
+{
+  ot->name = "Save Project Settings";
+  ot->idname = "PROJECT_OT_save_settings";
+  ot->description = "Make the current changes to the project settings permanent";
+
+  ot->invoke = WM_operator_confirm;
+  ot->poll = has_active_project_poll;
+  ot->exec = save_settings_exec;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete project setup operator
+ * \{ */
+
+static int delete_project_setup_exec(bContext *C, wmOperator *op)
+{
+  if (!BKE_project_delete_settings_directory(CTX_wm_project())) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Failed to delete project settings. Is the project directory read-only?");
+    return OPERATOR_CANCELLED;
+  }
+  BKE_project_active_unset();
+
+  WM_main_add_notifier(NC_PROJECT, NULL);
+  /* Update the window title. */
+  WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), NC_WM | ND_DATACHANGED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void PROJECT_OT_delete_setup(wmOperatorType *ot)
+{
+  ot->name = "Delete Project Setup";
+  ot->idname = "PROJECT_OT_delete_setup";
+  ot->description =
+      "Remove the configuration of the current project with all settings, but keep project files "
+      "(such as .blend files) untouched";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = delete_project_setup_exec;
+  /* omit window poll so this can work in background mode */
+  ot->poll = has_active_project_poll;
+}
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Add Custom Asset Library
  * \{ */
@@ -144,6 +292,9 @@ static void PROJECT_OT_custom_asset_library_remove(wmOperatorType *ot)
 
 void ED_operatortypes_project()
 {
+  WM_operatortype_append(PROJECT_OT_new);
+  WM_operatortype_append(PROJECT_OT_save_settings);
+  WM_operatortype_append(PROJECT_OT_delete_setup);
   WM_operatortype_append(PROJECT_OT_custom_asset_library_add);
   WM_operatortype_append(PROJECT_OT_custom_asset_library_remove);
 }
