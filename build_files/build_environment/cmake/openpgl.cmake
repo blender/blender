@@ -4,7 +4,6 @@
 # library itself does not depend on them, so should give no problems.
 
 set(OPENPGL_EXTRA_ARGS
-    -DOPENPGL_BUILD_PYTHON=OFF
     -DOPENPGL_BUILD_STATIC=ON
     -DOPENPGL_TBB_ROOT=${LIBDIR}/tbb
     -DTBB_ROOT=${LIBDIR}/tbb
