@@ -497,8 +497,14 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * when the `w->scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
-  /* This value is expected to match the base name of the `.desktop` file. see T101779. */
-  const char *xdg_app_id = "org.blender.Blender";
+  /* This value is expected to match the base name of the `.desktop` file. see T101805.
+   *
+   * NOTE: the XDG desktop-entry-spec defines that this should follow the "reverse DNS" convention.
+   * For e.g. `org.blender.Blender` - however the `.desktop` file distributed with Blender is
+   * simply called `blender.desktop`, so the it's important to follow that name.
+   * Other distributions such as SNAP & FLATPAK may need to change this value T101779.
+   * Currently there isn't a way to configure this, we may want to support that. */
+  const char *xdg_app_id = "blender";
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
