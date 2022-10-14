@@ -26,8 +26,7 @@ yum -y install centos-release-scl
 yum -y install devtoolset-9
 
 # Install packages needed for Blender's dependencies.
-
-PACKAGES=(
+PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
     git
     # Used to checkout Blender's `../lib/` directory.
@@ -91,13 +90,15 @@ PACKAGES=(
     flex
     # TODO: dependencies build without this, consider removal.
     ncurses-devel
-
-    wayland-devel
-    libwayland-client
-    libwayland-server
 )
 
-yum -y install -y ${PACKAGES[@]}
+# Additional packages needed for building Blender.
+PACKAGES_FOR_BLENDER=(
+    # Required by Blender build option: `WITH_GHOST_WAYLAND`.
+    libxkbcommon-devel
+)
+
+yum -y install -y ${PACKAGES_FOR_LIBS[@]} ${PACKAGES_FOR_BLENDER[@]}
 
 # Dependencies for Mesa
 yum -y install expat-devel
