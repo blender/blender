@@ -417,15 +417,11 @@ ccl_device_inline int floor_to_int(float f)
   return float_to_int(floorf(f));
 }
 
-ccl_device_inline int quick_floor_to_int(float x)
-{
-  return float_to_int(x) - ((x < 0) ? 1 : 0);
-}
-
 ccl_device_inline float floorfrac(float x, ccl_private int *i)
 {
-  *i = quick_floor_to_int(x);
-  return x - *i;
+  float f = floorf(x);
+  *i = float_to_int(f);
+  return x - f;
 }
 
 ccl_device_inline int ceil_to_int(float f)
