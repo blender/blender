@@ -199,7 +199,7 @@ static bool rna_Object_holdout_get(Object *ob, bContext *C, PointerRNA *view_lay
     return false;
   }
 
-  return ((base->flag & BASE_HOLDOUT) != 0);
+  return ((base->flag & BASE_HOLDOUT) != 0) || ((ob->visibility_flag & OB_HOLDOUT) != 0);
 }
 
 static bool rna_Object_indirect_only_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
