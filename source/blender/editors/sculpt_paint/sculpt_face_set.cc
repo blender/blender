@@ -198,8 +198,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const bool relax_face_sets = !(ss->cache->iteration_count % 3 == 0);
   /* This operations needs a strength tweak as the relax deformation is too weak by default. */
-  if (relax_face_sets) {
-    bstrength *= 2.0f;
+  if (relax_face_sets && data->iteration < 2) {
+    bstrength *= 1.5f;
   }
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
@@ -261,6 +261,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
+      data.iteration = i;
       BLI_task_parallel_range(0, totnode, &data, do_relax_face_sets_brush_task_cb_ex, &settings);
     }
   }
