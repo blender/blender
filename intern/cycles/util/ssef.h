@@ -523,7 +523,7 @@ __forceinline const ssef round_zero(const ssef &a)
 __forceinline const ssef floor(const ssef &a)
 {
 #    ifdef __KERNEL_NEON__
-  return vrndnq_f32(a);
+  return vrndmq_f32(a);
 #    else
   return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF);
 #    endif
