@@ -54,6 +54,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
@@ -1986,7 +1987,10 @@ bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
       &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, mesh->totpoly, ".hide_poly"));
 }
 
-int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                  Main *bmain,
+                                  Object *ob,
+                                  MultiresModifierData *mmd)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
   const Span<MPoly> polys = me->polys();
@@ -2045,6 +2049,9 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
     }
     /* The evaluated multires CCG must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    if (depsgraph) {
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+    }
 
     ret |= SCULPT_MASK_LAYER_CALC_LOOP;
   }
@@ -2296,11 +2303,15 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
+  CCGKey key;
+  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+
   BKE_pbvh_grids_update(pbvh,
                         subdiv_ccg->grids,
                         (void **)subdiv_ccg->grid_faces,
                         subdiv_ccg->grid_flag_mats,
-                        subdiv_ccg->grid_hidden);
+                        subdiv_ccg->grid_hidden,
+                        &key);
 }
 
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)

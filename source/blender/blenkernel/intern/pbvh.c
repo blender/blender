@@ -3064,9 +3064,14 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
   }
 }
 
-void BKE_pbvh_grids_update(
-    PBVH *pbvh, CCGElem **grids, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
+void BKE_pbvh_grids_update(PBVH *pbvh,
+                           CCGElem **grids,
+                           void **gridfaces,
+                           DMFlagMat *flagmats,
+                           BLI_bitmap **grid_hidden,
+                           CCGKey *key)
 {
+  pbvh->gridkey = *key;
   pbvh->grids = grids;
   pbvh->gridfaces = gridfaces;
 

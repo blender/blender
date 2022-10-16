@@ -218,7 +218,7 @@ ModifierData *ED_object_modifier_add(
 
       if (ob->mode & OB_MODE_SCULPT) {
         /* ensure that grid paint mask layer is created */
-        BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+        BKE_sculpt_mask_layers_ensure(nullptr, nullptr, ob, (MultiresModifierData *)new_md);
       }
     }
     else if (type == eModifierType_Skin) {
@@ -2041,7 +2041,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
   if (object->mode & OB_MODE_SCULPT) {
     /* ensure that grid paint mask layer is created */
-    BKE_sculpt_mask_layers_ensure(object, mmd);
+    BKE_sculpt_mask_layers_ensure(
+        CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C), object, mmd);
   }
 
   return OPERATOR_FINISHED;

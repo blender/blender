@@ -16,6 +16,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
@@ -166,7 +167,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-  BKE_sculpt_mask_layers_ensure(ob, mmd);
+  BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
