@@ -25,7 +25,7 @@
 
 #include "BKE_attribute.hh"
 
-class GeometrySet;
+struct GeometrySet;
 struct Object;
 struct Collection;
 
