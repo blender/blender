@@ -93,6 +93,10 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
         }
 
         const Span<int> corners = vert_to_loop_map[vert_i];
+        if (corners.is_empty()) {
+          corner_of_vertex[selection_i] = 0;
+          continue;
+        }
 
         /* Retrieve the connected edge indices as 64 bit integers for #materialize_compressed. */
         corner_indices.reinitialize(corners.size());
