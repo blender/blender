@@ -3623,6 +3623,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 4)) {
+    /* Update brush sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_cavity_factor = 1.0f;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
