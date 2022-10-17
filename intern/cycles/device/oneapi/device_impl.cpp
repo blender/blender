@@ -432,7 +432,8 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
   assert(usm_type == sycl::usm::alloc::device ||
          ((device_type == sycl::info::device_type::host ||
            device_type == sycl::info::device_type::cpu || allow_host) &&
-          usm_type == sycl::usm::alloc::host));
+              usm_type == sycl::usm::alloc::host ||
+          usm_type == sycl::usm::alloc::unknown));
 #  else
   /* Silence warning about unused arguments. */
   (void)queue_;
