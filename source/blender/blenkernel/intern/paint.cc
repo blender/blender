@@ -2794,7 +2794,7 @@ static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totve
     MV_ADD_FLAG(mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
-    PBVHVertRef vertex = {.i = i};
+    PBVHVertRef vertex = {i};
 
     BKE_sculpt_boundary_flag_update(ss, vertex);
 
@@ -2826,7 +2826,7 @@ static void init_sculptvert_layer_grids(SculptSession *ss, PBVH *pbvh, int totve
     MV_ADD_FLAG(mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
-    PBVHVertRef vertex = {.i = i};
+    PBVHVertRef vertex = {i};
 
     BKE_sculpt_boundary_flag_update(ss, vertex);
     BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
