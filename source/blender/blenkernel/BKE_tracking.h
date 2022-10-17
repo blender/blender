@@ -234,9 +234,8 @@ void BKE_tracking_tracks_average(struct MovieTrackingTrack *dst_track,
                                  /*const*/ struct MovieTrackingTrack **src_tracks,
                                  int num_src_tracks);
 
-struct MovieTrackingTrack *BKE_tracking_track_get_indexed(struct MovieTracking *tracking,
-                                                          int tracknr,
-                                                          struct ListBase **r_tracksbase);
+struct MovieTrackingTrack *BKE_tracking_track_get_for_selection_index(
+    struct MovieTracking *tracking, int selection_index, struct ListBase **r_tracksbase);
 
 float *BKE_tracking_track_get_mask(int frame_width,
                                    int frame_height,

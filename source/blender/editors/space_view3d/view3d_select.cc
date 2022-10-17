@@ -2430,7 +2430,8 @@ static bool ed_object_select_pick_camera_track(bContext *C,
       continue;
     }
 
-    track = BKE_tracking_track_get_indexed(&clip->tracking, hitresult >> 16, &tracksbase);
+    track = BKE_tracking_track_get_for_selection_index(
+        &clip->tracking, hitresult >> 16, &tracksbase);
     found = true;
     break;
   }

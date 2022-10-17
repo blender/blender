@@ -859,7 +859,7 @@ static void camera_view3d_reconstruction(
                                ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
   MovieTracking *tracking = &clip->tracking;
-  /* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
+  /* Index must start in 1, to mimic BKE_tracking_track_get_for_selection_index. */
   int track_index = 1;
 
   float bundle_color_custom[3];

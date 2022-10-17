@@ -1009,16 +1009,16 @@ void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
   tracking_average_tracks(dst_track, src_tracks, num_src_tracks);
 }
 
-MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking,
-                                                   int tracknr,
-                                                   ListBase **r_tracksbase)
+MovieTrackingTrack *BKE_tracking_track_get_for_selection_index(MovieTracking *tracking,
+                                                               int selection_index,
+                                                               ListBase **r_tracksbase)
 {
   int cur = 1;
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
       if (track->flag & TRACK_HAS_BUNDLE) {
-        if (cur == tracknr) {
+        if (cur == selection_index) {
           *r_tracksbase = &object->tracks;
           return track;
         }
