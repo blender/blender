@@ -869,7 +869,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
   }
 
   Main *bmain = G.main;
-  char *name = "multires_dump";
+  const char *name = "multires_dump";
 
   bContext *ctx = CTX_create();
   CTX_data_main_set(ctx, bmain);
@@ -1003,7 +1003,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
             int e;
 
             if (!BLI_edgehash_haskey(eh, a, b)) {
-              BLI_edgehash_insert(eh, a, b, (void *)medi);
+              BLI_edgehash_insert(eh, a, b, POINTER_FROM_INT(medi));
               e = medi;
 
               MEdge *med = medge + medi;
@@ -1014,7 +1014,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
               medi++;
             }
             else {
-              e = (int)BLI_edgehash_lookup(eh, a, b);
+              e = POINTER_AS_INT(BLI_edgehash_lookup(eh, a, b));
             }
 
             ml[i2].e = e;
@@ -1271,14 +1271,16 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = CCG_TASK_LIMIT;
 
-  MultiresThreadedData data = {
-      .bmop = (MultiResSpace)mode,
-      .sd = sd,
-      .lvl = mmd->totlvl,
-      .bm = bm,
-      .cd_mdisps_off = cd_disp_off,
-      .gridSize = gridSize,
-  };
+  MultiresThreadedData data;
+
+  memset(static_cast<void *>(&data), 0, sizeof(data));
+
+  data.bmop = (MultiResSpace)mode;
+  data.sd = sd;
+  data.lvl = mmd->totlvl;
+  data.bm = bm;
+  data.cd_mdisps_off = cd_disp_off;
+  data.gridSize = gridSize;
 
   BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
 

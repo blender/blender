@@ -2420,7 +2420,9 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
   }
 
-  BKE_sculptsession_update_attr_refs(ob);
+  if (ob->sculpt) {
+    BKE_sculptsession_update_attr_refs(ob);
+  }
 
   return ret;
 }
