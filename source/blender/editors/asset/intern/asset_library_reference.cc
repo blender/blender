@@ -56,6 +56,7 @@ CustomAssetLibraryDefinition *ED_asset_library_find_custom_library_from_referenc
         return BKE_asset_library_custom_find_from_index(
             BKE_project_custom_asset_libraries_get(project), library_ref->custom_library_index);
       }
+      break;
     }
     case ASSET_LIBRARY_LOCAL:
       return nullptr;
