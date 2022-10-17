@@ -2157,6 +2157,38 @@ void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userd
   }
 }
 
+bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node)
+{
+  ntree->ensure_topology_cache();
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*ntree));
+  BLI_assert(!ntree->has_available_link_cycle());
+
+  const bNode *iter_node = node;
+  if (!iter_node->is_reroute()) {
+    return false;
+  }
+
+  while (true) {
+    const blender::Span<const bNodeLink *> links =
+        iter_node->input_socket(0).directly_linked_links();
+    BLI_assert(links.size() <= 1);
+    if (links.is_empty()) {
+      return true;
+    }
+    const bNodeLink &link = *links[0];
+    if (!link.is_available()) {
+      return false;
+    }
+    if (link.is_muted()) {
+      return false;
+    }
+    iter_node = link.fromnode;
+    if (!iter_node->is_reroute()) {
+      return false;
+    }
+  }
+}
+
 /* ************** Add stuff ********** */
 
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
