@@ -1490,14 +1490,20 @@ void BLI_join_dirfile(char *__restrict dst,
   BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
 }
 
-size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
+size_t BLI_path_join_array(char *__restrict dst,
+                           const size_t dst_len,
+                           const char *path_array[],
+                           const int path_array_num)
 {
+  BLI_assert(path_array_num > 0);
 #ifdef DEBUG_STRSIZE
   memset(dst, 0xff, sizeof(*dst) * dst_len);
 #endif
   if (UNLIKELY(dst_len == 0)) {
     return 0;
   }
+  const char *path = path_array[0];
+
   const size_t dst_last = dst_len - 1;
   size_t ofs = BLI_strncpy_rlen(dst, path, dst_len);
 
@@ -1519,9 +1525,8 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
     has_trailing_slash = (path[len] != '\0');
   }
 
-  va_list args;
-  va_start(args, path);
-  while ((path = (const char *)va_arg(args, const char *))) {
+  for (int path_index = 1; path_index < path_array_num; path_index++) {
+    path = path_array[path_index];
     has_trailing_slash = false;
     const char *path_init = path;
     while (ELEM(path[0], SEP, ALTSEP)) {
@@ -1556,7 +1561,6 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
       has_trailing_slash = (path_init != path);
     }
   }
-  va_end(args);
 
   if (has_trailing_slash) {
     if ((ofs != dst_last) && (ofs != 0) && (ELEM(dst[ofs - 1], SEP, ALTSEP) == 0)) {

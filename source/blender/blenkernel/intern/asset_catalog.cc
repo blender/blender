@@ -515,8 +515,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
     BLI_path_join(asset_lib_cdf_path,
                   sizeof(asset_lib_cdf_path),
                   suitable_root_path,
-                  DEFAULT_CATALOG_FILENAME.c_str(),
-                  nullptr);
+                  DEFAULT_CATALOG_FILENAME.c_str());
     return asset_lib_cdf_path;
   }
 

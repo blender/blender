@@ -218,7 +218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
 
   if (cfgdir) {
-    BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE, NULL);
+    BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE);
   }
 
   /* Draw setup screen if no preferences have been saved yet. */

@@ -113,10 +113,10 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
     char filepath[FILE_MAX];
     const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
     if (xdg_config_home != NULL) {
-      BLI_path_join(filepath, sizeof(filepath), xdg_config_home, "user-dirs.dirs", NULL);
+      BLI_path_join(filepath, sizeof(filepath), xdg_config_home, "user-dirs.dirs");
     }
     else {
-      BLI_path_join(filepath, sizeof(filepath), home, ".config", "user-dirs.dirs", NULL);
+      BLI_path_join(filepath, sizeof(filepath), home, ".config", "user-dirs.dirs");
     }
     fp = BLI_fopen(filepath, "r");
     if (!fp) {
@@ -147,7 +147,7 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
            * Based on the 'user-dirs.dirs' man page,
            * there is no need to resolve arbitrary environment variables. */
           if (STRPREFIX(l_value, "$HOME" SEP_STR)) {
-            BLI_path_join(l_value_expanded, sizeof(l_value_expanded), home, l_value + 6, NULL);
+            BLI_path_join(l_value_expanded, sizeof(l_value_expanded), home, l_value + 6);
             l_value_final = l_value_expanded;
           }
 
@@ -186,7 +186,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
   char xdg_path_buf[FILE_MAXDIR];
   const char *xdg_path = xdg_map ? BLI_ghash_lookup(xdg_map, key) : NULL;
   if (xdg_path == NULL) {
-    BLI_path_join(xdg_path_buf, sizeof(xdg_path_buf), home, default_path, NULL);
+    BLI_path_join(xdg_path_buf, sizeof(xdg_path_buf), home, default_path);
     xdg_path = xdg_path_buf;
   }
   fsmenu_insert_entry(
