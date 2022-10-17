@@ -10,7 +10,7 @@ from typing import Dict, List
 class TestGraph:
     def __init__(self, json_filepaths: List[pathlib.Path]):
         # Initialize graph from JSON file. Note that this is implemented without
-        # accessing any benchmark environment or configuration. This ways benchmarks
+        # accessing any benchmark environment or configuration. This way, benchmarks
         # run on various machines can be aggregated and the graph generated on another
         # machine.
 
