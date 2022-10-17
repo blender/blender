@@ -3,7 +3,7 @@
 
 #ifdef WITH_ONEAPI
 
-#  include <CL/sycl.hpp>
+#  include <sycl/sycl.hpp>
 
 #  include "device/device.h"
 #  include "device/oneapi/device.h"

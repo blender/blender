@@ -8,7 +8,7 @@
 #  include <map>
 #  include <set>
 
-#  include <CL/sycl.hpp>
+#  include <sycl/sycl.hpp>
 
 #  include "kernel/device/oneapi/compat.h"
 #  include "kernel/device/oneapi/globals.h"
