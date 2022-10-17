@@ -504,8 +504,8 @@ struct GWL_Seat {
 struct GWL_Display {
   GHOST_SystemWayland *system = nullptr;
 
-  struct wl_display *display = nullptr;
-  struct wl_compositor *compositor = nullptr;
+  struct wl_display *wl_display = nullptr;
+  struct wl_compositor *wl_compositor = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   WGL_LibDecor_System *libdecor = nullptr;
@@ -514,7 +514,7 @@ struct GWL_Display {
   WGL_XDG_Decor_System *xdg_decor = nullptr;
 
   struct zxdg_output_manager_v1 *xdg_output_manager = nullptr;
-  struct wl_shm *shm = nullptr;
+  struct wl_shm *wl_shm = nullptr;
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
 
@@ -535,7 +535,7 @@ struct GWL_Display {
 static GHOST_WindowManager *window_manager = nullptr;
 
 /** Check this lock before accessing `GHOST_SystemWayland::selection` from a thread. */
-static std::mutex system_selection_mutex;
+static std::mutex system_clipboard_mutex;
 
 /**
  * Callback for WAYLAND to run when there is an error.
@@ -578,22 +578,22 @@ static GWL_SeatStatePointer *seat_state_pointer_from_cursor_surface(GWL_Seat *se
   return nullptr;
 }
 
-static void display_destroy(GWL_Display *d)
+static void display_destroy(GWL_Display *display)
 {
-  if (d->data_device_manager) {
-    wl_data_device_manager_destroy(d->data_device_manager);
+  if (display->data_device_manager) {
+    wl_data_device_manager_destroy(display->data_device_manager);
   }
 
-  if (d->tablet_manager) {
-    zwp_tablet_manager_v2_destroy(d->tablet_manager);
+  if (display->tablet_manager) {
+    zwp_tablet_manager_v2_destroy(display->tablet_manager);
   }
 
-  for (GWL_Output *output : d->outputs) {
+  for (GWL_Output *output : display->outputs) {
     wl_output_destroy(output->wl_output);
     delete output;
   }
 
-  for (GWL_Seat *seat : d->seats) {
+  for (GWL_Seat *seat : display->seats) {
 
     /* First handle members that require locking.
      * While highly unlikely, it's possible they are being used while this function runs. */
@@ -661,45 +661,45 @@ static void display_destroy(GWL_Display *d)
     delete seat;
   }
 
-  if (d->shm) {
-    wl_shm_destroy(d->shm);
+  if (display->wl_shm) {
+    wl_shm_destroy(display->wl_shm);
   }
 
-  if (d->relative_pointer_manager) {
-    zwp_relative_pointer_manager_v1_destroy(d->relative_pointer_manager);
+  if (display->relative_pointer_manager) {
+    zwp_relative_pointer_manager_v1_destroy(display->relative_pointer_manager);
   }
 
-  if (d->pointer_constraints) {
-    zwp_pointer_constraints_v1_destroy(d->pointer_constraints);
+  if (display->pointer_constraints) {
+    zwp_pointer_constraints_v1_destroy(display->pointer_constraints);
   }
 
-  if (d->compositor) {
-    wl_compositor_destroy(d->compositor);
+  if (display->wl_compositor) {
+    wl_compositor_destroy(display->wl_compositor);
   }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    if (d->libdecor) {
-      wgl_libdecor_system_destroy(d->libdecor);
+    if (display->libdecor) {
+      wgl_libdecor_system_destroy(display->libdecor);
     }
   }
   else
 #endif
   {
-    if (d->xdg_decor) {
-      wgl_xdg_decor_system_destroy(d->xdg_decor);
+    if (display->xdg_decor) {
+      wgl_xdg_decor_system_destroy(display->xdg_decor);
     }
   }
 
   if (eglGetDisplay) {
-    ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(d->display)));
+    ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl_display)));
   }
 
-  if (d->display) {
-    wl_display_disconnect(d->display);
+  if (display->wl_display) {
+    wl_display_disconnect(display->wl_display);
   }
 
-  delete d;
+  delete display;
 }
 
 static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
@@ -1518,7 +1518,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
        * 'text_update_edited' to behave like dropped text was pasted. */
       CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
     }
-    wl_display_roundtrip(system->display());
+    wl_display_roundtrip(system->wl_display());
   };
 
   /* Pass in `seat->wl_surface_focus_dnd` instead of accessing it from `seat` since the leave
@@ -1551,7 +1551,6 @@ static void data_device_handle_selection(void *data,
     return;
   }
   CLOG_INFO(LOG, 2, "selection");
-
   /* Get new data offer. */
   data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   seat->data_offer_copy_paste = data_offer;
@@ -1572,8 +1571,8 @@ static void data_device_handle_selection(void *data,
         data_offer, mime_receive, &seat->data_offer_copy_paste_mutex);
 
     {
-      std::lock_guard lock{system_selection_mutex};
-      system->selection_set(data);
+      std::lock_guard lock{system_clipboard_mutex};
+      system->clipboard_set(data);
     }
   };
 
@@ -1668,7 +1667,7 @@ static void cursor_surface_handle_enter(void *data,
                                                                                     wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.insert(reg_output);
-  update_cursor_scale(seat->cursor, seat->system->shm(), seat_state_pointer, wl_surface);
+  update_cursor_scale(seat->cursor, seat->system->wl_shm(), seat_state_pointer, wl_surface);
 }
 
 static void cursor_surface_handle_leave(void *data,
@@ -1686,7 +1685,7 @@ static void cursor_surface_handle_leave(void *data,
                                                                                     wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.erase(reg_output);
-  update_cursor_scale(seat->cursor, seat->system->shm(), seat_state_pointer, wl_surface);
+  update_cursor_scale(seat->cursor, seat->system->wl_shm(), seat_state_pointer, wl_surface);
 }
 
 static const struct wl_surface_listener cursor_surface_listener = {
@@ -2258,7 +2257,7 @@ static void tablet_seat_handle_tool_added(void *data,
   tablet_tool->seat = seat;
 
   /* Every tool has it's own cursor wl_surface. */
-  tablet_tool->wl_surface_cursor = wl_compositor_create_surface(seat->system->compositor());
+  tablet_tool->wl_surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor());
   ghost_wl_surface_tag_cursor_tablet(tablet_tool->wl_surface_cursor);
 
   wl_surface_add_listener(tablet_tool->wl_surface_cursor, &cursor_surface_listener, (void *)seat);
@@ -2705,7 +2704,7 @@ static void seat_handle_capabilities(void *data,
 
   if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
     seat->wl_pointer = wl_seat_get_pointer(wl_seat);
-    seat->cursor.wl_surface = wl_compositor_create_surface(seat->system->compositor());
+    seat->cursor.wl_surface = wl_compositor_create_surface(seat->system->wl_compositor());
     seat->cursor.visible = true;
     seat->cursor.wl_buffer = nullptr;
     if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.size)) {
@@ -3023,7 +3022,7 @@ static void global_handle_add(void *data,
 
   struct GWL_Display *display = static_cast<struct GWL_Display *>(data);
   if (STREQ(interface, wl_compositor_interface.name)) {
-    display->compositor = static_cast<wl_compositor *>(
+    display->wl_compositor = static_cast<wl_compositor *>(
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
   else if (STREQ(interface, xdg_wm_base_interface.name)) {
@@ -3073,7 +3072,7 @@ static void global_handle_add(void *data,
     wl_seat_add_listener(seat->wl_seat, &seat_listener, seat);
   }
   else if (STREQ(interface, wl_shm_interface.name)) {
-    display->shm = static_cast<wl_shm *>(
+    display->wl_shm = static_cast<wl_shm *>(
         wl_registry_bind(wl_registry, name, &wl_shm_interface, 1));
   }
   else if (STREQ(interface, wl_data_device_manager_interface.name)) {
@@ -3144,34 +3143,34 @@ static const struct wl_registry_listener registry_listener = {
  * WAYLAND specific implementation of the #GHOST_System interface.
  * \{ */
 
-GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
+GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Display)
 {
   wl_log_set_handler_client(ghost_wayland_log_handler);
 
-  d->system = this;
+  display_->system = this;
   /* Connect to the Wayland server. */
-  d->display = wl_display_connect(nullptr);
-  if (!d->display) {
-    display_destroy(d);
+  display_->wl_display = wl_display_connect(nullptr);
+  if (!display_->wl_display) {
+    display_destroy(display_);
     throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
   /* This may be removed later if decorations are required, needed as part of registration. */
-  d->xdg_decor = new WGL_XDG_Decor_System;
+  display_->xdg_decor = new WGL_XDG_Decor_System;
 
   /* Register interfaces. */
-  struct wl_registry *registry = wl_display_get_registry(d->display);
-  wl_registry_add_listener(registry, &registry_listener, d);
+  struct wl_registry *registry = wl_display_get_registry(display_->wl_display);
+  wl_registry_add_listener(registry, &registry_listener, display_);
   /* Call callback for registry listener. */
-  wl_display_roundtrip(d->display);
+  wl_display_roundtrip(display_->wl_display);
   /* Call callbacks for registered listeners. */
-  wl_display_roundtrip(d->display);
+  wl_display_roundtrip(display_->wl_display);
   wl_registry_destroy(registry);
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (d->libdecor_required) {
-    wgl_xdg_decor_system_destroy(d->xdg_decor);
-    d->xdg_decor = nullptr;
+  if (display_->libdecor_required) {
+    wgl_xdg_decor_system_destroy(display_->xdg_decor);
+    display_->xdg_decor = nullptr;
 
     if (!has_libdecor) {
 #  ifdef WITH_GHOST_X11
@@ -3180,7 +3179,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
               "WAYLAND found but libdecor was not, install libdecor for Wayland support, "
               "falling back to X11\n");
 #  endif
-      display_destroy(d);
+      display_destroy(display_);
       throw std::runtime_error("Wayland: unable to find libdecor!");
     }
   }
@@ -3191,36 +3190,37 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    d->libdecor = new WGL_LibDecor_System;
-    WGL_LibDecor_System &decor = *d->libdecor;
-    decor.context = libdecor_new(d->display, &libdecor_interface);
+    display_->libdecor = new WGL_LibDecor_System;
+    WGL_LibDecor_System &decor = *display_->libdecor;
+    decor.context = libdecor_new(display_->wl_display, &libdecor_interface);
     if (!decor.context) {
-      display_destroy(d);
+      display_destroy(display_);
       throw std::runtime_error("Wayland: unable to create window decorations!");
     }
   }
   else
 #endif
   {
-    WGL_XDG_Decor_System &decor = *d->xdg_decor;
+    WGL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
-      display_destroy(d);
+      display_destroy(display_);
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
     }
   }
 
   /* Register data device per seat for IPC between Wayland clients. */
-  if (d->data_device_manager) {
-    for (GWL_Seat *seat : d->seats) {
-      seat->data_device = wl_data_device_manager_get_data_device(d->data_device_manager,
+  if (display_->data_device_manager) {
+    for (GWL_Seat *seat : display_->seats) {
+      seat->data_device = wl_data_device_manager_get_data_device(display_->data_device_manager,
                                                                  seat->wl_seat);
       wl_data_device_add_listener(seat->data_device, &data_device_listener, seat);
     }
   }
 
-  if (d->tablet_manager) {
-    for (GWL_Seat *seat : d->seats) {
-      seat->tablet_seat = zwp_tablet_manager_v2_get_tablet_seat(d->tablet_manager, seat->wl_seat);
+  if (display_->tablet_manager) {
+    for (GWL_Seat *seat : display_->seats) {
+      seat->tablet_seat = zwp_tablet_manager_v2_get_tablet_seat(display_->tablet_manager,
+                                                                seat->wl_seat);
       zwp_tablet_seat_v2_add_listener(seat->tablet_seat, &tablet_seat_listener, seat);
     }
   }
@@ -3228,7 +3228,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new GWL_Display)
 
 GHOST_SystemWayland::~GHOST_SystemWayland()
 {
-  display_destroy(d);
+  display_destroy(display_);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::init()
@@ -3263,10 +3263,10 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 #endif /* WITH_INPUT_NDOF */
 
   if (waitForEvent) {
-    wl_display_dispatch(d->display);
+    wl_display_dispatch(display_->wl_display);
   }
   else {
-    wl_display_roundtrip(d->display);
+    wl_display_roundtrip(display_->wl_display);
   }
 
   if (getEventManager()->getNumEvents() > 0) {
@@ -3283,11 +3283,11 @@ bool GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*acti
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
 
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
 
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
@@ -3345,10 +3345,10 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
@@ -3360,18 +3360,18 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 
 char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
 {
-  char *clipboard = static_cast<char *>(malloc(selection.size() + 1));
-  memcpy(clipboard, selection.data(), selection.size() + 1);
+  char *clipboard = static_cast<char *>(malloc(clipboard_.size() + 1));
+  memcpy(clipboard, clipboard_.data(), clipboard_.size() + 1);
   return clipboard;
 }
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) const
 {
-  if (UNLIKELY(!d->data_device_manager || d->seats.empty())) {
+  if (UNLIKELY(!display_->data_device_manager || display_->seats.empty())) {
     return;
   }
 
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
 
   std::lock_guard lock{seat->data_source_mutex};
 
@@ -3383,7 +3383,8 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
   data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
   std::memcpy(data_source->buffer_out, buffer, buffer_size);
 
-  data_source->data_source = wl_data_device_manager_create_data_source(d->data_device_manager);
+  data_source->data_source = wl_data_device_manager_create_data_source(
+      display_->data_device_manager);
 
   wl_data_source_add_listener(data_source->data_source, &data_source_listener, seat);
 
@@ -3399,7 +3400,7 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
 
 uint8_t GHOST_SystemWayland::getNumDisplays() const
 {
-  return d ? uint8_t(d->outputs.size()) : 0;
+  return display_ ? uint8_t(display_->outputs.size()) : 0;
 }
 
 static GHOST_TSuccess getCursorPositionClientRelative_impl(
@@ -3441,10 +3442,10 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_
                                                                     int32_t &x,
                                                                     int32_t &y) const
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
   if (!seat_state_pointer || !seat_state_pointer->wl_surface) {
     return GHOST_kFailure;
@@ -3457,20 +3458,20 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindo
                                                                     const int32_t x,
                                                                     const int32_t y)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(window);
   return setCursorPositionClientRelative_impl(seat, win, x, y);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
@@ -3485,10 +3486,10 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
 
   /* Intentionally different from `getCursorPosition` which supports both tablet & pointer.
    * In the case of setting the cursor location, tablets don't support this. */
@@ -3505,8 +3506,8 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
     return;
   }
   /* We assume first output as main. */
-  width = uint32_t(d->outputs[0]->size_native[0]);
-  height = uint32_t(d->outputs[0]->size_native[1]);
+  width = uint32_t(display_->outputs[0]->size_native[0]);
+  height = uint32_t(display_->outputs[0]->size_native[1]);
 }
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
@@ -3514,7 +3515,7 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
   int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
   int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
 
-  for (const GWL_Output *output : d->outputs) {
+  for (const GWL_Output *output : display_->outputs) {
     int32_t xy[2] = {0, 0};
     if (output->has_position_logical) {
       xy[0] = output->position_logical[0];
@@ -3575,10 +3576,10 @@ static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
 GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
 {
   /* Create new off-screen window. */
-  wl_surface *wl_surface = wl_compositor_create_surface(compositor());
+  wl_surface *wl_surface = wl_compositor_create_surface(wl_compositor());
   wl_egl_window *egl_window = wl_surface ? wl_egl_window_create(wl_surface, 1, 1) : nullptr;
 
-  GHOST_Context *context = createOffscreenContext_impl(this, d->display, egl_window);
+  GHOST_Context *context = createOffscreenContext_impl(this, display_->wl_display, egl_window);
 
   if (!context) {
     GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
@@ -3841,7 +3842,7 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor shape)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
   auto cursor_find = cursors.find(shape);
@@ -3849,12 +3850,13 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
                                 cursors.at(GHOST_kStandardCursorDefault) :
                                 (*cursor_find).second;
 
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   GWL_Cursor *c = &seat->cursor;
 
   if (!c->wl_theme) {
     /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
-    c->wl_theme = wl_cursor_theme_load(c->theme_name.c_str(), c->size, d->seats[0]->system->shm());
+    c->wl_theme = wl_cursor_theme_load(
+        c->theme_name.c_str(), c->size, display_->seats[0]->system->wl_shm());
   }
 
   wl_cursor *cursor = wl_cursor_theme_get_cursor(c->wl_theme, cursor_name);
@@ -3901,11 +3903,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
                                                          const int hotY,
                                                          const bool /*canInvertColor*/)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
 
-  GWL_Cursor *cursor = &d->seats[0]->cursor;
+  GWL_Cursor *cursor = &display_->seats[0]->cursor;
 
   if (cursor->custom_data) {
     munmap(cursor->custom_data, cursor->custom_data_size);
@@ -3914,8 +3916,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   }
 
   const int32_t size_xy[2] = {sizex, sizey};
-  wl_buffer *buffer = ghost_wl_buffer_create_for_image(
-      d->shm, size_xy, WL_SHM_FORMAT_ARGB8888, &cursor->custom_data, &cursor->custom_data_size);
+  wl_buffer *buffer = ghost_wl_buffer_create_for_image(display_->wl_shm,
+                                                       size_xy,
+                                                       WL_SHM_FORMAT_ARGB8888,
+                                                       &cursor->custom_data,
+                                                       &cursor->custom_data_size);
   if (buffer == nullptr) {
     return GHOST_kFailure;
   }
@@ -3961,14 +3966,14 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   cursor->wl_image.hotspot_x = uint32_t(hotX);
   cursor->wl_image.hotspot_y = uint32_t(hotY);
 
-  cursor_buffer_set(d->seats[0], buffer);
+  cursor_buffer_set(display_->seats[0], buffer);
 
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
 {
-  GWL_Cursor *cursor = &d->seats[0]->cursor;
+  GWL_Cursor *cursor = &display_->seats[0]->cursor;
   if (cursor->custom_data == nullptr) {
     return GHOST_kFailure;
   }
@@ -3989,11 +3994,11 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(const bool visible)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
 
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   cursor_visible_set(seat, visible, seat->cursor.is_hardware, CURSOR_VISIBLE_ALWAYS_SET);
   return GHOST_kSuccess;
 }
@@ -4013,12 +4018,12 @@ bool GHOST_SystemWayland::supportsWindowPosition()
 
 bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode)
 {
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return false;
   }
 
 #ifdef USE_GNOME_CONFINE_HACK
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
   const bool use_software_confine = seat->use_pointer_software_confine;
 #else
   const bool use_software_confine = false;
@@ -4125,45 +4130,45 @@ void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *wl_surface)
  * Expose some members via methods.
  * \{ */
 
-wl_display *GHOST_SystemWayland::display()
+wl_display *GHOST_SystemWayland::wl_display()
 {
-  return d->display;
+  return display_->wl_display;
 }
 
-wl_compositor *GHOST_SystemWayland::compositor()
+wl_compositor *GHOST_SystemWayland::wl_compositor()
 {
-  return d->compositor;
+  return display_->wl_compositor;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 
 libdecor *GHOST_SystemWayland::libdecor_context()
 {
-  return d->libdecor->context;
+  return display_->libdecor->context;
 }
 
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
 
 xdg_wm_base *GHOST_SystemWayland::xdg_decor_shell()
 {
-  return d->xdg_decor->shell;
+  return display_->xdg_decor->shell;
 }
 
 zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decor_manager()
 {
-  return d->xdg_decor->manager;
+  return display_->xdg_decor->manager;
 }
 
 /* End `xdg_decor`. */
 
 const std::vector<GWL_Output *> &GHOST_SystemWayland::outputs() const
 {
-  return d->outputs;
+  return display_->outputs;
 }
 
-wl_shm *GHOST_SystemWayland::shm() const
+struct wl_shm *GHOST_SystemWayland::wl_shm() const
 {
-  return d->shm;
+  return display_->wl_shm;
 }
 
 /** \} */
@@ -4197,9 +4202,9 @@ GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface)
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
-void GHOST_SystemWayland::selection_set(const std::string &selection)
+void GHOST_SystemWayland::clipboard_set(const std::string &clipboard)
 {
-  this->selection = selection;
+  clipboard_ = clipboard;
 }
 
 void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
@@ -4211,7 +4216,7 @@ void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
   ((void)0);
 
   /* Only clear window surfaces (not cursors, off-screen surfaces etc). */
-  for (GWL_Seat *seat : d->seats) {
+  for (GWL_Seat *seat : display_->seats) {
     SURFACE_CLEAR_PTR(seat->pointer.wl_surface);
     SURFACE_CLEAR_PTR(seat->tablet.wl_surface);
     SURFACE_CLEAR_PTR(seat->keyboard.wl_surface);
@@ -4229,11 +4234,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                  const int scale)
 {
   /* Ignore, if the required protocols are not supported. */
-  if (UNLIKELY(!d->relative_pointer_manager || !d->pointer_constraints)) {
+  if (UNLIKELY(!display_->relative_pointer_manager || !display_->pointer_constraints)) {
     return GHOST_kFailure;
   }
 
-  if (UNLIKELY(d->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
   /* No change, success. */
@@ -4241,7 +4246,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
     return GHOST_kSuccess;
   }
 
-  GWL_Seat *seat = d->seats[0];
+  GWL_Seat *seat = display_->seats[0];
 
 #ifdef USE_GNOME_CONFINE_HACK
   const bool was_software_confine = seat->use_pointer_software_confine;
@@ -4361,11 +4366,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
          * An alternative could be to draw the cursor in software (and hide the real cursor),
          * or just accept a locked cursor on WAYLAND. */
         seat->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-            d->relative_pointer_manager, seat->wl_pointer);
+            display_->relative_pointer_manager, seat->wl_pointer);
         zwp_relative_pointer_v1_add_listener(
             seat->relative_pointer, &relative_pointer_listener, seat);
         seat->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-            d->pointer_constraints,
+            display_->pointer_constraints,
             wl_surface,
             seat->wl_pointer,
             nullptr,
@@ -4383,7 +4388,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
     else if (grab_state_next.use_confine) {
       if (!grab_state_prev.use_confine) {
         seat->confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
-            d->pointer_constraints,
+            display_->pointer_constraints,
             wl_surface,
             seat->wl_pointer,
             nullptr,

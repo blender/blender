@@ -115,9 +115,9 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_changed_update_scale();
 
  private:
-  GHOST_SystemWayland *m_system;
-  struct GWL_Window *w;
-  std::string title;
+  GHOST_SystemWayland *system_;
+  struct GWL_Window *window_;
+  std::string title_;
 
   /**
    * \param type: The type of rendering context create.

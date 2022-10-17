@@ -78,7 +78,7 @@ static void wgl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 }
 
 struct GWL_Window {
-  GHOST_WindowWayland *w = nullptr;
+  GHOST_WindowWayland *ghost_window = nullptr;
   struct wl_surface *wl_surface = nullptr;
   /**
    * Outputs on which the window is currently shown on.
@@ -220,7 +220,7 @@ static void xdg_toplevel_handle_configure(void *data,
 static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
   CLOG_INFO(LOG, 2, "close");
-  static_cast<GWL_Window *>(data)->w->close();
+  static_cast<GWL_Window *>(data)->ghost_window->close();
 }
 
 static const xdg_toplevel_listener toplevel_listener = {
@@ -263,7 +263,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   win->size[1] = win->scale * size_next[1];
 
   wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
-  win->w->notify_size();
+  win->ghost_window->notify_size();
 
   if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
     window_state = LIBDECOR_WINDOW_STATE_NONE;
@@ -273,7 +273,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   win->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
   win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
 
-  win->is_active ? win->w->activate() : win->w->deactivate();
+  win->is_active ? win->ghost_window->activate() : win->ghost_window->deactivate();
 
   state = libdecor_state_new(UNPACK2(size_next));
   libdecor_frame_commit(frame, state, configuration);
@@ -286,7 +286,7 @@ static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
-  static_cast<GWL_Window *>(data)->w->close();
+  static_cast<GWL_Window *>(data)->ghost_window->close();
 }
 
 static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
@@ -294,8 +294,8 @@ static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
   CLOG_INFO(LOG, 2, "commit");
 
   /* We have to swap twice to keep any pop-up menus alive. */
-  static_cast<GWL_Window *>(data)->w->swapBuffers();
-  static_cast<GWL_Window *>(data)->w->swapBuffers();
+  static_cast<GWL_Window *>(data)->ghost_window->swapBuffers();
+  static_cast<GWL_Window *>(data)->ghost_window->swapBuffers();
 }
 
 static struct libdecor_frame_interface libdecor_frame_iface = {
@@ -360,14 +360,14 @@ static void xdg_surface_handle_configure(void *data,
     wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
     win->size_pending[0] = 0;
     win->size_pending[1] = 0;
-    win->w->notify_size();
+    win->ghost_window->notify_size();
   }
 
   if (win->is_active) {
-    win->w->activate();
+    win->ghost_window->activate();
   }
   else {
-    win->w->deactivate();
+    win->ghost_window->deactivate();
   }
 
   xdg_surface_ack_configure(xdg_surface, serial);
@@ -439,7 +439,7 @@ static struct wl_surface_listener wl_surface_listener = {
 
 GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
 {
-  return m_system->hasCursorShape(cursorShape);
+  return system_->hasCursorShape(cursorShape);
 }
 
 GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
@@ -455,20 +455,20 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const bool stereoVisual,
                                          const bool exclusive)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
-      m_system(system),
-      w(new GWL_Window)
+      system_(system),
+      window_(new GWL_Window)
 {
   /* Globally store pointer to window manager. */
   if (!window_manager) {
-    window_manager = m_system->getWindowManager();
+    window_manager = system_->getWindowManager();
   }
 
-  w->w = this;
+  window_->ghost_window = this;
 
-  w->size[0] = int32_t(width);
-  w->size[1] = int32_t(height);
+  window_->size[0] = int32_t(width);
+  window_->size[1] = int32_t(height);
 
-  w->is_dialog = is_dialog;
+  window_->is_dialog = is_dialog;
 
   /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
@@ -479,22 +479,23 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    *
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
-  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1, &w->dpi);
+  window_->scale = outputs_max_scale_or_default(system_->outputs(), 1, &window_->dpi);
 
   /* Window surfaces. */
-  w->wl_surface = wl_compositor_create_surface(m_system->compositor());
-  ghost_wl_surface_tag(w->wl_surface);
+  window_->wl_surface = wl_compositor_create_surface(system_->wl_compositor());
+  ghost_wl_surface_tag(window_->wl_surface);
 
-  wl_surface_set_buffer_scale(w->wl_surface, w->scale);
+  wl_surface_set_buffer_scale(window_->wl_surface, window_->scale);
 
-  wl_surface_add_listener(w->wl_surface, &wl_surface_listener, this);
+  wl_surface_add_listener(window_->wl_surface, &wl_surface_listener, this);
 
-  w->egl_window = wl_egl_window_create(w->wl_surface, int(w->size[0]), int(w->size[1]));
+  window_->egl_window = wl_egl_window_create(
+      window_->wl_surface, int(window_->size[0]), int(window_->size[1]));
 
   /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
    * This has the advantage that the size limit is the same when moving the window between monitors
    * with different scales set. If it was important to limit in pixels it could be re-calculated
-   * when the `w->scale` changed. */
+   * when the `window_->scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
   /* This value is expected to match the base name of the `.desktop` file. see T101805.
@@ -508,68 +509,68 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    w->libdecor = new WGL_LibDecor_Window;
-    WGL_LibDecor_Window &decor = *w->libdecor;
+    window_->libdecor = new WGL_LibDecor_Window;
+    WGL_LibDecor_Window &decor = *window_->libdecor;
 
     /* create window decorations */
     decor.frame = libdecor_decorate(
-        m_system->libdecor_context(), w->wl_surface, &libdecor_frame_iface, w);
-    libdecor_frame_map(w->libdecor->frame);
+        system_->libdecor_context(), window_->wl_surface, &libdecor_frame_iface, window_);
+    libdecor_frame_map(window_->libdecor->frame);
 
     libdecor_frame_set_min_content_size(decor.frame, UNPACK2(size_min));
     libdecor_frame_set_app_id(decor.frame, xdg_app_id);
 
     if (parentWindow) {
       WGL_LibDecor_Window &decor_parent =
-          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->w->libdecor;
+          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->libdecor;
       libdecor_frame_set_parent(decor.frame, decor_parent.frame);
     }
   }
   else
 #endif
   {
-    w->xdg_decor = new WGL_XDG_Decor_Window;
-    WGL_XDG_Decor_Window &decor = *w->xdg_decor;
-    decor.surface = xdg_wm_base_get_xdg_surface(m_system->xdg_decor_shell(), w->wl_surface);
+    window_->xdg_decor = new WGL_XDG_Decor_Window;
+    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    decor.surface = xdg_wm_base_get_xdg_surface(system_->xdg_decor_shell(), window_->wl_surface);
     decor.toplevel = xdg_surface_get_toplevel(decor.surface);
 
     xdg_toplevel_set_min_size(decor.toplevel, UNPACK2(size_min));
     xdg_toplevel_set_app_id(decor.toplevel, xdg_app_id);
 
-    if (m_system->xdg_decor_manager()) {
+    if (system_->xdg_decor_manager()) {
       decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
-          m_system->xdg_decor_manager(), decor.toplevel);
+          system_->xdg_decor_manager(), decor.toplevel);
       zxdg_toplevel_decoration_v1_add_listener(
-          decor.toplevel_decor, &toplevel_decoration_v1_listener, w);
+          decor.toplevel_decor, &toplevel_decoration_v1_listener, window_);
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
                                            ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
     }
 
-    xdg_surface_add_listener(decor.surface, &xdg_surface_listener, w);
-    xdg_toplevel_add_listener(decor.toplevel, &toplevel_listener, w);
+    xdg_surface_add_listener(decor.surface, &xdg_surface_listener, window_);
+    xdg_toplevel_add_listener(decor.toplevel, &toplevel_listener, window_);
 
     if (parentWindow && is_dialog) {
       WGL_XDG_Decor_Window &decor_parent =
-          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->w->xdg_decor;
+          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->xdg_decor;
       xdg_toplevel_set_parent(decor.toplevel, decor_parent.toplevel);
     }
   }
 
   setTitle(title);
 
-  wl_surface_set_user_data(w->wl_surface, this);
+  wl_surface_set_user_data(window_->wl_surface, this);
 
   /* Call top-level callbacks. */
-  wl_surface_commit(w->wl_surface);
-  wl_display_roundtrip(m_system->display());
+  wl_surface_commit(window_->wl_surface);
+  wl_display_roundtrip(system_->wl_display());
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *w->libdecor;
+    WGL_LibDecor_Window &decor = *window_->libdecor;
     /* It's important not to return until the window is configured or
      * calls to `setState` from Blender will crash `libdecor`. */
     while (!decor.configured) {
-      if (libdecor_dispatch(m_system->libdecor_context(), 0) < 0) {
+      if (libdecor_dispatch(system_->libdecor_context(), 0) < 0) {
         break;
       }
     }
@@ -607,13 +608,13 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
     }
     bounds = &bounds_buf;
   }
-  if (m_system->window_cursor_grab_set(mode,
-                                       m_cursorGrab,
-                                       m_cursorGrabInitPos,
-                                       bounds,
-                                       m_cursorGrabAxis,
-                                       w->wl_surface,
-                                       w->scale)) {
+  if (system_->window_cursor_grab_set(mode,
+                                      m_cursorGrab,
+                                      m_cursorGrabInitPos,
+                                      bounds,
+                                      m_cursorGrabAxis,
+                                      window_->wl_surface,
+                                      window_->scale)) {
     return GHOST_kSuccess;
   }
   return GHOST_kFailure;
@@ -621,47 +622,47 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
-  const GHOST_TSuccess ok = m_system->setCursorShape(shape);
+  const GHOST_TSuccess ok = system_->setCursorShape(shape);
   m_cursorShape = (ok == GHOST_kSuccess) ? shape : GHOST_kStandardCursorDefault;
   return ok;
 }
 
 bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
 {
-  return m_system->getCursorGrabUseSoftwareDisplay(m_cursorGrab);
+  return system_->getCursorGrabUseSoftwareDisplay(m_cursorGrab);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
     uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
-  return m_system->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
+  return system_->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
 {
-  return m_system->getCursorBitmap(bitmap);
+  return system_->getCursorBitmap(bitmap);
 }
 
 void GHOST_WindowWayland::setTitle(const char *title)
 {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *w->libdecor;
+    WGL_LibDecor_Window &decor = *window_->libdecor;
     libdecor_frame_set_title(decor.frame, title);
   }
   else
 #endif
   {
-    WGL_XDG_Decor_Window &decor = *w->xdg_decor;
+    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
     xdg_toplevel_set_title(decor.toplevel, title);
   }
 
-  this->title = title;
+  title_ = title;
 }
 
 std::string GHOST_WindowWayland::getTitle() const
 {
-  return this->title.empty() ? "untitled" : this->title;
+  return title_.empty() ? "untitled" : title_;
 }
 
 void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
@@ -671,29 +672,29 @@ void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
 
 void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
 {
-  bounds.set(0, 0, UNPACK2(w->size));
+  bounds.set(0, 0, UNPACK2(window_->size));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientWidth(const uint32_t width)
 {
-  return setClientSize(width, uint32_t(w->size[1]));
+  return setClientSize(width, uint32_t(window_->size[1]));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientHeight(const uint32_t height)
 {
-  return setClientSize(uint32_t(w->size[0]), height);
+  return setClientSize(uint32_t(window_->size[0]), height);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientSize(const uint32_t width, const uint32_t height)
 {
-  wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
+  wl_egl_window_resize(window_->egl_window, int(width), int(height), 0, 0);
 
   /* Override any pending size that may be set. */
-  w->size_pending[0] = 0;
-  w->size_pending[1] = 0;
+  window_->size_pending[0] = 0;
+  window_->size_pending[1] = 0;
 
-  w->size[0] = width;
-  w->size[1] = height;
+  window_->size[0] = width;
+  window_->size[1] = height;
 
   notify_size();
 
@@ -722,40 +723,40 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 {
   releaseNativeHandles();
 
-  wl_egl_window_destroy(w->egl_window);
+  wl_egl_window_destroy(window_->egl_window);
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    wgl_libdecor_window_destroy(w->libdecor);
+    wgl_libdecor_window_destroy(window_->libdecor);
   }
   else
 #endif
   {
-    wgl_xdg_decor_window_destroy(w->xdg_decor);
+    wgl_xdg_decor_window_destroy(window_->xdg_decor);
   }
 
   /* Clear any pointers to this window. This is needed because there are no guarantees
    * that flushing the display will the "leave" handlers before handling events. */
-  m_system->window_surface_unref(w->wl_surface);
+  system_->window_surface_unref(window_->wl_surface);
 
-  wl_surface_destroy(w->wl_surface);
+  wl_surface_destroy(window_->wl_surface);
 
   /* NOTE(@campbellbarton): Flushing will often run the appropriate handlers event
    * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
    * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
-  wl_display_flush(m_system->display());
+  wl_display_flush(system_->wl_display());
 
-  delete w;
+  delete window_;
 }
 
 uint16_t GHOST_WindowWayland::getDPIHint()
 {
-  return w->dpi;
+  return window_->dpi;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
 {
-  return m_system->setCursorVisibility(visible);
+  return system_->setCursorVisibility(visible);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
@@ -767,24 +768,24 @@ GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
         case GHOST_kWindowStateMaximized: {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
           if (use_libdecor) {
-            libdecor_frame_unset_maximized(w->libdecor->frame);
+            libdecor_frame_unset_maximized(window_->libdecor->frame);
           }
           else
 #endif
           {
-            xdg_toplevel_unset_maximized(w->xdg_decor->toplevel);
+            xdg_toplevel_unset_maximized(window_->xdg_decor->toplevel);
           }
           break;
         }
         case GHOST_kWindowStateFullScreen: {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
           if (use_libdecor) {
-            libdecor_frame_unset_fullscreen(w->libdecor->frame);
+            libdecor_frame_unset_fullscreen(window_->libdecor->frame);
           }
           else
 #endif
           {
-            xdg_toplevel_unset_fullscreen(w->xdg_decor->toplevel);
+            xdg_toplevel_unset_fullscreen(window_->xdg_decor->toplevel);
           }
           break;
         }
@@ -796,36 +797,36 @@ GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
     case GHOST_kWindowStateMaximized: {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
       if (use_libdecor) {
-        libdecor_frame_set_maximized(w->libdecor->frame);
+        libdecor_frame_set_maximized(window_->libdecor->frame);
       }
       else
 #endif
       {
-        xdg_toplevel_set_maximized(w->xdg_decor->toplevel);
+        xdg_toplevel_set_maximized(window_->xdg_decor->toplevel);
       }
       break;
     }
     case GHOST_kWindowStateMinimized: {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
       if (use_libdecor) {
-        libdecor_frame_set_minimized(w->libdecor->frame);
+        libdecor_frame_set_minimized(window_->libdecor->frame);
       }
       else
 #endif
       {
-        xdg_toplevel_set_minimized(w->xdg_decor->toplevel);
+        xdg_toplevel_set_minimized(window_->xdg_decor->toplevel);
       }
       break;
     }
     case GHOST_kWindowStateFullScreen: {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
       if (use_libdecor) {
-        libdecor_frame_set_fullscreen(w->libdecor->frame, nullptr);
+        libdecor_frame_set_fullscreen(window_->libdecor->frame, nullptr);
       }
       else
 #endif
       {
-        xdg_toplevel_set_fullscreen(w->xdg_decor->toplevel, nullptr);
+        xdg_toplevel_set_fullscreen(window_->xdg_decor->toplevel, nullptr);
       }
       break;
     }
@@ -838,10 +839,10 @@ GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
 
 GHOST_TWindowState GHOST_WindowWayland::getState() const
 {
-  if (w->is_fullscreen) {
+  if (window_->is_fullscreen) {
     return GHOST_kWindowStateFullScreen;
   }
-  if (w->is_maximised) {
+  if (window_->is_maximised) {
     return GHOST_kWindowStateMaximized;
   }
   return GHOST_kWindowStateNormal;
@@ -861,12 +862,12 @@ GHOST_TSuccess GHOST_WindowWayland::beginFullScreen() const
 {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    libdecor_frame_set_fullscreen(w->libdecor->frame, nullptr);
+    libdecor_frame_set_fullscreen(window_->libdecor->frame, nullptr);
   }
   else
 #endif
   {
-    xdg_toplevel_set_fullscreen(w->xdg_decor->toplevel, nullptr);
+    xdg_toplevel_set_fullscreen(window_->xdg_decor->toplevel, nullptr);
   }
 
   return GHOST_kSuccess;
@@ -876,19 +877,19 @@ GHOST_TSuccess GHOST_WindowWayland::endFullScreen() const
 {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    libdecor_frame_unset_fullscreen(w->libdecor->frame);
+    libdecor_frame_unset_fullscreen(window_->libdecor->frame);
   }
   else
 #endif
   {
-    xdg_toplevel_unset_fullscreen(w->xdg_decor->toplevel);
+    xdg_toplevel_unset_fullscreen(window_->xdg_decor->toplevel);
   }
   return GHOST_kSuccess;
 }
 
 bool GHOST_WindowWayland::isDialog() const
 {
-  return w->is_dialog;
+  return window_->is_dialog;
 }
 
 #ifdef GHOST_OPENGL_ALPHA
@@ -897,9 +898,9 @@ void GHOST_WindowWayland::setOpaque() const
   struct wl_region *region;
 
   /* Make the window opaque. */
-  region = wl_compositor_create_region(m_system->compositor());
-  wl_region_add(region, 0, 0, UNPACK2(w->size));
-  wl_surface_set_opaque_region(w->surface, region);
+  region = wl_compositor_create_region(system_->compositor());
+  wl_region_add(region, 0, 0, UNPACK2(window_->size));
+  wl_surface_set_opaque_region(window_->surface, region);
   wl_region_destroy(region);
 }
 #endif
@@ -917,10 +918,10 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
       break;
     case GHOST_kDrawingContextTypeOpenGL:
       for (int minor = 6; minor >= 0; --minor) {
-        context = new GHOST_ContextEGL(this->m_system,
+        context = new GHOST_ContextEGL(system_,
                                        m_wantStereoVisual,
-                                       EGLNativeWindowType(w->egl_window),
-                                       EGLNativeDisplayType(m_system->display()),
+                                       EGLNativeWindowType(window_->egl_window),
+                                       EGLNativeDisplayType(system_->wl_display()),
                                        EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
                                        4,
                                        minor,
@@ -933,10 +934,10 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
         }
         delete context;
       }
-      context = new GHOST_ContextEGL(this->m_system,
+      context = new GHOST_ContextEGL(system_,
                                      m_wantStereoVisual,
-                                     EGLNativeWindowType(w->egl_window),
-                                     EGLNativeDisplayType(m_system->display()),
+                                     EGLNativeWindowType(window_->egl_window),
+                                     EGLNativeDisplayType(system_->wl_display()),
                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
                                      3,
                                      3,
@@ -958,22 +959,22 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
 
 uint16_t GHOST_WindowWayland::dpi() const
 {
-  return w->dpi;
+  return window_->dpi;
 }
 
 int GHOST_WindowWayland::scale() const
 {
-  return w->scale;
+  return window_->scale;
 }
 
 wl_surface *GHOST_WindowWayland::wl_surface() const
 {
-  return w->wl_surface;
+  return window_->wl_surface;
 }
 
 const std::vector<GWL_Output *> &GHOST_WindowWayland::outputs()
 {
-  return w->outputs;
+  return window_->outputs;
 }
 
 /** \} */
@@ -986,24 +987,24 @@ const std::vector<GWL_Output *> &GHOST_WindowWayland::outputs()
 
 GHOST_TSuccess GHOST_WindowWayland::close()
 {
-  return m_system->pushEvent(
-      new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowClose, this));
+  return system_->pushEvent(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowClose, this));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::activate()
 {
-  if (m_system->getWindowManager()->setActiveWindow(this) == GHOST_kFailure) {
+  if (system_->getWindowManager()->setActiveWindow(this) == GHOST_kFailure) {
     return GHOST_kFailure;
   }
-  return m_system->pushEvent(
-      new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowActivate, this));
+  return system_->pushEvent(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowActivate, this));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::deactivate()
 {
-  m_system->getWindowManager()->setWindowInactive(this);
-  return m_system->pushEvent(
-      new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowDeactivate, this));
+  system_->getWindowManager()->setWindowInactive(this);
+  return system_->pushEvent(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowDeactivate, this));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::notify_size()
@@ -1012,8 +1013,8 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
   setOpaque();
 #endif
 
-  return m_system->pushEvent(
-      new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowSize, this));
+  return system_->pushEvent(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowSize, this));
 }
 
 /** \} */
@@ -1030,30 +1031,29 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
   uint32_t dpi_next;
-  const int scale_next = outputs_max_scale_or_default(this->outputs(), 0, &dpi_next);
+  const int scale_next = outputs_max_scale_or_default(outputs(), 0, &dpi_next);
   if (UNLIKELY(scale_next == 0)) {
     return false;
   }
 
-  GWL_Window *win = this->w;
-  const uint32_t dpi_curr = win->dpi;
-  const int scale_curr = win->scale;
+  const uint32_t dpi_curr = window_->dpi;
+  const int scale_curr = window_->scale;
   bool changed = false;
 
   if (scale_next != scale_curr) {
     /* Unlikely but possible there is a pending size change is set. */
-    win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
-    win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+    window_->size_pending[0] = (window_->size_pending[0] / scale_curr) * scale_next;
+    window_->size_pending[1] = (window_->size_pending[1] / scale_curr) * scale_next;
 
-    win->scale = scale_next;
-    wl_surface_set_buffer_scale(w->wl_surface, scale_next);
+    window_->scale = scale_next;
+    wl_surface_set_buffer_scale(window_->wl_surface, scale_next);
     changed = true;
   }
 
   if (dpi_next != dpi_curr) {
     /* Using the real DPI will cause wrong scaling of the UI
      * use a multiplier for the default DPI as workaround. */
-    win->dpi = dpi_next;
+    window_->dpi = dpi_next;
     changed = true;
 
     /* As this is a low-level function, we might want adding this event to be optional,
@@ -1068,7 +1068,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
 bool GHOST_WindowWayland::outputs_enter(GWL_Output *output)
 {
-  std::vector<GWL_Output *> &outputs = w->outputs;
+  std::vector<GWL_Output *> &outputs = window_->outputs;
   auto it = std::find(outputs.begin(), outputs.end(), output);
   if (it != outputs.end()) {
     return false;
@@ -1079,7 +1079,7 @@ bool GHOST_WindowWayland::outputs_enter(GWL_Output *output)
 
 bool GHOST_WindowWayland::outputs_leave(GWL_Output *output)
 {
-  std::vector<GWL_Output *> &outputs = w->outputs;
+  std::vector<GWL_Output *> &outputs = window_->outputs;
   auto it = std::find(outputs.begin(), outputs.end(), output);
   if (it == outputs.end()) {
     return false;
