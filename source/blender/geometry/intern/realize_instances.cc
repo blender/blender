@@ -859,6 +859,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
       }
     }
   }
+  info.create_material_index_attribute |= info.materials.size() > 1;
   info.realize_info.reinitialize(info.order.size());
   for (const int mesh_index : info.realize_info.index_range()) {
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
