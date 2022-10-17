@@ -27,6 +27,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph.h"
@@ -2107,6 +2108,11 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   }
 
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
+    BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
 
   /* Do nothing when the mesh has 0 vertices. */
@@ -2119,11 +2125,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     Mesh *mesh = ob->data;
     ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
-  }
-
-  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
-    BKE_sculpt_mask_layers_ensure(ob, mmd);
   }
 
   /* Face Set operations are not supported in dyntopo. */

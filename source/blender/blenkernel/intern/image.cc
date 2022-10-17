@@ -297,7 +297,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       /* Put the filepath back together using the new directory and the original file name. */
       char new_dir[FILE_MAXDIR];
       BLI_split_dir_part(temp_path, new_dir, sizeof(new_dir));
-      BLI_join_dirfile(ima->filepath, sizeof(ima->filepath), new_dir, orig_file);
+      BLI_path_join(ima->filepath, sizeof(ima->filepath), new_dir, orig_file);
     }
   }
   else {
@@ -3331,7 +3331,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   MEM_SAFE_FREE(udim_pattern);
 
   if (all_valid_udim && min_udim <= IMA_UDIM_MAX) {
-    BLI_join_dirfile(filepath, FILE_MAX, dirname, filename);
+    BLI_path_join(filepath, FILE_MAX, dirname, filename);
 
     *r_tile_start = min_udim;
     *r_tile_range = max_udim - min_udim + 1;

@@ -5,6 +5,8 @@
 #ifndef __UTIL_SSEF_H__
 #define __UTIL_SSEF_H__
 
+#include <math.h>
+
 #include "util/ssei.h"
 
 CCL_NAMESPACE_BEGIN
@@ -521,7 +523,7 @@ __forceinline const ssef round_zero(const ssef &a)
 __forceinline const ssef floor(const ssef &a)
 {
 #    ifdef __KERNEL_NEON__
-  return vrndnq_f32(a);
+  return vrndmq_f32(a);
 #    else
   return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF);
 #    endif
@@ -534,6 +536,12 @@ __forceinline const ssef ceil(const ssef &a)
   return _mm_round_ps(a, _MM_FROUND_TO_POS_INF);
 #    endif
 }
+#  else
+/* Non-SSE4.1 fallback, needed for floorfrac. */
+__forceinline const ssef floor(const ssef &a)
+{
+  return _mm_set_ps(floorf(a.f[3]), floorf(a.f[2]), floorf(a.f[1]), floorf(a.f[0]));
+}
 #  endif
 
 __forceinline ssei truncatei(const ssef &a)
@@ -541,20 +549,11 @@ __forceinline ssei truncatei(const ssef &a)
   return _mm_cvttps_epi32(a.m128);
 }
 
-/* This is about 25% faster than straightforward floor to integer conversion
- * due to better pipelining.
- *
- * Unsaturated add 0xffffffff (a < 0) is the same as subtract -1.
- */
-__forceinline ssei floori(const ssef &a)
-{
-  return truncatei(a) + cast((a < 0.0f).m128);
-}
-
 __forceinline ssef floorfrac(const ssef &x, ssei *i)
 {
-  *i = floori(x);
-  return x - ssef(*i);
+  ssef f = floor(x);
+  *i = truncatei(f);
+  return x - f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

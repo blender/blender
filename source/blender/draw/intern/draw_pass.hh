@@ -734,7 +734,7 @@ template<class T> inline void PassBase<T>::state_set(DRWState state)
 template<class T>
 inline void PassBase<T>::state_stencil(uint8_t write_mask, uint8_t reference, uint8_t compare_mask)
 {
-  create_command(Type::StencilSet).stencil_set = {write_mask, reference, compare_mask};
+  create_command(Type::StencilSet).stencil_set = {write_mask, compare_mask, reference};
 }
 
 template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)

@@ -560,16 +560,7 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *me)
     return false;
   }
 
-  if (object->sculpt && object->sculpt->pbvh) {
-    if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh)) {
-      return false;
-    }
-
-    if (BKE_pbvh_is_drawing(object->sculpt->pbvh) &&
-        BKE_pbvh_draw_cache_invalid(object->sculpt->pbvh)) {
-      return false;
-    }
-  }
+  /* Note: PBVH draw data should not be checked here. */
 
   if (cache->is_editmode != (me->edit_mesh != nullptr)) {
     return false;
@@ -1443,7 +1434,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
       }
     }
 
-
     /* Verify that all surface batches have needed attribute layers.
      */
     /* TODO(fclem): We could be a bit smarter here and only do it per
@@ -1486,7 +1476,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     mesh_cd_layers_type_merge(&cache->cd_used_over_time, cache->cd_needed);
     mesh_cd_layers_type_clear(&cache->cd_needed);
 
-    drw_attributes_merge(&cache->attr_used_over_time, &cache->attr_needed, me->runtime->render_mutex);
+    drw_attributes_merge(
+        &cache->attr_used_over_time, &cache->attr_needed, me->runtime->render_mutex);
     drw_attributes_clear(&cache->attr_needed);
   }
 

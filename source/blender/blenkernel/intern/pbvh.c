@@ -39,8 +39,10 @@
 
 #define LEAF_LIMIT 10000
 
-//#define PERFCNTRS
+/* Uncomment to test that faces are only assigned to one PBVHNode */
+//#define VALIDATE_UNIQUE_NODE_FACES
 
+//#define PERFCNTRS
 #define STACK_FIXED_DEPTH 100
 
 typedef struct PBVHStack {
@@ -422,6 +424,56 @@ static bool leaf_needs_material_split(PBVH *pbvh, int offset, int count)
   return false;
 }
 
+static int adjust_partition_faces(PBVH *pbvh, int offset, int mid, int count)
+{
+  int poly = pbvh->looptri[pbvh->prim_indices[mid]].poly;
+
+  /* Scan backwards. */
+  while (mid > offset + 2) { /* First node should have at least 1 primitive */
+    if (pbvh->looptri[pbvh->prim_indices[mid - 1]].poly != poly) {
+      return mid;
+    }
+
+    mid--;
+  }
+
+  /* If that didn't work try scanning forward. */
+  while (mid < pbvh->totprim + count) {
+    if (pbvh->looptri[pbvh->prim_indices[mid]].poly != poly) {
+      break;
+    }
+
+    mid++;
+  }
+
+  return mid;
+}
+
+static int adjust_partition_grids(PBVH *pbvh, int offset, int mid, int count)
+{
+  int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]);
+
+  /* Scan backwards. */
+  while (mid > offset + 2) { /* First node should have at least 1 primitive */
+    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid - 1]) != poly) {
+      return mid;
+    }
+
+    mid--;
+  }
+
+  /* If that didn't work try scanning forward. */
+  while (mid < pbvh->totprim + count) {
+    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]) != poly) {
+      break;
+    }
+
+    mid++;
+  }
+
+  return mid;
+}
+
 /* Recursively build a node in the tree
  *
  * vb is the voxel box around all of the primitives contained in
@@ -476,6 +528,13 @@ static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int off
   else {
     /* Partition primitives by material */
     end = partition_indices_material(pbvh, offset, offset + count - 1);
+  }
+
+  if (pbvh->header.type == PBVH_FACES) {
+    end = adjust_partition_faces(pbvh, offset, end, count);
+  }
+  else {
+    end = adjust_partition_grids(pbvh, offset, end, count);
   }
 
   /* Build children */
@@ -587,6 +646,73 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   }
 }
 
+#ifdef VALIDATE_UNIQUE_NODE_FACES
+static void pbvh_validate_node_prims(PBVH *pbvh)
+{
+  int totface = 0;
+
+  if (pbvh->header.type == PBVH_BMESH) {
+    return;
+  }
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    for (int j = 0; j < node->totprim; j++) {
+      int poly;
+
+      if (pbvh->header.type == PBVH_FACES) {
+        poly = pbvh->looptri[node->prim_indices[j]].poly;
+      }
+      else {
+        poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
+      }
+
+      totface = max_ii(totface, poly + 1);
+    }
+  }
+
+  int *facemap = (int *)MEM_malloc_arrayN(totface, sizeof(*facemap), __func__);
+
+  for (int i = 0; i < totface; i++) {
+    facemap[i] = -1;
+  }
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    for (int j = 0; j < node->totprim; j++) {
+      int poly;
+
+      if (pbvh->header.type == PBVH_FACES) {
+        poly = pbvh->looptri[node->prim_indices[j]].poly;
+      }
+      else {
+        poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
+      }
+
+      if (facemap[poly] != -1 && facemap[poly] != i) {
+        printf("%s: error: face spanned multiple nodes (old: %d new: %d)\n",
+               __func__,
+               facemap[poly],
+               i);
+      }
+
+      facemap[poly] = i;
+    }
+  }
+  MEM_SAFE_FREE(facemap);
+}
+#endif
+
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
                          const MPoly *mpoly,
@@ -645,6 +771,32 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
+  /* Ensure all primitives belonging to the same base face
+   * have the same bounds. This is needed to prevent them
+   * from being swapped away from each other inside the partition
+   * array.
+   */
+  for (int i = 0; i < looptri_num; i++) {
+    const MLoopTri *lt = &looptri[i];
+    int poly = lt->poly;
+    BBC *bbc = prim_bbc + i;
+    int j = i + 1;
+
+    while (j < looptri_num && looptri[j].poly == poly) {
+      BBC *bbc2 = prim_bbc + j;
+
+      BB_expand((BB *)bbc, bbc2->bmin);
+      BB_expand((BB *)bbc, bbc2->bmax);
+      j++;
+    }
+
+    j = i + 1;
+    while (j < looptri_num && looptri[j].poly == poly) {
+      prim_bbc[j] = prim_bbc[i];
+      j++;
+    }
+  }
+
   if (looptri_num) {
     pbvh_build(pbvh, &cb, prim_bbc, looptri_num);
   }
@@ -655,6 +807,10 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   memset(pbvh->vert_bitmap, 0, sizeof(bool) * totvert);
 
   BKE_pbvh_update_active_vcol(pbvh, mesh);
+
+#ifdef VALIDATE_UNIQUE_NODE_FACES
+  pbvh_validate_node_prims(pbvh);
+#endif
 }
 
 void BKE_pbvh_build_grids(PBVH *pbvh,
@@ -664,7 +820,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           DMFlagMat *flagmats,
                           BLI_bitmap **grid_hidden,
-                          Mesh *me)
+                          Mesh *me,
+                          SubdivCCG *subdiv_ccg)
 {
   const int gridsize = key->grid_size;
 
@@ -675,6 +832,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->totgrid = totgrid;
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
+  pbvh->subdiv_ccg = subdiv_ccg;
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
 
   /* We need the base mesh attribute layout for PBVH draw. */
@@ -706,11 +864,40 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
+  /* Ensure all primitives belonging to the same base face
+   * have the same bounds.  This is needed to prevent them
+   * from being swapped away from each other inside the partition
+   * array.
+   */
+  for (int i = 0; i < totgrid; i++) {
+    int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, i);
+
+    BBC *bbc = prim_bbc + i;
+    int j = i + 1;
+
+    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
+      BBC *bbc2 = prim_bbc + j;
+
+      BB_expand((BB *)bbc, bbc2->bmin);
+      BB_expand((BB *)bbc, bbc2->bmax);
+      j++;
+    }
+
+    j = i + 1;
+    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
+      prim_bbc[j] = prim_bbc[i];
+      j++;
+    }
+  }
+
   if (totgrid) {
     pbvh_build(pbvh, &cb, prim_bbc, totgrid);
   }
 
   MEM_freeN(prim_bbc);
+#ifdef VALIDATE_UNIQUE_NODE_FACES
+  pbvh_validate_node_prims(pbvh);
+#endif
 }
 
 PBVH *BKE_pbvh_new(PBVHType type)
@@ -719,6 +906,11 @@ PBVH *BKE_pbvh_new(PBVHType type)
   pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
   pbvh->header.type = type;
+
+  /* Initialize this to true, instead of waiting for a draw engine
+   * to set it.  Prevents a crash in draw manager instancing code.
+   */
+  pbvh->is_drawing = true;
   return pbvh;
 }
 
@@ -2872,9 +3064,14 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
   }
 }
 
-void BKE_pbvh_grids_update(
-    PBVH *pbvh, CCGElem **grids, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
+void BKE_pbvh_grids_update(PBVH *pbvh,
+                           CCGElem **grids,
+                           void **gridfaces,
+                           DMFlagMat *flagmats,
+                           BLI_bitmap **grid_hidden,
+                           CCGKey *key)
 {
+  pbvh->gridkey = *key;
   pbvh->grids = grids;
   pbvh->gridfaces = gridfaces;
 

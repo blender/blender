@@ -332,7 +332,7 @@ typedef struct SculptThreadedTaskData {
   int mask_init_seed;
 
   ThreadMutex mutex;
-
+  int iteration;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/

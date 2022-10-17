@@ -838,12 +838,18 @@ class VIEW3D_HT_header(Header):
                         text="Guides",
                     )
 
-            layout.separator_spacer()
+        elif object_mode == 'SCULPT':
+            layout.popover(
+                panel="VIEW3D_PT_sculpt_automasking",
+                text="",
+                icon="MOD_MASK"
+            )
+
         else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
 
-            layout.separator_spacer()
+        layout.separator_spacer()
 
         # Viewport Settings
         layout.popover(
@@ -7680,6 +7686,77 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
         )
 
 
+class VIEW3D_PT_sculpt_automasking(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Auto-Masking"
+    bl_ui_units_x = 10
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        layout.label(text="Auto-Masking")
+
+        col = layout.column(align=True)
+        col.prop(sculpt, "use_automasking_topology", text="Topology")
+        col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
+
+        col.separator()
+
+        col = layout.column(align=True)
+        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
+        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+
+        if sculpt.use_automasking_boundary_edges or sculpt.use_automasking_boundary_face_sets:
+            col.prop(sculpt.brush, "automasking_boundary_edges_propagation_steps")
+
+        col.separator()
+
+        col = layout.column(align=True)
+        row = col.row()
+        row.prop(sculpt, "use_automasking_cavity", text="Cavity")
+
+        is_cavity_active = sculpt.use_automasking_cavity or sculpt.use_automasking_cavity_inverted
+
+        if is_cavity_active:
+            row.operator("sculpt.mask_from_cavity", text="Create Mask")
+
+        col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (inverted)")
+
+        if is_cavity_active:
+            col = layout.column(align=True)
+            col.prop(sculpt, "automasking_cavity_factor", text="Factor")
+            col.prop(sculpt, "automasking_cavity_blur_steps", text="Blur")
+
+            col = layout.column()
+            col.prop(sculpt, "use_automasking_custom_cavity_curve", text="Custom Curve")
+
+            if sculpt.use_automasking_custom_cavity_curve:
+                col.template_curve_mapping(sculpt, "automasking_cavity_curve")
+
+        col.separator()
+
+        col = layout.column(align=True)
+        col.prop(sculpt, "use_automasking_view_normal", text="View Normal")
+
+        if sculpt.use_automasking_view_normal:
+            col.prop(sculpt, "use_automasking_view_occlusion", text="Occlusion")
+            subcol = col.column(align=True)
+            subcol.active = not sculpt.use_automasking_view_occlusion
+            subcol.prop(sculpt, "automasking_view_normal_limit", text="Limit")
+            subcol.prop(sculpt, "automasking_view_normal_falloff", text="Falloff")
+
+        col = layout.column()
+        col.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
+
+        if sculpt.use_automasking_start_normal:
+            col = layout.column(align=True)
+            col.prop(sculpt, "automasking_start_normal_limit", text="Limit")
+            col.prop(sculpt, "automasking_start_normal_falloff", text="Falloff")
+
+
 class VIEW3D_PT_sculpt_context_menu(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
@@ -8070,6 +8147,7 @@ classes = (
     VIEW3D_PT_gpencil_sculpt_context_menu,
     VIEW3D_PT_gpencil_weight_context_menu,
     VIEW3D_PT_gpencil_draw_context_menu,
+    VIEW3D_PT_sculpt_automasking,
     VIEW3D_PT_sculpt_context_menu,
     TOPBAR_PT_gpencil_materials,
     TOPBAR_PT_gpencil_vertexcolor,

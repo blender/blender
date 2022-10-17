@@ -544,10 +544,10 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   ARegion *region = CTX_wm_region(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
-  BLI_join_dirfile(orgname, sizeof(orgname), params->dir, oldname);
+  BLI_path_join(orgname, sizeof(orgname), params->dir, oldname);
   BLI_strncpy(filename, params->renamefile, sizeof(filename));
   BLI_filename_make_safe(filename);
-  BLI_join_dirfile(newname, sizeof(newname), params->dir, filename);
+  BLI_path_join(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {
     if (!BLI_exists(newname)) {
@@ -952,7 +952,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     file = filelist_file(files, i);
     file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
 
-    BLI_join_dirfile(path, sizeof(path), root, file->relpath);
+    BLI_path_join(path, sizeof(path), root, file->relpath);
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
       if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||

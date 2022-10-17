@@ -31,6 +31,7 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
@@ -146,7 +147,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   value = RNA_float_get(op->ptr, "value");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-  BKE_sculpt_mask_layers_ensure(ob, mmd);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
   pbvh = ob->sculpt->pbvh;
@@ -861,7 +862,9 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
   BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateMask);
 }
 
-static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext, wmOperator *op)
+static void sculpt_gesture_init_mask_properties(bContext *C,
+                                                SculptGestureContext *sgcontext,
+                                                wmOperator *op)
 {
   sgcontext->operation = MEM_callocN(sizeof(SculptGestureMaskOperation), "Mask Operation");
 
@@ -869,7 +872,8 @@ static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext,
 
   Object *object = sgcontext->vc.obact;
   MultiresModifierData *mmd = BKE_sculpt_multires_active(sgcontext->vc.scene, object);
-  BKE_sculpt_mask_layers_ensure(sgcontext->vc.obact, mmd);
+  BKE_sculpt_mask_layers_ensure(
+      CTX_data_depsgraph_pointer(C), CTX_data_main(C), sgcontext->vc.obact, mmd);
 
   mask_operation->op.sculpt_gesture_begin = sculpt_gesture_mask_begin;
   mask_operation->op.sculpt_gesture_apply_for_symmetry_pass =
@@ -1514,7 +1518,7 @@ static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
   if (!sgcontext) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_init_mask_properties(C, sgcontext, op);
   sculpt_gesture_apply(C, sgcontext, op);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
@@ -1526,7 +1530,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
   if (!sgcontext) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_init_mask_properties(C, sgcontext, op);
   sculpt_gesture_apply(C, sgcontext, op);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
@@ -1538,7 +1542,7 @@ static int paint_mask_gesture_line_exec(bContext *C, wmOperator *op)
   if (!sgcontext) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_init_mask_properties(C, sgcontext, op);
   sculpt_gesture_apply(C, sgcontext, op);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;

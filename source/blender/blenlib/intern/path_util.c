@@ -625,7 +625,7 @@ bool BLI_path_parent_dir(char *path)
   const char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
   char tmp[FILE_MAX + 4];
 
-  BLI_join_dirfile(tmp, sizeof(tmp), path, parent_dir);
+  BLI_path_join(tmp, sizeof(tmp), path, parent_dir);
   BLI_path_normalize(NULL, tmp); /* does all the work of normalizing the path for us */
 
   if (!BLI_path_extension_check(tmp, parent_dir)) {
@@ -1025,7 +1025,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
       char origpath[FILE_MAX];
       BLI_strncpy(origpath, path, FILE_MAX);
-      BLI_join_dirfile(path, maxlen, cwd, origpath);
+      BLI_path_join(path, maxlen, cwd, origpath);
     }
     else {
       printf("Could not get the current working directory - $PWD for an unknown reason.\n");
@@ -1448,56 +1448,20 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
   BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
 }
 
-void BLI_join_dirfile(char *__restrict dst,
-                      const size_t maxlen,
-                      const char *__restrict dir,
-                      const char *__restrict file)
+size_t BLI_path_join_array(char *__restrict dst,
+                           const size_t dst_len,
+                           const char *path_array[],
+                           const int path_array_num)
 {
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxlen);
-#endif
-  size_t dirlen = BLI_strnlen(dir, maxlen);
-
-  /* Arguments can't match. */
-  BLI_assert(!ELEM(dst, dir, file));
-
-  /* Files starting with a separator cause a double-slash which could later be interpreted
-   * as a relative path where: `dir == "/"` and `file == "/file"` would result in "//file". */
-  BLI_assert(file[0] != SEP);
-
-  if (dirlen == maxlen) {
-    memcpy(dst, dir, dirlen);
-    dst[dirlen - 1] = '\0';
-    return; /* dir fills the path */
-  }
-
-  memcpy(dst, dir, dirlen + 1);
-
-  if (dirlen + 1 >= maxlen) {
-    return; /* fills the path */
-  }
-
-  /* inline BLI_path_slash_ensure */
-  if ((dirlen > 0) && !ELEM(dst[dirlen - 1], SEP, ALTSEP)) {
-    dst[dirlen++] = SEP;
-    dst[dirlen] = '\0';
-  }
-
-  if (dirlen >= maxlen) {
-    return; /* fills the path */
-  }
-
-  BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
-}
-
-size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
-{
+  BLI_assert(path_array_num > 0);
 #ifdef DEBUG_STRSIZE
   memset(dst, 0xff, sizeof(*dst) * dst_len);
 #endif
   if (UNLIKELY(dst_len == 0)) {
     return 0;
   }
+  const char *path = path_array[0];
+
   const size_t dst_last = dst_len - 1;
   size_t ofs = BLI_strncpy_rlen(dst, path, dst_len);
 
@@ -1519,9 +1483,8 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
     has_trailing_slash = (path[len] != '\0');
   }
 
-  va_list args;
-  va_start(args, path);
-  while ((path = (const char *)va_arg(args, const char *))) {
+  for (int path_index = 1; path_index < path_array_num; path_index++) {
+    path = path_array[path_index];
     has_trailing_slash = false;
     const char *path_init = path;
     while (ELEM(path[0], SEP, ALTSEP)) {
@@ -1556,7 +1519,6 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
       has_trailing_slash = (path_init != path);
     }
   }
-  va_end(args);
 
   if (has_trailing_slash) {
     if ((ofs != dst_last) && (ofs != 0) && (ELEM(dst[ofs - 1], SEP, ALTSEP) == 0)) {

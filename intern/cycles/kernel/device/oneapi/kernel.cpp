@@ -25,38 +25,57 @@ void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr)
   s_error_user_ptr = user_ptr;
 }
 
-/* NOTE(@nsirgien): Execution of this simple kernel will check basic functionality and
- * also trigger runtime compilation of all existing oneAPI kernels */
+/* NOTE(@nsirgien): Execution of this simple kernel will check basic functionality like
+ * memory allocations, memory transfers and execution of kernel with USM memory. */
 bool oneapi_run_test_kernel(SyclQueue *queue_)
 {
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
-  size_t N = 8;
-  sycl::buffer<float, 1> A(N);
-  sycl::buffer<float, 1> B(N);
+  const size_t N = 8;
+  const size_t memory_byte_size = sizeof(int) * N;
 
-  {
-    sycl::host_accessor A_host_acc(A, sycl::write_only);
-    for (size_t i = (size_t)0; i < N; i++)
-      A_host_acc[i] = rand() % 32;
-  }
-
+  bool is_computation_correct = true;
   try {
-    queue->submit([&](sycl::handler &cgh) {
-      sycl::accessor A_acc(A, cgh, sycl::read_only);
-      sycl::accessor B_acc(B, cgh, sycl::write_only, sycl::no_init);
+    int *A_host = (int *)sycl::aligned_alloc_host(16, memory_byte_size, *queue);
 
-      cgh.parallel_for(N, [=](sycl::id<1> idx) { B_acc[idx] = A_acc[idx] + idx.get(0); });
+    for (size_t i = (size_t)0; i < N; i++) {
+      A_host[i] = rand() % 32;
+    }
+
+    int *A_device = (int *)sycl::malloc_device(memory_byte_size, *queue);
+    int *B_device = (int *)sycl::malloc_device(memory_byte_size, *queue);
+
+    queue->memcpy(A_device, A_host, memory_byte_size);
+    queue->wait_and_throw();
+
+    queue->submit([&](sycl::handler &cgh) {
+      cgh.parallel_for(N, [=](sycl::id<1> idx) { B_device[idx] = A_device[idx] + idx.get(0); });
     });
     queue->wait_and_throw();
 
-    sycl::host_accessor A_host_acc(A, sycl::read_only);
-    sycl::host_accessor B_host_acc(B, sycl::read_only);
+    int *B_host = (int *)sycl::aligned_alloc_host(16, memory_byte_size, *queue);
+
+    queue->memcpy(B_host, B_device, memory_byte_size);
+    queue->wait_and_throw();
 
     for (size_t i = (size_t)0; i < N; i++) {
-      float result = A_host_acc[i] + B_host_acc[i];
-      (void)result;
+      const int expected_result = i + A_host[i];
+      if (B_host[i] != expected_result) {
+        is_computation_correct = false;
+        if (s_error_cb) {
+          s_error_cb(("Incorrect result in test kernel execution -  expected " +
+                      std::to_string(expected_result) + ", got " + std::to_string(B_host[i]))
+                         .c_str(),
+                     s_error_user_ptr);
+        }
+      }
     }
+
+    sycl::free(A_host, *queue);
+    sycl::free(B_host, *queue);
+    sycl::free(A_device, *queue);
+    sycl::free(B_device, *queue);
+    queue->wait_and_throw();
   }
   catch (sycl::exception const &e) {
     if (s_error_cb) {
@@ -65,7 +84,7 @@ bool oneapi_run_test_kernel(SyclQueue *queue_)
     return false;
   }
 
-  return true;
+  return is_computation_correct;
 }
 
 /* TODO: Move device information to OneapiDevice initialized on creation and use it. */

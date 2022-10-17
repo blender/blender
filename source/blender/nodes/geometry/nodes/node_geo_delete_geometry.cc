@@ -12,6 +12,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
 
@@ -392,8 +393,8 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
 static void delete_selected_instances(GeometrySet &geometry_set,
                                       const Field<bool> &selection_field)
 {
-  InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-  bke::GeometryFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
+  bke::Instances &instances = *geometry_set.get_instances_for_write();
+  bke::InstancesFieldContext field_context{instances};
 
   fn::FieldEvaluator evaluator{field_context, instances.instances_num()};
   evaluator.set_selection(selection_field);
@@ -404,7 +405,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
     return;
   }
 
-  instances.remove_instances(selection);
+  instances.remove(selection);
 }
 
 static void compute_selected_verts_from_vertex_selection(const Span<bool> vertex_selection,

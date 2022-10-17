@@ -759,7 +759,8 @@ BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot, bool holdou
 BLI_INLINE EeveeMaterialCache eevee_material_cache_get(
     EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob, int slot, bool is_hair)
 {
-  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
+  const bool holdout = ((ob->base_flag & BASE_HOLDOUT) != 0) ||
+                       ((ob->visibility_flag & OB_HOLDOUT) != 0);
   EeveeMaterialCache matcache;
   Material *ma = eevee_object_material_get(ob, slot, holdout);
   switch (ma->blend_method) {

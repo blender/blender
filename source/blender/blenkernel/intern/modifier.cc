@@ -955,7 +955,7 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
 void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
-  BLI_join_dirfile(path, path_maxlen, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
+  BLI_path_join(path, path_maxlen, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
 }
 
 /**

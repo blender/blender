@@ -14,6 +14,8 @@
 
 #include "RNA_access.h"
 
+#include "BKE_instances.hh"
+
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
@@ -280,22 +282,22 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
-  else if (column_data.type().is<InstanceReference>()) {
+  else if (column_data.type().is<bke::InstanceReference>()) {
     const StringRef value = row_filter.value_string;
     apply_filter_operation(
-        column_data.typed<InstanceReference>(),
-        [&](const InstanceReference cell) {
+        column_data.typed<bke::InstanceReference>(),
+        [&](const bke::InstanceReference cell) {
           switch (cell.type()) {
-            case InstanceReference::Type::Object: {
+            case bke::InstanceReference::Type::Object: {
               return value == (reinterpret_cast<ID &>(cell.object()).name + 2);
             }
-            case InstanceReference::Type::Collection: {
+            case bke::InstanceReference::Type::Collection: {
               return value == (reinterpret_cast<ID &>(cell.collection()).name + 2);
             }
-            case InstanceReference::Type::GeometrySet: {
+            case bke::InstanceReference::Type::GeometrySet: {
               return false;
             }
-            case InstanceReference::Type::None: {
+            case bke::InstanceReference::Type::None: {
               return false;
             }
           }

@@ -762,14 +762,14 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   float pan_vec[3];
 
   const wmNDOFMotionData *ndof = event->customdata;
-  const float speed = NDOF_PIXELS_PER_SECOND;
+  const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
   WM_event_ndof_pan_get(ndof, pan_vec, true);
 
-  mul_v2_fl(pan_vec, (speed * ndof->dt) / sima->zoom);
-  pan_vec[2] *= -ndof->dt;
+  mul_v3_fl(pan_vec, ndof->dt);
+  mul_v2_fl(pan_vec, pan_speed / sima->zoom);
 
-  sima_zoom_set_factor(sima, region, 1.0f + pan_vec[2], NULL, false);
+  sima_zoom_set_factor(sima, region, max_ff(0.0f, 1.0f - pan_vec[2]), NULL, false);
   sima->xof += pan_vec[0];
   sima->yof += pan_vec[1];
 

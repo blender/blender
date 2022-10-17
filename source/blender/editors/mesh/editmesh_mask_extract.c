@@ -88,7 +88,7 @@ static int geometry_extract_apply(bContext *C,
 
   ED_object_sculptmode_exit(C, depsgraph);
 
-  BKE_sculpt_mask_layers_ensure(ob, NULL);
+  BKE_sculpt_mask_layers_ensure(depsgraph, bmain, ob, NULL);
 
   /* Ensures that deformation from sculpt mode is taken into account before duplicating the mesh to
    * extract the geometry. */
@@ -481,7 +481,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  BKE_sculpt_mask_layers_ensure(ob, NULL);
+  BKE_sculpt_mask_layers_ensure(NULL, NULL, ob, NULL);
 
   Mesh *mesh = ob->data;
   Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);

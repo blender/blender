@@ -101,7 +101,7 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const InstancesComponent &instances_component = *(const InstancesComponent *)component;
         InstancesInfo &info = this->instances_info.emplace();
-        info.instances_num = instances_component.instances_num();
+        info.instances_num = instances_component.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
         break;
       }
       case GEO_COMPONENT_TYPE_EDIT: {

@@ -155,7 +155,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   char path_src[FILE_MAX];
   char path_dst[FILE_MAX];
 
-  BLI_join_dirfile(path_src, sizeof(path_src), path_dir, path_file);
+  BLI_path_join(path_src, sizeof(path_src), path_dir, path_file);
 
   /* So that functions can access the old value. */
   BLI_strncpy(path_dst, path_src, FILE_MAX);
@@ -279,7 +279,7 @@ static bool missing_files_find__recursive(const char *search_directory,
       continue;
     }
 
-    BLI_join_dirfile(path, sizeof(path), search_directory, de->d_name);
+    BLI_path_join(path, sizeof(path), search_directory, de->d_name);
 
     if (BLI_stat(path, &status) == -1) {
       CLOG_WARN(&LOG, "Cannot get file status (`stat()`) of '%s'", path);

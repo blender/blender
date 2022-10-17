@@ -1361,12 +1361,15 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+  bool linked = RNA_boolean_get(op->ptr, "linked") || ((U.dupflag & USER_DUP_NTREE) == 0);
+  const bool dupli_node_tree = !linked;
   bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
+  Map<const ID *, ID *> duplicated_node_groups;
 
   bNode *lastnode = (bNode *)ntree->nodes.last;
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1374,6 +1377,18 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       bNode *new_node = bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
+
+      if (node->id && dupli_node_tree) {
+        ID *new_group = duplicated_node_groups.lookup_or_add_cb(node->id, [&]() {
+          ID *new_group = BKE_id_copy(bmain, node->id);
+          /* Remove user added by copying. */
+          id_us_min(new_group);
+          return new_group;
+        });
+        id_us_plus(new_group);
+        id_us_min(new_node->id);
+        new_node->id = new_group;
+      }
       changed = true;
     }
 
@@ -1462,6 +1477,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Duplicate Nodes";
   ot->description = "Duplicate selected nodes";
@@ -1476,6 +1493,13 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
+
+  prop = RNA_def_boolean(ot->srna,
+                         "linked",
+                         true,
+                         "Linked",
+                         "Duplicate node but not node trees, linking to the original data");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* XXX: some code needing updating to operators. */
@@ -2275,6 +2299,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
       newlink->tosock = socket_map.lookup(link->tosock);
       newlink->fromnode = node_map.lookup(link->fromnode);
       newlink->fromsock = socket_map.lookup(link->fromsock);
+      newlink->multi_input_socket_index = link->multi_input_socket_index;
 
       BKE_node_clipboard_add_link(newlink);
     }
@@ -2396,11 +2421,19 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, clipboard_links_lb) {
-    nodeAddLink(ntree,
-                node_map.lookup(link->fromnode),
-                socket_map.lookup(link->fromsock),
-                node_map.lookup(link->tonode),
-                socket_map.lookup(link->tosock));
+    bNodeLink *new_link = nodeAddLink(ntree,
+                                      node_map.lookup(link->fromnode),
+                                      socket_map.lookup(link->fromsock),
+                                      node_map.lookup(link->tonode),
+                                      socket_map.lookup(link->tosock));
+    new_link->multi_input_socket_index = link->multi_input_socket_index;
+  }
+
+  ntree->ensure_topology_cache();
+
+  for (bNode *new_node : node_map.values()) {
+    /* Update multi input socket indices in case all connected nodes weren't copied. */
+    update_multi_input_indices_for_removed_links(*new_node);
   }
 
   Main *bmain = CTX_data_main(C);

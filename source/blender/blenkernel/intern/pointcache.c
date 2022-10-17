@@ -2640,7 +2640,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
             if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
               if (mode == PTCACHE_CLEAR_ALL) {
                 pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
-                BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
+                BLI_path_join(path_full, sizeof(path_full), path, de->d_name);
                 BLI_delete(path_full, false, false);
               }
               else {
@@ -2650,7 +2650,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
                 if (frame != -1) {
                   if ((mode == PTCACHE_CLEAR_BEFORE && frame < cfra) ||
                       (mode == PTCACHE_CLEAR_AFTER && frame > cfra)) {
-                    BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
+                    BLI_path_join(path_full, sizeof(path_full), path, de->d_name);
                     BLI_delete(path_full, false, false);
                     if (pid->cache->cached_frames && frame >= sta && frame <= end) {
                       pid->cache->cached_frames[frame - sta] = 0;
@@ -3524,7 +3524,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
         const int frame = ptcache_frame_from_filename(de->d_name, ext);
 
         if (frame != -1) {
-          BLI_join_dirfile(old_path_full, sizeof(old_path_full), path, de->d_name);
+          BLI_path_join(old_path_full, sizeof(old_path_full), path, de->d_name);
           ptcache_filepath(pid, new_path_full, frame, true, true);
           BLI_rename(old_path_full, new_path_full);
         }

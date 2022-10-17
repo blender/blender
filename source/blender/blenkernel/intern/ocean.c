@@ -1144,7 +1144,7 @@ static void cache_filename(
       break;
   }
 
-  BLI_join_dirfile(cachepath, sizeof(cachepath), path, fname);
+  BLI_path_join(cachepath, sizeof(cachepath), path, fname);
 
   BKE_image_path_from_imtype(
       string, cachepath, relbase, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");

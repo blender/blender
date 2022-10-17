@@ -146,15 +146,6 @@ void CustomData_copy(const struct CustomData *source,
                      eCDAllocType alloctype,
                      int totelem);
 
-/**
- * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
- */
-void CustomData_copy_mesh_to_bmesh(const struct CustomData *source,
-                                   struct CustomData *dest,
-                                   eCustomDataMask mask,
-                                   eCDAllocType alloctype,
-                                   int totelem);
-
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
@@ -167,15 +158,6 @@ bool CustomData_merge(const struct CustomData *source,
                       eCustomDataMask mask,
                       eCDAllocType alloctype,
                       int totelem);
-
-/**
- * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
- */
-bool CustomData_merge_mesh_to_bmesh(const struct CustomData *source,
-                                    struct CustomData *dest,
-                                    eCustomDataMask mask,
-                                    eCDAllocType alloctype,
-                                    int totelem);
 
 /**
  * Reallocate custom data to a new element count. If the new size is larger, the new values use
@@ -195,6 +177,14 @@ bool CustomData_bmesh_merge(const struct CustomData *source,
                             eCDAllocType alloctype,
                             struct BMesh *bm,
                             char htype);
+
+/**
+ * Remove layers that aren't stored in BMesh or are stored as flags on BMesh.
+ * The `layers` array of the returned #CustomData must be freed, but may be null.
+ * Used during conversion of #Mesh data to #BMesh storage format.
+ */
+CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
+                                                               eCustomDataMask mask);
 
 /**
  * NULL's all members and resets the #CustomData.typemap.

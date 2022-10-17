@@ -368,7 +368,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
   BKE_spacedata_draw_locks(true);
 
   if (fluid_is_bake_noise(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'noise' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
@@ -376,7 +376,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &fds->cache_frame_pause_noise;
   }
   if (fluid_is_bake_mesh(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'mesh' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
@@ -384,8 +384,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &fds->cache_frame_pause_mesh;
   }
   if (fluid_is_bake_particle(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(
-        temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES);
     BLI_path_abs(temp_dir, relbase);
 
     /* Create 'particles' subdir if it does not exist already */
@@ -396,7 +395,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &fds->cache_frame_pause_particles;
   }
   if (fluid_is_bake_guiding(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'guiding' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
@@ -404,11 +403,11 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &fds->cache_frame_pause_guide;
   }
   if (fluid_is_bake_data(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'config' subdir if it does not exist already */
 
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'data' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
@@ -416,8 +415,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &fds->cache_frame_pause_data;
 
     if (fds->flags & FLUID_DOMAIN_EXPORT_MANTA_SCRIPT) {
-      BLI_path_join(
-          temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
+      BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
       BLI_path_abs(temp_dir, relbase);
       BLI_dir_create_recursive(temp_dir); /* Create 'script' subdir if it does not exist already */
     }

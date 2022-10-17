@@ -429,7 +429,7 @@ if(WITH_HARU)
   endif()
 endif()
 
-if(WITH_CYCLES_PATH_GUIDING)
+if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)

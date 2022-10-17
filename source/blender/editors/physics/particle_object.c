@@ -1204,9 +1204,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 #undef PSYS_FROM_FIRST
 #undef PSYS_FROM_NEXT
 
-  if (duplicate_settings) {
-    DEG_relations_tag_update(bmain);
-  }
+  DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&ob_to->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
   return true;
@@ -1269,8 +1267,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   if (changed_tot > 0) {
-    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    DEG_graph_tag_relations_update(depsgraph);
+    DEG_relations_tag_update(CTX_data_main(C));
   }
 
   if ((changed_tot == 0 && fail == 0) || fail) {

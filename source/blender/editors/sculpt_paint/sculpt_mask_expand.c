@@ -14,6 +14,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
@@ -331,14 +332,17 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {UNPACK2(event->mval)};
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
   SCULPT_vertex_random_access_ensure(ss);
 
   op->customdata = MEM_mallocN(sizeof(float[2]), "initial mouse position");
   copy_v2_v2(op->customdata, mval_fl);
 
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   int vertex_count = SCULPT_vertex_count_get(ss);
 

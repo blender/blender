@@ -962,7 +962,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
                sce->id.name + 2,
                path_hexdigest);
 
-  BLI_join_dirfile(r_path, FILE_CACHE_MAX, root, filename_full);
+  BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
   if (BLI_path_is_rel(r_path)) {
     BLI_path_abs(r_path, dirname);
   }

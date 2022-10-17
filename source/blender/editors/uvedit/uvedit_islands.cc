@@ -609,6 +609,7 @@ static BoxPack *pack_islands_params(const blender::Vector<FaceIsland *> &island_
 void ED_uvedit_pack_islands_multi(const Scene *scene,
                                   Object **objects,
                                   const uint objects_len,
+                                  BMesh **bmesh_override,
                                   const struct UVMapUDIM_Params *udim_params,
                                   const struct UVPackIsland_Params *params)
 {
@@ -616,9 +617,17 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    BMesh *bm = nullptr;
+    if (bmesh_override) {
+      /* Note: obedit is still required for aspect ratio and ID_RECALC_GEOMETRY. */
+      bm = bmesh_override[ob_index];
+    }
+    else {
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      bm = em->bm;
+    }
+    BLI_assert(bm);
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
     if (cd_loop_uv_offset == -1) {
       continue;
     }
@@ -634,7 +643,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
 
     ListBase island_list = {nullptr};
     bm_mesh_calc_uv_islands(scene,
-                            em->bm,
+                            bm,
                             &island_list,
                             params->only_selected_faces,
                             params->only_selected_uvs,

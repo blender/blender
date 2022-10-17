@@ -280,6 +280,9 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   }
 
   /* View Layers */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_src->view_layers) {
+    BKE_view_layer_synced_ensure(scene_src, view_layer);
+  }
   BLI_duplicatelist(&scene_dst->view_layers, &scene_src->view_layers);
   for (ViewLayer *view_layer_src = static_cast<ViewLayer *>(scene_src->view_layers.first),
                  *view_layer_dst = static_cast<ViewLayer *>(scene_dst->view_layers.first);

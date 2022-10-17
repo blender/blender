@@ -98,7 +98,7 @@ class AssetCatalogTest : public testing::Test {
       FAIL();
     }
 
-    asset_library_root_ = test_files_dir + "/" + "asset_library";
+    asset_library_root_ = test_files_dir + SEP_STR + "asset_library";
     temp_library_path_ = "";
   }
 
@@ -116,7 +116,7 @@ class AssetCatalogTest : public testing::Test {
   {
     BKE_tempdir_init("");
     const CatalogFilePath tempdir = BKE_tempdir_session();
-    temp_library_path_ = tempdir + "test-temporary-path/";
+    temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
     return temp_library_path_;
   }
 
@@ -202,9 +202,10 @@ class AssetCatalogTest : public testing::Test {
   void save_from_memory_into_existing_asset_lib(const bool should_top_level_cdf_exist)
   {
     const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
-    const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-    const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library/";
-    const CatalogFilePath asset_lib_subdir = registered_asset_lib + "subdir/";
+    const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                              "blender_assets.cats.txt";
+    const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library" + SEP_STR;
+    const CatalogFilePath asset_lib_subdir = registered_asset_lib + "subdir" + SEP_STR;
     CatalogFilePath cdf_toplevel = registered_asset_lib +
                                    AssetCatalogService::DEFAULT_CATALOG_FILENAME;
     CatalogFilePath cdf_in_subdir = asset_lib_subdir +
@@ -272,7 +273,7 @@ class AssetCatalogTest : public testing::Test {
 TEST_F(AssetCatalogTest, load_single_file)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   /* Test getting a non-existent catalog ID. */
   EXPECT_EQ(nullptr, service.find_catalog(BLI_uuid_generate_random()));
@@ -313,7 +314,7 @@ TEST_F(AssetCatalogTest, load_single_file)
 TEST_F(AssetCatalogTest, load_catalog_path_backslashes)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   const AssetCatalog *found_by_id = service.find_catalog(UUID_POSES_ELLIE_BACKSLASHES);
   ASSERT_NE(nullptr, found_by_id);
@@ -332,7 +333,7 @@ TEST_F(AssetCatalogTest, load_catalog_path_backslashes)
 TEST_F(AssetCatalogTest, is_first_loaded_flag)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   AssetCatalog *new_cat = service.create_catalog("never/before/seen/path");
   EXPECT_FALSE(new_cat->flags.is_first_loaded)
@@ -435,7 +436,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 TEST_F(AssetCatalogTest, load_single_file_into_tree)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
    * catalogs). */
@@ -476,7 +477,7 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
   }
 
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   std::vector<AssetCatalogPath> expected_root_items{{"character", "path"}};
   AssetCatalogTree *tree = service.get_catalog_tree();
@@ -499,7 +500,7 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
 TEST_F(AssetCatalogTest, find_catalog_by_path)
 {
   TestableAssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   AssetCatalog *catalog;
@@ -522,7 +523,7 @@ TEST_F(AssetCatalogTest, find_catalog_by_path)
 TEST_F(AssetCatalogTest, write_single_file)
 {
   TestableAssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   const CatalogFilePath save_to_path = use_temp_path() +
@@ -550,7 +551,7 @@ TEST_F(AssetCatalogTest, write_single_file)
 TEST_F(AssetCatalogTest, read_write_unicode_filepath)
 {
   TestableAssetCatalogService service(asset_library_root_);
-  const CatalogFilePath load_from_path = asset_library_root_ + "/новый/" +
+  const CatalogFilePath load_from_path = asset_library_root_ + SEP_STR + "новый" + SEP_STR +
                                          AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   service.load_from_disk(load_from_path);
 
@@ -588,8 +589,9 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
   const CatalogFilePath top_level_dir = create_temp_path(); /* Has trailing slash. */
 
   /* Create a copy of the CDF in SVN, so we can safely write to it. */
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath cdf_dirname = top_level_dir + "other_dir/";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
+  const CatalogFilePath cdf_dirname = top_level_dir + "other_dir" + SEP_STR;
   const CatalogFilePath cdf_filename = cdf_dirname + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   ASSERT_TRUE(BLI_dir_create_recursive(cdf_dirname.c_str()));
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), cdf_filename.c_str()))
@@ -600,7 +602,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
   service.load_from_disk();
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
-  const CatalogFilePath blendfilename = top_level_dir + "subdir/some_file.blend";
+  const CatalogFilePath blendfilename = top_level_dir + "subdir" + SEP_STR + "some_file.blend";
   ASSERT_TRUE(service.write_to_disk(blendfilename));
   EXPECT_EQ(cdf_filename, service.get_catalog_definition_file()->file_path);
 
@@ -650,7 +652,8 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
 TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_merge)
 {
   const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
   CatalogFilePath writable_cdf_file = target_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   BLI_path_slash_native(writable_cdf_file.data());
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
@@ -719,7 +722,7 @@ TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
   service.write_to_disk(temp_lib_root + "phony.blend");
   EXPECT_TRUE(BLI_is_dir(temp_lib_root.c_str()));
 
-  const CatalogFilePath definition_file_path = temp_lib_root + "/" +
+  const CatalogFilePath definition_file_path = temp_lib_root + SEP_STR +
                                                AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   EXPECT_TRUE(BLI_is_file(definition_file_path.c_str()));
 
@@ -739,7 +742,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
 
   /* Copy the asset catalog definition files to a separate location, so that we can test without
    * overwriting the test file in SVN. */
-  const CatalogFilePath default_catalog_path = asset_library_root_ + "/" +
+  const CatalogFilePath default_catalog_path = asset_library_root_ + SEP_STR +
                                                AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   const CatalogFilePath writable_catalog_path = temp_lib_root +
                                                 AssetCatalogService::DEFAULT_CATALOG_FILENAME;
@@ -801,7 +804,7 @@ TEST_F(AssetCatalogTest, create_catalog_simple_name)
 TEST_F(AssetCatalogTest, delete_catalog_leaf)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   /* Delete a leaf catalog, i.e. one that is not a parent of another catalog.
    * This keeps this particular test easy. */
@@ -833,7 +836,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
 TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
 {
   TestableAssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   /* Delete a parent catalog. */
   service.delete_catalog_by_id_soft(UUID_POSES_RUZENA);
@@ -847,7 +850,7 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
 TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+  service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
    * This creates some duplicates that are bound to occur in production asset libraries as well.
@@ -887,14 +890,14 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
 TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
 {
   TestableAssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   service.delete_catalog_by_id_soft(UUID_POSES_ELLIE);
 
   const CatalogFilePath save_to_path = use_temp_path();
   AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
-  cdf->write_to_disk(save_to_path + "/" + AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+  cdf->write_to_disk(save_to_path + SEP_STR + AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   AssetCatalogService loaded_service(save_to_path);
   loaded_service.load_from_disk();
@@ -911,7 +914,7 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
 TEST_F(AssetCatalogTest, update_catalog_path)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
@@ -940,7 +943,7 @@ TEST_F(AssetCatalogTest, update_catalog_path)
 TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
   service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
 
@@ -956,7 +959,7 @@ TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
 TEST_F(AssetCatalogTest, update_catalog_path_longer_than_simplename)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
   const std::string new_path =
       "this/is/a/very/long/path/that/exceeds/the/simple-name/length/of/assets";
@@ -978,7 +981,7 @@ TEST_F(AssetCatalogTest, update_catalog_path_longer_than_simplename)
 TEST_F(AssetCatalogTest, update_catalog_path_add_slashes)
 {
   AssetCatalogService service(asset_library_root_);
-  service.load_from_disk(asset_library_root_ + "/" +
+  service.load_from_disk(asset_library_root_ + SEP_STR +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
@@ -1019,8 +1022,10 @@ TEST_F(AssetCatalogTest, update_catalog_path_add_slashes)
 TEST_F(AssetCatalogTest, merge_catalog_files)
 {
   const CatalogFilePath cdf_dir = create_temp_path();
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath modified_cdf_file = asset_library_root_ + "/modified_assets.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
+  const CatalogFilePath modified_cdf_file = asset_library_root_ + SEP_STR +
+                                            "modified_assets.cats.txt";
   const CatalogFilePath temp_cdf_file = cdf_dir + "blender_assets.cats.txt";
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str()));
 
@@ -1059,8 +1064,10 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
 TEST_F(AssetCatalogTest, refresh_catalogs_with_modification)
 {
   const CatalogFilePath cdf_dir = create_temp_path();
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath modified_cdf_file = asset_library_root_ + "/catalog_reload_test.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
+  const CatalogFilePath modified_cdf_file = asset_library_root_ + SEP_STR +
+                                            "catalog_reload_test.cats.txt";
   const CatalogFilePath temp_cdf_file = cdf_dir + "blender_assets.cats.txt";
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str()));
 
@@ -1131,8 +1138,9 @@ TEST_F(AssetCatalogTest, refresh_catalogs_with_modification)
 TEST_F(AssetCatalogTest, backups)
 {
   const CatalogFilePath cdf_dir = create_temp_path();
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath writable_cdf_file = cdf_dir + "/blender_assets.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
+  const CatalogFilePath writable_cdf_file = cdf_dir + SEP_STR + "blender_assets.cats.txt";
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   /* Read a CDF, modify, and write it. */

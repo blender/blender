@@ -41,6 +41,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_instances.hh"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -70,6 +71,8 @@ using blender::float3;
 using blender::float4x4;
 using blender::Span;
 using blender::Vector;
+using blender::bke::InstanceReference;
+using blender::bke::Instances;
 namespace geo_log = blender::nodes::geo_eval_log;
 
 /* -------------------------------------------------------------------- */
@@ -874,8 +877,8 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
   }
   const bool creates_duplis_for_components = component_index >= 1;
 
-  const InstancesComponent *component = geometry_set.get_component_for_read<InstancesComponent>();
-  if (component == nullptr) {
+  const Instances *instances = geometry_set.get_instances_for_read();
+  if (instances == nullptr) {
     return;
   }
 
@@ -890,13 +893,13 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
     instances_ctx = &new_instances_ctx;
   }
 
-  Span<float4x4> instance_offset_matrices = component->instance_transforms();
-  Span<int> instance_reference_handles = component->instance_reference_handles();
-  Span<int> almost_unique_ids = component->almost_unique_ids();
-  Span<InstanceReference> references = component->references();
+  Span<float4x4> instance_offset_matrices = instances->transforms();
+  Span<int> reference_handles = instances->reference_handles();
+  Span<int> almost_unique_ids = instances->almost_unique_ids();
+  Span<InstanceReference> references = instances->references();
 
   for (int64_t i : instance_offset_matrices.index_range()) {
-    const InstanceReference &reference = references[instance_reference_handles[i]];
+    const InstanceReference &reference = references[reference_handles[i]];
     const int id = almost_unique_ids[i];
 
     const DupliContext *ctx_for_instance = instances_ctx;
