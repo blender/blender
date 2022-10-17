@@ -99,7 +99,7 @@ struct MeshRuntime {
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;
 
-  /** Cache of non-manifold boundary data for Shrinkwrap Target Project. */
+  /** Cache of non-manifold boundary data for Shrink-wrap Target Project. */
   ShrinkwrapBoundaryData *shrinkwrap_data = nullptr;
 
   /** Needed in case we need to lazily initialize the mesh. */
@@ -136,8 +136,8 @@ struct MeshRuntime {
 
   /**
    * Caches for lazily computed vertex and polygon normals. These are stored here rather than in
-   * #CustomData because they can be calculated on a const mesh, and adding custom data layers on a
-   * const mesh is not thread-safe.
+   * #CustomData because they can be calculated on a `const` mesh, and adding custom data layers on
+   * a `const` mesh is not thread-safe.
    */
   bool vert_normals_dirty = false;
   bool poly_normals_dirty = false;

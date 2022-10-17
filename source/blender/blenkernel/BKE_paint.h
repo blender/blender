@@ -861,12 +861,13 @@ int *BKE_sculpt_face_sets_ensure(struct Mesh *mesh);
  */
 bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
 
-/* Ensures a mask layer exists. If depsgraph and bmain are non-null,
- * a mask doesn't exist and the object has a multiresolution modifier
+/**
+ * Ensures a mask layer exists. If depsgraph and bmain are non-null,
+ * a mask doesn't exist and the object has a multi-resolution modifier
  * then the scene depsgraph will be evaluated to update the runtime
  * subdivision data.
  *
- * Note: always call *before* BKE_sculpt_update_object_for_edit.
+ * \note always call *before* #BKE_sculpt_update_object_for_edit.
  */
 int BKE_sculpt_mask_layers_ensure(struct Depsgraph *depsgraph,
                                   struct Main *bmain,

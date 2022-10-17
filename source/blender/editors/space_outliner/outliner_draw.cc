@@ -2954,7 +2954,7 @@ static bool outliner_is_main_row(const ARegion *region, const int ys)
 /**
  * Get the expected row background color to use for the data-block counter
  *
- * This reproduces somes of the logic of outliner_draw_highlights.
+ * This reproduces some of the logic of outliner_draw_highlights.
  * At the moment it doesn't implement the search match color since
  * we don't draw the data-block counter in those cases.
  */

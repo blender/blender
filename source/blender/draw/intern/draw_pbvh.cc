@@ -398,7 +398,7 @@ struct PBVHBatches {
         }
         else {
           foreach_grids(
-              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int i) {
+              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
                 *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
               });
         }
