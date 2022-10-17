@@ -2226,7 +2226,7 @@ static void rna_def_trackingTracks(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Active Track",
                            "Active track in this tracking data object. "
-                           "Deprecated, use tracking_object.tracks.active");
+                           "Deprecated, use objects[name].tracks.active");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
@@ -2254,7 +2254,7 @@ static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Active Plane Track",
                            "Active plane track in this tracking data object. "
-                           "Deprecated, use tracking_object.plane_tracks.active");
+                           "Deprecated, use objects[name].plane_tracks.active");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_SELECT, NULL);
 }
 
@@ -2551,7 +2551,10 @@ static void rna_def_tracking(BlenderRNA *brna)
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "MovieTrackingTrack");
-  RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks in this tracking data object");
+  RNA_def_property_ui_text(prop,
+                           "Tracks",
+                           "Collection of tracks in this tracking data object. "
+                           "Deprecated, use objects[name].tracks");
   RNA_def_property_srna(prop, "MovieTrackingTracks");
 
   /* tracks */
@@ -2566,8 +2569,10 @@ static void rna_def_tracking(BlenderRNA *brna)
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "MovieTrackingPlaneTrack");
-  RNA_def_property_ui_text(
-      prop, "Plane Tracks", "Collection of plane tracks in this tracking data object");
+  RNA_def_property_ui_text(prop,
+                           "Plane Tracks",
+                           "Collection of plane tracks in this tracking data object. "
+                           "Deprecated, use objects[name].plane_tracks");
   RNA_def_property_srna(prop, "MovieTrackingPlaneTracks");
 
   /* stabilization */
