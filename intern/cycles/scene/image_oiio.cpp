@@ -196,11 +196,16 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
   if (associate_alpha) {
     do_associate_alpha = spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
 
-    /* Workaround OIIO not detecting TGA file alpha the same as Blender (since #3019).
-     * We want anything not marked as premultiplied alpha to get associated. */
-    if (!do_associate_alpha && spec.alpha_channel != -1 &&
-        strcmp(in->format_name(), "targa") == 0) {
-      do_associate_alpha = spec.get_int_attribute("targa:alpha_type", -1) != 4;
+    if (!do_associate_alpha && spec.alpha_channel != -1) {
+      /* Workaround OIIO not detecting TGA file alpha the same as Blender (since #3019).
+       * We want anything not marked as premultiplied alpha to get associated. */
+      if (strcmp(in->format_name(), "targa") == 0) {
+        do_associate_alpha = spec.get_int_attribute("targa:alpha_type", -1) != 4;
+      }
+      /* OIIO DDS reader never sets UnassociatedAlpha attribute. */
+      if (strcmp(in->format_name(), "dds") == 0) {
+        do_associate_alpha = true;
+      }
     }
   }
 
