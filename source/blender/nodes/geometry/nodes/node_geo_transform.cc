@@ -11,6 +11,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_curves.hh"
+#include "BKE_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
 #include "BKE_volume.h"
@@ -67,18 +68,18 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
   position.finish();
 }
 
-static void translate_instances(InstancesComponent &instances, const float3 translation)
+static void translate_instances(bke::Instances &instances, const float3 translation)
 {
-  MutableSpan<float4x4> transforms = instances.instance_transforms();
+  MutableSpan<float4x4> transforms = instances.transforms();
   for (float4x4 &transform : transforms) {
     add_v3_v3(transform.ptr()[3], translation);
   }
 }
 
-static void transform_instances(InstancesComponent &instances, const float4x4 &transform)
+static void transform_instances(bke::Instances &instances, const float4x4 &transform)
 {
-  MutableSpan<float4x4> instance_transforms = instances.instance_transforms();
-  for (float4x4 &instance_transform : instance_transforms) {
+  MutableSpan<float4x4> transforms = instances.transforms();
+  for (float4x4 &instance_transform : transforms) {
     instance_transform = transform * instance_transform;
   }
 }
@@ -185,8 +186,8 @@ static void translate_geometry_set(GeoNodeExecParams &params,
   if (Volume *volume = geometry.get_volume_for_write()) {
     translate_volume(params, *volume, translation, depsgraph);
   }
-  if (geometry.has_instances()) {
-    translate_instances(geometry.get_component_for_write<InstancesComponent>(), translation);
+  if (bke::Instances *instances = geometry.get_instances_for_write()) {
+    translate_instances(*instances, translation);
   }
   if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
     translate_curve_edit_hints(*curve_edit_hints, translation);
@@ -210,8 +211,8 @@ void transform_geometry_set(GeoNodeExecParams &params,
   if (Volume *volume = geometry.get_volume_for_write()) {
     transform_volume(params, *volume, transform, depsgraph);
   }
-  if (geometry.has_instances()) {
-    transform_instances(geometry.get_component_for_write<InstancesComponent>(), transform);
+  if (bke::Instances *instances = geometry.get_instances_for_write()) {
+    transform_instances(*instances, transform);
   }
   if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
     transform_curve_edit_hints(*curve_edit_hints, transform);

@@ -4,6 +4,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
@@ -64,7 +65,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
     case GEO_COMPONENT_TYPE_INSTANCES: {
       const InstancesComponent &instances_component = static_cast<const InstancesComponent &>(
           component);
-      geometry_ = &instances_component;
+      geometry_ = instances_component.get_for_read();
       break;
     }
     case GEO_COMPONENT_TYPE_VOLUME:
@@ -86,7 +87,7 @@ GeometryFieldContext::GeometryFieldContext(const PointCloud &points)
     : geometry_(&points), type_(GEO_COMPONENT_TYPE_POINT_CLOUD), domain_(ATTR_DOMAIN_POINT)
 {
 }
-GeometryFieldContext::GeometryFieldContext(const InstancesComponent &instances)
+GeometryFieldContext::GeometryFieldContext(const Instances &instances)
     : geometry_(&instances), type_(GEO_COMPONENT_TYPE_INSTANCES), domain_(ATTR_DOMAIN_INSTANCE)
 {
 }
@@ -102,7 +103,7 @@ std::optional<AttributeAccessor> GeometryFieldContext::attributes() const
   if (const PointCloud *pointcloud = this->pointcloud()) {
     return pointcloud->attributes();
   }
-  if (const InstancesComponent *instances = this->instances()) {
+  if (const Instances *instances = this->instances()) {
     return instances->attributes();
   }
   return {};
@@ -124,11 +125,10 @@ const PointCloud *GeometryFieldContext::pointcloud() const
              static_cast<const PointCloud *>(geometry_) :
              nullptr;
 }
-const InstancesComponent *GeometryFieldContext::instances() const
+const Instances *GeometryFieldContext::instances() const
 {
-  return this->type() == GEO_COMPONENT_TYPE_INSTANCES ?
-             static_cast<const InstancesComponent *>(geometry_) :
-             nullptr;
+  return this->type() == GEO_COMPONENT_TYPE_INSTANCES ? static_cast<const Instances *>(geometry_) :
+                                                        nullptr;
 }
 
 GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
@@ -230,7 +230,7 @@ GVArray InstancesFieldInput::get_varray_for_context(const fn::FieldContext &cont
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
           &context)) {
-    if (const InstancesComponent *instances = geometry_context->instances()) {
+    if (const Instances *instances = geometry_context->instances()) {
       return this->get_varray_for_context(*instances, mask);
     }
   }

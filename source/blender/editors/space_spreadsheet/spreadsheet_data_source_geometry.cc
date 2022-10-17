@@ -10,6 +10,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_global.h"
+#include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -143,29 +144,31 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   }
 
   if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
-    const InstancesComponent &instances = static_cast<const InstancesComponent &>(*component_);
-    if (STREQ(column_id.name, "Name")) {
-      Span<int> reference_handles = instances.instance_reference_handles();
-      Span<InstanceReference> references = instances.references();
-      return std::make_unique<ColumnValues>(
-          column_id.name,
-          VArray<InstanceReference>::ForFunc(domain_num,
-                                             [reference_handles, references](int64_t index) {
-                                               return references[reference_handles[index]];
-                                             }));
-    }
-    Span<float4x4> transforms = instances.instance_transforms();
-    if (STREQ(column_id.name, "Rotation")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].to_euler();
-          }));
-    }
-    if (STREQ(column_id.name, "Scale")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].scale();
-          }));
+    if (const bke::Instances *instances =
+            static_cast<const InstancesComponent &>(*component_).get_for_read()) {
+      if (STREQ(column_id.name, "Name")) {
+        Span<int> reference_handles = instances->reference_handles();
+        Span<bke::InstanceReference> references = instances->references();
+        return std::make_unique<ColumnValues>(
+            column_id.name,
+            VArray<bke::InstanceReference>::ForFunc(
+                domain_num, [reference_handles, references](int64_t index) {
+                  return references[reference_handles[index]];
+                }));
+      }
+      Span<float4x4> transforms = instances->transforms();
+      if (STREQ(column_id.name, "Rotation")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].to_euler();
+            }));
+      }
+      if (STREQ(column_id.name, "Scale")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].scale();
+            }));
+      }
     }
   }
   else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {

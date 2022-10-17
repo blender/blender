@@ -11,6 +11,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
 
@@ -1031,10 +1032,9 @@ static void duplicate_instances(GeometrySet &geometry_set,
     return;
   }
 
-  const InstancesComponent &src_instances =
-      *geometry_set.get_component_for_read<InstancesComponent>();
+  const bke::Instances &src_instances = *geometry_set.get_instances_for_read();
 
-  bke::GeometryFieldContext field_context{src_instances, ATTR_DOMAIN_INSTANCE};
+  bke::InstancesFieldContext field_context{src_instances};
   FieldEvaluator evaluator{field_context, src_instances.instances_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -1048,20 +1048,20 @@ static void duplicate_instances(GeometrySet &geometry_set,
     return;
   }
 
-  GeometrySet dst_geometry;
-  InstancesComponent &dst_instances = dst_geometry.get_component_for_write<InstancesComponent>();
-  dst_instances.resize(offsets.last());
+  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
+
+  dst_instances->resize(offsets.last());
   for (const int i_selection : selection.index_range()) {
     const IndexRange range = range_for_offsets_index(offsets, i_selection);
     if (range.size() == 0) {
       continue;
     }
-    const int old_handle = src_instances.instance_reference_handles()[i_selection];
-    const InstanceReference reference = src_instances.references()[old_handle];
-    const int new_handle = dst_instances.add_reference(reference);
-    const float4x4 transform = src_instances.instance_transforms()[i_selection];
-    dst_instances.instance_transforms().slice(range).fill(transform);
-    dst_instances.instance_reference_handles().slice(range).fill(new_handle);
+    const int old_handle = src_instances.reference_handles()[i_selection];
+    const bke::InstanceReference reference = src_instances.references()[old_handle];
+    const int new_handle = dst_instances->add_reference(reference);
+    const float4x4 transform = src_instances.transforms()[i_selection];
+    dst_instances->transforms().slice(range).fill(transform);
+    dst_instances->reference_handles().slice(range).fill(new_handle);
   }
 
   copy_attributes_without_id(geometry_set,
@@ -1069,18 +1069,18 @@ static void duplicate_instances(GeometrySet &geometry_set,
                              ATTR_DOMAIN_INSTANCE,
                              offsets,
                              selection,
-                             *src_instances.attributes(),
-                             *dst_instances.attributes_for_write());
+                             src_instances.attributes(),
+                             dst_instances->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(*dst_instances.attributes_for_write(),
+    create_duplicate_index_attribute(dst_instances->attributes_for_write(),
                                      ATTR_DOMAIN_INSTANCE,
                                      selection,
                                      attribute_outputs,
                                      offsets);
   }
 
-  geometry_set = std::move(dst_geometry);
+  geometry_set = GeometrySet::create_with_instances(dst_instances.release());
 }
 
 /** \} */

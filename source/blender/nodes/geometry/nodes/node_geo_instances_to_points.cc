@@ -3,6 +3,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_instances.hh"
 #include "BKE_pointcloud.h"
 
 #include "node_geometry_util.hh"
@@ -27,7 +28,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float> radius_field,
                                         const Field<bool> selection_field)
 {
-  const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
+  const bke::Instances &instances = *geometry_set.get_instances_for_read();
 
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};
@@ -70,7 +71,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const AttributeIDRef &attribute_id = item.key;
     const AttributeKind attribute_kind = item.value;
 
-    const GVArray src = instances.attributes()->lookup_or_default(
+    const GVArray src = instances.attributes().lookup_or_default(
         attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
     BLI_assert(src);
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
