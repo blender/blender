@@ -1174,7 +1174,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
           char path[FILE_MAX];
           BLI_stat_t status;
 
-          BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
+          BLI_path_join(path, sizeof(path), dirname, de->d_name);
 
           if (BLI_stat(path, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */

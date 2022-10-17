@@ -204,7 +204,7 @@ void SEQ_add_image_init_alpha_mode(Sequence *seq)
     char name[FILE_MAX];
     ImBuf *ibuf;
 
-    BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_join(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
     BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
     /* Initialize input color space. */
@@ -545,7 +545,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                                 (scene->r.scemode & R_MULTIVIEW) != 0;
 
-      BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
+      BLI_path_join(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
       BLI_path_abs(path, BKE_main_blendfile_path_from_global());
 
       SEQ_relations_sequence_free_anim(seq);

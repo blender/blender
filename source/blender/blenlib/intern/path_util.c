@@ -625,7 +625,7 @@ bool BLI_path_parent_dir(char *path)
   const char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
   char tmp[FILE_MAX + 4];
 
-  BLI_join_dirfile(tmp, sizeof(tmp), path, parent_dir);
+  BLI_path_join(tmp, sizeof(tmp), path, parent_dir);
   BLI_path_normalize(NULL, tmp); /* does all the work of normalizing the path for us */
 
   if (!BLI_path_extension_check(tmp, parent_dir)) {
@@ -1025,7 +1025,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
       char origpath[FILE_MAX];
       BLI_strncpy(origpath, path, FILE_MAX);
-      BLI_join_dirfile(path, maxlen, cwd, origpath);
+      BLI_path_join(path, maxlen, cwd, origpath);
     }
     else {
       printf("Could not get the current working directory - $PWD for an unknown reason.\n");
@@ -1437,48 +1437,6 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
 
   /* inline BLI_path_slash_ensure */
   if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
-    dst[dirlen++] = SEP;
-    dst[dirlen] = '\0';
-  }
-
-  if (dirlen >= maxlen) {
-    return; /* fills the path */
-  }
-
-  BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
-}
-
-void BLI_join_dirfile(char *__restrict dst,
-                      const size_t maxlen,
-                      const char *__restrict dir,
-                      const char *__restrict file)
-{
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxlen);
-#endif
-  size_t dirlen = BLI_strnlen(dir, maxlen);
-
-  /* Arguments can't match. */
-  BLI_assert(!ELEM(dst, dir, file));
-
-  /* Files starting with a separator cause a double-slash which could later be interpreted
-   * as a relative path where: `dir == "/"` and `file == "/file"` would result in "//file". */
-  BLI_assert(file[0] != SEP);
-
-  if (dirlen == maxlen) {
-    memcpy(dst, dir, dirlen);
-    dst[dirlen - 1] = '\0';
-    return; /* dir fills the path */
-  }
-
-  memcpy(dst, dir, dirlen + 1);
-
-  if (dirlen + 1 >= maxlen) {
-    return; /* fills the path */
-  }
-
-  /* inline BLI_path_slash_ensure */
-  if ((dirlen > 0) && !ELEM(dst[dirlen - 1], SEP, ALTSEP)) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }

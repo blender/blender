@@ -210,7 +210,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filename", relname);
   RNA_string_get(op->ptr, "directory", root);
 
-  BLI_join_dirfile(path, sizeof(path), root, relname);
+  BLI_path_join(path, sizeof(path), root, relname);
 
   /* test if we have a valid data */
   if (!BLO_library_path_explode(path, libname, &group, &name)) {
@@ -284,7 +284,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     RNA_BEGIN (op->ptr, itemptr, "files") {
       RNA_string_get(&itemptr, "name", relname);
 
-      BLI_join_dirfile(path, sizeof(path), root, relname);
+      BLI_path_join(path, sizeof(path), root, relname);
 
       if (BLO_library_path_explode(path, libname, &group, &name)) {
         if (!wm_link_append_item_poll(NULL, path, group, name, do_append)) {
@@ -303,7 +303,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     RNA_BEGIN (op->ptr, itemptr, "files") {
       RNA_string_get(&itemptr, "name", relname);
 
-      BLI_join_dirfile(path, sizeof(path), root, relname);
+      BLI_path_join(path, sizeof(path), root, relname);
 
       if (BLO_library_path_explode(path, libname, &group, &name)) {
         BlendfileLinkAppendContextItem *item;
@@ -683,7 +683,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       return OPERATOR_CANCELLED;
     }
 
-    BLI_join_dirfile(path, sizeof(path), root, libname);
+    BLI_path_join(path, sizeof(path), root, libname);
 
     if (!BLI_exists(path)) {
       BKE_reportf(op->reports,
@@ -739,7 +739,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
         RNA_BEGIN (op->ptr, itemptr, "files") {
           RNA_string_get(&itemptr, "name", relname);
 
-          BLI_join_dirfile(path, sizeof(path), root, relname);
+          BLI_path_join(path, sizeof(path), root, relname);
 
           if (BLI_path_cmp(path, lib->filepath_abs) == 0 || !BLO_has_bfile_extension(relname)) {
             continue;

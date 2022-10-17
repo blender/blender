@@ -954,7 +954,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
     if (python_bin_dir) {
 
       for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-        BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+        BLI_path_join(fullpath, fullpath_len, python_bin_dir, python_names[i]);
 
         if (
 #ifdef _WIN32
@@ -1023,7 +1023,7 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 {
   for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
-    BLI_join_dirfile(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
+    BLI_path_join(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_len)) {
       return true;
     }

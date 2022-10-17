@@ -254,10 +254,10 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path)
 
     fsentry->path = (path && path[0]) ? BLI_strdup(path) : NULL;
 
-    BLI_join_dirfile(tmp_name,
-                     sizeof(tmp_name),
-                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                     BLENDER_BOOKMARK_FILE);
+    BLI_path_join(tmp_name,
+                  sizeof(tmp_name),
+                  BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                  BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), tmp_name);
   }
 }
@@ -318,10 +318,10 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
       BLI_strncpy(fsentry->name, name, sizeof(fsentry->name));
     }
 
-    BLI_join_dirfile(tmp_name,
-                     sizeof(tmp_name),
-                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                     BLENDER_BOOKMARK_FILE);
+    BLI_path_join(tmp_name,
+                  sizeof(tmp_name),
+                  BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                  BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), tmp_name);
   }
 }
@@ -983,7 +983,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       if (xdg_runtime_dir != NULL) {
         struct direntry *dirs;
         char name[FILE_MAX];
-        BLI_join_dirfile(name, sizeof(name), xdg_runtime_dir, "gvfs/");
+        BLI_path_join(name, sizeof(name), xdg_runtime_dir, "gvfs/");
         const uint dirs_num = BLI_filelist_dir_contents(name, &dirs);
         for (uint i = 0; i < dirs_num; i++) {
           if (dirs[i].type & S_IFDIR) {

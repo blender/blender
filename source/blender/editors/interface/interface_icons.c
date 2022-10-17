@@ -923,7 +923,7 @@ static void init_internal_icons(void)
     char iconfilestr[FILE_MAX];
 
     if (icondir) {
-      BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
 
       /* if the image is missing bbuf will just be NULL */
       bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL);
@@ -1047,7 +1047,7 @@ static void init_iconfile_list(struct ListBase *list)
         /* check to see if the image is the right size, continue if not */
         /* copying strings here should go ok, assuming that we never get back
          * a complete path to file longer than 256 chars */
-        BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
+        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, filename);
         bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 
         if (bbuf) {

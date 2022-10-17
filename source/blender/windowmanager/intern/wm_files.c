@@ -1406,7 +1406,7 @@ void wm_history_file_read(void)
   LinkNode *l;
   int num;
 
-  BLI_join_dirfile(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
 
   LinkNode *lines = BLI_file_read_as_lines(name);
 
@@ -1469,7 +1469,7 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_join_dirfile(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
 
   fp = BLI_fopen(name, "w");
   if (fp) {
@@ -1930,7 +1930,7 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 #endif
 
-  BLI_join_dirfile(filepath, FILE_MAX, tempdir_base, path);
+  BLI_path_join(filepath, FILE_MAX, tempdir_base, path);
 }
 
 static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
@@ -2020,7 +2020,7 @@ void wm_autosave_delete(void)
 
   if (BLI_exists(filepath)) {
     char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+    BLI_path_join(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
     /* if global undo; remove tempsave, otherwise rename */
     if (U.uiflag & USER_GLOBALUNDO) {
@@ -2915,7 +2915,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 bool WM_file_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
-  BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
   G.fileflags |= G_FILE_RECOVER_READ;
   const bool success = wm_file_read_opwrap(C, filepath, reports);
   G.fileflags &= ~G_FILE_RECOVER_READ;

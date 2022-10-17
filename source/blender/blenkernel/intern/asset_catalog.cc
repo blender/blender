@@ -284,10 +284,10 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
 static std::string asset_definition_default_file_path_from_dir(StringRef asset_library_root)
 {
   char file_path[PATH_MAX];
-  BLI_join_dirfile(file_path,
-                   sizeof(file_path),
-                   asset_library_root.data(),
-                   AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
+  BLI_path_join(file_path,
+                sizeof(file_path),
+                asset_library_root.data(),
+                AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
   return file_path;
 }
 

@@ -938,7 +938,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     return NULL;
   }
 
-  BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
+  BLI_path_join(name, sizeof(name), seq->strip->dir, s_elem->name);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
   /* Try to get a proxy image. */

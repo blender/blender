@@ -71,17 +71,7 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
  */
 void BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
     ATTR_NONNULL();
-/**
- * Simple appending of filename to dir, does not check for valid path!
- * Puts result into `dst`, which may be same area as `dir`.
- *
- * \note Consider using #BLI_path_join for more general path joining
- * that de-duplicates separators and can handle an arbitrary number of paths.
- */
-void BLI_join_dirfile(char *__restrict dst,
-                      size_t maxlen,
-                      const char *__restrict dir,
-                      const char *__restrict file) ATTR_NONNULL();
+
 /**
  * See #BLI_path_join doc-string.
  */

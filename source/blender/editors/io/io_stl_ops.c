@@ -49,7 +49,7 @@ static int wm_stl_import_execute(bContext *C, wmOperator *op)
     for (int i = 0; i < files_len; i++) {
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
-      BLI_join_dirfile(params.filepath, sizeof(params.filepath), dir_only, file_only);
+      BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
       STL_import(C, &params);
     }
   }

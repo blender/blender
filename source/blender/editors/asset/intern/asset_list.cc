@@ -488,7 +488,7 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
   const char *asset_relpath = asset_handle.file_data->relpath;
 
   char path[FILE_MAX_LIBEXTRA];
-  BLI_join_dirfile(path, sizeof(path), library_path, asset_relpath);
+  BLI_path_join(path, sizeof(path), library_path, asset_relpath);
 
   return path;
 }

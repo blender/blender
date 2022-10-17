@@ -405,7 +405,7 @@ static WorkspaceConfigFileData *workspace_config_file_read(const char *app_templ
   char startup_file_path[FILE_MAX] = {0};
 
   if (cfgdir) {
-    BLI_join_dirfile(startup_file_path, sizeof(startup_file_path), cfgdir, BLENDER_STARTUP_FILE);
+    BLI_path_join(startup_file_path, sizeof(startup_file_path), cfgdir, BLENDER_STARTUP_FILE);
   }
 
   bool has_path = BLI_exists(startup_file_path);
@@ -425,8 +425,7 @@ static WorkspaceConfigFileData *workspace_system_file_read(const char *app_templ
   }
 
   char startup_file_path[FILE_MAX];
-  BLI_join_dirfile(
-      startup_file_path, sizeof(startup_file_path), template_dir, BLENDER_STARTUP_FILE);
+  BLI_path_join(startup_file_path, sizeof(startup_file_path), template_dir, BLENDER_STARTUP_FILE);
 
   bool has_path = BLI_exists(startup_file_path);
   return (has_path) ? BKE_blendfile_workspace_config_read(startup_file_path, NULL, 0, NULL) : NULL;

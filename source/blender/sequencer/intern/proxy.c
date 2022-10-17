@@ -106,7 +106,7 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *name, const int view_i
     return false;
   }
 
-  BLI_join_dirfile(fname, PROXY_MAXFILE, proxy->dir, proxy->file);
+  BLI_path_join(fname, PROXY_MAXFILE, proxy->dir, proxy->file);
   BLI_path_abs(fname, BKE_main_blendfile_path_from_global());
 
   if (view_id > 0) {
@@ -325,7 +325,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 
     if (view_id == 0) {
       char path[FILE_MAX];
-      BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
+      BLI_path_join(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
       BLI_path_abs(path, BKE_main_blendfile_path_from_global());
       BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
     }

@@ -140,7 +140,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     char template_directory[FILE_MAX];
     if (BKE_appdir_app_template_id_search(
             U.app_template, template_directory, sizeof(template_directory))) {
-      BLI_join_dirfile(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
+      BLI_path_join(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
       ibuf = IMB_loadiffname(splash_filepath, IB_rect, NULL);
     }
   }
