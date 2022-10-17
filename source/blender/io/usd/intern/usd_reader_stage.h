@@ -114,6 +114,8 @@ class USDStageReader {
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
 
   bool merge_with_parent(USDPrimReader *reader) const;
+
+  bool is_primitive_prim(const pxr::UsdPrim &prim) const;
 };
 
-};  // namespace blender::io::usd
+}  // namespace blender::io::usd

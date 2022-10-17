@@ -9,6 +9,7 @@
 #include "usd_reader_mesh.h"
 #include "usd_reader_nurbs.h"
 #include "usd_reader_prim.h"
+#include "usd_reader_shape.h"
 #include "usd_reader_skeleton.h"
 #include "usd_reader_volume.h"
 #include "usd_reader_xform.h"
@@ -28,6 +29,12 @@
 #  include <pxr/usd/usdLux/light.h>
 #endif
 #include <pxr/usd/usdSkel/skeleton.h>
+
+#include <pxr/usd/usdGeom/capsule.h>
+#include <pxr/usd/usdGeom/cone.h>
+#include <pxr/usd/usdGeom/cube.h>
+#include <pxr/usd/usdGeom/cylinder.h>
+#include <pxr/usd/usdGeom/sphere.h>
 
 #include <iostream>
 
@@ -55,6 +62,13 @@ USDStageReader::~USDStageReader()
 bool USDStageReader::valid() const
 {
   return stage_;
+}
+
+bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
+{
+  return (prim.IsA<pxr::UsdGeomCapsule>() || prim.IsA<pxr::UsdGeomCylinder>() ||
+          prim.IsA<pxr::UsdGeomCone>()    || prim.IsA<pxr::UsdGeomCube>()     ||
+          prim.IsA<pxr::UsdGeomSphere>());
 }
 
 USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim,
@@ -91,6 +105,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   }
   if (params_.import_skeletons && prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);
+  }
+  if (params_.import_shapes && is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
@@ -133,6 +150,9 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
   }
   if (prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);
+  }
+  if (is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);

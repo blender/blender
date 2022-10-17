@@ -339,6 +339,7 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
+
 static void import_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
   ImportJobData *data = static_cast<ImportJobData *>(customdata);

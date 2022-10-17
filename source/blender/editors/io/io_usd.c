@@ -1060,6 +1060,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool import_blendshapes = RNA_boolean_get(op->ptr, "import_blendshapes");
   const bool import_volumes = RNA_boolean_get(op->ptr, "import_volumes");
   const bool import_skeletons = RNA_boolean_get(op->ptr, "import_skeletons");
+  const bool import_shapes = RNA_boolean_get(op->ptr, "import_shapes");
 
   const bool import_subdiv = RNA_boolean_get(op->ptr, "import_subdiv");
 
@@ -1144,7 +1145,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .scale_light_radius = scale_light_radius,
                                    .create_background_shader = create_background_shader,
                                    .mtl_name_collision_mode = mtl_name_collision_mode,
-                                   .attr_import_mode = attr_import_mode};
+                                   .attr_import_mode = attr_import_mode,
+                                   .import_shapes = import_shapes};
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
@@ -1169,6 +1171,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "import_blendshapes", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_volumes", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_skeletons", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_shapes", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "prim_path_mask", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "scale", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "apply_unit_conversion_scale", 0, NULL, ICON_NONE);
@@ -1267,6 +1270,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "import_blendshapes", true, "Blend Shapes", "");
   RNA_def_boolean(ot->srna, "import_volumes", true, "Volumes", "");
   RNA_def_boolean(ot->srna, "import_skeletons", true, "Skeletons", "");
+  RNA_def_boolean(ot->srna, "import_shapes", true, "USD Shapes", "");
 
   RNA_def_boolean(ot->srna,
                   "import_subdiv",
