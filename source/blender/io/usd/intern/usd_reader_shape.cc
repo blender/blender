@@ -37,7 +37,7 @@ USDShapeReader::USDShapeReader(const pxr::UsdPrim &prim,
 {
 }
 
-void USDShapeReader::create_object(Main *bmain, double motionSampleTime)
+void USDShapeReader::create_object(Main *bmain, double /* motionSampleTime */)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
@@ -72,16 +72,16 @@ void USDShapeReader::read_values(const double motionSampleTime,
                                  pxr::VtIntArray &face_counts)
 {
   pxr::VtValue meshPoints = Adapter::GetMeshPoints(prim_, motionSampleTime);
-  positions = meshPoints.Get<pxr::VtArray<pxr::GfVec3f>>();
-  pxr::HdMeshTopology meshTopologyValue = Adapter::GetMeshTopology().Get<pxr::HdMeshTopology>();
+  positions = meshPoints.template Get<pxr::VtArray<pxr::GfVec3f>>();
+  pxr::HdMeshTopology meshTopologyValue = Adapter::GetMeshTopology().template Get<pxr::HdMeshTopology>();
   face_counts = meshTopologyValue.GetFaceVertexCounts();
   face_indices = meshTopologyValue.GetFaceVertexIndices();
 }
 
 struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
                                        double motionSampleTime,
-                                       int read_flag,
-                                       const char **err_str)
+                                       int /* read_flag */,
+                                       const char ** /* err_str */)
 {
   if (!prim_) {
     return existing_mesh;

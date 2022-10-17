@@ -32,7 +32,7 @@ class USDShapeReader : public USDGeomReader {
                          const char **err_str) override;
   bool is_time_varying();
 
-  virtual bool topology_changed(const Mesh * /* existing_mesh */, double /* motionSampleTime */)
+  virtual bool topology_changed(const Mesh * /* existing_mesh */, double /* motionSampleTime */) override
   {
     return false;
   };
