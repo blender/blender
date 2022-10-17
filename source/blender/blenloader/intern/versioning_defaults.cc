@@ -37,6 +37,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_appdir.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
@@ -576,6 +577,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       CustomData_free_layers(&mesh->vdata, CD_PAINT_MASK, mesh->totvert);
       CustomData_free_layers(&mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop);
     }
+    mesh->attributes_for_write().remove(".sculpt_face_set");
   }
 
   LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
