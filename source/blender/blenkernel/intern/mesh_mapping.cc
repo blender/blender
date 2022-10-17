@@ -213,7 +213,7 @@ static void calc_cloud_normal(DiskCycleSortData *varr,
 
   /* Find the 'co_a' point from center. */
   int co_a_index = 0;
-  const float *co_a = NULL;
+  const float *co_a = nullptr;
   {
     float dist_sq_max = -1.0f;
     for (int i = 0; i < varr_len; i++) {
@@ -227,13 +227,13 @@ static void calc_cloud_normal(DiskCycleSortData *varr,
   }
 
   float dir_a[3];
-  const float *co_a_opposite = NULL;
-  const float *co_b_opposite = NULL;
+  const float *co_a_opposite = nullptr;
+  const float *co_b_opposite = nullptr;
 
   sub_v3_v3v3(dir_a, co_a, center);
   normalize_v3(dir_a);
 
-  const float *co_b = NULL;
+  const float *co_b = nullptr;
   float dir_b[3] = {0.0f, 0.0f, 0.0f};
   {
     float dist_sq_max = -1.0f;
@@ -288,10 +288,10 @@ static void calc_cloud_normal(DiskCycleSortData *varr,
   normal_quad_v3(r_normal, co_a, co_b, co_a_opposite, co_b_opposite);
 
 finally:
-  if (r_center != NULL) {
+  if (r_center != nullptr) {
     copy_v3_v3(r_center, center);
   }
-  if (r_index_tangent != NULL) {
+  if (r_index_tangent != nullptr) {
     *r_index_tangent = co_a_index;
   }
 }
@@ -408,8 +408,9 @@ static bool sort_disk_cycle(const MPoly *mpoly,
                             bool is_loops,
                             bool is_edges)
 {
-  DiskCycleSortData *sortdata = BLI_array_alloca(sortdata, (unsigned int)elem->count);
-  int *doneset = BLI_array_alloca(doneset, (unsigned int)elem->count);
+  DiskCycleSortData *sortdata = (DiskCycleSortData *)BLI_array_alloca(sortdata,
+                                                                      (unsigned int)elem->count);
+  int *doneset = (int *)BLI_array_alloca(doneset, (unsigned int)elem->count);
   int donelen = 0;
 
   if (is_loops) {
@@ -645,7 +646,7 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map,
 
   if (sort_disk_cycles) {
     for (i = 0; i < totvert; i++) {
-      sort_disk_cycle(NULL, NULL, medge, mvert, i, map + i, false, true);
+      sort_disk_cycle(nullptr, nullptr, medge, mvert, i, map + i, false, true);
     }
   }
 
@@ -1458,8 +1459,8 @@ static bool mesh_calc_islands_loop_poly_uv(const MVert * /*verts*/,
                               edge_innercut_indices);
   }
 
-  MEM_freeN(edge_poly_map);
-  MEM_freeN(edge_poly_mem);
+  MEM_SAFE_FREE(edge_poly_map);
+  MEM_SAFE_FREE(edge_poly_mem);
 
   if (luvs) {
     MEM_freeN(edge_loop_map);
