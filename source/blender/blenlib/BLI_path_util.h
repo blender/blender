@@ -107,7 +107,6 @@ size_t BLI_path_join_array(char *__restrict dst,
 #define _BLI_PATH_JOIN_ARGS_8 _BLI_PATH_JOIN_ARGS_7, const char *h
 #define _BLI_PATH_JOIN_ARGS_9 _BLI_PATH_JOIN_ARGS_8, const char *i
 #define _BLI_PATH_JOIN_ARGS_10 _BLI_PATH_JOIN_ARGS_9, const char *j
-#define _BLI_PATH_JOIN_ARGS_11 _BLI_PATH_JOIN_ARGS_10, const char *k
 
 BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1) ATTR_NONNULL();
 BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2) ATTR_NONNULL();
@@ -181,7 +180,6 @@ BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10)
 #undef _BLI_PATH_JOIN_ARGS_8
 #undef _BLI_PATH_JOIN_ARGS_9
 #undef _BLI_PATH_JOIN_ARGS_10
-#undef _BLI_PATH_JOIN_ARGS_11
 
 /**
  * Like Python's `os.path.basename()`

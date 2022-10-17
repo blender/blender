@@ -534,7 +534,7 @@ struct GWL_Display {
 
 static GHOST_WindowManager *window_manager = nullptr;
 
-/** Check this lock before accessing `GHOST_SystemWayland::selection` from a thread. */
+/** Check this lock before accessing #GHOST_SystemWayland::clipboard_ from a thread. */
 static std::mutex system_clipboard_mutex;
 
 /**
