@@ -492,7 +492,8 @@ if(NOT APPLE)
   option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
-  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  # acm-g10 is the architecture for the first Arc Alchemist GPUs.
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
   set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
   mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
