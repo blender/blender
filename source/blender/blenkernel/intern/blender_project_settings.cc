@@ -24,35 +24,15 @@ namespace blender::bke {
 
 /* ---------------------------------------------------------------------- */
 
-ProjectSettings::ProjectSettings(StringRef project_root_path)
-    : project_root_path_(project_root_path)
-{
-}
+struct CustomAssetLibraries : NonCopyable {
+  ListBase asset_libraries = {nullptr, nullptr}; /* CustomAssetLibraryDefinition */
 
-bool ProjectSettings::create_settings_directory(StringRef project_root_path)
-{
-  std::string project_root_path_native = project_root_path;
-  BLI_path_slash_native(project_root_path_native.data());
-
-  return BLI_dir_create_recursive(
-      std::string(project_root_path_native + SEP + SETTINGS_DIRNAME).c_str());
-}
-
-bool ProjectSettings::delete_settings_directory()
-{
-  BLI_assert(project_root_path_[0] == SEP);
-  std::string dot_blender_project_dir_path = project_root_path_ + SETTINGS_DIRNAME;
-
-  /* Returns 0 on success. */
-  if (BLI_delete(dot_blender_project_dir_path.c_str(), true, true)) {
-    return false;
-  }
-
-  has_unsaved_changes_ = true;
-  return true;
-}
-
-/* ---------------------------------------------------------------------- */
+  CustomAssetLibraries() = default;
+  CustomAssetLibraries(ListBase asset_libraries);
+  CustomAssetLibraries(CustomAssetLibraries &&);
+  ~CustomAssetLibraries();
+  auto operator=(CustomAssetLibraries &&) -> CustomAssetLibraries &;
+};
 
 CustomAssetLibraries::CustomAssetLibraries(ListBase asset_libraries)
     : asset_libraries(asset_libraries)
@@ -196,11 +176,11 @@ std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() con
     root_attributes.append_as("project", std::move(project_dict));
   }
   /* "asset_libraries": */ {
-    if (!BLI_listbase_is_empty(&asset_libraries_.asset_libraries)) {
+    if (!BLI_listbase_is_empty(&asset_libraries_->asset_libraries)) {
       std::unique_ptr<ArrayValue> asset_libs_array = std::make_unique<ArrayValue>();
       ArrayValue::Items &asset_libs_elements = asset_libs_array->elements();
       LISTBASE_FOREACH (
-          const CustomAssetLibraryDefinition *, library, &asset_libraries_.asset_libraries) {
+          const CustomAssetLibraryDefinition *, library, &asset_libraries_->asset_libraries) {
         std::unique_ptr<DictionaryValue> library_dict = std::make_unique<DictionaryValue>();
         DictionaryValue::Items &library_attributes = library_dict->elements();
 
@@ -232,67 +212,33 @@ static void write_settings_file(StringRef settings_filepath,
 
 /* ---------------------------------------------------------------------- */
 
-struct ResolvedPaths {
-  std::string settings_filepath;
-  std::string project_root_path;
-};
-
-static StringRef path_strip_trailing_native_slash(StringRef path)
-{
-  const int64_t pos_before_trailing_slash = path.find_last_not_of(SEP);
-  return (pos_before_trailing_slash == StringRef::not_found) ?
-             path :
-             path.substr(0, pos_before_trailing_slash + 1);
-}
-
-/**
- * Returned paths can be assumed to use native slashes.
- */
-static ResolvedPaths resolve_paths_from_project_path(StringRef project_path)
-{
-  std::string project_path_native = project_path;
-  BLI_path_slash_native(project_path_native.data());
-
-  ResolvedPaths resolved_paths{};
-
-  const StringRef path_no_trailing_slashes = path_strip_trailing_native_slash(project_path_native);
-  if (path_no_trailing_slashes.endswith(ProjectSettings::SETTINGS_DIRNAME)) {
-    resolved_paths.project_root_path =
-        StringRef(path_no_trailing_slashes).drop_suffix(ProjectSettings::SETTINGS_DIRNAME.size());
-  }
-  else {
-    resolved_paths.project_root_path = std::string(path_no_trailing_slashes) + SEP;
-  }
-  resolved_paths.settings_filepath = resolved_paths.project_root_path +
-                                     ProjectSettings::SETTINGS_DIRNAME + SEP +
-                                     ProjectSettings::SETTINGS_FILENAME;
-
-  return resolved_paths;
-}
-
 std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef project_path)
 {
-  ResolvedPaths paths = resolve_paths_from_project_path(project_path);
+  const std::string project_root_path = BlenderProject::project_path_to_native_project_root_path(
+      project_path);
 
-  if (!BLI_exists(paths.project_root_path.c_str())) {
+  if (!BLI_exists(project_root_path.c_str())) {
     return nullptr;
   }
-  if (!BlenderProject::path_is_project_root(paths.project_root_path.c_str())) {
+  if (!BlenderProject::path_is_project_root(project_root_path.c_str())) {
     return nullptr;
   }
 
-  std::unique_ptr<serialize::Value> values = read_settings_file(paths.settings_filepath);
+  const std::string settings_filepath = BlenderProject::project_root_path_to_settings_filepath(
+      project_root_path);
+  std::unique_ptr<serialize::Value> values = read_settings_file(settings_filepath);
   std::unique_ptr<ExtractedSettings> extracted_settings = nullptr;
   if (values) {
     BLI_assert(values->as_dictionary_value() != nullptr);
     extracted_settings = extract_settings(*values->as_dictionary_value());
   }
 
-  std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>(paths.project_root_path);
+  std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>();
   if (extracted_settings) {
     loaded_settings->project_name_ = extracted_settings->project_name;
     /* Moves ownership. */
-    loaded_settings->asset_libraries_ = CustomAssetLibraries(extracted_settings->asset_libraries);
+    loaded_settings->asset_libraries_ = std::make_unique<CustomAssetLibraries>(
+        extracted_settings->asset_libraries);
   }
 
   return loaded_settings;
@@ -310,17 +256,20 @@ std::unique_ptr<ProjectSettings> ProjectSettings::load_from_path(StringRef path)
 
 bool ProjectSettings::save_to_disk(StringRef project_path)
 {
-  ResolvedPaths paths = resolve_paths_from_project_path(project_path);
+  const std::string project_root_path = BlenderProject::project_path_to_native_project_root_path(
+      project_path);
 
-  if (!BLI_exists(paths.project_root_path.c_str())) {
+  if (!BLI_exists(project_root_path.c_str())) {
     return false;
   }
-  if (!BlenderProject::path_is_project_root(paths.project_root_path.c_str())) {
+  if (!BlenderProject::path_is_project_root(project_root_path.c_str())) {
     return false;
   }
 
+  const std::string settings_filepath = BlenderProject::project_root_path_to_settings_filepath(
+      project_root_path);
   std::unique_ptr settings_as_dict = to_dictionary();
-  write_settings_file(paths.settings_filepath, std::move(settings_as_dict));
+  write_settings_file(settings_filepath, std::move(settings_as_dict));
 
   has_unsaved_changes_ = false;
 
@@ -329,10 +278,11 @@ bool ProjectSettings::save_to_disk(StringRef project_path)
 
 /* ---------------------------------------------------------------------- */
 
-StringRefNull ProjectSettings::project_root_path() const
+ProjectSettings::ProjectSettings() : asset_libraries_(std::make_unique<CustomAssetLibraries>())
 {
-  return project_root_path_;
 }
+
+ProjectSettings::~ProjectSettings() = default;
 
 void ProjectSettings::project_name(StringRef new_name)
 {
@@ -347,12 +297,12 @@ StringRefNull ProjectSettings::project_name() const
 
 const ListBase &ProjectSettings::asset_library_definitions() const
 {
-  return asset_libraries_.asset_libraries;
+  return asset_libraries_->asset_libraries;
 }
 
 ListBase &ProjectSettings::asset_library_definitions()
 {
-  return asset_libraries_.asset_libraries;
+  return asset_libraries_->asset_libraries;
 }
 
 void ProjectSettings::tag_has_unsaved_changes()

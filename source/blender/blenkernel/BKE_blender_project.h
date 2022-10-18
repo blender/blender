@@ -20,7 +20,7 @@ typedef struct BlenderProject BlenderProject;
 /** See #bke::ProjectSettings::create_settings_directory(). */
 bool BKE_project_create_settings_directory(const char *project_root_path) ATTR_NONNULL();
 /** See #bke::ProjectSettings::delete_settings_directory(). */
-bool BKE_project_delete_settings_directory(const BlenderProject *project) ATTR_NONNULL();
+bool BKE_project_delete_settings_directory(BlenderProject *project) ATTR_NONNULL();
 
 BlenderProject *BKE_project_active_get(void) ATTR_WARN_UNUSED_RESULT;
 /**
@@ -38,18 +38,6 @@ bool BKE_project_is_path_project_root(const char *path) ATTR_WARN_UNUSED_RESULT 
  * referenced file/directory is a project root directory).
  */
 bool BKE_project_contains_path(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-/**
- * Attempt to load project based on the given path and return it. This should never become the
- * active project, which should be loaded with #BKE_project_active_load_from_path() instead
- * (because the active project uses unique_ptr without the guarded allocator, unlike this C-API
- * function). The returned project pointer is owning and needs freeing with #BKE_project_free().
- */
-BlenderProject *BKE_project_load_from_path(const char *path) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-/**
- * Free a project allocated by #BKE_project_load_from_path() and null the pointer to it.
- */
-void BKE_project_free(BlenderProject **project) ATTR_NONNULL();
 
 /**
  * Attempt to load and activate a project based on the given path. If the path doesn't lead

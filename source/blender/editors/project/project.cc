@@ -12,6 +12,7 @@
 
 #include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -52,37 +53,31 @@ bool ED_project_new(const Main *bmain, const char *project_root_dir, ReportList 
     return false;
   }
 
+  std::unique_ptr<bke::BlenderProject> loaded_project = bke::BlenderProject::load_from_path(
+      project_root_dir);
+
+  /* Some default settings for the project. */
+  if (loaded_project) {
+    BlenderProject *loaded_project_c = BKE_project_c_handle(loaded_project.get());
+
+    ED_project_set_defaults(loaded_project_c);
+    /* Write defaults to the hard drive. */
+    BKE_project_settings_save(loaded_project_c);
+  }
+
   BKE_reportf(reports, RPT_INFO, "Project created and loaded successfully");
 
-  const char *blendfile_path = BKE_main_blendfile_path(bmain);
-
-  bool activated_new_project = false;
-  if (blendfile_path[0] && BLI_path_contains(project_root_dir, blendfile_path)) {
-    if (BKE_project_active_load_from_path(blendfile_path)) {
-      activated_new_project = true;
-    }
+  const char *blend_path = BKE_main_blendfile_path(bmain);
+  const bool blend_is_in_project = blend_path[0] &&
+                                   BLI_path_contains(project_root_dir, blend_path);
+  if (blend_is_in_project) {
+    bke::BlenderProject::set_active(std::move(loaded_project));
   }
   else {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "The current file is not located inside of the new project. This means the new "
                 "project is not active");
-  }
-
-  /* Some default settings for the project. It has to be loaded for that. */
-  BlenderProject *new_project = activated_new_project ?
-                                    CTX_wm_project() :
-                                    BKE_project_load_from_path(project_root_dir);
-  if (new_project) {
-    ED_project_set_defaults(new_project);
-
-    /* Write defaults to the hard drive. */
-    BKE_project_settings_save(new_project);
-
-    /* We just temporary loaded the project, free it again. */
-    if (!activated_new_project) {
-      BKE_project_free(&new_project);
-    }
   }
 
   return true;

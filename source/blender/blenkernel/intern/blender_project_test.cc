@@ -118,13 +118,13 @@ class ProjectTest : public testing::Test {
 TEST_F(ProjectTest, settings_create)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
-    if (!ProjectSettings::create_settings_directory(project_path)) {
+    if (!BlenderProject::create_settings_directory(project_path)) {
       /* Not a regular test failure, this may fail if there is a permission issue for example. */
       FAIL() << "Failed to create project directory in '" << project_path
              << "', check permissions";
     }
     std::string project_settings_dir = project_path_native + SEP_STR +
-                                       ProjectSettings::SETTINGS_DIRNAME;
+                                       BlenderProject::SETTINGS_DIRNAME;
     EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()) &&
                 BLI_is_dir(project_settings_dir.c_str()))
         << project_settings_dir + " was not created";
@@ -133,31 +133,31 @@ TEST_F(ProjectTest, settings_create)
 
 /* Load the project by pointing to the project root directory (as opposed to the .blender_project
  * directory). */
-TEST_F(ProjectTest, settings_load_from_project_root_path)
+TEST_F(ProjectTest, load_from_project_root_path)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
-    ProjectSettings::create_settings_directory(project_path);
+    BlenderProject::create_settings_directory(project_path);
 
-    std::unique_ptr project_settings = ProjectSettings::load_from_disk(project_path);
-    EXPECT_NE(project_settings, nullptr);
-    EXPECT_EQ(project_settings->project_root_path(), project_path_native);
-    EXPECT_EQ(project_settings->project_name(), "");
+    std::unique_ptr project = BlenderProject::load_from_path(project_path);
+    EXPECT_NE(project, nullptr);
+    EXPECT_EQ(project->root_path(), project_path_native);
+    EXPECT_EQ(project->get_settings().project_name(), "");
   });
 }
 
 /* Load the project by pointing to the .blender_project directory (as opposed to the project root
  * directory). */
-TEST_F(ProjectTest, settings_load_from_project_settings_path)
+TEST_F(ProjectTest, load_from_project_settings_path)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
-    ProjectSettings::create_settings_directory(project_path);
+    BlenderProject::create_settings_directory(project_path);
 
-    std::unique_ptr project_settings = ProjectSettings::load_from_disk(
+    std::unique_ptr project = BlenderProject::load_from_path(
         project_path + (ELEM(project_path.back(), SEP, ALTSEP) ? "" : SEP_STR) +
-        ProjectSettings::SETTINGS_DIRNAME);
-    EXPECT_NE(project_settings, nullptr);
-    EXPECT_EQ(project_settings->project_root_path(), project_path_native);
-    EXPECT_EQ(project_settings->project_name(), "");
+        BlenderProject::SETTINGS_DIRNAME);
+    EXPECT_NE(project, nullptr);
+    EXPECT_EQ(project->root_path(), project_path_native);
+    EXPECT_EQ(project->get_settings().project_name(), "");
   });
 }
 
@@ -192,7 +192,7 @@ TEST_F(ProjectTest, settings_json_write)
   /* Take the settings read from the SVN files and write it to /tmp/ projects. */
   test_foreach_project_path(
       [&from_project_settings](StringRefNull to_project_path, StringRefNull) {
-        ProjectSettings::create_settings_directory(to_project_path);
+        BlenderProject::create_settings_directory(to_project_path);
 
         if (!from_project_settings->save_to_disk(to_project_path)) {
           FAIL();
@@ -215,7 +215,7 @@ TEST_F(ProjectTest, settings_read_change_write)
   /* Take the settings read from the SVN files and write it to /tmp/ projects. */
   test_foreach_project_path(
       [&from_project_settings](StringRefNull to_project_path, StringRefNull) {
-        ProjectSettings::create_settings_directory(to_project_path);
+        BlenderProject::create_settings_directory(to_project_path);
 
         from_project_settings->project_name("новый");
         EXPECT_TRUE(from_project_settings->has_unsaved_changes());
@@ -240,7 +240,7 @@ TEST_F(ProjectTest, project_root_path_find_from_path)
     /* First test without a .blender_project directory present. */
     EXPECT_EQ(BlenderProject::project_root_path_find_from_path(project_path), "");
 
-    ProjectSettings::create_settings_directory(project_path);
+    BlenderProject::create_settings_directory(project_path);
     EXPECT_EQ(BlenderProject::project_root_path_find_from_path(project_path), project_path);
   });
 
@@ -302,14 +302,14 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
 TEST_F(ProjectTest, project_load_and_delete)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
-    ProjectSettings::create_settings_directory(project_path);
+    BlenderProject::create_settings_directory(project_path);
 
     ::BlenderProject *project = BKE_project_active_load_from_path(project_path.c_str());
     EXPECT_NE(project, nullptr);
     EXPECT_FALSE(BKE_project_has_unsaved_changes(project));
 
     std::string project_settings_dir = project_path_native + SEP_STR +
-                                       ProjectSettings::SETTINGS_DIRNAME;
+                                       BlenderProject::SETTINGS_DIRNAME;
 
     EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()));
     if (!BKE_project_delete_settings_directory(project)) {
