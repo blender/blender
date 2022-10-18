@@ -8,9 +8,6 @@
 
 #include "GHOST_System.h"
 
-// #define DEBUG_NDOF_MOTION
-// #define DEBUG_NDOF_BUTTONS
-
 typedef enum {
   NDOF_UnknownDevice,
 
@@ -33,7 +30,7 @@ typedef enum {
 /* NDOF device button event types */
 typedef enum {
   /* Used internally, never sent. */
-  NDOF_BUTTON_NONE,
+  NDOF_BUTTON_NONE = 0,
   /* These two are available from any 3Dconnexion device. */
   NDOF_BUTTON_MENU,
   NDOF_BUTTON_FIT,
