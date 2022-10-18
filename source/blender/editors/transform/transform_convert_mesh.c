@@ -2068,7 +2068,7 @@ static void recalcData_mesh(TransInfo *t)
 /** \name Special After Transform Mesh
  * \{ */
 
-void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
   const bool is_canceling = (t->state == TRANS_CANCEL);
   const bool use_automerge = !is_canceling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
