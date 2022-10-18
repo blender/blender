@@ -3616,6 +3616,10 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use Vertex", "Use this brush in grease pencil vertex color mode");
 
+  prop = RNA_def_property(srna, "use_paint_sculpt_curves", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_SCULPT_CURVES);
+  RNA_def_property_ui_text(prop, "Use Sculpt", "Use this brush in sculpt curves mode");
+
   /* texture */
   prop = RNA_def_property(srna, "texture_slot", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BrushTextureSlot");
