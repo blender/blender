@@ -5370,7 +5370,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
 
             /* Color texture (alpha used as mask). */
             if (ps->is_texbrush) {
-              MTex *mtex = &brush->mtex;
+              const MTex *mtex = BKE_brush_color_texture_get(brush, OB_MODE_TEXTURE_PAINT);
               float samplecos[3];
               float texrgba[4];
 
@@ -5386,7 +5386,8 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
 
               /* NOTE: for clone and smear,
                * we only use the alpha, could be a special function */
-              BKE_brush_sample_tex_3d(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+              BKE_brush_sample_tex_3d(
+                  ps->scene, brush, mtex, samplecos, texrgba, thread_index, pool);
 
               copy_v3_v3(texrgb, texrgba);
               custom_mask *= texrgba[3];
