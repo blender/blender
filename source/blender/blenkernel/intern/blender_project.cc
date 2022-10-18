@@ -5,16 +5,14 @@
  */
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.h"
-#include "BKE_blender_project.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "DNA_space_types.h"
-
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
+
+#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 
 namespace blender::bke {
 

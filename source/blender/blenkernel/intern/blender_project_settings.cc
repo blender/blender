@@ -10,13 +10,13 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_serialize.hh"
 
 #include "BKE_asset_library_custom.h"
-#include "BKE_blender_project.hh"
 
 #include "DNA_asset_types.h"
+
+#include "BKE_blender_project.hh"
 
 namespace serialize = blender::io::serialize;
 
