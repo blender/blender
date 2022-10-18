@@ -995,19 +995,21 @@ bool MTLContext::ensure_uniform_buffer_bindings(
 
     if (ubo.buffer_index >= 0) {
 
-      const uint32_t buffer_index = ubo.buffer_index;
+      /* Uniform Buffer index offset by 1 as the first shader buffer binding slot is reserved for
+       * the uniform PushConstantBlock. */
+      const uint32_t buffer_index = ubo.buffer_index + 1;
       int ubo_offset = 0;
       id<MTLBuffer> ubo_buffer = nil;
       int ubo_size = 0;
 
       bool bind_dummy_buffer = false;
-      if (this->pipeline_state.ubo_bindings[buffer_index].bound) {
+      if (this->pipeline_state.ubo_bindings[ubo_index].bound) {
 
         /* Fetch UBO global-binding properties from slot. */
         ubo_offset = 0;
-        ubo_buffer = this->pipeline_state.ubo_bindings[buffer_index].ubo->get_metal_buffer(
+        ubo_buffer = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_metal_buffer(
             &ubo_offset);
-        ubo_size = this->pipeline_state.ubo_bindings[buffer_index].ubo->get_size();
+        ubo_size = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_size();
 
         /* Use dummy zero buffer if no buffer assigned -- this is an optimization to avoid
          * allocating zero buffers. */

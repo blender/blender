@@ -186,9 +186,11 @@ set(OPENGL_SRC
 
 set(METAL_SRC
   metal/mtl_backend.mm
+  metal/mtl_batch.mm
   metal/mtl_command_buffer.mm
   metal/mtl_context.mm
   metal/mtl_debug.mm
+  metal/mtl_drawlist.mm
   metal/mtl_framebuffer.mm
   metal/mtl_immediate.mm
   metal/mtl_index_buffer.mm
