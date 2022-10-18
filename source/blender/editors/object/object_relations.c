@@ -262,8 +262,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
       }
       else {
         Object workob;
-
-        ob->parent = BASACT(view_layer)->object;
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        ob->parent = BKE_view_layer_active_object_get(view_layer);
         if (par3 != INDEX_UNSET) {
           ob->partype = PARVERT3;
           ob->par1 = par1;
@@ -570,7 +570,9 @@ bool ED_object_parent_set(ReportList *reports,
       pchan = BKE_pose_channel_active_if_layer_visible(par);
       pchan_eval = BKE_pose_channel_active_if_layer_visible(parent_eval);
 
-      if (pchan == NULL) {
+      if (pchan == NULL || pchan_eval == NULL) {
+        /* If pchan_eval is NULL, pchan should also be NULL. */
+        BLI_assert_msg(pchan == NULL, "Missing evaluated bone data");
         BKE_report(reports, RPT_ERROR, "No active bone");
         return false;
       }
@@ -2073,6 +2075,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
  * otherwise they're lost on reload, see T40595.
  */
 static bool make_local_all__instance_indirect_unused(Main *bmain,
+                                                     const Scene *scene,
                                                      ViewLayer *view_layer,
                                                      Collection *collection)
 {
@@ -2086,6 +2089,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
       id_us_plus(&ob->id);
 
       BKE_collection_object_add(bmain, collection, ob);
+      BKE_view_layer_synced_ensure(scene, view_layer);
       base = BKE_view_layer_base_find(view_layer, ob);
       ED_object_base_select(base, BA_SELECT);
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -2153,15 +2157,16 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
   /* NOTE: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
   if (mode == MAKE_LOCAL_ALL) {
+    const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Collection *collection = CTX_data_collection(C);
 
     BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
     /* De-select so the user can differentiate newly instanced from existing objects. */
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
 
-    if (make_local_all__instance_indirect_unused(bmain, view_layer, collection)) {
+    if (make_local_all__instance_indirect_unused(bmain, scene, view_layer, collection)) {
       BKE_report(op->reports,
                  RPT_INFO,
                  "Orphan library objects added to the current scene to avoid loss");
@@ -2211,7 +2216,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
   }
 
-  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libs */
+  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libraries. */
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
   return OPERATOR_FINISHED;
@@ -2313,10 +2318,31 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &collection->id;
     user_overrides_from_selected_objects = true;
   }
-  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
+  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true, or that it is already an existing
+   * liboverride. */
   else {
+    BLI_assert(ID_IS_LINKED(obact) || ID_IS_OVERRIDE_LIBRARY_REAL(obact));
     id_root = &obact->id;
     user_overrides_from_selected_objects = true;
+  }
+
+  /* Make already existing selected liboverrides editable. */
+  bool is_active_override = false;
+  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
+      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      is_active_override = is_active_override || (&ob_iter->id == id_root);
+      DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
+    }
+  }
+  FOREACH_SELECTED_OBJECT_END;
+  /* If the active object is a liboverride, there is no point going further, since in the weird
+   * case where some other selected objects would be linked ones, there is no way to properly
+   * create overrides for them currently.
+   *
+   * Could be added later if really needed, but would rather avoid that extra complexity here. */
+  if (is_active_override) {
+    return OPERATOR_FINISHED;
   }
 
   const bool do_fully_editable = !user_overrides_from_selected_objects;
@@ -2325,14 +2351,6 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
                                                           BLI_gset_new(BLI_ghashutil_inthash_p,
                                                                        BLI_ghashutil_intcmp,
                                                                        __func__);
-
-  /* Make already existing selected liboverrides editable. */
-  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
-      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
-    }
-  }
-  FOREACH_SELECTED_OBJECT_END;
 
   if (do_fully_editable) {
     /* Pass. */
@@ -2355,6 +2373,25 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   }
 
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* For the time being, replace selected linked objects by their overrides in all collections.
+   * While this may not be the absolute best behavior in all cases, in most common one this should
+   * match the expected result. */
+  if (user_overrides_objects_uids != NULL) {
+    LISTBASE_FOREACH (Collection *, coll_iter, &bmain->collections) {
+      if (ID_IS_LINKED(coll_iter)) {
+        continue;
+      }
+      LISTBASE_FOREACH (CollectionObject *, coll_ob_iter, &coll_iter->gobject) {
+        if (BLI_gset_haskey(user_overrides_objects_uids,
+                            POINTER_FROM_UINT(coll_ob_iter->ob->id.session_uuid))) {
+          /* Tag for remapping when creating overrides. */
+          coll_iter->id.tag |= LIB_TAG_DOIT;
+          break;
+        }
+      }
+    }
+  }
 
   ID *id_root_override;
   const bool success = BKE_lib_override_library_create(bmain,
@@ -2603,7 +2640,8 @@ static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
     Object *ob_iter = todo_object_iter->link;
     if (BKE_lib_override_library_is_hierarchy_leaf(bmain, &ob_iter->id)) {
       bool do_remap_active = false;
-      if (OBACT(view_layer) == ob_iter) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      if (BKE_view_layer_active_object_get(view_layer) == ob_iter) {
         do_remap_active = true;
       }
       BKE_libblock_remap(bmain,
@@ -2673,7 +2711,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 
   if (RNA_boolean_get(op->ptr, "object")) {
     if (flag == SELECT) {
-      BKE_view_layer_selected_objects_tag(view_layer, OB_DONE);
+      BKE_view_layer_selected_objects_tag(scene, view_layer, OB_DONE);
       single_object_users(bmain, scene, v3d, OB_DONE, copy_collections);
     }
     else {

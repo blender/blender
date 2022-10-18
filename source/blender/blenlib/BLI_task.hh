@@ -31,6 +31,7 @@
 #endif
 
 #include "BLI_index_range.hh"
+#include "BLI_lazy_threading.hh"
 #include "BLI_utildefines.h"
 
 namespace blender::threading {
@@ -56,6 +57,7 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
 #ifdef WITH_TBB
   /* Invoking tbb for small workloads has a large overhead. */
   if (range.size() >= grain_size) {
+    lazy_threading::send_hint();
     tbb::parallel_for(
         tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
         [&](const tbb::blocked_range<int64_t> &subrange) {
@@ -78,6 +80,7 @@ Value parallel_reduce(IndexRange range,
 {
 #ifdef WITH_TBB
   if (range.size() >= grain_size) {
+    lazy_threading::send_hint();
     return tbb::parallel_reduce(
         tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
         identity,
@@ -114,6 +117,7 @@ template<typename... Functions>
 void parallel_invoke(const bool use_threading, Functions &&...functions)
 {
   if (use_threading) {
+    lazy_threading::send_hint();
     parallel_invoke(std::forward<Functions>(functions)...);
   }
   else {

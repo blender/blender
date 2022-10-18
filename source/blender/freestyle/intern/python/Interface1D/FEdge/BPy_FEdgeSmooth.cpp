@@ -129,7 +129,7 @@ static Mathutils_Callback FEdgeSmooth_mathutils_cb = {
     FEdgeSmooth_mathutils_set_index,
 };
 
-static unsigned char FEdgeSmooth_mathutils_cb_index = -1;
+static uchar FEdgeSmooth_mathutils_cb_index = -1;
 
 void FEdgeSmooth_mathutils_register_callback()
 {
@@ -143,12 +143,12 @@ PyDoc_STRVAR(FEdgeSmooth_normal_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *FEdgeSmooth_normal_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+static PyObject *FEdgeSmooth_normal_get(BPy_FEdgeSmooth *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSmooth_mathutils_cb_index, 0);
 }
 
-static int FEdgeSmooth_normal_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
+static int FEdgeSmooth_normal_set(BPy_FEdgeSmooth *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
   if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
@@ -164,16 +164,16 @@ PyDoc_STRVAR(FEdgeSmooth_material_index_doc,
              "\n"
              ":type: int");
 
-static PyObject *FEdgeSmooth_material_index_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+static PyObject *FEdgeSmooth_material_index_get(BPy_FEdgeSmooth *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->fes->frs_materialIndex());
 }
 
 static int FEdgeSmooth_material_index_set(BPy_FEdgeSmooth *self,
                                           PyObject *value,
-                                          void *UNUSED(closure))
+                                          void * /*closure*/)
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }
@@ -186,7 +186,7 @@ PyDoc_STRVAR(FEdgeSmooth_material_doc,
              "\n"
              ":type: :class:`Material`");
 
-static PyObject *FEdgeSmooth_material_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+static PyObject *FEdgeSmooth_material_get(BPy_FEdgeSmooth *self, void * /*closure*/)
 {
   return BPy_FrsMaterial_from_FrsMaterial(self->fes->frs_material());
 }
@@ -196,12 +196,12 @@ PyDoc_STRVAR(FEdgeSmooth_face_mark_doc,
              "\n"
              ":type: bool");
 
-static PyObject *FEdgeSmooth_face_mark_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+static PyObject *FEdgeSmooth_face_mark_get(BPy_FEdgeSmooth *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->fes->faceMark());
 }
 
-static int FEdgeSmooth_face_mark_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
+static int FEdgeSmooth_face_mark_set(BPy_FEdgeSmooth *self, PyObject *value, void * /*closure*/)
 {
   if (!PyBool_Check(value)) {
     return -1;

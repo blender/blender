@@ -25,7 +25,7 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
   /**
    * \brief settings of the glare node.
    */
-  NodeBlurData *settings_;
+  const NodeBlurData *settings_;
 
   float *cached_instance_;
 
@@ -49,7 +49,7 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
 
   void *initialize_tile_data(rcti *rect) override;
 
-  void set_vector_blur_settings(NodeBlurData *settings)
+  void set_vector_blur_settings(const NodeBlurData *settings)
   {
     settings_ = settings;
   }

@@ -130,13 +130,13 @@ static TimeSamplingPtr create_time_sampling(double scene_fps,
 
   get_shutter_samples(scene_fps, params, nr_of_samples, true, samples);
 
-  TimeSamplingType ts(static_cast<uint32_t>(samples.size()), 1.0 / scene_fps);
+  TimeSamplingType ts(uint32_t(samples.size()), 1.0 / scene_fps);
   return TimeSamplingPtr(new TimeSampling(ts, samples));  // NOLINT: modernize-make-shared
 }
 
 static void get_frames(double scene_fps,
                        const AlembicExportParams &params,
-                       unsigned int nr_of_samples,
+                       uint nr_of_samples,
                        std::set<double> &r_frames)
 {
   /* Get one set of shutter samples, then add those around each frame to export. */

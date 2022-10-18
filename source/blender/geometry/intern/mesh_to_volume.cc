@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_volume.h"
 
@@ -15,7 +16,7 @@ namespace blender::geometry {
 /* This class follows the MeshDataAdapter interface from openvdb. */
 class OpenVDBMeshAdapter {
  private:
-  Span<MVert> vertices_;
+  Span<MVert> verts_;
   Span<MLoop> loops_;
   Span<MLoopTri> looptris_;
   float4x4 transform_;
@@ -24,30 +25,26 @@ class OpenVDBMeshAdapter {
   OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform);
   size_t polygonCount() const;
   size_t pointCount() const;
-  size_t vertexCount(size_t UNUSED(polygon_index)) const;
+  size_t vertexCount(size_t /*polygon_index*/) const;
   void getIndexSpacePoint(size_t polygon_index, size_t vertex_index, openvdb::Vec3d &pos) const;
 };
 
 OpenVDBMeshAdapter::OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform)
-    : vertices_(mesh.mvert, mesh.totvert), loops_(mesh.mloop, mesh.totloop), transform_(transform)
+    : verts_(mesh.verts()), loops_(mesh.loops()), looptris_(mesh.looptris()), transform_(transform)
 {
-  /* This only updates a cache and can be considered to be logically const. */
-  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);
-  const int looptris_len = BKE_mesh_runtime_looptri_len(&mesh);
-  looptris_ = Span(looptris, looptris_len);
 }
 
 size_t OpenVDBMeshAdapter::polygonCount() const
 {
-  return static_cast<size_t>(looptris_.size());
+  return size_t(looptris_.size());
 }
 
 size_t OpenVDBMeshAdapter::pointCount() const
 {
-  return static_cast<size_t>(vertices_.size());
+  return size_t(verts_.size());
 }
 
-size_t OpenVDBMeshAdapter::vertexCount(size_t UNUSED(polygon_index)) const
+size_t OpenVDBMeshAdapter::vertexCount(size_t /*polygon_index*/) const
 {
   /* All polygons are triangles. */
   return 3;
@@ -58,7 +55,7 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
                                             openvdb::Vec3d &pos) const
 {
   const MLoopTri &looptri = looptris_[polygon_index];
-  const MVert &vertex = vertices_[loops_[looptri.tri[vertex_index]].v];
+  const MVert &vertex = verts_[loops_[looptri.tri[vertex_index]].v];
   const float3 transformed_co = transform_ * float3(vertex.co);
   pos = &transformed_co.x;
 }

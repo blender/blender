@@ -16,6 +16,7 @@
 #include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"
@@ -30,52 +31,40 @@
  * \{ */
 
 #define PYDOC_BUILTIN_SHADER_DESCRIPTION \
-  "``2D_FLAT_COLOR``\n" \
-  "   :Attributes: vec2 pos, vec4 color\n" \
-  "   :Uniforms: none\n" \
-  "``2D_IMAGE``\n" \
-  "   :Attributes: vec2 pos, vec2 texCoord\n" \
-  "   :Uniforms: sampler2D image\n" \
-  "``2D_SMOOTH_COLOR``\n" \
-  "   :Attributes: vec2 pos, vec4 color\n" \
-  "   :Uniforms: none\n" \
-  "``2D_UNIFORM_COLOR``\n" \
-  "   :Attributes: vec2 pos\n" \
-  "   :Uniforms: vec4 color\n" \
-  "``3D_FLAT_COLOR``\n" \
+  "``FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
-  "``3D_IMAGE``\n" \
+  "``IMAGE``\n" \
   "   :Attributes: vec3 pos, vec2 texCoord\n" \
   "   :Uniforms: sampler2D image\n" \
-  "``3D_SMOOTH_COLOR``\n" \
+  "``IMAGE_COLOR``\n" \
+  "   :Attributes: vec3 pos, vec2 texCoord\n" \
+  "   :Uniforms: sampler2D image, vec4 color\n" \
+  "``SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
-  "``3D_UNIFORM_COLOR``\n" \
+  "``UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec4 color\n" \
-  "``3D_POLYLINE_FLAT_COLOR``\n" \
+  "``POLYLINE_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
-  "``3D_POLYLINE_SMOOTH_COLOR``\n" \
+  "``POLYLINE_SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
-  "``3D_POLYLINE_UNIFORM_COLOR``\n" \
+  "``POLYLINE_UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n"
 
 static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
-    {GPU_SHADER_2D_FLAT_COLOR, "2D_FLAT_COLOR"},
-    {GPU_SHADER_2D_IMAGE, "2D_IMAGE"},
-    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
-    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
-    {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
-    {GPU_SHADER_3D_IMAGE, "3D_IMAGE"},
-    {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
-    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "3D_POLYLINE_SMOOTH_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "3D_POLYLINE_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_FLAT_COLOR, "FLAT_COLOR"},
+    {GPU_SHADER_3D_IMAGE, "IMAGE"},
+    {GPU_SHADER_3D_IMAGE_COLOR, "IMAGE_COLOR"},
+    {GPU_SHADER_3D_SMOOTH_COLOR, "SMOOTH_COLOR"},
+    {GPU_SHADER_3D_UNIFORM_COLOR, "UNIFORM_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "POLYLINE_FLAT_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "POLYLINE_SMOOTH_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "POLYLINE_UNIFORM_COLOR"},
     {0, NULL},
 };
 
@@ -174,7 +163,7 @@ PyDoc_STRVAR(pygpu_shader_uniform_from_name_doc,
              "\n"
              "   Get uniform location by name.\n"
              "\n"
-             "   :param name: Name of the uniform variable whose location is to be queried.\n"
+             "   :arg name: Name of the uniform variable whose location is to be queried.\n"
              "   :type name: str\n"
              "   :return: Location of the uniform variable.\n"
              "   :rtype: int\n");
@@ -195,16 +184,15 @@ static PyObject *pygpu_shader_uniform_from_name(BPyGPUShader *self, PyObject *ar
   return PyLong_FromLong(uniform);
 }
 
-PyDoc_STRVAR(
-    pygpu_shader_uniform_block_from_name_doc,
-    ".. method:: uniform_block_from_name(name)\n"
-    "\n"
-    "   Get uniform block location by name.\n"
-    "\n"
-    "   :param name: Name of the uniform block variable whose location is to be queried.\n"
-    "   :type name: str\n"
-    "   :return: The location of the uniform block variable.\n"
-    "   :rtype: int\n");
+PyDoc_STRVAR(pygpu_shader_uniform_block_from_name_doc,
+             ".. method:: uniform_block_from_name(name)\n"
+             "\n"
+             "   Get uniform block location by name.\n"
+             "\n"
+             "   :arg name: Name of the uniform block variable whose location is to be queried.\n"
+             "   :type name: str\n"
+             "   :return: The location of the uniform block variable.\n"
+             "   :rtype: int\n");
 static PyObject *pygpu_shader_uniform_block_from_name(BPyGPUShader *self, PyObject *arg)
 {
   const char *name = PyUnicode_AsUTF8(arg);
@@ -256,11 +244,11 @@ PyDoc_STRVAR(pygpu_shader_uniform_vector_float_doc,
              "\n"
              "   Set the buffer to fill the uniform.\n"
              "\n"
-             "   :param location: Location of the uniform variable to be modified.\n"
+             "   :arg location: Location of the uniform variable to be modified.\n"
              "   :type location: int\n"
-             "   :param buffer:  The data that should be set. Can support the buffer protocol.\n"
+             "   :arg buffer:  The data that should be set. Can support the buffer protocol.\n"
              "   :type buffer: sequence of floats\n"
-             "   :param length: Size of the uniform data type:\n\n"
+             "   :arg length: Size of the uniform data type:\n\n"
              "      - 1: float\n"
              "      - 2: vec2 or float[2]\n"
              "      - 3: vec3 or float[3]\n"
@@ -268,7 +256,7 @@ PyDoc_STRVAR(pygpu_shader_uniform_vector_float_doc,
              "      - 9: mat3\n"
              "      - 16: mat4\n"
              "   :type length: int\n"
-             "   :param count: Specifies the number of elements, vector or matrices that are to "
+             "   :arg count: Specifies the number of elements, vector or matrices that are to "
              "be modified.\n"
              "   :type count: int\n");
 static PyObject *pygpu_shader_uniform_vector_float(BPyGPUShader *self, PyObject *args)
@@ -282,6 +270,7 @@ static PyObject *pygpu_shader_uniform_vector_float(BPyGPUShader *self, PyObject 
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_shader_uniform_vector(self->shader, location, length, count, pybuffer.buf);
 
   PyBuffer_Release(&pybuffer);
@@ -304,6 +293,7 @@ static PyObject *pygpu_shader_uniform_vector_int(BPyGPUShader *self, PyObject *a
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_shader_uniform_vector_int(self->shader, location, length, count, pybuffer.buf);
 
   PyBuffer_Release(&pybuffer);
@@ -312,14 +302,14 @@ static PyObject *pygpu_shader_uniform_vector_int(BPyGPUShader *self, PyObject *a
 }
 
 PyDoc_STRVAR(pygpu_shader_uniform_bool_doc,
-             ".. method:: uniform_bool(name, seq)\n"
+             ".. method:: uniform_bool(name, value)\n"
              "\n"
              "   Specify the value of a uniform variable for the current program object.\n"
              "\n"
-             "   :param name: Name of the uniform variable whose value is to be changed.\n"
+             "   :arg name: Name of the uniform variable whose value is to be changed.\n"
              "   :type name: str\n"
-             "   :param seq: Value that will be used to update the specified uniform variable.\n"
-             "   :type seq: sequence of bools\n");
+             "   :arg value: Value that will be used to update the specified uniform variable.\n"
+             "   :type value: bool or sequence of bools\n");
 static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
 {
   const char *error_prefix = "GPUShader.uniform_bool";
@@ -335,15 +325,14 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
 
   int values[4];
   int length;
-  int ret;
-  {
+  int ret = -1;
+  if (PySequence_Check(params.seq)) {
     PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
     if (seq_fast == NULL) {
       PyErr_Format(PyExc_TypeError,
                    "%s: expected a sequence, got %s",
                    error_prefix,
                    Py_TYPE(params.seq)->tp_name);
-      ret = -1;
     }
     else {
       length = PySequence_Fast_GET_SIZE(seq_fast);
@@ -352,7 +341,6 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
                      "%s: invalid sequence length. expected 1..4, got %d",
                      error_prefix,
                      length);
-        ret = -1;
       }
       else {
         ret = PyC_AsArray_FAST(
@@ -361,6 +349,15 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
       Py_DECREF(seq_fast);
     }
   }
+  else if (((values[0] = (int)PyLong_AsLong(params.seq)) != -1) && ELEM(values[0], 0, 1)) {
+    length = 1;
+    ret = 0;
+  }
+  else {
+    PyErr_Format(
+        PyExc_ValueError, "expected a bool or sequence, got %s", Py_TYPE(params.seq)->tp_name);
+  }
+
   if (ret == -1) {
     return NULL;
   }
@@ -371,6 +368,7 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_shader_uniform_vector_int(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
@@ -381,9 +379,9 @@ PyDoc_STRVAR(pygpu_shader_uniform_float_doc,
              "\n"
              "   Specify the value of a uniform variable for the current program object.\n"
              "\n"
-             "   :param name: Name of the uniform variable whose value is to be changed.\n"
+             "   :arg name: Name of the uniform variable whose value is to be changed.\n"
              "   :type name: str\n"
-             "   :param value: Value that will be used to update the specified uniform variable.\n"
+             "   :arg value: Value that will be used to update the specified uniform variable.\n"
              "   :type value: single number or sequence of numbers\n");
 static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
 {
@@ -440,6 +438,7 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_shader_uniform_vector(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
@@ -450,9 +449,9 @@ PyDoc_STRVAR(pygpu_shader_uniform_int_doc,
              "\n"
              "   Specify the value of a uniform variable for the current program object.\n"
              "\n"
-             "   :param name: name of the uniform variable whose value is to be changed.\n"
+             "   :arg name: name of the uniform variable whose value is to be changed.\n"
              "   :type name: str\n"
-             "   :param seq: Value that will be used to update the specified uniform variable.\n"
+             "   :arg seq: Value that will be used to update the specified uniform variable.\n"
              "   :type seq: sequence of numbers\n");
 static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
 {
@@ -511,6 +510,7 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_shader_uniform_vector_int(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
@@ -521,9 +521,9 @@ PyDoc_STRVAR(pygpu_shader_uniform_sampler_doc,
              "\n"
              "   Specify the value of a texture uniform variable for the current GPUShader.\n"
              "\n"
-             "   :param name: name of the uniform variable whose texture is to be specified.\n"
+             "   :arg name: name of the uniform variable whose texture is to be specified.\n"
              "   :type name: str\n"
-             "   :param texture: Texture to attach.\n"
+             "   :arg texture: Texture to attach.\n"
              "   :type texture: :class:`gpu.types.GPUTexture`\n");
 static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args)
 {
@@ -534,6 +534,7 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   int slot = GPU_shader_get_texture_binding(self->shader, name);
   GPU_texture_bind(py_texture->tex, slot);
   GPU_shader_uniform_1i(self->shader, name, slot);
@@ -547,9 +548,9 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the value of an uniform buffer object variable for the current GPUShader.\n"
     "\n"
-    "   :param name: name of the uniform variable whose UBO is to be specified.\n"
+    "   :arg name: name of the uniform variable whose UBO is to be specified.\n"
     "   :type name: str\n"
-    "   :param ubo: Uniform Buffer to attach.\n"
+    "   :arg ubo: Uniform Buffer to attach.\n"
     "   :type texture: :class:`gpu.types.GPUUniformBuf`\n");
 static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
 {
@@ -568,21 +569,21 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
+  GPU_shader_bind(self->shader);
   GPU_uniformbuf_bind(py_ubo->ubo, binding);
 
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(
-    pygpu_shader_attr_from_name_doc,
-    ".. method:: attr_from_name(name)\n"
-    "\n"
-    "   Get attribute location by name.\n"
-    "\n"
-    "   :param name: The name of the attribute variable whose location is to be queried.\n"
-    "   :type name: str\n"
-    "   :return: The location of an attribute variable.\n"
-    "   :rtype: int\n");
+PyDoc_STRVAR(pygpu_shader_attr_from_name_doc,
+             ".. method:: attr_from_name(name)\n"
+             "\n"
+             "   Get attribute location by name.\n"
+             "\n"
+             "   :arg name: The name of the attribute variable whose location is to be queried.\n"
+             "   :type name: str\n"
+             "   :return: The location of an attribute variable.\n"
+             "   :rtype: int\n");
 static PyObject *pygpu_shader_attr_from_name(BPyGPUShader *self, PyObject *arg)
 {
   const char *name = PyUnicode_AsUTF8(arg);
@@ -612,6 +613,44 @@ static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject *UNUSED(a
   BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
   GPU_vertformat_from_shader(&ret->fmt, self->shader);
   return (PyObject *)ret;
+}
+
+PyDoc_STRVAR(
+    pygpu_shader_attrs_info_get_doc,
+    ".. method:: attrs_info_get()\n"
+    "\n"
+    "   Information about the attributes used in the Shader.\n"
+    "\n"
+    "   :return: tuples containing information about the attributes in order (name, type)\n"
+    "   :rtype: tuple\n");
+static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSED(arg))
+{
+  uint attr_len = GPU_shader_get_attribute_len(self->shader);
+  int location_test = 0, attrs_added = 0;
+  ;
+  PyObject *ret = PyTuple_New(attr_len);
+  while (attrs_added < attr_len) {
+    char name[256];
+    int type;
+    if (!GPU_shader_get_attribute_info(self->shader, location_test++, name, &type)) {
+      continue;
+    }
+    PyObject *py_type;
+    if (type != -1) {
+      py_type = PyUnicode_InternFromString(
+          PyC_StringEnum_FindIDFromValue(pygpu_attrtype_items, type));
+    }
+    else {
+      py_type = Py_None;
+      Py_INCREF(py_type);
+    }
+
+    PyObject *attr_info = PyTuple_New(2);
+    PyTuple_SET_ITEMS(attr_info, PyUnicode_FromString(name), py_type);
+    PyTuple_SetItem(ret, attrs_added, attr_info);
+    attrs_added++;
+  }
+  return ret;
 }
 
 static struct PyMethodDef pygpu_shader__tp_methods[] = {
@@ -660,6 +699,10 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      (PyCFunction)pygpu_shader_format_calc,
      METH_NOARGS,
      pygpu_shader_format_calc_doc},
+    {"attrs_info_get",
+     (PyCFunction)pygpu_shader_attrs_info_get,
+     METH_NOARGS,
+     pygpu_shader_attrs_info_get_doc},
     {NULL, NULL, 0, NULL},
 };
 
@@ -712,17 +755,17 @@ PyDoc_STRVAR(
     "   ``fragOutput = blender_srgb_to_framebuffer_space(fragOutput)``\n"
     "   to transform the output sRGB colors to the frame-buffer color-space.\n"
     "\n"
-    "   :param vertexcode: Vertex shader code.\n"
+    "   :arg vertexcode: Vertex shader code.\n"
     "   :type vertexcode: str\n"
-    "   :param fragcode: Fragment shader code.\n"
+    "   :arg fragcode: Fragment shader code.\n"
     "   :type value: str\n"
-    "   :param geocode: Geometry shader code.\n"
+    "   :arg geocode: Geometry shader code.\n"
     "   :type value: str\n"
-    "   :param libcode: Code with functions and presets to be shared between shaders.\n"
+    "   :arg libcode: Code with functions and presets to be shared between shaders.\n"
     "   :type value: str\n"
-    "   :param defines: Preprocessor directives.\n"
+    "   :arg defines: Preprocessor directives.\n"
     "   :type value: str\n"
-    "   :param name: Name of shader code, for debugging purposes.\n"
+    "   :arg name: Name of shader code, for debugging purposes.\n"
     "   :type value: str\n");
 PyTypeObject BPyGPUShader_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUShader",
@@ -740,6 +783,24 @@ PyTypeObject BPyGPUShader_Type = {
 /* -------------------------------------------------------------------- */
 /** \name gpu.shader Module API
  * \{ */
+
+static int pyc_parse_buitinshader_w_backward_compatibility(PyObject *o, void *p)
+{
+  struct PyC_StringEnum *e = p;
+  const char *value = PyUnicode_AsUTF8(o);
+  if (value && ELEM(value[0], u'2', u'3')) {
+    /* Deprecated enums that start with "3D_" or "2D_". */
+    value += 3;
+    for (int i = 0; e->items[i].id; i++) {
+      if (STREQ(e->items[i].id, value)) {
+        e->value_found = e->items[i].value;
+        return 1;
+      }
+    }
+  }
+
+  return PyC_ParseStringEnum(o, p);
+}
 
 PyDoc_STRVAR(pygpu_shader_unbind_doc,
              ".. function:: unbind()\n"
@@ -763,9 +824,9 @@ PyDoc_STRVAR(
     "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
     "manually set the value of ``mat4 ModelMatrix``.\n"
     "\n"
-    "   :param shader_name: One of the builtin shader names.\n"
+    "   :arg shader_name: One of the builtin shader names.\n"
     "   :type shader_name: str\n"
-    "   :param config: One of these types of shader configuration:\n"
+    "   :arg config: One of these types of shader configuration:\n"
     "\n"
     "      - ``DEFAULT``\n"
     "      - ``CLIPPED``\n"
@@ -791,7 +852,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
-                                        PyC_ParseStringEnum,
+                                        pyc_parse_buitinshader_w_backward_compatibility,
                                         &pygpu_bultinshader,
                                         PyC_ParseStringEnum,
                                         &pygpu_config)) {
@@ -809,7 +870,7 @@ PyDoc_STRVAR(pygpu_shader_create_from_info_doc,
              "\n"
              "   Create shader from a GPUShaderCreateInfo.\n"
              "\n"
-             "   :param shader_info: GPUShaderCreateInfo\n"
+             "   :arg shader_info: GPUShaderCreateInfo\n"
              "   :type shader_info: :class:`bpy.types.GPUShaderCreateInfo`\n"
              "   :return: Shader object corresponding to the given name.\n"
              "   :rtype: :class:`bpy.types.GPUShader`\n");

@@ -191,7 +191,7 @@ bool check_id_has_anim_component(ID *id)
   if (adt == nullptr) {
     return false;
   }
-  return (adt->action != nullptr) || (!BLI_listbase_is_empty(&adt->nla_tracks));
+  return (adt->action != nullptr) || !BLI_listbase_is_empty(&adt->nla_tracks);
 }
 
 bool check_id_has_driver_component(ID *id)
@@ -1723,6 +1723,11 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
   if (GS(id_ptr->name) == ID_NT) {
     ComponentKey ntree_output_key(id_ptr, NodeType::NTREE_OUTPUT);
     add_relation(driver_key, ntree_output_key, "Drivers -> NTree Output");
+    if (reinterpret_cast<bNodeTree *>(id_ptr)->type == NTREE_GEOMETRY) {
+      OperationKey ntree_geo_preprocess_key(
+          id, NodeType::NTREE_GEOMETRY_PREPROCESS, OperationCode::NTREE_GEOMETRY_PREPROCESS);
+      add_relation(driver_key, ntree_geo_preprocess_key, "Drivers -> NTree Geo Preprocess");
+    }
   }
 }
 
@@ -1865,18 +1870,20 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
     id_property_key = OperationKey(
-        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
+        ptr.owner_id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
     /* Create relation from the parameters component so that tagging armature for parameters update
      * properly propagates updates to all properties on bones and deeper (if needed). */
-    OperationKey parameters_init_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+    OperationKey parameters_init_key(
+        ptr.owner_id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
     add_relation(
         parameters_init_key, id_property_key, "Init -> ID Property", RELATION_CHECK_BEFORE_ADD);
   }
   else {
     id_property_key = OperationKey(
-        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+        ptr.owner_id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
   }
-  OperationKey parameters_exit_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+  OperationKey parameters_exit_key(
+      ptr.owner_id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(
       id_property_key, parameters_exit_key, "ID Property -> Done", RELATION_CHECK_BEFORE_ADD);
 }
@@ -2609,6 +2616,16 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   build_parameters(&ntree->id);
   OperationKey ntree_output_key(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  OperationKey ntree_geo_preprocess_key(
+      &ntree->id, NodeType::NTREE_GEOMETRY_PREPROCESS, OperationCode::NTREE_GEOMETRY_PREPROCESS);
+  if (ntree->type == NTREE_GEOMETRY) {
+    OperationKey ntree_cow_key(&ntree->id, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
+    add_relation(ntree_cow_key, ntree_geo_preprocess_key, "COW -> Preprocess");
+    add_relation(ntree_geo_preprocess_key,
+                 ntree_output_key,
+                 "Preprocess -> Output",
+                 RELATION_FLAG_NO_FLUSH);
+  }
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -2685,6 +2702,12 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
        * the output). Currently, we lack the infrastructure to check for these cases efficiently.
        * That can be added later. */
       add_relation(group_output_key, ntree_output_key, "Group Node");
+      if (group_ntree->type == NTREE_GEOMETRY) {
+        OperationKey group_preprocess_key(&group_ntree->id,
+                                          NodeType::NTREE_GEOMETRY_PREPROCESS,
+                                          OperationCode::NTREE_GEOMETRY_PREPROCESS);
+        add_relation(group_preprocess_key, ntree_geo_preprocess_key, "Group Node Preprocess");
+      }
     }
     else {
       BLI_assert_msg(0, "Unknown ID type used for node");
@@ -2701,6 +2724,9 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   if (check_id_has_anim_component(&ntree->id)) {
     ComponentKey animation_key(&ntree->id, NodeType::ANIMATION);
     add_relation(animation_key, ntree_output_key, "NTree Shading Parameters");
+    if (ntree->type == NTREE_GEOMETRY) {
+      add_relation(animation_key, ntree_geo_preprocess_key, "NTree Animation -> Preprocess");
+    }
   }
 }
 
@@ -3048,9 +3074,10 @@ void DepsgraphRelationBuilder::build_scene_audio(Scene *scene)
   }
 }
 
-void DepsgraphRelationBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+void DepsgraphRelationBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
     if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
       continue;

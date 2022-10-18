@@ -35,12 +35,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Normal")).dependent_field();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_type_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_type_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveSample *data = MEM_cnew<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
@@ -52,7 +52,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveSample &storage = node_storage(*node);
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
-  bNodeSocket *factor = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *factor = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *length = factor->next;
 
   nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
@@ -134,7 +134,7 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -172,7 +172,7 @@ class SampleCurveFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");

@@ -130,6 +130,8 @@ enum class NodeType {
   SIMULATION,
   /* Node tree output component. */
   NTREE_OUTPUT,
+  /* Preprocessing for geometry node trees before they can be evaluated. */
+  NTREE_GEOMETRY_PREPROCESS,
 
   /* Total number of meaningful node types. */
   NUM_TYPES,

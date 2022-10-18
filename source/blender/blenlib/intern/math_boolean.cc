@@ -193,7 +193,7 @@ static RobustInitCaller init_caller;
   y = b - bvirt
 
 #define Fast_Two_Sum(a, b, x, y) \
-  x = (double)(a + b); \
+  x = double(a + b); \
   Fast_Two_Sum_Tail(a, b, x, y)
 
 #define Fast_Two_Diff_Tail(a, b, x, y) \
@@ -205,30 +205,30 @@ static RobustInitCaller init_caller;
   Fast_Two_Diff_Tail(a, b, x, y)
 
 #define Two_Sum_Tail(a, b, x, y) \
-  bvirt = (double)(x - a); \
+  bvirt = double(x - a); \
   avirt = x - bvirt; \
   bround = b - bvirt; \
   around = a - avirt; \
   y = around + bround
 
 #define Two_Sum(a, b, x, y) \
-  x = (double)(a + b); \
+  x = double(a + b); \
   Two_Sum_Tail(a, b, x, y)
 
 #define Two_Diff_Tail(a, b, x, y) \
-  bvirt = (double)(a - x); \
+  bvirt = double(a - x); \
   avirt = x + bvirt; \
   bround = bvirt - b; \
   around = a - avirt; \
   y = around + bround
 
 #define Two_Diff(a, b, x, y) \
-  x = (double)(a - b); \
+  x = double(a - b); \
   Two_Diff_Tail(a, b, x, y)
 
 #define Split(a, ahi, alo) \
-  c = (double)(splitter * a); \
-  abig = (double)(c - a); \
+  c = double(splitter * a); \
+  abig = double(c - a); \
   ahi = c - abig; \
   alo = a - ahi
 
@@ -241,11 +241,11 @@ static RobustInitCaller init_caller;
   y = (alo * blo) - err3
 
 #define Two_Product(a, b, x, y) \
-  x = (double)(a * b); \
+  x = double(a * b); \
   Two_Product_Tail(a, b, x, y)
 
 #define Two_Product_Presplit(a, b, bhi, blo, x, y) \
-  x = (double)(a * b); \
+  x = double(a * b); \
   Split(a, ahi, alo); \
   err1 = x - (ahi * bhi); \
   err2 = err1 - (alo * bhi); \
@@ -266,7 +266,7 @@ static RobustInitCaller init_caller;
   y = (alo * alo) - err3
 
 #define Square(a, x, y) \
-  x = (double)(a * a); \
+  x = double(a * a); \
   Square_Tail(a, x, y)
 
 #define Two_One_Sum(a1, a0, b, x2, x1, x0) \
@@ -647,10 +647,10 @@ static double orient2dadapt(const double *pa, const double *pb, const double *pc
   INEXACT double _i, _j;
   double _0;
 
-  acx = (double)(pa[0] - pc[0]);
-  bcx = (double)(pb[0] - pc[0]);
-  acy = (double)(pa[1] - pc[1]);
-  bcy = (double)(pb[1] - pc[1]);
+  acx = double(pa[0] - pc[0]);
+  bcx = double(pb[0] - pc[0]);
+  acy = double(pa[1] - pc[1]);
+  bcy = double(pb[1] - pc[1]);
 
   Two_Product(acx, bcy, detleft, detlefttail);
   Two_Product(acy, bcx, detright, detrighttail);
@@ -834,15 +834,15 @@ static double orient3dadapt(
   INEXACT double _i, _j, _k;
   double _0;
 
-  adx = (double)(pa[0] - pd[0]);
-  bdx = (double)(pb[0] - pd[0]);
-  cdx = (double)(pc[0] - pd[0]);
-  ady = (double)(pa[1] - pd[1]);
-  bdy = (double)(pb[1] - pd[1]);
-  cdy = (double)(pc[1] - pd[1]);
-  adz = (double)(pa[2] - pd[2]);
-  bdz = (double)(pb[2] - pd[2]);
-  cdz = (double)(pc[2] - pd[2]);
+  adx = double(pa[0] - pd[0]);
+  bdx = double(pb[0] - pd[0]);
+  cdx = double(pc[0] - pd[0]);
+  ady = double(pa[1] - pd[1]);
+  bdy = double(pb[1] - pd[1]);
+  cdy = double(pc[1] - pd[1]);
+  adz = double(pa[2] - pd[2]);
+  bdz = double(pb[2] - pd[2]);
+  cdz = double(pc[2] - pd[2]);
 
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0);
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0);
@@ -1358,12 +1358,12 @@ static double incircleadapt(
   INEXACT double _i, _j;
   double _0;
 
-  adx = (double)(pa[0] - pd[0]);
-  bdx = (double)(pb[0] - pd[0]);
-  cdx = (double)(pc[0] - pd[0]);
-  ady = (double)(pa[1] - pd[1]);
-  bdy = (double)(pb[1] - pd[1]);
-  cdy = (double)(pc[1] - pd[1]);
+  adx = double(pa[0] - pd[0]);
+  bdx = double(pb[0] - pd[0]);
+  cdx = double(pc[0] - pd[0]);
+  ady = double(pa[1] - pd[1]);
+  bdy = double(pb[1] - pd[1]);
+  cdy = double(pc[1] - pd[1]);
 
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0);
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0);
@@ -2191,18 +2191,18 @@ static double insphereadapt(const double *pa,
   INEXACT double _i, _j;
   double _0;
 
-  aex = (double)(pa[0] - pe[0]);
-  bex = (double)(pb[0] - pe[0]);
-  cex = (double)(pc[0] - pe[0]);
-  dex = (double)(pd[0] - pe[0]);
-  aey = (double)(pa[1] - pe[1]);
-  bey = (double)(pb[1] - pe[1]);
-  cey = (double)(pc[1] - pe[1]);
-  dey = (double)(pd[1] - pe[1]);
-  aez = (double)(pa[2] - pe[2]);
-  bez = (double)(pb[2] - pe[2]);
-  cez = (double)(pc[2] - pe[2]);
-  dez = (double)(pd[2] - pe[2]);
+  aex = double(pa[0] - pe[0]);
+  bex = double(pb[0] - pe[0]);
+  cex = double(pc[0] - pe[0]);
+  dex = double(pd[0] - pe[0]);
+  aey = double(pa[1] - pe[1]);
+  bey = double(pb[1] - pe[1]);
+  cey = double(pc[1] - pe[1]);
+  dey = double(pd[1] - pe[1]);
+  aez = double(pa[2] - pe[2]);
+  bez = double(pb[2] - pe[2]);
+  cez = double(pc[2] - pe[2]);
+  dez = double(pd[2] - pe[2]);
 
   Two_Product(aex, bey, aexbey1, aexbey0);
   Two_Product(bex, aey, bexaey1, bexaey0);

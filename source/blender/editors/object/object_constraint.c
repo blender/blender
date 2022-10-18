@@ -31,6 +31,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -113,7 +114,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
   }
 
   /* try object constraints first */
-  if ((BLI_findindex(&ob->constraints, con) != -1)) {
+  if (BLI_findindex(&ob->constraints, con) != -1) {
     return &ob->constraints;
   }
 
@@ -125,7 +126,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
      * NOTE: it's not possible to directly look up the active bone yet, so this will have to do
      */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if ((BLI_findindex(&pchan->constraints, con) != -1)) {
+      if (BLI_findindex(&pchan->constraints, con) != -1) {
 
         if (r_pchan) {
           *r_pchan = pchan;
@@ -296,10 +297,9 @@ static void test_constraint(
   if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
     bKinematicConstraint *data = con->data;
 
-    /* bad: we need a separate set of checks here as poletarget is
-     * optional... otherwise poletarget must exist too or else
-     * the constraint is deemed invalid
-     */
+    /* Bad: we need a separate set of checks here as pole-target is optional...
+     * otherwise pole-target must exist too or else the constraint is deemed invalid. */
+
     /* default IK check ... */
     if (BKE_object_exists_check(bmain, data->tar) == 0) {
       data->tar = NULL;
@@ -2313,12 +2313,14 @@ static bool get_new_constraint_target(
   /* if still not found, add a new empty to act as a target (if allowed) */
   if ((found == false) && (add)) {
     Main *bmain = CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Base *base = BASACT(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Base *base = BKE_view_layer_active_base_get(view_layer);
     Object *obt;
 
     /* add new target object */
-    obt = BKE_object_add(bmain, view_layer, OB_EMPTY, NULL);
+    obt = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, NULL);
 
     /* transform cent to global coords for loc */
     if (pchanact) {
@@ -2336,7 +2338,7 @@ static bool get_new_constraint_target(
     }
 
     /* restore, BKE_object_add sets active */
-    BASACT(view_layer) = base;
+    view_layer->basact = base;
     ED_object_base_select(base, BA_SELECT);
 
     /* make our new target the new object */

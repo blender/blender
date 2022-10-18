@@ -26,12 +26,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveResample *data = MEM_cnew<NodeGeometryCurveResample>(__func__);
 
@@ -44,7 +44,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveResample &storage = node_storage(*node);
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
-  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next->next;
+  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
   bNodeSocket *length_socket = count_socket->next;
 
   nodeSetSocketAvailability(ntree, count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);

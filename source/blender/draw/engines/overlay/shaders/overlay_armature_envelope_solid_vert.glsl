@@ -38,5 +38,5 @@ void main()
   view_clipping_distances(sp);
 
   vec4 pos_4d = vec4(sp, 1.0);
-  gl_Position = drw_view.persmat * pos_4d;
+  gl_Position = drw_view.winmat * (drw_view.viewmat * pos_4d);
 }

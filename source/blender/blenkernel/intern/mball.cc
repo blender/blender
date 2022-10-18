@@ -42,6 +42,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_idtype.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
@@ -64,10 +65,7 @@ static void metaball_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(metaball, DNA_struct_default_get(MetaBall), id);
 }
 
-static void metaball_copy_data(Main *UNUSED(bmain),
-                               ID *id_dst,
-                               const ID *id_src,
-                               const int UNUSED(flag))
+static void metaball_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   MetaBall *metaball_dst = (MetaBall *)id_dst;
   const MetaBall *metaball_src = (const MetaBall *)id_src;
@@ -180,7 +178,7 @@ IDTypeInfo IDType_ID_MB = {
     /* foreach_id */ metaball_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ metaball_blend_write,
     /* blend_read_data */ metaball_blend_read_data,
@@ -299,7 +297,7 @@ bool BKE_mball_is_basis(const Object *ob)
 
   /* Just a quick test. */
   const int len = strlen(ob->id.name);
-  return (!isdigit(ob->id.name[len - 1]));
+  return !isdigit(ob->id.name[len - 1]);
 }
 
 bool BKE_mball_is_same_group(const Object *ob1, const Object *ob2)
@@ -449,7 +447,8 @@ Object *BKE_mball_basis_find(Scene *scene, Object *object)
   BLI_split_name_num(basisname, &basisnr, object->id.name + 2, '.');
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
       if ((ob->type == OB_MBALL) && !(base->flag & BASE_FROM_DUPLI)) {
         if (ob != bob) {
@@ -527,7 +526,7 @@ bool BKE_mball_center_median(const MetaBall *mb, float r_cent[3])
   }
 
   if (total) {
-    mul_v3_fl(r_cent, 1.0f / (float)total);
+    mul_v3_fl(r_cent, 1.0f / float(total));
   }
 
   return (total != 0);

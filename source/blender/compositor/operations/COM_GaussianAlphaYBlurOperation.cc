@@ -86,7 +86,7 @@ void GaussianAlphaYBlurOperation::execute_pixel(float output[4], int x, int y, v
   float distfacinv_max = 1.0f; /* 0 to 1 */
 
   for (int ny = ymin; ny < ymax; ny += step) {
-    int bufferindex = ((xmin - bufferstartx)) + ((ny - bufferstarty) * bufferwidth);
+    int bufferindex = (xmin - bufferstartx) + ((ny - bufferstarty) * bufferwidth);
 
     const int index = (ny - y) + filtersize_;
     float value = finv_test(buffer[bufferindex], do_invert);

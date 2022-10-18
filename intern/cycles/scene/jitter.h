@@ -8,7 +8,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-void progressive_multi_jitter_generate_2D(float2 points[], int size, int rng_seed);
 void progressive_multi_jitter_02_generate_2D(float2 points[], int size, int rng_seed);
 
 CCL_NAMESPACE_END

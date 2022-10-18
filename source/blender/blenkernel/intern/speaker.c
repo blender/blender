@@ -94,7 +94,7 @@ IDTypeInfo IDType_ID_SPK = {
     .foreach_id = speaker_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = speaker_blend_write,
     .blend_read_data = speaker_blend_read_data,

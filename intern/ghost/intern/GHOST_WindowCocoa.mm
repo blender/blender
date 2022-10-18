@@ -719,7 +719,7 @@ void GHOST_WindowCocoa::setNativePixelSize(void)
 }
 
 /**
- * \note Fullscreen switch is not actual fullscreen with display capture.
+ * \note Full-screen switch is not actual fullscreen with display capture.
  * As this capture removes all OS X window manager features.
  *
  * Instead, the menu bar and the dock are hidden, and the window is made border-less and enlarged.

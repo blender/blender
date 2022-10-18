@@ -48,18 +48,18 @@ ComponentNode::OperationIDKey::OperationIDKey(OperationCode opcode, const char *
 
 string ComponentNode::OperationIDKey::identifier() const
 {
-  const string codebuf = to_string(static_cast<int>(opcode));
+  const string codebuf = to_string(int(opcode));
   return "OperationIDKey(" + codebuf + ", " + name + ")";
 }
 
 bool ComponentNode::OperationIDKey::operator==(const OperationIDKey &other) const
 {
-  return (opcode == other.opcode) && (STREQ(name, other.name)) && (name_tag == other.name_tag);
+  return (opcode == other.opcode) && STREQ(name, other.name) && (name_tag == other.name_tag);
 }
 
 uint64_t ComponentNode::OperationIDKey::hash() const
 {
-  const int opcode_as_int = static_cast<int>(opcode);
+  const int opcode_as_int = int(opcode);
   return BLI_ghashutil_combine_hash(
       name_tag,
       BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),
@@ -90,10 +90,11 @@ ComponentNode::~ComponentNode()
 
 string ComponentNode::identifier() const
 {
-  const string idname = this->owner->name;
-  const string typebuf = "" + to_string(static_cast<int>(type)) + ")";
-  return typebuf + name + " : " + idname +
-         "( affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";
+  const string type_name = type_get_factory(type)->type_name();
+  const string name_part = name[0] ? (string(" '") + name + "'") : "";
+
+  return "[" + type_name + "]" + name_part + " : " +
+         "(affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";
 }
 
 OperationNode *ComponentNode::find_operation(OperationIDKey key) const
@@ -337,6 +338,7 @@ DEG_COMPONENT_NODE_DEFINE(GenericDatablock, GENERIC_DATABLOCK, 0);
 DEG_COMPONENT_NODE_DEFINE(Visibility, VISIBILITY, 0);
 DEG_COMPONENT_NODE_DEFINE(Simulation, SIMULATION, 0);
 DEG_COMPONENT_NODE_DEFINE(NTreeOutput, NTREE_OUTPUT, ID_RECALC_NTREE_OUTPUT);
+DEG_COMPONENT_NODE_DEFINE(NTreeGeometryPreprocess, NTREE_GEOMETRY_PREPROCESS, 0);
 
 /** \} */
 
@@ -371,6 +373,7 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_VISIBILITY);
   register_node_typeinfo(&DNTI_SIMULATION);
   register_node_typeinfo(&DNTI_NTREE_OUTPUT);
+  register_node_typeinfo(&DNTI_NTREE_GEOMETRY_PREPROCESS);
 }
 
 /** \} */

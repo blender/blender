@@ -271,8 +271,8 @@ void ED_view3d_clipping_calc(
   /* four clipping planes and bounding volume */
   /* first do the bounding volume */
   for (int val = 0; val < 4; val++) {
-    float xs = (ELEM(val, 0, 3)) ? rect->xmin : rect->xmax;
-    float ys = (ELEM(val, 0, 1)) ? rect->ymin : rect->ymax;
+    float xs = ELEM(val, 0, 3) ? rect->xmin : rect->xmax;
+    float ys = ELEM(val, 0, 1) ? rect->ymin : rect->ymax;
 
     ED_view3d_unproject_v3(region, xs, ys, 0.0, bb->vec[val]);
     ED_view3d_unproject_v3(region, xs, ys, 1.0, bb->vec[4 + val]);
@@ -544,7 +544,7 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
 
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
-  return ((v3d->camera) && (!ID_IS_LINKED(v3d->camera)) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
+  return ((v3d->camera) && !ID_IS_LINKED(v3d->camera) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
           (rv3d->persp == RV3D_CAMOB));
 }
 

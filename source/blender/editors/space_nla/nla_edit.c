@@ -606,6 +606,36 @@ void NLA_OT_view_frame(wmOperatorType *ot)
  * (or the active block if no space in the track).
  * \{ */
 
+/* Get a list of the editable tracks being shown in the NLA. */
+static int nlaedit_get_editable_tracks(bAnimContext *ac, ListBase *anim_data)
+{
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
+                      ANIMFILTER_FCURVESONLY);
+  return ANIM_animdata_filter(ac, anim_data, filter, ac->data, ac->datatype);
+}
+
+static int nlaedit_add_actionclip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  /* Get editor data. */
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  const size_t items = nlaedit_get_editable_tracks(&ac, &anim_data);
+
+  if (items == 0) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "No active track(s) to add strip to, select an existing track or add one before "
+               "trying again");
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_enum_search_invoke(C, op, event);
+}
+
 /* add the specified action as new strip */
 static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 {
@@ -615,8 +645,6 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
-  size_t items;
-  int filter;
 
   bAction *act;
 
@@ -654,20 +682,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
    */
   nlaedit_add_tracks_empty(&ac);
 
-  /* get a list of the editable tracks being shown in the NLA
-   * - this is limited to active ones for now, but could be expanded to
-   */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_FCURVESONLY);
-  items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-  if (items == 0) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "No active track(s) to add strip to, select an existing track or add one before "
-               "trying again");
-    return OPERATOR_CANCELLED;
-  }
+  nlaedit_get_editable_tracks(&ac, &anim_data);
 
   /* for every active track,
    * try to add strip to free space in track or to the top of the stack if no space */
@@ -736,7 +751,7 @@ void NLA_OT_actionclip_add(wmOperatorType *ot)
       "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track";
 
   /* api callbacks */
-  ot->invoke = WM_enum_search_invoke;
+  ot->invoke = nlaedit_add_actionclip_invoke;
   ot->exec = nlaedit_add_actionclip_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 
@@ -2626,6 +2641,8 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 
 void NLA_OT_fmodifier_add(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add F-Modifier";
   ot->idname = "NLA_OT_fmodifier_add";
@@ -2644,11 +2661,12 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_enum_funcs(ot->prop, nla_fmodifier_itemf);
 
-  RNA_def_boolean(ot->srna,
-                  "only_active",
-                  true,
-                  "Only Active",
-                  "Only add a F-Modifier of the specified type to the active strip");
+  prop = RNA_def_boolean(ot->srna,
+                         "only_active",
+                         true,
+                         "Only Active",
+                         "Only add a F-Modifier of the specified type to the active strip");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
 /** \} */
@@ -2817,8 +2835,10 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(
+  ot->prop = RNA_def_boolean(
       ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active strip");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
+
   RNA_def_boolean(
       ot->srna,
       "replace",

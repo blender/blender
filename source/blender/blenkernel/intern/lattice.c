@@ -190,7 +190,7 @@ IDTypeInfo IDType_ID_LT = {
     .foreach_id = lattice_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = lattice_blend_write,
     .blend_read_data = lattice_blend_read_data,
@@ -245,7 +245,7 @@ int BKE_lattice_index_flip(
 void BKE_lattice_bitmap_from_flag(
     Lattice *lt, BLI_bitmap *bitmap, const uint8_t flag, const bool clear, const bool respecthide)
 {
-  const unsigned int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+  const uint tot = lt->pntsu * lt->pntsv * lt->pntsw;
   BPoint *bp;
 
   bp = lt->def;

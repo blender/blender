@@ -41,7 +41,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   int valence;
   uint objects_empty_len = 0;
   uint failed_axis_len = 0;
-  uint failed_vertices_len = 0;
+  uint failed_verts_len = 0;
 
   turns = RNA_int_get(op->ptr, "turns");
   steps = RNA_int_get(op->ptr, "steps");
@@ -49,9 +49,10 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "axis", axis);
 
   uint objects_len = 0;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -97,7 +98,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
     }
 
     if (v1 == NULL || v2 == NULL) {
-      failed_vertices_len++;
+      failed_verts_len++;
       continue;
     }
 
@@ -151,7 +152,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   if (failed_axis_len == objects_len - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
   }
-  else if (failed_vertices_len == objects_len - objects_empty_len) {
+  else if (failed_verts_len == objects_len - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
   }
 

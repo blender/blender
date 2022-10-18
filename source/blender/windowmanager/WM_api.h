@@ -94,7 +94,7 @@ void WM_init_state_maximized_set(void);
 void WM_init_state_start_with_console_set(bool value);
 void WM_init_window_focus_set(bool do_it);
 void WM_init_native_pixels(bool do_it);
-void WM_init_tablet_api(void);
+void WM_init_input_devices(void);
 
 /**
  * Initialize Blender and load the startup file & preferences
@@ -118,6 +118,13 @@ void WM_main(struct bContext *C) ATTR_NORETURN;
 void WM_init_splash(struct bContext *C);
 
 void WM_init_opengl(void);
+
+/**
+ * Return an identifier for the underlying GHOST implementation.
+ * \warning Use of this function should be limited & never for compatibility checks.
+ * see: #GHOST_ISystem::getSystemBackend for details.
+ */
+const char *WM_ghost_backend(void);
 
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
@@ -861,7 +868,7 @@ void WM_operator_properties_select_action(struct wmOperatorType *ot,
                                           int default_action,
                                           bool hide_gui);
 /**
- * Only #SELECT / #DESELECT.
+ * Only for select/de-select.
  */
 void WM_operator_properties_select_action_simple(struct wmOperatorType *ot,
                                                  int default_action,

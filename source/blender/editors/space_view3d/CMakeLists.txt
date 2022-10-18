@@ -5,6 +5,7 @@ set(INC
   ../../blenfont
   ../../blenkernel
   ../../blenlib
+  ../../blenloader
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -27,11 +28,11 @@ set(INC
 
 set(SRC
   drawobject.c
-  space_view3d.c
+  space_view3d.cc
   view3d_buttons.c
   view3d_camera_control.c
   view3d_cursor_snap.c
-  view3d_draw.c
+  view3d_draw.cc
   view3d_edit.c
   view3d_gizmo_armature.c
   view3d_gizmo_camera.c
@@ -41,11 +42,11 @@ set(SRC
   view3d_gizmo_navigate.c
   view3d_gizmo_navigate_type.c
   view3d_gizmo_preselect.c
-  view3d_gizmo_preselect_type.c
+  view3d_gizmo_preselect_type.cc
   view3d_gizmo_ruler.c
   view3d_gizmo_tool_generic.c
   view3d_header.c
-  view3d_iterators.c
+  view3d_iterators.cc
   view3d_navigate.c
   view3d_navigate_dolly.c
   view3d_navigate_fly.c
@@ -75,7 +76,7 @@ set(LIB
 )
 
 if(WITH_PYTHON)
-  blender_include_dirs(../../python)
+  list(APPEND INC ../../python)
   add_definitions(-DWITH_PYTHON)
 endif()
 

@@ -110,85 +110,6 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
 
-void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
-{
-  const char cd_flag_all = BM_mesh_cd_flag_from_bmesh(bm) | cd_flag;
-  BM_mesh_cd_flag_apply(bm, cd_flag_all);
-  if (mesh) {
-    mesh->cd_flag = cd_flag_all;
-  }
-}
-
-void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
-{
-  /* CustomData_bmesh_init_pool() must run first */
-  BLI_assert(bm->vdata.totlayer == 0 || bm->vdata.pool != nullptr);
-  BLI_assert(bm->edata.totlayer == 0 || bm->edata.pool != nullptr);
-  BLI_assert(bm->pdata.totlayer == 0 || bm->pdata.pool != nullptr);
-
-  if (cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
-    if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-      BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-      BM_data_layer_free(bm, &bm->vdata, CD_BWEIGHT);
-    }
-  }
-
-  if (cd_flag & ME_CDFLAG_VERT_CREASE) {
-    if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-      BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-      BM_data_layer_free(bm, &bm->vdata, CD_CREASE);
-    }
-  }
-
-  if (cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-    if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-      BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-      BM_data_layer_free(bm, &bm->edata, CD_BWEIGHT);
-    }
-  }
-
-  if (cd_flag & ME_CDFLAG_EDGE_CREASE) {
-    if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
-      BM_data_layer_add(bm, &bm->edata, CD_CREASE);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-      BM_data_layer_free(bm, &bm->edata, CD_CREASE);
-    }
-  }
-}
-
-char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
-{
-  char cd_flag = 0;
-  if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-    cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-  }
-  if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-    cd_flag |= ME_CDFLAG_VERT_CREASE;
-  }
-  if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-    cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-  }
-  if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-    cd_flag |= ME_CDFLAG_EDGE_CREASE;
-  }
-  return cd_flag;
-}
-
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
                                          Span<MLoop> loops,
@@ -208,6 +129,10 @@ static BMFace *bm_face_create_from_mpoly(BMesh &bm,
 
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
 {
+  if (!me) {
+    /* Sanity check. */
+    return;
+  }
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
   KeyBlock *actkey;
@@ -215,19 +140,35 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
-  if (!me || !me->totvert) {
-    if (me && is_new) { /* No verts? still copy custom-data layout. */
-      CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_CONSTRUCT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_CONSTRUCT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_CONSTRUCT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_CONSTRUCT, 0);
+  CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->vdata,
+                                                                              mask.vmask);
+  CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->edata,
+                                                                              mask.emask);
+  CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->pdata,
+                                                                              mask.pmask);
+  CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->ldata,
+                                                                              mask.lmask);
+  BLI_SCOPED_DEFER([&]() {
+    MEM_SAFE_FREE(mesh_vdata.layers);
+    MEM_SAFE_FREE(mesh_edata.layers);
+    MEM_SAFE_FREE(mesh_pdata.layers);
+    MEM_SAFE_FREE(mesh_ldata.layers);
+  });
+
+  if (me->totvert == 0) {
+    if (is_new) {
+      /* No verts? still copy custom-data layout. */
+      CustomData_copy(&mesh_vdata, &bm->vdata, mask.vmask, CD_CONSTRUCT, 0);
+      CustomData_copy(&mesh_edata, &bm->edata, mask.emask, CD_CONSTRUCT, 0);
+      CustomData_copy(&mesh_pdata, &bm->pdata, mask.pmask, CD_CONSTRUCT, 0);
+      CustomData_copy(&mesh_ldata, &bm->ldata, mask.lmask, CD_CONSTRUCT, 0);
 
       CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
       CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
       CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
       CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
     }
-    return; /* Sanity check. */
+    return;
   }
 
   const float(*vert_normals)[3] = nullptr;
@@ -236,16 +177,16 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   }
 
   if (is_new) {
-    CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, 0);
-    CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_SET_DEFAULT, 0);
-    CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, 0);
-    CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, 0);
+    CustomData_copy(&mesh_vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, 0);
+    CustomData_copy(&mesh_edata, &bm->edata, mask.emask, CD_SET_DEFAULT, 0);
+    CustomData_copy(&mesh_pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, 0);
+    CustomData_copy(&mesh_ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, 0);
   }
   else {
-    CustomData_bmesh_merge(&me->vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, bm, BM_VERT);
-    CustomData_bmesh_merge(&me->edata, &bm->edata, mask.emask, CD_SET_DEFAULT, bm, BM_EDGE);
-    CustomData_bmesh_merge(&me->ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, bm, BM_LOOP);
-    CustomData_bmesh_merge(&me->pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, bm, BM_FACE);
+    CustomData_bmesh_merge(&mesh_vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, bm, BM_VERT);
+    CustomData_bmesh_merge(&mesh_edata, &bm->edata, mask.emask, CD_SET_DEFAULT, bm, BM_EDGE);
+    CustomData_bmesh_merge(&mesh_pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, bm, BM_FACE);
+    CustomData_bmesh_merge(&mesh_ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, bm, BM_LOOP);
   }
 
   /* -------------------------------------------------------------------- */
@@ -338,47 +279,41 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
     CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
   }
-  BM_mesh_cd_flag_apply(bm, me->cd_flag | (is_new ? 0 : BM_mesh_cd_flag_from_bmesh(bm)));
 
   /* Only copy these values over if the source mesh is flagged to be using them.
    * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
-  const int cd_vert_bweight_offset = (me->cd_flag & ME_CDFLAG_VERT_BWEIGHT) ?
-                                         CustomData_get_offset(&bm->vdata, CD_BWEIGHT) :
-                                         -1;
-  const int cd_edge_bweight_offset = (me->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) ?
-                                         CustomData_get_offset(&bm->edata, CD_BWEIGHT) :
-                                         -1;
-  const int cd_edge_crease_offset = (me->cd_flag & ME_CDFLAG_EDGE_CREASE) ?
-                                        CustomData_get_offset(&bm->edata, CD_CREASE) :
-                                        -1;
   const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
                                                    -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
 
+  const bool *select_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".select_vert");
+  const bool *select_edge = (const bool *)CustomData_get_layer_named(
+      &me->edata, CD_PROP_BOOL, ".select_edge");
+  const bool *select_poly = (const bool *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_BOOL, ".select_poly");
   const bool *hide_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".hide_vert");
   const bool *hide_edge = (const bool *)CustomData_get_layer_named(
       &me->edata, CD_PROP_BOOL, ".hide_edge");
   const bool *hide_poly = (const bool *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_BOOL, ".hide_poly");
+  const int *material_indices = (const int *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_INT32, "material_index");
 
-  Span<MVert> mvert{me->mvert, me->totvert};
+  Span<MVert> mvert = me->verts();
   Array<BMVert *> vtable(me->totvert);
   for (const int i : mvert.index_range()) {
     BMVert *v = vtable[i] = BM_vert_create(
         bm, keyco ? keyco[i] : mvert[i].co, nullptr, BM_CREATE_SKIP_CD);
     BM_elem_index_set(v, i); /* set_ok */
 
-    /* Transfer flag. */
-    v->head.hflag = BM_vert_flag_from_mflag(mvert[i].flag & ~SELECT);
     if (hide_vert && hide_vert[i]) {
       BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
     }
-
-    /* This is necessary for selection counts to work properly. */
-    if (mvert[i].flag & SELECT) {
+    if (select_vert && select_vert[i]) {
       BM_vert_select_set(bm, v, true);
     }
 
@@ -387,11 +322,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     }
 
     /* Copy Custom Data */
-    CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
-
-    if (cd_vert_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert[i].bweight / 255.0f);
-    }
+    CustomData_to_bmesh_block(&mesh_vdata, &bm->vdata, i, &v->head.data, true);
 
     /* Set shape key original index. */
     if (cd_shape_keyindex_offset != -1) {
@@ -410,7 +341,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_VERT; /* Added in order, clear dirty flag. */
   }
 
-  Span<MEdge> medge{me->medge, me->totedge};
+  const Span<MEdge> medge = me->edges();
   Array<BMEdge *> etable(me->totedge);
   for (const int i : medge.index_range()) {
     BMEdge *e = etable[i] = BM_edge_create(
@@ -418,32 +349,23 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     BM_elem_index_set(e, i); /* set_ok */
 
     /* Transfer flags. */
-    e->head.hflag = BM_edge_flag_from_mflag(medge[i].flag & ~SELECT);
+    e->head.hflag = BM_edge_flag_from_mflag(medge[i].flag);
     if (hide_edge && hide_edge[i]) {
       BM_elem_flag_enable(e, BM_ELEM_HIDDEN);
     }
-
-    /* This is necessary for selection counts to work properly. */
-    if (medge[i].flag & SELECT) {
+    if (select_edge && select_edge[i]) {
       BM_edge_select_set(bm, e, true);
     }
 
     /* Copy Custom Data */
-    CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
-
-    if (cd_edge_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge[i].bweight / 255.0f);
-    }
-    if (cd_edge_crease_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset, (float)medge[i].crease / 255.0f);
-    }
+    CustomData_to_bmesh_block(&mesh_edata, &bm->edata, i, &e->head.data, true);
   }
   if (is_new) {
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
   }
 
-  Span<MPoly> mpoly{me->mpoly, me->totpoly};
-  Span<MLoop> mloop{me->mloop, me->totloop};
+  const Span<MPoly> mpoly = me->polys();
+  const Span<MLoop> mloop = me->loops();
 
   /* Only needed for selection. */
 
@@ -474,17 +396,15 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
     /* Transfer flag. */
-    f->head.hflag = BM_face_flag_from_mflag(mpoly[i].flag & ~ME_FACE_SEL);
+    f->head.hflag = BM_face_flag_from_mflag(mpoly[i].flag);
     if (hide_poly && hide_poly[i]) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
-
-    /* This is necessary for selection counts to work properly. */
-    if (mpoly[i].flag & ME_FACE_SEL) {
+    if (select_poly && select_poly[i]) {
       BM_face_select_set(bm, f, true);
     }
 
-    f->mat_nr = mpoly[i].mat_nr;
+    f->mat_nr = material_indices == nullptr ? 0 : material_indices[i];
     if (i == me->act_face) {
       bm->act_face = f;
     }
@@ -497,11 +417,11 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       BM_elem_index_set(l_iter, totloops++); /* set_ok */
 
       /* Save index of corresponding #MLoop. */
-      CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
+      CustomData_to_bmesh_block(&mesh_ldata, &bm->ldata, j++, &l_iter->head.data, true);
     } while ((l_iter = l_iter->next) != l_first);
 
     /* Copy Custom Data */
-    CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
+    CustomData_to_bmesh_block(&mesh_pdata, &bm->pdata, i, &f->head.data, true);
 
     if (params->calc_face_normal) {
       BM_face_normal_update(f);
@@ -703,7 +623,7 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  */
 static void bm_to_mesh_shape(BMesh *bm,
                              Key *key,
-                             MVert *mvert,
+                             MutableSpan<MVert> mvert,
                              const bool active_shapekey_to_mvert)
 {
   KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&key->block, bm->shapenr - 1));
@@ -923,28 +843,35 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
   }
 }
 
-template<typename GetFn>
-static void write_elem_flag_to_attribute(blender::bke::MutableAttributeAccessor &attributes,
-                                         const StringRef attribute_name,
-                                         const eAttrDomain domain,
-                                         const bool do_write,
-                                         const GetFn &get_fn)
+template<typename T, typename GetFn>
+static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attributes,
+                                  const StringRef attribute_name,
+                                  const eAttrDomain domain,
+                                  const GetFn &get_fn)
 {
   using namespace blender;
-  if (do_write) {
-    bke::SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_only_span<bool>(
-        attribute_name, domain);
-    threading::parallel_for(attribute.span.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : range) {
-        attribute.span[i] = get_fn(i);
-      }
-    });
-    attribute.finish();
-  }
-  else {
-    /* To avoid overhead, remove the hide attribute if possible. */
-    attributes.remove(attribute_name);
-  }
+  bke::SpanAttributeWriter<T> attribute = attributes.lookup_or_add_for_write_only_span<T>(
+      attribute_name, domain);
+  threading::parallel_for(attribute.span.index_range(), 4096, [&](IndexRange range) {
+    for (const int i : range) {
+      attribute.span[i] = get_fn(i);
+    }
+  });
+  attribute.finish();
+}
+
+static void assert_bmesh_has_no_mesh_only_attributes(const BMesh &bm)
+{
+  (void)bm; /* Unused in the release builds. */
+
+  /* The "hide" attributes are stored as flags on #BMesh. */
+  BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".hide_vert") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.edata, CD_PROP_BOOL, ".hide_edge") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.pdata, CD_PROP_BOOL, ".hide_poly") == nullptr);
+  /* The "selection" attributes are stored as flags on #BMesh. */
+  BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".select_vert") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.edata, CD_PROP_BOOL, ".select_edge") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.pdata, CD_PROP_BOOL, ".select_poly") == nullptr);
 }
 
 static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
@@ -955,43 +882,71 @@ static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
 {
   using namespace blender;
   /* The "hide" attributes are stored as flags on #BMesh. */
-  BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".hide_vert") == nullptr);
-  BLI_assert(CustomData_get_layer_named(&bm.edata, CD_PROP_BOOL, ".hide_edge") == nullptr);
-  BLI_assert(CustomData_get_layer_named(&bm.pdata, CD_PROP_BOOL, ".hide_poly") == nullptr);
+  assert_bmesh_has_no_mesh_only_attributes(bm);
 
   if (!(need_hide_vert || need_hide_edge || need_hide_poly)) {
     return;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   BM_mesh_elem_table_ensure(&bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  write_elem_flag_to_attribute(
-      attributes, ".hide_vert", ATTR_DOMAIN_POINT, need_hide_vert, [&](const int i) {
-        return BM_elem_flag_test(BM_vert_at_index(&bm, i), BM_ELEM_HIDDEN);
-      });
-  write_elem_flag_to_attribute(
-      attributes, ".hide_edge", ATTR_DOMAIN_EDGE, need_hide_edge, [&](const int i) {
-        return BM_elem_flag_test(BM_edge_at_index(&bm, i), BM_ELEM_HIDDEN);
-      });
-  write_elem_flag_to_attribute(
-      attributes, ".hide_poly", ATTR_DOMAIN_FACE, need_hide_poly, [&](const int i) {
-        return BM_elem_flag_test(BM_face_at_index(&bm, i), BM_ELEM_HIDDEN);
-      });
+  if (need_hide_vert) {
+    write_fn_to_attribute<bool>(attributes, ".hide_vert", ATTR_DOMAIN_POINT, [&](const int i) {
+      return BM_elem_flag_test(BM_vert_at_index(&bm, i), BM_ELEM_HIDDEN);
+    });
+  }
+  if (need_hide_edge) {
+    write_fn_to_attribute<bool>(attributes, ".hide_edge", ATTR_DOMAIN_EDGE, [&](const int i) {
+      return BM_elem_flag_test(BM_edge_at_index(&bm, i), BM_ELEM_HIDDEN);
+    });
+  }
+  if (need_hide_poly) {
+    write_fn_to_attribute<bool>(attributes, ".hide_poly", ATTR_DOMAIN_FACE, [&](const int i) {
+      return BM_elem_flag_test(BM_face_at_index(&bm, i), BM_ELEM_HIDDEN);
+    });
+  }
+}
+
+static void convert_bmesh_selection_flags_to_mesh_attributes(BMesh &bm,
+                                                             const bool need_select_vert,
+                                                             const bool need_select_edge,
+                                                             const bool need_select_poly,
+                                                             Mesh &mesh)
+{
+  using namespace blender;
+  if (!(need_select_vert || need_select_edge || need_select_poly)) {
+    return;
+  }
+
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  BM_mesh_elem_table_ensure(&bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  if (need_select_vert) {
+    write_fn_to_attribute<bool>(attributes, ".select_vert", ATTR_DOMAIN_POINT, [&](const int i) {
+      return BM_elem_flag_test(BM_vert_at_index(&bm, i), BM_ELEM_SELECT);
+    });
+  }
+  if (need_select_edge) {
+    write_fn_to_attribute<bool>(attributes, ".select_edge", ATTR_DOMAIN_EDGE, [&](const int i) {
+      return BM_elem_flag_test(BM_edge_at_index(&bm, i), BM_ELEM_SELECT);
+    });
+  }
+  if (need_select_poly) {
+    write_fn_to_attribute<bool>(attributes, ".select_poly", ATTR_DOMAIN_FACE, [&](const int i) {
+      return BM_elem_flag_test(BM_face_at_index(&bm, i), BM_ELEM_SELECT);
+    });
+  }
 }
 
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
-  MEdge *med;
   BMVert *v, *eve;
   BMEdge *e;
   BMFace *f;
   BMIter iter;
   int i, j;
 
-  const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-  const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
-  const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
 
   const int ototvert = me->totvert;
@@ -1016,46 +971,42 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy_mesh_to_bmesh(&bm->vdata, &me->vdata, mask.vmask, CD_SET_DEFAULT, me->totvert);
-    CustomData_copy_mesh_to_bmesh(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
-    CustomData_copy_mesh_to_bmesh(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
-    CustomData_copy_mesh_to_bmesh(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
+    CustomData_copy(&bm->vdata, &me->vdata, mask.vmask, CD_SET_DEFAULT, me->totvert);
+    CustomData_copy(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
+    CustomData_copy(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
+    CustomData_copy(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
   }
 
-  MVert *mvert = bm->totvert ? (MVert *)MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") :
-                               nullptr;
-  MEdge *medge = bm->totedge ? (MEdge *)MEM_callocN(sizeof(MEdge) * bm->totedge, "bm_to_me.edge") :
-                               nullptr;
-  MLoop *mloop = bm->totloop ? (MLoop *)MEM_callocN(sizeof(MLoop) * bm->totloop, "bm_to_me.loop") :
-                               nullptr;
-  MPoly *mpoly = bm->totface ? (MPoly *)MEM_callocN(sizeof(MPoly) * bm->totface, "bm_to_me.poly") :
-                               nullptr;
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, me->totedge);
+  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
+  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);
+  MutableSpan<MVert> mvert = me->verts_for_write();
+  MutableSpan<MEdge> medge = me->edges_for_write();
+  MutableSpan<MPoly> mpoly = me->polys_for_write();
+  MutableSpan<MLoop> mloop = me->loops_for_write();
 
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
-  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
-  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
-
+  bool need_select_vert = false;
+  bool need_select_edge = false;
+  bool need_select_poly = false;
   bool need_hide_vert = false;
   bool need_hide_edge = false;
   bool need_hide_poly = false;
+  bool need_material_index = false;
 
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
   BKE_mesh_clear_derived_normals(me);
 
-  me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
-
-  /* This is called again, 'dotess' arg is used there. */
-  BKE_mesh_update_customdata_pointers(me, false);
-
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    copy_v3_v3(mvert->co, v->co);
+    copy_v3_v3(mvert[i].co, v->co);
 
-    mvert->flag = BM_vert_flag_to_mflag(v);
     if (BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       need_hide_vert = true;
+    }
+    if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+      need_select_vert = true;
     }
 
     BM_elem_index_set(v, i); /* set_inline */
@@ -1063,26 +1014,23 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
 
-    if (cd_vert_bweight_offset != -1) {
-      mvert->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(v, cd_vert_bweight_offset);
-    }
-
     i++;
-    mvert++;
 
     BM_CHECK_ELEMENT(v);
   }
   bm->elem_index_dirty &= ~BM_VERT;
 
-  med = medge;
   i = 0;
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    med->v1 = BM_elem_index_get(e->v1);
-    med->v2 = BM_elem_index_get(e->v2);
+    medge[i].v1 = BM_elem_index_get(e->v1);
+    medge[i].v2 = BM_elem_index_get(e->v2);
 
-    med->flag = BM_edge_flag_to_mflag(e);
+    medge[i].flag = BM_edge_flag_to_mflag(e);
     if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
       need_hide_edge = true;
+    }
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+      need_select_edge = true;
     }
 
     BM_elem_index_set(e, i); /* set_inline */
@@ -1090,17 +1038,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
 
-    bmesh_quick_edgedraw_flag(med, e);
-
-    if (cd_edge_crease_offset != -1) {
-      med->crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_crease_offset);
-    }
-    if (cd_edge_bweight_offset != -1) {
-      med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_bweight_offset);
-    }
+    bmesh_quick_edgedraw_flag(&medge[i], e);
 
     i++;
-    med++;
     BM_CHECK_ELEMENT(e);
   }
   bm->elem_index_dirty &= ~BM_EDGE;
@@ -1109,24 +1049,28 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   j = 0;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMLoop *l_iter, *l_first;
-    mpoly->loopstart = j;
-    mpoly->totloop = f->len;
-    mpoly->mat_nr = f->mat_nr;
-    mpoly->flag = BM_face_flag_to_mflag(f);
+    mpoly[i].loopstart = j;
+    mpoly[i].totloop = f->len;
+    if (f->mat_nr != 0) {
+      need_material_index = true;
+    }
+    mpoly[i].flag = BM_face_flag_to_mflag(f);
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       need_hide_poly = true;
+    }
+    if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+      need_select_poly = true;
     }
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
     do {
-      mloop->e = BM_elem_index_get(l_iter->e);
-      mloop->v = BM_elem_index_get(l_iter->v);
+      mloop[j].e = BM_elem_index_get(l_iter->e);
+      mloop[j].v = BM_elem_index_get(l_iter->v);
 
       /* Copy over custom-data. */
       CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l_iter->head.data, j);
 
       j++;
-      mloop++;
       BM_CHECK_ELEMENT(l_iter);
       BM_CHECK_ELEMENT(l_iter->e);
       BM_CHECK_ELEMENT(l_iter->v);
@@ -1140,8 +1084,15 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     CustomData_from_bmesh_block(&bm->pdata, &me->pdata, f->head.data, i);
 
     i++;
-    mpoly++;
     BM_CHECK_ELEMENT(f);
+  }
+
+  if (need_material_index) {
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
+    write_fn_to_attribute<int>(me->attributes_for_write(),
+                               "material_index",
+                               ATTR_DOMAIN_FACE,
+                               [&](const int i) { return int(BM_face_at_index(bm, i)->mat_nr); });
   }
 
   /* Patch hook indices and vertex parents. */
@@ -1210,8 +1161,8 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
   convert_bmesh_hide_flags_to_mesh_attributes(
       *bm, need_hide_vert, need_hide_edge, need_hide_poly, *me);
-
-  BKE_mesh_update_customdata_pointers(me, false);
+  convert_bmesh_selection_flags_to_mesh_attributes(
+      *bm, need_select_vert, need_select_edge, need_select_poly, *me);
 
   {
     me->totselect = BLI_listbase_count(&(bm->selected));
@@ -1238,7 +1189,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   }
 
   if (me->key) {
-    bm_to_mesh_shape(bm, me->key, me->mvert, params->active_shapekey_to_mvert);
+    bm_to_mesh_shape(bm, me->key, mvert, params->active_shapekey_to_mvert);
   }
 
   /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */
@@ -1259,8 +1210,12 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BKE_mesh_runtime_clear_geometry(me);
 }
 
+/* NOTE: The function is called from multiple threads with the same input BMesh and different
+ * mesh objects. */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
+  using namespace blender;
+
   /* Must be an empty mesh. */
   BLI_assert(me->totvert == 0);
   BLI_assert(cd_mask_extra == nullptr || (cd_mask_extra->vmask & CD_MASK_SHAPEKEY) == 0);
@@ -1288,32 +1243,27 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
   CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
 
-  BKE_mesh_update_customdata_pointers(me, false);
-
   BMIter iter;
   BMVert *eve;
   BMEdge *eed;
   BMFace *efa;
-  MVert *mvert = me->mvert;
-  MEdge *medge = me->medge;
-  MLoop *mloop = me->mloop;
-  MPoly *mpoly = me->mpoly;
-  unsigned int i, j;
-
-  const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-  const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
-  const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
-
-  bool need_hide_vert = false;
-  bool need_hide_edge = false;
-  bool need_hide_poly = false;
+  MutableSpan<MVert> mvert = me->verts_for_write();
+  MutableSpan<MEdge> medge = me->edges_for_write();
+  MutableSpan<MPoly> mpoly = me->polys_for_write();
+  MutableSpan<MLoop> loops = me->loops_for_write();
+  MLoop *mloop = loops.data();
+  uint i, j;
 
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
   BKE_mesh_clear_derived_normals(me);
 
-  me->runtime.deformed_only = true;
+  me->runtime->deformed_only = true;
 
+  bke::MutableAttributeAccessor mesh_attributes = me->attributes_for_write();
+
+  bke::SpanAttributeWriter<bool> hide_vert_attribute;
+  bke::SpanAttributeWriter<bool> select_vert_attribute;
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
     MVert *mv = &mvert[i];
 
@@ -1321,23 +1271,27 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
     BM_elem_index_set(eve, i); /* set_inline */
 
-    mv->flag = BM_vert_flag_to_mflag(eve);
     if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      need_hide_vert = true;
+      if (!hide_vert_attribute) {
+        hide_vert_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(
+            ".hide_vert", ATTR_DOMAIN_POINT);
+      }
+      hide_vert_attribute.span[i] = true;
     }
-
-    if (cd_vert_bweight_offset != -1) {
-      mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
-    }
-
-    if (cd_vert_bweight_offset != -1) {
-      mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+    if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+      if (!select_vert_attribute) {
+        select_vert_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(
+            ".select_vert", ATTR_DOMAIN_POINT);
+      }
+      select_vert_attribute.span[i] = true;
     }
 
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, eve->head.data, i);
   }
   bm->elem_index_dirty &= ~BM_VERT;
 
+  bke::SpanAttributeWriter<bool> hide_edge_attribute;
+  bke::SpanAttributeWriter<bool> select_edge_attribute;
   BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
     MEdge *med = &medge[i];
 
@@ -1348,7 +1302,18 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
     med->flag = BM_edge_flag_to_mflag(eed);
     if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-      need_hide_edge = true;
+      if (!hide_edge_attribute) {
+        hide_edge_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(".hide_edge",
+                                                                                 ATTR_DOMAIN_EDGE);
+      }
+      hide_edge_attribute.span[i] = true;
+    }
+    if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+      if (!select_edge_attribute) {
+        select_edge_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(
+            ".select_edge", ATTR_DOMAIN_EDGE);
+      }
+      select_edge_attribute.span[i] = true;
     }
 
     /* Handle this differently to editmode switching,
@@ -1359,18 +1324,14 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
       }
     }
 
-    if (cd_edge_crease_offset != -1) {
-      med->crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
-    }
-    if (cd_edge_bweight_offset != -1) {
-      med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
-    }
-
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);
   }
   bm->elem_index_dirty &= ~BM_EDGE;
 
   j = 0;
+  bke::SpanAttributeWriter<int> material_index_attribute;
+  bke::SpanAttributeWriter<bool> hide_poly_attribute;
+  bke::SpanAttributeWriter<bool> select_poly_attribute;
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
     BMLoop *l_iter;
     BMLoop *l_first;
@@ -1381,11 +1342,28 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     mp->totloop = efa->len;
     mp->flag = BM_face_flag_to_mflag(efa);
     if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-      need_hide_poly = true;
+      if (!hide_poly_attribute) {
+        hide_poly_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(".hide_poly",
+                                                                                 ATTR_DOMAIN_FACE);
+      }
+      hide_poly_attribute.span[i] = true;
+    }
+    if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      if (!select_poly_attribute) {
+        select_poly_attribute = mesh_attributes.lookup_or_add_for_write_span<bool>(
+            ".select_poly", ATTR_DOMAIN_FACE);
+      }
+      select_poly_attribute.span[i] = true;
     }
 
     mp->loopstart = j;
-    mp->mat_nr = efa->mat_nr;
+    if (efa->mat_nr != 0) {
+      if (!material_index_attribute) {
+        material_index_attribute = mesh_attributes.lookup_or_add_for_write_span<int>(
+            "material_index", ATTR_DOMAIN_FACE);
+      }
+      material_index_attribute.span[i] = efa->mat_nr;
+    }
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
     do {
@@ -1403,8 +1381,13 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
-  convert_bmesh_hide_flags_to_mesh_attributes(
-      *bm, need_hide_vert, need_hide_edge, need_hide_poly, *me);
+  assert_bmesh_has_no_mesh_only_attributes(*bm);
 
-  me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
+  material_index_attribute.finish();
+  hide_vert_attribute.finish();
+  hide_edge_attribute.finish();
+  hide_poly_attribute.finish();
+  select_vert_attribute.finish();
+  select_edge_attribute.finish();
+  select_poly_attribute.finish();
 }

@@ -366,7 +366,7 @@ static void eevee_draw_scene(void *vedata)
 static void eevee_view_update(void *vedata)
 {
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-  if (stl->g_data) {
+  if (stl && stl->g_data) {
     stl->g_data->view_updated = true;
   }
 }

@@ -17,8 +17,7 @@ const vec4 drw_debug_default_color = vec4(1.0, 0.0, 0.0, 1.0);
 uint drw_debug_start_draw(uint v_needed)
 {
   uint vertid = atomicAdd(drw_debug_draw_v_count, v_needed);
-  /* NOTE: Skip the header manually. */
-  vertid += 1;
+  vertid += drw_debug_draw_offset;
   return vertid;
 }
 

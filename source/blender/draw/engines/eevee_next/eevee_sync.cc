@@ -68,31 +68,32 @@ WorldHandle &SyncModule::sync_world(::World *world)
   return eevee_dd;
 }
 
+SceneHandle &SyncModule::sync_scene(::Scene *scene)
+{
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  struct DrawData *dd = DRW_drawdata_ensure(
+      (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
+  SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
+
+  const int recalc_flags = ID_RECALC_ALL;
+  if ((eevee_dd.recalc & recalc_flags) != 0) {
+    inst_.sampling.reset();
+  }
+  return eevee_dd;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Common
  * \{ */
 
-static inline void shgroup_geometry_call(DRWShadingGroup *grp,
-                                         Object *ob,
-                                         GPUBatch *geom,
-                                         int v_first = -1,
-                                         int v_count = -1,
-                                         bool use_instancing = false)
+static inline void geometry_call(PassMain::Sub *sub_pass,
+                                 GPUBatch *geom,
+                                 ResourceHandle resource_handle)
 {
-  if (grp == nullptr) {
-    return;
-  }
-
-  if (v_first == -1) {
-    DRW_shgroup_call(grp, geom, ob);
-  }
-  else if (use_instancing) {
-    DRW_shgroup_call_instance_range(grp, ob, geom, v_first, v_count);
-  }
-  else {
-    DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
+  if (sub_pass != nullptr) {
+    sub_pass->draw(geom, resource_handle);
   }
 }
 
@@ -102,9 +103,13 @@ static inline void shgroup_geometry_call(DRWShadingGroup *grp,
 /** \name Mesh
  * \{ */
 
-void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle)
+void SyncModule::sync_mesh(Object *ob,
+                           ObjectHandle &ob_handle,
+                           ResourceHandle res_handle,
+                           const ObjectRef &ob_ref)
 {
-  bool has_motion = inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc);
+  bool has_motion = inst_.velocity.step_object_sync(
+      ob, ob_handle.object_key, res_handle, ob_handle.recalc);
 
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
@@ -123,14 +128,20 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle)
       continue;
     }
     Material *material = material_array.materials[i];
-    shgroup_geometry_call(material->shading.shgrp, ob, geom);
-    shgroup_geometry_call(material->prepass.shgrp, ob, geom);
-    shgroup_geometry_call(material->shadow.shgrp, ob, geom);
+    geometry_call(material->shading.sub_pass, geom, res_handle);
+    geometry_call(material->prepass.sub_pass, geom, res_handle);
+    geometry_call(material->shadow.sub_pass, geom, res_handle);
 
-    is_shadow_caster = is_shadow_caster || material->shadow.shgrp != nullptr;
+    is_shadow_caster = is_shadow_caster || material->shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material->is_alpha_blend_transparent;
+
+    GPUMaterial *gpu_material = material_array.gpu_materials[i];
+    ::Material *mat = GPU_material_get_material(gpu_material);
+    inst_.cryptomatte.sync_material(mat);
   }
 
+  inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
+  inst_.cryptomatte.sync_object(ob, res_handle);
   // shadows.sync_object(ob, ob_handle, is_shadow_caster, is_alpha_blend);
 }
 
@@ -155,11 +166,13 @@ struct gpIterData {
   int vcount = 0;
   bool instancing = false;
 
-  gpIterData(Instance &inst_, Object *ob_, ObjectHandle &ob_handle)
+  gpIterData(Instance &inst_, Object *ob_, ObjectHandle &ob_handle, ResourceHandle resource_handle)
       : inst(inst_),
         ob(ob_),
         material_array(inst_.materials.material_array_get(
-            ob_, inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc)))
+            ob_,
+            inst_.velocity.step_object_sync(
+                ob, ob_handle.object_key, resource_handle, ob_handle.recalc)))
   {
     cfra = DEG_get_ctime(inst.depsgraph);
   };
@@ -167,26 +180,28 @@ struct gpIterData {
 
 static void gpencil_drawcall_flush(gpIterData &iter)
 {
+#if 0 /* Incompatible with new draw manager. */
   if (iter.geom != nullptr) {
-    shgroup_geometry_call(iter.material->shading.shgrp,
+    geometry_call(iter.material->shading.sub_pass,
                           iter.ob,
                           iter.geom,
                           iter.vfirst,
                           iter.vcount,
                           iter.instancing);
-    shgroup_geometry_call(iter.material->prepass.shgrp,
+    geometry_call(iter.material->prepass.sub_pass,
                           iter.ob,
                           iter.geom,
                           iter.vfirst,
                           iter.vcount,
                           iter.instancing);
-    shgroup_geometry_call(iter.material->shadow.shgrp,
+    geometry_call(iter.material->shadow.sub_pass,
                           iter.ob,
                           iter.geom,
                           iter.vfirst,
                           iter.vcount,
                           iter.instancing);
   }
+#endif
   iter.geom = nullptr;
   iter.vfirst = -1;
   iter.vcount = 0;
@@ -214,8 +229,8 @@ static void gpencil_drawcall_add(gpIterData &iter,
   iter.vcount = v_first + v_count - iter.vfirst;
 }
 
-static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
+                                bGPDframe * /*gpf*/,
                                 bGPDstroke *gps,
                                 void *thunk)
 {
@@ -250,21 +265,22 @@ static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
   }
 }
 
-void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle)
+void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle)
 {
   /* TODO(fclem): Waiting for a user option to use the render engine instead of gpencil engine. */
   if (true) {
     inst_.gpencil_engine_enabled = true;
     return;
   }
+  UNUSED_VARS(res_handle);
 
-  gpIterData iter(inst_, ob, ob_handle);
+  gpIterData iter(inst_, ob, ob_handle, res_handle);
 
   BKE_gpencil_visible_stroke_iter((bGPdata *)ob->data, nullptr, gpencil_stroke_sync, &iter);
 
   gpencil_drawcall_flush(iter);
 
-  // bool is_caster = true;      /* TODO material.shadow.shgrp. */
+  // bool is_caster = true;      /* TODO material.shadow.sub_pass. */
   // bool is_alpha_blend = true; /* TODO material.is_alpha_blend. */
   // shadows.sync_object(ob, ob_handle, is_caster, is_alpha_blend);
 }
@@ -280,19 +296,24 @@ static void shgroup_curves_call(MaterialPass &matpass,
                                 ParticleSystem *part_sys = nullptr,
                                 ModifierData *modifier_data = nullptr)
 {
-  if (matpass.shgrp == nullptr) {
+  UNUSED_VARS(ob, modifier_data);
+  if (matpass.sub_pass == nullptr) {
     return;
   }
   if (part_sys != nullptr) {
-    DRW_shgroup_hair_create_sub(ob, part_sys, modifier_data, matpass.shgrp, matpass.gpumat);
+    // DRW_shgroup_hair_create_sub(ob, part_sys, modifier_data, matpass.sub_pass, matpass.gpumat);
   }
   else {
-    DRW_shgroup_curves_create_sub(ob, matpass.shgrp, matpass.gpumat);
+    // DRW_shgroup_curves_create_sub(ob, matpass.sub_pass, matpass.gpumat);
   }
 }
 
-void SyncModule::sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *modifier_data)
+void SyncModule::sync_curves(Object *ob,
+                             ObjectHandle &ob_handle,
+                             ResourceHandle res_handle,
+                             ModifierData *modifier_data)
 {
+  UNUSED_VARS(res_handle);
   int mat_nr = CURVES_MATERIAL_NR;
 
   ParticleSystem *part_sys = nullptr;
@@ -317,10 +338,16 @@ void SyncModule::sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *
   shgroup_curves_call(material.prepass, ob, part_sys, modifier_data);
   shgroup_curves_call(material.shadow, ob, part_sys, modifier_data);
 
+  inst_.cryptomatte.sync_object(ob, res_handle);
+  GPUMaterial *gpu_material =
+      inst_.materials.material_array_get(ob, has_motion).gpu_materials[mat_nr - 1];
+  ::Material *mat = GPU_material_get_material(gpu_material);
+  inst_.cryptomatte.sync_material(mat);
+
   /* TODO(fclem) Hair velocity. */
   // shading_passes.velocity.gpencil_add(ob, ob_handle);
 
-  // bool is_caster = material.shadow.shgrp != nullptr;
+  // bool is_caster = material.shadow.sub_pass != nullptr;
   // bool is_alpha_blend = material.is_alpha_blend_transparent;
   // shadows.sync_object(ob, ob_handle, is_caster, is_alpha_blend);
 }

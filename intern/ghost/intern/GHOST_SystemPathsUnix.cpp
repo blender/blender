@@ -5,22 +5,17 @@
  * \ingroup GHOST
  */
 
-#include <cstdio>
 #include <sstream>
 
 #include "GHOST_SystemPathsUnix.h"
 
 #include "GHOST_Debug.h"
 
-// For timing
-
+/* For timing. */
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <cstdio>  /* for fprintf only */
-#include <cstdlib> /* for exit */
-
-#include <pwd.h> /* for get home without use getenv() */
+#include <pwd.h> /* For get home without use `getenv()`. */
 #include <string>
 
 using std::string;

@@ -123,20 +123,16 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
        * However, this might also have negative effect by adding weird
        * artifacts which will then not happen in final render.
        */
-      IMB_colormanagement_transform_byte_threaded((unsigned char *)ibuf->rect,
-                                                  ibuf->x,
-                                                  ibuf->y,
-                                                  ibuf->channels,
-                                                  from_colorspace,
-                                                  to_colorspace);
+      IMB_colormanagement_transform_byte_threaded(
+          (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace);
     }
     else {
       /* We perform conversion to a float buffer so we don't worry about
        * precision loss.
        */
-      imb_addrectfloatImBuf(ibuf);
+      imb_addrectfloatImBuf(ibuf, 4);
       IMB_colormanagement_transform_from_byte_threaded(ibuf->rect_float,
-                                                       (unsigned char *)ibuf->rect,
+                                                       (uchar *)ibuf->rect,
                                                        ibuf->x,
                                                        ibuf->y,
                                                        ibuf->channels,
@@ -942,7 +938,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     return NULL;
   }
 
-  BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
+  BLI_path_join(name, sizeof(name), seq->strip->dir, s_elem->name);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
 
   /* Try to get a proxy image. */
@@ -1298,15 +1294,15 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
   else {
     /* pixels */
     const float *fp_src;
-    unsigned char *ub_dst;
+    uchar *ub_dst;
 
     ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
 
     fp_src = maskbuf;
-    ub_dst = (unsigned char *)ibuf->rect;
+    ub_dst = (uchar *)ibuf->rect;
     i = context->rectx * context->recty;
     while (--i) {
-      ub_dst[0] = ub_dst[1] = ub_dst[2] = (unsigned char)(*fp_src * 255.0f); /* already clamped */
+      ub_dst[0] = ub_dst[1] = ub_dst[2] = (uchar)(*fp_src * 255.0f); /* already clamped */
       ub_dst[3] = 255;
 
       fp_src += 1;
@@ -1352,7 +1348,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
    * find render).
    * However, when called from within the UI (image preview in sequencer)
    * we do want to use scene Render, that way the render result is defined
-   * for display in render/imagewindow
+   * for display in render/image-window
    *
    * Hmm, don't see, why we can't do that all the time,
    * and since G.is_rendering is uhm, gone... (Peter)
@@ -1451,7 +1447,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     BKE_render_resolution(&scene->r, false, &width, &height);
     const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
-    unsigned int draw_flags = V3D_OFSDRAW_NONE;
+    uint draw_flags = V3D_OFSDRAW_NONE;
     draw_flags |= (use_gpencil) ? V3D_OFSDRAW_SHOW_ANNOTATION : 0;
     draw_flags |= (context->scene->r.seq_flag & R_SEQ_OVERRIDE_SCENE_SETTINGS) ?
                       V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :
@@ -1506,8 +1502,16 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         re = RE_NewSceneRender(scene);
       }
 
-      RE_RenderFrame(
-          re, context->bmain, scene, have_comp ? NULL : view_layer, camera, frame, 0.0f, false);
+      const float subframe = frame - floorf(frame);
+
+      RE_RenderFrame(re,
+                     context->bmain,
+                     scene,
+                     have_comp ? NULL : view_layer,
+                     camera,
+                     floorf(frame),
+                     subframe,
+                     false);
 
       /* restore previous state after it was toggled on & off by RE_RenderFrame */
       G.is_rendering = is_rendering;
@@ -2099,7 +2103,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
   /* Adding the hold offset value (seq->anim_startofs) to the start frame. Position of image not
    * affected, but frame loaded affected. */
   float upper_thumb_bound = SEQ_time_has_right_still_frames(scene, seq) ?
-                                (seq->start + seq->len) :
+                                SEQ_time_content_end_frame_get(scene, seq) :
                                 SEQ_time_right_handle_frame_get(scene, seq);
   upper_thumb_bound = (upper_thumb_bound > view_area->xmax) ? view_area->xmax + frame_step :
                                                               upper_thumb_bound;
@@ -2133,9 +2137,10 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Scene *scene, const Sequence *seq)
 {
-  const int content_start = max_ii(SEQ_time_left_handle_frame_get(scene, seq), seq->start);
+  const int content_start = max_ii(SEQ_time_left_handle_frame_get(scene, seq),
+                                   SEQ_time_start_frame_get(seq));
   const int content_end = min_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                                 seq->start + seq->len);
+                                 SEQ_time_content_end_frame_get(scene, seq));
   const int content_len = content_end - content_start;
 
   /* Arbitrary, but due to performance reasons should be as low as possible. */

@@ -30,6 +30,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_legacy_convert.h"
@@ -168,7 +169,8 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 int PE_minmax(
     Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
 {
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys;
   ParticleSystemModifierData *psmd_eval = NULL;
@@ -1450,26 +1452,27 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   vec = edit->emitter_cosnos;
   nor = vec + 3;
 
+  const MVert *verts = BKE_mesh_verts(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-
+  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
-    MFace *mface = &mesh->mface[i];
-    MVert *mvert;
+    MFace *mface = &mfaces[i];
+    const MVert *mvert;
 
-    mvert = &mesh->mvert[mface->v1];
+    mvert = &verts[mface->v1];
     copy_v3_v3(vec, mvert->co);
     copy_v3_v3(nor, vert_normals[mface->v1]);
 
-    mvert = &mesh->mvert[mface->v2];
+    mvert = &verts[mface->v2];
     add_v3_v3v3(vec, vec, mvert->co);
     add_v3_v3(nor, vert_normals[mface->v2]);
 
-    mvert = &mesh->mvert[mface->v3];
+    mvert = &verts[mface->v3];
     add_v3_v3v3(vec, vec, mvert->co);
     add_v3_v3(nor, vert_normals[mface->v3]);
 
     if (mface->v4) {
-      mvert = &mesh->mvert[mface->v4];
+      mvert = &verts[mface->v4];
       add_v3_v3v3(vec, vec, mvert->co);
       add_v3_v3(nor, vert_normals[mface->v4]);
 
@@ -3115,9 +3118,8 @@ static void subdivide_particle(PEData *data, int pa_index)
 
   pa->flag |= PARS_REKEY;
 
-  nkey = new_keys = MEM_callocN((pa->totkey + totnewkey) * (sizeof(HairKey)),
-                                "Hair subdivide keys");
-  nekey = new_ekeys = MEM_callocN((pa->totkey + totnewkey) * (sizeof(PTCacheEditKey)),
+  nkey = new_keys = MEM_callocN((pa->totkey + totnewkey) * sizeof(HairKey), "Hair subdivide keys");
+  nekey = new_ekeys = MEM_callocN((pa->totkey + totnewkey) * sizeof(PTCacheEditKey),
                                   "Hair subdivide edit keys");
 
   key = pa->hair;
@@ -3391,7 +3393,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
   if (brush) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ub(255, 255, 255, 128);
 
@@ -3531,7 +3533,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
   }
 
   const bool use_dm_final_indices = (psys->part->use_modifier_stack &&
-                                     !psmd_eval->mesh_final->runtime.deformed_only);
+                                     !BKE_mesh_is_deformed_only(psmd_eval->mesh_final));
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
   BKE_mesh_tessface_ensure(me);
@@ -3567,7 +3569,9 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
   }
 
   if (newtotpart != psys->totpart) {
-    MFace *mtessface = use_dm_final_indices ? psmd_eval->mesh_final->mface : me->mface;
+    MFace *mtessface = use_dm_final_indices ?
+                           (MFace *)CustomData_get_layer(&psmd_eval->mesh_final->fdata, CD_MFACE) :
+                           (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
 
     /* allocate new arrays and copy existing */
     new_pars = MEM_callocN(newtotpart * sizeof(ParticleData), "ParticleData new");
@@ -3983,7 +3987,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
           /* Translate (not rotate) the rest of the hair if its not selected. */
           {
 /* NOLINTNEXTLINE: readability-redundant-preprocessor */
-#  if 0 /* kindof works but looks worse than what's below */
+#  if 0 /* Kind of works but looks worse than what's below. */
 
             /* Move the unselected point on a vector based on the
              * hair direction and the offset */
@@ -4175,8 +4179,8 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   }
 
   totface = mesh->totface;
-  mface = mesh->mface;
-  mvert = mesh->mvert;
+  mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  mvert = BKE_mesh_verts_for_write(mesh);
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {
@@ -4349,7 +4353,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
                               0,
                               0,
                               0)) {
-    if (psys->part->use_modifier_stack && !psmd_eval->mesh_final->runtime.deformed_only) {
+    if (psys->part->use_modifier_stack && !BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
     }
@@ -4426,7 +4430,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   timestep = psys_get_timestep(&sim);
 
-  if (psys->part->use_modifier_stack || psmd_eval->mesh_final->runtime.deformed_only) {
+  if (psys->part->use_modifier_stack || BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
     mesh = psmd_eval->mesh_final;
   }
   else {

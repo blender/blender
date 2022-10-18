@@ -15,7 +15,9 @@ NODE_STORAGE_FUNCS(NodeTexVoronoi)
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .hide_value()
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
@@ -49,7 +51,7 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
   });
 }
 
-static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "voronoi_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "feature", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -60,7 +62,7 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), 
   }
 }
 
-static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_voronoi(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexVoronoi *tex = MEM_cnew<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -119,7 +121,7 @@ static const char *gpu_shader_get_name(const int feature, const int dimensions)
 
 static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
                                        bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
+                                       bNodeExecData * /*execdata*/,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
@@ -173,7 +175,7 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
                             outWSock,
                             storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                (ELEM(storage.dimensions, 1, 4)));
+                                ELEM(storage.dimensions, 1, 4));
   nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
@@ -234,7 +236,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -670,7 +672,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -1177,7 +1179,7 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");

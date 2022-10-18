@@ -68,12 +68,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveQuad *data = MEM_cnew<NodeGeometryCurvePrimitiveQuad>(__func__);
   data->mode = GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE;
@@ -83,10 +83,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurvePrimitiveQuad &storage = node_storage(*node);
-  GeometryNodeCurvePrimitiveQuadMode mode = static_cast<GeometryNodeCurvePrimitiveQuadMode>(
-      storage.mode);
+  GeometryNodeCurvePrimitiveQuadMode mode = GeometryNodeCurvePrimitiveQuadMode(storage.mode);
 
-  bNodeSocket *width = ((bNodeSocket *)node->inputs.first);
+  bNodeSocket *width = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *height = width->next;
   bNodeSocket *bottom = height->next;
   bNodeSocket *top = bottom->next;
@@ -140,7 +139,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     search_link_ops_for_declarations(params, declaration.outputs());
   }
   else if (params.node_tree().typeinfo->validate_link(
-               static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
     params.add_item(IFACE_("Width"),
                     SocketSearchOp{"Width", GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE});
     params.add_item(IFACE_("Height"),

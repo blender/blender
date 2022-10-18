@@ -38,6 +38,9 @@ enum OVERLAY_GridBits {
   PLANE_IMAGE = (1u << 11u),
   CUSTOM_GRID = (1u << 12u),
 };
+#ifndef GPU_SHADER
+ENUM_OPERATORS(OVERLAY_GridBits, CUSTOM_GRID)
+#endif
 
 /* Match: #SI_GRID_STEPS_LEN */
 #define OVERLAY_GRID_STEPS_LEN 8

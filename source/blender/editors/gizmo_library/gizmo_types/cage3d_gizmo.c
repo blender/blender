@@ -81,9 +81,9 @@ static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], 
 
   float scale_xyz[3];
   gizmo_calc_rect_view_scale(gz, dims, scale_xyz);
-  margin[0] = ((handle_size * scale_xyz[0]));
-  margin[1] = ((handle_size * scale_xyz[1]));
-  margin[2] = ((handle_size * scale_xyz[2]));
+  margin[0] = (handle_size * scale_xyz[0]);
+  margin[1] = (handle_size * scale_xyz[1]);
+  margin[2] = (handle_size * scale_xyz[2]);
 }
 
 /* -------------------------------------------------------------------- */

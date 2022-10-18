@@ -5,7 +5,7 @@
 
 #include "NOD_socket_search_link.hh"
 
-static bool fn_node_poll_default(bNodeType *UNUSED(ntype),
+static bool fn_node_poll_default(bNodeType * /*ntype*/,
                                  bNodeTree *ntree,
                                  const char **r_disabled_hint)
 {

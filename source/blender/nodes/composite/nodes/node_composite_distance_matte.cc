@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_distance_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -30,7 +32,7 @@ static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Matte"));
 }
 
-static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_distance_matte(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
@@ -39,9 +41,7 @@ static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode *n
   c->t2 = 0.1f;
 }
 
-static void node_composit_buts_distance_matte(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col, *row;
 
@@ -90,24 +90,19 @@ class DistanceMatteShaderNode : public ShaderNode {
                    GPU_uniform(&falloff));
   }
 
-  NodeChroma *get_node_chroma()
-  {
-    return static_cast<NodeChroma *>(bnode().storage);
-  }
-
   CMPNodeDistanceMatteColorSpace get_color_space()
   {
-    return (CMPNodeDistanceMatteColorSpace)get_node_chroma()->channel;
+    return (CMPNodeDistanceMatteColorSpace)node_storage(bnode()).channel;
   }
 
   float get_tolerance()
   {
-    return get_node_chroma()->t1;
+    return node_storage(bnode()).t1;
   }
 
   float get_falloff()
   {
-    return get_node_chroma()->t2;
+    return node_storage(bnode()).t2;
   }
 };
 

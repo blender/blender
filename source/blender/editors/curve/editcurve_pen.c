@@ -1366,12 +1366,10 @@ static bool make_cyclic_if_endpoints(ViewContext *vc,
                                      BPoint *sel_bp)
 {
   if (sel_bezt || (sel_bp && sel_nu->pntsu > 2)) {
-    const bool is_bezt_endpoint = (sel_nu->type == CU_BEZIER &&
-                                   (sel_bezt == sel_nu->bezt ||
-                                    sel_bezt == sel_nu->bezt + sel_nu->pntsu - 1));
-    const bool is_bp_endpoint = (sel_nu->type != CU_BEZIER &&
-                                 (sel_bp == sel_nu->bp ||
-                                  sel_bp == sel_nu->bp + sel_nu->pntsu - 1));
+    const bool is_bezt_endpoint = ((sel_nu->type == CU_BEZIER) &&
+                                   ELEM(sel_bezt, sel_nu->bezt, sel_nu->bezt + sel_nu->pntsu - 1));
+    const bool is_bp_endpoint = ((sel_nu->type != CU_BEZIER) &&
+                                 ELEM(sel_bp, sel_nu->bp, sel_nu->bp + sel_nu->pntsu - 1));
     if (!(is_bezt_endpoint || is_bp_endpoint)) {
       return false;
     }
@@ -1388,9 +1386,8 @@ static bool make_cyclic_if_endpoints(ViewContext *vc,
 
     if (nu == sel_nu &&
         ((nu->type == CU_BEZIER && bezt != sel_bezt &&
-          (bezt == nu->bezt || bezt == nu->bezt + nu->pntsu - 1) && bezt_idx == 1) ||
-         (nu->type != CU_BEZIER && bp != sel_bp &&
-          (bp == nu->bp || bp == nu->bp + nu->pntsu - 1)))) {
+          ELEM(bezt, nu->bezt, nu->bezt + nu->pntsu - 1) && bezt_idx == 1) ||
+         (nu->type != CU_BEZIER && bp != sel_bp && ELEM(bp, nu->bp, nu->bp + nu->pntsu - 1)))) {
       View3D *v3d = vc->v3d;
       ListBase *nurbs = object_editcurve_get(vc->obedit);
       curve_toggle_cyclic(v3d, nurbs, 0);
@@ -1532,7 +1529,7 @@ wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Curve Pen Modal Map");
 
-  /* This function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return NULL;
   }

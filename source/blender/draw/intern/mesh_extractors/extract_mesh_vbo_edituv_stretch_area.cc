@@ -20,9 +20,9 @@ namespace blender::draw {
  * \{ */
 
 static void extract_edituv_stretch_area_init(const MeshRenderData *mr,
-                                             MeshBatchCache *UNUSED(cache),
+                                             MeshBatchCache * /*cache*/,
                                              void *buf,
-                                             void *UNUSED(tls_data))
+                                             void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -90,7 +90,7 @@ static void compute_area_ratio(const MeshRenderData *mr,
 static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
                                                MeshBatchCache *cache,
                                                void *buf,
-                                               void *UNUSED(data))
+                                               void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->poly_len, __func__));
@@ -126,7 +126,7 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache *subdiv
                                                     const MeshRenderData *mr,
                                                     MeshBatchCache *cache,
                                                     void *buffer,
-                                                    void *UNUSED(data))
+                                                    void * /*data*/)
 {
 
   /* Initialize final buffer. */

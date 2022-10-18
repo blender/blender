@@ -16,13 +16,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "handle_type", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveSelectHandles *data = MEM_cnew<NodeGeometryCurveSelectHandles>(__func__);
 
@@ -97,7 +97,7 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_2((int)mode_, (int)type_);
+    return get_default_hash_2(int(mode_), int(type_));
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
@@ -107,6 +107,11 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
       return mode_ == other_handle_selection->mode_ && type_ == other_handle_selection->type_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

@@ -423,7 +423,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   *data->do_update = true;
   *data->progress = 0.2f;
 
-  const float size = static_cast<float>(archive->readers().size());
+  const float size = float(archive->readers().size());
   size_t i = 0;
 
   /* Read data, set prenting and create a cache file, if needed. */
@@ -570,14 +570,13 @@ static void import_endjob(void *customdata)
   else if (data->archive) {
     Base *base;
     LayerCollection *lc;
+    const Scene *scene = data->scene;
     ViewLayer *view_layer = data->view_layer;
 
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-    // TODO(makowalski): do we need to forbid and allow collection
-    // resync for the proto collections, as per the new code below?
     if (!data->archive->proto_readers().empty()) {
       create_proto_collections(data->bmain,
                                view_layer,
@@ -586,8 +585,7 @@ static void import_endjob(void *customdata)
                                data->archive->readers());
     }
 
-    /* Add all objects to the collection (don't do sync for each object). */
-    BKE_layer_collection_resync_forbid();
+    /* Add all objects to the collection. */
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;
@@ -599,9 +597,8 @@ static void import_endjob(void *customdata)
       BKE_collection_object_add(data->bmain, lc->collection, ob);
     }
 
-    /* Sync the collection, and do view layer operations. */
-    BKE_layer_collection_resync_allow();
-    BKE_main_collection_sync(data->bmain);
+    /* Sync and do the view layer operations. */
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;

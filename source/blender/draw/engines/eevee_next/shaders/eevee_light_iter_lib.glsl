@@ -47,7 +47,7 @@ int culling_z_to_zbin(float scale, float bias, float z)
     /* Ensure all threads inside a subgroup get the same value to reduce VGPR usage. */ \
     min_index = subgroupBroadcastFirst(subgroupMin(min_index)); \
     max_index = subgroupBroadcastFirst(subgroupMax(max_index)); \
-    /* Same as divide by 32 but avoid interger division. */ \
+    /* Same as divide by 32 but avoid integer division. */ \
     uint word_min = min_index >> 5u; \
     uint word_max = max_index >> 5u; \
     for (uint word_idx = word_min; word_idx <= word_max; word_idx++) { \

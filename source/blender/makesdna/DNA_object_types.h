@@ -231,6 +231,7 @@ enum eObjectLineArt_Usage {
   OBJECT_LRT_EXCLUDE = (1 << 2),
   OBJECT_LRT_INTERSECTION_ONLY = (1 << 3),
   OBJECT_LRT_NO_INTERSECTION = (1 << 4),
+  OBJECT_LRT_FORCE_INTERSECTION = (1 << 5),
 };
 
 enum eObjectLineArt_Flags {
@@ -477,7 +478,13 @@ typedef struct ObHook {
 
 /* **************** OBJECT ********************* */
 
-/* used many places, should be specialized. */
+/**
+ * This is used as a flag for many kinds of data that use selections, examples include:
+ * - #BezTriple.f1, #BezTriple.f2, #BezTriple.f3
+ * - #bNote.flag
+ * - #MovieTrackingTrack.flag
+ * And more, ideally this would have a generic location.
+ */
 #define SELECT 1
 
 /** #Object.type */

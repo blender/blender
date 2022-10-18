@@ -19,7 +19,7 @@ struct MeshExtract_Orco_Data {
 };
 
 static void extract_orco_init(const MeshRenderData *mr,
-                              MeshBatchCache *UNUSED(cache),
+                              MeshBatchCache * /*cache*/,
                               void *buf,
                               void *tls_data)
 {
@@ -45,9 +45,9 @@ static void extract_orco_init(const MeshRenderData *mr,
   BLI_assert(data->orco);
 }
 
-static void extract_orco_iter_poly_bm(const MeshRenderData *UNUSED(mr),
+static void extract_orco_iter_poly_bm(const MeshRenderData * /*mr*/,
                                       const BMFace *f,
-                                      const int UNUSED(f_index),
+                                      const int /*f_index*/,
                                       void *data)
 {
   MeshExtract_Orco_Data *orco_data = (MeshExtract_Orco_Data *)data;
@@ -63,7 +63,7 @@ static void extract_orco_iter_poly_bm(const MeshRenderData *UNUSED(mr),
 
 static void extract_orco_iter_poly_mesh(const MeshRenderData *mr,
                                         const MPoly *mp,
-                                        const int UNUSED(mp_index),
+                                        const int /*mp_index*/,
                                         void *data)
 {
   const MLoop *mloop = mr->mloop;

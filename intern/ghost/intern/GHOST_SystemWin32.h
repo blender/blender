@@ -105,7 +105,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param state: The state of the window when opened.
    * \param type: The type of drawing context installed in this window.
    * \param glSettings: Misc OpenGL settings.
-   * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
+   * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param parentWindow: Parent window.
    * \return The new window (or 0 if creation failed).
    */
@@ -430,7 +430,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param action: console state
    * \return current status (1 -visible, 0 - hidden)
    */
-  int setConsoleWindowState(GHOST_TConsoleWindowState action);
+  bool setConsoleWindowState(GHOST_TConsoleWindowState action);
 
   /** The virtual-key code (VKey) of the last press event. Used to detect repeat events. */
   unsigned short m_keycode_last_repeat_key;
@@ -450,7 +450,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   HKL m_keylayout;
 
   /** Console status. */
-  int m_consoleStatus;
+  bool m_consoleStatus;
 
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;

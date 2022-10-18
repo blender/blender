@@ -22,17 +22,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Target"))
       .only_realized_data()
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Vector>(N_("Position")).dependent_field();
   b.add_output<decl::Float>(N_("Distance")).dependent_field();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target_element", 0, "", ICON_NONE);
 }
 
-static void geo_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryProximity *node_storage = MEM_cnew<NodeGeometryProximity>(__func__);
   node_storage->target_element = GEO_NODE_PROX_TARGET_FACES;
@@ -151,7 +151,7 @@ class ProximityFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
                                                                                "Source Position");
@@ -211,8 +211,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
 
   auto proximity_fn = std::make_unique<ProximityFunction>(
-      std::move(geometry_set_target),
-      static_cast<GeometryNodeProximityTargetType>(storage.target_element));
+      std::move(geometry_set_target), GeometryNodeProximityTargetType(storage.target_element));
   auto proximity_op = std::make_shared<FieldOperation>(
       FieldOperation(std::move(proximity_fn), {std::move(position_field)}));
 

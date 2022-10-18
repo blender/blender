@@ -57,6 +57,7 @@ class ShadingView {
   DRWView *sub_view_ = nullptr;
   /** Same as sub_view_ but has Depth Of Field jitter applied. */
   DRWView *render_view_ = nullptr;
+  View render_view_new_;
 
   /** Render size of the view. Can change between scene sample eval. */
   int2 extent_ = {-1, -1};
@@ -65,7 +66,7 @@ class ShadingView {
 
  public:
   ShadingView(Instance &inst, const char *name, const float (*face_matrix)[4])
-      : inst_(inst), name_(name), face_matrix_(face_matrix){};
+      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_new_(name){};
 
   ~ShadingView(){};
 

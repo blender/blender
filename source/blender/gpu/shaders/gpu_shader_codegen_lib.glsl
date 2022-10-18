@@ -67,7 +67,7 @@ vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], vec4 orco)
   /* If the object does not have any deformation, the orco layer calculation is done on the fly
    * using the orco_madd factors.
    * We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
-   * attrib (which is [0,0,0,1]). */
+   * attribute (which is [0,0,0,1]). */
   if (orco.w == 0.0) {
     return orco.xyz * 0.5 + 0.5;
   }
@@ -187,8 +187,10 @@ struct ClosureTransparency {
 struct GlobalData {
   /** World position. */
   vec3 P;
-  /** Surface Normal. */
+  /** Surface Normal. Normalized, overridden by bump displacement. */
   vec3 N;
+  /** Raw interpolated normal (non-normalized) data. */
+  vec3 Ni;
   /** Geometric Normal. */
   vec3 Ng;
   /** Curve Tangent Space. */

@@ -85,7 +85,9 @@ void Camera::sync()
     DRW_view_winmat_get(inst_.drw_view, data.wininv.ptr(), true);
     DRW_view_persmat_get(inst_.drw_view, data.persmat.ptr(), false);
     DRW_view_persmat_get(inst_.drw_view, data.persinv.ptr(), true);
-    DRW_view_camtexco_get(inst_.drw_view, data.uv_scale);
+    /* TODO(fclem): Derive from rv3d instead. */
+    data.uv_scale = float2(1.0f);
+    data.uv_bias = float2(0.0f);
   }
   else if (inst_.render) {
     /* TODO(@fclem): Over-scan. */
@@ -106,6 +108,8 @@ void Camera::sync()
     data.wininv = data.winmat.inverted();
     data.persmat = data.winmat * data.viewmat;
     data.persinv = data.persmat.inverted();
+    data.uv_scale = float2(1.0f);
+    data.uv_bias = float2(0.0f);
   }
 
   if (camera_eval) {

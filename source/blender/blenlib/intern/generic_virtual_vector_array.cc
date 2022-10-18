@@ -16,12 +16,12 @@ void GVArray_For_GVVectorArrayIndex::get_to_uninitialized(const int64_t index_in
   vector_array_.get_vector_element(index_, index_in_vector, r_value);
 }
 
-int64_t GVVectorArray_For_SingleGVArray::get_vector_size_impl(const int64_t UNUSED(index)) const
+int64_t GVVectorArray_For_SingleGVArray::get_vector_size_impl(const int64_t /*index*/) const
 {
   return varray_.size();
 }
 
-void GVVectorArray_For_SingleGVArray::get_vector_element_impl(const int64_t UNUSED(index),
+void GVVectorArray_For_SingleGVArray::get_vector_element_impl(const int64_t /*index*/,
                                                               const int64_t index_in_vector,
                                                               void *r_value) const
 {
@@ -33,12 +33,12 @@ bool GVVectorArray_For_SingleGVArray::is_single_vector_impl() const
   return true;
 }
 
-int64_t GVVectorArray_For_SingleGSpan::get_vector_size_impl(const int64_t UNUSED(index)) const
+int64_t GVVectorArray_For_SingleGSpan::get_vector_size_impl(const int64_t /*index*/) const
 {
   return span_.size();
 }
 
-void GVVectorArray_For_SingleGSpan::get_vector_element_impl(const int64_t UNUSED(index),
+void GVVectorArray_For_SingleGSpan::get_vector_element_impl(const int64_t /*index*/,
                                                             const int64_t index_in_vector,
                                                             void *r_value) const
 {

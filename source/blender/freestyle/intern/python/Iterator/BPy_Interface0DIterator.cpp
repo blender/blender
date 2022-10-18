@@ -133,8 +133,7 @@ PyDoc_STRVAR(Interface0DIterator_object_doc,
              "\n"
              ":type: :class:`Interface0D` or one of its subclasses.");
 
-static PyObject *Interface0DIterator_object_get(BPy_Interface0DIterator *self,
-                                                void *UNUSED(closure))
+static PyObject *Interface0DIterator_object_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   if (self->if0D_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
@@ -148,7 +147,7 @@ PyDoc_STRVAR(Interface0DIterator_t_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface0DIterator_t_get(BPy_Interface0DIterator *self, void *UNUSED(closure))
+static PyObject *Interface0DIterator_t_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->if0D_it->t());
 }
@@ -158,7 +157,7 @@ PyDoc_STRVAR(Interface0DIterator_u_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface0DIterator_u_get(BPy_Interface0DIterator *self, void *UNUSED(closure))
+static PyObject *Interface0DIterator_u_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->if0D_it->u());
 }
@@ -169,8 +168,7 @@ PyDoc_STRVAR(Interface0DIterator_at_last_doc,
              "\n"
              ":type: bool");
 
-static PyObject *Interface0DIterator_at_last_get(BPy_Interface0DIterator *self,
-                                                 void *UNUSED(closure))
+static PyObject *Interface0DIterator_at_last_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->if0D_it->atLast());
 }

@@ -16,7 +16,7 @@ ChannelMatteNode::ChannelMatteNode(bNode *editor_node) : Node(editor_node)
 void ChannelMatteNode::convert_to_operations(NodeConverter &converter,
                                              const CompositorContext & /*context*/) const
 {
-  bNode *node = this->get_bnode();
+  const bNode *node = this->get_bnode();
 
   NodeInput *input_socket_image = this->get_input_socket(0);
   NodeOutput *output_socket_image = this->get_output_socket(0);

@@ -51,9 +51,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CurveModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
 
@@ -114,7 +112,7 @@ static void deformVerts(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
-  struct MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index = -1;
   MOD_get_vgroup(ctx->object, mesh_src, cmd->name, &dvert, &defgrp_index);
 

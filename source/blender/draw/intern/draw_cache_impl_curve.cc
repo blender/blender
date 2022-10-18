@@ -10,6 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
@@ -38,6 +39,7 @@
 #include "draw_cache_impl.h" /* own include */
 
 using blender::Array;
+using blender::ColorGeometry4f;
 using blender::float3;
 using blender::IndexRange;
 using blender::Span;
@@ -296,6 +298,7 @@ static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
 struct CurveBatchCache {
   struct {
     GPUVertBuf *curves_pos;
+    GPUVertBuf *attr_viewer;
   } ordered;
 
   struct {
@@ -314,6 +317,7 @@ struct CurveBatchCache {
 
   struct {
     GPUBatch *curves;
+    GPUBatch *curves_viewer_attribute;
     /* control handles and vertices */
     GPUBatch *edit_edges;
     GPUBatch *edit_verts;
@@ -472,6 +476,31 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
       rdata->curve_eval->geometry);
   const Span<float3> positions = curves.evaluated_positions();
   GPU_vertbuf_attr_fill(vbo_curves_pos, attr_id.pos, positions.data());
+}
+
+static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
+{
+  if (rdata->curve_eval == nullptr) {
+    return;
+  }
+
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  }
+
+  const int vert_len = curve_render_data_wire_verts_len_get(rdata);
+  GPU_vertbuf_init_with_format(vbo_attr, &format);
+  GPU_vertbuf_data_alloc(vbo_attr, vert_len);
+
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      rdata->curve_eval->geometry);
+  curves.ensure_can_interpolate_to_evaluated();
+  const blender::VArraySpan<ColorGeometry4f> colors = curves.attributes().lookup<ColorGeometry4f>(
+      ".viewer", ATTR_DOMAIN_POINT);
+  ColorGeometry4f *vbo_data = static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo_attr));
+  curves.interpolate_to_evaluated(colors,
+                                  blender::MutableSpan<ColorGeometry4f>{vbo_data, vert_len});
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
@@ -769,6 +798,12 @@ GPUBatch *DRW_curve_batch_cache_get_wire_edge(Curve *cu)
   return DRW_batch_request(&cache->batch.curves);
 }
 
+GPUBatch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu)
+{
+  CurveBatchCache *cache = curve_batch_cache_get(cu);
+  return DRW_batch_request(&cache->batch.curves_viewer_attribute);
+}
+
 GPUBatch *DRW_curve_batch_cache_get_normal_edge(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -810,6 +845,11 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
     DRW_ibo_request(cache->batch.curves, &cache->ibo.curves_lines);
     DRW_vbo_request(cache->batch.curves, &cache->ordered.curves_pos);
   }
+  if (DRW_batch_requested(cache->batch.curves_viewer_attribute, GPU_PRIM_LINE_STRIP)) {
+    DRW_ibo_request(cache->batch.curves_viewer_attribute, &cache->ibo.curves_lines);
+    DRW_vbo_request(cache->batch.curves_viewer_attribute, &cache->ordered.curves_pos);
+    DRW_vbo_request(cache->batch.curves_viewer_attribute, &cache->ordered.attr_viewer);
+  }
 
   /* Edit mode */
   if (DRW_batch_requested(cache->batch.edit_edges, GPU_PRIM_LINES)) {
@@ -833,6 +873,8 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
   /* Generate MeshRenderData flags */
   int mr_flag = 0;
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.curves_pos, CU_DATATYPE_WIRE);
+  DRW_ADD_FLAG_FROM_VBO_REQUEST(
+      mr_flag, cache->ordered.attr_viewer, CU_DATATYPE_WIRE | CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.curves_lines, CU_DATATYPE_WIRE);
 
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.pos, CU_DATATYPE_OVERLAY);
@@ -850,6 +892,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
   /* Generate VBOs */
   if (DRW_vbo_requested(cache->ordered.curves_pos)) {
     curve_create_curves_pos(rdata, cache->ordered.curves_pos);
+  }
+  if (DRW_vbo_requested(cache->ordered.attr_viewer)) {
+    curve_create_attribute(rdata, cache->ordered.attr_viewer);
   }
   if (DRW_ibo_requested(cache->ibo.curves_lines)) {
     curve_create_curves_lines(rdata, cache->ibo.curves_lines);

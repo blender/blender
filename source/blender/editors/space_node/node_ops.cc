@@ -44,6 +44,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_options_toggle);
   WM_operatortype_append(NODE_OT_hide_socket_toggle);
   WM_operatortype_append(NODE_OT_node_copy_color);
+  WM_operatortype_append(NODE_OT_deactivate_viewer);
 
   WM_operatortype_append(NODE_OT_duplicate);
   WM_operatortype_append(NODE_OT_delete);
@@ -75,6 +76,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_backimage_fit);
   WM_operatortype_append(NODE_OT_backimage_sample);
 
+  WM_operatortype_append(NODE_OT_add_search);
   WM_operatortype_append(NODE_OT_add_group);
   WM_operatortype_append(NODE_OT_add_object);
   WM_operatortype_append(NODE_OT_add_collection);
@@ -111,7 +113,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
 }
 
-void node_keymap(struct wmKeyConfig *keyconf)
+void node_keymap(wmKeyConfig *keyconf)
 {
   /* Entire Editor only ----------------- */
   WM_keymap_ensure(keyconf, "Node Generic", SPACE_NODE, 0);
@@ -134,6 +136,7 @@ void ED_operatormacros_node()
   mot = WM_operatortype_macro_define(ot, "NODE_OT_select");
   RNA_boolean_set(mot->ptr, "extend", false);
   RNA_boolean_set(mot->ptr, "socket_select", true);
+  RNA_boolean_set(mot->ptr, "clear_viewer", true);
   WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 
   ot = WM_operatortype_append_macro("NODE_OT_translate_attach",
@@ -144,7 +147,7 @@ void ED_operatormacros_node()
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
   WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
-  /* NODE_OT_translate_attach with remove_on_canel set to true */
+  /* NODE_OT_translate_attach with remove_on_cancel set to true. */
   ot = WM_operatortype_append_macro("NODE_OT_translate_attach_remove_on_cancel",
                                     "Move and Attach",
                                     "Move nodes and attach to frame",
@@ -171,7 +174,17 @@ void ED_operatormacros_node()
                                     "Duplicate",
                                     "Duplicate selected nodes and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
-  WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  RNA_boolean_set(mot->ptr, "linked", false);
+  WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
+
+  ot = WM_operatortype_append_macro(
+      "NODE_OT_duplicate_move_linked",
+      "Duplicate Linked",
+      "Duplicate selected nodes, but not their node trees, and move them",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
+  mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+  RNA_boolean_set(mot->ptr, "linked", true);
   WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
   /* modified operator call for duplicating with input links */

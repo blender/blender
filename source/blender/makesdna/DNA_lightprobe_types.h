@@ -64,7 +64,6 @@ typedef struct LightProbe {
 
   /* Runtime display data */
   float distfalloff, distgridinf;
-  char _pad[8];
 } LightProbe;
 
 /* Probe->type */

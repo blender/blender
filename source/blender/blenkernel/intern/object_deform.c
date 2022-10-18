@@ -114,10 +114,7 @@ bDeformGroup *BKE_object_defgroup_add(Object *ob)
 MDeformVert *BKE_object_defgroup_data_create(ID *id)
 {
   if (GS(id->name) == ID_ME) {
-    Mesh *me = (Mesh *)id;
-    me->dvert = CustomData_add_layer(
-        &me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, me->totvert);
-    return me->dvert;
+    return BKE_mesh_deform_verts_for_write((Mesh *)id);
   }
   if (GS(id->name) == ID_LT) {
     Lattice *lt = (Lattice *)id;
@@ -165,15 +162,15 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
       }
     }
     else {
-      if (me->dvert) {
-        MVert *mv;
+      if (BKE_mesh_deform_verts(me)) {
+        const bool *select_vert = (const bool *)CustomData_get_layer_named(
+            &me->vdata, CD_PROP_BOOL, ".select_vert");
         int i;
 
-        mv = me->mvert;
-        dv = me->dvert;
+        dv = BKE_mesh_deform_verts_for_write(me);
 
-        for (i = 0; i < me->totvert; i++, mv++, dv++) {
-          if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
+        for (i = 0; i < me->totvert; i++, dv++) {
+          if (dv->dw && (!use_selection || (select_vert && select_vert[i]))) {
             MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
             BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
             changed = true;
@@ -265,7 +262,6 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
       CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
-      me->dvert = NULL;
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -413,7 +409,6 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
       CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
-      me->dvert = NULL;
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -502,7 +497,7 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
     switch (GS(id->name)) {
       case ID_ME: {
         Mesh *me = (Mesh *)id;
-        *dvert_arr = me->dvert;
+        *dvert_arr = BKE_mesh_deform_verts_for_write(me);
         *dvert_tot = me->totvert;
         return true;
       }
@@ -618,7 +613,7 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
 {
   bool *dg_selection = MEM_mallocN(defbase_tot * sizeof(bool), __func__);
   bDeformGroup *defgroup;
-  unsigned int i;
+  uint i;
   Object *armob = BKE_object_pose_armature_get(ob);
   (*r_dg_flags_sel_tot) = 0;
 
@@ -705,7 +700,7 @@ void BKE_object_defgroup_mirror_selection(struct Object *ob,
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
   bDeformGroup *defgroup;
-  unsigned int i;
+  uint i;
   int i_mirr;
 
   for (i = 0, defgroup = defbase->first; i < defbase_tot && defgroup;

@@ -86,7 +86,6 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->pdf = invarea / (costheta * costheta * costheta);
     ls->eval_fac = ls->pdf;
   }
-#ifdef __BACKGROUND_MIS__
   else if (type == LIGHT_BACKGROUND) {
     /* infinite area light (e.g. light dome or env light) */
     float3 D = -background_light_sample(kg, P, randu, randv, &ls->pdf);
@@ -97,7 +96,6 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->t = FLT_MAX;
     ls->eval_fac = 1.0f;
   }
-#endif
   else {
     ls->P = make_float3(klight->co[0], klight->co[1], klight->co[2]);
 
@@ -202,8 +200,12 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         inplane = ls->P - inplane;
       }
 
-      ls->u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu)) + 0.5f;
-      ls->v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv)) + 0.5f;
+      const float light_u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu));
+      const float light_v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv));
+
+      /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+      ls->u = light_v + 0.5f;
+      ls->v = -light_u - light_v;
 
       ls->Ng = Ng;
       ls->D = normalize_len(ls->P - P, &ls->t);

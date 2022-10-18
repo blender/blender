@@ -387,23 +387,35 @@ EXAMPLE_SET_USED = set()
 # RST files directory.
 RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 
-# extra info, not api reference docs
-# stored in ./rst/info_*
+# Extra info, not api reference docs stored in `./rst/info_*`.
+# Pairs of (file, description), the title makes from the RST files are displayed before the description.
 INFO_DOCS = (
     ("info_quickstart.rst",
-     "Quickstart: New to Blender or scripting and want to get your feet wet?"),
+     "New to Blender or scripting and want to get your feet wet?"),
     ("info_overview.rst",
-     "API Overview: A more complete explanation of Python integration"),
+     "A more complete explanation of Python integration."),
     ("info_api_reference.rst",
-     "API Reference Usage: examples of how to use the API reference docs"),
+     "Examples of how to use the API reference docs."),
     ("info_best_practice.rst",
-     "Best Practice: Conventions to follow for writing good scripts"),
+     "Conventions to follow for writing good scripts."),
     ("info_tips_and_tricks.rst",
-     "Tips and Tricks: Hints to help you while writing scripts for Blender"),
+     "Hints to help you while writing scripts for Blender."),
     ("info_gotcha.rst",
-     "Gotcha's: Some of the problems you may encounter when writing scripts"),
-    ("change_log.rst", "Change Log: List of changes since last Blender release"),
+     "Some of the problems you may encounter when writing scripts."),
+    ("info_advanced.rst",
+     "Topics which may not be required for typical usage."),
+    ("change_log.rst",
+     "List of changes since last Blender release"),
 )
+# Referenced indirectly.
+INFO_DOCS_OTHER = (
+    # Included by: `info_advanced.rst`.
+    "info_advanced_blender_as_bpy.rst",
+)
+
+# Hide the actual TOC, use a separate list that links to the items.
+# This is done so a short description can be included with each link.
+USE_INFO_DOCS_FANCY_INDEX = True
 
 # only support for properties atm.
 RNA_BLACKLIST = {
@@ -1470,7 +1482,7 @@ def pyrna2sphinx(basepath):
 
         struct_module_name = struct.module_name
         if USE_ONLY_BUILTIN_RNA_TYPES:
-            assert(struct_module_name == "bpy.types")
+            assert struct_module_name == "bpy.types"
         filepath = os.path.join(basepath, "%s.%s.rst" % (struct_module_name, struct.identifier))
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
@@ -1904,7 +1916,7 @@ except ModuleNotFoundError:
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
     fw("        'navigation_depth': 1,\n")
-    # fw("        'includehidden': True,\n")
+    fw("        'includehidden': False,\n")
     # fw("        'titles_only': False\n")
     fw("    }\n\n")
 
@@ -1976,11 +1988,20 @@ def write_rst_index(basepath):
 
     if not EXCLUDE_INFO_DOCS:
         fw(".. toctree::\n")
+        if USE_INFO_DOCS_FANCY_INDEX:
+            fw("   :hidden:\n")
         fw("   :maxdepth: 1\n")
         fw("   :caption: Documentation\n\n")
         for info, info_desc in INFO_DOCS:
-            fw("   %s <%s>\n" % (info_desc, info))
+            fw("   %s\n" % info)
         fw("\n")
+
+        if USE_INFO_DOCS_FANCY_INDEX:
+            # Show a fake TOC, allowing for an extra description to be shown as well as the title.
+            fw(title_string("Documentation", "="))
+            for info, info_desc in INFO_DOCS:
+                fw("- :doc:`%s`: %s\n" % (info.removesuffix(".rst"), info_desc))
+            fw("\n")
 
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n")
@@ -2313,6 +2334,8 @@ def copy_handwritten_rsts(basepath):
     # Info docs.
     if not EXCLUDE_INFO_DOCS:
         for info, _info_desc in INFO_DOCS:
+            shutil.copy2(os.path.join(RST_DIR, info), basepath)
+        for info in INFO_DOCS_OTHER:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
 
     # TODO: put this docs in Blender's code and use import as per modules above.

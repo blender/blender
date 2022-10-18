@@ -68,7 +68,7 @@ TEST(math_color, LinearRGBTosRGBRoundtrip)
   const int N = 50;
   int i;
   for (i = 0; i < N; ++i) {
-    float orig_linear_color = (float)i / N;
+    float orig_linear_color = float(i) / N;
     float srgb_color = linearrgb_to_srgb(orig_linear_color);
     float linear_color = srgb_to_linearrgb(srgb_color);
     EXPECT_NEAR(orig_linear_color, linear_color, 1e-5);

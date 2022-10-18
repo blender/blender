@@ -223,14 +223,14 @@ PyDoc_STRVAR(integration_type_doc,
              "\n"
              ":type: :class:`IntegrationType`");
 
-static PyObject *integration_type_get(BPy_UnaryFunction1DDouble *self, void *UNUSED(closure))
+static PyObject *integration_type_get(BPy_UnaryFunction1DDouble *self, void * /*closure*/)
 {
   return BPy_IntegrationType_from_IntegrationType(self->uf1D_double->getIntegrationType());
 }
 
 static int integration_type_set(BPy_UnaryFunction1DDouble *self,
                                 PyObject *value,
-                                void *UNUSED(closure))
+                                void * /*closure*/)
 {
   if (!BPy_IntegrationType_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an IntegrationType");

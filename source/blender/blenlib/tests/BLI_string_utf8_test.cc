@@ -4,6 +4,7 @@
 
 #include "BLI_rand.h"
 #include "BLI_string.h"
+#include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -274,7 +275,7 @@ TEST(string, Utf8InvalidBytes)
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
     const char *tst = utf8_invalid_tests[i][0];
     const char *tst_stripped = utf8_invalid_tests[i][1];
-    const int errors_num = (int)utf8_invalid_tests[i][2][0];
+    const int errors_num = int(utf8_invalid_tests[i][2][0]);
 
     char buff[80];
     memcpy(buff, tst, sizeof(buff));
@@ -352,13 +353,13 @@ template<size_t Size> void utf8_as_char32_test_at_buffer_size()
     /* Offset trailing bytes up and down in steps of 1, 2, 4 .. etc. */
     if (Size > 1) {
       for (int mul = 1; mul < 256; mul *= 2) {
-        for (int ofs = 1; ofs < (int)Size; ofs++) {
-          utf8_src[ofs] = (char)(i + (ofs * mul));
+        for (int ofs = 1; ofs < int(Size); ofs++) {
+          utf8_src[ofs] = char(i + (ofs * mul));
         }
         utf8_as_char32_test_compare<Size>(utf8_src);
 
-        for (int ofs = 1; ofs < (int)Size; ofs++) {
-          utf8_src[ofs] = (char)(i - (ofs * mul));
+        for (int ofs = 1; ofs < int(Size); ofs++) {
+          utf8_src[ofs] = char(i - (ofs * mul));
         }
         utf8_as_char32_test_compare<Size>(utf8_src);
       }
@@ -390,6 +391,487 @@ TEST(string, Utf8AsUnicodeStep)
   utf8_as_char32_test_at_buffer_size<10>();
   utf8_as_char32_test_at_buffer_size<11>();
   utf8_as_char32_test_at_buffer_size<12>();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_empty
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32Empty)
+{
+  const char32_t empty[] = U"";
+  const size_t len = 0;
+  int pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(empty, len, &pos));
+  pos = 1;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(empty, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_single
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32Single)
+
+{
+  const char32_t single[] = U"0";
+  const size_t len = 1;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(single, len, &pos) && pos == 1);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(single, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_simple
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32Simple)
+{
+  const char32_t simple[] = U"012";
+  const size_t len = 3;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(simple, len, &pos) && pos == 1);
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(simple, len, &pos) && pos == 2);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(simple, len - 1, &pos));
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(simple, len, &pos) && pos == 3);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(simple, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_allcombining
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32AllCombining)
+{
+  const char32_t allcombining[] = U"\u0300\u0300\u0300";
+  const size_t len = 3;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(allcombining, len, &pos) && pos == 3);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(allcombining, len, &pos) && pos == 3);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(allcombining, len, &pos) && pos == 3);
+  pos = 3;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(allcombining, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_complex
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32Complex)
+{
+  /* Combining character, "A", two combining characters, "B".*/
+  const char32_t complex[] = U"\u0300\u0041\u0300\u0320\u0042";
+  const size_t len = 5;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(complex, len, &pos) && pos == 1);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(complex, len, &pos) && pos == 4);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(complex, len, &pos) && pos == 4);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(complex, len, &pos) && pos == 4);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(complex, len, &pos) && pos == 5);
+  pos = 5;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(complex, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf32_invalid
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf32Invalid)
+{
+  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters.*/
+  const char32_t invalid[] = U"\u00C0\u0300\u0009\u0300\u000D\u0300\u000A\u0300";
+  const size_t len = 8;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 2);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 2);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 4);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 4);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 6);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 6);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 8);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf32(invalid, len, &pos) && pos == 8);
+  pos = 8;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf32(invalid, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_empty
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32Empty)
+{
+  const char32_t emtpy[] = U"";
+  const size_t len = 0;
+  int pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(emtpy, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_single
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32Single)
+{
+  const char32_t single[] = U"0";
+  const size_t len = 1;
+  int pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(single, len, &pos) && pos == 0);
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(single, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_simple
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32Simple)
+{
+  const char32_t simple[] = U"012";
+  const size_t len = 3;
+  int pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(simple, len, &pos) && pos == 2);
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(simple, len, &pos) && pos == 1);
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(simple, len, &pos) && pos == 0);
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(simple, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_allcombining
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32AllCombining)
+{
+  const char32_t allcombining[] = U"\u0300\u0300\u0300";
+  const size_t len = 3;
+  int pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(allcombining, len, &pos) && pos == 0);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(allcombining, len, &pos) && pos == 0);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(allcombining, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(allcombining, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_complex
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32Complex)
+{
+  /* Combining character, "A", two combining characters, "B".*/
+  const char32_t complex[] = U"\u0300\u0041\u0300\u0320\u0042";
+  const size_t len = 5;
+  int pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(complex, len, &pos) && pos == 4);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(complex, len, &pos) && pos == 1);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(complex, len, &pos) && pos == 1);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(complex, len, &pos) && pos == 1);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(complex, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(complex, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf32_invalid
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf32Invalid)
+{
+  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters.*/
+  const char32_t invalid[] = U"\u00C0\u0300\u0009\u0300\u000D\u0300\u000A\u0300";
+  const size_t len = 8;
+  int pos = 8;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 6);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 6);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 4);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 4);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 2);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 2);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 0);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_empty
+ * \{ */
+TEST(string, StrCursorStepNextUtf8Empty)
+{
+  const char empty[] = "";
+  const size_t len = 0;
+  int pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(empty, len, &pos));
+  pos = 1;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(empty, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_single
+ * \{ */
+TEST(string, StrCursorStepNextUtf8Single)
+{
+  const char single[] = "0";
+  const size_t len = 1;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(single, len, &pos) && pos == 1);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(single, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_simple
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf8Simple)
+{
+  const char simple[] = "012";
+  const size_t len = 3;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(simple, len, &pos) && pos == 1);
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(simple, len, &pos) && pos == 2);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(simple, len - 1, &pos));
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(simple, len, &pos) && pos == 3);
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(simple, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_allcombining
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf8AllCombining)
+{
+  const char allcombining[] = "\xCC\x80\xCC\x80\xCC\x80";
+  const size_t len = 6;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos) && pos == 6);
+  pos = 6;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_complex
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf8AllComplex)
+{
+  /* Combining character, "A", "©", two combining characters, "B".*/
+  const char complex[] = "\xCC\x80\x41\xC2\xA9\xCC\x80\xCC\xA0\x42";
+  const size_t len = 10;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 2);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 2);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 3);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 8;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 9);
+  pos = 9;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(complex, len, &pos) && pos == 10);
+  pos = 10;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(complex, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_next_utf8_invalid
+ * \{ */
+
+TEST(string, StrCursorStepNextUtf8Invalid)
+{
+  /* Latin1 "À", combining, tab, carriage return, linefeed, combining.*/
+  const char invalid[] = "\xC0\xCC\x80\x09\x0D\x0A\xCC\x80";
+  const size_t len = 8;
+  int pos = 0;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_next_utf8(invalid, len, &pos) && pos == 8);
+  pos = 8;
+  EXPECT_FALSE(BLI_str_cursor_step_next_utf8(invalid, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_empty
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8Empty)
+{
+  const char empty[] = "";
+  const size_t len = 0;
+  int pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(empty, len, &pos));
+  pos = 1;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(empty, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_single
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8Single)
+{
+  const char single[] = "0";
+  const size_t len = 1;
+  int pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(single, len, &pos) && pos == 0);
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(single, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_single
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8Simple)
+{
+  const char simple[] = "012";
+  const size_t len = 3;
+  int pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(simple, len, &pos) && pos == 2);
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(simple, len, &pos) && pos == 1);
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(simple, len, &pos) && pos == 0);
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(simple, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_allcombining
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8AllCombining)
+{
+  const char allcombining[] = "\xCC\x80\xCC\x80\xCC\x80";
+  const size_t len = 6;
+  int pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_complex
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8Complex)
+{
+  /* Combining character, "A", "©", two combining characters, "B".*/
+  const char complex[] = "\xCC\x80\x41\xC2\xA9\xCC\x80\xCC\xA0\x42";
+  const size_t len = 10;
+  int pos = 10;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 9);
+  pos = 9;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 8;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 3);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 2);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 0);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(complex, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(complex, len, &pos));
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_cursor_step_prev_utf8_invalid
+ * \{ */
+
+TEST(string, StrCursorStepPrevUtf8Invalid)
+{
+  /* Latin1 "À", combining, tab, carriage return, linefeed, combining.*/
+  const char invalid[] = "\xC0\xCC\x80\x09\x0D\x0A\xCC\x80";
+  const size_t len = 8;
+  int pos = 8;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
+  pos = 7;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
+  pos = 6;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
+  pos = 5;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 4);
+  pos = 4;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 3);
+  pos = 3;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 0);
+  pos = 2;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 0);
+  pos = 1;
+  EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 0);
+  pos = 0;
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos));
 }
 
 /** \} */

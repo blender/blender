@@ -227,6 +227,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.shader_storage_buffer_objects_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
@@ -271,6 +272,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Compute shaders have some issues with those versions (see T94936). */
@@ -284,12 +286,14 @@ static void detect_workarounds()
        strstr(renderer, "AMD TAHITI"))) {
     GLContext::unused_fb_slot_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Fix slowdown on this particular driver. (see T77641) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4")) {
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
@@ -347,7 +351,7 @@ static void detect_workarounds()
   }
   /* Somehow fixes armature display issues (see T69743). */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY) &&
-      (strstr(version, "Build 20.19.15.4285"))) {
+      strstr(version, "Build 20.19.15.4285")) {
     GCaps.use_main_context_workaround = true;
   }
   /* See T70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`
@@ -380,6 +384,11 @@ static void detect_workarounds()
       GLContext::derivative_signs[0] = -1.0;
       GLContext::derivative_signs[1] = 1.0;
     }
+  }
+
+  /* Disable TF on macOS. */
+  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    GCaps.transform_feedback_support = false;
   }
 
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
@@ -422,12 +431,17 @@ static void detect_workarounds()
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
   GCaps.minimum_per_vertex_stride = 1;
 
+  /* Force disable per feature. */
+  if (G.debug & G_DEBUG_GPU_FORCE_DISABLE_SSBO) {
+    printf("\n");
+    printf("GL: Force disabling SSBO support from commandline arguments.\n");
+    GCaps.shader_storage_buffer_objects_support = false;
+  }
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
 
 GLint GLContext::max_cubemap_size = 0;
-GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
 GLint GLContext::max_ssbo_binds = 0;
@@ -489,11 +503,15 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
 
+  GCaps.max_samplers = GCaps.max_textures;
   GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
                             epoxy_has_gl_extension("GL_ATI_meminfo");
   GCaps.shader_image_load_store_support = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");
+  GCaps.shader_draw_parameters_support = epoxy_has_gl_extension("GL_ARB_shader_draw_parameters");
   GCaps.compute_shader_support = epoxy_has_gl_extension("GL_ARB_compute_shader") &&
                                  epoxy_gl_version() >= 43;
+  GCaps.max_samplers = GCaps.max_textures;
+
   if (GCaps.compute_shader_support) {
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &GCaps.max_work_group_count[0]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &GCaps.max_work_group_count[1]);
@@ -507,13 +525,26 @@ void GLBackend::capabilities_init()
   }
   GCaps.shader_storage_buffer_objects_support = epoxy_has_gl_extension(
       "GL_ARB_shader_storage_buffer_object");
+  GCaps.transform_feedback_support = true;
+
   /* GL specific capabilities. */
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   if (GCaps.shader_storage_buffer_objects_support) {
-    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
+    GLint max_ssbo_binds;
+    GLContext::max_ssbo_binds = 999999;
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    if (GLContext::max_ssbo_binds < 8) {
+      /* Does not meet our minimum requirements. */
+      GCaps.shader_storage_buffer_objects_support = false;
+    }
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   }
   GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");

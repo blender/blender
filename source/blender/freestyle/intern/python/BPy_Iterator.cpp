@@ -177,7 +177,7 @@ PyDoc_STRVAR(Iterator_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *Iterator_name_get(BPy_Iterator *self, void *UNUSED(closure))
+static PyObject *Iterator_name_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
@@ -187,7 +187,7 @@ PyDoc_STRVAR(Iterator_is_begin_doc,
              "\n"
              ":type: bool");
 
-static PyObject *Iterator_is_begin_get(BPy_Iterator *self, void *UNUSED(closure))
+static PyObject *Iterator_is_begin_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->it->isBegin());
 }
@@ -197,7 +197,7 @@ PyDoc_STRVAR(Iterator_is_end_doc,
              "\n"
              ":type: bool");
 
-static PyObject *Iterator_is_end_get(BPy_Iterator *self, void *UNUSED(closure))
+static PyObject *Iterator_is_end_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->it->isEnd());
 }

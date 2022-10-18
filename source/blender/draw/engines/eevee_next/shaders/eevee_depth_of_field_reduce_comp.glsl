@@ -82,7 +82,7 @@ void main()
 {
   ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), imageSize(inout_color_lod0_img) - 1);
   uvec2 texel_local = gl_LocalInvocationID.xy;
-  /* Increase readablility. */
+  /* Increase readability. */
 #define LOCAL_INDEX texel_local.y][texel_local.x
 #define LOCAL_OFFSET(x_, y_) texel_local.y + (y_)][texel_local.x + (x_)
 
@@ -133,9 +133,9 @@ void main()
       /* Issue a sprite for each field if any CoC matches. */
       if (any(lessThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
         /* Same value for all threads. Not an issue if we don't sync access to it. */
-        scatter_fg_indirect_buf.v_count = 4u;
+        scatter_fg_indirect_buf.vertex_len = 4u;
         /* Issue 1 strip instance per sprite. */
-        uint rect_id = atomicAdd(scatter_fg_indirect_buf.i_count, 1u);
+        uint rect_id = atomicAdd(scatter_fg_indirect_buf.instance_len, 1u);
         if (rect_id < dof_buf.scatter_max_rect) {
 
           vec4 coc4_fg = max(vec4(0.0), -coc4);
@@ -166,9 +166,9 @@ void main()
       }
       if (any(greaterThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
         /* Same value for all threads. Not an issue if we don't sync access to it. */
-        scatter_bg_indirect_buf.v_count = 4u;
+        scatter_bg_indirect_buf.vertex_len = 4u;
         /* Issue 1 strip instance per sprite. */
-        uint rect_id = atomicAdd(scatter_bg_indirect_buf.i_count, 1u);
+        uint rect_id = atomicAdd(scatter_bg_indirect_buf.instance_len, 1u);
         if (rect_id < dof_buf.scatter_max_rect) {
           vec4 coc4_bg = max(vec4(0.0), coc4);
           vec4 bg_weights = dof_layer_weight(coc4_bg) * dof_sample_weight(coc4_bg) * do_scatter4;

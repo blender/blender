@@ -2,13 +2,14 @@
 
 set(INC
   .
-  ../../gpu
-  ../../nodes
-  ../../imbuf
+  ./algorithms
+  ../../blenkernel
   ../../blenlib
+  ../../gpu
+  ../../imbuf
   ../../makesdna
   ../../makesrna
-  ../../blenkernel
+  ../../nodes
   ../../gpu/intern
   ../../../../intern/guardedalloc
 )
@@ -53,6 +54,10 @@ set(SRC
   COM_static_shader_manager.hh
   COM_texture_pool.hh
   COM_utilities.hh
+
+  algorithms/intern/algorithm_parallel_reduction.cc
+
+  algorithms/COM_algorithm_parallel_reduction.hh
 )
 
 set(LIB

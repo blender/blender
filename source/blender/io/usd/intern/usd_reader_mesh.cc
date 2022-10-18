@@ -7,6 +7,7 @@
 #include "usd_reader_material.h"
 #include "usd_skel_convert.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -104,7 +105,7 @@ static Material *find_existing_material(
         return mat_iter->second;
       }
       /* We can't find the Blender material which was previously created for this USD
-       * material, which should never happen.  */
+       * material, which should never happen. */
       BLI_assert_unreachable();
     }
   }
@@ -184,6 +185,9 @@ static void assign_materials(Main *bmain,
       std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
     }
   }
+  if (ob->totcol > 0) {
+    ob->actcol = 1;
+  }
 }
 
 }  // namespace utils
@@ -246,11 +250,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   is_initial_load_ = false;
   if (read_mesh != mesh) {
-    /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-    /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_, &CD_MASK_MESH, true);
-    mesh->flag |= autosmooth;
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
   }
 
   readFaceSetsSample(bmain, mesh, motionSampleTime);
@@ -285,7 +285,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
 bool USDMeshReader::valid() const
 {
-  return static_cast<bool>(mesh_prim_);
+  return bool(mesh_prim_);
 }
 
 bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
@@ -319,8 +319,8 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
 
 void USDMeshReader::read_mpolys(Mesh *mesh)
 {
-  MPoly *mpolys = mesh->mpoly;
-  MLoop *mloops = mesh->mloop;
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   int loop_index = 0;
 
@@ -343,10 +343,9 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
       }
     }
 
-    MPoly &poly = mpolys[i];
+    MPoly &poly = polys[i];
     poly.loopstart = loop_index;
     poly.totloop = face_size;
-    poly.mat_nr = 0;
 
     /* Polygons are always assumed to be smooth-shaded. If the mesh should be flat-shaded,
      * this is encoded in custom loop normals. */
@@ -355,12 +354,12 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     if (is_left_handed_) {
       int loop_end_index = loop_index + (face_size - 1);
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_end_index - f];
+        loops[loop_index].v = face_indices_[loop_end_index - f];
       }
     }
     else {
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_index];
+        loops[loop_index].v = face_indices_[loop_index];
       }
     }
   }
@@ -374,9 +373,9 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
 
 void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bool load_uvs)
 {
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
 
   const CustomData *ldata = &mesh->ldata;
 
@@ -428,6 +427,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
     }
   }
 
+  const Span<MLoop> loops = mesh->loops();
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
@@ -453,9 +453,9 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!(ELEM(sample.interpolation,
-                   pxr::UsdGeomTokens->faceVarying,
-                   pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(sample.interpolation,
+                  pxr::UsdGeomTokens->faceVarying,
+                  pxr::UsdGeomTokens->vertex)) {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -463,7 +463,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         /* For Vertex interpolation, use the vertex index. */
         int usd_uv_index = sample.interpolation == pxr::UsdGeomTokens->vertex ?
-                               mesh->mloop[loop_index].v :
+                               loops[loop_index].v :
                                loop_index;
 
         if (usd_uv_index >= sample.uvs.size()) {
@@ -567,28 +567,25 @@ void USDMeshReader::read_colors(Mesh *mesh,
 
   MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
 
-  /* TODO(makowalski): need to assign mesh->mloopcol? */
-  if (!mesh->mloopcol) {
-    mesh->mloopcol = colors;
-  }
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; ++j) {
+      int loop_index = poly.loopstart + j;
 
-  MPoly *poly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++poly) {
-    for (int j = 0; j < poly->totloop; ++j) {
-      int loop_index = poly->loopstart + j;
-
-      /* Default for constant varying interpolation. */
+      /* Default for constant interpolation. */
       int usd_index = 0;
 
       if (interp == pxr::UsdGeomTokens->vertex) {
-        usd_index = mesh->mloop[loop_index].v;
+        usd_index = loops[loop_index].v;
       }
       else if (interp == pxr::UsdGeomTokens->faceVarying ||
                interp == pxr::UsdGeomTokens->varying) {
-        usd_index = poly->loopstart;
+        usd_index = poly.loopstart;
+
         if (is_left_handed_) {
-          usd_index += poly->totloop - 1 - j;
+          usd_index += poly.totloop - 1 - j;
         }
         else {
           usd_index += j;
@@ -661,7 +658,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 
   MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  vert_normals.copy_from({(float3 *)normals_.data(), int64_t(normals_.size())});
   BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
@@ -686,15 +683,15 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int blender_index = poly.loopstart + j;
 
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int blender_index = mpoly->loopstart + j;
-
-      int usd_index = mpoly->loopstart;
+      int usd_index = poly.loopstart;
       if (is_left_handed_) {
-        usd_index += mpoly->totloop - 1 - j;
+        usd_index += poly.totloop - 1 - j;
       }
       else {
         usd_index += j;
@@ -727,12 +724,11 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(mesh->totloop, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int loop_index = mpoly->loopstart + j;
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int loop_index = poly.loopstart + j;
       lnors[loop_index][0] = normals_[i][0];
       lnors[loop_index][1] = normals_[i][1];
       lnors[loop_index][2] = normals_[i][2];
@@ -755,8 +751,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
    * in code that expect this data to be there. */
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0) {
+    MutableSpan<MVert> verts = mesh->verts_for_write();
     for (int i = 0; i < positions_.size(); i++) {
-      MVert &mvert = mesh->mvert[i];
+      MVert &mvert = verts[i];
       mvert.co[0] = positions_[i][0];
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
@@ -794,10 +791,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
   }
 }
 
-void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
-                                             MPoly *mpoly,
-                                             const int /* totpoly */,
-                                             std::map<pxr::SdfPath, int> *r_mat_map)
+void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
+                                                        MutableSpan<int> material_indices,
+                                                        std::map<pxr::SdfPath, int> *r_mat_map)
 {
   if (r_mat_map == nullptr) {
     return;
@@ -838,9 +834,8 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
       pxr::VtIntArray indices;
       indicesAttribute.Get(&indices, motionSampleTime);
 
-      for (int i = 0; i < indices.size(); i++) {
-        MPoly &poly = mpoly[indices[i]];
-        poly.mat_nr = mat_idx;
+      for (const int i : indices) {
+        material_indices[i] = mat_idx;
       }
     }
   }
@@ -864,7 +859,12 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   }
 
   std::map<pxr::SdfPath, int> mat_map;
-  assign_facesets_to_mpoly(motionSampleTime, mesh->mpoly, mesh->totpoly, &mat_map);
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> material_indices =
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
+  material_indices.finish();
 
   /* Build material name map if it's not built yet. */
   if (this->settings_->mat_name_to_mat.empty()) {
@@ -924,7 +924,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
         pxr::TfToken interp = p.GetInterpolation();
 
-        if (!(ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex)) {
           continue;
         }
 
@@ -961,8 +961,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
         existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
-      void *cd_ptr = add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
-      active_mesh->mloopuv = static_cast<MLoopUV *>(cd_ptr);
+      add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
     }
   }
 
@@ -972,10 +971,14 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     /* Here we assume that the number of materials doesn't change, i.e. that
      * the material slots that were created when the object was loaded from
      * USD are still valid now. */
-    size_t num_polys = active_mesh->totpoly;
-    if (num_polys > 0 && import_params_.import_materials) {
+    MutableSpan<MPoly> polys = active_mesh->polys_for_write();
+    if (!polys.is_empty() && import_params_.import_materials) {
       std::map<pxr::SdfPath, int> mat_map;
-      assign_facesets_to_mpoly(motionSampleTime, active_mesh->mpoly, num_polys, &mat_map);
+      bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
+      bke::SpanAttributeWriter<int> material_indices =
+          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
+      material_indices.finish();
     }
   }
 

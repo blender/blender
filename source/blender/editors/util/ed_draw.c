@@ -95,7 +95,7 @@ static void draw_overshoot_triangle(const uint8_t color[4],
 {
   const uint shdr_pos_2d = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_polygon_smooth(true);
   immUniformColor3ubvAlpha(color, 225);
@@ -484,6 +484,7 @@ float ED_slider_factor_get(struct tSlider *slider)
 
 void ED_slider_factor_set(struct tSlider *slider, const float factor)
 {
+  slider->raw_factor = factor;
   slider->factor = factor;
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, 0, 1);
@@ -516,7 +517,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
 
   GPU_line_width(1.0f);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -768,7 +769,7 @@ void ED_region_image_metadata_draw(
   GPU_matrix_translate_2f(x, y);
   GPU_matrix_scale_2f(zoomx, zoomy);
 
-  BLF_size(blf_mono_font, style->widgetlabel.points * 1.5f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, style->widgetlabel.points * U.dpi_fac);
 
   /* *** upper box*** */
 
@@ -782,7 +783,7 @@ void ED_region_image_metadata_draw(
     /* draw top box */
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColor(TH_METADATA_BG);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();
@@ -807,7 +808,7 @@ void ED_region_image_metadata_draw(
     /* draw top box */
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColor(TH_METADATA_BG);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();

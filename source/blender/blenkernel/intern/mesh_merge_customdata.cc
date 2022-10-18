@@ -69,7 +69,7 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<MLoopUV *>
     BLI_assert(loops_merge.is_empty());
     loops_merge.extend_unchecked(loops_for_vert);
     while (loops_merge.size() > 1) {
-      uint i_last = (uint)loops_merge.size() - 1;
+      uint i_last = uint(loops_merge.size()) - 1;
       const float *uv_src = mloopuv[loops_merge[0]].uv;
       for (uint i = 1; i <= i_last;) {
         float *uv_dst = mloopuv[loops_merge[i]].uv;
@@ -113,8 +113,13 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
 
   int *vert_map_mem;
   struct MeshElemMap *vert_to_loop;
-  BKE_mesh_vert_loop_map_create(
-      &vert_to_loop, &vert_map_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+  BKE_mesh_vert_loop_map_create(&vert_to_loop,
+                                &vert_map_mem,
+                                BKE_mesh_polys(me),
+                                BKE_mesh_loops(me),
+                                me->totvert,
+                                me->totpoly,
+                                me->totloop);
 
   Vector<MLoopUV *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);

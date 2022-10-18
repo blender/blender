@@ -7,34 +7,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_view3d.h"
+
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -101,7 +91,12 @@ static void filter_cache_init_task_cb(void *__restrict userdata,
   SCULPT_undo_push_node(data->ob, node, data->filter_undo_type);
 }
 
-void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int undo_type)
+void SCULPT_filter_cache_init(bContext *C,
+                              Object *ob,
+                              Sculpt *sd,
+                              const int undo_type,
+                              const int mval[2],
+                              float area_normal_radius)
 {
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
@@ -159,6 +154,79 @@ void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int und
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
   copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
+
+  Scene *scene = CTX_data_scene(C);
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  float co[3];
+  float mval_fl[2] = {(float)mval[0], (float)mval[1]};
+
+  if (SCULPT_stroke_get_location(C, co, mval_fl, false)) {
+    PBVHNode **nodes;
+    int totnode;
+
+    /* Get radius from brush. */
+    Brush *brush = BKE_paint_brush(&sd->paint);
+    float radius;
+
+    if (brush) {
+      if (BKE_brush_use_locked_size(scene, brush)) {
+        radius = paint_calc_object_space_radius(
+            &vc, co, (float)BKE_brush_size_get(scene, brush) * area_normal_radius);
+      }
+      else {
+        radius = BKE_brush_unprojected_radius_get(scene, brush) * area_normal_radius;
+      }
+    }
+    else {
+      radius = paint_calc_object_space_radius(&vc, co, (float)ups->size * area_normal_radius);
+    }
+
+    SculptSearchSphereData search_data2 = {
+        .original = true,
+        .center = co,
+        .radius_squared = radius * radius,
+        .ignore_fully_ineffective = true,
+    };
+
+    BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
+
+    if (SCULPT_pbvh_calc_area_normal(
+            brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {
+      copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
+    }
+    else {
+      copy_v3_v3(ss->filter_cache->initial_normal, ss->last_normal);
+    }
+
+    MEM_SAFE_FREE(nodes);
+
+    /* Update last stroke location */
+
+    mul_m4_v3(ob->obmat, co);
+
+    add_v3_v3(ups->average_stroke_accum, co);
+    ups->average_stroke_counter++;
+    ups->last_stroke_valid = true;
+  }
+  else {
+    /* Use last normal. */
+    copy_v3_v3(ss->filter_cache->initial_normal, ss->last_normal);
+  }
+
+  /* Update view normal */
+  float projection_mat[4][4];
+  float mat[3][3];
+  float viewDir[3] = {0.0f, 0.0f, 1.0f};
+
+  ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
+
+  invert_m4_m4(ob->imat, ob->obmat);
+  copy_m3_m4(mat, vc.rv3d->viewinv);
+  mul_m3_v3(mat, viewDir);
+  copy_m3_m4(mat, ob->imat);
+  mul_m3_v3(mat, viewDir);
+  normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
 }
 
 void SCULPT_filter_cache_free(SculptSession *ss)
@@ -288,15 +356,20 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   /* This produces better results as the relax operation is no completely focused on the
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(data->ob, ss, ss->filter_cache->automasking, &automask_data, node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
+    fade *= SCULPT_automasking_factor_get(
+        ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
 
     if (fade == 0.0f && filter_type != MESH_FILTER_SURFACE_SMOOTH) {
       /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
@@ -580,11 +653,18 @@ static void mesh_filter_surface_smooth_displace_task_cb(
   PBVHNode *node = data->nodes[i];
   PBVHVertexIter vd;
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[i]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
+    fade *= SCULPT_automasking_factor_get(
+        ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -681,6 +761,9 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   }
 
   if (use_automasking) {
+    /* Increment stroke id for automasking system. */
+    SCULPT_stroke_id_next(ob);
+
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
     float mval_fl[2] = {UNPACK2(event->mval)};
@@ -696,7 +779,8 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   SCULPT_undo_push_begin(ob, op);
 
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
+  SCULPT_filter_cache_init(
+      C, ob, sd, SCULPT_UNDO_COORDS, event->mval, RNA_float_get(op->ptr, "area_normal_radius"));
 
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
@@ -743,6 +827,22 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
+void SCULPT_mesh_filter_properties(struct wmOperatorType *ot)
+{
+  RNA_def_float(
+      ot->srna,
+      "area_normal_radius",
+      0.25,
+      0.001,
+      5.0,
+      "Normal Radius",
+      "Radius used for calculating area normal on initial click,\nin percentage of brush radius",
+      0.01,
+      1.0);
+  RNA_def_float(
+      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
+}
+
 void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -758,14 +858,14 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* RNA. */
+  SCULPT_mesh_filter_properties(ot);
+
   RNA_def_enum(ot->srna,
                "type",
                prop_mesh_filter_types,
                MESH_FILTER_INFLATE,
                "Filter Type",
                "Operation that is going to be applied to the mesh");
-  RNA_def_float(
-      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
   RNA_def_enum_flag(ot->srna,
                     "deform_axis",
                     prop_mesh_filter_deform_axis_items,

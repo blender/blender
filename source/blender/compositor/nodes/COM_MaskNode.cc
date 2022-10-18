@@ -19,8 +19,8 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
 
   NodeOutput *output_mask = this->get_output_socket(0);
 
-  bNode *editor_node = this->get_bnode();
-  NodeMask *data = (NodeMask *)editor_node->storage;
+  const bNode *editor_node = this->get_bnode();
+  const NodeMask *data = (const NodeMask *)editor_node->storage;
   Mask *mask = (Mask *)editor_node->id;
 
   /* Always connect the output image. */
@@ -41,7 +41,7 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
 
   operation->set_mask(mask);
   operation->set_framenumber(context.get_framenumber());
-  operation->set_feather((bool)(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+  operation->set_feather(bool(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
   if ((editor_node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) && (editor_node->custom2 > 1) &&
       (editor_node->custom3 > FLT_EPSILON)) {

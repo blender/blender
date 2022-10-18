@@ -18,7 +18,7 @@
 #define VERT_INPUT 1
 
 #define EDGE_OUT 1
-/* Edge spans 2 VERT_INPUT's, its a nop,
+/* Edge spans 2 VERT_INPUT's, its a NOP,
  * but include in "edges.out" */
 #define EDGE_OUT_ADJ 2
 

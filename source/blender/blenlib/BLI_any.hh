@@ -42,12 +42,13 @@ template<typename ExtraInfo, typename T>
 inline constexpr AnyTypeInfo<ExtraInfo> info_for_inline = {
     is_trivially_copy_constructible_extended_v<T> ?
         nullptr :
-        +[](void *dst, const void *src) { new (dst) T(*(const T *)src); },
+        +[](void *dst, const void *src) { new (dst) T(*static_cast<const T *>(src)); },
     is_trivially_move_constructible_extended_v<T> ?
         nullptr :
-        +[](void *dst, void *src) { new (dst) T(std::move(*(T *)src)); },
-    is_trivially_destructible_extended_v<T> ? nullptr :
-                                              +[](void *src) { std::destroy_at(((T *)src)); },
+        +[](void *dst, void *src) { new (dst) T(std::move(*static_cast<T *>(src))); },
+    is_trivially_destructible_extended_v<T> ?
+        nullptr :
+        +[](void *src) { std::destroy_at((static_cast<T *>(src))); },
     nullptr,
     ExtraInfo::template get<T>()};
 

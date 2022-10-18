@@ -65,8 +65,8 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath") ||
-      !(RNA_struct_find_property(op->ptr, "directory"))) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false) ||
+      !RNA_struct_find_property(op->ptr, "directory")) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -111,7 +111,7 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
       char file_path[FILE_MAX];
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
-        BLI_join_dirfile(file_path, sizeof(file_path), directory, filename);
+        BLI_path_join(file_path, sizeof(file_path), directory, filename);
         MEM_freeN(filename);
 
         /* Do Import. */

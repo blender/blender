@@ -75,7 +75,7 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
   }
 
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
-    unsigned int i;
+    uint i;
     if (fcu->bezt) {
       for (i = 0; i < fcu->totvert; i++) {
         BezTriple *bezt = &fcu->bezt[i];

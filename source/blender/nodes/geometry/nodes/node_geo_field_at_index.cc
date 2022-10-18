@@ -11,6 +11,63 @@
 
 #include "NOD_socket_search_link.hh"
 
+namespace blender::nodes {
+
+FieldAtIndexInput::FieldAtIndexInput(Field<int> index_field,
+                                     GField value_field,
+                                     eAttrDomain value_field_domain)
+    : bke::GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
+      index_field_(std::move(index_field)),
+      value_field_(std::move(value_field)),
+      value_field_domain_(value_field_domain)
+{
+}
+
+GVArray FieldAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                  const IndexMask mask) const
+{
+  const std::optional<AttributeAccessor> attributes = context.attributes();
+  if (!attributes) {
+    return {};
+  }
+
+  const bke::GeometryFieldContext value_field_context{
+      context.geometry(), context.type(), value_field_domain_};
+  FieldEvaluator value_evaluator{value_field_context,
+                                 attributes->domain_size(value_field_domain_)};
+  value_evaluator.add(value_field_);
+  value_evaluator.evaluate();
+  const GVArray &values = value_evaluator.get_evaluated(0);
+
+  FieldEvaluator index_evaluator{context, &mask};
+  index_evaluator.add(index_field_);
+  index_evaluator.evaluate();
+  const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
+
+  GVArray output_array;
+  attribute_math::convert_to_static_type(*type_, [&](auto dummy) {
+    using T = decltype(dummy);
+    Array<T> dst_array(mask.min_array_size());
+    VArray<T> src_values = values.typed<T>();
+    threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : mask.slice(range)) {
+        const int index = indices[i];
+        if (src_values.index_range().contains(index)) {
+          dst_array[i] = src_values[index];
+        }
+        else {
+          dst_array[i] = {};
+        }
+      }
+    });
+    output_array = VArray<T>::ForContainer(std::move(dst_array));
+  });
+
+  return output_array;
+}
+
+}  // namespace blender::nodes
+
 namespace blender::nodes::node_geo_field_at_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -30,13 +87,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Value"), "Value_Bool").field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = ATTR_DOMAIN_POINT;
   node->custom2 = CD_PROP_FLOAT;
@@ -44,7 +101,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node->custom2);
+  const eCustomDataType data_type = eCustomDataType(node->custom2);
 
   bNodeSocket *sock_index = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_in_float = sock_index->next;
@@ -89,60 +146,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class FieldAtIndex final : public bke::GeometryFieldInput {
- private:
-  Field<int> index_field_;
-  GField value_field_;
-  eAttrDomain value_field_domain_;
-
- public:
-  FieldAtIndex(Field<int> index_field, GField value_field, eAttrDomain value_field_domain)
-      : bke::GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
-        index_field_(std::move(index_field)),
-        value_field_(std::move(value_field)),
-        value_field_domain_(value_field_domain)
-  {
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
-  {
-    const bke::GeometryFieldContext value_field_context{
-        context.geometry(), context.type(), value_field_domain_};
-    FieldEvaluator value_evaluator{value_field_context,
-                                   context.attributes()->domain_size(value_field_domain_)};
-    value_evaluator.add(value_field_);
-    value_evaluator.evaluate();
-    const GVArray &values = value_evaluator.get_evaluated(0);
-
-    FieldEvaluator index_evaluator{context, &mask};
-    index_evaluator.add(index_field_);
-    index_evaluator.evaluate();
-    const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
-
-    GVArray output_array;
-    attribute_math::convert_to_static_type(*type_, [&](auto dummy) {
-      using T = decltype(dummy);
-      Array<T> dst_array(mask.min_array_size());
-      VArray<T> src_values = values.typed<T>();
-      threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
-        for (const int i : mask.slice(range)) {
-          const int index = indices[i];
-          if (index >= 0 && index < src_values.size()) {
-            dst_array[i] = src_values[index];
-          }
-          else {
-            dst_array[i] = {};
-          }
-        }
-      });
-      output_array = VArray<T>::ForContainer(std::move(dst_array));
-    });
-
-    return output_array;
-  }
-};
-
 static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
@@ -165,16 +168,16 @@ static StringRefNull identifier_suffix(eCustomDataType data_type)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node.custom2);
+  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const eCustomDataType data_type = eCustomDataType(node.custom2);
 
   Field<int> index_field = params.extract_input<Field<int>>("Index");
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> value_field = params.extract_input<Field<T>>(identifier);
-    Field<T> output_field{
-        std::make_shared<FieldAtIndex>(std::move(index_field), std::move(value_field), domain)};
+    Field<T> output_field{std::make_shared<FieldAtIndexInput>(
+        std::move(index_field), std::move(value_field), domain)};
     params.set_output(identifier, std::move(output_field));
   });
 }

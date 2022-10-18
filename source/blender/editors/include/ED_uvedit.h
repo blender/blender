@@ -107,7 +107,7 @@ bool uvedit_uv_select_test(const struct Scene *scene, struct BMLoop *l, int cd_l
  * Changes selection state of a single UV Face.
  */
 void uvedit_face_select_set(const struct Scene *scene,
-                            struct BMesh *em,
+                            struct BMesh *bm,
                             struct BMFace *efa,
                             bool select,
                             bool do_history,
@@ -118,7 +118,7 @@ void uvedit_face_select_set(const struct Scene *scene,
  * Changes selection state of a single UV Edge.
  */
 void uvedit_edge_select_set(const struct Scene *scene,
-                            struct BMesh *em,
+                            struct BMesh *bm,
                             struct BMLoop *l,
                             bool select,
                             bool do_history,
@@ -129,7 +129,7 @@ void uvedit_edge_select_set(const struct Scene *scene,
  * Changes selection state of a single UV vertex.
  */
 void uvedit_uv_select_set(const struct Scene *scene,
-                          struct BMesh *em,
+                          struct BMesh *bm,
                           struct BMLoop *l,
                           bool select,
                           bool do_history,
@@ -339,14 +339,20 @@ bool ED_uvedit_udim_params_from_image_space(const struct SpaceImage *sima,
                                             bool use_active,
                                             struct UVMapUDIM_Params *udim_params);
 
+typedef enum {
+  ED_UVPACK_MARGIN_SCALED = 0, /* Use scale of existing UVs to multiply margin. */
+  ED_UVPACK_MARGIN_ADD,        /* Just add the margin, ignoring any UV scale. */
+  ED_UVPACK_MARGIN_FRACTION,   /* Specify a precise fraction of final UV output. */
+} eUVPackIsland_MarginMethod;
+
 struct UVPackIsland_Params {
   uint rotate : 1;
-  /** -1 not to align to axis, otherwise 0,1 for X,Y. */
-  int rotate_align_axis : 2;
   uint only_selected_uvs : 1;
   uint only_selected_faces : 1;
   uint use_seams : 1;
   uint correct_aspect : 1;
+  eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
+  float margin;                             /* Additional space to add around each island. */
 };
 
 /**
@@ -355,9 +361,24 @@ struct UVPackIsland_Params {
 bool uv_coords_isect_udim(const struct Image *image,
                           const int udim_grid[2],
                           const float coords[2]);
+
+/**
+ * Pack UV islands from multiple objects.
+ *
+ * \param scene: Scene containing the objects to be packed.
+ * \param objects: Array of Objects to pack.
+ * \param objects_len: Length of `objects` array.
+ * \param bmesh_override: BMesh array aligned with `objects`.
+ * Optional, when non-null this overrides object's BMesh.
+ * This is needed to perform UV packing on objects that aren't in edit-mode.
+ * \param udim_params: Parameters to specify UDIM target and UDIM source image.
+ * \param params: Parameters and options to pass to the packing engine.
+ *
+ */
 void ED_uvedit_pack_islands_multi(const struct Scene *scene,
                                   Object **objects,
                                   uint objects_len,
+                                  struct BMesh **bmesh_override,
                                   const struct UVMapUDIM_Params *udim_params,
                                   const struct UVPackIsland_Params *params);
 

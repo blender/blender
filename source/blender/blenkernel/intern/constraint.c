@@ -528,29 +528,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
-  if (me_eval) {
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
-    const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
-    int numVerts = me_eval->totvert;
-
-    /* check that dvert is a valid pointers (just in case) */
-    if (dvert) {
-
-      /* get the average of all verts with that are in the vertex-group */
-      for (int i = 0; i < numVerts; i++) {
-        const MDeformVert *dv = &dvert[i];
-        const MVert *mv = &me_eval->mvert[i];
-        const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
-
-        if (dw && dw->weight > 0.0f) {
-          madd_v3_v3fl(vec, mv->co, dw->weight);
-          madd_v3_v3fl(normal, vert_normals[i], dw->weight);
-          weightsum += dw->weight;
-        }
-      }
-    }
-  }
-  else if (em) {
+  if (em) {
     if (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
       BMVert *v;
       BMIter iter;
@@ -562,6 +540,29 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
         if (dw && dw->weight > 0.0f) {
           madd_v3_v3fl(vec, v->co, dw->weight);
           madd_v3_v3fl(normal, v->no, dw->weight);
+          weightsum += dw->weight;
+        }
+      }
+    }
+  }
+  else if (me_eval) {
+    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
+    const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
+    const MVert *verts = BKE_mesh_verts(me_eval);
+    int numVerts = me_eval->totvert;
+
+    /* check that dvert is a valid pointers (just in case) */
+    if (dvert) {
+
+      /* get the average of all verts with that are in the vertex-group */
+      for (int i = 0; i < numVerts; i++) {
+        const MDeformVert *dv = &dvert[i];
+        const MVert *mv = &verts[i];
+        const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
+
+        if (dw && dw->weight > 0.0f) {
+          madd_v3_v3fl(vec, mv->co, dw->weight);
+          madd_v3_v3fl(normal, vert_normals[i], dw->weight);
           weightsum += dw->weight;
         }
       }
@@ -1282,9 +1283,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     cob->matrix[2][1] = 0;
     cob->matrix[2][2] = size[2];
 
-    /* targetmat[2] instead of ownermat[2] is passed to vectomat
-     * for backwards compatibility it seems... (Aligorith)
-     */
+    /* NOTE(@joshualung): `targetmat[2]` instead of `ownermat[2]` is passed to #vectomat
+     * for backwards compatibility it seems. */
     sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
     vectomat(
         vec, ct->matrix[2], (short)data->reserved1, (short)data->reserved2, data->flags, totmat);
@@ -2855,7 +2855,7 @@ static void actcon_get_tarmat(struct Depsgraph *depsgraph,
         axis = data->type - 20;
       }
 
-      BLI_assert((unsigned int)axis < 3);
+      BLI_assert((uint)axis < 3);
 
       /* Target defines the animation */
       s = (vec[axis] - data->min) / (data->max - data->min);
@@ -5931,12 +5931,12 @@ static void constraint_copy_data_ex(bConstraint *dst,
       cti->copy_data(dst, src);
     }
 
-    /* Fix usercounts for all referenced data that need it. */
+    /* Fix user-counts for all referenced data that need it. */
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       con_invoke_id_looper(cti, dst, con_fix_copied_refs_cb, NULL);
     }
 
-    /* for proxies we don't want to make extern */
+    /* For proxies we don't want to make external. */
     if (do_extern) {
       /* go over used ID-links for this constraint to ensure that they are valid for proxies */
       con_invoke_id_looper(cti, dst, con_extern_cb, NULL);

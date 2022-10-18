@@ -4950,7 +4950,7 @@ NODE_DEFINE(MixNode)
   type_enum.insert("hue", NODE_MIX_HUE);
   type_enum.insert("saturation", NODE_MIX_SAT);
   type_enum.insert("value", NODE_MIX_VAL);
-  type_enum.insert("color", NODE_MIX_COLOR);
+  type_enum.insert("color", NODE_MIX_COL);
   type_enum.insert("soft_light", NODE_MIX_SOFT);
   type_enum.insert("linear_light", NODE_MIX_LINEAR);
   SOCKET_ENUM(mix_type, "Type", type_enum, NODE_MIX_BLEND);
@@ -4999,10 +4999,250 @@ void MixNode::compile(OSLCompiler &compiler)
 void MixNode::constant_fold(const ConstantFolder &folder)
 {
   if (folder.all_inputs_constant()) {
-    folder.make_constant_clamp(svm_mix(mix_type, fac, color1, color2), use_clamp);
+    folder.make_constant_clamp(svm_mix_clamped_factor(mix_type, fac, color1, color2), use_clamp);
   }
   else {
     folder.fold_mix(mix_type, use_clamp);
+  }
+}
+
+/* Mix Color */
+
+NODE_DEFINE(MixColorNode)
+{
+  NodeType *type = NodeType::add("mix_color", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("mix", NODE_MIX_BLEND);
+  type_enum.insert("add", NODE_MIX_ADD);
+  type_enum.insert("multiply", NODE_MIX_MUL);
+  type_enum.insert("screen", NODE_MIX_SCREEN);
+  type_enum.insert("overlay", NODE_MIX_OVERLAY);
+  type_enum.insert("subtract", NODE_MIX_SUB);
+  type_enum.insert("divide", NODE_MIX_DIV);
+  type_enum.insert("difference", NODE_MIX_DIFF);
+  type_enum.insert("darken", NODE_MIX_DARK);
+  type_enum.insert("lighten", NODE_MIX_LIGHT);
+  type_enum.insert("dodge", NODE_MIX_DODGE);
+  type_enum.insert("burn", NODE_MIX_BURN);
+  type_enum.insert("hue", NODE_MIX_HUE);
+  type_enum.insert("saturation", NODE_MIX_SAT);
+  type_enum.insert("value", NODE_MIX_VAL);
+  type_enum.insert("color", NODE_MIX_COL);
+  type_enum.insert("soft_light", NODE_MIX_SOFT);
+  type_enum.insert("linear_light", NODE_MIX_LINEAR);
+  SOCKET_ENUM(blend_type, "Type", type_enum, NODE_MIX_BLEND);
+
+  SOCKET_IN_FLOAT(fac, "Factor", 0.5f);
+  SOCKET_IN_COLOR(a, "A", zero_float3());
+  SOCKET_IN_COLOR(b, "B", zero_float3());
+  SOCKET_BOOLEAN(use_clamp_result, "Use Clamp Result", false);
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", true);
+
+  SOCKET_OUT_COLOR(result, "Result");
+
+  return type;
+}
+
+MixColorNode::MixColorNode() : ShaderNode(get_node_type())
+{
+}
+
+void MixColorNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *fac_in = input("Factor");
+  ShaderInput *a_in = input("A");
+  ShaderInput *b_in = input("B");
+  ShaderOutput *result_out = output("Result");
+
+  int fac_in_stack_offset = compiler.stack_assign(fac_in);
+  int a_in_stack_offset = compiler.stack_assign(a_in);
+  int b_in_stack_offset = compiler.stack_assign(b_in);
+
+  compiler.add_node(
+      NODE_MIX_COLOR,
+      compiler.encode_uchar4(use_clamp, blend_type, use_clamp_result),
+      compiler.encode_uchar4(fac_in_stack_offset, a_in_stack_offset, b_in_stack_offset),
+      compiler.stack_assign(result_out));
+}
+
+void MixColorNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "blend_type");
+  compiler.parameter(this, "use_clamp");
+  compiler.parameter(this, "use_clamp_result");
+  compiler.add(this, "node_mix_color");
+}
+
+void MixColorNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    if (use_clamp) {
+      fac = clamp(fac, 0.0f, 1.0f);
+    }
+    folder.make_constant_clamp(svm_mix(blend_type, fac, a, b), use_clamp_result);
+  }
+  else {
+    folder.fold_mix_color(blend_type, use_clamp, use_clamp_result);
+  }
+}
+
+/* Mix Float */
+
+NODE_DEFINE(MixFloatNode)
+{
+  NodeType *type = NodeType::add("mix_float", create, NodeType::SHADER);
+
+  SOCKET_IN_FLOAT(fac, "Factor", 0.5f);
+  SOCKET_IN_FLOAT(a, "A", 0.0f);
+  SOCKET_IN_FLOAT(b, "B", 0.0f);
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", true);
+  SOCKET_OUT_FLOAT(result, "Result");
+
+  return type;
+}
+
+MixFloatNode::MixFloatNode() : ShaderNode(get_node_type())
+{
+}
+
+void MixFloatNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *fac_in = input("Factor");
+  ShaderInput *a_in = input("A");
+  ShaderInput *b_in = input("B");
+  ShaderOutput *result_out = output("Result");
+
+  int fac_in_stack_offset = compiler.stack_assign(fac_in);
+  int a_in_stack_offset = compiler.stack_assign(a_in);
+  int b_in_stack_offset = compiler.stack_assign(b_in);
+
+  compiler.add_node(
+      NODE_MIX_FLOAT,
+      use_clamp,
+      compiler.encode_uchar4(fac_in_stack_offset, a_in_stack_offset, b_in_stack_offset),
+      compiler.stack_assign(result_out));
+}
+
+void MixFloatNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "use_clamp");
+  compiler.add(this, "node_mix_float");
+}
+
+void MixFloatNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    if (use_clamp) {
+      fac = clamp(fac, 0.0f, 1.0f);
+    }
+    folder.make_constant(a * (1 - fac) + b * fac);
+  }
+}
+
+/* Mix Vector */
+
+NODE_DEFINE(MixVectorNode)
+{
+  NodeType *type = NodeType::add("mix_vector", create, NodeType::SHADER);
+
+  SOCKET_IN_FLOAT(fac, "Factor", 0.5f);
+  SOCKET_IN_VECTOR(a, "A", zero_float3());
+  SOCKET_IN_VECTOR(b, "B", zero_float3());
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", true);
+
+  SOCKET_OUT_VECTOR(result, "Result");
+
+  return type;
+}
+
+MixVectorNode::MixVectorNode() : ShaderNode(get_node_type())
+{
+}
+
+void MixVectorNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *fac_in = input("Factor");
+  ShaderInput *a_in = input("A");
+  ShaderInput *b_in = input("B");
+  ShaderOutput *result_out = output("Result");
+
+  int fac_in_stack_offset = compiler.stack_assign(fac_in);
+  int a_in_stack_offset = compiler.stack_assign(a_in);
+  int b_in_stack_offset = compiler.stack_assign(b_in);
+
+  compiler.add_node(
+      NODE_MIX_VECTOR,
+      compiler.encode_uchar4(use_clamp, fac_in_stack_offset, a_in_stack_offset, b_in_stack_offset),
+      compiler.stack_assign(result_out));
+}
+
+void MixVectorNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "use_clamp");
+  compiler.add(this, "node_mix_vector");
+}
+
+void MixVectorNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    if (use_clamp) {
+      fac = clamp(fac, 0.0f, 1.0f);
+    }
+    folder.make_constant(a * (one_float3() - fac) + b * fac);
+  }
+}
+
+/* Mix Vector Non Uniform */
+
+NODE_DEFINE(MixVectorNonUniformNode)
+{
+  NodeType *type = NodeType::add("mix_vector_non_uniform", create, NodeType::SHADER);
+
+  SOCKET_IN_VECTOR(fac, "Factor", make_float3(0.5f, 0.5f, 0.5f));
+  SOCKET_IN_VECTOR(a, "A", zero_float3());
+  SOCKET_IN_VECTOR(b, "B", zero_float3());
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", true);
+
+  SOCKET_OUT_VECTOR(result, "Result");
+
+  return type;
+}
+
+MixVectorNonUniformNode::MixVectorNonUniformNode() : ShaderNode(get_node_type())
+{
+}
+
+void MixVectorNonUniformNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *fac_in = input("Factor");
+  ShaderInput *a_in = input("A");
+  ShaderInput *b_in = input("B");
+  ShaderOutput *result_out = output("Result");
+
+  int fac_in_stack_offset = compiler.stack_assign(fac_in);
+  int a_in_stack_offset = compiler.stack_assign(a_in);
+  int b_in_stack_offset = compiler.stack_assign(b_in);
+
+  compiler.add_node(
+      NODE_MIX_VECTOR_NON_UNIFORM,
+      compiler.encode_uchar4(use_clamp, fac_in_stack_offset, a_in_stack_offset, b_in_stack_offset),
+      compiler.stack_assign(result_out));
+}
+
+void MixVectorNonUniformNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "use_clamp");
+  compiler.add(this, "node_mix_vector_non_uniform");
+}
+
+void MixVectorNonUniformNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    if (use_clamp) {
+      fac = saturate(fac);
+    }
+    folder.make_constant(a * (one_float3() - fac) + b * fac);
   }
 }
 

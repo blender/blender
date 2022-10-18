@@ -13,7 +13,7 @@ namespace Freestyle {
 
 Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source,
                                                    const real proscenium[4],
-                                                   unsigned numFaces)
+                                                   uint numFaces)
     : GridDensityProvider(source), numFaces(numFaces)
 {
   initialize(proscenium);
@@ -22,7 +22,7 @@ Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source,
 Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source,
                                                    const BBox<Vec3r> &bbox,
                                                    const GridHelpers::Transform &transform,
-                                                   unsigned numFaces)
+                                                   uint numFaces)
     : GridDensityProvider(source), numFaces(numFaces)
 {
   real proscenium[4];
@@ -31,7 +31,7 @@ Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source,
   initialize(proscenium);
 }
 
-Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source, unsigned numFaces)
+Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source, uint numFaces)
     : GridDensityProvider(source), numFaces(numFaces)
 {
   real proscenium[4];
@@ -75,7 +75,7 @@ void Pow23GridDensityProvider::initialize(const real proscenium[4])
   _cellOrigin[1] = ((proscenium[2] + proscenium[3]) / 2.0) - (_cellsY / 2.0) * _cellSize;
 }
 
-Pow23GridDensityProviderFactory::Pow23GridDensityProviderFactory(unsigned numFaces)
+Pow23GridDensityProviderFactory::Pow23GridDensityProviderFactory(uint numFaces)
     : numFaces(numFaces)
 {
 }

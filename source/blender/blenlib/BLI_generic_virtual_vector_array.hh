@@ -133,8 +133,8 @@ class GVVectorArray_For_SingleGSpan : public GVVectorArray {
   }
 
  protected:
-  int64_t get_vector_size_impl(int64_t UNUSED(index)) const override;
-  void get_vector_element_impl(int64_t UNUSED(index),
+  int64_t get_vector_size_impl(int64_t /*index*/) const override;
+  void get_vector_element_impl(int64_t /*index*/,
                                int64_t index_in_vector,
                                void *r_value) const override;
 

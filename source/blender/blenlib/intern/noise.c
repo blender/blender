@@ -115,8 +115,8 @@ static const float hashpntf[768] = {
     0.713870, 0.555261, 0.951333,
 };
 
-extern const unsigned char BLI_noise_hash_uchar_512[512]; /* Quiet warning. */
-const unsigned char BLI_noise_hash_uchar_512[512] = {
+extern const uchar BLI_noise_hash_uchar_512[512]; /* Quiet warning. */
+const uchar BLI_noise_hash_uchar_512[512] = {
     0xA2, 0xA0, 0x19, 0x3B, 0xF8, 0xEB, 0xAA, 0xEE, 0xF3, 0x1C, 0x67, 0x28, 0x1D, 0xED, 0x0,  0xDE,
     0x95, 0x2E, 0xDC, 0x3F, 0x3A, 0x82, 0x35, 0x4D, 0x6C, 0xBA, 0x36, 0xD0, 0xF6, 0xC,  0x79, 0x32,
     0xD1, 0x59, 0xF4, 0x8,  0x8B, 0x63, 0x89, 0x2F, 0xB8, 0xB4, 0x97, 0x83, 0xF2, 0x8F, 0x18, 0xC7,
@@ -939,9 +939,9 @@ void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me
       break;
   }
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
   da[0] = da[1] = da[2] = da[3] = 1e10f;
   for (int xx = xi - 1; xx <= xi + 1; xx++) {
     for (int yy = yi - 1; yy <= yi + 1; yy++) {
@@ -1112,10 +1112,10 @@ static float BLI_cellNoiseU(float x, float y, float z)
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
-  unsigned int n = xi + yi * 1301 + zi * 314159;
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
+  uint n = xi + yi * 1301 + zi * 314159;
   n ^= (n << 13);
   return ((float)(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
 }
@@ -1132,9 +1132,9 @@ void BLI_noise_cell_v3(float x, float y, float z, float r_ca[3])
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
+  int xi = (int)floor(x);
+  int yi = (int)floor(y);
+  int zi = (int)floor(z);
   const float *p = HASHPNT(xi, yi, zi);
   r_ca[0] = p[0];
   r_ca[1] = p[1];
@@ -1329,8 +1329,8 @@ float BLI_noise_mg_fbm(
 float BLI_noise_mg_multi_fractal(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-  /* This one is in fact rather confusing,
-   * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+  /* This one is in fact rather confusing, there seem to be errors in the original source code
+   * (in all three versions of `proc.text & mod`),
    * I modified it to something that made sense to me, so it might be wrong. */
 
   float (*noisefunc)(float, float, float);

@@ -7,6 +7,7 @@ endif()
 
 set(INC
   .
+  ..
   ../atomic
 )
 

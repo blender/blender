@@ -132,10 +132,11 @@ static void validate_unique_root_prim_path(USDExportParams &params, Depsgraph *d
   Object *match = nullptr;
   std::string root_name = path.GetName();
 
-  DEG_OBJECT_ITER_BEGIN(depsgraph,
-    object,
-    DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-    DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET) {
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
 
     if (!match && !object->parent) {
       /* We only care about root objects. */
@@ -297,7 +298,7 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   BLI_change_working_dir(original_working_dir);
 
   char usdz_temp_dirfile[FILE_MAX];
-  BLI_join_dirfile(usdz_temp_dirfile, FILE_MAX, usdc_temp_dir, usdz_file);
+  BLI_path_join(usdz_temp_dirfile, FILE_MAX, usdc_temp_dir, usdz_file);
 
   int result = 0;
   if (BLI_exists(data->usdz_filepath)) {
@@ -407,6 +408,7 @@ static void export_startjob(void *customdata,
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
+
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 
@@ -455,7 +457,7 @@ static void export_startjob(void *customdata,
       }
 
       /* Update the scene for the next frame to render. */
-      scene->r.cfra = static_cast<int>(frame);
+      scene->r.cfra = int(frame);
       scene->r.subframe = frame - scene->r.cfra;
       BKE_scene_graph_update_for_newframe(data->depsgraph);
 
@@ -533,7 +535,7 @@ static void export_endjob(void *customdata)
     char dir[FILE_MAX];
     BLI_split_dir_part(data->filepath, dir, FILE_MAX);
     char usdc_temp_dir[FILE_MAX];
-    BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR, NULL);
+    BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR);
     BLI_assert(BLI_strcasecmp(dir, usdc_temp_dir) == 0);
     BLI_delete(usdc_temp_dir, true, true);
   }
@@ -564,7 +566,7 @@ static void create_temp_path_for_usdz_export(const char *filepath,
   char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
 
   char usdc_temp_filepath[FILE_MAX];
-  BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file, NULL);
+  BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file);
 
   BLI_strncpy(job->filepath, usdc_temp_filepath, strlen(usdc_temp_filepath) + 1);
   BLI_strncpy(job->usdz_filepath, filepath, strlen(filepath) + 1);

@@ -47,7 +47,7 @@ void main()
                                col1,
                                col2,
                                fcol1,
-                               vec4(drw_view.viewport_size, drw_view.viewport_size_inverse),
+                               vec4(sizeViewport, sizeViewportInv),
                                world_pos,
                                unused_N,
                                unused_color,

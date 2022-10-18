@@ -777,10 +777,10 @@ bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
   return found;
 }
 
-unsigned int RNA_struct_count_properties(StructRNA *srna)
+uint RNA_struct_count_properties(StructRNA *srna)
 {
   PointerRNA struct_ptr;
-  unsigned int counter = 0;
+  uint counter = 0;
 
   RNA_pointer_create(NULL, srna, NULL, &struct_ptr);
 
@@ -1135,7 +1135,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 
 int RNA_property_array_item_index(PropertyRNA *prop, char name)
 {
-  /* Don't use custom property subtypes in RNA path lookup. */
+  /* Don't use custom property sub-types in RNA path lookup. */
   PropertySubType subtype = rna_ensure_property(prop)->subtype;
 
   /* get index based on string name/alias */
@@ -1744,9 +1744,9 @@ int RNA_enum_from_value(const EnumPropertyItem *item, const int value)
   return -1;
 }
 
-unsigned int RNA_enum_items_count(const EnumPropertyItem *item)
+uint RNA_enum_items_count(const EnumPropertyItem *item)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   while (item->identifier) {
     item++;
@@ -3620,7 +3620,7 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-  if ((/*idprop=*/rna_idproperty_check(&prop, ptr))) {
+  if (/*idprop=*/rna_idproperty_check(&prop, ptr)) {
     /* already exists */
   }
   else if (prop->flag & PROP_IDPROPERTY) {
@@ -5346,15 +5346,15 @@ char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
   return cstring;
 }
 
-static char *rna_pointer_as_string__bldata(Main *bmain, PointerRNA *ptr)
+static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 {
   if (ptr->type == NULL || ptr->owner_id == NULL) {
     return BLI_strdup("None");
   }
   if (RNA_struct_is_ID(ptr->type)) {
-    return RNA_path_full_ID_py(bmain, ptr->owner_id);
+    return RNA_path_full_ID_py(ptr->owner_id);
   }
-  return RNA_path_full_struct_py(bmain, ptr);
+  return RNA_path_full_struct_py(ptr);
 }
 
 char *RNA_pointer_as_string(bContext *C,
@@ -5369,7 +5369,7 @@ char *RNA_pointer_as_string(bContext *C,
   if ((prop = rna_idproperty_check(&prop_ptr, ptr)) && prop->type != IDP_ID) {
     return RNA_pointer_as_string_id(C, ptr_prop);
   }
-  return rna_pointer_as_string__bldata(CTX_data_main(C), ptr_prop);
+  return rna_pointer_as_string__bldata(ptr_prop);
 }
 
 char *RNA_pointer_as_string_keywords_ex(bContext *C,
@@ -5951,7 +5951,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
   if (iter->valid) {
     iter->size = rna_parameter_size(iter->parm);
-    iter->data = (((char *)iter->parms->data)); /* +iter->offset, always 0 */
+    iter->data = ((char *)iter->parms->data); /* +iter->offset, always 0 */
   }
 }
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/surface_shader.h"
 
 #include "kernel/light/light.h"
 
@@ -24,22 +24,19 @@ light_sample_shader_eval(KernelGlobals kg,
   /* setup shading at emitter */
   Spectrum eval = zero_spectrum();
 
-  if (shader_constant_emission_eval(kg, ls->shader, &eval)) {
+  if (surface_shader_constant_emission(kg, ls->shader, &eval)) {
     if ((ls->prim != PRIM_NONE) && dot(ls->Ng, ls->D) > 0.0f) {
       ls->Ng = -ls->Ng;
     }
   }
   else {
-    /* Setup shader data and call shader_eval_surface once, better
+    /* Setup shader data and call surface_shader_eval once, better
      * for GPU coherence and compile times. */
     PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
-#ifdef __BACKGROUND_MIS__
     if (ls->type == LIGHT_BACKGROUND) {
       shader_setup_from_background(kg, emission_sd, ls->P, ls->D, time);
     }
-    else
-#endif
-    {
+    else {
       shader_setup_from_sample(kg,
                                emission_sd,
                                ls->P,
@@ -63,18 +60,15 @@ light_sample_shader_eval(KernelGlobals kg,
 
     /* No proper path flag, we're evaluating this for all closures. that's
      * weak but we'd have to do multiple evaluations otherwise. */
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
+    surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
         kg, state, emission_sd, NULL, PATH_RAY_EMISSION);
 
     /* Evaluate closures. */
-#ifdef __BACKGROUND_MIS__
     if (ls->type == LIGHT_BACKGROUND) {
-      eval = shader_background_eval(emission_sd);
+      eval = surface_shader_background(emission_sd);
     }
-    else
-#endif
-    {
-      eval = shader_emissive_eval(emission_sd);
+    else {
+      eval = surface_shader_emission(emission_sd);
     }
   }
 

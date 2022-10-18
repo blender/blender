@@ -113,7 +113,7 @@ void DisplaceOperation::pixel_transform(const float xy[2], float r_uv[2], float 
     num++;
   }
   if (num > 0) {
-    float numinv = 1.0f / (float)num;
+    float numinv = 1.0f / float(num);
     r_deriv[0][0] *= numinv;
     r_deriv[1][0] *= numinv;
   }
@@ -130,7 +130,7 @@ void DisplaceOperation::pixel_transform(const float xy[2], float r_uv[2], float 
     num++;
   }
   if (num > 0) {
-    float numinv = 1.0f / (float)num;
+    float numinv = 1.0f / float(num);
     r_deriv[0][1] *= numinv;
     r_deriv[1][1] *= numinv;
   }
@@ -209,8 +209,8 @@ void DisplaceOperation::get_area_of_interest(const int input_idx,
   }
 }
 
-void DisplaceOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                     const rcti &UNUSED(area),
+void DisplaceOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                     const rcti & /*area*/,
                                                      Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *vector = inputs[1];
@@ -227,7 +227,7 @@ void DisplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   const MemoryBuffer *input_color = inputs[0];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    const float xy[2] = {(float)it.x, (float)it.y};
+    const float xy[2] = {float(it.x), float(it.y)};
     float uv[2];
     float deriv[2][2];
 

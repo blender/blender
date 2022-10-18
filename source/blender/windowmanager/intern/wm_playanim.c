@@ -482,7 +482,7 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
@@ -601,7 +601,7 @@ static void playanim_toscreen(
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3ub(0, 255, 0);
 
     immBegin(GPU_PRIM_LINES, 2);
@@ -659,7 +659,7 @@ static void build_pict_list_ex(
     int fp_framenr;
     struct {
       char head[FILE_MAX], tail[FILE_MAX];
-      unsigned short digits;
+      ushort digits;
     } fp_decoded;
 
     char filepath[FILE_MAX];
@@ -1353,7 +1353,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
                                          posy,
                                          sizex,
                                          sizey,
-                                         /* could optionally start fullscreen */
+                                         /* Could optionally start full-screen. */
                                          GHOST_kWindowStateNormal,
                                          false,
                                          GHOST_kDrawingContextTypeOpenGL,
@@ -1539,6 +1539,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_WS.ghost_system = GHOST_CreateSystem();
+
+    if (UNLIKELY(g_WS.ghost_system == NULL)) {
+      /* GHOST will have reported the back-ends that failed to load. */
+      fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
+      /* This will leak memory, it's preferable to crashing. */
+      exit(1);
+    }
+
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
 
     playanim_window_open("Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
@@ -1549,14 +1557,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   // GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
   /* initialize OpenGL immediate mode */
-  g_WS.gpu_context = GPU_context_create(g_WS.ghost_window);
+  g_WS.gpu_context = GPU_context_create(g_WS.ghost_window, NULL);
   GPU_init();
 
   /* initialize the font */
   BLF_init();
   BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
-  BLF_size(ps.fontid, 11.0f, 72);
+  BLF_size(ps.fontid, 11.0f);
 
   ps.ibufx = ibuf->x;
   ps.ibufy = ibuf->y;

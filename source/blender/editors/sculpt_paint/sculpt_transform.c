@@ -7,31 +7,22 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_kelvinlet.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
@@ -46,7 +37,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_name)
+void ED_sculpt_init_transform(struct bContext *C,
+                              Object *ob,
+                              const int mval[2],
+                              const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -66,7 +60,8 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_n
   ss->pivot_rot[3] = 1.0f;
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
+
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0);
 
   if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
     ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;

@@ -291,6 +291,101 @@ void ConstantFolder::fold_mix(NodeMix type, bool clamp) const
   }
 }
 
+void ConstantFolder::fold_mix_color(NodeMix type, bool clamp_factor, bool clamp) const
+{
+  ShaderInput *fac_in = node->input("Factor");
+  ShaderInput *color1_in = node->input("A");
+  ShaderInput *color2_in = node->input("B");
+
+  float fac = clamp_factor ? saturatef(node->get_float(fac_in->socket_type)) :
+                             node->get_float(fac_in->socket_type);
+  bool fac_is_zero = !fac_in->link && fac == 0.0f;
+  bool fac_is_one = !fac_in->link && fac == 1.0f;
+
+  /* remove no-op node when factor is 0.0 */
+  if (fac_is_zero) {
+    /* note that some of the modes will clamp out of bounds values even without use_clamp */
+    if (!(type == NODE_MIX_LIGHT || type == NODE_MIX_DODGE || type == NODE_MIX_BURN)) {
+      if (try_bypass_or_make_constant(color1_in, clamp)) {
+        return;
+      }
+    }
+  }
+
+  switch (type) {
+    case NODE_MIX_BLEND:
+      /* remove useless mix colors nodes */
+      if (color1_in->link && color2_in->link) {
+        if (color1_in->link == color2_in->link) {
+          try_bypass_or_make_constant(color1_in, clamp);
+          break;
+        }
+      }
+      else if (!color1_in->link && !color2_in->link) {
+        float3 color1 = node->get_float3(color1_in->socket_type);
+        float3 color2 = node->get_float3(color2_in->socket_type);
+        if (color1 == color2) {
+          try_bypass_or_make_constant(color1_in, clamp);
+          break;
+        }
+      }
+      /* remove no-op mix color node when factor is 1.0 */
+      if (fac_is_one) {
+        try_bypass_or_make_constant(color2_in, clamp);
+        break;
+      }
+      break;
+    case NODE_MIX_ADD:
+      /* 0 + X (fac 1) == X */
+      if (is_zero(color1_in) && fac_is_one) {
+        try_bypass_or_make_constant(color2_in, clamp);
+      }
+      /* X + 0 (fac ?) == X */
+      else if (is_zero(color2_in)) {
+        try_bypass_or_make_constant(color1_in, clamp);
+      }
+      break;
+    case NODE_MIX_SUB:
+      /* X - 0 (fac ?) == X */
+      if (is_zero(color2_in)) {
+        try_bypass_or_make_constant(color1_in, clamp);
+      }
+      /* X - X (fac 1) == 0 */
+      else if (color1_in->link && color1_in->link == color2_in->link && fac_is_one) {
+        make_zero();
+      }
+      break;
+    case NODE_MIX_MUL:
+      /* X * 1 (fac ?) == X, 1 * X (fac 1) == X */
+      if (is_one(color1_in) && fac_is_one) {
+        try_bypass_or_make_constant(color2_in, clamp);
+      }
+      else if (is_one(color2_in)) {
+        try_bypass_or_make_constant(color1_in, clamp);
+      }
+      /* 0 * ? (fac ?) == 0, ? * 0 (fac 1) == 0 */
+      else if (is_zero(color1_in)) {
+        make_zero();
+      }
+      else if (is_zero(color2_in) && fac_is_one) {
+        make_zero();
+      }
+      break;
+    case NODE_MIX_DIV:
+      /* X / 1 (fac ?) == X */
+      if (is_one(color2_in)) {
+        try_bypass_or_make_constant(color1_in, clamp);
+      }
+      /* 0 / ? (fac ?) == 0 */
+      else if (is_zero(color1_in)) {
+        make_zero();
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 void ConstantFolder::fold_math(NodeMathType type) const
 {
   ShaderInput *value1_in = node->input("Value1");

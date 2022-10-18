@@ -107,14 +107,14 @@ char *GHOST_DropTargetX11::FileUrlDecode(char *fileUrl)
   return nullptr;
 }
 
-void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize)
+void *GHOST_DropTargetX11::getURIListGhostData(uchar *dropBuffer, int dropBufferSize)
 {
   GHOST_TStringArray *strArray = nullptr;
   int totPaths = 0, curLength = 0;
 
   /* Count total number of file paths in buffer. */
   for (int i = 0; i <= dropBufferSize; i++) {
-    if (dropBuffer[i] == 0 || dropBuffer[i] == '\n' || dropBuffer[i] == '\r') {
+    if (ELEM(dropBuffer[i], 0, '\n', '\r')) {
       if (curLength) {
         totPaths++;
         curLength = 0;
@@ -131,7 +131,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 
   curLength = 0;
   for (int i = 0; i <= dropBufferSize; i++) {
-    if (dropBuffer[i] == 0 || dropBuffer[i] == '\n' || dropBuffer[i] == '\r') {
+    if (ELEM(dropBuffer[i], 0, '\n', '\r')) {
       if (curLength) {
         char *curPath = (char *)malloc(curLength + 1);
         char *decodedPath;
@@ -157,12 +157,10 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
   return strArray;
 }
 
-void *GHOST_DropTargetX11::getGhostData(Atom dropType,
-                                        unsigned char *dropBuffer,
-                                        int dropBufferSize)
+void *GHOST_DropTargetX11::getGhostData(Atom dropType, uchar *dropBuffer, int dropBufferSize)
 {
   void *data = nullptr;
-  unsigned char *tmpBuffer = (unsigned char *)malloc(dropBufferSize + 1);
+  uchar *tmpBuffer = (uchar *)malloc(dropBufferSize + 1);
   bool needsFree = true;
 
   /* Ensure nil-terminator. */
@@ -182,7 +180,7 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
       data = decodedPath;
     }
   }
-  else if (dropType == dndTypePlainText || dropType == dndTypeOctetStream) {
+  else if (ELEM(dropType, dndTypePlainText, dndTypeOctetStream)) {
     m_draggedObjectType = GHOST_kDragnDropTypeString;
     data = tmpBuffer;
     needsFree = false;
@@ -201,7 +199,7 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
 bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
 {
   Atom dropType;
-  unsigned char *dropBuffer;
+  uchar *dropBuffer;
   int dropBufferSize, dropX, dropY;
 
   if (xdnd_get_drop(m_system->getXDisplay(),

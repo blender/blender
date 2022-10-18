@@ -110,7 +110,7 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0,
 
   convert_matrix_datatype(m0, mat0);
   convert_matrix_datatype(m1, mat1);
-  interp_m4_m4m4(ret, mat0, mat1, static_cast<float>(weight));
+  interp_m4_m4m4(ret, mat0, mat1, float(weight));
   return convert_matrix_datatype(ret);
 }
 
@@ -133,11 +133,11 @@ Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
 }
 
 struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
-                                        const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
-                                        int UNUSED(read_flag),
-                                        const char *UNUSED(velocity_name),
-                                        const float UNUSED(velocity_scale),
-                                        const char **UNUSED(err_str))
+                                        const Alembic::Abc::ISampleSelector & /*sample_sel*/,
+                                        int /*read_flag*/,
+                                        const char * /*velocity_name*/,
+                                        const float /*velocity_scale*/,
+                                        const char ** /*err_str*/)
 {
   return existing_mesh;
 }

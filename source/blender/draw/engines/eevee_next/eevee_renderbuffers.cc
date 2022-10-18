@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * A film is a fullscreen buffer (usually at output extent)
+ * A film is a full-screen buffer (usually at output extent)
  * that will be able to accumulate sample in any distorted camera_type
  * using a pixel filter.
  *
@@ -43,10 +43,10 @@ void RenderBuffers::acquire(int2 extent)
   bool do_vector_render_pass = (enabled_passes & EEVEE_RENDER_PASS_VECTOR) ||
                                (inst_.motion_blur.postfx_enabled() && !inst_.is_viewport());
   uint32_t max_light_color_layer = max_ii(enabled_passes & EEVEE_RENDER_PASS_DIFFUSE_LIGHT ?
-                                              (int)RENDER_PASS_LAYER_DIFFUSE_LIGHT :
+                                              int(RENDER_PASS_LAYER_DIFFUSE_LIGHT) :
                                               -1,
                                           enabled_passes & EEVEE_RENDER_PASS_SPECULAR_LIGHT ?
-                                              (int)RENDER_PASS_LAYER_SPECULAR_LIGHT :
+                                              int(RENDER_PASS_LAYER_SPECULAR_LIGHT) :
                                               -1) +
                                    1;
   /* Only RG16F when only doing only reprojection or motion blur. */
@@ -72,6 +72,20 @@ void RenderBuffers::acquire(int2 extent)
       color_format, (aovs.color_len > 0) ? extent : int2(1), max_ii(1, aovs.color_len));
   aov_value_tx.ensure_2d_array(
       float_format, (aovs.value_len > 0) ? extent : int2(1), max_ii(1, aovs.value_len));
+
+  eGPUTextureFormat cryptomatte_format = GPU_R32F;
+  const int cryptomatte_layer_len = inst_.film.cryptomatte_layer_max_get();
+  if (cryptomatte_layer_len == 2) {
+    cryptomatte_format = GPU_RG32F;
+  }
+  else if (cryptomatte_layer_len == 3) {
+    cryptomatte_format = GPU_RGBA32F;
+  }
+  cryptomatte_tx.acquire(
+      pass_extent(static_cast<eViewLayerEEVEEPassType>(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
+                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL)),
+      cryptomatte_format);
 }
 
 void RenderBuffers::release()
@@ -88,6 +102,7 @@ void RenderBuffers::release()
   environment_tx.release();
   shadow_tx.release();
   ambient_occlusion_tx.release();
+  cryptomatte_tx.release();
 }
 
 }  // namespace blender::eevee

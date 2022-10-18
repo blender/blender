@@ -36,19 +36,19 @@ class GHOST_Context : public GHOST_IContext {
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess swapBuffers() = 0;
+  virtual GHOST_TSuccess swapBuffers() override = 0;
 
   /**
    * Activates the drawing context of this window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess activateDrawingContext() = 0;
+  virtual GHOST_TSuccess activateDrawingContext() override = 0;
 
   /**
    * Release the drawing context of the calling thread.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess releaseDrawingContext() = 0;
+  virtual GHOST_TSuccess releaseDrawingContext() override = 0;
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
@@ -130,7 +130,7 @@ class GHOST_Context : public GHOST_IContext {
    * Gets the OpenGL frame-buffer associated with the OpenGL context
    * \return The ID of an OpenGL frame-buffer object.
    */
-  virtual unsigned int getDefaultFramebuffer()
+  virtual unsigned int getDefaultFramebuffer() override
   {
     return 0;
   }

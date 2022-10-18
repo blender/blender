@@ -49,11 +49,11 @@ static int wm_stl_import_execute(bContext *C, wmOperator *op)
     for (int i = 0; i < files_len; i++) {
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
-      BLI_join_dirfile(params.filepath, sizeof(params.filepath), dir_only, file_only);
+      BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
       STL_import(C, &params);
     }
   }
-  else if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     RNA_string_get(op->ptr, "filepath", params.filepath);
     STL_import(C, &params);
   }
@@ -95,7 +95,7 @@ void WM_OT_stl_import(struct wmOperatorType *ot)
   ot->exec = wm_stl_import_execute;
   ot->poll = WM_operator_winactive;
   ot->check = wm_stl_import_check;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,
@@ -104,7 +104,7 @@ void WM_OT_stl_import(struct wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY |
                                      WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_float(ot->srna, "global_scale", 1.0f, 1e-6f, 1e6f, "Scale", "", 0.001f, 1000.0f);
   RNA_def_boolean(ot->srna,

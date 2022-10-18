@@ -1308,7 +1308,7 @@ void BKE_fcurve_handles_recalc(FCurve *fcu)
 void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
 {
   BezTriple *bezt;
-  unsigned int a;
+  uint a;
 
   /* Only beztriples have handles (bpoints don't though). */
   if (ELEM(NULL, fcu, fcu->bezt)) {
@@ -1368,7 +1368,7 @@ void sort_time_fcurve(FCurve *fcu)
 
 bool test_time_fcurve(FCurve *fcu)
 {
-  unsigned int a;
+  uint a;
 
   /* Sanity checks. */
   if (fcu == NULL) {
@@ -1778,7 +1778,7 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
 {
   const float eps = 1.e-8f;
   BezTriple *bezt, *prevbezt;
-  unsigned int a;
+  uint a;
 
   /* Evaltime occurs somewhere in the middle of the curve. */
   bool exact = false;
@@ -2382,7 +2382,7 @@ void BKE_fcurve_blend_write(BlendWriter *writer, ListBase *fcurves)
 
 void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
 {
-  /* link F-Curve data to F-Curve again (non ID-libs) */
+  /* Link F-Curve data to F-Curve again (non ID-libraries). */
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     /* curve data */
     BLO_read_data_address(reader, &fcu->bezt);

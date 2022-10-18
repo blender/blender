@@ -24,7 +24,7 @@
 
 GHOST_SystemHandle GHOST_CreateSystem(void)
 {
-  GHOST_ISystem::createSystem();
+  GHOST_ISystem::createSystem(true);
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
 
   return (GHOST_SystemHandle)system;
@@ -51,6 +51,13 @@ GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle)
 
   return system->disposeSystem();
 }
+
+#if !(defined(WIN32) || defined(__APPLE__))
+const char *GHOST_SystemBackend()
+{
+  return GHOST_ISystem::getSystemBackend();
+}
+#endif
 
 void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
                           const char *title,
@@ -722,14 +729,14 @@ GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle)
   return context->releaseDrawingContext();
 }
 
-unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
+uint GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->getDefaultFramebuffer();
 }
 
-unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
+uint GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -741,6 +748,12 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
   return window->invalidate();
+}
+
+void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  return system->setMultitouchGestures(use);
 }
 
 void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
@@ -869,8 +882,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
 bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  /* FIXME: use `bool` instead of int for this value. */
-  return (bool)system->setConsoleWindowState(action);
+  return system->setConsoleWindowState(action);
 }
 
 bool GHOST_UseNativePixels(void)
@@ -1126,8 +1138,7 @@ void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_contexthandle,
   return 0;
 }
 
-unsigned int GHOST_XrGetActionCount(GHOST_XrContextHandle xr_contexthandle,
-                                    const char *action_set_name)
+uint GHOST_XrGetActionCount(GHOST_XrContextHandle xr_contexthandle, const char *action_set_name)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XrSession *xr_session = xr_context->getSession();

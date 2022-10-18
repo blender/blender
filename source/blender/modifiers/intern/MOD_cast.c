@@ -23,6 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -63,9 +64,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   CastModifierData *cmd = (CastModifierData *)md;
 
@@ -98,7 +97,7 @@ static void sphere_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
   Object *ctrl_ob = NULL;
@@ -239,7 +238,7 @@ static void cuboid_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
@@ -496,7 +495,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  if (mesh && BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh->totvert == verts_num);
   }
 

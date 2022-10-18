@@ -27,6 +27,7 @@
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
@@ -79,7 +80,7 @@
 /** Max value for phi initialization */
 #define PHI_MAX 9999.0f
 
-static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock);
+static void fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock);
 
 #ifdef WITH_FLUID
 // #define DEBUG_PRINT
@@ -326,17 +327,17 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
 
   if (cache_map & FLUID_DOMAIN_OUTDATED_DATA) {
     flags &= ~(FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
     }
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
     }
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -345,7 +346,7 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_NOISE) {
     flags &= ~(FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -354,7 +355,7 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_MESH) {
     flags &= ~(FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -364,8 +365,7 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
   if (cache_map & FLUID_DOMAIN_OUTDATED_PARTICLES) {
     flags &= ~(FLUID_DOMAIN_BAKING_PARTICLES | FLUID_DOMAIN_BAKED_PARTICLES |
                FLUID_DOMAIN_OUTDATED_PARTICLES);
-    BLI_path_join(
-        temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -374,7 +374,7 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_GUIDE) {
     flags &= ~(FLUID_DOMAIN_BAKING_GUIDE | FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
     BLI_path_abs(temp_dir, relbase);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -403,7 +403,8 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   size_t i;
   float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
   float size[3];
-  MVert *verts = me->mvert;
+
+  MVert *verts = BKE_mesh_verts_for_write(me);
   float scale = 0.0;
   int res;
 
@@ -480,7 +481,7 @@ static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
   mul_v3_fl(fds->gravity_final, fds->effector_weights->global_gravity);
 }
 
-static bool BKE_fluid_modifier_init(
+static bool fluid_modifier_init(
     FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
   int scene_framenr = (int)DEG_get_ctime(depsgraph);
@@ -542,7 +543,9 @@ static bool BKE_fluid_modifier_init(
 }
 
 /* Forward declarations. */
-static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer);
+static void manta_smoke_calc_transparency(FluidDomainSettings *fds,
+                                          Scene *scene,
+                                          ViewLayer *view_layer);
 static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
 static void update_distances(int index,
@@ -552,13 +555,13 @@ static void update_distances(int index,
                              float surface_thickness,
                              bool use_plane_init);
 
-static int get_light(ViewLayer *view_layer, float *light)
+static int get_light(Scene *scene, ViewLayer *view_layer, float *light)
 {
-  Base *base_tmp = NULL;
   int found_light = 0;
 
   /* Try to find a lamp, preferably local. */
-  for (base_tmp = FIRSTBASE(view_layer); base_tmp; base_tmp = base_tmp->next) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base_tmp, BKE_view_layer_object_bases_get(view_layer)) {
     if (base_tmp->object->type == OB_LAMP) {
       Light *la = base_tmp->object->data;
 
@@ -994,28 +997,19 @@ static void obstacles_from_mesh(Object *coll_ob,
                                 float dt)
 {
   if (fes->mesh) {
-    Mesh *me = NULL;
-    MVert *mvert = NULL;
     const MLoopTri *looptri;
-    const MLoop *mloop;
     BVHTreeFromMesh tree_data = {NULL};
     int numverts, i;
 
     float *vert_vel = NULL;
     bool has_velocity = false;
 
-    me = BKE_mesh_copy_for_eval(fes->mesh, true);
+    Mesh *me = BKE_mesh_copy_for_eval(fes->mesh, false);
+    MVert *verts = BKE_mesh_verts_for_write(me);
 
     int min[3], max[3], res[3];
 
-    /* Duplicate vertices to modify. */
-    if (me->mvert) {
-      me->mvert = MEM_dupallocN(me->mvert);
-      CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
-    }
-
-    mvert = me->mvert;
-    mloop = me->mloop;
+    const MLoop *mloop = BKE_mesh_loops(me);
     looptri = BKE_mesh_runtime_looptri_ensure(me);
     numverts = me->totvert;
 
@@ -1042,11 +1036,11 @@ static void obstacles_from_mesh(Object *coll_ob,
       float co[3];
 
       /* Vertex position. */
-      mul_m4_v3(coll_ob->obmat, mvert[i].co);
-      manta_pos_to_cell(fds, mvert[i].co);
+      mul_m4_v3(coll_ob->obmat, verts[i].co);
+      manta_pos_to_cell(fds, verts[i].co);
 
       /* Vertex velocity. */
-      add_v3fl_v3fl_v3i(co, mvert[i].co, fds->shift);
+      add_v3fl_v3fl_v3i(co, verts[i].co, fds->shift);
       if (has_velocity) {
         sub_v3_v3v3(&vert_vel[i * 3], co, &fes->verts_old[i * 3]);
         mul_v3_fl(&vert_vel[i * 3], 1.0f / dt);
@@ -1054,7 +1048,7 @@ static void obstacles_from_mesh(Object *coll_ob,
       copy_v3_v3(&fes->verts_old[i * 3], co);
 
       /* Calculate emission map bounds. */
-      bb_boundInsert(bb, mvert[i].co);
+      bb_boundInsert(bb, verts[i].co);
     }
 
     /* Set emission map.
@@ -1076,7 +1070,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
       ObstaclesFromDMData data = {
           .fes = fes,
-          .mvert = mvert,
+          .mvert = verts,
           .mloop = mloop,
           .mlooptri = looptri,
           .tree = &tree_data,
@@ -1098,9 +1092,6 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     if (vert_vel) {
       MEM_freeN(vert_vel);
-    }
-    if (me->mvert) {
-      MEM_freeN(me->mvert);
     }
     BKE_id_free(NULL, me);
   }
@@ -2078,19 +2069,13 @@ static void emit_from_mesh(
 
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
-    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, true);
+    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, false);
+    MVert *verts = BKE_mesh_verts_for_write(me);
 
-    /* Duplicate vertices to modify. */
-    if (me->mvert) {
-      me->mvert = MEM_dupallocN(me->mvert);
-      CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
-    }
-
-    MVert *mvert = me->mvert;
-    const MLoop *mloop = me->mloop;
+    const MLoop *mloop = BKE_mesh_loops(me);
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
     const int numverts = me->totvert;
-    const MDeformVert *dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = BKE_mesh_deform_verts(me);
     const MLoopUV *mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ffs->uvlayer_name);
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
@@ -2114,8 +2099,8 @@ static void emit_from_mesh(
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
-      mul_m4_v3(flow_ob->obmat, mvert[i].co);
-      manta_pos_to_cell(fds, mvert[i].co);
+      mul_m4_v3(flow_ob->obmat, verts[i].co);
+      manta_pos_to_cell(fds, verts[i].co);
 
       /* Vertex normal. */
       mul_mat3_m4_v3(flow_ob->obmat, vert_normals[i]);
@@ -2125,7 +2110,7 @@ static void emit_from_mesh(
       /* Vertex velocity. */
       if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
         float co[3];
-        add_v3fl_v3fl_v3i(co, mvert[i].co, fds->shift);
+        add_v3fl_v3fl_v3i(co, verts[i].co, fds->shift);
         if (has_velocity) {
           sub_v3_v3v3(&vert_vel[i * 3], co, &ffs->verts_old[i * 3]);
           mul_v3_fl(&vert_vel[i * 3], 1.0 / dt);
@@ -2134,7 +2119,7 @@ static void emit_from_mesh(
       }
 
       /* Calculate emission map bounds. */
-      bb_boundInsert(bb, mvert[i].co);
+      bb_boundInsert(bb, verts[i].co);
     }
     mul_m4_v3(flow_ob->obmat, flow_center);
     manta_pos_to_cell(fds, flow_center);
@@ -2159,7 +2144,7 @@ static void emit_from_mesh(
       EmitFromDMData data = {
           .fds = fds,
           .ffs = ffs,
-          .mvert = mvert,
+          .mvert = verts,
           .vert_normals = vert_normals,
           .mloop = mloop,
           .mlooptri = mlooptri,
@@ -2186,9 +2171,6 @@ static void emit_from_mesh(
 
     if (vert_vel) {
       MEM_freeN(vert_vel);
-    }
-    if (me->mvert) {
-      MEM_freeN(me->mvert);
     }
     BKE_id_free(NULL, me);
   }
@@ -2221,9 +2203,9 @@ static void adaptive_domain_adjust(
   /* add to total shift */
   add_v3_v3(fds->shift_f, frame_shift_f);
   /* convert to integer */
-  total_shift[0] = (int)(floorf(fds->shift_f[0]));
-  total_shift[1] = (int)(floorf(fds->shift_f[1]));
-  total_shift[2] = (int)(floorf(fds->shift_f[2]));
+  total_shift[0] = (int)floorf(fds->shift_f[0]);
+  total_shift[1] = (int)floorf(fds->shift_f[1]);
+  total_shift[2] = (int)floorf(fds->shift_f[2]);
   int temp_shift[3];
   copy_v3_v3_int(temp_shift, fds->shift);
   sub_v3_v3v3_int(new_shift, total_shift, fds->shift);
@@ -3242,12 +3224,13 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
    * If there are no faces in original mesh, keep materials and flags unchanged. */
   MPoly *mpoly;
   MPoly mp_example = {0};
-  mpoly = orgmesh->mpoly;
+  mpoly = BKE_mesh_polys_for_write(orgmesh);
   if (mpoly) {
     mp_example = *mpoly;
   }
 
-  const short mp_mat_nr = mp_example.mat_nr;
+  const int *orig_material_indices = BKE_mesh_material_indices(orgmesh);
+  const short mp_mat_nr = orig_material_indices ? orig_material_indices[0] : 0;
   const char mp_flag = mp_example.flag;
 
   int i;
@@ -3273,9 +3256,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   if (!me) {
     return NULL;
   }
-  mverts = me->mvert;
-  mpolys = me->mpoly;
-  mloops = me->mloop;
+  mverts = BKE_mesh_verts_for_write(me);
+  mpolys = BKE_mesh_polys_for_write(me);
+  mloops = BKE_mesh_loops_for_write(me);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3358,10 +3341,12 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     }
   }
 
+  int *material_indices = BKE_mesh_material_indices_for_write(me);
+
   /* Loop for triangles. */
   for (i = 0; i < num_faces; i++, mpolys++, mloops += 3) {
     /* Initialize from existing face. */
-    mpolys->mat_nr = mp_mat_nr;
+    material_indices[i] = mp_mat_nr;
     mpolys->flag = mp_flag;
 
     mpolys->loopstart = i * 3;
@@ -3407,9 +3392,9 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 4, num_faces);
-  mverts = result->mvert;
-  mpolys = result->mpoly;
-  mloops = result->mloop;
+  mverts = BKE_mesh_verts_for_write(result);
+  mpolys = BKE_mesh_polys_for_write(result);
+  mloops = BKE_mesh_loops_for_write(result);
 
   if (num_verts) {
     /* Volume bounds. */
@@ -3607,7 +3592,8 @@ static int manta_step(
 
   /* Compute shadow grid for gas simulations. Make sure to skip if bake job was canceled early. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS && result) {
-    manta_smoke_calc_transparency(fds, DEG_get_evaluated_view_layer(depsgraph));
+    manta_smoke_calc_transparency(
+        fds, DEG_get_evaluated_scene(depsgraph), DEG_get_evaluated_view_layer(depsgraph));
   }
 
   BLI_mutex_unlock(&object_update_lock);
@@ -3628,15 +3614,15 @@ static void manta_guiding(
   BLI_mutex_unlock(&object_update_lock);
 }
 
-static void BKE_fluid_modifier_processFlow(FluidModifierData *fmd,
-                                           Depsgraph *depsgraph,
-                                           Scene *scene,
-                                           Object *ob,
-                                           Mesh *me,
-                                           const int scene_framenr)
+static void fluid_modifier_processFlow(FluidModifierData *fmd,
+                                       Depsgraph *depsgraph,
+                                       Scene *scene,
+                                       Object *ob,
+                                       Mesh *me,
+                                       const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
   }
 
   if (fmd->flow) {
@@ -3651,19 +3637,19 @@ static void BKE_fluid_modifier_processFlow(FluidModifierData *fmd,
   }
   else if (scene_framenr < fmd->time) {
     fmd->time = scene_framenr;
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 }
 
-static void BKE_fluid_modifier_processEffector(FluidModifierData *fmd,
-                                               Depsgraph *depsgraph,
-                                               Scene *scene,
-                                               Object *ob,
-                                               Mesh *me,
-                                               const int scene_framenr)
+static void fluid_modifier_processEffector(FluidModifierData *fmd,
+                                           Depsgraph *depsgraph,
+                                           Scene *scene,
+                                           Object *ob,
+                                           Mesh *me,
+                                           const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
   }
 
   if (fmd->effector) {
@@ -3678,16 +3664,16 @@ static void BKE_fluid_modifier_processEffector(FluidModifierData *fmd,
   }
   else if (scene_framenr < fmd->time) {
     fmd->time = scene_framenr;
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 }
 
-static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
-                                             Depsgraph *depsgraph,
-                                             Scene *scene,
-                                             Object *ob,
-                                             Mesh *me,
-                                             const int scene_framenr)
+static void fluid_modifier_processDomain(FluidModifierData *fmd,
+                                         Depsgraph *depsgraph,
+                                         Scene *scene,
+                                         Object *ob,
+                                         Mesh *me,
+                                         const int scene_framenr)
 {
   FluidDomainSettings *fds = fmd->domain;
   Object *guide_parent = NULL;
@@ -3733,7 +3719,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
 
   /* Reset fluid if no fluid present. Also resets active fields. */
   if (!fds->fluid) {
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 
   /* Ensure cache directory is not relative. */
@@ -3761,12 +3747,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     if (pid.cache->flag & PTCACHE_OUTDATED) {
       BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
       BKE_fluid_cache_free_all(fds, ob);
-      BKE_fluid_modifier_reset_ex(fmd, false);
+      fluid_modifier_reset_ex(fmd, false);
     }
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
-  if (!fds->fluid && !BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {
+  if (!fds->fluid && !fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {
     CLOG_ERROR(&LOG, "Fluid initialization failed. Should not happen!");
     return;
   }
@@ -4094,19 +4080,19 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   fmd->time = scene_framenr;
 }
 
-static void BKE_fluid_modifier_process(
+static void fluid_modifier_process(
     FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
   const int scene_framenr = (int)DEG_get_ctime(depsgraph);
 
   if (fmd->type & MOD_FLUID_TYPE_FLOW) {
-    BKE_fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
-    BKE_fluid_modifier_processEffector(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processEffector(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
-    BKE_fluid_modifier_processDomain(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processDomain(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
 }
 
@@ -4124,7 +4110,7 @@ struct Mesh *BKE_fluid_modifier_do(
       BLI_rw_mutex_lock(fmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
     }
 
-    BKE_fluid_modifier_process(fmd, depsgraph, scene, ob, me);
+    fluid_modifier_process(fmd, depsgraph, scene, ob, me);
 
     if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
       BLI_rw_mutex_unlock(fmd->domain->fluid_mutex);
@@ -4306,7 +4292,9 @@ static void bresenham_linie_3D(int x1,
   cb(result, input, res, pixel, t_ray, correct);
 }
 
-static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer)
+static void manta_smoke_calc_transparency(FluidDomainSettings *fds,
+                                          Scene *scene,
+                                          ViewLayer *view_layer)
 {
   float bv[6] = {0};
   float light[3];
@@ -4315,7 +4303,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
   float *shadow = manta_smoke_get_shadow(fds->fluid);
   float correct = -7.0f * fds->dx;
 
-  if (!get_light(view_layer, light)) {
+  if (!get_light(scene, view_layer, light)) {
     return;
   }
 
@@ -4697,7 +4685,7 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
  * Use for versioning, even when fluids are disabled.
  * \{ */
 
-static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
+static void fluid_modifier_freeDomain(FluidModifierData *fmd)
 {
   if (fmd->domain) {
     if (fmd->domain->fluid) {
@@ -4726,7 +4714,7 @@ static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
+static void fluid_modifier_freeFlow(FluidModifierData *fmd)
 {
   if (fmd->flow) {
     if (fmd->flow->mesh) {
@@ -4743,7 +4731,7 @@ static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
+static void fluid_modifier_freeEffector(FluidModifierData *fmd)
 {
   if (fmd->effector) {
     if (fmd->effector->mesh) {
@@ -4760,7 +4748,7 @@ static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock)
+static void fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock)
 {
   if (!fmd) {
     return;
@@ -4800,7 +4788,7 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need
 
 void BKE_fluid_modifier_reset(struct FluidModifierData *fmd)
 {
-  BKE_fluid_modifier_reset_ex(fmd, true);
+  fluid_modifier_reset_ex(fmd, true);
 }
 
 void BKE_fluid_modifier_free(FluidModifierData *fmd)
@@ -4809,9 +4797,9 @@ void BKE_fluid_modifier_free(FluidModifierData *fmd)
     return;
   }
 
-  BKE_fluid_modifier_freeDomain(fmd);
-  BKE_fluid_modifier_freeFlow(fmd);
-  BKE_fluid_modifier_freeEffector(fmd);
+  fluid_modifier_freeDomain(fmd);
+  fluid_modifier_freeFlow(fmd);
+  fluid_modifier_freeEffector(fmd);
 }
 
 void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
@@ -4822,7 +4810,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
 
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
     if (fmd->domain) {
-      BKE_fluid_modifier_freeDomain(fmd);
+      fluid_modifier_freeDomain(fmd);
     }
 
     fmd->domain = DNA_struct_default_alloc(FluidDomainSettings);
@@ -4854,7 +4842,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
   }
   else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     if (fmd->flow) {
-      BKE_fluid_modifier_freeFlow(fmd);
+      fluid_modifier_freeFlow(fmd);
     }
 
     fmd->flow = DNA_struct_default_alloc(FluidFlowSettings);
@@ -4862,7 +4850,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (fmd->effector) {
-      BKE_fluid_modifier_freeEffector(fmd);
+      fluid_modifier_freeEffector(fmd);
     }
 
     fmd->effector = DNA_struct_default_alloc(FluidEffectorSettings);

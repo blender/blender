@@ -826,7 +826,8 @@ GPUBatch *DRW_gpencil_dummy_buffer_get(void)
 {
   if (SHC.drw_gpencil_dummy_quad == NULL) {
     GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U8, 1, GPU_FETCH_INT);
+    /* NOTE: Use GPU_COMP_U32 to satisfy minimum 4-byte vertex stride for Metal backend. */
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4);
 
@@ -2422,7 +2423,7 @@ static float x_axis_name[4][2] = {
     {-0.9f * S_X, 1.0f * S_Y},
     {1.0f * S_X, -1.0f * S_Y},
 };
-#define X_LEN (sizeof(x_axis_name) / (sizeof(float[2])))
+#define X_LEN (sizeof(x_axis_name) / sizeof(float[2]))
 #undef S_X
 #undef S_Y
 
@@ -2436,7 +2437,7 @@ static float y_axis_name[6][2] = {
     {0.0f * S_X, -0.1f * S_Y},
     {0.0f * S_X, -1.0f * S_Y},
 };
-#define Y_LEN (sizeof(y_axis_name) / (sizeof(float[2])))
+#define Y_LEN (sizeof(y_axis_name) / sizeof(float[2]))
 #undef S_X
 #undef S_Y
 
@@ -2454,7 +2455,7 @@ static float z_axis_name[10][2] = {
     {-1.00f * S_X, -1.00f * S_Y},
     {1.00f * S_X, -1.00f * S_Y},
 };
-#define Z_LEN (sizeof(z_axis_name) / (sizeof(float[2])))
+#define Z_LEN (sizeof(z_axis_name) / sizeof(float[2]))
 #undef S_X
 #undef S_Y
 
@@ -2481,7 +2482,7 @@ static float axis_marker[8][2] = {
     {-S_X, 0.0f}
 #endif
 };
-#define MARKER_LEN (sizeof(axis_marker) / (sizeof(float[2])))
+#define MARKER_LEN (sizeof(axis_marker) / sizeof(float[2]))
 #define MARKER_FILL_LAYER 6
 #undef S_X
 #undef S_Y
@@ -2888,6 +2889,12 @@ GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
   return DRW_mesh_batch_cache_get_edit_mesh_analysis(ob->data);
 }
 
+GPUBatch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_MESH);
+  return DRW_mesh_batch_cache_get_surface_viewer_attribute(ob->data);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2899,6 +2906,13 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_CURVES_LEGACY);
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_wire_edge(cu);
+}
+
+GPUBatch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_CURVES_LEGACY);
+  struct Curve *cu = ob->data;
+  return DRW_curve_batch_cache_get_wire_edge_viewer_attribute(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
@@ -3002,6 +3016,12 @@ GPUBatch *DRW_cache_pointcloud_surface_get(Object *object)
 {
   BLI_assert(object->type == OB_POINTCLOUD);
   return DRW_pointcloud_batch_cache_get_surface(object);
+}
+
+GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(Object *object)
+{
+  BLI_assert(object->type == OB_POINTCLOUD);
+  return DRW_pointcloud_batch_cache_get_surface_viewer_attribute(object);
 }
 
 /** \} */
@@ -3368,7 +3388,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, base_name);
+    GPU_vertformat_alias_add(format, cl->type == CD_MLOOPUV ? "a" : base_name);
   }
 
   /* Active display layer name. */

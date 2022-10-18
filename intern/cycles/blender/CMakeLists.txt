@@ -7,6 +7,7 @@ set(INC
   ../../mikktspace
   ../../../source/blender/makesdna
   ../../../source/blender/makesrna
+  ../../../source/blender/blenkernel
   ../../../source/blender/blenlib
   ../../../source/blender/gpu
   ../../../source/blender/render
@@ -65,6 +66,8 @@ set(LIB
   cycles_subd
   cycles_util
 
+  bf_intern_mikktspace
+
   ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
@@ -99,6 +102,10 @@ endif()
 
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
+endif()
+
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
 endif()
 
 if(WITH_OPENVDB)

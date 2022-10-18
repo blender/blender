@@ -360,7 +360,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* XXX: Include alpha into this... */
   /* normal */
@@ -505,7 +505,7 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
    */
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor3fv(gpl->color);
   immRecti(pos, x, y, x + w - 1, y + h - 1);
@@ -821,7 +821,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           blend_color_interpolate_float(dest_rgba, orig_rgba, border_rgba, 1.0 - orig_rgba[3]);
           linearrgb_to_srgb_v4(dest_srgb, dest_rgba);
 
-          const uint alpha_mask = ((uint)(dest_srgb[3] * 255)) << 24;
+          const uint alpha_mask = (uint)(dest_srgb[3] * 255) << 24;
           const uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
           result->rect[offset_write] = cpack;
         }
@@ -923,7 +923,7 @@ static void init_internal_icons(void)
     char iconfilestr[FILE_MAX];
 
     if (icondir) {
-      BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
 
       /* if the image is missing bbuf will just be NULL */
       bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL);
@@ -1047,7 +1047,7 @@ static void init_iconfile_list(struct ListBase *list)
         /* check to see if the image is the right size, continue if not */
         /* copying strings here should go ok, assuming that we never get back
          * a complete path to file longer than 256 chars */
-        BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
+        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, filename);
         bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 
         if (bbuf) {
@@ -1546,7 +1546,7 @@ static void icon_draw_rect(float x,
     shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
   }
   else {
-    shader = GPU_SHADER_2D_IMAGE_COLOR;
+    shader = GPU_SHADER_3D_IMAGE_COLOR;
   }
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
 
@@ -1956,7 +1956,7 @@ static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
   /* changed only ever set by dynamic icons */
-  if (((pi->flag[size] & PRV_CHANGED) || !pi->rect[size])) {
+  if ((pi->flag[size] & PRV_CHANGED) || !pi->rect[size]) {
     /* create the rect if necessary */
     icon_set_image(C, scene, id, pi, size, use_job);
 

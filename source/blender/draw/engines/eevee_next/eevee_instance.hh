@@ -16,6 +16,7 @@
 #include "DRW_render.h"
 
 #include "eevee_camera.hh"
+#include "eevee_cryptomatte.hh"
 #include "eevee_depth_of_field.hh"
 #include "eevee_film.hh"
 #include "eevee_hizbuffer.hh"
@@ -49,6 +50,7 @@ class Instance {
   VelocityModule velocity;
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
+  Cryptomatte cryptomatte;
   HiZBuffer hiz_buffer;
   Sampling sampling;
   Camera camera;
@@ -59,6 +61,7 @@ class Instance {
 
   /** Input data. */
   Depsgraph *depsgraph;
+  Manager *manager;
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
@@ -90,6 +93,7 @@ class Instance {
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
+        cryptomatte(*this),
         hiz_buffer(*this),
         sampling(*this),
         camera(*this),
@@ -116,8 +120,11 @@ class Instance {
 
   void render_sync();
   void render_frame(RenderLayer *render_layer, const char *view_name);
+  void store_metadata(RenderResult *render_result);
 
   void draw_viewport(DefaultFramebufferList *dfbl);
+
+  static void update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer);
 
   bool is_viewport() const
   {
@@ -155,6 +162,7 @@ class Instance {
   void render_sample();
   void render_read_result(RenderLayer *render_layer, const char *view_name);
 
+  void scene_sync();
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
   void update_eval_members();

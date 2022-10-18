@@ -4,7 +4,8 @@
 #pragma once
 
 #include "kernel/camera/projection.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/displacement_shader.h"
+#include "kernel/integrator/surface_shader.h"
 
 #include "kernel/geom/geom.h"
 
@@ -25,7 +26,7 @@ ccl_device void kernel_displace_evaluate(KernelGlobals kg,
 
   /* Evaluate displacement shader. */
   const float3 P = sd.P;
-  shader_eval_displacement(kg, INTEGRATOR_STATE_NULL, &sd);
+  displacement_shader_eval(kg, INTEGRATOR_STATE_NULL, &sd);
   float3 D = sd.P - P;
 
   object_inverse_dir_transform(kg, &sd, &D);
@@ -64,10 +65,10 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   /* Evaluate shader.
    * This is being evaluated for all BSDFs, so path flag does not contain a specific type. */
   const uint32_t path_flag = PATH_RAY_EMISSION;
-  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
+  surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
       kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
-  Spectrum color = shader_background_eval(&sd);
+  Spectrum color = surface_shader_background(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
   if (!isfinite_safe(color)) {
@@ -99,12 +100,12 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
   shader_setup_from_curve(kg, &sd, in.object, in.prim, __float_as_int(in.v), in.u);
 
   /* Evaluate transparency. */
-  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
+  surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
       kg, INTEGRATOR_STATE_NULL, &sd, NULL, PATH_RAY_SHADOW);
 
   /* Write output. */
-  output[offset] = clamp(average(shader_bsdf_transparency(kg, &sd)), 0.0f, 1.0f);
+  output[offset] = clamp(average(surface_shader_transparency(kg, &sd)), 0.0f, 1.0f);
 }
 
 CCL_NAMESPACE_END

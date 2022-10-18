@@ -150,7 +150,7 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
   memset(m_rotation, 0, sizeof(m_rotation));
 }
 
-bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
+bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
 {
   /* Call this function until it returns true
    * it's a good idea to stop calling it after that, as it will "forget"
@@ -257,7 +257,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
   }
 
   if (m_buttonMask == 0) {
-    m_buttonMask = (int)~(UINT_MAX << m_buttonCount);
+    m_buttonMask = int(~(UINT_MAX << m_buttonCount));
   }
 
 #ifdef DEBUG_NDOF_BUTTONS

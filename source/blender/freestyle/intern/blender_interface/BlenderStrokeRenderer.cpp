@@ -128,7 +128,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   view_layer->layflag = SCE_LAY_SOLID;
 
   // Camera
-  Object *object_camera = BKE_object_add(freestyle_bmain, view_layer, OB_CAMERA, nullptr);
+  Object *object_camera = BKE_object_add(
+      freestyle_bmain, freestyle_scene, view_layer, OB_CAMERA, nullptr);
 
   Camera *camera = (Camera *)object_camera->data;
   camera->type = CAM_ORTHO;
@@ -186,9 +187,9 @@ float BlenderStrokeRenderer::get_stroke_vertex_z() const
   return -z;
 }
 
-unsigned int BlenderStrokeRenderer::get_stroke_mesh_id() const
+uint BlenderStrokeRenderer::get_stroke_mesh_id() const
 {
-  unsigned mesh_id = _mesh_id;
+  uint mesh_id = _mesh_id;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
   self->_mesh_id--;
   return mesh_id;
@@ -218,12 +219,12 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         break;
       }
     }
+    ma->nodetree = ntree;
   }
   else {
-    ntree = ntreeAddTree(nullptr, "stroke_shader", "ShaderNodeTree");
+    ntree = ntreeAddTreeEmbedded(nullptr, &ma->id, "stroke_shader", "ShaderNodeTree");
   }
-  ma->nodetree = ntree;
-  ma->use_nodes = 1;
+  ma->use_nodes = true;
   ma->blend_method = MA_BM_HASHED;
 
   bNode *input_attr_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_ATTRIBUTE);
@@ -232,7 +233,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   storage = (NodeShaderAttribute *)input_attr_color->storage;
   BLI_strncpy(storage->name, "Color", sizeof(storage->name));
 
-  bNode *mix_rgb_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB);
+  bNode *mix_rgb_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_color->custom1 = MA_RAMP_BLEND;  // Mix
   mix_rgb_color->locx = 200.0f;
   mix_rgb_color->locy = -200.0f;
@@ -246,7 +247,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   storage = (NodeShaderAttribute *)input_attr_alpha->storage;
   BLI_strncpy(storage->name, "Alpha", sizeof(storage->name));
 
-  bNode *mix_rgb_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB);
+  bNode *mix_rgb_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_alpha->custom1 = MA_RAMP_BLEND;  // Mix
   mix_rgb_alpha->locx = 600.0f;
   mix_rgb_alpha->locy = 300.0f;
@@ -576,35 +577,28 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->totloop = group->totloop;
   mesh->totcol = group->materials.size();
 
-  mesh->mvert = (MVert *)CustomData_add_layer(
+  MVert *verts = (MVert *)CustomData_add_layer(
       &mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
-  mesh->medge = (MEdge *)CustomData_add_layer(
+  MEdge *edges = (MEdge *)CustomData_add_layer(
       &mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
-  mesh->mpoly = (MPoly *)CustomData_add_layer(
+  MPoly *polys = (MPoly *)CustomData_add_layer(
       &mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-  mesh->mloop = (MLoop *)CustomData_add_layer(
+  MLoop *loops = (MLoop *)CustomData_add_layer(
       &mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-
-  MVert *vertices = mesh->mvert;
-  MEdge *edges = mesh->medge;
-  MPoly *polys = mesh->mpoly;
-  MLoop *loops = mesh->mloop;
+  int *material_indices = (int *)CustomData_add_layer_named(
+      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, mesh->totpoly, "material_index");
   MLoopUV *loopsuv[2] = {nullptr};
 
   if (hasTex) {
     // First UV layer
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[0]);
+    loopsuv[0] = static_cast<MLoopUV *>(CustomData_add_layer_named(
+        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[0]));
     CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
-    BKE_mesh_update_customdata_pointers(mesh, true);
-    loopsuv[0] = mesh->mloopuv;
 
     // Second UV layer
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[1]);
+    loopsuv[1] = static_cast<MLoopUV *>(CustomData_add_layer_named(
+        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[1]));
     CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
-    BKE_mesh_update_customdata_pointers(mesh, true);
-    loopsuv[1] = mesh->mloopuv;
   }
 
   // colors and transparency (the latter represented by grayscale colors)
@@ -612,7 +606,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
       &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
       &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Alpha");
-  mesh->mloopcol = colors;
+  CustomData_set_layer_active(&mesh->ldata, CD_PROP_BYTE_COLOR, 0);
 
   mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");
   for (const auto item : group->materials.items()) {
@@ -670,19 +664,19 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
         else {
           if (!visible) {
             // first vertex
-            vertices->co[0] = svRep[0]->point2d()[0];
-            vertices->co[1] = svRep[0]->point2d()[1];
-            vertices->co[2] = get_stroke_vertex_z();
+            verts->co[0] = svRep[0]->point2d()[0];
+            verts->co[1] = svRep[0]->point2d()[1];
+            verts->co[2] = get_stroke_vertex_z();
 
-            ++vertices;
+            ++verts;
             ++vertex_index;
 
             // second vertex
-            vertices->co[0] = svRep[1]->point2d()[0];
-            vertices->co[1] = svRep[1]->point2d()[1];
-            vertices->co[2] = get_stroke_vertex_z();
+            verts->co[0] = svRep[1]->point2d()[0];
+            verts->co[1] = svRep[1]->point2d()[1];
+            verts->co[2] = get_stroke_vertex_z();
 
-            ++vertices;
+            ++verts;
             ++vertex_index;
 
             // first edge
@@ -694,10 +688,10 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
           visible = true;
 
           // vertex
-          vertices->co[0] = svRep[2]->point2d()[0];
-          vertices->co[1] = svRep[2]->point2d()[1];
-          vertices->co[2] = get_stroke_vertex_z();
-          ++vertices;
+          verts->co[0] = svRep[2]->point2d()[0];
+          verts->co[1] = svRep[2]->point2d()[1];
+          verts->co[2] = get_stroke_vertex_z();
+          ++verts;
           ++vertex_index;
 
           // edges
@@ -714,7 +708,8 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
           // poly
           polys->loopstart = loop_index;
           polys->totloop = 3;
-          polys->mat_nr = matnr;
+          *material_indices = matnr;
+          ++material_indices;
           ++polys;
 
           // Even and odd loops connect triangles vertices differently
@@ -817,7 +812,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 {
   Object *ob;
   char name[MAX_ID_NAME];
-  unsigned int mesh_id = get_stroke_mesh_id();
+  uint mesh_id = get_stroke_mesh_id();
 
   BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
   ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);

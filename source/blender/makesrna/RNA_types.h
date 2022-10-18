@@ -120,7 +120,7 @@ typedef enum PropertyScaleType {
 
 /**
  * \note Also update enums in bpy_props.c and rna_rna.c when adding items here.
- * Watch it: these values are written to files as part of node socket button subtypes!
+ * Watch it: these values are written to files as part of node socket button sub-types!
  */
 typedef enum PropertySubType {
   PROP_NONE = 0,
@@ -179,7 +179,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 2, 9, 11, 13, 14, 15. */
+ * FREE FLAGS: 9, 11, 13, 14, 15. */
 typedef enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -299,6 +299,12 @@ typedef enum PropertyFlag {
    * properties which denotes whether modifier panel is collapsed or not.
    */
   PROP_NO_DEG_UPDATE = (1 << 30),
+
+  /**
+   * Filepaths that refer to output get a special treatment such
+   * as having the +/- operators available in the file browser.
+   **/
+  PROP_PATH_OUTPUT = (1 << 2),
 } PropertyFlag;
 
 /**
@@ -355,7 +361,7 @@ typedef enum ParameterFlag {
   /**
    * This allows for non-breaking API updates,
    * when adding non-critical new parameter to a callback function.
-   * This way, old py code defining funcs without that parameter would still work.
+   * This way, old Python code defining functions without that parameter would still work.
    * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
    * \note only for input parameters!
    */
@@ -719,7 +725,7 @@ typedef enum StructFlag {
   STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES = (1 << 8),
   /** Added to type-map #BlenderRNA.structs_map */
   STRUCT_PUBLIC_NAMESPACE = (1 << 9),
-  /** All subtypes are added too. */
+  /** All sub-types are added too. */
   STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10),
   /**
    * When the #PointerRNA.owner_id is NULL, this signifies the property should be accessed

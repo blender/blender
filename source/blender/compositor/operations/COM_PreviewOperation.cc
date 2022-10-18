@@ -10,8 +10,8 @@ namespace blender::compositor {
 
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *view_settings,
                                    const ColorManagedDisplaySettings *display_settings,
-                                   const unsigned int default_width,
-                                   const unsigned int default_height)
+                                   const uint default_width,
+                                   const uint default_height)
 
 {
   this->add_input_socket(DataType::Color, ResizeMode::Align);
@@ -39,14 +39,13 @@ void PreviewOperation::init_execution()
 {
   input_ = get_input_socket_reader(0);
 
-  if (this->get_width() == (unsigned int)preview_->xsize &&
-      this->get_height() == (unsigned int)preview_->ysize) {
+  if (this->get_width() == uint(preview_->xsize) && this->get_height() == uint(preview_->ysize)) {
     output_buffer_ = preview_->rect;
   }
 
   if (output_buffer_ == nullptr) {
-    output_buffer_ = (unsigned char *)MEM_callocN(
-        sizeof(unsigned char) * 4 * get_width() * get_height(), "PreviewOperation");
+    output_buffer_ = (uchar *)MEM_callocN(sizeof(uchar) * 4 * get_width() * get_height(),
+                                          "PreviewOperation");
     if (preview_->rect) {
       MEM_freeN(preview_->rect);
     }
@@ -62,7 +61,7 @@ void PreviewOperation::deinit_execution()
   input_ = nullptr;
 }
 
-void PreviewOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void PreviewOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   int offset;
   float color[4];
@@ -102,7 +101,7 @@ bool PreviewOperation::determine_depending_area_of_interest(rcti *input,
 
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
-void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void PreviewOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   /* Use default preview resolution as preferred ensuring it has size so that
    * generated inputs (which don't have resolution on their own) are displayed */
@@ -125,10 +124,10 @@ void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti
   divider_ = 0.0f;
   if (width > 0 && height > 0) {
     if (width > height) {
-      divider_ = (float)COM_PREVIEW_SIZE / (width);
+      divider_ = float(COM_PREVIEW_SIZE) / (width);
     }
     else {
-      divider_ = (float)COM_PREVIEW_SIZE / (height);
+      divider_ = float(COM_PREVIEW_SIZE) / (height);
     }
   }
   width = width * divider_;
@@ -155,7 +154,7 @@ void PreviewOperation::get_area_of_interest(const int input_idx,
   r_input_area.ymax = output_area.ymax / divider_;
 }
 
-void PreviewOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void PreviewOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                     const rcti &area,
                                                     Span<MemoryBuffer *> inputs)
 {

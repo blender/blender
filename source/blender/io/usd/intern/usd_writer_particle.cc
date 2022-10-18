@@ -22,7 +22,6 @@
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/sphere.h>
 
-extern "C" {
 #include "BLI_assert.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -35,7 +34,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 namespace blender::io::usd {
 

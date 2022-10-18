@@ -610,7 +610,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &bases_len);
+      scene, view_layer, CTX_wm_view3d(C), &bases_len);
 
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Base *base_old = bases[base_index];
@@ -974,6 +974,7 @@ static void editbone_clear_parent(EditBone *ebone, int mode)
 
 static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const int val = RNA_enum_get(op->ptr, "type");
 
@@ -984,7 +985,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     bArmature *arm = ob->data;

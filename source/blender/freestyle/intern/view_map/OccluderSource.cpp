@@ -114,7 +114,7 @@ void OccluderSource::getOccluderProscenium(real proscenium[4])
 real OccluderSource::averageOccluderArea()
 {
   real area = 0.0;
-  unsigned numFaces = 0;
+  uint numFaces = 0;
   for (begin(); isValid(); next()) {
     Vec3r min, max;
     cachedPolygon.getBBox(min, max);

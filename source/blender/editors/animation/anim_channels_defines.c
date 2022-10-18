@@ -85,7 +85,7 @@
 #define ANIM_CHAN_NAME_SIZE 256
 
 /* get the pointer used for some flag */
-#define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof((ptr))), &(ptr))
+#define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof(ptr)), &(ptr))
 
 /* *********************************************** */
 /* Generic Functions (Type independent) */
@@ -157,7 +157,7 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac,
   /* set backdrop drawing color */
   acf->get_backdrop_color(ac, ale, color);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* no rounded corner - just rectangular box */
@@ -246,7 +246,7 @@ static void acf_generic_channel_backdrop(bAnimContext *ac,
   /* set backdrop drawing color */
   acf->get_backdrop_color(ac, ale, color);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* no rounded corners - just rectangular box */
@@ -4449,7 +4449,7 @@ void ANIM_channel_draw(
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         /* F-Curve channels need to have a special 'color code' box drawn,
          * which is colored with whatever color the curve has stored.
@@ -4513,7 +4513,7 @@ void ANIM_channel_draw(
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       /* FIXME: replace hardcoded color here, and check on extents! */
       immUniformColor3f(1.0f, 0.0f, 0.0f);
@@ -4549,7 +4549,7 @@ void ANIM_channel_draw(
     float color[3];
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* get and set backdrop color */
     acf->get_backdrop_color(ac, ale, color);
@@ -4937,7 +4937,7 @@ static void draw_setting_widget(bAnimContext *ac,
         tooltip = TIP_("Grease Pencil layer is visible in the viewport");
       }
       else {
-        tooltip = TIP_("Channels are visible in Graph Editor for editing");
+        tooltip = TIP_("Toggle visibility of Channels in Graph Editor for editing");
       }
       break;
 
@@ -4993,7 +4993,7 @@ static void draw_setting_widget(bAnimContext *ac,
       }
       else if (ale->type == ANIMTYPE_GPLAYER) {
         tooltip = TIP_(
-            "Shows all keyframes during animation playback and enabled all frames for editing "
+            "Show all keyframes during animation playback and enable all frames for editing "
             "(uncheck to use only the current keyframe during animation playback and editing)");
       }
       else {
@@ -5353,8 +5353,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
      *   and wouldn't be able to auto-keyframe.
      * - Slider should start before the toggles (if they're visible)
      *   to keep a clean line down the side.
-     * - Sliders are always drawn in Shapekey mode now. Prior to this
-     *   the SACTION_SLIDERS flag would be set when changing into Shapekey mode.
+     * - Sliders are always drawn in Shape-key mode now. Prior to this
+     *   the SACTION_SLIDERS flag would be set when changing into shape-key mode.
      */
     if (((draw_sliders) && ELEM(ale->type,
                                 ANIMTYPE_FCURVE,

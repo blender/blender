@@ -20,7 +20,7 @@ static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
-                             bNodeExecData *UNUSED(execdata),
+                             bNodeExecData * /*execdata*/,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
@@ -45,7 +45,7 @@ class MF_SeparateXYZ : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
     MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");
@@ -116,7 +116,7 @@ static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,
-                              bNodeExecData *UNUSED(execdata),
+                              bNodeExecData * /*execdata*/,
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {

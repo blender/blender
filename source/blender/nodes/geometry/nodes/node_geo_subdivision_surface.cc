@@ -39,13 +39,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "uv_smooth", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "boundary_smooth", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometrySubdivisionSurface *data = MEM_cnew<NodeGeometrySubdivisionSurface>(__func__);
   data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
@@ -73,7 +73,7 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
   }
   else {
     crease = static_cast<float *>(
-        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_SET_DEFAULT, nullptr, mesh.totvert));
+        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_CONSTRUCT, nullptr, mesh.totvert));
   }
   materialize_and_clamp_creases(crease_varray, {crease, mesh.totvert});
 }

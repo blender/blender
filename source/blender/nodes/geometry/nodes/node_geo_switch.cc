@@ -73,12 +73,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Image>(N_("Output"), "Output_011");
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "input_type", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeSwitch *data = MEM_cnew<NodeSwitch>(__func__);
   data->input_type = SOCK_GEOMETRY;
@@ -89,8 +89,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeSwitch &storage = node_storage(*node);
   int index = 0;
-  bNodeSocket *field_switch = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *non_field_switch = (bNodeSocket *)field_switch->next;
+  bNodeSocket *field_switch = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *non_field_switch = static_cast<bNodeSocket *>(field_switch->next);
 
   const bool fields_type = ELEM(
       storage.input_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING);
@@ -222,7 +222,7 @@ template<typename T> void switch_no_fields(GeoNodeExecParams &params, const Stri
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeSwitch &storage = node_storage(params.node());
-  const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.input_type);
+  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
 
   switch (data_type) {
 

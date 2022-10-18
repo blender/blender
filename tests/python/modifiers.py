@@ -16,10 +16,12 @@ seed(0)
 def get_generate_modifiers_list(test_object_name, randomize=False):
     """
     Construct a list of 'Generate' modifiers with default parameters.
-    :param test_object_name: str - name of test object. Some modifiers like boolean need an extra parameter beside
-                                    the default one. E.g. boolean needs object, mask needs vertex group etc...
-                                    The extra parameter name will be <test_object_name>_<modifier_type>
-    :param randomize: bool - if True shuffle the list of modifiers.
+    :arg test_object_name: Name of test object. Some modifiers like boolean need an extra parameter beside
+       the default one. E.g. boolean needs object, mask needs vertex group etc...
+       The extra parameter name will be <test_object_name>_<modifier_type>
+    :type test_object_name: str
+    :arg randomize: If True shuffle the list of modifiers.
+    :type randomize: bool
     :return: list of 'Generate' modifiers with default parameters.
     """
 

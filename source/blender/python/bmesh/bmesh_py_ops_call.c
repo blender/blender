@@ -234,7 +234,7 @@ static int bpy_slot_from_py(BMesh *bm,
         return -1;
       }
       const ushort size = pymat->col_num;
-      if ((size != pymat->row_num) || (!ELEM(size, 3, 4))) {
+      if ((size != pymat->row_num) || !ELEM(size, 3, 4)) {
         PyErr_Format(PyExc_TypeError,
                      "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix",
                      opname,
@@ -738,7 +738,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMOperator bmop;
 
   if ((PyTuple_GET_SIZE(args) == 1) && (py_bm = (BPy_BMesh *)PyTuple_GET_ITEM(args, 0)) &&
-      (BPy_BMesh_Check(py_bm))) {
+      BPy_BMesh_Check(py_bm)) {
     BPY_BM_CHECK_OBJ(py_bm);
     bm = py_bm->bm;
 

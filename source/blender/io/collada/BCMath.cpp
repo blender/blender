@@ -140,9 +140,9 @@ void BCMatrix::sanitize(Matrix &mat, int precision)
 {
   for (auto &row : mat) {
     for (float &cell : row) {
-      double val = (double)cell;
+      double val = double(cell);
       val = double_round(val, precision);
-      cell = (float)val;
+      cell = float(val);
     }
   }
 }
@@ -169,7 +169,7 @@ void BCMatrix::get_matrix(DMatrix &mat, const bool transposed, const int precisi
     for (int j = 0; j < 4; j++) {
       float val = (transposed) ? matrix[j][i] : matrix[i][j];
       if (precision >= 0) {
-        val = floor((val * pow(10, precision) + 0.5)) / pow(10, precision);
+        val = floor(val * pow(10, precision) + 0.5) / pow(10, precision);
       }
       mat[i][j] = val;
     }
@@ -185,7 +185,7 @@ void BCMatrix::get_matrix(Matrix &mat,
     for (int j = 0; j < 4; j++) {
       float val = (transposed) ? matrix[j][i] : matrix[i][j];
       if (precision >= 0) {
-        val = floor((val * pow(10, precision) + 0.5)) / pow(10, precision);
+        val = floor(val * pow(10, precision) + 0.5) / pow(10, precision);
       }
       mat[i][j] = val;
     }

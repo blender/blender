@@ -84,6 +84,21 @@ void fill_points(const CurvesGeometry &curves,
   });
 }
 
+void fill_points(const CurvesGeometry &curves,
+                 Span<IndexRange> curve_ranges,
+                 GPointer value,
+                 GMutableSpan dst)
+{
+  BLI_assert(*value.type() == dst.type());
+  const CPPType &type = dst.type();
+  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
+    for (const IndexRange range : curve_ranges.slice(range)) {
+      const IndexRange points = curves.points_for_curves(range);
+      type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
+    }
+  });
+}
+
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves)
 {
   bke::CurvesGeometry dst_curves(0, src_curves.curves_num());

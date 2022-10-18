@@ -272,7 +272,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_DPX:
     case R_IMF_IMTYPE_WEBP:
-      chan_flag |= IMA_CHAN_FLAG_ALPHA;
+      chan_flag |= IMA_CHAN_FLAG_RGBA;
       break;
   }
 
@@ -520,7 +520,7 @@ static bool do_add_image_extension(char *string,
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-    if (!(BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr))) {
+    if (!BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr)) {
       extension = extension_test;
     }
   }

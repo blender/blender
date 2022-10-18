@@ -3,7 +3,10 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from bl_ui.utils import PresetPanel
 
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_tip as tip_,
+)
 
 
 class RENDER_PT_format_presets(PresetPanel, Panel):

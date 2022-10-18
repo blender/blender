@@ -3,7 +3,6 @@
 #include "BKE_curves.hh"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "GEO_mesh_to_curve.hh"
 
@@ -23,7 +22,6 @@ static Curves *edge_paths_to_curves_convert(const Mesh &mesh,
                                             const IndexMask start_verts_mask,
                                             const Span<int> next_indices)
 {
-  const Span<MVert> mvert{mesh.mvert, mesh.totvert};
   Vector<int> vert_indices;
   Vector<int> curve_offsets;
   Array<bool> visited(mesh.totvert, false);

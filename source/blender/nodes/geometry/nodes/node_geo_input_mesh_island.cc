@@ -31,9 +31,9 @@ class IslandFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
-    const Span<MEdge> edges(mesh.medge, mesh.totedge);
+    const Span<MEdge> edges = mesh.edges();
 
     DisjointSet islands(mesh.totvert);
     for (const int i : edges.index_range()) {
@@ -47,7 +47,7 @@ class IslandFieldInput final : public bke::MeshFieldInput {
       output[i] = ordered_roots.index_of_or_add(root);
     }
 
-    return bke::mesh_attributes(mesh).adapt_domain<int>(
+    return mesh.attributes().adapt_domain<int>(
         VArray<int>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -61,6 +61,11 @@ class IslandFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const IslandFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 class IslandCountFieldInput final : public bke::MeshFieldInput {
@@ -72,9 +77,9 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
-    const Span<MEdge> edges(mesh.medge, mesh.totedge);
+    const Span<MEdge> edges = mesh.edges();
 
     DisjointSet islands(mesh.totvert);
     for (const int i : edges.index_range()) {
@@ -87,8 +92,7 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
       island_list.add(root);
     }
 
-    return VArray<int>::ForSingle(island_list.size(),
-                                  bke::mesh_attributes(mesh).domain_size(domain));
+    return VArray<int>::ForSingle(island_list.size(), mesh.attributes().domain_size(domain));
   }
 
   uint64_t hash() const override
@@ -100,6 +104,11 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const IslandCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

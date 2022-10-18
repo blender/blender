@@ -84,7 +84,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
   if (vdmd->texture) {
@@ -213,7 +213,7 @@ struct DisplaceGridOp {
     const float sample_radius = vdmd.texture_sample_radius * std::abs(vdmd.strength) /
                                 max_voxel_side_length / 2.0f;
     openvdb::tools::dilateActiveValues(temp_grid->tree(),
-                                       static_cast<int>(std::ceil(sample_radius)),
+                                       int(std::ceil(sample_radius)),
                                        openvdb::tools::NN_FACE_EDGE,
                                        openvdb::tools::EXPAND_TILES);
 

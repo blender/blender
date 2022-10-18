@@ -57,7 +57,7 @@ bool transdata_check_local_center(const TransInfo *t, short around)
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
           ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
            /* implicit: (t->flag & T_EDIT) */
-           (ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
+           ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL) ||
            (t->spacetype == SPACE_GRAPH) ||
            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
@@ -1214,7 +1214,7 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     transform_convert_mesh_customdatacorrect_init(t);
   }
 
-  /* TODO(germano): Some of these operations change the `t->mode`.
+  /* TODO(@germano): Some of these operations change the `t->mode`.
    * This can be bad for Redo. */
   // BLI_assert(t->mode == mode);
 }

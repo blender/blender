@@ -3,6 +3,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_instances.hh"
 #include "BKE_pointcloud.h"
 
 #include "node_geometry_util.hh"
@@ -13,7 +14,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Instances")).only_instances();
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
@@ -27,7 +28,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float> radius_field,
                                         const Field<bool> selection_field)
 {
-  const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
+  const bke::Instances &instances = *geometry_set.get_instances_for_read();
 
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};
@@ -45,8 +46,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
 
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   bke::SpanAttributeWriter<float3> point_positions =
       point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
@@ -71,7 +71,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const AttributeIDRef &attribute_id = item.key;
     const AttributeKind attribute_kind = item.value;
 
-    const GVArray src = instances.attributes()->lookup_or_default(
+    const GVArray src = instances.attributes().lookup_or_default(
         attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
     BLI_assert(src);
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(

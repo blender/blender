@@ -12,6 +12,7 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_lazy_threading.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
@@ -104,6 +105,8 @@ void BLI_task_parallel_range(const int start,
     const size_t grainsize = MAX2(settings->min_iter_per_thread, 1);
     const tbb::blocked_range<int> range(start, stop, grainsize);
 
+    blender::lazy_threading::send_hint();
+
     if (settings->func_reduce) {
       parallel_reduce(range, task);
       if (settings->userdata_chunk) {
@@ -129,7 +132,7 @@ void BLI_task_parallel_range(const int start,
   }
 }
 
-int BLI_task_parallel_thread_id(const TaskParallelTLS *UNUSED(tls))
+int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
 {
 #ifdef WITH_TBB
   /* Get a unique thread ID for texture nodes. In the future we should get rid

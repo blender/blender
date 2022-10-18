@@ -364,7 +364,7 @@ string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   string common_cflags = CUDADevice::compile_kernel_get_common_cflags(kernel_features);
 
   /* Add OptiX SDK include directory to include paths. */
-  common_cflags += string_printf(" -I\"%s/include\"", get_optix_include_dir().c_str());
+  common_cflags += string_printf(" -I\"%s\"", get_optix_include_dir().c_str());
 
   /* Specialization for shader raytracing. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
@@ -1416,7 +1416,7 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   options.operation = operation;
   if (use_fast_trace_bvh ||
       /* The build flags have to match the ones used to query the built-in curve intersection
-         program (see optixBuiltinISModuleGet above) */
+       * program (see optixBuiltinISModuleGet above) */
       build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
     VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;

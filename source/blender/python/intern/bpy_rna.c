@@ -1174,6 +1174,7 @@ static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
   if (reference) {
     self->reference = reference;
     Py_INCREF(reference);
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 }
@@ -1397,7 +1398,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
       buf = RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed), &buf_len);
 #ifdef USE_STRING_COERCE
-      /* Only file paths get special treatment, they may contain non utf-8 chars. */
+      /* Only file paths get special treatment, they may contain non UTF-8 chars. */
       if (subtype == PROP_BYTESTRING) {
         ret = PyBytes_FromStringAndSize(buf, buf_len);
       }
@@ -1810,7 +1811,7 @@ static int pyrna_py_to_prop(
          * 'self.properties -> self'
          * class mixing. If this causes problems in the future it should be removed.
          */
-        if ((ptr_type == &RNA_AnyType) && (BPy_StructRNA_Check(value))) {
+        if ((ptr_type == &RNA_AnyType) && BPy_StructRNA_Check(value)) {
           const StructRNA *base_type = RNA_struct_base_child_of(
               ((const BPy_StructRNA *)value)->ptr.type, NULL);
           if (ELEM(base_type, &RNA_Operator, &RNA_Gizmo)) {
@@ -1956,7 +1957,7 @@ static int pyrna_py_to_prop(
             BKE_reports_init(&reports, RPT_STORE);
             RNA_property_pointer_set(
                 ptr, prop, (param == NULL) ? PointerRNA_NULL : param->ptr, &reports);
-            const int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+            const int err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
             if (err == -1) {
               Py_XDECREF(value_new);
               return -1;
@@ -2478,7 +2479,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
     ID *id = itemptr.data; /* Always an ID. */
-    if (id->lib == lib && (STREQLEN(keyname, id->name + 2, sizeof(id->name) - 2))) {
+    if (id->lib == lib && STREQLEN(keyname, id->name + 2, sizeof(id->name) - 2)) {
       found = true;
       if (r_ptr) {
         *r_ptr = itemptr;
@@ -4074,7 +4075,7 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
 {
   const char *idname;
 
-  /* For looping over attrs and funcs. */
+  /* For looping over attributes and functions. */
   PointerRNA tptr;
   PropertyRNA *iterprop;
 
@@ -5573,7 +5574,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
   else {
     const char f = buf.format ? buf.format[0] : 0;
-    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (!ELEM(f, 'l', 'i')))) ||
+    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || !ELEM(f, 'l', 'i'))) ||
         (prop_type == PROP_FLOAT && (buf.itemsize != sizeof(float) || f != 'f'))) {
       PyBuffer_Release(&buf);
       PyErr_Format(PyExc_TypeError, "incorrect sequence item type: %s", buf.format);
@@ -5937,7 +5938,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
       len = RNA_property_array_length(ptr, prop);
     }
 
-    /* Resolve the array from a new pytype. */
+    /* Resolve the array from a new Python type. */
 
     /* TODO(Kazanbas): make multi-dimensional sequences here. */
 
@@ -6403,7 +6404,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
     BKE_reports_init(&reports, RPT_STORE);
     RNA_function_call(C, &reports, self_ptr, self_func, &parms);
 
-    err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+    err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
 
     /* Return value. */
     if (err != -1) {
@@ -6487,7 +6488,7 @@ static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *UNUSED(closure)
 PyTypeObject pyrna_struct_meta_idprop_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "bpy_struct_meta_idprop", /* tp_name */
 
-    /* NOTE: would be PyTypeObject, but subtypes of Type must be PyHeapTypeObject's. */
+    /* NOTE: would be PyTypeObject, but sub-types of Type must be PyHeapTypeObject's. */
     sizeof(PyHeapTypeObject), /* tp_basicsize */
 
     0, /* tp_itemsize */
@@ -7252,7 +7253,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
     PyC_ObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
   }
 
-  Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
+  Py_XDECREF((PyObject *)RNA_struct_py_type_get(srna));
 
   RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
@@ -7308,7 +7309,7 @@ static PyObject *pyrna_srna_PyBase(StructRNA *srna)  //, PyObject *bpy_types_dic
   if (base && base != srna) {
     // printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna);
     py_base = pyrna_srna_Subtype(base);  //, bpy_types_dict);
-    Py_DECREF(py_base);                  /* Srna owns, this is only to pass as an arg. */
+    Py_DECREF(py_base);                  /* `srna` owns, this is only to pass as an argument. */
   }
 
   if (py_base == NULL) {
@@ -7667,7 +7668,7 @@ bool pyrna_id_FromPyObject(PyObject *obj, ID **id)
 
 bool pyrna_id_CheckPyObject(PyObject *obj)
 {
-  return BPy_StructRNA_Check(obj) && (RNA_struct_is_ID(((BPy_StructRNA *)obj)->ptr.type));
+  return BPy_StructRNA_Check(obj) && RNA_struct_is_ID(((BPy_StructRNA *)obj)->ptr.type);
 }
 
 void BPY_rna_init(void)
@@ -7868,7 +7869,7 @@ static struct PyModuleDef bpy_types_module_def = {
     bpy_types_module_doc,                 /* m_doc */
     sizeof(struct BPy_TypesModule_State), /* m_size */
     bpy_types_module_methods,             /* m_methods */
-    NULL,                                 /* m_reload */
+    NULL,                                 /* m_slots */
     NULL,                                 /* m_traverse */
     NULL,                                 /* m_clear */
     NULL,                                 /* m_free */
@@ -8461,7 +8462,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
 
 #undef BPY_REPLACEMENT_STRING
 
-      if (item == NULL && (((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL))) {
+      if (item == NULL && ((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL)) {
         PyErr_Format(PyExc_AttributeError,
                      "expected %.200s, %.200s class to have an \"%.200s\" attribute",
                      class_type,
@@ -8735,10 +8736,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* when calling operator funcs only gives Function.result with
-       * no line number since the func has finished calling on error,
-       * re-raise the exception with more info since it would be slow to
-       * create prefix on every call (when there are no errors) */
+      /* When calling operator functions only gives `Function.result` with  no line number
+       * since the function has finished calling on error, re-raise the exception with more
+       * information since it would be slow to create prefix on every call
+       * (when there are no errors). */
       if (err == -1) {
         PyC_Err_Format_Prefix(PyExc_RuntimeError,
                               "class %.200s, function %.200s: incompatible return value ",
@@ -8795,7 +8796,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     ReportList *reports;
     /* Alert the user, else they won't know unless they see the console. */
     if ((!is_staticmethod) && (!is_classmethod) && (ptr->data) &&
-        (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
+        RNA_struct_is_a(ptr->type, &RNA_Operator) &&
         (is_valid_wm == (CTX_wm_manager(C) != NULL))) {
       wmOperator *op = ptr->data;
       reports = op->reports;
@@ -8846,7 +8847,7 @@ static void bpy_class_free(void *pyob_ptr)
 }
 
 /**
- * \note This isn't essential to run on startup, since subtypes will lazy initialize.
+ * \note This isn't essential to run on startup, since sub-types will lazy initialize.
  * But keep running in debug mode so we get immediate notification of bad class hierarchy
  * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed.
  */

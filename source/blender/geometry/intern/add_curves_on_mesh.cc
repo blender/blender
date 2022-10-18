@@ -4,6 +4,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_sample.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
@@ -50,7 +51,7 @@ static void initialize_straight_curve_positions(const float3 &p1,
                                                 const float3 &p2,
                                                 MutableSpan<float3> r_positions)
 {
-  const float step = 1.0f / (float)(r_positions.size() - 1);
+  const float step = 1.0f / float(r_positions.size() - 1);
   for (const int i : r_positions.index_range()) {
     r_positions[i] = math::interpolate(p1, p2, i * step);
   }
@@ -244,6 +245,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
+  const Span<MVert> surface_verts = inputs.surface->verts();
+  const Span<MLoop> surface_loops = inputs.surface->loops();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
@@ -256,9 +259,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[0]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[1]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[2]].v].co);
+        surface_verts[surface_loops[looptri.tri[0]].v].co,
+        surface_verts[surface_loops[looptri.tri[1]].v].co,
+        surface_verts[surface_loops[looptri.tri[2]].v].co);
     root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
     used_uvs.append(uv);
   }
@@ -368,6 +371,29 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   }
 
   curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
+
+  /* Explicitly set all other attributes besides those processed above to default values. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  Set<std::string> attributes_to_skip{{"position",
+                                       "curve_type",
+                                       "surface_uv_coordinate",
+                                       ".selection_point_float",
+                                       ".selection_curve_float"}};
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+          return true;
+        }
+        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+        /* The new elements are added at the end of the array. */
+        const int old_elements_num = attribute.domain == ATTR_DOMAIN_POINT ? old_points_num :
+                                                                             old_curves_num;
+        const CPPType &type = attribute.span.type();
+        GMutableSpan new_data = attribute.span.drop_front(old_elements_num);
+        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+        attribute.finish();
+        return true;
+      });
 
   return outputs;
 }

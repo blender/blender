@@ -249,7 +249,7 @@ IDTypeInfo IDType_ID_MSK = {
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = mask_blend_write,
     .blend_read_data = mask_blend_read_data,
@@ -308,7 +308,7 @@ BezTriple *BKE_mask_spline_point_next_bezt(MaskSpline *spline,
     return NULL;
   }
 
-  return &((point + 1))->bezt;
+  return &(point + 1)->bezt;
 }
 
 MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
@@ -1579,7 +1579,7 @@ void BKE_mask_parent_init(MaskParent *parent)
   parent->id_type = ID_MC;
 }
 
-/* *** own animation/shapekey implementation ***
+/* *** own animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

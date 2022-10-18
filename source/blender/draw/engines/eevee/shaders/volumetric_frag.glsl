@@ -52,8 +52,8 @@ vec3 coordinate_camera(vec3 P)
 vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
-  window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
-  window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
+  window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
+  window.xy = window.xy * cameraUvScaleBias.xy + cameraUvScaleBias.zw;
   return window;
 }
 
@@ -176,5 +176,9 @@ vec4 attr_load_color_post(vec4 attr)
   attr.rgb *= drw_volume.color_mul.rgb;
   attr.a = 1.0;
 #endif
+  return attr;
+}
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
+{
   return attr;
 }

@@ -48,13 +48,25 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, volume_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounds_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, rng_hash) = rng_hash;
-  INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BASE_NUM;
+  INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BOUNCE_NUM;
   INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
                                               PATH_RAY_TRANSPARENT_BACKGROUND;
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
   INTEGRATOR_STATE_WRITE(state, path, throughput) = one_spectrum();
+
+#ifdef __PATH_GUIDING__
+  INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) = 1.0f;
+  INTEGRATOR_STATE_WRITE(state, guiding, path_segment) = nullptr;
+  INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
+  INTEGRATOR_STATE_WRITE(state, guiding, sample_surface_guiding_rand) = 0.5f;
+  INTEGRATOR_STATE_WRITE(state, guiding, surface_guiding_sampling_prob) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, guiding, bssrdf_sampling_prob) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, guiding, use_volume_guiding) = false;
+  INTEGRATOR_STATE_WRITE(state, guiding, sample_volume_guiding_rand) = 0.5f;
+  INTEGRATOR_STATE_WRITE(state, guiding, volume_guiding_sampling_prob) = 0.0f;
+#endif
 
 #ifdef __MNEE__
   INTEGRATOR_STATE_WRITE(state, path, mnee) = 0;
@@ -249,7 +261,11 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
 
   /* Probabilistic termination: use sqrt() to roughly match typical view
    * transform and do path termination a bit later on average. */
-  return min(sqrtf(reduce_max(fabs(INTEGRATOR_STATE(state, path, throughput)))), 1.0f);
+  Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
+#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
+  throughput *= INTEGRATOR_STATE(state, path, unguided_throughput);
+#endif
+  return min(sqrtf(reduce_max(fabs(throughput))), 1.0f);
 }
 
 ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorState state)
@@ -298,40 +314,25 @@ ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorShadowState sta
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
                                           ccl_private const RNGState *rng_state,
-                                          int dimension)
+                                          const int dimension)
 {
   return path_rng_1D(
       kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
-ccl_device_inline void path_state_rng_2D(KernelGlobals kg,
-                                         ccl_private const RNGState *rng_state,
-                                         int dimension,
-                                         ccl_private float *fx,
-                                         ccl_private float *fy)
+ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
+                                           ccl_private const RNGState *rng_state,
+                                           const int dimension)
 {
-  path_rng_2D(
-      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension, fx, fy);
-}
-
-ccl_device_inline float path_state_rng_1D_hash(KernelGlobals kg,
-                                               ccl_private const RNGState *rng_state,
-                                               uint hash)
-{
-  /* Use a hash instead of dimension, this is not great but avoids adding
-   * more dimensions to each bounce which reduces quality of dimensions we
-   * are already using. */
-  return path_rng_1D(kg,
-                     hash_wang_seeded_uint(rng_state->rng_hash, hash),
-                     rng_state->sample,
-                     rng_state->rng_offset);
+  return path_rng_2D(
+      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                                              ccl_private const RNGState *rng_state,
-                                             int branch,
-                                             int num_branches,
-                                             int dimension)
+                                             const int branch,
+                                             const int num_branches,
+                                             const int dimension)
 {
   return path_rng_1D(kg,
                      rng_state->rng_hash,
@@ -339,20 +340,16 @@ ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                      rng_state->rng_offset + dimension);
 }
 
-ccl_device_inline void path_branched_rng_2D(KernelGlobals kg,
-                                            ccl_private const RNGState *rng_state,
-                                            int branch,
-                                            int num_branches,
-                                            int dimension,
-                                            ccl_private float *fx,
-                                            ccl_private float *fy)
+ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
+                                              ccl_private const RNGState *rng_state,
+                                              const int branch,
+                                              const int num_branches,
+                                              const int dimension)
 {
-  path_rng_2D(kg,
-              rng_state->rng_hash,
-              rng_state->sample * num_branches + branch,
-              rng_state->rng_offset + dimension,
-              fx,
-              fy);
+  return path_rng_2D(kg,
+                     rng_state->rng_hash,
+                     rng_state->sample * num_branches + branch,
+                     rng_state->rng_offset + dimension);
 }
 
 /* Utility functions to get light termination value,

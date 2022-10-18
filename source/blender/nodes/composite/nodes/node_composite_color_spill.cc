@@ -20,6 +20,8 @@
 
 namespace blender::nodes::node_composite_color_spill_cc {
 
+NODE_STORAGE_FUNCS(NodeColorspill)
+
 static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -34,7 +36,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorspill *ncs = MEM_cnew<NodeColorspill>(__func__);
   node->storage = ncs;
@@ -45,7 +47,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
   ncs->unspill = 0;     /* do not use unspill */
 }
 
-static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 
@@ -131,18 +133,13 @@ class ColorSpillShaderNode : public ShaderNode {
     return (CMPNodeColorSpillLimitAlgorithm)bnode().custom2;
   }
 
-  NodeColorspill *get_node_color_spill()
-  {
-    return static_cast<NodeColorspill *>(bnode().storage);
-  }
-
   void get_spill_scale(float spill_scale[3])
   {
-    const NodeColorspill *node_color_spill = get_node_color_spill();
-    if (node_color_spill->unspill) {
-      spill_scale[0] = node_color_spill->uspillr;
-      spill_scale[1] = node_color_spill->uspillg;
-      spill_scale[2] = node_color_spill->uspillb;
+    const NodeColorspill &node_color_spill = node_storage(bnode());
+    if (node_color_spill.unspill) {
+      spill_scale[0] = node_color_spill.uspillr;
+      spill_scale[1] = node_color_spill.uspillg;
+      spill_scale[2] = node_color_spill.uspillb;
       spill_scale[get_spill_channel()] *= -1.0f;
     }
     else {
@@ -156,7 +153,7 @@ class ColorSpillShaderNode : public ShaderNode {
   /* Get the index of the channel used for limiting. */
   int get_limit_channel()
   {
-    return get_node_color_spill()->limchan;
+    return node_storage(bnode()).limchan;
   }
 
   /* Get the indices of the channels used to compute the limit value. We always assume the limit
@@ -179,7 +176,7 @@ class ColorSpillShaderNode : public ShaderNode {
 
   float get_limit_scale()
   {
-    return get_node_color_spill()->limscale;
+    return node_storage(bnode()).limscale;
   }
 };
 

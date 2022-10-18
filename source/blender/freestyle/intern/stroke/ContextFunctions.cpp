@@ -14,17 +14,17 @@
 
 namespace Freestyle::ContextFunctions {
 
-unsigned GetTimeStampCF()
+uint GetTimeStampCF()
 {
   return TimeStamp::instance()->getTimeStamp();
 }
 
-unsigned GetCanvasWidthCF()
+uint GetCanvasWidthCF()
 {
   return Canvas::getInstance()->width();
 }
 
-unsigned GetCanvasHeightCF()
+uint GetCanvasHeightCF()
 {
   return Canvas::getInstance()->height();
 }
@@ -34,24 +34,24 @@ BBox<Vec2i> GetBorderCF()
   return Canvas::getInstance()->border();
 }
 
-void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels, float iSigma)
+void LoadMapCF(const char *iFileName, const char *iMapName, uint iNbLevels, float iSigma)
 {
   return Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels, iSigma);
 }
 
-float ReadMapPixelCF(const char *iMapName, int level, unsigned x, unsigned y)
+float ReadMapPixelCF(const char *iMapName, int level, uint x, uint y)
 {
   Canvas *canvas = Canvas::getInstance();
   return canvas->readMapPixel(iMapName, level, x, y);
 }
 
-float ReadCompleteViewMapPixelCF(int level, unsigned x, unsigned y)
+float ReadCompleteViewMapPixelCF(int level, uint x, uint y)
 {
   SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
   return svm->readCompleteViewMapPixel(level, x, y);
 }
 
-float ReadDirectionalViewMapPixelCF(int iOrientation, int level, unsigned x, unsigned y)
+float ReadDirectionalViewMapPixelCF(int iOrientation, int level, uint x, uint y)
 {
   SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
   return svm->readSteerableViewMapPixel(iOrientation, level, x, y);

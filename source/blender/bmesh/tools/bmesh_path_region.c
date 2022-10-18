@@ -228,7 +228,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
             /* Walk along the chain, fill in values until we reach a vertex with 3+ edges. */
             {
               BMEdge *e_chain = e;
-              while (BM_vert_is_edge_pair_manifold(v_b) && ((depths[side][v_b_index] == -1))) {
+              while (BM_vert_is_edge_pair_manifold(v_b) && (depths[side][v_b_index] == -1)) {
                 depths[side][v_b_index] = pass;
 
                 BMEdge *e_chain_next = BM_DISK_EDGE_NEXT(e_chain, v_b);

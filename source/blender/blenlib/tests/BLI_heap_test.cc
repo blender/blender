@@ -17,7 +17,7 @@ static void range_fl(float *array_tar, const int size)
   float *array_pt = array_tar + (size - 1);
   int i = size;
   while (i--) {
-    *(array_pt--) = (float)i;
+    *(array_pt--) = float(i);
   }
 }
 
@@ -52,7 +52,7 @@ TEST(heap, Range)
   const int items_total = SIZE;
   Heap *heap = BLI_heap_new();
   for (int in = 0; in < items_total; in++) {
-    BLI_heap_insert(heap, (float)in, POINTER_FROM_INT(in));
+    BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
   for (int out_test = 0; out_test < items_total; out_test++) {
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heap_pop_min(heap)));
@@ -66,7 +66,7 @@ TEST(heap, RangeReverse)
   const int items_total = SIZE;
   Heap *heap = BLI_heap_new();
   for (int in = 0; in < items_total; in++) {
-    BLI_heap_insert(heap, (float)-in, POINTER_FROM_INT(-in));
+    BLI_heap_insert(heap, float(-in), POINTER_FROM_INT(-in));
   }
   for (int out_test = items_total - 1; out_test >= 0; out_test--) {
     EXPECT_EQ(-out_test, POINTER_AS_INT(BLI_heap_pop_min(heap)));
@@ -81,7 +81,7 @@ TEST(heap, RangeRemove)
   Heap *heap = BLI_heap_new();
   HeapNode **nodes = (HeapNode **)MEM_mallocN(sizeof(HeapNode *) * items_total, __func__);
   for (int in = 0; in < items_total; in++) {
-    nodes[in] = BLI_heap_insert(heap, (float)in, POINTER_FROM_INT(in));
+    nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
   for (int i = 0; i < items_total; i += 2) {
     BLI_heap_remove(heap, nodes[i]);
@@ -116,7 +116,7 @@ static void random_heap_helper(const int items_total, const int random_seed)
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
-    BLI_heap_insert(heap, values[i], POINTER_FROM_INT((int)values[i]));
+    BLI_heap_insert(heap, values[i], POINTER_FROM_INT(int(values[i])));
   }
   for (int out_test = 0; out_test < items_total; out_test++) {
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heap_pop_min(heap)));
@@ -145,10 +145,10 @@ TEST(heap, ReInsertSimple)
   Heap *heap = BLI_heap_new();
   HeapNode **nodes = (HeapNode **)MEM_mallocN(sizeof(HeapNode *) * items_total, __func__);
   for (int in = 0; in < items_total; in++) {
-    nodes[in] = BLI_heap_insert(heap, (float)in, POINTER_FROM_INT(in));
+    nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
   for (int i = 0; i < items_total; i++) {
-    BLI_heap_node_value_update(heap, nodes[i], (float)(items_total + i));
+    BLI_heap_node_value_update(heap, nodes[i], float(items_total + i));
   }
 
   for (int out_test = 0; out_test < items_total; out_test++) {
@@ -165,11 +165,11 @@ static void random_heap_reinsert_helper(const int items_total, const int random_
   Heap *heap = BLI_heap_new();
   HeapNode **nodes = (HeapNode **)MEM_mallocN(sizeof(HeapNode *) * items_total, __func__);
   for (int in = 0; in < items_total; in++) {
-    nodes[in] = BLI_heap_insert(heap, (float)in, POINTER_FROM_INT(in));
+    nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
   BLI_array_randomize(nodes, sizeof(HeapNode *), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
-    BLI_heap_node_value_update(heap, nodes[i], (float)i);
+    BLI_heap_node_value_update(heap, nodes[i], float(i));
   }
   EXPECT_TRUE(BLI_heap_is_valid(heap));
 
@@ -177,7 +177,7 @@ static void random_heap_reinsert_helper(const int items_total, const int random_
     HeapNode *node_top = BLI_heap_top(heap);
     float out = BLI_heap_node_value(node_top);
     EXPECT_EQ(out, BLI_heap_top_value(heap));
-    EXPECT_EQ((float)out_test, out);
+    EXPECT_EQ(float(out_test), out);
     BLI_heap_pop_min(heap);
   }
   EXPECT_TRUE(BLI_heap_is_empty(heap));

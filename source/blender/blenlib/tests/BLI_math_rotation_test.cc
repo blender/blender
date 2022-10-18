@@ -161,7 +161,7 @@ static void test_sin_cos_from_fraction_accuracy(const int range, const float exp
   for (int i = 0; i < range; i++) {
     float sin_cos_fl[2];
     sin_cos_from_fraction(i, range, &sin_cos_fl[0], &sin_cos_fl[1]);
-    const float phi = (float)(2.0 * M_PI) * ((float)i / (float)range);
+    const float phi = float(2.0 * M_PI) * (float(i) / float(range));
     const float sin_cos_test_fl[2] = {sinf(phi), cosf(phi)};
     EXPECT_V2_NEAR(sin_cos_fl, sin_cos_test_fl, expected_eps);
   }

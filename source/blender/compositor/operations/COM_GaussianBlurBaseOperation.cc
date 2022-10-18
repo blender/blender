@@ -112,7 +112,7 @@ void GaussianBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *outpu
     float multiplier_accum = 0.0f;
 
     const int step = QualityStepHelper::get_step();
-    const float *in = it.in(0) + ((intptr_t)coord_min - coord) * elem_stride;
+    const float *in = it.in(0) + (intptr_t(coord_min) - coord) * elem_stride;
     const int in_stride = elem_stride * step;
     int gauss_idx = (coord_min - coord) + filtersize_;
     const int gauss_end = gauss_idx + (coord_max - coord_min);

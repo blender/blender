@@ -27,12 +27,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveFill *data = MEM_cnew<NodeGeometryCurveFill>(__func__);
 
@@ -79,13 +79,13 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
-    copy_v3_v3(verts[i].co, float3((float)result.vert[i].x, (float)result.vert[i].y, 0.0f));
+    copy_v3_v3(verts[i].co, float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f));
   }
   for (const int i : IndexRange(result.edge.size())) {
     edges[i].v1 = result.edge[i].first;

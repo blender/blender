@@ -25,7 +25,7 @@ static void set_radius_in_component(PointCloud &pointcloud,
   if (pointcloud.totpoint == 0) {
     return;
   }
-  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(pointcloud);
+  MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
                                                                            ATTR_DOMAIN_POINT);
 

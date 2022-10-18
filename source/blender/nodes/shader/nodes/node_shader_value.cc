@@ -16,7 +16,7 @@ static void sh_node_value_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_value(GPUMaterial *mat,
                             bNode *node,
-                            bNodeExecData *UNUSED(execdata),
+                            bNodeExecData * /*execdata*/,
                             GPUNodeStack * /*in*/,
                             GPUNodeStack *out)
 {

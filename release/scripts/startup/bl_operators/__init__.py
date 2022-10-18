@@ -31,7 +31,7 @@ _modules = [
     "userpref",
     "uvcalc_follow_active",
     "uvcalc_lightmap",
-    "uvcalc_randomize_transform",
+    "uvcalc_transform",
     "vertexpaint_dirt",
     "view3d",
     "wm",

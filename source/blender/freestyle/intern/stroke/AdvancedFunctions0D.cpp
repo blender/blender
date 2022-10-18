@@ -25,13 +25,13 @@ int DensityF0D::operator()(Interface0DIterator &iter)
   }
 
   RGBImage image;
-  canvas->readColorPixels((int)iter->getProjectedX() - bound,
-                          (int)iter->getProjectedY() - bound,
+  canvas->readColorPixels(int(iter->getProjectedX()) - bound,
+                          int(iter->getProjectedY()) - bound,
                           _filter.maskSize(),
                           _filter.maskSize(),
                           image);
   result = _filter.getSmoothedPixel<RGBImage>(
-      &image, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      &image, int(iter->getProjectedX()), int(iter->getProjectedY()));
 
   return 0;
 }
@@ -48,13 +48,13 @@ int LocalAverageDepthF0D::operator()(Interface0DIterator &iter)
   }
 
   GrayImage image;
-  iViewer->readDepthPixels((int)iter->getProjectedX() - bound,
-                           (int)iter->getProjectedY() - bound,
+  iViewer->readDepthPixels(int(iter->getProjectedX()) - bound,
+                           int(iter->getProjectedY()) - bound,
                            _filter.maskSize(),
                            _filter.maskSize(),
                            image);
   result = _filter.getSmoothedPixel(
-      &image, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      &image, int(iter->getProjectedX()), int(iter->getProjectedY()));
 
   return 0;
 }
@@ -63,7 +63,7 @@ int ReadMapPixelF0D::operator()(Interface0DIterator &iter)
 {
   Canvas *canvas = Canvas::getInstance();
   result = canvas->readMapPixel(
-      _mapName, _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      _mapName, _level, int(iter->getProjectedX()), int(iter->getProjectedY()));
   return 0;
 }
 
@@ -71,7 +71,7 @@ int ReadSteerableViewMapPixelF0D::operator()(Interface0DIterator &iter)
 {
   SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
   result = svm->readSteerableViewMapPixel(
-      _orientation, _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      _orientation, _level, int(iter->getProjectedX()), int(iter->getProjectedY()));
   return 0;
 }
 
@@ -79,7 +79,7 @@ int ReadCompleteViewMapPixelF0D::operator()(Interface0DIterator &iter)
 {
   SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
   result = svm->readCompleteViewMapPixel(
-      _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      _level, int(iter->getProjectedX()), int(iter->getProjectedY()));
   return 0;
 }
 
@@ -87,12 +87,12 @@ int GetViewMapGradientNormF0D::operator()(Interface0DIterator &iter)
 {
   SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
   float pxy = svm->readCompleteViewMapPixel(
-      _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+      _level, int(iter->getProjectedX()), int(iter->getProjectedY()));
   float gx = svm->readCompleteViewMapPixel(
-                 _level, (int)iter->getProjectedX() + _step, (int)iter->getProjectedY()) -
+                 _level, int(iter->getProjectedX()) + _step, int(iter->getProjectedY())) -
              pxy;
   float gy = svm->readCompleteViewMapPixel(
-                 _level, (int)iter->getProjectedX(), (int)iter->getProjectedY() + _step) -
+                 _level, int(iter->getProjectedX()), int(iter->getProjectedY()) + _step) -
              pxy;
   result = Vec2f(gx, gy).norm();
   return 0;

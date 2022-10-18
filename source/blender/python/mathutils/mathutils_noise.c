@@ -1089,7 +1089,7 @@ static struct PyModuleDef M_Noise_module_def = {
     M_Noise_doc,       /* m_doc */
     0,                 /* m_size */
     M_Noise_methods,   /* m_methods */
-    NULL,              /* m_reload */
+    NULL,              /* m_slots */
     NULL,              /* m_traverse */
     NULL,              /* m_clear */
     NULL,              /* m_free */

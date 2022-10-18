@@ -7,7 +7,6 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
-extern "C" {
 #include "BKE_material.h"
 
 #include "BKE_particle.h"
@@ -15,7 +14,6 @@ extern "C" {
 #include "BLI_math_geom.h"
 
 #include "DNA_particle_types.h"
-}
 
 namespace blender::io::usd {
 
@@ -148,7 +146,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
   }
 }
 
-bool USDHairWriter::check_is_animated(const HierarchyContext &UNUSED(context)) const
+bool USDHairWriter::check_is_animated(const HierarchyContext & /*context*/) const
 {
   return true;
 }

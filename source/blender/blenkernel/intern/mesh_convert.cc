@@ -54,9 +54,11 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::StringRefNull;
 
 /* Define for cases when you want extra validation of mesh
  * after certain modifications.
@@ -81,8 +83,8 @@ static void make_edges_mdata_extend(Mesh &mesh)
   const MPoly *mp;
   int i;
 
-  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
-  MutableSpan<MLoop> loops(mesh.mloop, mesh.totloop);
+  const Span<MPoly> polys = mesh.polys();
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
 
   const int eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(mesh.totpoly));
   EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
@@ -96,20 +98,19 @@ static void make_edges_mdata_extend(Mesh &mesh)
 #ifdef DEBUG
   /* ensure that there's no overlap! */
   if (totedge_new) {
-    MEdge *medge = mesh.medge;
-    for (i = 0; i < totedge; i++, medge++) {
-      BLI_assert(BLI_edgehash_haskey(eh, medge->v1, medge->v2) == false);
+    for (const MEdge &edge : mesh.edges()) {
+      BLI_assert(BLI_edgehash_haskey(eh, edge.v1, edge.v2) == false);
     }
   }
 #endif
 
   if (totedge_new) {
-    CustomData_realloc(&mesh.edata, totedge + totedge_new);
-    BKE_mesh_update_customdata_pointers(&mesh, false);
-
-    MEdge *medge = mesh.medge + totedge;
-
+    /* The only layer should be edges, so no other layers need to be initialized. */
+    BLI_assert(mesh.edata.totlayer == 1);
+    CustomData_realloc(&mesh.edata, totedge, totedge + totedge_new);
     mesh.totedge += totedge_new;
+    MutableSpan<MEdge> edges = mesh.edges_for_write();
+    MEdge *medge = &edges[totedge];
 
     EdgeHashIterator *ehi;
     uint e_index = totedge;
@@ -118,12 +119,11 @@ static void make_edges_mdata_extend(Mesh &mesh)
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
 
-      medge->crease = medge->bweight = 0;
       medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
     }
     BLI_edgehashIterator_free(ehi);
 
-    for (i = 0, mp = mesh.mpoly; i < mesh.totpoly; i++, mp++) {
+    for (i = 0, mp = polys.data(); i < mesh.totpoly; i++, mp++) {
       MLoop *l = &loops[mp->loopstart];
       MLoop *l_prev = (l + (mp->totloop - 1));
       int j;
@@ -140,6 +140,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
 
 static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
 {
+  using namespace blender::bke;
   const float *data;
   int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   int p1, p2, p3, p4, *index;
@@ -185,15 +186,18 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-  MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
-  MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
-  MutableSpan<MPoly> polys(mesh->mpoly, mesh->totpoly);
-  MutableSpan<MLoop> loops(mesh->mloop, mesh->totloop);
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   MVert *mvert = verts.data();
   MEdge *medge = edges.data();
   MPoly *mpoly = polys.data();
   MLoop *mloop = loops.data();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
   MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
       &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, "UVMap"));
 
@@ -270,13 +274,13 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         mloop[0].v = startvert + index[0];
         mloop[1].v = startvert + index[2];
         mloop[2].v = startvert + index[1];
-        mpoly->loopstart = (int)(mloop - loops.data());
+        mpoly->loopstart = int(mloop - loops.data());
         mpoly->totloop = 3;
-        mpoly->mat_nr = dl->col;
+        material_indices.span[mpoly - polys.data()] = dl->col;
 
         if (mloopuv) {
           for (int i = 0; i < 3; i++, mloopuv++) {
-            mloopuv->uv[0] = (mloop[i].v - startvert) / (float)(dl->nr - 1);
+            mloopuv->uv[0] = (mloop[i].v - startvert) / float(dl->nr - 1);
             mloopuv->uv[1] = 0.0f;
           }
         }
@@ -330,9 +334,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           mloop[1].v = p3;
           mloop[2].v = p4;
           mloop[3].v = p2;
-          mpoly->loopstart = (int)(mloop - loops.data());
+          mpoly->loopstart = int(mloop - loops.data());
           mpoly->totloop = 4;
-          mpoly->mat_nr = dl->col;
+          material_indices.span[mpoly - polys.data()] = dl->col;
 
           if (mloopuv) {
             int orco_sizeu = dl->nr - 1;
@@ -353,14 +357,14 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
               /* find uv based on vertex index into grid array */
               int v = mloop[i].v - startvert;
 
-              mloopuv->uv[0] = (v / dl->nr) / (float)orco_sizev;
-              mloopuv->uv[1] = (v % dl->nr) / (float)orco_sizeu;
+              mloopuv->uv[0] = (v / dl->nr) / float(orco_sizev);
+              mloopuv->uv[1] = (v % dl->nr) / float(orco_sizeu);
 
               /* cyclic correction */
-              if ((ELEM(i, 1, 2)) && mloopuv->uv[0] == 0.0f) {
+              if (ELEM(i, 1, 2) && mloopuv->uv[0] == 0.0f) {
                 mloopuv->uv[0] = 1.0f;
               }
-              if ((ELEM(i, 0, 1)) && mloopuv->uv[1] == 0.0f) {
+              if (ELEM(i, 0, 1) && mloopuv->uv[1] == 0.0f) {
                 mloopuv->uv[1] = 1.0f;
               }
             }
@@ -384,6 +388,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   if (totpoly) {
     make_edges_mdata_extend(*mesh);
   }
+
+  material_indices.finish();
 
   return mesh;
 }
@@ -428,7 +434,7 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
 
 struct EdgeLink {
   struct EdgeLink *next, *prev;
-  void *edge;
+  const void *edge;
 };
 
 struct VertLink {
@@ -452,10 +458,13 @@ static void appendPolyLineVert(ListBase *lb, uint index)
 
 void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int edge_users_test)
 {
-  MVert *mvert = me->mvert;
-  MEdge *med, *medge = me->medge;
-  MPoly *mp, *mpoly = me->mpoly;
-  MLoop *mloop = me->mloop;
+  const Span<MVert> verts = me->verts();
+  const Span<MEdge> mesh_edges = me->edges();
+  const Span<MPoly> polys = me->polys();
+  const Span<MLoop> loops = me->loops();
+
+  const MEdge *med;
+  const MPoly *mp;
 
   int medge_len = me->totedge;
   int mpoly_len = me->totpoly;
@@ -469,8 +478,8 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
   /* get boundary edges */
   edge_users = (int *)MEM_calloc_arrayN(medge_len, sizeof(int), __func__);
-  for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
-    MLoop *ml = &mloop[mp->loopstart];
+  for (i = 0, mp = polys.data(); i < mpoly_len; i++, mp++) {
+    const MLoop *ml = &loops[mp->loopstart];
     int j;
     for (j = 0; j < mp->totloop; j++, ml++) {
       edge_users[ml->e]++;
@@ -478,7 +487,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   }
 
   /* create edges from all faces (so as to find edges not in any faces) */
-  med = medge;
+  med = mesh_edges.data();
   for (i = 0; i < medge_len; i++, med++) {
     if (edge_users[i] == edge_users_test) {
       EdgeLink *edl = MEM_cnew<EdgeLink>("EdgeLink");
@@ -581,7 +590,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         /* add points */
         vl = (VertLink *)polyline.first;
         for (i = 0, bp = nu->bp; i < totpoly; i++, bp++, vl = (VertLink *)vl->next) {
-          copy_v3_v3(bp->vec, mvert[vl->index].co);
+          copy_v3_v3(bp->vec, verts[vl->index].co);
           bp->f1 = SELECT;
           bp->radius = bp->weight = 1.0;
         }
@@ -595,7 +604,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   }
 }
 
-void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
+void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   /* make new mesh data from the original copy */
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -625,16 +634,17 @@ void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
   using namespace blender;
 
   BLI_assert(me != nullptr);
-
+  /* The pointcloud should only contain the position attribute, otherwise more attributes would
+   * need to be initialized below. */
+  BLI_assert(pointcloud->attributes().all_ids().size() == 1);
+  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint, me->totvert);
   pointcloud->totpoint = me->totvert;
-  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
 
   /* Copy over all attributes. */
   CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
 
-  bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(*me);
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::AttributeAccessor mesh_attributes = me->attributes();
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   const VArray<float3> mesh_positions = mesh_attributes.lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, float3(0));
@@ -644,7 +654,7 @@ void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
   point_positions.finish();
 }
 
-void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
+void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
 
@@ -676,19 +686,16 @@ void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
       &pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, CD_DUPLICATE, pointcloud->totpoint);
 
   /* Convert the Position attribute to a mesh vertex. */
-  me->mvert = (MVert *)CustomData_add_layer(
-      &me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
-  CustomData_update_typemap(&me->vdata);
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
 
   const int layer_idx = CustomData_get_named_layer_index(
       &me->vdata, CD_PROP_FLOAT3, POINTCLOUD_ATTR_POSITION);
   CustomDataLayer *pos_layer = &me->vdata.layers[layer_idx];
   float(*positions)[3] = (float(*)[3])pos_layer->data;
 
-  MVert *mvert;
-  mvert = me->mvert;
-  for (int i = 0; i < me->totvert; i++, mvert++) {
-    copy_v3_v3(mvert->co, positions[i]);
+  MutableSpan<MVert> verts = me->verts_for_write();
+  for (int i = 0; i < me->totvert; i++) {
+    copy_v3_v3(verts[i].co, positions[i]);
   }
 
   /* Delete Position attribute since it is now in vertex coordinates. */
@@ -697,13 +704,13 @@ void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
 
 void BKE_mesh_edges_set_draw_render(Mesh *mesh)
 {
-  MEdge *med = mesh->medge;
-  for (int i = 0; i < mesh->totedge; i++, med++) {
-    med->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  for (int i = 0; i < mesh->totedge; i++) {
+    edges[i].flag |= ME_EDGEDRAW | ME_EDGERENDER;
   }
 }
 
-void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
+void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
 
@@ -896,7 +903,7 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
 {
   /* While we could copy this into the new mesh,
    * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
-  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     BKE_mesh_wrapper_ensure_mdata(mesh);
   }
   else {
@@ -1078,10 +1085,10 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   mesh_in_bmain->smoothresh = mesh->smoothresh;
   mesh->mat = nullptr;
 
-  BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr);
 
   /* Anonymous attributes shouldn't exist on original data. */
-  blender::bke::mesh_attributes_for_write(*mesh_in_bmain).remove_anonymous();
+  mesh_in_bmain->attributes_for_write().remove_anonymous();
 
   /* User-count is required because so far mesh was in a limbo, where library management does
    * not perform any user management (i.e. copy of a mesh will not increase users of materials). */
@@ -1126,11 +1133,11 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
                  mesh_src->totvert,
                  kb->name,
                  kb->totelem);
-      array = (float *)MEM_calloc_arrayN((size_t)mesh_src->totvert, sizeof(float[3]), __func__);
+      array = (float *)MEM_calloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
     }
     else {
-      array = (float *)MEM_malloc_arrayN((size_t)mesh_src->totvert, sizeof(float[3]), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * (size_t)mesh_src->totvert);
+      array = (float *)MEM_malloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
+      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src->totvert));
     }
 
     CustomData_add_layer_named(
@@ -1165,7 +1172,8 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
 
   if (build_shapekey_layers && me->key &&
       (kb = (KeyBlock *)BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
-    BKE_keyblock_convert_to_mesh(kb, me->mvert, me->totvert);
+    MutableSpan<MVert> verts = me->verts_for_write();
+    BKE_keyblock_convert_to_mesh(kb, verts.data(), me->totvert);
   }
 
   Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
@@ -1231,242 +1239,115 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
   return result;
 }
 
-/* This is a Mesh-based copy of the same function in DerivedMesh.cc */
-static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int actshape_uid)
+static KeyBlock *keyblock_ensure_from_uid(Key &key, const int uid, const StringRefNull name)
 {
-  KeyBlock *kb;
-  int i, j, tot;
-
-  if (!mesh_dst->key) {
-    return;
+  if (KeyBlock *kb = BKE_keyblock_find_uid(&key, uid)) {
+    return kb;
   }
+  KeyBlock *kb = BKE_keyblock_add(&key, name.c_str());
+  kb->uid = uid;
+  return kb;
+}
 
-  tot = CustomData_number_of_layers(&mesh_src->vdata, CD_SHAPEKEY);
-  for (i = 0; i < tot; i++) {
-    CustomDataLayer *layer =
-        &mesh_src->vdata.layers[CustomData_get_layer_index_n(&mesh_src->vdata, CD_SHAPEKEY, i)];
-    float(*kbcos)[3];
+static int find_object_active_key_uid(const Key &key, const Object &object)
+{
+  const int active_kb_index = object.shapenr - 1;
+  const KeyBlock *kb = (const KeyBlock *)BLI_findlink(&key.block, active_kb_index);
+  if (!kb) {
+    CLOG_ERROR(&LOG, "Could not find object's active shapekey %d", active_kb_index);
+    return -1;
+  }
+  return kb->uid;
+}
 
-    for (kb = (KeyBlock *)mesh_dst->key->block.first; kb; kb = kb->next) {
-      if (kb->uid == layer->uid) {
-        break;
-      }
-    }
+static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
+                                              CustomData &custom_data,
+                                              Key &key_dst,
+                                              const int actshape_uid)
+{
+  using namespace blender::bke;
+  for (const int i : IndexRange(CustomData_number_of_layers(&custom_data, CD_SHAPEKEY))) {
+    const int layer_index = CustomData_get_layer_index_n(&custom_data, CD_SHAPEKEY, i);
+    CustomDataLayer &layer = custom_data.layers[layer_index];
 
-    if (!kb) {
-      kb = BKE_keyblock_add(mesh_dst->key, layer->name);
-      kb->uid = layer->uid;
-    }
+    KeyBlock *kb = keyblock_ensure_from_uid(key_dst, layer.uid, layer.name);
+    MEM_SAFE_FREE(kb->data);
 
-    if (kb->data) {
-      MEM_freeN(kb->data);
-    }
+    kb->totelem = mesh.totvert;
 
-    const float(*cos)[3] = (const float(*)[3])CustomData_get_layer_n(
-        &mesh_src->vdata, CD_SHAPEKEY, i);
-    kb->totelem = mesh_src->totvert;
-
-    kb->data = kbcos = (float(*)[3])MEM_malloc_arrayN(kb->totelem, sizeof(float[3]), __func__);
     if (kb->uid == actshape_uid) {
-      MVert *mvert = mesh_src->mvert;
-
-      for (j = 0; j < mesh_src->totvert; j++, kbcos++, mvert++) {
-        copy_v3_v3(*kbcos, mvert->co);
-      }
+      kb->data = MEM_malloc_arrayN(kb->totelem, sizeof(float3), __func__);
+      MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
+      mesh.attributes().lookup<float3>("position").materialize(kb_coords);
     }
     else {
-      for (j = 0; j < kb->totelem; j++, cos++, kbcos++) {
-        copy_v3_v3(*kbcos, *cos);
-      }
+      kb->data = layer.data;
+      layer.data = nullptr;
     }
   }
 
-  for (kb = (KeyBlock *)mesh_dst->key->block.first; kb; kb = kb->next) {
-    if (kb->totelem != mesh_src->totvert) {
-      if (kb->data) {
-        MEM_freeN(kb->data);
-      }
-
-      kb->totelem = mesh_src->totvert;
-      kb->data = MEM_calloc_arrayN(kb->totelem, sizeof(float[3]), __func__);
-      CLOG_ERROR(&LOG, "lost a shapekey layer: '%s'! (bmesh internal error)", kb->name);
+  LISTBASE_FOREACH (KeyBlock *, kb, &key_dst.block) {
+    if (kb->totelem != mesh.totvert) {
+      MEM_SAFE_FREE(kb->data);
+      kb->totelem = mesh.totvert;
+      kb->data = MEM_cnew_array<float3>(kb->totelem, __func__);
+      CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
     }
   }
 }
 
-void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
-                             Mesh *mesh_dst,
-                             Object *ob,
-                             const CustomData_MeshMasks *mask,
-                             bool take_ownership)
+void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 {
+  using namespace blender::bke;
   BLI_assert(mesh_src->id.tag & LIB_TAG_NO_MAIN);
-
-  /* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
-  /* TODO(Sybren): the above claim came from 2.7x derived-mesh code (DM_to_mesh);
-   * check whether it is still true with Mesh */
-  Mesh tmp = blender::dna::shallow_copy(*mesh_dst);
-  int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
-  bool did_shapekeys = false;
-  eCDAllocType alloctype = CD_DUPLICATE;
-
-  if (take_ownership /* && dm->type == DM_TYPE_CDDM && dm->needsFree */) {
-    bool has_any_referenced_layers = CustomData_has_referenced(&mesh_src->vdata) ||
-                                     CustomData_has_referenced(&mesh_src->edata) ||
-                                     CustomData_has_referenced(&mesh_src->ldata) ||
-                                     CustomData_has_referenced(&mesh_src->fdata) ||
-                                     CustomData_has_referenced(&mesh_src->pdata);
-    if (!has_any_referenced_layers) {
-      alloctype = CD_ASSIGN;
-    }
-  }
-  CustomData_reset(&tmp.vdata);
-  CustomData_reset(&tmp.edata);
-  CustomData_reset(&tmp.fdata);
-  CustomData_reset(&tmp.ldata);
-  CustomData_reset(&tmp.pdata);
-
-  totvert = tmp.totvert = mesh_src->totvert;
-  totedge = tmp.totedge = mesh_src->totedge;
-  totloop = tmp.totloop = mesh_src->totloop;
-  totpoly = tmp.totpoly = mesh_src->totpoly;
-  tmp.totface = 0;
-
-  CustomData_copy(&mesh_src->vdata, &tmp.vdata, mask->vmask, alloctype, totvert);
-  CustomData_copy(&mesh_src->edata, &tmp.edata, mask->emask, alloctype, totedge);
-  CustomData_copy(&mesh_src->ldata, &tmp.ldata, mask->lmask, alloctype, totloop);
-  CustomData_copy(&mesh_src->pdata, &tmp.pdata, mask->pmask, alloctype, totpoly);
-  tmp.cd_flag = mesh_src->cd_flag;
-  tmp.runtime.deformed_only = mesh_src->runtime.deformed_only;
-
-  /* Clear the normals completely, since the new vertex / polygon count might be different. */
-  BKE_mesh_clear_derived_normals(&tmp);
-
-  if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
-    KeyBlock *kb;
-    int uid;
-
-    if (ob) {
-      kb = (KeyBlock *)BLI_findlink(&mesh_dst->key->block, ob->shapenr - 1);
-      if (kb) {
-        uid = kb->uid;
-      }
-      else {
-        CLOG_ERROR(&LOG, "could not find active shapekey %d!", ob->shapenr - 1);
-
-        uid = INT_MAX;
-      }
-    }
-    else {
-      /* if no object, set to INT_MAX so we don't mess up any shapekey layers */
-      uid = INT_MAX;
-    }
-
-    shapekey_layers_to_keyblocks(mesh_src, mesh_dst, uid);
-    did_shapekeys = true;
-  }
-
-  /* copy texture space */
   if (ob) {
-    BKE_mesh_texspace_copy_from_object(&tmp, ob);
+    BLI_assert(mesh_dst == ob->data);
   }
 
-  /* not all DerivedMeshes store their verts/edges/faces in CustomData, so
-   * we set them here in case they are missing */
-  /* TODO(Sybren): we could probably replace CD_ASSIGN with alloctype and
-   * always directly pass mesh_src->mxxx, instead of using a ternary operator. */
-  if (!CustomData_has_layer(&tmp.vdata, CD_MVERT)) {
-    CustomData_add_layer(&tmp.vdata,
-                         CD_MVERT,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->mvert :
-                                                    MEM_dupallocN(mesh_src->mvert),
-                         totvert);
-  }
-  if (!CustomData_has_layer(&tmp.edata, CD_MEDGE)) {
-    CustomData_add_layer(&tmp.edata,
-                         CD_MEDGE,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->medge :
-                                                    MEM_dupallocN(mesh_src->medge),
-                         totedge);
-  }
-  if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-    CustomData_add_layer(&tmp.ldata,
-                         CD_MLOOP,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->mloop :
-                                                    MEM_dupallocN(mesh_src->mloop),
-                         tmp.totloop);
-    CustomData_add_layer(&tmp.pdata,
-                         CD_MPOLY,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->mpoly :
-                                                    MEM_dupallocN(mesh_src->mpoly),
-                         tmp.totpoly);
-  }
+  BKE_mesh_clear_geometry(mesh_dst);
 
-  /* object had got displacement layer, should copy this layer to save sculpted data */
-  /* NOTE(nazgul): maybe some other layers should be copied? */
-  if (CustomData_has_layer(&mesh_dst->ldata, CD_MDISPS)) {
-    if (totloop == mesh_dst->totloop) {
-      MDisps *mdisps = (MDisps *)CustomData_get_layer(&mesh_dst->ldata, CD_MDISPS);
-      CustomData_add_layer(&tmp.ldata, CD_MDISPS, alloctype, mdisps, totloop);
-      if (alloctype == CD_ASSIGN) {
-        /* Assign nullptr to prevent double-free. */
-        CustomData_set_layer(&mesh_dst->ldata, CD_MDISPS, nullptr);
-      }
-    }
-  }
+  /* Make sure referenced layers have a single user so assigning them to the mesh in main doesn't
+   * share them. "Referenced" layers are not expected to be shared between original meshes. */
+  CustomData_duplicate_referenced_layers(&mesh_src->vdata, mesh_src->totvert);
+  CustomData_duplicate_referenced_layers(&mesh_src->edata, mesh_src->totedge);
+  CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
+  CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
 
-  /* yes, must be before _and_ after tessellate */
-  BKE_mesh_update_customdata_pointers(&tmp, false);
+  mesh_dst->totvert = mesh_src->totvert;
+  mesh_dst->totedge = mesh_src->totedge;
+  mesh_dst->totpoly = mesh_src->totpoly;
+  mesh_dst->totloop = mesh_src->totloop;
 
-  CustomData_free(&mesh_dst->vdata, mesh_dst->totvert);
-  CustomData_free(&mesh_dst->edata, mesh_dst->totedge);
-  CustomData_free(&mesh_dst->fdata, mesh_dst->totface);
-  CustomData_free(&mesh_dst->ldata, mesh_dst->totloop);
-  CustomData_free(&mesh_dst->pdata, mesh_dst->totpoly);
-
-  /* ok, this should now use new CD shapekey data,
-   * which should be fed through the modifier
-   * stack */
-  if (tmp.totvert != mesh_dst->totvert && !did_shapekeys && mesh_dst->key) {
-    CLOG_ERROR(&LOG, "YEEK! this should be recoded! Shape key loss!: ID '%s'", tmp.id.name);
-    if (tmp.key && !(tmp.id.tag & LIB_TAG_NO_MAIN)) {
-      id_us_min(&tmp.key->id);
-    }
-    tmp.key = nullptr;
-  }
-
-  /* Clear selection history */
-  MEM_SAFE_FREE(tmp.mselect);
-  tmp.totselect = 0;
-  tmp.texflag &= ~ME_AUTOSPACE_EVALUATED;
-
-  /* Clear any run-time data.
-   * Even though this mesh won't typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: T81136. */
-  BKE_mesh_runtime_clear_geometry(&tmp);
-
-  /* skip the listbase */
-  MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);
+  /* Using #CD_MASK_MESH ensures that only data that should exist in Main meshes is moved. */
+  const CustomData_MeshMasks mask = CD_MASK_MESH;
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, CD_ASSIGN, mesh_src->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, CD_ASSIGN, mesh_src->totedge);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, CD_ASSIGN, mesh_src->totpoly);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, CD_ASSIGN, mesh_src->totloop);
 
   BLI_freelistN(&mesh_dst->vertex_group_names);
-  BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
-  mesh_dst->vertex_group_active_index = mesh_src->vertex_group_active_index;
+  mesh_dst->vertex_group_names = mesh_src->vertex_group_names;
+  BLI_listbase_clear(&mesh_src->vertex_group_names);
 
-  if (take_ownership) {
-    if (alloctype == CD_ASSIGN) {
-      CustomData_free_typemask(&mesh_src->vdata, mesh_src->totvert, ~mask->vmask);
-      CustomData_free_typemask(&mesh_src->edata, mesh_src->totedge, ~mask->emask);
-      CustomData_free_typemask(&mesh_src->ldata, mesh_src->totloop, ~mask->lmask);
-      CustomData_free_typemask(&mesh_src->pdata, mesh_src->totpoly, ~mask->pmask);
+  BKE_mesh_copy_parameters(mesh_dst, mesh_src);
+
+  /* For original meshes, shape key data is stored in the #Key data-block, so it
+   * must be moved from the storage in #CustomData layers used for evaluation. */
+  if (Key *key_dst = mesh_dst->key) {
+    if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
+      /* If no object, set to -1 so we don't mess up any shapekey layers. */
+      const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
+      move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vdata, *key_dst, uid_active);
     }
-    BKE_id_free(nullptr, mesh_src);
+    else if (mesh_src->totvert != mesh_dst->totvert) {
+      CLOG_ERROR(&LOG, "Mesh in Main '%s' lost shape keys", mesh_src->id.name);
+      if (mesh_src->key) {
+        id_us_min(&mesh_src->key->id);
+      }
+    }
   }
 
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
+  BKE_id_free(nullptr, mesh_src);
 }
 
 void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
@@ -1475,7 +1356,6 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
 
   int a, totvert = mesh_src->totvert;
   float *fp;
-  MVert *mvert;
 
   if (totvert == 0 || mesh_dst->totvert == 0 || mesh_dst->totvert != totvert) {
     return;
@@ -1488,9 +1368,8 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
   kb->totelem = totvert;
 
   fp = (float *)kb->data;
-  mvert = mesh_src->mvert;
-
-  for (a = 0; a < kb->totelem; a++, fp += 3, mvert++) {
-    copy_v3_v3(fp, mvert->co);
+  const Span<MVert> verts = mesh_src->verts();
+  for (a = 0; a < kb->totelem; a++, fp += 3) {
+    copy_v3_v3(fp, verts[a].co);
   }
 }

@@ -9,7 +9,7 @@ void main()
 
   /* Transform the input image by transforming the domain coordinates with the inverse of input
    * image's transformation. The inverse transformation is an affine matrix and thus the
-   * coordinates should be in homogeneous coordinates.  */
+   * coordinates should be in homogeneous coordinates. */
   coordinates = (mat3(inverse_transformation) * vec3(coordinates, 1.0)).xy;
 
   /* Since an input image with an identity transformation is supposed to be centered in the domain,

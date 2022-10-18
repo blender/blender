@@ -81,7 +81,7 @@
            layer++, a++) { \
         if (value.data == layer) { \
           CustomData_set_layer_##active_type(data, layer_type, a); \
-          BKE_mesh_update_customdata_pointers(me, true); \
+          BKE_mesh_tessface_clear(me); \
           return; \
         } \
       } \
@@ -105,6 +105,6 @@
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     if (data) { \
       CustomData_set_layer_##active_type(data, layer_type, value); \
-      BKE_mesh_update_customdata_pointers(me, true); \
+      BKE_mesh_tessface_clear(me); \
     } \
   }

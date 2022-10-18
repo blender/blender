@@ -45,7 +45,7 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
 
   /* Used for planar reflections */
-  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), clipPlanes[0]);
+  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), planarClipPlane);
 
 #ifdef MESH_SHADER
   worldPosition = world_pos;
@@ -162,6 +162,10 @@ float attr_load_temperature_post(float attr)
   return attr;
 }
 vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 {
   return attr;
 }

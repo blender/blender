@@ -54,6 +54,7 @@
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node_tree_update.h"
@@ -629,7 +630,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
     char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_join(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
     BLI_path_abs(str, BKE_main_blendfile_path(bmain));
     seq->sound = BKE_sound_new_file(bmain, str);
   }
@@ -995,9 +996,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
-
+        MVert *verts = BKE_mesh_verts_for_write(me);
         for (a = 0; a < tot; a++, data += 3) {
-          copy_v3_v3(me->mvert[a].co, data);
+          copy_v3_v3(verts[a].co, data);
         }
       }
     }
@@ -2315,7 +2316,6 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
         /* deprecated */
         sock->own_index = link->fromsock->own_index;
         sock->to_index = 0;
-        sock->groupsock = NULL;
       }
     }
   }
@@ -2328,7 +2328,6 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
         /* deprecated */
         sock->own_index = link->tosock->own_index;
         sock->to_index = 0;
-        sock->groupsock = NULL;
       }
     }
   }

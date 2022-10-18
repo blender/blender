@@ -1856,9 +1856,13 @@ enum {
 };
 
 typedef struct CorrectiveSmoothDeltaCache {
-  /* delta's between the original positions and the smoothed positions */
+  /**
+   * Delta's between the original positions and the smoothed positions,
+   * calculated loop-tangent and which is accumulated into the vertex it uses.
+   * (run-time only).
+   */
   float (*deltas)[3];
-  unsigned int totverts;
+  unsigned int deltas_num;
 
   /* Value of settings when creating the cache.
    * These are used to check if the cache should be recomputed. */

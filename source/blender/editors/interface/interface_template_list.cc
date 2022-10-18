@@ -83,15 +83,15 @@ struct TemplateListVisualInfo {
 };
 
 static void uilist_draw_item_default(struct uiList *ui_list,
-                                     const struct bContext *UNUSED(C),
+                                     const struct bContext * /*C*/,
                                      struct uiLayout *layout,
-                                     struct PointerRNA *UNUSED(dataptr),
+                                     struct PointerRNA * /*dataptr*/,
                                      struct PointerRNA *itemptr,
                                      int icon,
-                                     struct PointerRNA *UNUSED(active_dataptr),
-                                     const char *UNUSED(active_propname),
-                                     int UNUSED(index),
-                                     int UNUSED(flt_flag))
+                                     struct PointerRNA * /*active_dataptr*/,
+                                     const char * /*active_propname*/,
+                                     int /*index*/,
+                                     int /*flt_flag*/)
 {
   PropertyRNA *nameprop = RNA_struct_name_property(itemptr->type);
 
@@ -114,7 +114,7 @@ static void uilist_draw_item_default(struct uiList *ui_list,
 }
 
 static void uilist_draw_filter_default(struct uiList *ui_list,
-                                       const struct bContext *UNUSED(C),
+                                       const struct bContext * /*C*/,
                                        struct uiLayout *layout)
 {
   PointerRNA listptr;
@@ -160,7 +160,7 @@ static int cmpstringp(const void *p1, const void *p2)
 }
 
 static void uilist_filter_items_default(struct uiList *ui_list,
-                                        const struct bContext *UNUSED(C),
+                                        const struct bContext * /*C*/,
                                         struct PointerRNA *dataptr,
                                         const char *propname)
 {
@@ -519,8 +519,8 @@ static void uilist_prepare(uiList *ui_list,
 
   int activei_row;
   if (columns > 1) {
-    dyn_data->height = (int)ceil((double)items->tot_items / (double)columns);
-    activei_row = (int)floor((double)items->active_item_idx / (double)columns);
+    dyn_data->height = int(ceil(double(items->tot_items) / double(columns)));
+    activei_row = int(floor(double(items->active_item_idx) / double(columns)));
   }
   else {
     dyn_data->height = items->tot_items;
@@ -561,14 +561,14 @@ static void uilist_prepare(uiList *ui_list,
                                   items->tot_items);
 }
 
-static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
+static void uilist_resize_update_cb(bContext *C, void *arg1, void * /*arg2*/)
 {
   uiList *ui_list = static_cast<uiList *>(arg1);
   uiListDyn *dyn_data = ui_list->dyn_data;
 
   /* This way we get diff in number of additional items to show (positive) or hide (negative). */
-  const int diff = round_fl_to_int((float)(dyn_data->resize - dyn_data->resize_prev) /
-                                   (float)UI_UNIT_Y);
+  const int diff = round_fl_to_int(float(dyn_data->resize - dyn_data->resize_prev) /
+                                   float(UI_UNIT_Y));
 
   if (diff != 0) {
     ui_list->list_grip += diff;
@@ -592,7 +592,7 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
   return nullptr;
 }
 
-static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const char *tip)
+static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
   return BLI_sprintfN("%s - %s", tip, dyn_tooltip);
@@ -767,7 +767,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(col, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -916,7 +916,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(subrow, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -940,7 +940,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
       glob = uiLayoutColumn(box, true);
-      /* For scrollbar. */
+      /* For scroll-bar. */
       row = uiLayoutRow(glob, false);
 
       const bool show_names = (flags & UI_TEMPLATE_LIST_NO_NAMES) == 0;

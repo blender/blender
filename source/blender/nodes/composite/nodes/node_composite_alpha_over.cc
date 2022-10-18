@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_alpha_over_cc {
 
+NODE_STORAGE_FUNCS(NodeTwoFloats)
+
 static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Fac"))
@@ -35,12 +37,12 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_alphaover_init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = MEM_cnew<NodeTwoFloats>(__func__);
 }
 
-static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_alphaover(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -86,7 +88,7 @@ class AlphaOverShaderNode : public ShaderNode {
 
   float get_premultiply_factor()
   {
-    return ((NodeTwoFloats *)bnode().storage)->x;
+    return node_storage(bnode()).x;
   }
 };
 

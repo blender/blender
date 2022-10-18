@@ -18,6 +18,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -342,7 +343,7 @@ Nurb *ED_curve_add_nurbs_primitive(
             bp->vec[0] += fac * grid;
             fac = (float)b - 1.5f;
             bp->vec[1] += fac * grid;
-            if ((ELEM(a, 1, 2)) && (ELEM(b, 1, 2))) {
+            if (ELEM(a, 1, 2) && ELEM(b, 1, 2)) {
               bp->vec[2] += grid;
             }
             mul_m4_v3(mat, bp->vec);
@@ -495,7 +496,8 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   struct Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   ListBase *editnurb;
   Nurb *nu;
   bool newob = false;

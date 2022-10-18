@@ -159,10 +159,10 @@ PropertyScaleType RNA_property_ui_scale(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
 int RNA_property_override_flag(PropertyRNA *prop);
 /**
- * Get the tags set for \a prop as int bitfield.
+ * Get the tags set for \a prop as int bit-field.
  * \note Doesn't perform any validity check on the set bits. #RNA_def_property_tags does this
  *       in debug builds (to avoid performance issues in non-debug builds), which should be
- *       the only way to set tags. Hence, at this point we assume the tag bitfield to be valid.
+ *       the only way to set tags. Hence, at this point we assume the tag bit-field to be valid.
  */
 int RNA_property_tags(PropertyRNA *prop);
 bool RNA_property_builtin(PropertyRNA *prop);

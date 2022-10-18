@@ -34,10 +34,10 @@
 /* NOTE: for pure-ghash testing, nature of the keys and data have absolutely no importance! So here
  * we just use mere random integers stored in pointers. */
 
-static void init_keys(unsigned int keys[TESTCASE_SIZE], const int seed)
+static void init_keys(uint keys[TESTCASE_SIZE], const int seed)
 {
   RNG *rng = BLI_rng_new(seed);
-  unsigned int *k;
+  uint *k;
   int i;
 
   for (i = 0, k = keys; i < TESTCASE_SIZE;) {
@@ -61,7 +61,7 @@ static void init_keys(unsigned int keys[TESTCASE_SIZE], const int seed)
 TEST(ghash, InsertLookup)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
-  unsigned int keys[TESTCASE_SIZE], *k;
+  uint keys[TESTCASE_SIZE], *k;
   int i;
 
   init_keys(keys, 0);
@@ -85,7 +85,7 @@ TEST(ghash, InsertLookup)
 TEST(ghash, InsertRemove)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
-  unsigned int keys[TESTCASE_SIZE], *k;
+  uint keys[TESTCASE_SIZE], *k;
   int i, bkt_size;
 
   init_keys(keys, 10);
@@ -112,7 +112,7 @@ TEST(ghash, InsertRemove)
 TEST(ghash, InsertRemoveShrink)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
-  unsigned int keys[TESTCASE_SIZE], *k;
+  uint keys[TESTCASE_SIZE], *k;
   int i, bkt_size;
 
   BLI_ghash_flag_set(ghash, GHASH_FLAG_ALLOW_SHRINK);
@@ -141,7 +141,7 @@ TEST(ghash, Copy)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
   GHash *ghash_copy;
-  unsigned int keys[TESTCASE_SIZE], *k;
+  uint keys[TESTCASE_SIZE], *k;
   int i;
 
   init_keys(keys, 30);
@@ -170,7 +170,7 @@ TEST(ghash, Copy)
 TEST(ghash, Pop)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
-  unsigned int keys[TESTCASE_SIZE], *k;
+  uint keys[TESTCASE_SIZE], *k;
   int i;
 
   BLI_ghash_flag_set(ghash, GHASH_FLAG_ALLOW_SHRINK);

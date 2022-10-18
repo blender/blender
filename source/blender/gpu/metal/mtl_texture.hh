@@ -51,9 +51,9 @@ struct TextureUpdateRoutineSpecialisation {
   uint64_t hash() const
   {
     blender::DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(
+    return uint64_t(string_hasher(
         this->input_data_type + this->output_data_type +
-        std::to_string((this->component_count_input << 8) + this->component_count_output));
+        std::to_string((this->component_count_input << 8) + this->component_count_output)));
   }
 };
 
@@ -108,10 +108,10 @@ struct TextureReadRoutineSpecialisation {
   uint64_t hash() const
   {
     blender::DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
-                                   std::to_string((this->component_count_input << 8) +
-                                                  this->component_count_output +
-                                                  (this->depth_format_mode << 28)));
+    return uint64_t(string_hasher(this->input_data_type + this->output_data_type +
+                                  std::to_string((this->component_count_input << 8) +
+                                                 this->component_count_output +
+                                                 (this->depth_format_mode << 28))));
   }
 };
 
@@ -138,12 +138,12 @@ struct MTLSamplerState {
 
   operator uint() const
   {
-    return (uint)state;
+    return uint(state);
   }
 
   operator uint64_t() const
   {
-    return (uint64_t)state;
+    return uint64_t(state);
   }
 };
 
@@ -200,7 +200,7 @@ class MTLTexture : public Texture {
     TEXTURE_VIEW_SWIZZLE_DIRTY = (1 << 0),
     TEXTURE_VIEW_MIP_DIRTY = (1 << 1)
   };
-  id<MTLTexture> mip_swizzle_view_;
+  id<MTLTexture> mip_swizzle_view_ = nil;
   char tex_swizzle_mask_[4];
   MTLTextureSwizzleChannels mtl_swizzle_mask_;
   bool mip_range_dirty_ = false;
@@ -216,7 +216,6 @@ class MTLTexture : public Texture {
   /* VBO. */
   MTLVertBuf *vert_buffer_;
   id<MTLBuffer> vert_buffer_mtl_;
-  int vert_buffer_offset_;
 
   /* Core parameters and sub-resources. */
   eGPUTextureUsage gpu_image_usage_flags_;
@@ -247,13 +246,21 @@ class MTLTexture : public Texture {
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat type) override;
 
-  /* Remove once no longer required -- will just return 0 for now in MTL path*/
+  /* Remove once no longer required -- will just return 0 for now in MTL path. */
   uint gl_bindcode_get() const override;
 
   bool texture_is_baked();
   const char *get_name()
   {
     return name_;
+  }
+
+  id<MTLBuffer> get_vertex_buffer() const
+  {
+    if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {
+      return vert_buffer_mtl_;
+    }
+    return nil;
   }
 
  protected:
@@ -324,8 +331,6 @@ class MTLTexture : public Texture {
             int height);
   GPUFrameBuffer *get_blit_framebuffer(uint dst_slice, uint dst_mip);
 
-  MEM_CXX_CLASS_ALLOC_FUNCS("gpu::MTLTexture")
-
   /* Texture Update function Utilities. */
   /* Metal texture updating does not provide the same range of functionality for type conversion
    * and format compatibility as are available in OpenGL. To achieve the same level of
@@ -357,34 +362,34 @@ class MTLTexture : public Texture {
    */
   struct TextureUpdateParams {
     int mip_index;
-    int extent[3];          /* Width, Height, Slice on 2D Array tex*/
-    int offset[3];          /* Width, Height, Slice on 2D Array tex*/
-    uint unpack_row_length; /* Number of pixels between bytes in input data */
+    int extent[3];          /* Width, Height, Slice on 2D Array tex. */
+    int offset[3];          /* Width, Height, Slice on 2D Array tex. */
+    uint unpack_row_length; /* Number of pixels between bytes in input data. */
   };
 
   id<MTLComputePipelineState> texture_update_1d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_1d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_2d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_2d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_3d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
 
   id<MTLComputePipelineState> mtl_texture_update_impl(
-      TextureUpdateRoutineSpecialisation specialisation_params,
+      TextureUpdateRoutineSpecialisation specialization_params,
       blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
-          &specialisation_cache,
+          &specialization_cache,
       eGPUTextureType texture_type);
 
   /* Depth Update Utilities */
   /* Depth texture updates are not directly supported with Blit operations, similarly, we cannot
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
-   * source, in order to prime the depth buffer*/
-  GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialisation);
+   * source, in order to prime the depth buffer. */
+  GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
 
   void update_sub_depth_2d(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data);
@@ -392,29 +397,31 @@ class MTLTexture : public Texture {
   /* Texture Read function utilities -- Follows a similar mechanism to the updating routines */
   struct TextureReadParams {
     int mip_index;
-    int extent[3]; /* Width, Height, Slice on 2D Array tex*/
-    int offset[3]; /* Width, Height, Slice on 2D Array tex*/
+    int extent[3]; /* Width, Height, Slice on 2D Array tex. */
+    int offset[3]; /* Width, Height, Slice on 2D Array tex. */
   };
 
   id<MTLComputePipelineState> texture_read_1d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_1d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_2d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_2d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_3d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
 
   id<MTLComputePipelineState> mtl_texture_read_impl(
-      TextureReadRoutineSpecialisation specialisation_params,
+      TextureReadRoutineSpecialisation specialization_params,
       blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-          &specialisation_cache,
+          &specialization_cache,
       eGPUTextureType texture_type);
 
   /* fullscreen blit utilities. */
   GPUShader *fullscreen_blit_sh_get();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLTexture")
 };
 
 /* Utility */

@@ -14,9 +14,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_color.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
+
+#include "FN_field.hh"
 
 #include "BLT_translation.h"
 
@@ -55,7 +58,8 @@ const char *no_procedural_access_message =
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
-  return !attribute_name.startswith(".selection") && !attribute_name.startswith(".hide");
+  return !attribute_name.startswith(".sculpt") && !attribute_name.startswith(".select") &&
+         !attribute_name.startswith(".hide");
 }
 
 static int attribute_data_type_complexity(const eCustomDataType data_type)
@@ -266,6 +270,14 @@ static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
   return layer.name == attribute_id.name();
 }
 
+bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data) const
+{
+  if (stored_as_named_attribute_) {
+    return CustomData_get_named_layer_index(&custom_data, stored_type_, name_.c_str()) != -1;
+  }
+  return CustomData_has_layer(&custom_data, stored_type_);
+}
+
 GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(owner);
@@ -273,26 +285,25 @@ GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) cons
     return {};
   }
 
-  const void *data = nullptr;
-  bool found_attribute = false;
-  for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
-    if (stored_as_named_attribute_) {
-      if (layer.name == name_) {
-        data = layer.data;
-        found_attribute = true;
-        break;
-      }
+  /* When the number of elements is zero, layers might have null data but still exist. */
+  const int element_num = custom_data_access_.get_element_num(owner);
+  if (element_num == 0) {
+    if (this->layer_exists(*custom_data)) {
+      return as_read_attribute_(nullptr, 0);
     }
-    else if (layer.type == stored_type_) {
-      data = layer.data;
-      found_attribute = true;
-      break;
-    }
-  }
-  if (!found_attribute) {
     return {};
   }
-  const int element_num = custom_data_access_.get_element_num(owner);
+
+  const void *data = nullptr;
+  if (stored_as_named_attribute_) {
+    data = CustomData_get_layer_named(custom_data, stored_type_, name_.c_str());
+  }
+  else {
+    data = CustomData_get_layer(custom_data, stored_type_);
+  }
+  if (data == nullptr) {
+    return {};
+  }
   return as_read_attribute_(data, element_num);
 }
 
@@ -305,51 +316,32 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
   if (custom_data == nullptr) {
     return {};
   }
-  const int element_num = custom_data_access_.get_element_num(owner);
-
-  void *data = nullptr;
-  bool found_attribute = false;
-  for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
-    if (stored_as_named_attribute_) {
-      if (layer.name == name_) {
-        data = layer.data;
-        found_attribute = true;
-        break;
-      }
-    }
-    else if (layer.type == stored_type_) {
-      data = layer.data;
-      found_attribute = true;
-      break;
-    }
-  }
-  if (!found_attribute) {
-    return {};
-  }
-
-  if (data != nullptr) {
-    void *new_data;
-    if (stored_as_named_attribute_) {
-      new_data = CustomData_duplicate_referenced_layer_named(
-          custom_data, stored_type_, name_.c_str(), element_num);
-    }
-    else {
-      new_data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
-    }
-
-    if (data != new_data) {
-      if (custom_data_access_.update_custom_data_pointers) {
-        custom_data_access_.update_custom_data_pointers(owner);
-      }
-      data = new_data;
-    }
-  }
 
   std::function<void()> tag_modified_fn;
   if (update_on_change_ != nullptr) {
     tag_modified_fn = [owner, update = update_on_change_]() { update(owner); };
   }
 
+  /* When the number of elements is zero, layers might have null data but still exist. */
+  const int element_num = custom_data_access_.get_element_num(owner);
+  if (element_num == 0) {
+    if (this->layer_exists(*custom_data)) {
+      return {as_write_attribute_(nullptr, 0), domain_, std::move(tag_modified_fn)};
+    }
+    return {};
+  }
+
+  void *data = nullptr;
+  if (stored_as_named_attribute_) {
+    data = CustomData_duplicate_referenced_layer_named(
+        custom_data, stored_type_, name_.c_str(), element_num);
+  }
+  else {
+    data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
+  }
+  if (data == nullptr) {
+    return {};
+  }
   return {as_write_attribute_(data, element_num), domain_, std::move(tag_modified_fn)};
 }
 
@@ -372,9 +364,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
     if (CustomData_free_layer_named(custom_data, name_.c_str(), element_num)) {
-      if (custom_data_access_.update_custom_data_pointers) {
-        custom_data_access_.update_custom_data_pointers(owner);
-      }
       update();
       return true;
     }
@@ -383,9 +372,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
 
   const int layer_index = CustomData_get_layer_index(custom_data, stored_type_);
   if (CustomData_free_layer(custom_data, stored_type_, element_num, layer_index)) {
-    if (custom_data_access_.update_custom_data_pointers) {
-      custom_data_access_.update_custom_data_pointers(owner);
-    }
     update();
     return true;
   }
@@ -405,29 +391,21 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
   }
 
   const int element_num = custom_data_access_.get_element_num(owner);
-  bool success;
   if (stored_as_named_attribute_) {
     if (CustomData_get_layer_named(custom_data, data_type_, name_.c_str())) {
       /* Exists already. */
       return false;
     }
-    success = add_custom_data_layer_from_attribute_init(
+    return add_custom_data_layer_from_attribute_init(
         name_, *custom_data, stored_type_, element_num, initializer);
   }
-  else {
-    if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
-      /* Exists already. */
-      return false;
-    }
-    success = add_builtin_type_custom_data_layer_from_init(
-        *custom_data, stored_type_, element_num, initializer);
+
+  if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
+    /* Exists already. */
+    return false;
   }
-  if (success) {
-    if (custom_data_access_.update_custom_data_pointers) {
-      custom_data_access_.update_custom_data_pointers(owner);
-    }
-  }
-  return success;
+  return add_builtin_type_custom_data_layer_from_init(
+      *custom_data, stored_type_, element_num, initializer);
 }
 
 bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
@@ -589,15 +567,9 @@ GAttributeWriter NamedLegacyCustomDataProvider::try_get_for_write(
     if (layer.type == stored_type_) {
       if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
         const int element_num = custom_data_access_.get_element_num(owner);
-        void *data_old = layer.data;
-        void *data_new = CustomData_duplicate_referenced_layer_named(
+        void *data = CustomData_duplicate_referenced_layer_named(
             custom_data, stored_type_, layer.name, element_num);
-        if (data_old != data_new) {
-          if (custom_data_access_.update_custom_data_pointers) {
-            custom_data_access_.update_custom_data_pointers(owner);
-          }
-        }
-        return {as_write_attribute_(layer.data, element_num), domain_};
+        return {as_write_attribute_(data, element_num), domain_};
       }
     }
   }
@@ -617,9 +589,6 @@ bool NamedLegacyCustomDataProvider::try_delete(void *owner,
       if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
         const int element_num = custom_data_access_.get_element_num(owner);
         CustomData_free_layer(custom_data, stored_type_, element_num, i);
-        if (custom_data_access_.update_custom_data_pointers) {
-          custom_data_access_.update_custom_data_pointers(owner);
-        }
         return true;
       }
     }
@@ -761,8 +730,22 @@ bool CustomDataAttributes::remove(const AttributeIDRef &attribute_id)
 
 void CustomDataAttributes::reallocate(const int size)
 {
+  const int old_size = size_;
   size_ = size;
-  CustomData_realloc(&data, size);
+  CustomData_realloc(&data, old_size, size_);
+  if (size_ > old_size) {
+    /* Fill default new values. */
+    const int new_elements_num = size_ - old_size;
+    this->foreach_attribute(
+        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+          GMutableSpan new_data = this->get_for_write(id)->take_back(new_elements_num);
+          const CPPType &type = new_data.type();
+          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+          return true;
+        },
+        /* Dummy. */
+        ATTR_DOMAIN_POINT);
+  }
 }
 
 void CustomDataAttributes::clear()
@@ -782,26 +765,6 @@ bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback call
     }
   }
   return true;
-}
-
-void CustomDataAttributes::reorder(Span<AttributeIDRef> new_order)
-{
-  BLI_assert(new_order.size() == data.totlayer);
-
-  Map<AttributeIDRef, int> old_order;
-  old_order.reserve(data.totlayer);
-  Array<CustomDataLayer> old_layers(Span(data.layers, data.totlayer));
-  for (const int i : old_layers.index_range()) {
-    old_order.add_new(attribute_id_from_custom_data_layer(old_layers[i]), i);
-  }
-
-  MutableSpan layers(data.layers, data.totlayer);
-  for (const int i : layers.index_range()) {
-    const int old_index = old_order.lookup(new_order[i]);
-    layers[i] = old_layers[old_index];
-  }
-
-  CustomData_update_typemap(&data);
 }
 
 /* -------------------------------------------------------------------- */
@@ -930,6 +893,16 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
   return attribute;
 }
 
+GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
+    const AttributeIDRef &attribute_id)
+{
+  GAttributeWriter attribute = this->lookup_for_write(attribute_id);
+  if (attribute) {
+    return GSpanAttributeWriter{std::move(attribute), true};
+  }
+  return {};
+}
+
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
     const AttributeIDRef &attribute_id,
     const eAttrDomain domain,
@@ -966,11 +939,21 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span(
     const AttributeIDRef &attribute_id, const eAttrDomain domain, const eCustomDataType data_type)
 {
-  GAttributeWriter attribute = this->lookup_or_add_for_write(attribute_id, domain, data_type);
+  GAttributeWriter attribute = this->lookup_or_add_for_write(
+      attribute_id, domain, data_type, AttributeInitConstruct());
   if (attribute) {
     return GSpanAttributeWriter{std::move(attribute), false};
   }
   return {};
+}
+
+fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &field) const
+{
+  if (function) {
+    auto validate_op = fn::FieldOperation::Create(*function, {field});
+    return fn::GField(validate_op);
+  }
+  return field;
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
@@ -1002,6 +985,37 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
         return true;
       });
   return attributes;
+}
+
+void copy_attribute_domain(const AttributeAccessor src_attributes,
+                           MutableAttributeAccessor dst_attributes,
+                           const IndexMask selection,
+                           const eAttrDomain domain,
+                           const Set<std::string> &skip)
+{
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
+        if (meta_data.domain != domain) {
+          return true;
+        }
+        if (id.is_named() && skip.contains(id.name())) {
+          return true;
+        }
+        if (!id.should_be_kept()) {
+          return true;
+        }
+
+        const GVArray src = src_attributes.lookup(id, meta_data.domain);
+        BLI_assert(src);
+
+        /* Copy attribute. */
+        GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            id, domain, meta_data.data_type);
+        array_utils::copy(src, selection, dst.span);
+        dst.finish();
+
+        return true;
+      });
 }
 
 }  // namespace blender::bke

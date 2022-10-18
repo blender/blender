@@ -32,6 +32,8 @@
 
 namespace blender::nodes::node_composite_lensdist_cc {
 
+NODE_STORAGE_FUNCS(NodeLensDist)
+
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -50,14 +52,14 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeLensDist *nld = MEM_cnew<NodeLensDist>(__func__);
   nld->jit = nld->proj = nld->fit = 0;
   node->storage = nld;
 }
 
-static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -197,22 +199,17 @@ class LensDistortionOperation : public NodeOperation {
 
   bool get_is_projector()
   {
-    return get_node_lens_distortion().proj;
+    return node_storage(bnode()).proj;
   }
 
   bool get_is_jitter()
   {
-    return get_node_lens_distortion().jit;
+    return node_storage(bnode()).jit;
   }
 
   bool get_is_fit()
   {
-    return get_node_lens_distortion().fit;
-  }
-
-  NodeLensDist &get_node_lens_distortion()
-  {
-    return *static_cast<NodeLensDist *>(bnode().storage);
+    return node_storage(bnode()).fit;
   }
 
   /* Returns true if the operation does nothing and the input can be passed through. */

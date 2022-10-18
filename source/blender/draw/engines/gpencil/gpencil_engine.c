@@ -459,6 +459,7 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", iter->tex_stroke);
   DRW_shgroup_uniform_int_copy(grp, "gpMaterialOffset", iter->mat_ofs);
   DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", iter->stroke_index_offset);
+  DRW_shgroup_uniform_vec2_copy(grp, "viewportSize", DRW_viewport_size_get());
 }
 
 static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
@@ -799,7 +800,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
     }
 
     GPENCIL_tLayer *mask_layer = gpencil_layer_cache_get(ob, i);
-    /* When filtering by viewlayer, the mask could be null and must be ignored. */
+    /* When filtering by view-layer, the mask could be null and must be ignored. */
     if (mask_layer == NULL) {
       continue;
     }

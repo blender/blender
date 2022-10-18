@@ -175,9 +175,10 @@ struct Object *BKE_object_add_only_object(struct Main *bmain,
  * \note Creates minimum required data, but without vertices etc.
  */
 struct Object *BKE_object_add(struct Main *bmain,
+                              struct Scene *scene,
                               struct ViewLayer *view_layer,
                               int type,
-                              const char *name) ATTR_NONNULL(1, 2) ATTR_RETURNS_NONNULL;
+                              const char *name) ATTR_NONNULL(1, 2, 3) ATTR_RETURNS_NONNULL;
 /**
  * Add a new object, using another one as a reference
  *
@@ -200,6 +201,7 @@ struct Object *BKE_object_add_from(struct Main *bmain,
  * assigning it to the object.
  */
 struct Object *BKE_object_add_for_data(struct Main *bmain,
+                                       const struct Scene *scene,
                                        struct ViewLayer *view_layer,
                                        int type,
                                        const char *name,
@@ -283,31 +285,38 @@ void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 bool BKE_object_pose_context_check(const struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
 struct Object *BKE_object_pose_armature_get_visible(struct Object *ob,
+                                                    const struct Scene *scene,
                                                     struct ViewLayer *view_layer,
                                                     struct View3D *v3d);
 
 /**
  * Access pose array with special check to get pose object when in weight paint mode.
  */
-struct Object **BKE_object_pose_array_get_ex(struct ViewLayer *view_layer,
+struct Object **BKE_object_pose_array_get_ex(const struct Scene *scene,
+                                             struct ViewLayer *view_layer,
                                              struct View3D *v3d,
                                              unsigned int *r_objects_len,
                                              bool unique);
-struct Object **BKE_object_pose_array_get_unique(struct ViewLayer *view_layer,
+struct Object **BKE_object_pose_array_get_unique(const struct Scene *scene,
+                                                 struct ViewLayer *view_layer,
                                                  struct View3D *v3d,
                                                  unsigned int *r_objects_len);
-struct Object **BKE_object_pose_array_get(struct ViewLayer *view_layer,
+struct Object **BKE_object_pose_array_get(const struct Scene *scene,
+                                          struct ViewLayer *view_layer,
                                           struct View3D *v3d,
                                           unsigned int *r_objects_len);
 
-struct Base **BKE_object_pose_base_array_get_ex(struct ViewLayer *view_layer,
+struct Base **BKE_object_pose_base_array_get_ex(const struct Scene *scene,
+                                                struct ViewLayer *view_layer,
                                                 struct View3D *v3d,
                                                 unsigned int *r_bases_len,
                                                 bool unique);
-struct Base **BKE_object_pose_base_array_get_unique(struct ViewLayer *view_layer,
+struct Base **BKE_object_pose_base_array_get_unique(const struct Scene *scene,
+                                                    struct ViewLayer *view_layer,
                                                     struct View3D *v3d,
                                                     unsigned int *r_bases_len);
-struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer,
+struct Base **BKE_object_pose_base_array_get(const struct Scene *scene,
+                                             struct ViewLayer *view_layer,
                                              struct View3D *v3d,
                                              unsigned int *r_bases_len);
 
@@ -612,7 +621,8 @@ typedef enum eObjectSet {
  * If #OB_SET_VISIBLE or#OB_SET_SELECTED are collected,
  * then also add related objects according to the given \a includeFilter.
  */
-struct LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer,
+struct LinkNode *BKE_object_relational_superset(const struct Scene *scene,
+                                                struct ViewLayer *view_layer,
                                                 eObjectSet objectSet,
                                                 eObRelationTypes includeFilter);
 /**

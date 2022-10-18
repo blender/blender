@@ -150,13 +150,13 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
   }
 
   if (/* X range. */
-      (!(crop.xmin >= 0 && crop.xmax < self->ibuf->x)) ||
+      !(crop.xmin >= 0 && crop.xmax < self->ibuf->x) ||
       /* Y range. */
-      (!(crop.ymin >= 0 && crop.ymax < self->ibuf->y)) ||
+      !(crop.ymin >= 0 && crop.ymax < self->ibuf->y) ||
       /* X order. */
-      (!(crop.xmin <= crop.xmax)) ||
+      !(crop.xmin <= crop.xmax) ||
       /* Y order. */
-      (!(crop.ymin <= crop.ymax))) {
+      !(crop.ymin <= crop.ymax)) {
     PyErr_SetString(PyExc_ValueError, "ImBuf crop min/max not in range");
     return NULL;
   }
@@ -570,7 +570,7 @@ static struct PyModuleDef IMB_module_def = {
     IMB_doc,     /* m_doc */
     0,           /* m_size */
     IMB_methods, /* m_methods */
-    NULL,        /* m_reload */
+    NULL,        /* m_slots */
     NULL,        /* m_traverse */
     NULL,        /* m_clear */
     NULL,        /* m_free */
@@ -614,7 +614,7 @@ static struct PyModuleDef IMB_types_module_def = {
     IMB_types_doc, /* m_doc */
     0,             /* m_size */
     NULL,          /* m_methods */
-    NULL,          /* m_reload */
+    NULL,          /* m_slots */
     NULL,          /* m_traverse */
     NULL,          /* m_clear */
     NULL,          /* m_free */

@@ -12,7 +12,7 @@ CombineColorNode::CombineColorNode(bNode *editor_node) : Node(editor_node)
 }
 
 void CombineColorNode::convert_to_operations(NodeConverter &converter,
-                                             const CompositorContext &UNUSED(context)) const
+                                             const CompositorContext & /*context*/) const
 {
   NodeInput *input_rsocket = this->get_input_socket(0);
   NodeInput *input_gsocket = this->get_input_socket(1);
@@ -40,7 +40,7 @@ void CombineColorNode::convert_to_operations(NodeConverter &converter,
   converter.map_input_socket(input_bsocket, operation->get_input_socket(2));
   converter.map_input_socket(input_asocket, operation->get_input_socket(3));
 
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)editor_node->storage;
 
   NodeOperation *color_conv = nullptr;

@@ -22,7 +22,7 @@ class BoxMaskOperation : public MultiThreadedOperation {
   float aspect_ratio_;
   int mask_type_;
 
-  NodeBoxMask *data_;
+  const NodeBoxMask *data_;
 
  public:
   BoxMaskOperation();
@@ -42,7 +42,7 @@ class BoxMaskOperation : public MultiThreadedOperation {
    */
   void deinit_execution() override;
 
-  void set_data(NodeBoxMask *data)
+  void set_data(const NodeBoxMask *data)
   {
     data_ = data;
   }

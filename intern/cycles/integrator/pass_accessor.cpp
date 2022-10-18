@@ -191,6 +191,12 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
        * had the computation done. */
       if (pass_info.num_components == 3) {
         get_pass_float3(render_buffers, buffer_params, destination);
+
+        /* Use alpha for colors passes. */
+        if (type == PASS_DIFFUSE_COLOR || type == PASS_GLOSSY_COLOR ||
+            type == PASS_TRANSMISSION_COLOR) {
+          num_written_components = destination.num_components;
+        }
       }
       else if (pass_info.num_components == 4) {
         if (destination.num_components == 3) {

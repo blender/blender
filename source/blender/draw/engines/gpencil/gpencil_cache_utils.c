@@ -49,7 +49,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   for (int i = 0; i < tot_materials; i++) {
     MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, i + 1);
     if (((gp_style != NULL) && (gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT)) ||
-        ((gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT))) {
+        (gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT)) {
       tgp_ob->do_mat_holdout = true;
       break;
     }

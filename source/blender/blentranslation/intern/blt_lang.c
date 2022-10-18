@@ -72,7 +72,7 @@ static void fill_locales(void)
 
   free_locales();
 
-  BLI_join_dirfile(languages, FILE_MAX, languages_path, "languages");
+  BLI_path_join(languages, FILE_MAX, languages_path, "languages");
   line = lines = BLI_file_read_as_lines(languages);
 
   /* This whole "parsing" code is a bit weak, in that it expects strictly formatted input file...
@@ -263,7 +263,6 @@ void BLT_lang_set(const char *str)
 #else
   (void)str;
 #endif
-  IMB_thumb_clear_translations();
 }
 
 const char *BLT_lang_get(void)

@@ -121,7 +121,7 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = add_attr(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
   immRecti(pos, x1, y1, x2, y2);
   immUnbindProgram();
@@ -195,7 +195,7 @@ static void imm_draw_circle_partial(GPUPrimType prim_type,
                                     float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
@@ -219,7 +219,7 @@ static void imm_draw_circle_partial_3d(GPUPrimType prim_type,
                                        float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)(M_PI / 2);
+  const float angle_start = -DEG2RADF(start) + (float)(M_PI / 2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
@@ -259,7 +259,7 @@ static void imm_draw_disk_partial(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);
@@ -289,7 +289,7 @@ static void imm_draw_disk_partial_3d(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -(DEG2RADF(start)) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);

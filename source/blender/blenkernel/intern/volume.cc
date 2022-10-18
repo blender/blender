@@ -363,7 +363,7 @@ struct VolumeGrid {
     is_loaded = false;
   }
 
-  void clear_reference(const char *UNUSED(volume_name))
+  void clear_reference(const char * /*volume_name*/)
   {
     /* Clear any reference to a grid in the file cache. */
     local_grid = grid()->copyGridWithNewTree();
@@ -515,10 +515,7 @@ static void volume_init_data(ID *id)
   BLI_strncpy(volume->velocity_grid, "velocity", sizeof(volume->velocity_grid));
 }
 
-static void volume_copy_data(Main *UNUSED(bmain),
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int UNUSED(flag))
+static void volume_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Volume *volume_dst = (Volume *)id_dst;
   const Volume *volume_src = (const Volume *)id_src;
@@ -661,7 +658,7 @@ IDTypeInfo IDType_ID_VO = {
     /* foreach_id */ volume_foreach_id,
     /* foreach_cache */ volume_foreach_cache,
     /* foreach_path */ volume_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ volume_blend_write,
     /* blend_read_data */ volume_blend_read_data,
@@ -1636,8 +1633,8 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, flo
 
   openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
 
-  r_min = float3((float)bbox.min().x(), (float)bbox.min().y(), (float)bbox.min().z());
-  r_max = float3((float)bbox.max().x(), (float)bbox.max().y(), (float)bbox.max().z());
+  r_min = float3(float(bbox.min().x()), float(bbox.min().y()), float(bbox.min().z()));
+  r_max = float3(float(bbox.max().x()), float(bbox.max().y()), float(bbox.max().z()));
 
   return true;
 }
@@ -1646,7 +1643,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
                                                               const blender::float4x4 &transform)
 {
   openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
-  grid_transform->postMult(openvdb::Mat4d(((float *)transform.values)));
+  grid_transform->postMult(openvdb::Mat4d((float *)transform.values));
 
   /* Create a transformed grid. The underlying tree is shared. */
   return grid->copyGridReplacingTransform(grid_transform);

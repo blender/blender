@@ -14,6 +14,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
@@ -28,6 +29,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1664,7 +1666,7 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 static void stitch_draw_vbo(GPUVertBuf *vbo, GPUPrimType prim_type, const float col[4])
 {
   GPUBatch *batch = GPU_batch_create_ex(prim_type, vbo, NULL, GPU_BATCH_OWNS_VBO);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(batch, "color", col);
   GPU_batch_draw(batch);
   GPU_batch_discard(batch);
@@ -1855,7 +1857,7 @@ static StitchState *stitch_init(bContext *C,
    * for stitch this isn't useful behavior, see T86924. */
   const int selectmode_orig = scene->toolsettings->selectmode;
   scene->toolsettings->selectmode = SCE_SELECT_VERTEX;
-  state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, true, true);
+  state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, true, true, true);
   scene->toolsettings->selectmode = selectmode_orig;
 
   if (!state->element_map) {
@@ -2174,6 +2176,28 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
 
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, v3d, &objects_len);
+
+  if (objects_len == 0) {
+    MEM_freeN(objects);
+    BKE_report(op->reports, RPT_ERROR, "No objects selected");
+    return 0;
+  }
+
+  if (objects_len > RNA_MAX_ARRAY_LENGTH) {
+    MEM_freeN(objects);
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Stitching only works with less than %i objects selected (%u selected)",
+                RNA_MAX_ARRAY_LENGTH,
+                objects_len);
+    return 0;
+  }
+
   StitchStateContainer *ssc = MEM_callocN(sizeof(StitchStateContainer), "stitch collection");
 
   op->customdata = ssc;
@@ -2206,21 +2230,6 @@ static int stitch_init_all(bContext *C, wmOperator *op)
         ssc->mode = STITCH_EDGE;
       }
     }
-  }
-
-  ssc->objects_len = 0;
-  ssc->states = NULL;
-
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, v3d, &objects_len);
-
-  if (objects_len == 0) {
-    MEM_freeN(objects);
-    state_delete_all(ssc);
-    return 0;
   }
 
   ssc->objects = MEM_callocN(sizeof(Object *) * objects_len, "Object *ssc->objects");
@@ -2288,6 +2297,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 
   if (ssc->objects_len == 0) {
     state_delete_all(ssc);
+    BKE_report(op->reports, RPT_ERROR, "Could not initialize stitching on any selected object");
     return 0;
   }
 

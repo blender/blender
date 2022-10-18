@@ -26,23 +26,23 @@ SpreadsheetDrawer::SpreadsheetDrawer()
 
 SpreadsheetDrawer::~SpreadsheetDrawer() = default;
 
-void SpreadsheetDrawer::draw_top_row_cell(int UNUSED(column_index),
-                                          const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_top_row_cell(int /*column_index*/,
+                                          const CellDrawParams & /*params*/) const
 {
 }
 
-void SpreadsheetDrawer::draw_left_column_cell(int UNUSED(row_index),
-                                              const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_left_column_cell(int /*row_index*/,
+                                              const CellDrawParams & /*params*/) const
 {
 }
 
-void SpreadsheetDrawer::draw_content_cell(int UNUSED(row_index),
-                                          int UNUSED(column_index),
-                                          const CellDrawParams &UNUSED(params)) const
+void SpreadsheetDrawer::draw_content_cell(int /*row_index*/,
+                                          int /*column_index*/,
+                                          const CellDrawParams & /*params*/) const
 {
 }
 
-int SpreadsheetDrawer::column_width(int UNUSED(column_index)) const
+int SpreadsheetDrawer::column_width(int /*column_index*/) const
 {
   return 5 * UI_UNIT_X;
 }
@@ -273,7 +273,7 @@ void draw_spreadsheet_in_region(const bContext *C,
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   draw_index_column_background(pos, region, drawer);
   draw_alternating_row_overlay(pos, scroll_offset_y, region, drawer);

@@ -22,6 +22,7 @@
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -169,6 +170,7 @@ struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_crea
 
 void ED_object_xform_skip_child_container_item_ensure_from_array(
     struct XFormObjectSkipChild_Container *xcs,
+    const Scene *scene,
     ViewLayer *view_layer,
     Object **objects,
     uint objects_len)
@@ -178,8 +180,9 @@ void ED_object_xform_skip_child_container_item_ensure_from_array(
     Object *ob = objects[ob_index];
     BLI_gset_add(objects_in_transdata, ob);
   }
-
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
+  LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
     if (ob->parent != NULL) {
       if (!BLI_gset_haskey(objects_in_transdata, ob)) {
@@ -209,7 +212,7 @@ void ED_object_xform_skip_child_container_item_ensure_from_array(
     }
   }
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
 
     if (BLI_gset_haskey(objects_in_transdata, ob)) {

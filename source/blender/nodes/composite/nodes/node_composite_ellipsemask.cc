@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_composite_ellipsemask_cc {
 
+NODE_STORAGE_FUNCS(NodeEllipseMask)
+
 static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Mask")).default_value(0.0f).min(0.0f).max(1.0f);
@@ -30,7 +32,7 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeEllipseMask *data = MEM_cnew<NodeEllipseMask>(__func__);
   data->x = 0.5;
@@ -41,7 +43,7 @@ static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
-static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
   row = uiLayoutRow(layout, true);
@@ -121,24 +123,19 @@ class EllipseMaskOperation : public NodeOperation {
     }
   }
 
-  NodeEllipseMask &get_node_ellipse_mask()
-  {
-    return *static_cast<NodeEllipseMask *>(bnode().storage);
-  }
-
   float2 get_location()
   {
-    return float2(get_node_ellipse_mask().x, get_node_ellipse_mask().y);
+    return float2(node_storage(bnode()).x, node_storage(bnode()).y);
   }
 
   float2 get_size()
   {
-    return float2(get_node_ellipse_mask().width, get_node_ellipse_mask().height);
+    return float2(node_storage(bnode()).width, node_storage(bnode()).height);
   }
 
   float get_angle()
   {
-    return get_node_ellipse_mask().rotation;
+    return node_storage(bnode()).rotation;
   }
 };
 

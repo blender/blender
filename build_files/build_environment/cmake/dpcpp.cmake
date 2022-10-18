@@ -68,7 +68,7 @@ set(DPCPP_EXTRA_ARGS
 )
 
 if(WIN32)
-   list(APPEND DPCPP_EXTRA_ARGS -DPython3_FIND_REGISTRY=NEVER)
+  list(APPEND DPCPP_EXTRA_ARGS -DPython3_FIND_REGISTRY=NEVER)
 endif()
 
 ExternalProject_Add(external_dpcpp

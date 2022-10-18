@@ -45,8 +45,10 @@ static bool WIDGETGROUP_light_spot_poll(const bContext *C, wmGizmoGroupType *UNU
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_LAMP) {
@@ -76,8 +78,10 @@ static void WIDGETGROUP_light_spot_refresh(const bContext *C, wmGizmoGroup *gzgr
 {
   wmGizmoWrapper *wwrapper = gzgroup->customdata;
   wmGizmo *gz = wwrapper->gizmo;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Light *la = ob->data;
   float dir[3];
 
@@ -156,8 +160,10 @@ static bool WIDGETGROUP_light_area_poll(const bContext *C, wmGizmoGroupType *UNU
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_LAMP) {
@@ -186,8 +192,10 @@ static void WIDGETGROUP_light_area_setup(const bContext *UNUSED(C), wmGizmoGroup
 static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   wmGizmoWrapper *wwrapper = gzgroup->customdata;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Light *la = ob->data;
   wmGizmo *gz = wwrapper->gizmo;
 
@@ -239,13 +247,15 @@ static bool WIDGETGROUP_light_target_poll(const bContext *C, wmGizmoGroupType *U
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_LAMP) {
       Light *la = ob->data;
-      return (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA));
+      return ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA);
     }
 #if 0
     else if (ob->type == OB_CAMERA) {
@@ -280,8 +290,10 @@ static void WIDGETGROUP_light_target_setup(const bContext *UNUSED(C), wmGizmoGro
 static void WIDGETGROUP_light_target_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   wmGizmoWrapper *wwrapper = gzgroup->customdata;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   wmGizmo *gz = wwrapper->gizmo;
 
   normalize_m4_m4(gz->matrix_basis, ob->obmat);

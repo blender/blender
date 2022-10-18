@@ -31,7 +31,7 @@ static void cmp_node_huecorrect_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_huecorrect(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
@@ -59,7 +59,7 @@ class HueCorrectShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = get_curve_mapping();
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -84,9 +84,9 @@ class HueCorrectShaderNode : public ShaderNode {
                    GPU_uniform(range_dividers));
   }
 
-  CurveMapping *get_curve_mapping()
+  const CurveMapping *get_curve_mapping()
   {
-    return static_cast<CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(bnode().storage);
   }
 };
 

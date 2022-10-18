@@ -142,7 +142,7 @@ static bool panel_active_animation_changed(ListBase *lb,
     }
 
     /* Detect changes in panel expansions. */
-    if ((bool)(panel->runtime_flag & PANEL_WAS_CLOSED) != UI_panel_is_closed(panel)) {
+    if (bool(panel->runtime_flag & PANEL_WAS_CLOSED) != UI_panel_is_closed(panel)) {
       *r_panel_animation = panel;
       return false;
     }
@@ -1160,7 +1160,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
 
     GPUBatch *batch = GPU_batch_preset_panel_drag_widget(
         U.pixelsize, color_high, color_dark, drag_widget_size);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_FLAT_COLOR);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
     GPU_batch_draw(batch);
     GPU_matrix_pop();
   }
@@ -1181,7 +1181,7 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   const float aspect = panel->runtime.block->aspect;
   const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Panel backdrop. */
@@ -1232,7 +1232,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
       rect->xmin,
       rect->xmax,
       rect->ymax,
-      rect->ymax + (int)floor(PNL_HEADER / block->aspect + 0.001f),
+      rect->ymax + int(floor(PNL_HEADER / block->aspect + 0.001f)),
   };
 
   if (show_background) {
@@ -1343,7 +1343,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, M_PI_2);
   ui_fontscale(&fstyle_points, aspect);
-  BLF_size(fontid, fstyle_points * U.pixelsize, U.dpi);
+  BLF_size(fontid, fstyle_points * U.dpi_fac);
 
   /* Check the region type supports categories to avoid an assert
    * for showing 3D view panels in the properties space. */
@@ -1368,7 +1368,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   }
 
   if (y_ofs > BLI_rcti_size_y(&v2d->mask)) {
-    scaletabs = (float)BLI_rcti_size_y(&v2d->mask) / (float)y_ofs;
+    scaletabs = float(BLI_rcti_size_y(&v2d->mask)) / float(y_ofs);
 
     LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
       rcti *rct = &pc_dyn->rect;
@@ -1384,7 +1384,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the background. */
   if (is_alpha) {
@@ -1429,7 +1429,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     if (is_active == false && is_active_prev == false && pc_dyn->prev) {
       pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fvAlpha(theme_col_tab_outline, 0.3f);
       immRecti(pos,
                is_left ? v2d->mask.xmin + (category_tabs_width / 5) :
@@ -1463,7 +1463,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
       /* Disguise the outline on one side to join the tab to the panel. */
       pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformColor4fv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
       immRecti(pos,
@@ -1705,12 +1705,12 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     }
 
     if (ps->new_offset_x != ps->panel->ofsx) {
-      const float x = interpf((float)ps->new_offset_x, (float)ps->panel->ofsx, factor);
+      const float x = interpf(float(ps->new_offset_x), float(ps->panel->ofsx), factor);
       ps->panel->ofsx = round_fl_to_int(x);
       changed = true;
     }
     if (ps->new_offset_y != ps->panel->ofsy) {
-      const float y = interpf((float)ps->new_offset_y, (float)ps->panel->ofsy, factor);
+      const float y = interpf(float(ps->new_offset_y), float(ps->panel->ofsy), factor);
       ps->panel->ofsy = round_fl_to_int(y);
       changed = true;
     }
@@ -1804,7 +1804,7 @@ static void panels_layout_begin_clear_flags(ListBase *lb)
   }
 }
 
-void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
+void UI_panels_begin(const bContext * /*C*/, ARegion *region)
 {
   /* Set all panels as inactive, so that at the end we know which ones were used. Also
    * clear other flags so we know later that their values were set for the current redraw. */
@@ -1875,13 +1875,13 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   /* Keep the drag position in the region with a small pad to keep the panel visible. */
   const int y = clamp_i(event->xy[1], region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
 
-  float dy = (float)(y - data->starty);
+  float dy = float(y - data->starty);
 
   /* Adjust for region zoom. */
-  dy *= BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
+  dy *= BLI_rctf_size_y(&region->v2d.cur) / float(BLI_rcti_size_y(&region->winrct));
 
   /* Add the movement of the view due to edge scrolling while dragging. */
-  dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
+  dy += (float(region->v2d.cur.ymin) - data->start_cur_ymin);
 
   panel->ofsy = data->startofsy + round_fl_to_int(dy);
 
@@ -1902,16 +1902,16 @@ static uiPanelMouseState ui_panel_mouse_state_get(const uiBlock *block,
                                                   const int mx,
                                                   const int my)
 {
-  if (!IN_RANGE((float)mx, block->rect.xmin, block->rect.xmax)) {
+  if (!IN_RANGE(float(mx), block->rect.xmin, block->rect.xmax)) {
     return PANEL_MOUSE_OUTSIDE;
   }
 
-  if (IN_RANGE((float)my, block->rect.ymax, block->rect.ymax + PNL_HEADER)) {
+  if (IN_RANGE(float(my), block->rect.ymax, block->rect.ymax + PNL_HEADER)) {
     return PANEL_MOUSE_INSIDE_HEADER;
   }
 
   if (!UI_panel_is_closed(panel)) {
-    if (IN_RANGE((float)my, block->rect.ymin, block->rect.ymax + PNL_HEADER)) {
+    if (IN_RANGE(float(my), block->rect.ymin, block->rect.ymax + PNL_HEADER)) {
       return PANEL_MOUSE_INSIDE_CONTENT;
     }
   }
@@ -1924,7 +1924,7 @@ struct uiPanelDragCollapseHandle {
   int xy_init[2];
 };
 
-static void ui_panel_drag_collapse_handler_remove(bContext *UNUSED(C), void *userdata)
+static void ui_panel_drag_collapse_handler_remove(bContext * /*C*/, void *userdata)
 {
   uiPanelDragCollapseHandle *dragcol_data = static_cast<uiPanelDragCollapseHandle *>(userdata);
   MEM_freeN(dragcol_data);
@@ -1937,8 +1937,8 @@ static void ui_panel_drag_collapse(const bContext *C,
   ARegion *region = CTX_wm_region(C);
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    float xy_a_block[2] = {(float)dragcol_data->xy_init[0], (float)dragcol_data->xy_init[1]};
-    float xy_b_block[2] = {(float)xy_dst[0], (float)xy_dst[1]};
+    float xy_a_block[2] = {float(dragcol_data->xy_init[0]), float(dragcol_data->xy_init[1])};
+    float xy_b_block[2] = {float(xy_dst[0]), float(xy_dst[1])};
     Panel *panel = block->panel;
 
     if (panel == nullptr || (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER))) {

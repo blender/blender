@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "BKE_mesh.h"
+
+#include "BLI_task.hh"
+
+#include "node_geometry_util.hh"
+
+namespace blender::nodes::node_geo_mesh_topology_vertex_of_corner_cc {
+
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>(N_("Corner Index"))
+      .implicit_field(implicit_field_inputs::index)
+      .description(
+          N_("The corner to retrieve data from. Defaults to the corner from the context"));
+  b.add_output<decl::Int>(N_("Vertex Index"))
+      .dependent_field()
+      .description(N_("The vertex the corner is attached to"));
+}
+
+static int get_loop_vert(const MLoop &loop)
+{
+  return loop.v;
+}
+
+class CornerVertFieldInput final : public bke::MeshFieldInput {
+ public:
+  CornerVertFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Corner Vertex")
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const Mesh &mesh,
+                                 const eAttrDomain domain,
+                                 const IndexMask /*mask*/) const final
+  {
+    if (domain != ATTR_DOMAIN_CORNER) {
+      return {};
+    }
+    return VArray<int>::ForDerivedSpan<MLoop, get_loop_vert>(mesh.loops());
+  }
+
+  uint64_t hash() const final
+  {
+    return 30495867093876;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const final
+  {
+    if (dynamic_cast<const CornerVertFieldInput *>(&other)) {
+      return true;
+    }
+    return false;
+  }
+};
+
+static void node_geo_exec(GeoNodeExecParams params)
+{
+  params.set_output("Vertex Index",
+                    Field<int>(std::make_shared<FieldAtIndexInput>(
+                        params.extract_input<Field<int>>("Corner Index"),
+                        Field<int>(std::make_shared<CornerVertFieldInput>()),
+                        ATTR_DOMAIN_CORNER)));
+}
+
+}  // namespace blender::nodes::node_geo_mesh_topology_vertex_of_corner_cc
+
+void register_node_type_geo_mesh_topology_vertex_of_corner()
+{
+  namespace file_ns = blender::nodes::node_geo_mesh_topology_vertex_of_corner_cc;
+
+  static bNodeType ntype;
+  geo_node_type_base(
+      &ntype, GEO_NODE_MESH_TOPOLOGY_VERTEX_OF_CORNER, "Vertex of Corner", NODE_CLASS_INPUT);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
+  nodeRegisterType(&ntype);
+}

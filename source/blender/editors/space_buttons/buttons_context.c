@@ -155,7 +155,8 @@ static bool buttons_context_path_collection(const bContext *C,
   /* if we have a view layer, use the view layer's active collection */
   if (buttons_context_path_view_layer(path, window)) {
     ViewLayer *view_layer = path->ptr[path->len - 1].data;
-    Collection *c = view_layer->active_collection->collection;
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Collection *c = BKE_view_layer_active_collection_get(view_layer)->collection;
 
     /* Do not show collection tab for master collection. */
     if (c == scene->master_collection) {
@@ -209,7 +210,7 @@ static bool buttons_context_path_object(ButsContextPath *path)
   }
 
   ViewLayer *view_layer = ptr->data;
-  Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
     RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
@@ -227,53 +228,53 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   PointerRNA *ptr = &path->ptr[path->len - 1];
 
   /* if we already have a data, we're done */
-  if (RNA_struct_is_a(ptr->type, &RNA_Mesh) && (ELEM(type, -1, OB_MESH))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Mesh) && ELEM(type, -1, OB_MESH)) {
     return true;
   }
   if (RNA_struct_is_a(ptr->type, &RNA_Curve) &&
       (type == -1 || ELEM(type, OB_CURVES_LEGACY, OB_SURF, OB_FONT))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (ELEM(type, -1, OB_ARMATURE))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Armature) && ELEM(type, -1, OB_ARMATURE)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (ELEM(type, -1, OB_MBALL))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && ELEM(type, -1, OB_MBALL)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (ELEM(type, -1, OB_LATTICE))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && ELEM(type, -1, OB_LATTICE)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (ELEM(type, -1, OB_CAMERA))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Camera) && ELEM(type, -1, OB_CAMERA)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Light) && (ELEM(type, -1, OB_LAMP))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Light) && ELEM(type, -1, OB_LAMP)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (ELEM(type, -1, OB_SPEAKER))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && ELEM(type, -1, OB_SPEAKER)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (ELEM(type, -1, OB_LIGHTPROBE))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && ELEM(type, -1, OB_LIGHTPROBE)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (ELEM(type, -1, OB_GPENCIL))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && ELEM(type, -1, OB_GPENCIL)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Curves) && (ELEM(type, -1, OB_CURVES))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Curves) && ELEM(type, -1, OB_CURVES)) {
     return true;
   }
 #ifdef WITH_POINT_CLOUD
-  if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (ELEM(type, -1, OB_POINTCLOUD))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && ELEM(type, -1, OB_POINTCLOUD)) {
     return true;
   }
 #endif
-  if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (ELEM(type, -1, OB_VOLUME))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Volume) && ELEM(type, -1, OB_VOLUME)) {
     return true;
   }
   /* try to get an object in the path, no pinning supported here */
   if (buttons_context_path_object(path)) {
     Object *ob = path->ptr[path->len - 1].data;
 
-    if (ob && (ELEM(type, -1, ob->type))) {
+    if (ob && ELEM(type, -1, ob->type)) {
       RNA_id_pointer_create(ob->data, &path->ptr[path->len]);
       path->len++;
 
@@ -642,8 +643,10 @@ static bool buttons_context_path(
 static bool buttons_shading_context(const bContext *C, int mainb)
 {
   wmWindow *window = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(window);
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ELEM(mainb, BCONTEXT_MATERIAL, BCONTEXT_WORLD, BCONTEXT_TEXTURE)) {
     return true;
@@ -658,8 +661,10 @@ static bool buttons_shading_context(const bContext *C, int mainb)
 static int buttons_shading_new_context(const bContext *C, int flag)
 {
   wmWindow *window = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(window);
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (flag & (1 << BCONTEXT_MATERIAL)) {
     return BCONTEXT_MATERIAL;
@@ -1183,22 +1188,22 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     PointerRNA *ptr = &path->ptr[i];
 
     /* Skip scene and view layer to save space. */
-    if ((!ELEM(sbuts->mainb,
-               BCONTEXT_RENDER,
-               BCONTEXT_OUTPUT,
-               BCONTEXT_SCENE,
-               BCONTEXT_VIEW_LAYER,
-               BCONTEXT_WORLD) &&
-         ptr->type == &RNA_Scene)) {
+    if (!ELEM(sbuts->mainb,
+              BCONTEXT_RENDER,
+              BCONTEXT_OUTPUT,
+              BCONTEXT_SCENE,
+              BCONTEXT_VIEW_LAYER,
+              BCONTEXT_WORLD) &&
+        ptr->type == &RNA_Scene) {
       continue;
     }
-    if ((!ELEM(sbuts->mainb,
-               BCONTEXT_RENDER,
-               BCONTEXT_OUTPUT,
-               BCONTEXT_SCENE,
-               BCONTEXT_VIEW_LAYER,
-               BCONTEXT_WORLD) &&
-         ptr->type == &RNA_ViewLayer)) {
+    if (!ELEM(sbuts->mainb,
+              BCONTEXT_RENDER,
+              BCONTEXT_OUTPUT,
+              BCONTEXT_SCENE,
+              BCONTEXT_VIEW_LAYER,
+              BCONTEXT_WORLD) &&
+        ptr->type == &RNA_ViewLayer) {
       continue;
     }
 

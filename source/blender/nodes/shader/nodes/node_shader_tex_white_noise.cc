@@ -13,7 +13,10 @@ namespace blender::nodes::node_shader_tex_white_noise_cc {
 static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .min(-10000.0f)
+      .max(10000.0f)
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("W")).min(-10000.0f).max(10000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is faster. */
     node.custom1 = 1;
@@ -22,12 +25,12 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_white_noise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "noise_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_tex_white_noise(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_white_noise(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 3;
 }
@@ -43,7 +46,7 @@ static const char *gpu_shader_get_name(const int dimensions)
 
 static int gpu_shader_tex_white_noise(GPUMaterial *mat,
                                       bNode *node,
-                                      bNodeExecData *UNUSED(execdata),
+                                      bNodeExecData * /*execdata*/,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {
@@ -94,7 +97,7 @@ class WhiteNoiseFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     int param = ELEM(dimensions_, 2, 3, 4) + ELEM(dimensions_, 1, 4);
 
@@ -176,8 +179,8 @@ class WhiteNoiseFunction : public fn::MultiFunction {
 
 static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
-  builder.construct_and_set_matching_fn<WhiteNoiseFunction>((int)node.custom1);
+  const bNode &node = builder.node();
+  builder.construct_and_set_matching_fn<WhiteNoiseFunction>(int(node.custom1));
 }
 
 }  // namespace blender::nodes::node_shader_tex_white_noise_cc

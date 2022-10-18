@@ -146,7 +146,7 @@ IDTypeInfo IDType_ID_CF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = cache_file_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = cache_file_blend_write,
     .blend_read_data = cache_file_blend_read_data,

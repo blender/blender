@@ -207,7 +207,7 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
     char result[(out_size) + 1024]; \
     /* check we don't write past the last byte */ \
     result[out_size] = '\0'; \
-    BLI_path_join(result, out_size, __VA_ARGS__, NULL); \
+    BLI_path_join(result, out_size, __VA_ARGS__); \
     /* simplify expected string */ \
     BLI_str_replace_char(result, '\\', '/'); \
     EXPECT_STREQ(result, expect); \
@@ -296,6 +296,13 @@ TEST(path_util, JoinComplex)
   JOIN("/a/b/c/d/e/f/g/", 100, "/", "\\a/b", "//////c/d", "", "e\\\\", "f", "g//");
   JOIN("/aa/bb/cc/dd/ee/ff/gg/", 100, "/", "\\aa/bb", "//////cc/dd", "", "ee\\\\", "ff", "gg//");
   JOIN("1/2/3/", 100, "1", "////////", "", "2", "3\\");
+}
+
+TEST(path_util, JoinRelativePrefix)
+{
+  JOIN("//a/b/c", 100, "//a", "b", "c");
+  JOIN("//a/b/c", 100, "//", "//a//", "//b//", "//c");
+  JOIN("//a/b/c", 100, "//", "//", "a", "//", "b", "//", "c");
 }
 
 #undef JOIN
@@ -459,7 +466,7 @@ TEST(path_util, PathFrameStrip)
 #define PATH_EXTENSION_CHECK(input_path, input_ext, expect_ext) \
   { \
     const bool ret = BLI_path_extension_check(input_path, input_ext); \
-    if (strcmp(input_ext, expect_ext) == 0) { \
+    if (STREQ(input_ext, expect_ext)) { \
       EXPECT_TRUE(ret); \
     } \
     else { \
@@ -644,7 +651,7 @@ TEST(path_util, PathRelPath)
     abs_path_in[FILE_MAX - 1] = '\0';
     abs_path_out[0] = '/';
     abs_path_out[1] = '/';
-    for (int i = 2; i < FILE_MAX - ((int)ref_path_in_len - 1); i++) {
+    for (int i = 2; i < FILE_MAX - (int(ref_path_in_len) - 1); i++) {
       abs_path_out[i] = 'A';
     }
     abs_path_out[FILE_MAX - (ref_path_in_len - 1)] = '\0';

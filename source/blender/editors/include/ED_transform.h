@@ -94,7 +94,8 @@ bool BIF_createTransformOrientation(struct bContext *C,
                                     bool overwrite);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *target);
 
-void ED_getTransformOrientationMatrix(struct ViewLayer *view_layer,
+void ED_getTransformOrientationMatrix(const struct Scene *scene,
+                                      struct ViewLayer *view_layer,
                                       const struct View3D *v3d,
                                       struct Object *ob,
                                       struct Object *obedit,

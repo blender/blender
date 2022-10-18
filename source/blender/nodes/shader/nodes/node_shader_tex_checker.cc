@@ -8,7 +8,10 @@ namespace blender::nodes::node_shader_tex_checker_cc {
 static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .min(-10000.0f)
+      .max(10000.0f)
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Color>(N_("Color1")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_input<decl::Color>(N_("Color2")).default_value({0.2f, 0.2f, 0.2f, 1.0f});
   b.add_input<decl::Float>(N_("Scale"))
@@ -20,7 +23,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 }
 
-static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexChecker *tex = MEM_cnew<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -31,7 +34,7 @@ static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_checker(GPUMaterial *mat,
                                        bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
+                                       bNodeExecData * /*execdata*/,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
@@ -61,7 +64,7 @@ class NodeTexChecker : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
@@ -77,9 +80,9 @@ class NodeTexChecker : public fn::MultiFunction {
       /* Avoid precision issues on unit coordinates. */
       const float3 p = (vector[i] * scale[i] + 0.000001f) * 0.999999f;
 
-      const int xi = abs((int)(floorf(p.x)));
-      const int yi = abs((int)(floorf(p.y)));
-      const int zi = abs((int)(floorf(p.z)));
+      const int xi = abs(int(floorf(p.x)));
+      const int yi = abs(int(floorf(p.y)));
+      const int zi = abs(int(floorf(p.z)));
 
       r_fac[i] = ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
     }

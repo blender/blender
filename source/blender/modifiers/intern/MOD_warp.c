@@ -70,9 +70,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -196,7 +194,7 @@ static void warpModifier_do(WarpModifierData *wmd,
   float fac = 1.0f, weight;
   int i;
   int defgrp_index;
-  MDeformVert *dvert, *dv = NULL;
+  const MDeformVert *dvert, *dv = NULL;
   const bool invert_vgroup = (wmd->flag & MOD_WARP_INVERT_VGROUP) != 0;
   float(*tex_co)[3] = NULL;
 

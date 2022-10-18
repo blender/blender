@@ -1535,6 +1535,7 @@ void CLIP_OT_average_tracks(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_boolean(ot->srna, "keep_original", 1, "Keep Original", "Keep original tracks");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1846,7 +1847,7 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
     if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
       bool ok;
 
-      ok = (is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT)) &&
+      ok = is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT) &&
            ((error == 0.0f) || (track->flag & TRACK_HAS_BUNDLE) == 0 || (track->error < error));
 
       if (!ok) {

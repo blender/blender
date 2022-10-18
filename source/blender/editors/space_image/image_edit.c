@@ -18,6 +18,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -382,7 +383,7 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
     image->render_slot = ((cur == 1) ? 0 : 1);
   }
 
-  if ((cur != image->render_slot)) {
+  if (cur != image->render_slot) {
     BKE_image_partial_update_mark_full_update(image);
   }
   return (cur != image->render_slot);
@@ -407,7 +408,7 @@ void ED_space_image_scopes_update(const struct bContext *C,
   /* We also don't update scopes of render result during render. */
   if (G.is_rendering) {
     const Image *image = sima->image;
-    if (image != NULL && (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))) {
+    if (image != NULL && ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
       return;
     }
   }
@@ -470,8 +471,10 @@ bool ED_space_image_maskedit_poll(bContext *C)
   SpaceImage *sima = CTX_wm_space_image(C);
 
   if (sima) {
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     return ED_space_image_check_show_maskedit(sima, obedit);
   }
 

@@ -798,7 +798,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
@@ -1050,25 +1050,6 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 /** \name Pack UV Islands Operator
  * \{ */
 
-static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
-{
-  const UnwrapOptions options = {
-      .topology_from_uvs = true,
-      .only_selected_faces = false,
-      .only_selected_uvs = true,
-      .fill_holes = false,
-      .correct_aspect = false,
-  };
-
-  bool rotate = true;
-  bool ignore_pinned = false;
-
-  ParamHandle *handle = construct_param_handle(scene, ob, bm, &options, NULL);
-  GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
-}
-
 /**
  * \warning Since this uses #ParamHandle it doesn't work with non-manifold meshes (see T82637).
  * Use #ED_uvedit_pack_islands_multi for a more general solution.
@@ -1116,7 +1097,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   /* Early exit in case no UVs are selected. */
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
@@ -1125,7 +1106,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   }
 
   /* RNA props */
-  const bool rotate = RNA_boolean_get(op->ptr, "rotate");
   const int udim_source = RNA_enum_get(op->ptr, "udim_source");
   if (RNA_struct_property_is_set(op->ptr, "margin")) {
     scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
@@ -1139,21 +1119,35 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
       sima, use_active, &udim_params);
 
-  ED_uvedit_pack_islands_multi(scene,
-                               objects,
-                               objects_len,
-                               use_udim_params ? &udim_params : NULL,
-                               &(struct UVPackIsland_Params){
-                                   .rotate = rotate,
-                                   .rotate_align_axis = -1,
-                                   .only_selected_uvs = true,
-                                   .only_selected_faces = true,
-                                   .correct_aspect = true,
-                               });
+  struct UVPackIsland_Params params = {
+      .rotate = RNA_boolean_get(op->ptr, "rotate"),
+      .only_selected_uvs = true,
+      .only_selected_faces = true,
+      .correct_aspect = true,
+      .margin_method = RNA_enum_get(op->ptr, "margin_method"),
+      .margin = RNA_float_get(op->ptr, "margin"),
+  };
+  ED_uvedit_pack_islands_multi(
+      scene, objects, objects_len, NULL, use_udim_params ? &udim_params : NULL, &params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
+
+const EnumPropertyItem pack_margin_method[] = {
+    {ED_UVPACK_MARGIN_SCALED,
+     "SCALED",
+     0,
+     "Scaled",
+     "Use scale of existing UVs to multiply margin"},
+    {ED_UVPACK_MARGIN_ADD, "ADD", 0, "Add", "Just add the margin, ignoring any UV scale"},
+    {ED_UVPACK_MARGIN_FRACTION,
+     "FRACTION",
+     0,
+     "Fraction",
+     "Specify a precise fraction of final UV output"},
+    {0, NULL, 0, NULL, NULL},
+};
 
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
@@ -1181,6 +1175,8 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
   RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -1208,7 +1204,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
@@ -1834,7 +1830,7 @@ static void uv_map_clip_correct(const Scene *scene,
 /** \name UV Unwrap Operator
  * \{ */
 
-/* Assumes UV Map exists, doesn't run update funcs. */
+/* Assumes UV Map exists, doesn't run update functions. */
 static void uvedit_unwrap(const Scene *scene,
                           Object *obedit,
                           const UnwrapOptions *options,
@@ -1920,7 +1916,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   UnwrapOptions options = {
       .topology_from_uvs = false,
@@ -2099,6 +2095,8 @@ void UV_OT_unwrap(wmOperatorType *ot)
       0,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -2119,7 +2117,6 @@ typedef struct ThickFace {
 
 static int smart_uv_project_thickface_area_cmp_fn(const void *tf_a_p, const void *tf_b_p)
 {
-
   const ThickFace *tf_a = (ThickFace *)tf_a_p;
   const ThickFace *tf_b = (ThickFace *)tf_b_p;
 
@@ -2272,7 +2269,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
 
   Object **objects_changed = MEM_mallocN(sizeof(*objects_changed) * objects_len, __func__);
   uint object_changed_len = 0;
@@ -2413,19 +2410,17 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
     /* Depsgraph refresh functions are called here. */
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
-    ED_uvedit_pack_islands_multi(scene,
-                                 objects_changed,
-                                 object_changed_len,
-                                 NULL,
-                                 &(struct UVPackIsland_Params){
-                                     .rotate = true,
-                                     /* We could make this optional. */
-                                     .rotate_align_axis = 1,
-                                     .only_selected_uvs = true,
-                                     .only_selected_faces = true,
-                                     .correct_aspect = correct_aspect,
-                                     .use_seams = true,
-                                 });
+
+    const struct UVPackIsland_Params params = {
+        .rotate = true,
+        .only_selected_uvs = only_selected_uvs,
+        .only_selected_faces = true,
+        .correct_aspect = correct_aspect,
+        .use_seams = true,
+        .margin_method = RNA_enum_get(op->ptr, "margin_method"),
+        .margin = RNA_float_get(op->ptr, "island_margin"),
+    };
+    ED_uvedit_pack_islands_multi(scene, objects_changed, object_changed_len, NULL, NULL, &params);
 
     /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
@@ -2467,6 +2462,8 @@ void UV_OT_smart_project(wmOperatorType *ot)
                                 DEG2RADF(89.0f));
   RNA_def_property_float_default(prop, DEG2RADF(66.0f));
 
+  RNA_def_enum(
+      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
   RNA_def_float(ot->srna,
                 "island_margin",
                 0.0f,
@@ -2537,7 +2534,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
   /* NOTE: objects that aren't touched are set to NULL (to skip clipping). */
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
 
   if (use_orthographic) {
     /* Calculate average object position. */
@@ -2688,12 +2685,13 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     Mesh *me = (Mesh *)obedit->data;
@@ -2803,7 +2801,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2915,7 +2913,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3060,7 +3058,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3163,13 +3161,24 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
                          .calc_face_normal = true,
                          .calc_vert_normal = true,
                      }));
-  /* select all uv loops first - pack parameters needs this to make sure charts are registered */
+  /* Select all UVs for cube_project. */
   ED_uvedit_select_all(bm);
   /* A cube size of 2.0 maps [-1..1] vertex coords to [0.0..1.0] in UV coords. */
   uvedit_unwrap_cube_project(scene, bm, 2.0, false, false, NULL);
-  /* Set the margin really quickly before the packing operation. */
-  scene->toolsettings->uvcalc_margin = 0.001f;
-  uvedit_pack_islands(scene, ob, bm);
+
+  /* Pack UVs. */
+  const struct UVPackIsland_Params params = {
+      .rotate = true,
+      .only_selected_uvs = false,
+      .only_selected_faces = false,
+      .correct_aspect = false,
+      .use_seams = true,
+      .margin_method = ED_UVPACK_MARGIN_SCALED,
+      .margin = 0.001f,
+  };
+  ED_uvedit_pack_islands_multi(scene, &ob, 1, &bm, NULL, &params);
+
+  /* Write back from BMesh to Mesh. */
   BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));
   BM_mesh_free(bm);
 

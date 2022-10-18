@@ -178,7 +178,7 @@ IDTypeInfo IDType_ID_IP = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = ipo_blend_read_data,
@@ -1492,7 +1492,7 @@ static void icu_to_fcurves(ID *id,
      * 3) filter the keyframes for the flag of interest
      */
     for (b = 0; b < totbits; b++, abp++) {
-      unsigned int i = 0;
+      uint i = 0;
 
       /* make a copy of existing base-data if not the last curve */
       if (b < (totbits - 1)) {
@@ -1542,7 +1542,7 @@ static void icu_to_fcurves(ID *id,
           }
 
           /* correct values, by checking if the flag of interest is set */
-          if (((int)(dst->vec[1][1])) & (abp->bit)) {
+          if ((int)(dst->vec[1][1]) & (abp->bit)) {
             dst->vec[0][1] = dst->vec[1][1] = dst->vec[2][1] = 1.0f;
           }
           else {
@@ -1562,7 +1562,7 @@ static void icu_to_fcurves(ID *id,
     }
   }
   else {
-    unsigned int i = 0;
+    uint i = 0;
 
     /* get rna-path
      * - we will need to set the 'disabled' flag if no path is able to be made (for now)
@@ -2142,7 +2142,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       if (ob->action) {
         action_to_animdata(id, ob->action);
 
-        /* only decrease usercount if this Action isn't now being used by AnimData */
+        /* Only decrease user-count if this Action isn't now being used by AnimData. */
         if (ob->action != adt->action) {
           id_us_min(&ob->action->id);
           ob->action = NULL;
@@ -2246,7 +2246,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Add AnimData block */
       AnimData *adt = BKE_animdata_ensure_id(id);
 
-      /* Convert Shapekey data... */
+      /* Convert Shape-key data... */
       ipo_to_animdata(bmain, id, key->ipo, NULL, NULL, NULL);
 
       if (adt->action) {

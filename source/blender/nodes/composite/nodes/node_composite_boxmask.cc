@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_composite_boxmask_cc {
 
+NODE_STORAGE_FUNCS(NodeBoxMask)
+
 static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Mask")).default_value(0.0f).min(0.0f).max(1.0f);
@@ -30,7 +32,7 @@ static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_boxmask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBoxMask *data = MEM_cnew<NodeBoxMask>(__func__);
   data->x = 0.5;
@@ -41,7 +43,7 @@ static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -123,24 +125,19 @@ class BoxMaskOperation : public NodeOperation {
     }
   }
 
-  NodeBoxMask &get_node_box_mask()
-  {
-    return *static_cast<NodeBoxMask *>(bnode().storage);
-  }
-
   float2 get_location()
   {
-    return float2(get_node_box_mask().x, get_node_box_mask().y);
+    return float2(node_storage(bnode()).x, node_storage(bnode()).y);
   }
 
   float2 get_size()
   {
-    return float2(get_node_box_mask().width, get_node_box_mask().height);
+    return float2(node_storage(bnode()).width, node_storage(bnode()).height);
   }
 
   float get_angle()
   {
-    return get_node_box_mask().rotation;
+    return node_storage(bnode()).rotation;
   }
 };
 

@@ -61,7 +61,7 @@ static bool pygpu_buffer_pyobj_as_shape(PyObject *shape_obj,
   Py_ssize_t shape_len = 0;
   if (PyLong_Check(shape_obj)) {
     shape_len = 1;
-    if (((r_shape[0] = PyLong_AsLong(shape_obj)) < 1)) {
+    if ((r_shape[0] = PyLong_AsLong(shape_obj)) < 1) {
       PyErr_SetString(PyExc_AttributeError, "dimension must be greater than or equal to 1");
       return false;
     }
@@ -100,7 +100,7 @@ static bool pygpu_buffer_pyobj_as_shape(PyObject *shape_obj,
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "invalid second argument argument expected a sequence "
+                 "invalid second argument expected a sequence "
                  "or an int, not a %.200s",
                  Py_TYPE(shape_obj)->tp_name);
   }
@@ -153,6 +153,7 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
   if (parent) {
     Py_INCREF(parent);
     buffer->parent = parent;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)buffer));
     PyObject_GC_Track(buffer);
   }
   return buffer;
@@ -422,6 +423,11 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
   return (PyObject *)buffer;
 }
 
+static int pygpu_buffer__tp_is_gc(BPyGPUBuffer *self)
+{
+  return self->parent != NULL;
+}
+
 /* BPyGPUBuffer sequence methods */
 
 static int pygpu_buffer__sq_length(BPyGPUBuffer *self)
@@ -655,7 +661,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg format: Format type to interpret the buffer.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "   :type type: str\n"
+    "   :type format: str\n"
     "   :arg dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int\n"
     "   :arg data: Optional data array.\n"
@@ -677,6 +683,7 @@ PyTypeObject BPyGPU_BufferType = {
     .tp_methods = pygpu_buffer__tp_methods,
     .tp_getset = pygpu_buffer_getseters,
     .tp_new = pygpu_buffer__tp_new,
+    .tp_is_gc = (inquiry)pygpu_buffer__tp_is_gc,
 };
 
 static size_t pygpu_buffer_calc_size(const int format,

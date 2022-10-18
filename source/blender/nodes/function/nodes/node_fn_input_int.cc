@@ -14,7 +14,7 @@ static void fn_node_input_int_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Integer"));
 }
 
-static void fn_node_input_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_input_int_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "integer", UI_ITEM_R_EXPAND, "", ICON_NONE);
@@ -22,12 +22,12 @@ static void fn_node_input_int_layout(uiLayout *layout, bContext *UNUSED(C), Poin
 
 static void fn_node_input_int_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   NodeInputInt *node_storage = static_cast<NodeInputInt *>(bnode.storage);
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<int>>(node_storage->integer);
 }
 
-static void fn_node_input_int_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_input_int_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeInputInt *data = MEM_cnew<NodeInputInt>(__func__);
   node->storage = data;

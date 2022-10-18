@@ -33,9 +33,9 @@ class GHOST_SystemSDL : public GHOST_System {
 
   bool processEvents(bool waitForEvent);
 
-  int setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
   {
-    return 0;
+    return false;
   }
 
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;

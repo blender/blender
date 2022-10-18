@@ -27,7 +27,7 @@ static void cmp_node_defocus_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_defocus(bNodeTree * /*ntree*/, bNode *node)
 {
   /* defocus node */
   NodeDefocus *nbd = MEM_cnew<NodeDefocus>(__func__);

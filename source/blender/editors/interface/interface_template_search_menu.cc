@@ -191,7 +191,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 
     if (drawstr_is_empty) {
       if (prop_type == PROP_ENUM) {
-        const int value_enum = (int)but->hardmax;
+        const int value_enum = int(but->hardmax);
         EnumPropertyItem enum_item;
         if (RNA_property_enum_item_from_value_gettexted((bContext *)but->block->evil_C,
                                                         &but->rnapoin,
@@ -227,7 +227,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
       item->rna.index = but->rnaindex;
 
       if (prop_type == PROP_ENUM) {
-        item->rna.enum_value = (int)but->hardmax;
+        item->rna.enum_value = int(but->hardmax);
       }
     }
   }
@@ -473,8 +473,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
      * as the outliner only exposes functionality via the context menu. */
     GHashIterator iter;
 
-    for (WM_menutype_iter(&iter); (!BLI_ghashIterator_done(&iter));
-         (BLI_ghashIterator_step(&iter))) {
+    for (WM_menutype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
       MenuType *mt = (MenuType *)BLI_ghashIterator_getValue(&iter);
       if (BLI_str_endswith(mt->idname, "_context_menu")) {
         BLI_gset_add(menu_tagged, mt);
@@ -544,8 +543,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
         if (wm_contexts[space_type_ui_index].space_type_ui_index != -1) {
           ScrArea *area_best = wm_contexts[space_type_ui_index].area;
-          const uint value_best = (uint)area_best->winx * (uint)area_best->winy;
-          const uint value_test = (uint)area->winx * (uint)area->winy;
+          const uint value_best = uint(area_best->winx) * uint(area_best->winy);
+          const uint value_test = uint(area->winx) * uint(area->winy);
           if (value_best > value_test) {
             continue;
           }
@@ -918,6 +917,7 @@ static void menu_search_arg_free_fn(void *data_v)
           WM_operator_properties_free(item->op.opptr);
           MEM_freeN(item->op.opptr);
         }
+        break;
       }
       case MenuSearch_Item::Type::RNA: {
         break;
@@ -930,7 +930,7 @@ static void menu_search_arg_free_fn(void *data_v)
   MEM_freeN(data);
 }
 
-static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   MenuSearch_Item *item = (MenuSearch_Item *)arg2;
   if (item == nullptr) {
@@ -993,11 +993,11 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
   }
 }
 
-static void menu_search_update_fn(const bContext *UNUSED(C),
+static void menu_search_update_fn(const bContext * /*C*/,
                                   void *arg,
                                   const char *str,
                                   uiSearchItems *items,
-                                  const bool UNUSED(is_first))
+                                  const bool /*is_first*/)
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
@@ -1076,7 +1076,7 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 
 static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
                                                      struct ARegion *region,
-                                                     const rcti *UNUSED(item_rect),
+                                                     const rcti * /*item_rect*/,
                                                      void *arg,
                                                      void *active)
 {

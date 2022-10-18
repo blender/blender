@@ -6,6 +6,7 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
@@ -73,8 +74,7 @@ void main()
 
   nodetree_surface();
 
-  // float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
-  float noise_offset = 0.5;
+  float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float random_threshold = hashed_alpha_threshold(1.0, noise_offset, g_data.P);
 
   float transparency = avg(g_transmittance);

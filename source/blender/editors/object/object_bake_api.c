@@ -419,11 +419,13 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 }
 
 /* if all is good tag image and return true */
-static bool bake_object_check(ViewLayer *view_layer,
+static bool bake_object_check(const Scene *scene,
+                              ViewLayer *view_layer,
                               Object *ob,
                               const eBakeTarget target,
                               ReportList *reports)
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (base == NULL) {
@@ -591,6 +593,7 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
 
 /* before even getting in the bake function we check for some basic errors */
 static bool bake_objects_check(Main *bmain,
+                               const Scene *scene,
                                ViewLayer *view_layer,
                                Object *ob,
                                ListBase *selected_objects,
@@ -606,7 +609,7 @@ static bool bake_objects_check(Main *bmain,
   if (is_selected_to_active) {
     int tot_objects = 0;
 
-    if (!bake_object_check(view_layer, ob, target, reports)) {
+    if (!bake_object_check(scene, view_layer, ob, target, reports)) {
       return false;
     }
 
@@ -640,7 +643,7 @@ static bool bake_objects_check(Main *bmain,
     }
 
     for (link = selected_objects->first; link; link = link->next) {
-      if (!bake_object_check(view_layer, link->ptr.data, target, reports)) {
+      if (!bake_object_check(scene, view_layer, link->ptr.data, target, reports)) {
         return false;
       }
     }
@@ -971,7 +974,8 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   return true;
 }
 
-static int find_original_loop(const Mesh *me_orig,
+static int find_original_loop(const MPoly *orig_polys,
+                              const MLoop *orig_loops,
                               const int *vert_origindex,
                               const int *poly_origindex,
                               const int poly_eval,
@@ -987,8 +991,8 @@ static int find_original_loop(const Mesh *me_orig,
   }
 
   /* Find matching loop with original vertex in original polygon. */
-  MPoly *mpoly_orig = me_orig->mpoly + poly_orig;
-  MLoop *mloop_orig = me_orig->mloop + mpoly_orig->loopstart;
+  const MPoly *mpoly_orig = orig_polys + poly_orig;
+  const MLoop *mloop_orig = orig_loops + mpoly_orig->loopstart;
   for (int j = 0; j < mpoly_orig->totloop; ++j, ++mloop_orig) {
     if (mloop_orig->v == vert_orig) {
       return mpoly_orig->loopstart + j;
@@ -1025,23 +1029,31 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const int tottri = poly_to_tri_count(me_eval->totpoly, me_eval->totloop);
   MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
-  BKE_mesh_recalc_looptri(
-      me_eval->mloop, me_eval->mpoly, me_eval->mvert, me_eval->totloop, me_eval->totpoly, looptri);
+  const MLoop *loops = BKE_mesh_loops(me_eval);
+  BKE_mesh_recalc_looptri(loops,
+                          BKE_mesh_polys(me_eval),
+                          BKE_mesh_verts(me_eval),
+                          me_eval->totloop,
+                          me_eval->totpoly,
+                          looptri);
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
   const int *poly_origindex = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
+  const MPoly *orig_polys = BKE_mesh_polys(me);
+  const MLoop *orig_loops = BKE_mesh_loops(me);
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
 
     for (int j = 0; j < 3; j++) {
-      unsigned int l = lt->tri[j];
-      unsigned int v = me_eval->mloop[l].v;
+      uint l = lt->tri[j];
+      uint v = loops[l].v;
 
       /* Map back to original loop if there are modifiers. */
       if (vert_origindex != NULL && poly_origindex != NULL) {
-        l = find_original_loop(me, vert_origindex, poly_origindex, lt->poly, v);
+        l = find_original_loop(
+            orig_polys, orig_loops, vert_origindex, poly_origindex, lt->poly, v);
         if (l == ORIGINDEX_NONE || l >= me->totloop) {
           continue;
         }
@@ -1135,7 +1147,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     int *num_loops_for_vertex = MEM_callocN(sizeof(int) * me->totvert, "num_loops_for_vertex");
     memset(mcol, 0, sizeof(MPropCol) * me->totvert);
 
-    MLoop *mloop = me->mloop;
+    const MLoop *mloop = BKE_mesh_loops(me);
     for (int i = 0; i < totloop; i++, mloop++) {
       const int v = mloop->v;
       bake_result_add_to_rgba(mcol[v].color, &result[i * channels_num], channels_num);
@@ -1400,7 +1412,8 @@ static int bake(const BakeAPIRender *bkr,
       else {
         ob_cage_eval = DEG_get_evaluated_object(depsgraph, ob_cage);
         ob_cage_eval->visibility_flag |= OB_HIDE_RENDER;
-        ob_cage_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
+        ob_cage_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                     BASE_ENABLED_RENDER);
       }
     }
   }
@@ -1500,7 +1513,8 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].ob = ob_iter;
       highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
       highpoly[i].ob_eval->visibility_flag &= ~OB_HIDE_RENDER;
-      highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
+      highpoly[i].ob_eval->base_flag |= (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                         BASE_ENABLED_RENDER);
       highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false, false);
 
       /* Low-poly to high-poly transformation matrix. */
@@ -1516,10 +1530,11 @@ static int bake(const BakeAPIRender *bkr,
 
     if (ob_cage != NULL) {
       ob_cage_eval->visibility_flag |= OB_HIDE_RENDER;
-      ob_cage_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
+      ob_cage_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                   BASE_ENABLED_RENDER);
     }
     ob_low_eval->visibility_flag |= OB_HIDE_RENDER;
-    ob_low_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
+    ob_low_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_ENABLED_RENDER);
 
     /* populate the pixel arrays with the corresponding face data for each high poly object */
     pixel_array_high = MEM_mallocN(sizeof(BakePixel) * targets.pixels_num,
@@ -1800,6 +1815,7 @@ static int bake_exec(bContext *C, wmOperator *op)
   }
 
   if (!bake_objects_check(bkr.main,
+                          bkr.scene,
                           bkr.view_layer,
                           bkr.ob,
                           &bkr.selected_objects,
@@ -1853,6 +1869,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
   }
 
   if (!bake_objects_check(bkr->main,
+                          bkr->scene,
                           bkr->view_layer,
                           bkr->ob,
                           &bkr->selected_objects,

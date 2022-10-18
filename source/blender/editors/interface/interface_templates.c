@@ -910,6 +910,11 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   const char *undo_push_label = NULL;
 
   switch (event) {
+    case UI_ID_NOP:
+      /* Don't do anything, typically set for buttons that execute an operator instead. They may
+       * still assign the callback so the button can be identified as part of an ID-template. See
+       * #UI_context_active_but_prop_get_templateID(). */
+      break;
     case UI_ID_BROWSE:
     case UI_ID_PIN:
       RNA_warning("warning, id event %d shouldn't come here", event);
@@ -1365,20 +1370,22 @@ static void template_ID(const bContext *C,
       }
     }
     else if (ID_IS_OVERRIDE_LIBRARY(id)) {
-      but = uiDefIconBut(block,
-                         UI_BTYPE_BUT,
-                         0,
-                         ICON_LIBRARY_DATA_OVERRIDE,
-                         0,
-                         0,
-                         UI_UNIT_X,
-                         UI_UNIT_Y,
-                         NULL,
-                         0,
-                         0,
-                         0,
-                         0,
-                         TIP_("Library override of linked data-block, click to make fully local"));
+      but = uiDefIconBut(
+          block,
+          UI_BTYPE_BUT,
+          0,
+          ICON_LIBRARY_DATA_OVERRIDE,
+          0,
+          0,
+          UI_UNIT_X,
+          UI_UNIT_Y,
+          NULL,
+          0,
+          0,
+          0,
+          0,
+          TIP_("Library override of linked data-block, click to make fully local, "
+               "Shift + Click to clear the library override and toggle if it can be edited"));
       UI_but_funcN_set(
           but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OVERRIDE));
     }
@@ -1408,7 +1415,7 @@ static void template_ID(const bContext *C,
 
       UI_but_funcN_set(
           but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ALONE));
-      if ((!BKE_id_copy_is_allowed(id)) || (idfrom && idfrom->lib) || (!editable) ||
+      if (!BKE_id_copy_is_allowed(id) || (idfrom && idfrom->lib) || (!editable) ||
           /* object in editmode - don't change data */
           (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT))) {
         UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -1435,7 +1442,7 @@ static void template_ID(const bContext *C,
                       UI_UNIT_Y,
                       NULL);
       }
-      else if (!(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+      else if (!ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS) &&
                (hide_buttons == false)) {
         uiDefIconButR(block,
                       UI_BTYPE_ICON_TOGGLE,
@@ -1541,7 +1548,8 @@ static void template_ID(const bContext *C,
                           UI_UNIT_Y,
                           NULL);
       /* so we can access the template from operators, font unlinking needs this */
-      UI_but_funcN_set(but, NULL, MEM_dupallocN(template_ui), NULL);
+      UI_but_funcN_set(
+          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_NOP));
     }
     else {
       if ((RNA_property_flag(template_ui->prop) & PROP_NEVER_UNLINK) == 0) {
@@ -3261,7 +3269,7 @@ void uiTemplatePreview(uiLayout *layout,
         uiDefButS(block,
                   UI_BTYPE_ROW,
                   B_MATPRV,
-                  IFACE_("World"),
+                  CTX_IFACE_(BLT_I18NCONTEXT_ID_WORLD, "World"),
                   0,
                   0,
                   UI_UNIT_X * 10,
@@ -3657,7 +3665,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     (float)(MAX2(0, coba->tot - 1)),
+                     (float)MAX2(0, coba->tot - 1),
                      0,
                      0,
                      TIP_("Choose active color stop"));
@@ -3688,7 +3696,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      UI_UNIT_Y,
                      &coba->cur,
                      0.0,
-                     (float)(MAX2(0, coba->tot - 1)),
+                     (float)MAX2(0, coba->tot - 1),
                      0,
                      0,
                      TIP_("Choose active color stop"));
@@ -6356,8 +6364,10 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
     uiLayout *row = uiLayoutRow(col, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-    const char *msg = TIP_(WM_window_cursor_keymap_status_get(win, i, 0));
-    const char *msg_drag = TIP_(WM_window_cursor_keymap_status_get(win, i, 1));
+    const char *msg = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                               WM_window_cursor_keymap_status_get(win, i, 0));
+    const char *msg_drag = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                                    WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg || (msg_drag == NULL)) {
       uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));

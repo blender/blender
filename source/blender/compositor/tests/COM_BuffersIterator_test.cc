@@ -237,7 +237,7 @@ TEST_F(BuffersIteratorTest, OutputIteration)
 {
   set_inputs_enabled(false);
   test_iteration(
-      [](BuffersIterator<float> &it, const rcti &UNUSED(area)) {
+      [](BuffersIterator<float> &it, const rcti & /*area*/) {
         EXPECT_EQ(it.get_num_inputs(), 0);
         for (; !it.is_end(); ++it) {
           const int dummy = it.y * BUFFER_WIDTH + it.x;
@@ -247,7 +247,7 @@ TEST_F(BuffersIteratorTest, OutputIteration)
           it.out[3] = dummy + 4.0f;
         }
       },
-      [](float *out, Span<const float *> UNUSED(ins), const int x, const int y) {
+      [](float *out, Span<const float *> /*ins*/, const int x, const int y) {
         const int dummy = y * BUFFER_WIDTH + x;
         EXPECT_NEAR(out[0], dummy + 1.0f, FLT_EPSILON);
         EXPECT_NEAR(out[1], dummy + 2.0f, FLT_EPSILON);
@@ -260,7 +260,7 @@ TEST_F(BuffersIteratorTest, OutputAndInputsIteration)
 {
   set_inputs_enabled(true);
   test_iteration(
-      [](BuffersIterator<float> &it, const rcti &UNUSED(area)) {
+      [](BuffersIterator<float> &it, const rcti & /*area*/) {
         EXPECT_EQ(it.get_num_inputs(), NUM_INPUTS);
         for (; !it.is_end(); ++it) {
           const float *in1 = it.in(0);
@@ -271,7 +271,7 @@ TEST_F(BuffersIteratorTest, OutputAndInputsIteration)
           it.out[3] = in1[3] - in2[1];
         }
       },
-      [](float *out, Span<const float *> ins, const int UNUSED(x), const int UNUSED(y)) {
+      [](float *out, Span<const float *> ins, const int /*x*/, const int /*y*/) {
         const float *in1 = ins[0];
         const float *in2 = ins[1];
         EXPECT_NEAR(out[0], in1[0] + in2[0], FLT_EPSILON);

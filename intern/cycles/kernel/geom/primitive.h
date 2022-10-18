@@ -25,7 +25,7 @@ ccl_device_forceinline float primitive_surface_attribute_float(KernelGlobals kg,
                                                                ccl_private float *dy)
 {
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
+    if (subd_triangle_patch(kg, sd->prim) == ~0)
       return triangle_attribute_float(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float(kg, sd, desc, dx, dy);
@@ -56,7 +56,7 @@ ccl_device_forceinline float2 primitive_surface_attribute_float2(KernelGlobals k
                                                                  ccl_private float2 *dy)
 {
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
+    if (subd_triangle_patch(kg, sd->prim) == ~0)
       return triangle_attribute_float2(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float2(kg, sd, desc, dx, dy);
@@ -87,7 +87,7 @@ ccl_device_forceinline float3 primitive_surface_attribute_float3(KernelGlobals k
                                                                  ccl_private float3 *dy)
 {
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
+    if (subd_triangle_patch(kg, sd->prim) == ~0)
       return triangle_attribute_float3(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float3(kg, sd, desc, dx, dy);
@@ -118,7 +118,7 @@ ccl_device_forceinline float4 primitive_surface_attribute_float4(KernelGlobals k
                                                                  ccl_private float4 *dy)
 {
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
+    if (subd_triangle_patch(kg, sd->prim) == ~0)
       return triangle_attribute_float4(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
@@ -320,7 +320,7 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 #endif
         if (sd->type & PRIMITIVE_TRIANGLE) {
       /* Triangle */
-      if (subd_triangle_patch(kg, sd) == ~0) {
+      if (subd_triangle_patch(kg, sd->prim) == ~0) {
         motion_pre = triangle_attribute_float3(kg, sd, desc, NULL, NULL);
         desc.offset += numverts;
         motion_post = triangle_attribute_float3(kg, sd, desc, NULL, NULL);

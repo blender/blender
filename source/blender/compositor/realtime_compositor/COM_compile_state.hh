@@ -143,7 +143,7 @@ class CompileState {
    * the give node. */
   void add_node_to_shader_compile_unit(DNode node);
 
-  /* Get a reference to the shader compile unit.  */
+  /* Get a reference to the shader compile unit. */
   ShaderCompileUnit &get_shader_compile_unit();
 
   /* Clear the compile unit. This should be called once the compile unit is compiled to ready it to

@@ -81,11 +81,8 @@ static void imb_handle_alpha(ImBuf *ibuf,
   colormanage_imbuf_make_linear(ibuf, effective_colorspace);
 }
 
-ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
-                             size_t size,
-                             int flags,
-                             char colorspace[IM_MAX_SPACE],
-                             const char *descr)
+ImBuf *IMB_ibImageFromMemory(
+    const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
 {
   ImBuf *ibuf;
   const ImFileType *type;
@@ -157,7 +154,7 @@ ImBuf *IMB_loadifffile(
     int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
 {
   ImBuf *ibuf;
-  unsigned char *mem;
+  uchar *mem;
   size_t size;
 
   if (file == -1) {
@@ -319,9 +316,9 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
   return ibuf;
 }
 
-static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int *rect)
+static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, uint *rect)
 {
-  unsigned char *mem;
+  uchar *mem;
   size_t size;
 
   if (file == -1) {
@@ -352,7 +349,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
   imb_mmap_unlock();
 }
 
-void imb_loadtile(ImBuf *ibuf, int tx, int ty, unsigned int *rect)
+void imb_loadtile(ImBuf *ibuf, int tx, int ty, uint *rect)
 {
   int file;
 

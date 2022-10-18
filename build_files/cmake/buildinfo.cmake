@@ -150,10 +150,10 @@ endif()
 # BUILD_PLATFORM is taken from CMake
 # but BUILD_DATE and BUILD_TIME are platform dependent
 if(NOT BUILD_DATE)
-  STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
+  string(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
 endif()
 if(NOT BUILD_TIME)
-  STRING(TIMESTAMP BUILD_TIME "%H:%M:%S" UTC)
+  string(TIMESTAMP BUILD_TIME "%H:%M:%S" UTC)
 endif()
 
 # Write a file with the BUILD_HASH define

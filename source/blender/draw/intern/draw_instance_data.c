@@ -410,12 +410,12 @@ typedef struct DRWSparseUniformBuf {
   BLI_bitmap *chunk_used;
 
   int num_chunks;
-  unsigned int item_size, chunk_size, chunk_bytes;
+  uint item_size, chunk_size, chunk_bytes;
 } DRWSparseUniformBuf;
 
 static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
-                                           unsigned int item_size,
-                                           unsigned int chunk_size)
+                                           uint item_size,
+                                           uint chunk_size)
 {
   buffer->chunk_buffers = NULL;
   buffer->chunk_used = NULL;
@@ -426,7 +426,7 @@ static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
   buffer->chunk_bytes = item_size * chunk_size;
 }
 
-DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsigned int chunk_size)
+DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(uint item_size, uint chunk_size)
 {
   DRWSparseUniformBuf *buf = MEM_mallocN(sizeof(DRWSparseUniformBuf), __func__);
   drw_sparse_uniform_buffer_init(buf, item_size, chunk_size);
@@ -564,7 +564,8 @@ typedef struct DRWUniformAttrBuf {
   struct DRWUniformAttrBuf *next_empty;
 } DRWUniformAttrBuf;
 
-static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table, GPUUniformAttrList *key)
+static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
+                                                        const GPUUniformAttrList *key)
 {
   void **pkey, **pval;
 
@@ -584,99 +585,23 @@ static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table, GPUUniform
   return (DRWUniformAttrBuf *)*pval;
 }
 
-/* This function mirrors lookup_property in cycles/blender/blender_object.cpp */
-static bool drw_uniform_property_lookup(ID *id, const char *name, float r_data[4])
-{
-  PointerRNA ptr, id_ptr;
-  PropertyRNA *prop;
-
-  if (!id) {
-    return false;
-  }
-
-  RNA_id_pointer_create(id, &id_ptr);
-
-  if (!RNA_path_resolve(&id_ptr, name, &ptr, &prop)) {
-    return false;
-  }
-
-  if (prop == NULL) {
-    return false;
-  }
-
-  PropertyType type = RNA_property_type(prop);
-  int arraylen = RNA_property_array_length(&ptr, prop);
-
-  if (arraylen == 0) {
-    float value;
-
-    if (type == PROP_FLOAT) {
-      value = RNA_property_float_get(&ptr, prop);
-    }
-    else if (type == PROP_INT) {
-      value = RNA_property_int_get(&ptr, prop);
-    }
-    else {
-      return false;
-    }
-
-    copy_v4_fl4(r_data, value, value, value, 1);
-    return true;
-  }
-
-  if (type == PROP_FLOAT && arraylen <= 4) {
-    copy_v4_fl4(r_data, 0, 0, 0, 1);
-    RNA_property_float_get_array(&ptr, prop, r_data);
-    return true;
-  }
-
-  return false;
-}
-
-/* This function mirrors lookup_instance_property in cycles/blender/blender_object.cpp */
 static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
                                          Object *ob,
                                          Object *dupli_parent,
                                          DupliObject *dupli_source,
                                          float r_data[4])
 {
-  copy_v4_fl(r_data, 0);
-
-  char idprop_name[(sizeof(attr->name) * 2) + 4];
-  {
-    char attr_name_esc[sizeof(attr->name) * 2];
-    BLI_str_escape(attr_name_esc, attr->name, sizeof(attr_name_esc));
-    SNPRINTF(idprop_name, "[\"%s\"]", attr_name_esc);
-  }
-
   /* If requesting instance data, check the parent particle system and object. */
   if (attr->use_dupli) {
-    if (dupli_source && dupli_source->particle_system) {
-      ParticleSettings *settings = dupli_source->particle_system->part;
-      if (drw_uniform_property_lookup((ID *)settings, idprop_name, r_data) ||
-          drw_uniform_property_lookup((ID *)settings, attr->name, r_data)) {
-        return;
-      }
-    }
-    if (drw_uniform_property_lookup((ID *)dupli_parent, idprop_name, r_data) ||
-        drw_uniform_property_lookup((ID *)dupli_parent, attr->name, r_data)) {
-      return;
-    }
+    BKE_object_dupli_find_rgba_attribute(ob, dupli_source, dupli_parent, attr->name, r_data);
   }
-
-  /* Check the object and mesh. */
-  if (ob) {
-    if (drw_uniform_property_lookup((ID *)ob, idprop_name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob, attr->name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, idprop_name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, attr->name, r_data)) {
-      return;
-    }
+  else {
+    BKE_object_dupli_find_rgba_attribute(ob, NULL, NULL, attr->name, r_data);
   }
 }
 
 void drw_uniform_attrs_pool_update(GHash *table,
-                                   GPUUniformAttrList *key,
+                                   const GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
                                    Object *ob,
                                    Object *dupli_parent,
@@ -697,7 +622,64 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
-DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, struct GPUUniformAttrList *key)
+GPUUniformBuf *drw_ensure_layer_attribute_buffer()
+{
+  DRWData *data = DST.vmempool;
+
+  if (data->vlattrs_ubo_ready && data->vlattrs_ubo != NULL) {
+    return data->vlattrs_ubo;
+  }
+
+  /* Allocate the buffer data. */
+  const int buf_size = DRW_RESOURCE_CHUNK_LEN;
+
+  if (data->vlattrs_buf == NULL) {
+    data->vlattrs_buf = MEM_calloc_arrayN(
+        buf_size, sizeof(LayerAttribute), "View Layer Attr Data");
+  }
+
+  /* Look up attributes.
+   *
+   * Mirrors code in draw_resource.cc and cycles/blender/shader.cpp.
+   */
+  LayerAttribute *buffer = data->vlattrs_buf;
+  int count = 0;
+
+  LISTBASE_FOREACH (GPULayerAttr *, attr, &data->vlattrs_name_list) {
+    float value[4];
+
+    if (BKE_view_layer_find_rgba_attribute(
+            DST.draw_ctx.scene, DST.draw_ctx.view_layer, attr->name, value)) {
+      LayerAttribute *item = &buffer[count++];
+
+      memcpy(item->data, value, sizeof(item->data));
+      item->hash_code = attr->hash_code;
+
+      /* Check if the buffer is full just in case. */
+      if (count >= buf_size) {
+        break;
+      }
+    }
+  }
+
+  buffer[0].buffer_length = count;
+
+  /* Update or create the UBO object. */
+  if (data->vlattrs_ubo != NULL) {
+    GPU_uniformbuf_update(data->vlattrs_ubo, buffer);
+  }
+  else {
+    data->vlattrs_ubo = GPU_uniformbuf_create_ex(
+        sizeof(*buffer) * buf_size, buffer, "View Layer Attributes");
+  }
+
+  data->vlattrs_ubo_ready = true;
+
+  return data->vlattrs_ubo;
+}
+
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
+                                                     const struct GPUUniformAttrList *key)
 {
   DRWUniformAttrBuf *buffer = BLI_ghash_lookup(table, key);
   return buffer ? &buffer->ubos : NULL;

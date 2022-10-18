@@ -39,7 +39,6 @@ set(SRC
   shader.cpp
   shader_graph.cpp
   shader_nodes.cpp
-  sobol.cpp
   stats.cpp
   svm.cpp
   tables.cpp
@@ -77,7 +76,6 @@ set(SRC_HEADERS
   shader.h
   shader_graph.h
   shader_nodes.h
-  sobol.h
   stats.h
   svm.h
   tables.h
@@ -103,7 +101,7 @@ if(WITH_CYCLES_OSL)
     cycles_kernel_osl
   )
 
-  SET_PROPERTY(SOURCE osl.cpp PROPERTY COMPILE_FLAGS ${RTTI_DISABLE_FLAGS})
+  set_property(SOURCE osl.cpp PROPERTY COMPILE_FLAGS ${RTTI_DISABLE_FLAGS})
 endif()
 
 if(WITH_OPENCOLORIO)

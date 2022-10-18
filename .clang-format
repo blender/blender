@@ -273,5 +273,5 @@ StatementMacros:
   - PyObject_VAR_HEAD
   - ccl_gpu_kernel_postfix
 
-MacroBlockBegin: "^BSDF_CLOSURE_CLASS_BEGIN$"
-MacroBlockEnd: "^BSDF_CLOSURE_CLASS_END$"
+MacroBlockBegin: "^OSL_CLOSURE_STRUCT_BEGIN$"
+MacroBlockEnd: "^OSL_CLOSURE_STRUCT_END$"

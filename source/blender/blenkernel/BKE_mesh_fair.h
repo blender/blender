@@ -25,16 +25,16 @@ typedef enum eMeshFairingDepth {
 
 /* affect_vertices is used to define the fairing area. Indexed by vertex index, set to true when
  * the vertex should be modified by fairing. */
-void BKE_bmesh_prefair_and_fair_vertices(struct BMesh *bm,
-                                         bool *affect_vertices,
-                                         eMeshFairingDepth depth);
+void BKE_bmesh_prefair_and_fair_verts(struct BMesh *bm,
+                                      bool *affect_verts,
+                                      eMeshFairingDepth depth);
 
 /* This function can optionally use the MVert coordinates of deform_mverts to read and write the
  * fairing result. When NULL, the function will use mesh->mverts directly. */
-void BKE_mesh_prefair_and_fair_vertices(struct Mesh *mesh,
-                                        struct MVert *deform_mverts,
-                                        bool *affect_vertices,
-                                        eMeshFairingDepth depth);
+void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
+                                     struct MVert *deform_mverts,
+                                     bool *affect_verts,
+                                     eMeshFairingDepth depth);
 
 #ifdef __cplusplus
 }

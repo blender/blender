@@ -19,6 +19,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_layer.h"
 
 #include "ED_gpencil.h"
 #include "ED_keyframing.h"
@@ -681,7 +682,8 @@ static void createTransGPencil(bContext *C, TransInfo *t)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  Object *obact = OBACT(t->view_layer);
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+  Object *obact = BKE_view_layer_active_object_get(t->view_layer);
   bGPdata *gpd = obact->data;
   BLI_assert(gpd != NULL);
 
@@ -748,7 +750,7 @@ static void recalcData_gpencil_strokes(TransInfo *t)
   for (int i = 0; i < tc->data_len; i++, td++) {
     bGPDstroke *gps = td->extra;
 
-    if ((gps != NULL) && (!BLI_ghash_haskey(strokes, gps))) {
+    if ((gps != NULL) && !BLI_ghash_haskey(strokes, gps)) {
       BLI_ghash_insert(strokes, gps, gps);
       if (is_curve_edit && gps->editcurve != NULL) {
         BKE_gpencil_editcurve_recalculate_handles(gps);

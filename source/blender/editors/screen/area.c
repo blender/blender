@@ -16,6 +16,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -83,7 +84,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
 
   immBeginAtMost(GPU_PRIM_LINES, 8);
@@ -174,7 +175,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *area)
 }
 
 /**
- * \brief Corner widget use for quitting fullscreen.
+ * \brief Corner widget use for quitting full-screen.
  */
 static void area_draw_azone_fullscreen(
     short UNUSED(x1), short UNUSED(y1), short x2, short y2, float alpha)
@@ -238,8 +239,6 @@ static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  /* NOTE(fclem): There is something strange going on with Mesa and GPU_SHADER_2D_UNIFORM_COLOR
-   * that causes a crash on some GPUs (see T76113). Using 3D variant avoid the issue. */
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
@@ -563,7 +562,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     GPU_blend(GPU_BLEND_ALPHA);
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4f(BLI_thread_frand(0), BLI_thread_frand(0), BLI_thread_frand(0), 0.1f);
     immRectf(pos,
              region->drawrct.xmin - region->winrct.xmin,
@@ -593,7 +592,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
       UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
       GPUVertFormat *format = immVertexFormat();
       uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4fv(color);
       GPU_line_width(1.0f);
       imm_draw_box_wire_2d(pos,
@@ -846,7 +845,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
 {
-  /* reinitialize entirely, regions and fullscreen add azones too */
+  /* reinitialize entirely, regions and full-screen add azones too */
   BLI_freelistN(&area->actionzones);
 
   if (screen->state != SCREENNORMAL) {
@@ -1903,6 +1902,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
   if (ED_area_is_global(area) && (area->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
@@ -1967,7 +1967,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   /* Avoid re-initializing tools while resizing the window. */
   if ((G.moving & G_TRANSFORM_WM) == 0) {
     if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-      WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
+      WM_toolsystem_refresh_screen_area(workspace, scene, view_layer, area);
       area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }
     else {
@@ -2578,8 +2578,8 @@ void ED_area_prevspace(bContext *C, ScrArea *area)
     /* no change */
     return;
   }
-  /* If this is a stacked fullscreen, changing to previous area exits it (meaning we're still in a
-   * fullscreen, but not in a stacked one). */
+  /* If this is a stacked full-screen, changing to previous area exits it (meaning we're still in a
+   * full-screen, but not in a stacked one). */
   area->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
 
   ED_area_tag_redraw(area);
@@ -2689,12 +2689,13 @@ static void ed_panel_draw(const bContext *C,
   const uiStyle *style = UI_style_get_dpi();
 
   /* Draw panel. */
-
   char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_LEN];
-  strncpy(block_name, pt->idname, BKE_ST_MAXNAME);
-  if (unique_panel_str != NULL) {
+  if (unique_panel_str) {
     /* Instanced panels should have already been added at this point. */
-    strncat(block_name, unique_panel_str, INSTANCED_PANEL_UNIQUE_STR_LEN);
+    BLI_string_join(block_name, sizeof(block_name), pt->idname, unique_panel_str);
+  }
+  else {
+    STRNCPY(block_name, pt->idname);
   }
   uiBlock *block = UI_block_begin(C, region, block_name, UI_EMBOSS);
 
@@ -3558,7 +3559,7 @@ void ED_region_info_draw_multiline(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(fill_color);
   immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
   immUnbindProgram();
@@ -3629,7 +3630,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
   float gridcolor[4];
   UI_GetThemeColor4fv(TH_GRID, gridcolor);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   /* To fake alpha-blending, color shading is reduced when alpha is nearing 0. */
   immUniformThemeColorBlendShade(TH_BACK, TH_GRID, gridcolor[3], 20 * gridcolor[3]);
   immRectf(pos, x1, y1, x2, y2);
@@ -3666,7 +3667,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
     pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
     immBegin(GPU_PRIM_LINES, 4 * count_fine + 4 * count_large);
 
     float theme_color[3];
@@ -3779,7 +3780,7 @@ void ED_region_cache_draw_background(ARegion *region)
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ub(128, 128, 255, 64);
   immRecti(pos, 0, region_bottom, region->winx, region_bottom + 8 * UI_DPI_FAC);
   immUnbindProgram();
@@ -3793,14 +3794,14 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
   float font_dims[2] = {0.0f, 0.0f};
 
   /* frame number */
-  BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(fontid, 11.0f * U.dpi_fac);
   BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CFRAME);
   immRecti(pos, x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
   immUnbindProgram();
@@ -3820,7 +3821,7 @@ void ED_region_cache_draw_cached_segments(
 
     uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ub(128, 128, 255, 128);
 
     for (int a = 0; a < num_segments; a++) {

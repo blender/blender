@@ -94,13 +94,13 @@ static bool gpencil_select_poll(bContext *C)
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   if (GPENCIL_SCULPT_MODE(gpd)) {
-    if (!(GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt))) {
+    if (!GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt)) {
       return false;
     }
   }
 
   if (GPENCIL_VERTEX_MODE(gpd)) {
-    if (!(GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex))) {
+    if (!GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex)) {
       return false;
     }
   }
@@ -267,7 +267,7 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
   /* For sculpt mode, if mask is disable, only allows deselect */
   if (GPENCIL_SCULPT_MODE(gpd)) {
     ToolSettings *ts = CTX_data_tool_settings(C);
-    if ((!(GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt))) && (action != SEL_DESELECT)) {
+    if (!GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt) && (action != SEL_DESELECT)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -529,7 +529,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  if ((gpd == NULL) || (GPENCIL_NONE_EDIT_MODE(gpd))) {
+  if ((gpd == NULL) || GPENCIL_NONE_EDIT_MODE(gpd)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -576,7 +576,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
 
       if (selectmode == GP_SELECTMODE_STROKE) {
         RNG *rng = BLI_rng_new(seed_iter);
-        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        const uint j = BLI_rng_get_uint(rng) % gps->totpoints;
         bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
         select_stroke ^= select;
         /* Curve function has select parameter inverted. */
@@ -647,7 +647,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
 
       if (selectmode == GP_SELECTMODE_STROKE) {
         RNG *rng = BLI_rng_new(seed_iter);
-        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        const uint j = BLI_rng_get_uint(rng) % gps->totpoints;
         bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
         select_stroke ^= select;
         select_all_stroke_points(gpd, gps, select_stroke);
@@ -1497,11 +1497,11 @@ static bool gpencil_stroke_do_circle_sel(bGPdata *gpd,
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
     bGPDspoint pt_temp;
-    gpencil_point_to_parent_space(pt, diff_mat, &pt_temp);
+    gpencil_point_to_world_space(pt, diff_mat, &pt_temp);
     gpencil_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
     /* do boundbox check first */
-    if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
+    if (!ELEM(V2D_IS_CLIPPED, x0, y0) && BLI_rcti_isect_pt(rect, x0, y0)) {
       /* only check if point is inside */
       if (((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my)) <= radius * radius) {
         hit = true;
@@ -2040,7 +2040,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
   gpencil_point_conversion_init(C, &gsc);
 
   /* deselect all strokes first? */
-  if (SEL_OP_USE_PRE_DESELECT(sel_op) || (GPENCIL_PAINT_MODE(gpd))) {
+  if (SEL_OP_USE_PRE_DESELECT(sel_op) || GPENCIL_PAINT_MODE(gpd)) {
     /* Set selection index to 0. */
     gpd->select_last_index = 0;
 
@@ -2071,8 +2071,9 @@ static bool gpencil_generic_stroke_select(bContext *C,
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
-      /* convert point coords to screenspace */
-      const bool is_inside = is_inside_fn(gsc.region, gpstroke_iter.diff_mat, &pt->x, user_data);
+      /* Convert point coords to screen-space. */
+      const bool is_inside = is_inside_fn(
+          gsc.region, gpstroke_iter.diff_mat, &pt_active->x, user_data);
       if (strokemode == false) {
         const bool is_select = (pt_active->flag & GP_SPOINT_SELECT) != 0;
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -2477,7 +2478,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
         int xy[2];
 
         bGPDspoint pt2;
-        gpencil_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
+        gpencil_point_to_world_space(pt, gpstroke_iter.diff_mat, &pt2);
         gpencil_point_to_xy(&gsc, gps_active, &pt2, &xy[0], &xy[1]);
 
         /* do boundbox check first */
@@ -2766,7 +2767,7 @@ static bool gpencil_select_vertex_color_poll(bContext *C)
   bGPdata *gpd = (bGPdata *)ob->data;
 
   if (GPENCIL_VERTEX_MODE(gpd)) {
-    if (!(GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex))) {
+    if (!GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex)) {
       return false;
     }
 

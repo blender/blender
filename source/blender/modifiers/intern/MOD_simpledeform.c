@@ -294,7 +294,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   float smd_limit[2], smd_factor;
   SpaceTransform *transf = NULL, tmp_transf;
   int vgroup;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
 
   /* This is historically the lock axis, _not_ the deform axis as the name would imply */
   const int deform_axis = smd->deform_axis;
@@ -414,9 +414,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SimpleDeformModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
 

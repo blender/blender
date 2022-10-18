@@ -38,7 +38,7 @@ class SceneTimeOperation : public NodeOperation {
   {
     Result &result = get_result("Frame");
     result.allocate_single_value();
-    result.set_float_value(static_cast<float>(context().get_frame_number()));
+    result.set_float_value(float(context().get_frame_number()));
   }
 };
 

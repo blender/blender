@@ -22,8 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<int> construct_vertex_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MEdge> edges(mesh.medge, mesh.totedge);
-
+  const Span<MEdge> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> counts(mesh.totvert, 0);
     for (const int i : edges.index_range()) {
@@ -44,7 +43,7 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     return construct_vertex_count_gvarray(mesh, domain);
   }
@@ -59,12 +58,16 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const VertexCountFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 static VArray<int> construct_face_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
-
+  const Span<MLoop> loops = mesh.loops();
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> vertices(mesh.totvert, 0);
     for (const int i : loops.index_range()) {
@@ -85,7 +88,7 @@ class VertexFaceCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     return construct_face_count_gvarray(mesh, domain);
   }
@@ -99,6 +102,11 @@ class VertexFaceCountFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const VertexFaceCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

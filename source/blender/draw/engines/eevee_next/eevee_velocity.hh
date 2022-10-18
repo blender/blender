@@ -67,7 +67,10 @@ class VelocityModule {
  private:
   Instance &inst_;
 
+  /** Step being synced. */
   eVelocityStep step_ = STEP_CURRENT;
+  /** Step referenced as next step. */
+  eVelocityStep next_step_ = STEP_NEXT;
 
  public:
   VelocityModule(Instance &inst) : inst_(inst)
@@ -102,7 +105,10 @@ class VelocityModule {
   void step_sync(eVelocityStep step, float time);
 
   /* Gather motion data. Returns true if the object **can** have motion. */
-  bool step_object_sync(Object *ob, ObjectKey &object_key, int recalc = 0);
+  bool step_object_sync(Object *ob,
+                        ObjectKey &object_key,
+                        ResourceHandle resource_handle,
+                        int recalc = 0);
 
   /* Moves next frame data to previous frame data. Nullify next frame data. */
   void step_swap();
@@ -111,6 +117,20 @@ class VelocityModule {
   void end_sync();
 
   void bind_resources(DRWShadingGroup *grp);
+
+  template<typename T> void bind_resources(draw::detail::Pass<T> *pass)
+  {
+    /* Storage Buf. */
+    pass->bind_ssbo(VELOCITY_OBJ_PREV_BUF_SLOT, &(*object_steps[STEP_PREVIOUS]));
+    pass->bind_ssbo(VELOCITY_OBJ_NEXT_BUF_SLOT, &(*object_steps[next_step_]));
+    pass->bind_ssbo(VELOCITY_GEO_PREV_BUF_SLOT, &(*geometry_steps[STEP_PREVIOUS]));
+    pass->bind_ssbo(VELOCITY_GEO_NEXT_BUF_SLOT, &(*geometry_steps[next_step_]));
+    pass->bind_ssbo(VELOCITY_INDIRECTION_BUF_SLOT, &indirection_buf);
+    /* Uniform Buf. */
+    pass->bind_ubo(VELOCITY_CAMERA_PREV_BUF, &(*camera_steps[STEP_PREVIOUS]));
+    pass->bind_ubo(VELOCITY_CAMERA_CURR_BUF, &(*camera_steps[STEP_CURRENT]));
+    pass->bind_ubo(VELOCITY_CAMERA_NEXT_BUF, &(*camera_steps[next_step_]));
+  }
 
   bool camera_has_motion() const;
   bool camera_changed_projection() const;

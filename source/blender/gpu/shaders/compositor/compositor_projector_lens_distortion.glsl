@@ -4,7 +4,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  /* Get the normalized coordinates of the pixel centers.  */
+  /* Get the normalized coordinates of the pixel centers. */
   vec2 normalized_texel = (vec2(texel) + vec2(0.5)) / vec2(texture_size(input_tx));
 
   /* Sample the red and blue channels shifted by the dispersion amount. */

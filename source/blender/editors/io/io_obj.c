@@ -18,6 +18,7 @@
 
 #  include "BLT_translation.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_outliner.h"
 
 #  include "MEM_guardedalloc.h"
@@ -58,20 +59,7 @@ static const EnumPropertyItem io_obj_path_mode[] = {
 
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".obj");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -79,7 +67,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_obj_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -93,7 +81,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
 
   export_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   export_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
-  export_params.scaling_factor = RNA_float_get(op->ptr, "scaling_factor");
+  export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.export_eval_mode = RNA_enum_get(op->ptr, "export_eval_mode");
 
@@ -105,6 +93,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
+  export_params.export_pbr_extensions = RNA_boolean_get(op->ptr, "export_pbr_extensions");
 
   export_params.export_object_groups = RNA_boolean_get(op->ptr, "export_object_groups");
   export_params.export_material_groups = RNA_boolean_get(op->ptr, "export_material_groups");
@@ -126,51 +115,50 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  /* Animation options. */
-  uiLayout *box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Animation"), ICON_ANIM);
-  uiLayout *col = uiLayoutColumn(box, false);
-  uiLayout *sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "export_animation", 0, NULL, ICON_NONE);
-  sub = uiLayoutColumn(sub, true);
-  uiItemR(sub, imfptr, "start_frame", 0, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
-  uiLayoutSetEnabled(sub, export_animation);
+  uiLayout *box, *col, *sub, *row;
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Object Properties"), ICON_OBJECT_DATA);
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
+  uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
-  sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
-  uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
-  sub = uiLayoutColumn(sub, false);
-  uiLayoutSetEnabled(sub, export_materials);
-  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
 
-  /* Options for what to write. */
+  /* Geometry options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Geometry Export"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
   uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Materials"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
   uiItemR(sub, imfptr, "export_curves_as_nurbs", 0, IFACE_("Curves as NURBS"), ICON_NONE);
 
+  /* Material options. */
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Materials"));
+  uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Export"), ICON_NONE);
+  sub = uiLayoutColumn(sub, false);
+  uiLayoutSetEnabled(sub, export_materials);
+  uiItemR(sub, imfptr, "export_pbr_extensions", 0, IFACE_("PBR Extensions"), ICON_NONE);
+  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
+
   /* Grouping options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Grouping"), ICON_GROUP);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Grouping"));
   uiItemR(sub, imfptr, "export_object_groups", 0, IFACE_("Object Groups"), ICON_NONE);
   uiItemR(sub, imfptr, "export_material_groups", 0, IFACE_("Material Groups"), ICON_NONE);
   uiItemR(sub, imfptr, "export_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
@@ -178,6 +166,16 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumn(sub, false);
   uiLayoutSetEnabled(sub, export_smooth_groups);
   uiItemR(sub, imfptr, "smooth_group_bitflags", 0, IFACE_("Smooth Group Bitflags"), ICON_NONE);
+
+  /* Animation options. */
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Animation"));
+  uiItemR(sub, imfptr, "export_animation", 0, IFACE_("Export"), ICON_NONE);
+  sub = uiLayoutColumn(sub, true);
+  uiLayoutSetEnabled(sub, export_animation);
+  uiItemR(sub, imfptr, "start_frame", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
 }
 
 static void wm_obj_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -223,15 +221,30 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
     RNA_int_set(op->ptr, "start_frame", start);
     RNA_int_set(op->ptr, "end_frame", end);
   }
-
-  /* Both forward and up axes cannot be the same (or same except opposite sign). */
-  if (RNA_enum_get(op->ptr, "forward_axis") % TOTAL_AXES ==
-      (RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES)) {
-    /* TODO(@ankitm): Show a warning here. */
-    RNA_enum_set(op->ptr, "up_axis", RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES + 1);
-    changed = true;
-  }
   return changed;
+}
+
+/* Both forward and up axes cannot be along the same direction. */
+static void forward_axis_update(struct Main *UNUSED(main),
+                                struct Scene *UNUSED(scene),
+                                struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
+  }
+}
+
+static void up_axis_update(struct Main *UNUSED(main),
+                           struct Scene *UNUSED(scene),
+                           struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
+  }
 }
 
 void WM_OT_obj_export(struct wmOperatorType *ot)
@@ -256,7 +269,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   /* Animation options. */
   RNA_def_boolean(ot->srna,
@@ -283,18 +296,21 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
   /* Object transform options. */
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
-  RNA_def_float(ot->srna,
-                "scaling_factor",
-                1.0f,
-                0.001f,
-                10000.0f,
-                "Scale",
-                "Upscale the object by this factor",
-                0.01,
-                1000.0f);
+  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_float(
+      ot->srna,
+      "global_scale",
+      1.0f,
+      0.0001f,
+      10000.0f,
+      "Scale",
+      "Value by which to enlarge or shrink the objects with respect to the world's origin",
+      0.0001f,
+      10000.0f);
   /* File Writer options. */
   RNA_def_boolean(
       ot->srna, "apply_modifiers", true, "Apply Modifiers", "Apply modifiers to exported meshes");
@@ -324,6 +340,12 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export Materials",
                   "Export MTL library. There must be a Principled-BSDF node for image textures to "
                   "be exported to the MTL file");
+  RNA_def_boolean(ot->srna,
+                  "export_pbr_extensions",
+                  false,
+                  "Export Materials with PBR Extensions",
+                  "Export MTL library using PBR extensions (roughness, metallic, sheen, "
+                  "clearcoat, anisotropy, transmission)");
   RNA_def_enum(ot->srna,
                "path_mode",
                io_obj_path_mode,
@@ -384,6 +406,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   struct OBJImportParams import_params;
   RNA_string_get(op->ptr, "filepath", import_params.filepath);
+  import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
@@ -404,13 +427,12 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < files_len; i++) {
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
-      BLI_join_dirfile(
-          import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
+      BLI_path_join(import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
       import_params.clear_selection = (i == 0);
       OBJ_import(C, &import_params);
     }
   }
-  else if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     /* Importing one file. */
     RNA_string_get(op->ptr, "filepath", import_params.filepath);
     OBJ_import(C, &import_params);
@@ -438,10 +460,14 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(box, IFACE_("Transform"), ICON_OBJECT_DATA);
   uiLayout *col = uiLayoutColumn(box, false);
   uiLayout *sub = uiLayoutColumn(col, false);
+  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
   uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
   sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
+
+  uiLayout *row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
@@ -465,7 +491,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   ot->invoke = wm_obj_import_invoke;
   ot->exec = wm_obj_import_exec;
@@ -479,7 +505,17 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS |
                                      WM_FILESEL_DIRECTORY | WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
+  RNA_def_float(
+      ot->srna,
+      "global_scale",
+      1.0f,
+      0.0001f,
+      10000.0f,
+      "Scale",
+      "Value by which to enlarge or shrink the objects with respect to the world's origin",
+      0.0001f,
+      10000.0f);
   RNA_def_float(
       ot->srna,
       "clamp_size",
@@ -490,9 +526,11 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
   RNA_def_boolean(ot->srna,
                   "import_vertex_groups",
                   false,

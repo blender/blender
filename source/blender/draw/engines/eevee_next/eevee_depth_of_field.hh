@@ -56,13 +56,13 @@ class DepthOfField {
   TextureFromPool bokeh_gather_lut_tx_ = {"dof_bokeh_gather_lut"};
   TextureFromPool bokeh_resolve_lut_tx_ = {"dof_bokeh_resolve_lut"};
   TextureFromPool bokeh_scatter_lut_tx_ = {"dof_bokeh_scatter_lut"};
-  DRWPass *bokeh_lut_ps_ = nullptr;
+  PassSimple bokeh_lut_ps_ = {"BokehLut"};
 
   /** Outputs half-resolution color and Circle Of Confusion. */
   TextureFromPool setup_coc_tx_ = {"dof_setup_coc"};
   TextureFromPool setup_color_tx_ = {"dof_setup_color"};
   int3 dispatch_setup_size_ = int3(-1);
-  DRWPass *setup_ps_ = nullptr;
+  PassSimple setup_ps_ = {"Setup"};
 
   /** Allocated because we need mip chain. Which isn't supported by TextureFromPool. */
   Texture reduced_coc_tx_ = {"dof_reduced_coc"};
@@ -73,12 +73,12 @@ class DepthOfField {
   GPUTexture *stabilize_input_ = nullptr;
   bool1 stabilize_valid_history_ = false;
   int3 dispatch_stabilize_size_ = int3(-1);
-  DRWPass *stabilize_ps_ = nullptr;
+  PassSimple stabilize_ps_ = {"Stabilize"};
 
   /** 1/4th res color buffer used to speedup the local contrast test in the first reduce pass. */
   TextureFromPool downsample_tx_ = {"dof_downsample"};
   int3 dispatch_downsample_size_ = int3(-1);
-  DRWPass *downsample_ps_ = nullptr;
+  PassSimple downsample_ps_ = {"Downsample"};
 
   /** Create mip-mapped color & COC textures for gather passes as well as scatter rect list. */
   DepthOfFieldScatterListBuf scatter_fg_list_buf_;
@@ -86,20 +86,20 @@ class DepthOfField {
   DrawIndirectBuf scatter_fg_indirect_buf_;
   DrawIndirectBuf scatter_bg_indirect_buf_;
   int3 dispatch_reduce_size_ = int3(-1);
-  DRWPass *reduce_ps_ = nullptr;
+  PassSimple reduce_ps_ = {"Reduce"};
 
   /** Outputs min & max COC in each 8x8 half res pixel tiles (so 1/16th of full resolution). */
   SwapChain<TextureFromPool, 2> tiles_fg_tx_;
   SwapChain<TextureFromPool, 2> tiles_bg_tx_;
   int3 dispatch_tiles_flatten_size_ = int3(-1);
-  DRWPass *tiles_flatten_ps_ = nullptr;
+  PassSimple tiles_flatten_ps_ = {"TilesFlatten"};
 
   /** Dilates the min & max CoCs to cover maximum COC values. */
   int tiles_dilate_ring_count_ = -1;
   int tiles_dilate_ring_width_mul_ = -1;
   int3 dispatch_tiles_dilate_size_ = int3(-1);
-  DRWPass *tiles_dilate_minmax_ps_ = nullptr;
-  DRWPass *tiles_dilate_minabs_ps_ = nullptr;
+  PassSimple tiles_dilate_minmax_ps_ = {"TilesDilateMinmax"};
+  PassSimple tiles_dilate_minabs_ps_ = {"TilesDilateMinabs"};
 
   /** Gather convolution for low intensity pixels and low contrast areas. */
   SwapChain<TextureFromPool, 2> color_bg_tx_;
@@ -108,29 +108,29 @@ class DepthOfField {
   SwapChain<TextureFromPool, 2> weight_fg_tx_;
   TextureFromPool occlusion_tx_ = {"dof_occlusion"};
   int3 dispatch_gather_size_ = int3(-1);
-  DRWPass *gather_fg_ps_ = nullptr;
-  DRWPass *gather_bg_ps_ = nullptr;
+  PassSimple gather_fg_ps_ = {"GatherFg"};
+  PassSimple gather_bg_ps_ = {"GatherBg"};
 
   /** Hole-fill convolution: Gather pass meant to fill areas of foreground dis-occlusion. */
   TextureFromPool hole_fill_color_tx_ = {"dof_color_hole_fill"};
   TextureFromPool hole_fill_weight_tx_ = {"dof_weight_hole_fill"};
-  DRWPass *hole_fill_ps_ = nullptr;
+  PassSimple hole_fill_ps_ = {"HoleFill"};
 
   /** Small Filter pass to reduce noise out of gather passes. */
   int3 dispatch_filter_size_ = int3(-1);
-  DRWPass *filter_fg_ps_ = nullptr;
-  DRWPass *filter_bg_ps_ = nullptr;
+  PassSimple filter_fg_ps_ = {"FilterFg"};
+  PassSimple filter_bg_ps_ = {"FilterBg"};
 
   /** Scatter convolution: A quad is emitted for every 4 bright enough half pixels. */
   Framebuffer scatter_fg_fb_ = {"dof_scatter_fg"};
   Framebuffer scatter_bg_fb_ = {"dof_scatter_bg"};
-  DRWPass *scatter_fg_ps_ = nullptr;
-  DRWPass *scatter_bg_ps_ = nullptr;
+  PassSimple scatter_fg_ps_ = {"ScatterFg"};
+  PassSimple scatter_bg_ps_ = {"ScatterBg"};
 
   /** Recombine the results and also perform a slight out of focus gather. */
   GPUTexture *resolve_stable_color_tx_ = nullptr;
   int3 dispatch_resolve_size_ = int3(-1);
-  DRWPass *resolve_ps_ = nullptr;
+  PassSimple resolve_ps_ = {"Resolve"};
 
   DepthOfFieldDataBuf data_;
 
@@ -139,6 +139,8 @@ class DepthOfField {
   float fx_max_coc_;
   /** Use jittered depth of field where we randomize camera location. */
   bool do_jitter_;
+  /** Enable bokeh lookup texture. */
+  bool use_bokeh_lut_;
 
   /** Circle of Confusion radius for FX DoF passes. Is in view X direction in [0..1] range. */
   float fx_radius_;
@@ -166,7 +168,10 @@ class DepthOfField {
    * Will swap input and output texture if rendering happens. The actual output of this function
    * is in input_tx.
    */
-  void render(GPUTexture **input_tx, GPUTexture **output_tx, DepthOfFieldBuffer &dof_buffer);
+  void render(View &view,
+              GPUTexture **input_tx,
+              GPUTexture **output_tx,
+              DepthOfFieldBuffer &dof_buffer);
 
   bool postfx_enabled() const
   {

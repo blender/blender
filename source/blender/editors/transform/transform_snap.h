@@ -11,6 +11,10 @@
 /* For enum. */
 #include "DNA_space_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool peelObjectsTransform(struct TransInfo *t,
                           const float mval[2],
                           bool use_peel_object,
@@ -92,3 +96,7 @@ void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
                                     eAnimEdit_AutoSnap autosnap,
                                     float *r_val_final);
+
+#ifdef __cplusplus
+}
+#endif

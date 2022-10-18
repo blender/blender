@@ -82,11 +82,13 @@ void SceneExporter::writeNodeList(std::vector<Object *> &child_objects, Object *
 
 void SceneExporter::writeNode(Object *ob)
 {
+  const Scene *scene = blender_context.get_scene();
   ViewLayer *view_layer = blender_context.get_view_layer();
 
   std::vector<Object *> child_objects;
-  bc_get_children(child_objects, ob, view_layer);
-  bool can_export = bc_is_in_Export_set(this->export_settings.get_export_set(), ob, view_layer);
+  bc_get_children(child_objects, ob, scene, view_layer);
+  bool can_export = bc_is_in_Export_set(
+      this->export_settings.get_export_set(), ob, scene, view_layer);
 
   /* Add associated armature first if available */
   bool armature_exported = false;
@@ -94,7 +96,7 @@ void SceneExporter::writeNode(Object *ob)
 
   if (ob_arm != nullptr) {
     armature_exported = bc_is_in_Export_set(
-        this->export_settings.get_export_set(), ob_arm, view_layer);
+        this->export_settings.get_export_set(), ob_arm, scene, view_layer);
     if (armature_exported && bc_is_marked(ob_arm)) {
       writeNode(ob_arm);
       bc_remove_mark(ob_arm);

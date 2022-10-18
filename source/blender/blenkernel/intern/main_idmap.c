@@ -184,10 +184,10 @@ struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map)
   return id_map->bmain;
 }
 
-static unsigned int idkey_hash(const void *ptr)
+static uint idkey_hash(const void *ptr)
 {
   const struct IDNameLib_Key *idkey = ptr;
-  unsigned int key = BLI_ghashutil_strhash(idkey->name);
+  uint key = BLI_ghashutil_strhash(idkey->name);
   if (idkey->lib) {
     key ^= BLI_ghashutil_ptrhash(idkey->lib);
   }

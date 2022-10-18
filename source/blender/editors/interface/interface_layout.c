@@ -694,7 +694,7 @@ static void ui_item_array(uiLayout *layout,
     else {
       /* Even if 'expand' is false, we expand anyway. */
 
-      /* layout for known array subtypes */
+      /* Layout for known array sub-types. */
       char str[3] = {'\0'};
 
       if (!icon_only && show_text) {
@@ -2112,11 +2112,11 @@ void uiItemFullR(uiLayout *layout,
             icon = ICON_CHECKBOX_DEHLT; /* but->iconadd will set to correct icon */
           }
           else if (is_array) {
-            icon = (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT :
-                                                                        ICON_CHECKBOX_DEHLT;
+            icon = RNA_property_boolean_get_index(ptr, prop, index) ? ICON_CHECKBOX_HLT :
+                                                                      ICON_CHECKBOX_DEHLT;
           }
           else {
-            icon = (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+            icon = RNA_property_boolean_get(ptr, prop) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
           }
         }
       }

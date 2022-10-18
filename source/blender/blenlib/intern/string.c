@@ -314,7 +314,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
       break;
     }
     char c = *src;
-    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -329,7 +329,7 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
   size_t len = 0;
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
-    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -1121,7 +1121,7 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
 
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
 {
-  /* NOTE: Buffer to hold maximum unsigned int64, which is 1.8e+19. but
+  /* NOTE: Buffer to hold maximum `uint64`, which is 1.8e+19. but
    * we also need space for commas and null-terminator. */
   char src[27];
   int num_len = sprintf(src, "%" PRIu64 "", num);

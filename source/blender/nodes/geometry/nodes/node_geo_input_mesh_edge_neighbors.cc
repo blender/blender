@@ -26,14 +26,15 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
+    const Span<MLoop> loops = mesh.loops();
     Array<int> face_count(mesh.totedge, 0);
-    for (const int i : IndexRange(mesh.totloop)) {
-      face_count[mesh.mloop[i].e]++;
+    for (const MLoop &loop : loops) {
+      face_count[loop.e]++;
     }
 
-    return bke::mesh_attributes(mesh).adapt_domain<int>(
+    return mesh.attributes().adapt_domain<int>(
         VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -46,6 +47,11 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const EdgeNeighborCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
   }
 };
 

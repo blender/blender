@@ -11,17 +11,19 @@ namespace blender::nodes::node_shader_tex_gradient_cc {
 static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .hide_value()
+      .implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 }
 
-static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_gradient(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "gradient_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_gradient(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexGradient *tex = MEM_cnew<NodeTexGradient>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -33,7 +35,7 @@ static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_gradient(GPUMaterial *mat,
                                         bNode *node,
-                                        bNodeExecData *UNUSED(execdata),
+                                        bNodeExecData * /*execdata*/,
                                         GPUNodeStack *in,
                                         GPUNodeStack *out)
 {
@@ -65,7 +67,7 @@ class GradientFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
 
@@ -139,7 +141,7 @@ class GradientFunction : public fn::MultiFunction {
 
 static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexGradient *tex = (NodeTexGradient *)node.storage;
   builder.construct_and_set_matching_fn<GradientFunction>(tex->gradient_type);
 }

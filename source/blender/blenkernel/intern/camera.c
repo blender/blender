@@ -72,7 +72,7 @@ static void camera_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
 
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   BLI_listbase_clear(&cam_dst->bg_images);
@@ -186,7 +186,7 @@ IDTypeInfo IDType_ID_CA = {
     .foreach_id = camera_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = camera_blend_write,
     .blend_read_data = camera_blend_read_data,
@@ -350,7 +350,7 @@ void BKE_camera_params_from_view3d(CameraParams *params,
     /* orthographic view */
     float sensor_size = BKE_camera_sensor_size(
         params->sensor_fit, params->sensor_x, params->sensor_y);
-    /* Halve, otherwise too extreme low zbuffer quality. */
+    /* Halve, otherwise too extreme low Z-buffer quality. */
     params->clip_end *= 0.5f;
     params->clip_start = -params->clip_end;
 
@@ -401,7 +401,7 @@ void BKE_camera_params_compute_viewplane(
   pixsize *= params->zoom;
 
   /* compute view plane:
-   * fully centered, zbuffer fills in jittered between -.5 and +.5 */
+   * Fully centered, Z-buffer fills in jittered between `-.5` and `+.5`. */
   viewplane.xmin = -0.5f * (float)winx;
   viewplane.ymin = -0.5f * params->ycor * (float)winy;
   viewplane.xmax = 0.5f * (float)winx;
@@ -579,7 +579,7 @@ typedef struct CameraViewFrameData {
   float dist_vals[CAMERA_VIEWFRAME_NUM_PLANES];   /* distance (signed) */
   float camera_no[3];
   float z_range[2];
-  unsigned int tot;
+  uint tot;
 
   bool do_zrange;
 
@@ -713,10 +713,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
       plane_from_point_normal_v3(plane_tx[i], co, data->plane_tx[i]);
     }
 
-    if ((!isect_plane_plane_v3(
-            plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no)) ||
-        (!isect_plane_plane_v3(
-            plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))) {
+    if (!isect_plane_plane_v3(plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no) ||
+        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no)) {
       return false;
     }
 

@@ -12,6 +12,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
@@ -593,8 +594,8 @@ static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   usd_mesh_data.points.reserve(mesh->totvert);
 
-  const MVert *verts = mesh->mvert;
-  for (int i = 0; i < mesh->totvert; ++i) {
+  const Span<MVert> verts = mesh->verts();
+  for (const int i : verts.index_range()) {
     usd_mesh_data.points.push_back(pxr::GfVec3f(verts[i].co));
   }
 }
@@ -603,46 +604,49 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   /* Only construct face groups (a.k.a. geometry subsets) when we need them for material
    * assignments. */
-  bool construct_face_groups = mesh->totcol > 1;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  if (!material_indices.is_single() && mesh->totcol > 1) {
+    const VArraySpan<int> indices_span(material_indices);
+    for (const int i : indices_span.index_range()) {
+      usd_mesh_data.face_groups[indices_span[i]].push_back(i);
+    }
+  }
 
   usd_mesh_data.face_vertex_counts.reserve(mesh->totpoly);
   usd_mesh_data.face_indices.reserve(mesh->totloop);
 
-  MLoop *mloop = mesh->mloop;
-  MPoly *mpoly = mesh->mpoly;
-  for (int i = 0; i < mesh->totpoly; ++i, ++mpoly) {
-    MLoop *loop = mloop + mpoly->loopstart;
-    usd_mesh_data.face_vertex_counts.push_back(mpoly->totloop);
-    for (int j = 0; j < mpoly->totloop; ++j, ++loop) {
-      usd_mesh_data.face_indices.push_back(loop->v);
-    }
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
 
-    if (construct_face_groups) {
-      usd_mesh_data.face_groups[mpoly->mat_nr].push_back(i);
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    usd_mesh_data.face_vertex_counts.push_back(poly.totloop);
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      usd_mesh_data.face_indices.push_back(loop.v);
     }
   }
 }
 
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  const float factor = 1.0f / 255.0f;
+  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->edata, CD_CREASE));
+  if (!creases) {
+    return;
+  }
 
-  MEdge *edge = mesh->medge;
-  float sharpness;
-  for (int edge_idx = 0, totedge = mesh->totedge; edge_idx < totedge; ++edge_idx, ++edge) {
-    if (edge->crease == 0) {
+  const Span<MEdge> edges = mesh->edges();
+  for (const int i : edges.index_range()) {
+    const float crease = creases[i];
+    if (crease == 0.0f) {
       continue;
     }
 
-    if (edge->crease == 255) {
-      sharpness = pxr::UsdGeomMesh::SHARPNESS_INFINITE;
-    }
-    else {
-      sharpness = static_cast<float>(edge->crease) * factor;
-    }
+    const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
 
-    usd_mesh_data.crease_vertex_indices.push_back(edge->v1);
-    usd_mesh_data.crease_vertex_indices.push_back(edge->v2);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v1);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v2);
     usd_mesh_data.crease_lengths.push_back(2);
     usd_mesh_data.crease_sharpnesses.push_back(sharpness);
   }
@@ -740,6 +744,8 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
   const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
 
   pxr::VtVec3fArray loop_normals;
   loop_normals.reserve(mesh->totloop);
@@ -754,21 +760,20 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
     /* Compute the loop normals based on the 'smooth' flag. */
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
     const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
-    MPoly *mpoly = mesh->mpoly;
-    for (int poly_idx = 0, totpoly = mesh->totpoly; poly_idx < totpoly; ++poly_idx, ++mpoly) {
-      MLoop *mloop = mesh->mloop + mpoly->loopstart;
+    for (const int i : polys.index_range()) {
+      const MPoly &poly = polys[i];
 
-      if ((mpoly->flag & ME_SMOOTH) == 0) {
+      if ((poly.flag & ME_SMOOTH) == 0) {
         /* Flat shaded, use common normal for all verts. */
-        pxr::GfVec3f pxr_normal(face_normals[poly_idx]);
-        for (int loop_idx = 0; loop_idx < mpoly->totloop; ++loop_idx) {
+        pxr::GfVec3f pxr_normal(face_normals[i]);
+        for (int loop_idx = 0; loop_idx < poly.totloop; ++loop_idx) {
           loop_normals.push_back(pxr_normal);
         }
       }
       else {
         /* Smooth shaded, use individual vert normals. */
-        for (int loop_idx = 0; loop_idx < mpoly->totloop; ++loop_idx, ++mloop) {
-          loop_normals.push_back(pxr::GfVec3f(vert_normals[mloop->v]));
+        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+          loop_normals.push_back(pxr::GfVec3f(vert_normals[loop.v]));
         }
       }
     }

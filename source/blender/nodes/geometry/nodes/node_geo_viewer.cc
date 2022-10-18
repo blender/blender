@@ -6,7 +6,7 @@
 #include "UI_resources.h"
 
 #include "ED_node.h"
-#include "ED_spreadsheet.h"
+#include "ED_viewer_path.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -26,15 +26,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Value"), "Value_004").supports_field().hide_value();
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryViewer *data = MEM_cnew<NodeGeometryViewer>(__func__);
   data->data_type = CD_PROP_FLOAT;
+  data->domain = ATTR_DOMAIN_AUTO;
 
   node->storage = data;
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+}
+
+static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
@@ -61,7 +67,7 @@ static eNodeSocketDatatype custom_data_type_to_socket_type(const eCustomDataType
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryViewer &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const eNodeSocketDatatype socket_type = custom_data_type_to_socket_type(data_type);
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
@@ -79,7 +85,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     SpaceNode *snode = CTX_wm_space_node(&params.C);
     Main *bmain = CTX_data_main(&params.C);
     ED_node_set_active(bmain, snode, &params.node_tree, &viewer_node, nullptr);
-    ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, &viewer_node);
+    ed::viewer_path::activate_geometry_node(*bmain, *snode, viewer_node);
   };
 
   const std::optional<eCustomDataType> type = node_socket_to_custom_data_type(
@@ -132,7 +138,9 @@ void register_node_type_geo_viewer()
   node_type_update(&ntype, file_ns::node_update);
   node_type_init(&ntype, file_ns::node_init);
   ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons_ex = file_ns::node_layout;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons_ex = file_ns::node_layout_ex;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.no_muting = true;
   nodeRegisterType(&ntype);
 }

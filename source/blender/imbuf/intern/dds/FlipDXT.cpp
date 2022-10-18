@@ -104,19 +104,19 @@ static void FlipDXT5BlockFull(uint8_t *block)
    *       bits = bits_0 + 256 * (bits_1 + 256 * (bits_2 + 256 * (bits_3 +
    *                                   256 * (bits_4 + 256 * bits_5))))
    *
-   *   bits is a 48-bit unsigned integer, from which a three-bit control code
+   *   bits is a 48-bit unsigned-integer, from which a three-bit control code
    *   is extracted for a texel at location (x,y) in the block using:
    *
    *           code(x,y) = bits[3*(4*y+x)+1..3*(4*y+x)+0]
    *
    *   where bit 47 is the most significant and bit 0 is the least
    *   significant bit. */
-  unsigned int line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
-  unsigned int line_2_3 = block[5] + 256 * (block[6] + 256 * block[7]);
+  uint line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
+  uint line_2_3 = block[5] + 256 * (block[6] + 256 * block[7]);
   /* swap lines 0 and 1 in line_0_1. */
-  unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
+  uint line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
   /* swap lines 2 and 3 in line_2_3. */
-  unsigned int line_3_2 = ((line_2_3 & 0x000fff) << 12) | ((line_2_3 & 0xfff000) >> 12);
+  uint line_3_2 = ((line_2_3 & 0x000fff) << 12) | ((line_2_3 & 0xfff000) >> 12);
 
   block[2] = line_3_2 & 0xff;
   block[3] = (line_3_2 & 0xff00) >> 8;
@@ -133,21 +133,21 @@ static void FlipDXT5BlockFull(uint8_t *block)
 static void FlipDXT5BlockHalf(uint8_t *block)
 {
   /* See layout above. */
-  unsigned int line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
-  unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
+  uint line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
+  uint line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
   block[2] = line_1_0 & 0xff;
   block[3] = (line_1_0 & 0xff00) >> 8;
   block[4] = (line_1_0 & 0xff0000) >> 16;
   FlipDXT1BlockHalf(block + 8);
 }
 
-int FlipDXTCImage(unsigned int width,
-                  unsigned int height,
-                  unsigned int levels,
+int FlipDXTCImage(uint width,
+                  uint height,
+                  uint levels,
                   int fourcc,
                   uint8_t *data,
                   int data_size,
-                  unsigned int *r_num_valid_levels)
+                  uint *r_num_valid_levels)
 {
   *r_num_valid_levels = 0;
 
@@ -162,7 +162,7 @@ int FlipDXTCImage(unsigned int width,
 
   FlipBlockFunction full_block_function;
   FlipBlockFunction half_block_function;
-  unsigned int block_bytes = 0;
+  uint block_bytes = 0;
 
   switch (fourcc) {
     case FOURCC_DXT1:
@@ -186,15 +186,15 @@ int FlipDXTCImage(unsigned int width,
 
   *r_num_valid_levels = levels;
 
-  unsigned int mip_width = width;
-  unsigned int mip_height = height;
+  uint mip_width = width;
+  uint mip_height = height;
 
   const uint8_t *data_end = data + data_size;
 
-  for (unsigned int i = 0; i < levels; i++) {
-    unsigned int blocks_per_row = (mip_width + 3) / 4;
-    unsigned int blocks_per_col = (mip_height + 3) / 4;
-    unsigned int blocks = blocks_per_row * blocks_per_col;
+  for (uint i = 0; i < levels; i++) {
+    uint blocks_per_row = (mip_width + 3) / 4;
+    uint blocks_per_col = (mip_height + 3) / 4;
+    uint blocks = blocks_per_row * blocks_per_col;
 
     if (data + block_bytes * blocks > data_end) {
       /* Stop flipping when running out of data to be modified, avoiding possible buffer overrun
@@ -209,23 +209,23 @@ int FlipDXTCImage(unsigned int width,
     }
     if (mip_height == 2) {
       /* flip the first 2 lines in each block. */
-      for (unsigned int i = 0; i < blocks_per_row; i++) {
+      for (uint i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);
       }
     }
     else {
       /* flip each block. */
-      for (unsigned int i = 0; i < blocks; i++) {
+      for (uint i = 0; i < blocks; i++) {
         full_block_function(data + i * block_bytes);
       }
 
       /* Swap each block line in the first half of the image with the
        * corresponding one in the second half.
        * note that this is a no-op if mip_height is 4. */
-      unsigned int row_bytes = block_bytes * blocks_per_row;
+      uint row_bytes = block_bytes * blocks_per_row;
       uint8_t *temp_line = new uint8_t[row_bytes];
 
-      for (unsigned int y = 0; y < blocks_per_col / 2; y++) {
+      for (uint y = 0; y < blocks_per_col / 2; y++) {
         uint8_t *line1 = data + y * row_bytes;
         uint8_t *line2 = data + (blocks_per_col - y - 1) * row_bytes;
 

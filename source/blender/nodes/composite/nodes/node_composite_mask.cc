@@ -23,7 +23,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_mask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeMask *data = MEM_cnew<NodeMask>(__func__);
   data->size_x = data->size_y = 256;
@@ -33,7 +33,7 @@ static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom3 = 0.5f; /* shutter */
 }
 
-static void node_mask_label(const bNodeTree *UNUSED(ntree),
+static void node_mask_label(const bNodeTree * /*ntree*/,
                             const bNode *node,
                             char *label,
                             int maxlen)

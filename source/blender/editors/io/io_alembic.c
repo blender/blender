@@ -39,6 +39,7 @@
 #  include "RNA_define.h"
 #  include "RNA_enum_types.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "UI_interface.h"
@@ -75,20 +76,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".abc");
 
   WM_event_add_fileselect(C, op);
 
@@ -99,7 +87,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -619,7 +607,7 @@ static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -670,7 +658,7 @@ void WM_OT_alembic_import(wmOperatorType *ot)
   ot->name = "Import Alembic";
   ot->description = "Load an Alembic archive";
   ot->idname = "WM_OT_alembic_import";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   ot->invoke = wm_alembic_import_invoke;
   ot->exec = wm_alembic_import_exec;

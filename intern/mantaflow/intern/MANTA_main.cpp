@@ -1507,13 +1507,9 @@ bool MANTA::bakeData(FluidModifierData *fmd, int framenr)
 
   string volume_format = getCacheFileEnding(fds->cache_data_format);
 
+  BLI_path_join(cacheDirData, sizeof(cacheDirData), fds->cache_directory, FLUID_DOMAIN_DIR_DATA);
   BLI_path_join(
-      cacheDirData, sizeof(cacheDirData), fds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
-  BLI_path_join(cacheDirGuiding,
-                sizeof(cacheDirGuiding),
-                fds->cache_directory,
-                FLUID_DOMAIN_DIR_GUIDE,
-                nullptr);
+      cacheDirGuiding, sizeof(cacheDirGuiding), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
   BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirGuiding);
 
@@ -1540,7 +1536,7 @@ bool MANTA::bakeNoise(FluidModifierData *fmd, int framenr)
   string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   BLI_path_join(
-      cacheDirNoise, sizeof(cacheDirNoise), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE, nullptr);
+      cacheDirNoise, sizeof(cacheDirNoise), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
   BLI_path_make_safe(cacheDirNoise);
 
   ss.str("");
@@ -1566,8 +1562,7 @@ bool MANTA::bakeMesh(FluidModifierData *fmd, int framenr)
   string volume_format = getCacheFileEnding(fds->cache_data_format);
   string mesh_format = getCacheFileEnding(fds->cache_mesh_format);
 
-  BLI_path_join(
-      cacheDirMesh, sizeof(cacheDirMesh), fds->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
+  BLI_path_join(cacheDirMesh, sizeof(cacheDirMesh), fds->cache_directory, FLUID_DOMAIN_DIR_MESH);
   BLI_path_make_safe(cacheDirMesh);
 
   ss.str("");
@@ -1596,8 +1591,7 @@ bool MANTA::bakeParticles(FluidModifierData *fmd, int framenr)
   BLI_path_join(cacheDirParticles,
                 sizeof(cacheDirParticles),
                 fds->cache_directory,
-                FLUID_DOMAIN_DIR_PARTICLES,
-                nullptr);
+                FLUID_DOMAIN_DIR_PARTICLES);
   BLI_path_make_safe(cacheDirParticles);
 
   ss.str("");
@@ -1623,11 +1617,8 @@ bool MANTA::bakeGuiding(FluidModifierData *fmd, int framenr)
   string volume_format = getCacheFileEnding(fds->cache_data_format);
   string resumable_cache = !(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
-  BLI_path_join(cacheDirGuiding,
-                sizeof(cacheDirGuiding),
-                fds->cache_directory,
-                FLUID_DOMAIN_DIR_GUIDE,
-                nullptr);
+  BLI_path_join(
+      cacheDirGuiding, sizeof(cacheDirGuiding), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
   BLI_path_make_safe(cacheDirGuiding);
 
   ss.str("");
@@ -1678,13 +1669,11 @@ bool MANTA::exportSmokeScript(FluidModifierData *fmd)
 
   FluidDomainSettings *fds = fmd->domain;
 
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+  BLI_path_join(cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
-  BLI_path_join(
-      cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_SMOKE_SCRIPT, nullptr);
+  BLI_path_join(cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_SMOKE_SCRIPT);
   BLI_path_make_safe(cacheDir);
 
   bool noise = fds->flags & FLUID_DOMAIN_USE_NOISE;
@@ -1791,13 +1780,11 @@ bool MANTA::exportLiquidScript(FluidModifierData *fmd)
 
   FluidDomainSettings *fds = fmd->domain;
 
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+  BLI_path_join(cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
-  BLI_path_join(
-      cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_LIQUID_SCRIPT, nullptr);
+  BLI_path_join(cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_LIQUID_SCRIPT);
   BLI_path_make_safe(cacheDirScript);
 
   bool mesh = fds->flags & FLUID_DOMAIN_USE_MESH;
@@ -2323,8 +2310,7 @@ bool MANTA::hasGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
 string MANTA::getDirectory(FluidModifierData *fmd, string subdirectory)
 {
   char directory[FILE_MAX];
-  BLI_path_join(
-      directory, sizeof(directory), fmd->domain->cache_directory, subdirectory.c_str(), nullptr);
+  BLI_path_join(directory, sizeof(directory), fmd->domain->cache_directory, subdirectory.c_str());
   BLI_path_make_safe(directory);
   return directory;
 }
@@ -2335,7 +2321,7 @@ string MANTA::getFile(
   char targetFile[FILE_MAX];
   string path = getDirectory(fmd, subdirectory);
   string filename = fname + "_####" + extension;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
+  BLI_path_join(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
   BLI_path_frame(targetFile, framenr, 0);
   return targetFile;
 }

@@ -26,5 +26,5 @@ void main()
     fragColor.a *= alpha;
   }
 
-  fragColor.a *= smoothstep(1.0, 0.1, abs(colorGradient));
+  fragColor.a *= smoothstep(lineThickness, lineThickness - 0.6, abs(colorGradient));
 }

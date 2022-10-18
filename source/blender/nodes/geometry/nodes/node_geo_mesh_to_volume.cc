@@ -50,33 +50,31 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Volume"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshToVolume *data = (NodeGeometryMeshToVolume *)MEM_callocN(
-      sizeof(NodeGeometryMeshToVolume), __func__);
+  NodeGeometryMeshToVolume *data = MEM_cnew<NodeGeometryMeshToVolume>(__func__);
   data->resolution_mode = MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT;
   node->storage = data;
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryMeshToVolume *data = (NodeGeometryMeshToVolume *)node->storage;
+  NodeGeometryMeshToVolume &data = node_storage(*node);
 
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
   nodeSetSocketAvailability(ntree,
                             voxel_amount_socket,
-                            data->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
-  nodeSetSocketAvailability(ntree,
-                            voxel_size_socket,
-                            data->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE);
+                            data.resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
+  nodeSetSocketAvailability(
+      ntree, voxel_size_socket, data.resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE);
 }
 
 #ifdef WITH_OPENVDB
@@ -126,7 +124,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
                                                                exterior_band_width,
                                                                mesh_to_volume_space_transform);
 
-  Volume *volume = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
+  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
   BKE_volume_init_grids(volume);
 
   /* Convert mesh to grid and add to volume. */
@@ -149,7 +147,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   GeometrySet geometry_set(params.extract_input<GeometrySet>("Mesh"));
-
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
       Volume *volume = create_volume_from_mesh(*geometry_set.get_mesh_for_read(), params);
@@ -159,9 +156,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_default_remaining_outputs();
   return;
 #endif
 }

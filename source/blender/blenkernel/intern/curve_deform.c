@@ -160,7 +160,7 @@ static bool calc_curve_deform(
     /* Zero the axis which is not used,
      * the big block of text above now applies to these 3 lines.
      * The `upflag` argument may be a dummy, set so no rotation is done. */
-    quat_apply_track(quat, axis, (ELEM(axis, 0, 2)) ? 1 : 0);
+    quat_apply_track(quat, axis, ELEM(axis, 0, 2) ? 1 : 0);
     vec_apply_track(cent, axis);
     cent[index] = 0.0f;
 

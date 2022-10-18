@@ -73,7 +73,7 @@ class ShaderNode {
   const DNode &node() const;
 
   /* Returns a reference to the node this operations represents. */
-  bNode &bnode() const;
+  const bNode &bnode() const;
 
  private:
   /* Populate the inputs of the node. The input link is set to nullptr and is expected to be

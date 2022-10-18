@@ -49,8 +49,8 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *me = BKE_mesh_from_object(ob);
-  return (ob && (ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT))) &&
-         (me && me->totpoly && me->dvert);
+  return (ob && ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
+         (me && me->totpoly && !me->deform_verts().is_empty());
 }
 
 static void tag_object_after_update(Object *object)
@@ -73,8 +73,7 @@ static bool vertex_paint_from_weight(Object *ob)
   using namespace blender;
 
   Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr ||
-       (ED_mesh_color_ensure(me, nullptr)) == false)) {
+  if ((me = BKE_mesh_from_object(ob)) == nullptr || ED_mesh_color_ensure(me, nullptr) == false) {
     return false;
   }
 
@@ -92,7 +91,7 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
 
   bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {
@@ -121,7 +120,7 @@ static bool vertex_paint_from_weight(Object *ob)
   return true;
 }
 
-static int vertex_paint_from_weight_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_paint_from_weight_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_paint_from_weight(obact)) {
@@ -159,34 +158,24 @@ static IndexMask get_selected_indices(const Mesh &mesh,
                                       Vector<int64_t> &indices)
 {
   using namespace blender;
-  Span<MVert> verts(mesh.mvert, mesh.totvert);
-  Span<MPoly> faces(mesh.mpoly, mesh.totpoly);
-
-  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  const bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(faces.size(),
-                              [&](const int i) { return faces[i].flag & ME_FACE_SEL; }),
-        ATTR_DOMAIN_FACE,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_poly", ATTR_DOMAIN_FACE, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(verts.size(), [&](const int i) { return verts[i].flag & SELECT; }),
-        ATTR_DOMAIN_POINT,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_vert", ATTR_DOMAIN_POINT, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   return IndexMask(attributes.domain_size(domain));
 }
 
-static void face_corner_color_equalize_vertices(Mesh &mesh, const IndexMask selection)
+static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selection)
 {
   using namespace blender;
 
@@ -196,7 +185,7 @@ static void face_corner_color_equalize_vertices(Mesh &mesh, const IndexMask sele
     return;
   }
 
-  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  bke::AttributeAccessor attributes = mesh.attributes();
 
   if (attributes.lookup_meta_data(active_color_layer->name)->domain == ATTR_DOMAIN_POINT) {
     return;
@@ -221,14 +210,14 @@ static bool vertex_color_smooth(Object *ob)
   Vector<int64_t> indices;
   const IndexMask selection = get_selected_indices(*me, ATTR_DOMAIN_CORNER, indices);
 
-  face_corner_color_equalize_vertices(*me, selection);
+  face_corner_color_equalize_verts(*me, selection);
 
   tag_object_after_update(ob);
 
   return true;
 }
 
-static int vertex_color_smooth_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_color_smooth_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_color_smooth(obact)) {
@@ -270,7 +259,7 @@ static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {
@@ -320,7 +309,7 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     /*
      * The algorithm is by Werner D. Streidt
      * (http://visca.com/ffactory/archives/5-99/msg00021.html)
-     * Extracted of OpenCV demhist.c
+     * Extracted of OpenCV `demhist.c`.
      */
     if (contrast > 0) {
       gain = 1.0f - delta * 2.0f;
@@ -430,7 +419,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
 }
 
-static int vertex_color_invert_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_color_invert_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
 

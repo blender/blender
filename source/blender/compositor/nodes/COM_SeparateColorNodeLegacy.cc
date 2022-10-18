@@ -97,7 +97,7 @@ NodeOperation *SeparateHSVANode::get_color_converter(const CompositorContext & /
 NodeOperation *SeparateYCCANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   operation->set_mode(editor_node->custom1);
   return operation;
 }

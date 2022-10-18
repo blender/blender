@@ -88,12 +88,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .make_available(enable_points);
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveArc *data = MEM_cnew<NodeGeometryCurvePrimitiveArc>(__func__);
 
@@ -106,7 +106,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurvePrimitiveArc &storage = node_storage(*node);
   const GeometryNodeCurvePrimitiveArcMode mode = (GeometryNodeCurvePrimitiveArcMode)storage.mode;
 
-  bNodeSocket *start_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *start_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *middle_socket = start_socket->next;
   bNodeSocket *end_socket = middle_socket->next;
 
@@ -116,7 +116,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *offset_angle_socket = sweep_angle_socket->next;
 
-  bNodeSocket *center_out_socket = ((bNodeSocket *)node->outputs.first)->next;
+  bNodeSocket *center_out_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
   bNodeSocket *normal_out_socket = center_out_socket->next;
   bNodeSocket *radius_out_socket = normal_out_socket->next;
 
@@ -151,7 +151,7 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 {
   const float3 a = math::normalize(p2 - p1);
   const float3 b = math::normalize(p3 - p1);
-  return (ELEM(a, b, b * -1.0f));
+  return ELEM(a, b, b * -1.0f);
 }
 
 static Curves *create_arc_curve_from_points(const int resolution,

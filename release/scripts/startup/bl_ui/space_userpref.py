@@ -109,7 +109,16 @@ class USERPREF_MT_save_load(Menu):
         sub_revert.operator("wm.read_userpref", text="Revert to Saved Preferences")
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.read_factory_userpref", text="Load Factory Preferences")
+
+        app_template = prefs.app_template
+        if app_template:
+            display_name = bpy.path.display_name(iface_(app_template))
+            layout.operator("wm.read_factory_userpref", text="Load Factory Blender Preferences")
+            props = layout.operator("wm.read_factory_userpref", text="Load Factory %s Preferences" % display_name)
+            props.use_factory_startup_app_template_only = True
+            del display_name
+        else:
+            layout.operator("wm.read_factory_userpref", text="Load Factory Preferences")
 
 
 class USERPREF_PT_save_preferences(Panel):
@@ -388,17 +397,18 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
         col.prop(edit, "use_duplicate_curves", text="Curves")
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
+        col.prop(edit, "use_duplicate_lattice", text="Lattice")
 
         col = flow.column()
-        col.prop(edit, "use_duplicate_lattice", text="Lattice")
         col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_lightprobe", text="Light Probe")
         col.prop(edit, "use_duplicate_material", text="Material")
         col.prop(edit, "use_duplicate_mesh", text="Mesh")
         col.prop(edit, "use_duplicate_metaball", text="Metaball")
+        col.prop(edit, "use_duplicate_node_tree", text="Node Tree")
+        col.prop(edit, "use_duplicate_particle", text="Particle")
 
         col = flow.column()
-        col.prop(edit, "use_duplicate_particle", text="Particle")
         if hasattr(edit, "use_duplicate_pointcloud"):
             col.prop(edit, "use_duplicate_pointcloud", text="Point Cloud")
         col.prop(edit, "use_duplicate_speaker", text="Speaker")
@@ -1534,6 +1544,23 @@ class USERPREF_PT_input_mouse(InputPanel, CenterAlignMixIn, Panel):
         flow.prop(inputs, "move_threshold")
 
 
+class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
+    bl_label = "Touchpad"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        import sys
+        return sys.platform[:3] == "win" or sys.platform == "darwin"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        inputs = prefs.inputs
+
+        col = layout.column()
+        col.prop(inputs, "use_multitouch_gestures")
+
+
 class USERPREF_PT_input_tablet(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Tablet"
 
@@ -2327,6 +2354,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
                 ({"property": "use_cycles_debug"}, None),
                 ({"property": "show_asset_debug_info"}, None),
                 ({"property": "use_asset_indexing"}, None),
+                ({"property": "use_viewport_debug"}, None),
             ),
         )
 
@@ -2410,6 +2438,7 @@ classes = (
     USERPREF_PT_input_keyboard,
     USERPREF_PT_input_mouse,
     USERPREF_PT_input_tablet,
+    USERPREF_PT_input_touchpad,
     USERPREF_PT_input_ndof,
     USERPREF_PT_navigation_orbit,
     USERPREF_PT_navigation_zoom,

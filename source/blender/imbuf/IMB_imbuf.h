@@ -809,7 +809,7 @@ bool imb_addrectImBuf(struct ImBuf *ibuf);
  */
 void imb_freerectImBuf(struct ImBuf *ibuf);
 
-bool imb_addrectfloatImBuf(struct ImBuf *ibuf);
+bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
 /**
  * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
  */
@@ -893,6 +893,13 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
 eGPUTextureFormat IMB_gpu_get_texture_format(const struct ImBuf *ibuf,
                                              bool high_bitdepth,
                                              bool use_grayscale);
+
+/**
+ * Ensures that values stored in the float rect can safely loaded into half float gpu textures.
+ *
+ * Does nothing when given image_buffer doesn't contain a float rect.
+ */
+void IMB_gpu_clamp_half_float(struct ImBuf *image_buffer);
 
 /**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined

@@ -403,11 +403,11 @@ static void rna_userdef_anim_update(Main *UNUSED(bmain),
   USERDEF_TAG_DIRTY;
 }
 
-static void rna_userdef_tablet_api_update(Main *UNUSED(bmain),
-                                          Scene *UNUSED(scene),
-                                          PointerRNA *UNUSED(ptr))
+static void rna_userdef_input_devices(Main *UNUSED(bmain),
+                                      Scene *UNUSED(scene),
+                                      PointerRNA *UNUSED(ptr))
 {
-  WM_init_tablet_api();
+  WM_init_input_devices();
   USERDEF_TAG_DIRTY;
 }
 
@@ -1685,7 +1685,7 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   /* buttons */
-  /*  if (! ELEM(spacetype, SPACE_PROPERTIES, SPACE_OUTLINER)) { */
+  // if (!ELEM(spacetype, SPACE_PROPERTIES, SPACE_OUTLINER)) {
   prop = RNA_def_property(srna, "button", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Region Background", "");
@@ -1737,7 +1737,7 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Tab Outline", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  /*  } */
+  // }
 }
 
 static void rna_def_userdef_theme_space_gradient(BlenderRNA *brna)
@@ -2780,7 +2780,7 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wire", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "wire");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Wires", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -4057,6 +4057,7 @@ static void rna_def_userdef_studiolights(BlenderRNA *brna)
                       STUDIOLIGHT_TYPE_WORLD,
                       "Type",
                       "The type for the new studio light");
+  RNA_def_property_translation_context(parm, BLT_I18NCONTEXT_ID_LIGHT);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
   RNA_def_function_return(func, parm);
@@ -4117,6 +4118,7 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_type_get", NULL, NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
@@ -5230,6 +5232,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Volume", "Causes volume data to be duplicated with the object");
 
+  prop = RNA_def_property(srna, "use_duplicate_node_tree", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_NTREE);
+  RNA_def_property_ui_text(prop,
+                           "Duplicate Node Tree",
+                           "Make copies of node groups when duplicating nodes in the node editor");
+
   /* Currently only used for insert offset (aka auto-offset),
    * maybe also be useful for later stuff though. */
   prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_PIXEL);
@@ -5738,6 +5746,14 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, view_zoom_axes);
   RNA_def_property_ui_text(prop, "Zoom Axis", "Axis of mouse movement to zoom in or out on");
 
+  prop = RNA_def_property(srna, "use_multitouch_gestures", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_NO_MULTITOUCH_GESTURES);
+  RNA_def_property_ui_text(
+      prop,
+      "Multi-touch Gestures",
+      "Use multi-touch gestures for navigation with touchpad, instead of scroll wheel emulation");
+  RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
+
   prop = RNA_def_property(srna, "invert_mouse_zoom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_INVERT);
   RNA_def_property_ui_text(
@@ -5873,7 +5889,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
                            "Tablet API",
                            "Select the tablet API to use for pressure sensitivity (may require "
                            "restarting Blender for changes to take effect)");
-  RNA_def_property_update(prop, 0, "rna_userdef_tablet_api_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
 
 #  ifdef WITH_INPUT_NDOF
   /* 3D mouse settings */
@@ -6372,6 +6388,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "enable_eevee_next", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "enable_eevee_next", 1);
   RNA_def_property_ui_text(prop, "EEVEE Next", "Enable the new EEVEE codebase, requires restart");
+
+  prop = RNA_def_property(srna, "use_viewport_debug", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_viewport_debug", 1);
+  RNA_def_property_ui_text(prop,
+                           "Viewport Debug",
+                           "Enable viewport debugging options for developers in the overlays "
+                           "pop-over");
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

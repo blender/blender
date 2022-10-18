@@ -83,7 +83,7 @@ void main()
                          vec4(inner_color.rgb, 0.0);
 
   vec2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
-  vec2 offset = sizeEdge * 4.0 * drw_view.viewport_size_inverse; /* 4.0 is eyeballed */
+  vec2 offset = sizeEdge * 4.0 * sizeViewportInv; /* 4.0 is eyeballed */
 
   if (abs(v1_2.x * sizeViewport.x) < abs(v1_2.y * sizeViewport.y)) {
     offset.y = 0.0;

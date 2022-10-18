@@ -310,7 +310,7 @@ bool cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
   return (BLI_fseek(cdf->readf, offset, SEEK_SET) == 0);
 }
 
-bool cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
+bool cdf_read_data(CDataFile *cdf, uint size, void *data)
 {
   /* read data */
   if (!fread(data, size, 1, cdf->readf)) {
@@ -384,7 +384,7 @@ bool cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
   return true;
 }
 
-bool cdf_write_data(CDataFile *cdf, unsigned int size, void *data)
+bool cdf_write_data(CDataFile *cdf, uint size, void *data)
 {
   /* write data */
   if (!fwrite(data, size, 1, cdf->writef)) {

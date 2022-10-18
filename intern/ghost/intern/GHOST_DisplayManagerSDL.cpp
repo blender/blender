@@ -109,7 +109,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
 
       SDL_GetDisplayMode(display, i, &mode);
 
-      if ((int)setting.xPixels > mode.w || (int)setting.yPixels > mode.h) {
+      if (int(setting.xPixels) > mode.w || int(setting.yPixels) > mode.h) {
         continue;
       }
 

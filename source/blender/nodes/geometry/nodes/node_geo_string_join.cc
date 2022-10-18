@@ -13,12 +13,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<std::string> strings = params.extract_multi_input<std::string>("Strings");
+  Vector<fn::ValueOrField<std::string>> strings =
+      params.extract_input<Vector<fn::ValueOrField<std::string>>>("Strings");
   const std::string delim = params.extract_input<std::string>("Delimiter");
 
   std::string output;
   for (const int i : strings.index_range()) {
-    output += strings[i];
+    output += strings[i].as_value();
     if (i < (strings.size() - 1)) {
       output += delim;
     }

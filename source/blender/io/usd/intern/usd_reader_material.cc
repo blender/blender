@@ -6,6 +6,7 @@
 #include "usd_umm.h"
 
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -369,6 +370,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(bmain_, mtl_name.c_str());
+  id_us_min(&mtl->id);
 
   /* Get the UsdPreviewSurface shader source for the material,
    * if there is one. */
@@ -423,8 +425,7 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
    * and output shaders. */
 
   /* Add the node tree. */
-  bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", "ShaderNodeTree");
-  mtl->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
   mtl->use_nodes = true;
 
   /* Create the Principled BSDF shader node. */
@@ -633,7 +634,7 @@ void USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
   /* For now, only convert UsdUVTexture and UsdPrimvarReader_float2 inputs. */
   if (shader_id == usdtokens::UsdUVTexture) {
 
-    if (strcmp(dest_socket_name, "Normal") == 0) {
+    if (STREQ(dest_socket_name, "Normal")) {
 
       /* The normal texture input requires creating a normal map node. */
       float locx = 0.0f;
@@ -777,7 +778,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
         char result[FILE_MAX];
         /* Finally, join the original file name with the absolute path. */
-        BLI_path_join(result, FILE_MAX, dir_abs_path.c_str(), file, nullptr);
+        BLI_path_join(result, FILE_MAX, dir_abs_path.c_str(), file);
 
         /* Use forward slashes. */
         BLI_str_replace_char(result, SEP, ALTSEP);

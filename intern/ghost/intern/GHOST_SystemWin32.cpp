@@ -78,7 +78,7 @@
 #endif /* VK_GR_LESS */
 
 /**
-   Workaround for some laptop touch-pads, some of which seems to
+ * Workaround for some laptop touch-pads, some of which seems to
  * have driver issues which makes it so window function receives
  * the message, but #PeekMessage doesn't pick those messages for
  * some reason.
@@ -131,7 +131,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
   GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
   m_displayManager->initialize();
 
-  m_consoleStatus = 1;
+  m_consoleStatus = true;
 
   /* Tell Windows we are per monitor DPI aware. This disables the default
    * blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI. */
@@ -353,6 +353,7 @@ GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
   context = new GHOST_ContextD3D(false, wnd);
   if (context->initializeDrawingContext() == GHOST_kFailure) {
     delete context;
+    context = nullptr;
   }
 
   return context;
@@ -455,14 +456,11 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) cons
   down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyRightControl, down);
 
-  bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-  bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-  if (lwindown || rwindown) {
-    keys.set(GHOST_kModifierKeyOS, true);
-  }
-  else {
-    keys.set(GHOST_kModifierKeyOS, false);
-  }
+  down = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+  keys.set(GHOST_kModifierKeyLeftOS, down);
+  down = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+  keys.set(GHOST_kModifierKeyRightOS, down);
+
   return GHOST_kSuccess;
 }
 
@@ -542,7 +540,7 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
 GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
 {
   /* #RI_KEY_BREAK doesn't work for sticky keys release, so we also check for the up message. */
-  unsigned int msg = raw.data.keyboard.Message;
+  uint msg = raw.data.keyboard.Message;
   *r_key_down = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
   return this->convertKey(raw.data.keyboard.VKey,
@@ -564,7 +562,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) cons
     return key;
   }
 
-  char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
+  char ch = char(MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR));
   switch (ch) {
     case u'\"':
     case u'\'':
@@ -750,8 +748,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
         key = (extend) ? GHOST_kKeyRightAlt : GHOST_kKeyLeftAlt;
         break;
       case VK_LWIN:
+        key = GHOST_kKeyLeftOS;
+        break;
       case VK_RWIN:
-        key = GHOST_kKeyOS;
+        key = GHOST_kKeyRightOS;
         break;
       case VK_APPS:
         key = GHOST_kKeyApp;
@@ -855,7 +855,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
       case GHOST_kEventButtonDown: {
         WINTAB_PRINTF("HWND %p Wintab button down", window->getHWND());
 
-        UINT message;
+        uint message;
         switch (info.button) {
           case GHOST_kButtonMaskLeft:
             message = WM_LBUTTONDOWN;
@@ -900,11 +900,11 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
 
           mouseMoveHandled = true;
-          break;
         }
         else {
           WINTAB_PRINTF(" ... but no system button\n");
         }
+        break;
       }
       case GHOST_kEventButtonUp: {
         WINTAB_PRINTF("HWND %p Wintab button up", window->getHWND());
@@ -913,7 +913,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
           continue;
         }
 
-        UINT message;
+        uint message;
         switch (info.button) {
           case GHOST_kButtonMaskLeft:
             message = WM_LBUTTONUP;
@@ -963,7 +963,7 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
 }
 
 void GHOST_SystemWin32::processPointerEvent(
-    UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
+    uint type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
   /* Pointer events might fire when changing windows for a device which is set to use Wintab,
    * even when Wintab is left enabled but set to the bottom of Wintab overlap order. */
@@ -1136,12 +1136,18 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
+  /* NOTE(@campbellbarton): key repeat in WIN32 also applies to modifier-keys.
+   * Check for this case and filter out modifier-repeat.
+   * Typically keyboard events are *not* filtered as part of GHOST's event handling.
+   * As other GHOST back-ends don't have the behavior, it's simplest not to send them through.
+   * Ideally it would be possible to check the key-map for keys that repeat but this doesn't look
+   * to be supported. */
   bool is_repeat = false;
   bool is_repeated_modifier = false;
   if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
-      is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
+      is_repeated_modifier = GHOST_KEY_MODIFIER_CHECK(key);
     }
     system->m_keycode_last_repeat_key = vk;
   }
@@ -1156,10 +1162,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
    * those events here as well. */
   if (!is_repeated_modifier) {
     char utf8_char[6] = {0};
-    BYTE state[256] = {0};
-    GetKeyboardState((PBYTE)state);
-    bool ctrl_pressed = state[VK_CONTROL] & 0x80;
-    bool alt_pressed = state[VK_MENU] & 0x80;
+    BYTE state[256];
+    const BOOL has_state = GetKeyboardState((PBYTE)state);
+    const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
+    const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
 
     if (!key_down) {
       /* Pass. */
@@ -1410,7 +1416,7 @@ void GHOST_SystemWin32::processTrackpad()
   }
 }
 
-LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
 {
   GHOST_Event *event = NULL;
   bool eventHandled = false;
@@ -1456,7 +1462,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_INPUT: {
           RAWINPUT raw;
           RAWINPUT *raw_ptr = &raw;
-          UINT rawSize = sizeof(RAWINPUT);
+          uint rawSize = sizeof(RAWINPUT);
 
           GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
 
@@ -1741,10 +1747,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONDOWN: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
           }
           break;
@@ -1762,10 +1768,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONUP: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
           }
           break;
@@ -2087,7 +2093,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           /* The DM_POINTERHITTEST message is sent to a window, when pointer input is first
            * detected, in order to determine the most probable input target for Direct
            * Manipulation. */
-          window->onPointerHitTest(wParam);
+          if (system->m_multitouchGestures) {
+            window->onPointerHitTest(wParam);
+          }
           break;
         }
       }
@@ -2123,8 +2131,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 char *GHOST_SystemWin32::getClipboard(bool selection) const
 {
-  char *temp_buff;
-
   if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
     wchar_t *buffer;
     HANDLE hData = GetClipboardData(CF_UNICODETEXT);
@@ -2138,7 +2144,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
       return NULL;
     }
 
-    temp_buff = alloc_utf_8_from_16(buffer, 0);
+    char *temp_buff = alloc_utf_8_from_16(buffer, 0);
 
     /* Buffer mustn't be accessed after CloseClipboard
      * it would like accessing free-d memory */
@@ -2147,7 +2153,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
     return temp_buff;
   }
-  else if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL)) {
+  if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL)) {
     char *buffer;
     size_t len = 0;
     HANDLE hData = GetClipboardData(CF_TEXT);
@@ -2162,7 +2168,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
     }
 
     len = strlen(buffer);
-    temp_buff = (char *)malloc(len + 1);
+    char *temp_buff = (char *)malloc(len + 1);
     strncpy(temp_buff, buffer, len);
     temp_buff[len] = '\0';
 
@@ -2173,9 +2179,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
     return temp_buff;
   }
-  else {
-    return NULL;
-  }
+  return nullptr;
 }
 
 void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
@@ -2320,7 +2324,7 @@ static bool isStartedFromCommandPrompt()
   return false;
 }
 
-int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
+bool GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   HWND wnd = GetConsoleWindow();
 
@@ -2328,13 +2332,13 @@ int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
     case GHOST_kConsoleWindowStateHideForNonConsoleLaunch: {
       if (!isStartedFromCommandPrompt()) {
         ShowWindow(wnd, SW_HIDE);
-        m_consoleStatus = 0;
+        m_consoleStatus = false;
       }
       break;
     }
     case GHOST_kConsoleWindowStateHide: {
       ShowWindow(wnd, SW_HIDE);
-      m_consoleStatus = 0;
+      m_consoleStatus = false;
       break;
     }
     case GHOST_kConsoleWindowStateShow: {
@@ -2342,7 +2346,7 @@ int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
       if (!isStartedFromCommandPrompt()) {
         DeleteMenu(GetSystemMenu(wnd, FALSE), SC_CLOSE, MF_BYCOMMAND);
       }
-      m_consoleStatus = 1;
+      m_consoleStatus = true;
       break;
     }
     case GHOST_kConsoleWindowStateToggle: {

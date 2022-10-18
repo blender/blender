@@ -25,3 +25,4 @@ float attr_load_float(sampler3D tex);
 
 float attr_load_temperature_post(float attr);
 vec4 attr_load_color_post(vec4 attr);
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash);

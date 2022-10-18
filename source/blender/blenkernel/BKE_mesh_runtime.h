@@ -9,6 +9,7 @@
  */
 
 //#include "BKE_customdata.h"  /* for eCustomDataMask */
+#include "BKE_mesh_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,21 +27,10 @@ struct Object;
 struct Scene;
 
 /**
- * \brief Initialize the runtime of the given mesh.
- *
- * Function expects that the runtime is already cleared.
- */
-void BKE_mesh_runtime_init_data(struct Mesh *mesh);
-/**
  * \brief Free all data (and mutexes) inside the runtime of the given mesh.
  */
 void BKE_mesh_runtime_free_data(struct Mesh *mesh);
-/**
- * Clear all pointers which we don't want to be shared on copying the datablock.
- * However, keep all the flags which defines what the mesh is (for example, that
- * it's deformed only, or that its custom data layers are out of date.)
- */
-void BKE_mesh_runtime_reset_on_copy(struct Mesh *mesh, int flag);
+
 int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 void BKE_mesh_runtime_looptri_recalc(struct Mesh *mesh);
 /**
@@ -65,6 +55,11 @@ void BKE_mesh_runtime_verttri_from_looptri(struct MVertTri *r_verttri,
                                            const struct MLoop *mloop,
                                            const struct MLoopTri *looptri,
                                            int looptri_num);
+
+/** \note Only used for access in C. */
+bool BKE_mesh_is_deformed_only(const struct Mesh *mesh);
+/** \note Only used for access in C. */
+eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh);
 
 /* NOTE: the functions below are defined in DerivedMesh.cc, and are intended to be moved
  * to a more suitable location when that file is removed.

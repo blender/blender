@@ -353,6 +353,8 @@ typedef struct wmNotifier {
 #define NC_LIGHTPROBE (26 << 24)
 /* Changes to asset data in the current .blend. */
 #define NC_ASSET (27 << 24)
+/* Changes to the active viewer path. */
+#define NC_VIEWER_PATH (28 << 24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA 0x00FF0000
@@ -416,8 +418,8 @@ typedef struct wmNotifier {
 #define ND_POINTCACHE (28 << 16)
 #define ND_PARENT (29 << 16)
 #define ND_LOD (30 << 16)
-#define ND_DRAW_RENDER_VIEWPORT \
-  (31 << 16) /* for camera & sequencer viewport update, also /w NC_SCENE */
+/** For camera & sequencer viewport update, also with #NC_SCENE. */
+#define ND_DRAW_RENDER_VIEWPORT (31 << 16)
 #define ND_SHADERFX (32 << 16)
 /* For updating motion paths in 3dview. */
 #define ND_DRAW_ANIMVIZ (33 << 16)

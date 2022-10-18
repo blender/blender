@@ -93,7 +93,7 @@ static struct PyModuleDef M_Interpolate_module_def = {
     M_Interpolate_doc,       /* m_doc */
     0,                       /* m_size */
     M_Interpolate_methods,   /* m_methods */
-    NULL,                    /* m_reload */
+    NULL,                    /* m_slots */
     NULL,                    /* m_traverse */
     NULL,                    /* m_clear */
     NULL,                    /* m_free */

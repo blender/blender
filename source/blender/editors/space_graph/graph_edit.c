@@ -1448,7 +1448,7 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_extrapolation_type(wmOperatorType *ot)
 {
   /* Identifiers */
-  ot->name = "Set Keyframe Extrapolation";
+  ot->name = "Set F-Curve Extrapolation";
   ot->idname = "GRAPH_OT_extrapolation_type";
   ot->description = "Set extrapolation mode for selected F-Curves";
 
@@ -1771,7 +1771,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
      * so if the paths or the ID's don't match up, then a curve needs to be added
      * to a new group.
      */
-    if ((euf) && (euf->id == ale->id) && (STREQ(euf->rna_path, fcu->rna_path))) {
+    if ((euf) && (euf->id == ale->id) && STREQ(euf->rna_path, fcu->rna_path)) {
       /* This should be fine to add to the existing group then. */
       euf->fcurves[fcu->array_index] = fcu;
       continue;
@@ -3020,7 +3020,7 @@ static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
 
   /* Successful or not? */
   if (ok) {
-    /* Rebuild depsgraph, now that there are extra deps here. */
+    /* Rebuild depsgraph, now that there are extra dependencies here. */
     DEG_relations_tag_update(CTX_data_main(C));
 
     /* Set notifier that keyframes have changed. */

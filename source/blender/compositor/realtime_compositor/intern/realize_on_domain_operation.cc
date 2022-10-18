@@ -41,7 +41,7 @@ void RealizeOnDomainOperation::execute()
   const float3x3 local_transformation = input.domain().transformation *
                                         domain_.transformation.inverted();
 
-  /* Set the origin of the transformation to be the center of the domain.  */
+  /* Set the origin of the transformation to be the center of the domain. */
   const float3x3 transformation = float3x3::from_origin_transformation(
       local_transformation, float2(domain_.size) / 2.0f);
 

@@ -177,7 +177,7 @@ void NODE_OT_view_selected(wmOperatorType *ot)
  * \{ */
 
 struct NodeViewMove {
-  int mvalo[2];
+  int2 mvalo;
   int xmin, ymin, xmax, ymax;
   /** Original Offset for cancel. */
   float xof_orig, yof_orig;
@@ -192,10 +192,10 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
   switch (event->type) {
     case MOUSEMOVE:
 
-      snode->xof -= (nvm->mvalo[0] - event->mval[0]);
-      snode->yof -= (nvm->mvalo[1] - event->mval[1]);
-      nvm->mvalo[0] = event->mval[0];
-      nvm->mvalo[1] = event->mval[1];
+      snode->xof -= (nvm->mvalo.x - event->mval[0]);
+      snode->yof -= (nvm->mvalo.y - event->mval[1]);
+      nvm->mvalo.x = event->mval[0];
+      nvm->mvalo.y = event->mval[1];
 
       /* prevent dragging image outside of the window and losing it! */
       CLAMP(snode->xof, nvm->xmin, nvm->xmax);
@@ -240,7 +240,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   NodeViewMove *nvm;
   Image *ima;
   ImBuf *ibuf;
-  const float pad = 32.0f; /* better be bigger than scrollbars */
+  const float pad = 32.0f; /* Better be bigger than scroll-bars. */
 
   void *lock;
 
@@ -252,10 +252,10 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_cnew<NodeViewMove>("NodeViewMove struct");
+  nvm = MEM_cnew<NodeViewMove>(__func__);
   op->customdata = nvm;
-  nvm->mvalo[0] = event->mval[0];
-  nvm->mvalo[1] = event->mval[1];
+  nvm->mvalo.x = event->mval[0];
+  nvm->mvalo.y = event->mval[1];
 
   nvm->xmin = -(region->winx / 2) - (ibuf->x * (0.5f * snode->zoom)) + pad;
   nvm->xmax = (region->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
@@ -273,7 +273,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+static void snode_bg_viewmove_cancel(bContext * /*C*/, wmOperator *op)
 {
   MEM_freeN(op->customdata);
   op->customdata = nullptr;
@@ -341,7 +341,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 /** \name Background Image Fit
  * \{ */
 
-static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
+static int backimage_fit_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -447,7 +447,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 }  // namespace blender::ed::space_node
 
 bool ED_space_node_get_position(
-    Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float fpos[2])
 {
   if (!ED_node_is_compositor(snode) || (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
@@ -464,9 +464,9 @@ bool ED_space_node_get_position(
   /* map the mouse coords to the backdrop image space */
   float bufx = ibuf->x * snode->zoom;
   float bufy = ibuf->y * snode->zoom;
-  fpos[0] = (bufx > 0.0f ? ((float)mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
+  fpos[0] = (bufx > 0.0f ? (float(mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
                            0.0f);
-  fpos[1] = (bufy > 0.0f ? ((float)mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
+  fpos[1] = (bufy > 0.0f ? (float(mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
                            0.0f);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
@@ -498,13 +498,13 @@ bool ED_space_node_color_sample(
   /* map the mouse coords to the backdrop image space */
   bufx = ibuf->x * snode->zoom;
   bufy = ibuf->y * snode->zoom;
-  fx = (bufx > 0.0f ? ((float)mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  fy = (bufy > 0.0f ? ((float)mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  fx = (bufx > 0.0f ? (float(mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  fy = (bufy > 0.0f ? (float(mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+    int x = int(fx * ibuf->x), y = int(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -555,15 +555,15 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   /* map the mouse coords to the backdrop image space */
   bufx = ibuf->x * snode->zoom;
   bufy = ibuf->y * snode->zoom;
-  fx = (bufx > 0.0f ? ((float)event->mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
+  fx = (bufx > 0.0f ? (float(event->mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
                       0.0f);
-  fy = (bufy > 0.0f ? ((float)event->mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
+  fy = (bufy > 0.0f ? (float(event->mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
                       0.0f);
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+    int x = int(fx * ibuf->x), y = int(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -584,10 +584,10 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
       info->col[2] = cp[2];
       info->col[3] = cp[3];
 
-      info->colf[0] = (float)cp[0] / 255.0f;
-      info->colf[1] = (float)cp[1] / 255.0f;
-      info->colf[2] = (float)cp[2] / 255.0f;
-      info->colf[3] = (float)cp[3] / 255.0f;
+      info->colf[0] = float(cp[0]) / 255.0f;
+      info->colf[1] = float(cp[1]) / 255.0f;
+      info->colf[2] = float(cp[2]) / 255.0f;
+      info->colf[3] = float(cp[3]) / 255.0f;
 
       copy_v4_v4(info->linearcol, info->colf);
       IMB_colormanagement_colorspace_to_scene_linear_v4(
@@ -645,7 +645,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Don't handle events intended for nodes (which rely on click/drag distinction).
    * which this operator would use since sampling is normally activated on press, see: T98191. */
-  if (node_or_socket_isect_event(C, event)) {
+  if (node_or_socket_isect_event(*C, *event)) {
     return OPERATOR_PASS_THROUGH;
   }
 

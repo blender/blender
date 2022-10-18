@@ -234,7 +234,7 @@ static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
     {-1, ""},
 };
 
-static void node_init_cryptomatte(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
   node->storage = user;
@@ -262,7 +262,7 @@ static void node_free_cryptomatte(bNode *node)
   }
 }
 
-static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
+static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
                                   bNode *dest_node,
                                   const bNode *src_node)
 {
@@ -275,7 +275,7 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = dest_nc;
 }
 
-static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
+static bool node_poll_cryptomatte(bNodeType * /*ntype*/,
                                   bNodeTree *ntree,
                                   const char **r_disabled_hint)
 {
@@ -415,7 +415,8 @@ void register_node_type_cmp_cryptomatte_legacy()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte", NODE_CLASS_MATTE);
+  cmp_node_type_base(
+      &ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte (Legacy)", NODE_CLASS_MATTE);
   node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_cryptomatte_out);
   node_type_init(&ntype, legacy_file_ns::node_init_cryptomatte_legacy);
   node_type_storage(

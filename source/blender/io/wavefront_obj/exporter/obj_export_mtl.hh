@@ -6,36 +6,35 @@
 
 #pragma once
 
-#include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "DNA_node_types.h"
-#include "obj_export_io.hh"
-
-namespace blender {
-template<> struct DefaultHash<io::obj::eMTLSyntaxElement> {
-  uint64_t operator()(const io::obj::eMTLSyntaxElement value) const
-  {
-    return static_cast<uint64_t>(value);
-  }
-};
-
-}  // namespace blender
+struct Material;
 
 namespace blender::io::obj {
 
-/**
- * Generic container for texture node properties.
- */
-struct tex_map_XX {
-  tex_map_XX(StringRef to_socket_id) : dest_socket_id(to_socket_id){};
+enum class MTLTexMapType {
+  Color = 0,
+  Metallic,
+  Specular,
+  SpecularExponent,
+  Roughness,
+  Sheen,
+  Reflection,
+  Emission,
+  Alpha,
+  Normal,
+  Count
+};
+extern const char *tex_map_type_to_socket_id[];
+
+struct MTLTexMap {
   bool is_valid() const
   {
     return !image_path.empty();
   }
 
   /* Target socket which this texture node connects to. */
-  const std::string dest_socket_id;
   float3 translation{0.0f};
   float3 scale{1.0f};
   /* Only Flat and Sphere projections are supported. */
@@ -48,42 +47,38 @@ struct tex_map_XX {
  * Container suited for storing Material data for/from a .MTL file.
  */
 struct MTLMaterial {
-  MTLMaterial()
+  const MTLTexMap &tex_map_of_type(MTLTexMapType key) const
   {
-    texture_maps.add(eMTLSyntaxElement::map_Kd, tex_map_XX("Base Color"));
-    texture_maps.add(eMTLSyntaxElement::map_Ks, tex_map_XX("Specular"));
-    texture_maps.add(eMTLSyntaxElement::map_Ns, tex_map_XX("Roughness"));
-    texture_maps.add(eMTLSyntaxElement::map_d, tex_map_XX("Alpha"));
-    texture_maps.add(eMTLSyntaxElement::map_refl, tex_map_XX("Metallic"));
-    texture_maps.add(eMTLSyntaxElement::map_Ke, tex_map_XX("Emission"));
-    texture_maps.add(eMTLSyntaxElement::map_Bump, tex_map_XX("Normal"));
+    return texture_maps[int(key)];
   }
-
-  const tex_map_XX &tex_map_of_type(const eMTLSyntaxElement key) const
+  MTLTexMap &tex_map_of_type(MTLTexMapType key)
   {
-    BLI_assert(texture_maps.contains(key));
-    return texture_maps.lookup(key);
-  }
-  tex_map_XX &tex_map_of_type(const eMTLSyntaxElement key)
-  {
-    BLI_assert(texture_maps.contains(key));
-    return texture_maps.lookup(key);
+    return texture_maps[int(key)];
   }
 
   std::string name;
   /* Always check for negative values while importing or exporting. Use defaults if
    * any value is negative. */
-  float Ns{-1.0f};
-  float3 Ka{-1.0f};
-  float3 Kd{-1.0f};
-  float3 Ks{-1.0f};
-  float3 Ke{-1.0f};
-  float Ni{-1.0f};
-  float d{-1.0f};
-  int illum{-1};
-  Map<const eMTLSyntaxElement, tex_map_XX> texture_maps;
-  /** Only used for Normal Map node: "map_Bump". */
-  float map_Bump_strength{-1.0f};
+  float spec_exponent{-1.0f};   /* `Ns` */
+  float3 ambient_color{-1.0f};  /* `Ka` */
+  float3 color{-1.0f};          /* `Kd` */
+  float3 spec_color{-1.0f};     /* `Ks` */
+  float3 emission_color{-1.0f}; /* `Ke` */
+  float ior{-1.0f};             /* `Ni` */
+  float alpha{-1.0f};           /* `d` */
+  float3 transmit_color{-1.0f}; /* `Kt` / `Tf` */
+  float roughness{-1.0f};       /* `Pr` */
+  float metallic{-1.0f};        /* `Pm` */
+  float sheen{-1.0f};           /* `Ps` */
+  float cc_thickness{-1.0f};    /* `Pc` */
+  float cc_roughness{-1.0f};    /* `Pcr` */
+  float aniso{-1.0f};           /* `aniso` */
+  float aniso_rot{-1.0f};       /* `anisor` */
+
+  int illum_mode{-1};
+  MTLTexMap texture_maps[int(MTLTexMapType::Count)];
+  /* Only used for Normal Map node: `map_Bump`. */
+  float normal_strength{-1.0f};
 };
 
 MTLMaterial mtlmaterial_for_material(const Material *material);

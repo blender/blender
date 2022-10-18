@@ -139,9 +139,9 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
     BPoint *bp = nu->bp;
 
     for (int j = 0; j < nu->pntsu; j++, bp++, idx++) {
-      bp->vec[0] = (float)usdPoints[idx][0];
-      bp->vec[1] = (float)usdPoints[idx][1];
-      bp->vec[2] = (float)usdPoints[idx][2];
+      bp->vec[0] = float(usdPoints[idx][0]);
+      bp->vec[1] = float(usdPoints[idx][1]);
+      bp->vec[2] = float(usdPoints[idx][2]);
       bp->vec[3] = weight;
       bp->f1 = SELECT;
       bp->weight = weight;

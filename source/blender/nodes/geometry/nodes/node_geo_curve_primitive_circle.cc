@@ -56,12 +56,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Center")).make_available(endable_points);
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveCircle *data = MEM_cnew<NodeGeometryCurvePrimitiveCircle>(__func__);
 
@@ -75,12 +75,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
                                                         storage.mode;
 
-  bNodeSocket *start_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *start_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *middle_socket = start_socket->next;
   bNodeSocket *end_socket = middle_socket->next;
   bNodeSocket *radius_socket = end_socket->next;
 
-  bNodeSocket *center_socket = ((bNodeSocket *)node->outputs.first)->next;
+  bNodeSocket *center_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
 
   nodeSetSocketAvailability(
       ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
@@ -98,7 +98,7 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 {
   const float3 a = math::normalize(p2 - p1);
   const float3 b = math::normalize(p3 - p1);
-  return (ELEM(a, b, b * -1.0f));
+  return ELEM(a, b, b * -1.0f);
 }
 
 static Curves *create_point_circle_curve(
@@ -144,7 +144,7 @@ static Curves *create_point_circle_curve(
 
   /* Get the radius from the center-point to p1. */
   const float r = math::distance(p1, center);
-  const float theta_step = ((2 * M_PI) / (float)resolution);
+  const float theta_step = ((2 * M_PI) / float(resolution));
   for (const int i : IndexRange(resolution)) {
 
     /* Formula for a circle around a point and 2 unit vectors perpendicular

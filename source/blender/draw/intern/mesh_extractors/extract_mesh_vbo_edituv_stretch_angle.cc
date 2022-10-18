@@ -52,7 +52,7 @@ static void compute_normalize_edge_vectors(float auv[2][2],
 
 static short v2_to_short_angle(const float v[2])
 {
-  return atan2f(v[1], v[0]) * (float)M_1_PI * SHRT_MAX;
+  return atan2f(v[1], v[0]) * float(M_1_PI) * SHRT_MAX;
 }
 
 static void edituv_get_edituv_stretch_angle(float auv[2][2],
@@ -63,7 +63,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
   r_stretch->uv_angles[0] = v2_to_short_angle(auv[0]);
   r_stretch->uv_angles[1] = v2_to_short_angle(auv[1]);
   /* Compute 3D angle here. */
-  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * (float)M_1_PI * SHRT_MAX;
+  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * float(M_1_PI) * SHRT_MAX;
 
 #if 0 /* here for reference, this is done in shader now. */
   float uvang = angle_normalized_v2v2(auv0, auv1);
@@ -74,7 +74,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 }
 
 static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
-                                              MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache * /*cache*/,
                                               void *buf,
                                               void *tls_data)
 {
@@ -104,7 +104,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
 
 static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
                                                       const BMFace *f,
-                                                      const int UNUSED(f_index),
+                                                      const int /*f_index*/,
                                                       void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
@@ -157,7 +157,7 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
 
 static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
                                                         const MPoly *mp,
-                                                        const int UNUSED(mp_index),
+                                                        const int /*mp_index*/,
                                                         void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
@@ -214,7 +214,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
                                                      const MeshRenderData *mr,
                                                      MeshBatchCache *cache,
                                                      void *buffer,
-                                                     void *UNUSED(tls_data))
+                                                     void * /*tls_data*/)
 {
   GPUVertBuf *refined_vbo = static_cast<GPUVertBuf *>(buffer);
 

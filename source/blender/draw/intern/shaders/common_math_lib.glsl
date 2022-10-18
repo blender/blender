@@ -17,6 +17,7 @@
 #define M_SQRT2 1.41421356237309504880   /* sqrt(2) */
 #define M_SQRT1_2 0.70710678118654752440 /* 1/sqrt(2) */
 #define FLT_MAX 3.402823e+38
+#define FLT_MIN 1.175494e-38
 
 vec3 mul(mat3 m, vec3 v)
 {

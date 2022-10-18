@@ -37,6 +37,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLO_read_write.h"
+
 #include "buttons_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -603,7 +605,7 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   }
 
   ED_region_panels_layout(C, region);
-  /* ED_region_panels_layout adds vertical scrollbars, we don't want them. */
+  /* #ED_region_panels_layout adds vertical scroll-bars, we don't want them. */
   region->v2d.scroll &= ~V2D_SCROLL_VERTICAL;
   ED_region_panels_draw(C, region);
 }
@@ -905,6 +907,31 @@ static void buttons_id_remap(ScrArea *UNUSED(area),
   }
 }
 
+static void buttons_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+{
+  SpaceProperties *sbuts = (SpaceProperties *)sl;
+
+  sbuts->path = NULL;
+  sbuts->texuser = NULL;
+  sbuts->mainbo = sbuts->mainb;
+  sbuts->mainbuser = sbuts->mainb;
+  sbuts->runtime = NULL;
+}
+
+static void buttons_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceProperties *sbuts = (SpaceProperties *)sl;
+  BLO_read_id_address(reader, parent_id->lib, &sbuts->pinid);
+  if (sbuts->pinid == NULL) {
+    sbuts->flag &= ~SB_PIN_CONTEXT;
+  }
+}
+
+static void buttons_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceProperties, sl);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -917,7 +944,7 @@ void ED_spacetype_buttons(void)
   ARegionType *art;
 
   st->spaceid = SPACE_PROPERTIES;
-  strncpy(st->name, "Buttons", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Buttons");
 
   st->create = buttons_create;
   st->free = buttons_free;
@@ -928,6 +955,9 @@ void ED_spacetype_buttons(void)
   st->listener = buttons_area_listener;
   st->context = buttons_context;
   st->id_remap = buttons_id_remap;
+  st->blend_read_data = buttons_blend_read_data;
+  st->blend_read_lib = buttons_blend_read_lib;
+  st->blend_write = buttons_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
@@ -978,8 +1008,7 @@ void ED_spacetype_buttons(void)
   /* regions: navigation bar */
   art = MEM_callocN(sizeof(ARegionType), "spacetype nav buttons region");
   art->regionid = RGN_TYPE_NAV_BAR;
-  art->prefsizex = AREAMINX - 3; /* XXX Works and looks best,
-                                  * should we update AREAMINX accordingly? */
+  art->prefsizex = AREAMINX;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES | ED_KEYMAP_NAVBAR;
   art->init = buttons_navigation_bar_region_init;
   art->draw = buttons_navigation_bar_region_draw;

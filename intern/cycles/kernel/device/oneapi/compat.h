@@ -10,6 +10,7 @@
 #define CCL_NAMESPACE_END
 
 #include <cstdint>
+#include <math.h>
 
 #ifndef __NODES_MAX_GROUP__
 #  define __NODES_MAX_GROUP__ NODE_GROUP_LEVEL_MAX
@@ -174,21 +175,15 @@ using sycl::half;
 #define fmodf(x, y) sycl::fmod((x), (y))
 #define lgammaf(x) sycl::lgamma((x))
 
-#define __forceinline __attribute__((always_inline))
-
-/* Types */
-#include "util/half.h"
-#include "util/types.h"
-
-/* NOTE(@nsirgien): Declaring these functions after types headers is very important because they
- * include oneAPI headers, which transitively include math.h headers which will cause redefinitions
- * of the math defines because math.h also uses them and having them defined before math.h include
- * is actually UB. */
-/* Use fast math functions - get them from sycl::native namespace for native math function
- * implementations */
 #define cosf(x) sycl::native::cos(((float)(x)))
 #define sinf(x) sycl::native::sin(((float)(x)))
 #define powf(x, y) sycl::native::powr(((float)(x)), ((float)(y)))
 #define tanf(x) sycl::native::tan(((float)(x)))
 #define logf(x) sycl::native::log(((float)(x)))
 #define expf(x) sycl::native::exp(((float)(x)))
+
+#define __forceinline __attribute__((always_inline))
+
+/* Types */
+#include "util/half.h"
+#include "util/types.h"

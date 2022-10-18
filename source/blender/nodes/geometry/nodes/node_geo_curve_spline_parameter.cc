@@ -106,7 +106,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 }
 
 static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry &curves,
-                                                      const IndexMask UNUSED(mask),
+                                                      const IndexMask /*mask*/,
                                                       const eAttrDomain domain)
 {
   VArray<bool> cyclic = curves.cyclic();
@@ -125,6 +125,10 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
           for (float &value : curve_lengths) {
             value *= factor;
           }
+        }
+        else if (curve_lengths.size() == 1) {
+          /* The curve is a single point. */
+          curve_lengths[0] = 0.0f;
         }
         else {
           /* It is arbitrary what to do in those rare cases when all the points are
@@ -165,7 +169,7 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
 }
 
 static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGeometry &curves,
-                                                             const IndexMask UNUSED(mask),
+                                                             const IndexMask /*mask*/,
                                                              const eAttrDomain domain)
 {
   curves.ensure_evaluated_lengths();
@@ -184,7 +188,7 @@ static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGe
 }
 
 static VArray<int> construct_index_on_spline_varray(const bke::CurvesGeometry &curves,
-                                                    const IndexMask UNUSED(mask),
+                                                    const IndexMask /*mask*/,
                                                     const eAttrDomain domain)
 {
   if (domain == ATTR_DOMAIN_POINT) {
@@ -279,6 +283,11 @@ class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const IndexOnSplineFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

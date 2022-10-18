@@ -43,6 +43,10 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
 
   device = Device::create(params.device, stats, profiler);
 
+  if (device->have_error()) {
+    progress.set_error(device->error_message());
+  }
+
   scene = new Scene(scene_params, device);
 
   /* Configure path tracer. */
@@ -318,6 +322,13 @@ RenderWork Session::run_update_for_next_iteration()
     path_trace_->set_adaptive_sampling(adaptive_sampling);
   }
 
+  /* Update path guiding. */
+  {
+    const GuidingParams guiding_params = scene->integrator->get_guiding_params(device);
+    const bool guiding_reset = (guiding_params.use) ? scene->need_reset(false) : false;
+    path_trace_->set_guiding_params(guiding_params, guiding_reset);
+  }
+
   render_scheduler_.set_num_samples(params.samples);
   render_scheduler_.set_start_sample(params.sample_offset);
   render_scheduler_.set_time_limit(params.time_limit);
@@ -436,8 +447,7 @@ int2 Session::get_effective_tile_size() const
   const int image_width = buffer_params_.width;
   const int image_height = buffer_params_.height;
 
-  /* No support yet for baking with tiles. */
-  if (!params.use_auto_tile || scene->bake_manager->get_baking()) {
+  if (!params.use_auto_tile) {
     return make_int2(image_width, image_height);
   }
 

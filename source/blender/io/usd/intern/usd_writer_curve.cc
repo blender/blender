@@ -26,7 +26,6 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
-extern "C" {
 #include "BKE_curve.h"
 #include "BKE_material.h"
 
@@ -36,7 +35,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 namespace blender::io::usd {
 

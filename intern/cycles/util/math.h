@@ -417,15 +417,11 @@ ccl_device_inline int floor_to_int(float f)
   return float_to_int(floorf(f));
 }
 
-ccl_device_inline int quick_floor_to_int(float x)
-{
-  return float_to_int(x) - ((x < 0) ? 1 : 0);
-}
-
 ccl_device_inline float floorfrac(float x, ccl_private int *i)
 {
-  *i = quick_floor_to_int(x);
-  return x - *i;
+  float f = floorf(x);
+  *i = float_to_int(f);
+  return x - f;
 }
 
 ccl_device_inline int ceil_to_int(float f)
@@ -886,16 +882,16 @@ ccl_device_inline float2 map_to_tube(const float3 co)
 
 ccl_device_inline float2 map_to_sphere(const float3 co)
 {
-  float l = len(co);
+  float l = dot(co, co);
   float u, v;
   if (l > 0.0f) {
     if (UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
       u = 0.0f; /* Otherwise domain error. */
     }
     else {
-      u = (1.0f - atan2f(co.x, co.y) / M_PI_F) / 2.0f;
+      u = (0.5f - atan2f(co.x, co.y) * M_1_2PI_F);
     }
-    v = 1.0f - safe_acosf(co.z / l) / M_PI_F;
+    v = 1.0f - safe_acosf(co.z / sqrtf(l)) * M_1_PI_F;
   }
   else {
     u = v = 0.0f;

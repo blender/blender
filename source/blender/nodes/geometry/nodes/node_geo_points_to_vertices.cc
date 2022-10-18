@@ -47,8 +47,8 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0, 0);
   geometry_set.replace_mesh(mesh);
 
-  const AttributeAccessor src_attributes = bke::pointcloud_attributes(*points);
-  MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*mesh);
+  const AttributeAccessor src_attributes = points->attributes();
+  MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;

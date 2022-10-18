@@ -16,6 +16,8 @@
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
+#include "BKE_mesh.h"
 
 #include "draw_cache_extract.hh"
 
@@ -78,13 +80,17 @@ struct MeshRenderData {
   BMEdge *eed_act;
   BMFace *efa_act;
   BMFace *efa_act_uv;
-  /* Data created on-demand (usually not for #BMesh based data). */
-  MLoopTri *mlooptri;
+  /* The triangulation of #Mesh polygons, owned by the mesh. */
+  const MLoopTri *mlooptri;
+  const int *material_indices;
   const float (*vert_normals)[3];
   const float (*poly_normals)[3];
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;
+  const bool *select_vert;
+  const bool *select_edge;
+  const bool *select_poly;
   float (*loop_normals)[3];
   int *lverts, *ledges;
 
@@ -112,7 +118,7 @@ BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *
 
 BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->ldata;
@@ -128,7 +134,7 @@ BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
 
 BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->pdata;
@@ -144,7 +150,7 @@ BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
 
 BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->edata;
@@ -160,7 +166,7 @@ BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
 
 BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
 {
-  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+  switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->vdata;
@@ -436,3 +442,4 @@ extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
+extern const MeshExtract extract_attr_viewer;

@@ -867,13 +867,13 @@ uint DDSHeader::d3d9Format() const
   return findD3D9Format(pf.bitcount, pf.rmask, pf.gmask, pf.bmask, pf.amask);
 }
 
-DirectDrawSurface::DirectDrawSurface(unsigned char *mem, uint size) : stream(mem, size), header()
+DirectDrawSurface::DirectDrawSurface(uchar *mem, uint size) : stream(mem, size), header()
 {
   mem_read(stream, header);
 
   /* Some ATI2 compressed normal maps do not have their
-   * normal flag set, so force it here (the original nvtt don't do
-   * this, but the decompressor has a -forcenormal flag). */
+   * normal flag set, so force it here (the original `nvtt` don't do
+   * this, but the decompressor has a `-forcenormal` flag). */
   if (header.pf.fourcc == FOURCC_ATI2) {
     header.setNormalFlag(true);
   }
@@ -942,7 +942,7 @@ bool DirectDrawSurface::isSupported() const
 
   if (isTextureCube() &&
       (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
-    /* Cubemaps must contain all faces. */
+    /* Cube-maps must contain all faces. */
     return false;
   }
 
@@ -1112,7 +1112,7 @@ void *DirectDrawSurface::readData(uint &rsize)
   uint size = stream.size - header_size;
   rsize = size;
 
-  unsigned char *data = (unsigned char *)malloc(sizeof(*data) * size);
+  uchar *data = (uchar *)malloc(sizeof(*data) * size);
 
   stream.seek(header_size);
   mem_read(stream, data, size);
@@ -1158,7 +1158,7 @@ void DirectDrawSurface::readLinearImage(Image *img)
   for (uint y = 0; y < h; y++) {
     for (uint x = 0; x < w; x++) {
       uint c = 0;
-      mem_read(stream, (unsigned char *)(&c), byteCount);
+      mem_read(stream, (uchar *)(&c), byteCount);
 
       Color32 pixel(0, 0, 0, 0xFF);
       pixel.r = PixelFormat::convert((c & header.pf.rmask) >> rshift, rsize, 8);
@@ -1464,19 +1464,19 @@ void DirectDrawSurface::printInfo() const
   if (header.pf.fourcc != 0) {
     /* Display fourcc code even when DDPF_FOURCC flag not set. */
     printf("\tFourCC: '%c%c%c%c' (0x%.8X)\n",
-           (int)((header.pf.fourcc >> 0) & 0xFF),
-           (int)((header.pf.fourcc >> 8) & 0xFF),
-           (int)((header.pf.fourcc >> 16) & 0xFF),
-           (int)((header.pf.fourcc >> 24) & 0xFF),
+           int((header.pf.fourcc >> 0) & 0xFF),
+           int((header.pf.fourcc >> 8) & 0xFF),
+           int((header.pf.fourcc >> 16) & 0xFF),
+           int((header.pf.fourcc >> 24) & 0xFF),
            header.pf.fourcc);
   }
 
   if ((header.pf.flags & DDPF_FOURCC) && (header.pf.bitcount != 0)) {
     printf("\tSwizzle: '%c%c%c%c' (0x%.8X)\n",
-           (int)(header.pf.bitcount >> 0) & 0xFF,
-           (int)(header.pf.bitcount >> 8) & 0xFF,
-           (int)(header.pf.bitcount >> 16) & 0xFF,
-           (int)(header.pf.bitcount >> 24) & 0xFF,
+           int(header.pf.bitcount >> 0) & 0xFF,
+           int(header.pf.bitcount >> 8) & 0xFF,
+           int(header.pf.bitcount >> 16) & 0xFF,
+           int(header.pf.bitcount >> 24) & 0xFF,
            header.pf.bitcount);
   }
   else {

@@ -71,6 +71,9 @@ typedef struct TraceJob {
   int32_t thickness;
   int32_t turnpolicy;
   int32_t mode;
+  /** Frame to render to be used by python API. Not exposed in UI.
+   * This feature is only used in Studios to run custom video trace for selected frames. */
+  int32_t frame_num;
 
   bool success;
   bool was_canceled;
@@ -212,7 +215,10 @@ static void trace_start_job(void *customdata, short *stop, short *do_update, flo
       (trace_job->mode == GPENCIL_TRACE_MODE_SINGLE)) {
     void *lock;
     ImageUser *iuser = trace_job->ob_active->iuser;
-    iuser->framenr = init_frame;
+
+    iuser->framenr = ((trace_job->frame_num == 0) || (trace_job->frame_num > iuser->frames)) ?
+                         init_frame :
+                         trace_job->frame_num;
     ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, iuser, &lock);
     if (ibuf) {
       /* Create frame. */
@@ -300,9 +306,10 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
 
   /* Create a new grease pencil object or reuse selected. */
   eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
-  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ? BKE_view_layer_non_active_selected_object(
-                                                            CTX_data_view_layer(C), job->v3d) :
-                                                        NULL;
+  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ?
+                        BKE_view_layer_non_active_selected_object(
+                            scene, CTX_data_view_layer(C), job->v3d) :
+                        NULL;
 
   if (job->ob_gpencil != NULL) {
     if (job->ob_gpencil->type != OB_GPENCIL) {
@@ -324,13 +331,14 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->thickness = RNA_int_get(op->ptr, "thickness");
   job->turnpolicy = RNA_enum_get(op->ptr, "turnpolicy");
   job->mode = RNA_enum_get(op->ptr, "mode");
+  job->frame_num = RNA_int_get(op->ptr, "frame_number");
 
   trace_initialize_job_data(job);
 
   /* Back to active base. */
   ED_object_base_activate(job->C, job->base_active);
 
-  if (job->image->source == IMA_SRC_FILE) {
+  if ((job->image->source == IMA_SRC_FILE) || (job->frame_num > 0)) {
     short stop = 0, do_update = true;
     float progress;
     trace_start_job(job, &stop, &do_update, &progress);
@@ -364,6 +372,8 @@ static int gpencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent
 
 void GPENCIL_OT_trace_image(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   static const EnumPropertyItem turnpolicy_type[] = {
       {POTRACE_TURNPOLICY_BLACK,
        "BLACK",
@@ -475,4 +485,15 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
                   true,
                   "Start At Current Frame",
                   "Trace Image starting in current image frame");
+  prop = RNA_def_int(
+      ot->srna,
+      "frame_number",
+      0,
+      0,
+      9999,
+      "Trace Frame",
+      "Used to trace only one frame of the image sequence, set to zero to trace all",
+      0,
+      9999);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

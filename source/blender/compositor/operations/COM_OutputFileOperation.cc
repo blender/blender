@@ -150,7 +150,7 @@ int get_datatype_size(DataType datatype)
   }
 }
 
-static float *init_buffer(unsigned int width, unsigned int height, DataType datatype)
+static float *init_buffer(uint width, uint height, DataType datatype)
 {
   /* When initializing the tree during initial load the width and height can be zero. */
   if (width != 0 && height != 0) {
@@ -165,7 +165,7 @@ static void write_buffer_rect(rcti *rect,
                               const bNodeTree *tree,
                               SocketReader *reader,
                               float *buffer,
-                              unsigned int width,
+                              uint width,
                               DataType datatype)
 {
   float color[4];
@@ -242,7 +242,7 @@ void OutputSingleLayerOperation::init_execution()
   output_buffer_ = init_buffer(this->get_width(), this->get_height(), datatype_);
 }
 
-void OutputSingleLayerOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void OutputSingleLayerOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   write_buffer_rect(rect, tree_, image_input_, output_buffer_, this->get_width(), datatype_);
 }
@@ -287,7 +287,7 @@ void OutputSingleLayerOperation::deinit_execution()
   image_input_ = nullptr;
 }
 
-void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                               const rcti &area,
                                                               Span<MemoryBuffer *> inputs)
 {
@@ -369,7 +369,7 @@ StampData *OutputOpenExrMultiLayerOperation::create_stamp_data() const
 
 void OutputOpenExrMultiLayerOperation::init_execution()
 {
-  for (unsigned int i = 0; i < layers_.size(); i++) {
+  for (uint i = 0; i < layers_.size(); i++) {
     if (layers_[i].use_layer) {
       SocketReader *reader = get_input_socket_reader(i);
       layers_[i].image_input = reader;
@@ -379,9 +379,9 @@ void OutputOpenExrMultiLayerOperation::init_execution()
   }
 }
 
-void OutputOpenExrMultiLayerOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void OutputOpenExrMultiLayerOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
-  for (unsigned int i = 0; i < layers_.size(); i++) {
+  for (uint i = 0; i < layers_.size(); i++) {
     OutputOpenExrLayer &layer = layers_[i];
     if (layer.image_input) {
       write_buffer_rect(
@@ -392,8 +392,8 @@ void OutputOpenExrMultiLayerOperation::execute_region(rcti *rect, unsigned int /
 
 void OutputOpenExrMultiLayerOperation::deinit_execution()
 {
-  unsigned int width = this->get_width();
-  unsigned int height = this->get_height();
+  uint width = this->get_width();
+  uint height = this->get_height();
   if (width != 0 && height != 0) {
     char filename[FILE_MAX];
     const char *suffix;
@@ -410,7 +410,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                                suffix);
     BLI_make_existing_file(filename);
 
-    for (unsigned int i = 0; i < layers_.size(); i++) {
+    for (uint i = 0; i < layers_.size(); i++) {
       OutputOpenExrLayer &layer = layers_[i];
       if (!layer.image_input) {
         continue; /* skip unconnected sockets */
@@ -437,7 +437,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
     }
 
     IMB_exr_close(exrhandle);
-    for (unsigned int i = 0; i < layers_.size(); i++) {
+    for (uint i = 0; i < layers_.size(); i++) {
       if (layers_[i].output_buffer) {
         MEM_freeN(layers_[i].output_buffer);
         layers_[i].output_buffer = nullptr;
@@ -449,7 +449,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
   }
 }
 
-void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                                     const rcti &area,
                                                                     Span<MemoryBuffer *> inputs)
 {

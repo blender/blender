@@ -26,7 +26,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(OPENMP_FOUND ON)
     set(OpenMP_C_FLAGS "/clang:-fopenmp")
     set(OpenMP_CXX_FLAGS "/clang:-fopenmp")
-    GET_FILENAME_COMPONENT(LLVMROOT "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\LLVM\\LLVM;]" ABSOLUTE CACHE)
+    get_filename_component(LLVMROOT "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\LLVM\\LLVM;]" ABSOLUTE CACHE)
     set(CLANG_OPENMP_DLL "${LLVMROOT}/bin/libomp.dll")
     set(CLANG_OPENMP_LIB "${LLVMROOT}/lib/libomp.lib")
     if(NOT EXISTS "${CLANG_OPENMP_DLL}")
@@ -73,27 +73,6 @@ add_definitions(-DWIN32)
 # Needed, otherwise system encoding causes utf-8 encoding to fail in some cases (C4819)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-
-# Minimum MSVC Version
-if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  if(MSVC_VERSION EQUAL 1800)
-    set(_min_ver "18.0.31101")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-      message(FATAL_ERROR
-        "Visual Studio 2013 (Update 4, ${_min_ver}) required, "
-        "found (${CMAKE_CXX_COMPILER_VERSION})")
-    endif()
-  endif()
-  if(MSVC_VERSION EQUAL 1900)
-    set(_min_ver "19.0.24210")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-      message(FATAL_ERROR
-        "Visual Studio 2015 (Update 3, ${_min_ver}) required, "
-        "found (${CMAKE_CXX_COMPILER_VERSION})")
-    endif()
-  endif()
-endif()
-unset(_min_ver)
 
 # needed for some MSVC installations
 # 4099 : PDB 'filename' was not found with 'object/library'
@@ -158,7 +137,7 @@ endif()
 
 
 # C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
-if(MSVC_VERSION GREATER 1911 AND NOT MSVC_CLANG)
+if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /permissive-")
   # Two-phase name lookup does not place nicely with OpenMP yet, so disable for now
   string(APPEND CMAKE_CXX_FLAGS " /Zc:twoPhase-")
@@ -218,7 +197,7 @@ unset(SYMBOL_FORMAT)
 unset(SYMBOL_FORMAT_RELEASE)
 
 # JMC is available on msvc 15.8 (1915) and up
-if(MSVC_VERSION GREATER 1914 AND NOT MSVC_CLANG)
+if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " /JMC")
 endif()
 
@@ -251,9 +230,6 @@ if(NOT DEFINED LIBDIR)
   elseif(MSVC_VERSION GREATER 1919)
     message(STATUS "Visual Studio 2019 detected.")
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
-  elseif(MSVC_VERSION GREATER 1909)
-    message(STATUS "Visual Studio 2017 detected.")
-    set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
   endif()
 else()
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
@@ -264,10 +240,8 @@ endif()
 
 include(platform_old_libs_update)
 
-if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND # Only supported in the VS IDE
-   MSVC_VERSION GREATER_EQUAL 1924            AND # Supported for 16.4+
-   WITH_CLANG_TIDY                                # And Clang Tidy needs to be on
-  )
+# Only supported in the VS IDE & Clang Tidy needs to be on.
+if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND WITH_CLANG_TIDY)
   set(CMAKE_VS_GLOBALS
     "RunCodeAnalysis=false"
     "EnableMicrosoftCodeAnalysis=false"
@@ -278,8 +252,7 @@ endif()
 
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
-if(MSVC_VERSION GREATER_EQUAL 1914 AND # Available with 15.7+
-   NOT MSVC_CLANG                  AND # But not for clang
+if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
    NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
    NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
   add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
@@ -504,11 +477,15 @@ if(WITH_JACK)
 endif()
 
 if(WITH_PYTHON)
-  set(PYTHON_VERSION 3.10) # CACHE STRING)
+  # Cache version for make_bpy_wheel.py to detect.
+  unset(PYTHON_VERSION CACHE)
+  set(PYTHON_VERSION "3.10" CACHE STRING "Python version")
 
   string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
   set(PYTHON_LIBRARY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}.lib)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
+
+  set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
   set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
@@ -763,7 +740,7 @@ if(WITH_TBB)
 endif()
 
 # used in many places so include globally, like OpenGL
-blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
+include_directories(SYSTEM "${PTHREADS_INCLUDE_DIRS}")
 
 set(WINTAB_INC ${LIBDIR}/wintab/include)
 
@@ -870,8 +847,8 @@ endif()
 
 if(WINDOWS_PYTHON_DEBUG)
   # Include the system scripts in the blender_python_system_scripts project.
-  FILE(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/release/scripts/*.*" )
-  ADD_CUSTOM_TARGET(blender_python_system_scripts SOURCES ${inFiles})
+  file(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/release/scripts/*.*" )
+  add_custom_target(blender_python_system_scripts SOURCES ${inFiles})
   foreach(_source IN ITEMS ${inFiles})
     get_filename_component(_source_path "${_source}" PATH)
     string(REPLACE "${CMAKE_SOURCE_DIR}/release/scripts/" "" _source_path "${_source_path}")
@@ -891,8 +868,8 @@ if(WINDOWS_PYTHON_DEBUG)
   endif()
 
   file(TO_CMAKE_PATH ${USER_SCRIPTS_ROOT} USER_SCRIPTS_ROOT)
-  FILE(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/*.*" )
-  ADD_CUSTOM_TARGET(blender_python_user_scripts SOURCES ${inFiles})
+  file(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/*.*" )
+  add_custom_target(blender_python_user_scripts SOURCES ${inFiles})
   foreach(_source IN ITEMS ${inFiles})
     get_filename_component(_source_path "${_source}" PATH)
     string(REPLACE "${USER_SCRIPTS_ROOT}" "" _source_path "${_source_path}")
@@ -959,8 +936,39 @@ if(WITH_HARU)
   endif()
 endif()
 
+if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
+  find_package(openpgl QUIET)
+  if(openpgl_FOUND)
+    get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
+    get_target_property(OPENPGL_LIBRARIES_DEBUG openpgl::openpgl LOCATION_DEBUG)
+    set(OPENPGL_LIBRARIES optimized ${OPENPGL_LIBRARIES_RELEASE} debug ${OPENPGL_LIBRARIES_DEBUG})
+    get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
+  else()
+    set(WITH_CYCLES_PATH_GUIDING OFF)
+    message(STATUS "OpenPGL not found, disabling WITH_CYCLES_PATH_GUIDING")
+  endif()
+endif()
+
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
-set(SYCL_ROOT_DIR ${LIBDIR}/dpcpp)
+if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
+  set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
+  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
+  if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
+    set(SYCL_ROOT_DIR ${CYCLES_SYCL})
+  endif()
+  file(GLOB _sycl_runtime_libraries_glob
+    ${SYCL_ROOT_DIR}/bin/sycl.dll
+    ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
+  )
+  foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
+    string(REPLACE ".dll" "$<$<CONFIG:Debug>:d>.dll" sycl_runtime_library ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries ${sycl_runtime_library})
+  endforeach()
+  unset(_sycl_runtime_libraries_glob)
+
+  list(APPEND _sycl_runtime_libraries ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll)
+  list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
+  unset(_sycl_runtime_libraries)
+endif()

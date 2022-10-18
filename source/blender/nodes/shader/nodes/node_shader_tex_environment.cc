@@ -11,7 +11,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
 }
 
-static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_environment(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexEnvironment *tex = MEM_cnew<NodeTexEnvironment>("NodeTexEnvironment");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -24,7 +24,7 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *no
 
 static int node_shader_gpu_tex_environment(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
@@ -50,7 +50,11 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
     return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
   }
 
-  node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
+  if (!in[0].link) {
+    GPU_link(mat, "node_tex_coord_position", &in[0].link);
+    node_shader_gpu_bump_tex_coord(mat, node, &in[0].link);
+  }
+
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
   /* Compute texture coordinate. */

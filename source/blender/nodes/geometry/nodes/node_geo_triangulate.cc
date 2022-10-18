@@ -23,13 +23,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "quad_method", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "ngon_method", 0, "", ICON_NONE);
 }
 
-static void geo_triangulate_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_triangulate_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE;
   node->custom2 = GEO_NODE_TRIANGULATE_NGON_BEAUTY;
@@ -68,10 +68,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   const int min_vertices = std::max(params.extract_input<int>("Minimum Vertices"), 4);
 
-  GeometryNodeTriangulateQuads quad_method = static_cast<GeometryNodeTriangulateQuads>(
-      params.node().custom1);
-  GeometryNodeTriangulateNGons ngon_method = static_cast<GeometryNodeTriangulateNGons>(
-      params.node().custom2);
+  GeometryNodeTriangulateQuads quad_method = GeometryNodeTriangulateQuads(params.node().custom1);
+  GeometryNodeTriangulateNGons ngon_method = GeometryNodeTriangulateNGons(params.node().custom2);
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_mesh()) {

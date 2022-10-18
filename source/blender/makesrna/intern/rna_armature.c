@@ -38,6 +38,13 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
+static void rna_Armature_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+
+  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+}
+
 static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
@@ -1365,6 +1372,7 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active Bone", "Armature's active bone");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_bone_set", NULL, NULL);
+  RNA_def_property_update(prop, 0, "rna_Armature_update");
 
   /* TODO: redraw. */
   /*      RNA_def_property_collection_active(prop, prop_act); */
@@ -1389,7 +1397,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_pointer_sdna(prop, NULL, "act_edbone");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone");
-  // RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
+  RNA_def_property_update(prop, 0, "rna_Armature_update");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL, NULL);
 
   /* TODO: redraw. */

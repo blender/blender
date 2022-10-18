@@ -360,7 +360,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     }
   }
 
-  if (i != 2 * (int)iStrokeVertices.size()) {
+  if (i != 2 * int(iStrokeVertices.size())) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Warning: problem with stripe size\n";
     }
@@ -837,11 +837,11 @@ void StrokeRep::create()
   bool first = true;
   bool end = false;
   while (v != vend) {
-    while ((v != vend) && (!(*v).attribute().isVisible())) {
+    while ((v != vend) && !(*v).attribute().isVisible()) {
       ++v;
       first = false;
     }
-    while ((v != vend) && ((*v).attribute().isVisible())) {
+    while ((v != vend) && (*v).attribute().isVisible()) {
       strip.push_back(&(*v));
       ++v;
     }
@@ -852,7 +852,7 @@ void StrokeRep::create()
     else {
       end = true;
     }
-    if ((!strip.empty()) && (strip.size() > 1)) {
+    if (!strip.empty() && (strip.size() > 1)) {
       _strips.push_back(new Strip(strip, _hasTex, first, end, _textureStep));
       strip.clear();
     }

@@ -2,7 +2,7 @@
 # Copyright 2006 Blender Foundation. All rights reserved.
 
 remove_strict_flags()
-FIND_FILE(OPENCOLLADA_ANIMATION_CLIP
+find_file(OPENCOLLADA_ANIMATION_CLIP
   NAMES
     COLLADAFWAnimationClip.h
   PATHS
@@ -14,7 +14,7 @@ if(OPENCOLLADA_ANIMATION_CLIP)
   add_definitions(-DWITH_OPENCOLLADA_ANIMATION_CLIP)
 endif()
 
-# In cmake version 3.21 and up, we can instead use the NO_CACHE option for
+# In CMAKE version 3.21 and up, we can instead use the NO_CACHE option for
 # find_file so we don't need to clear it from the cache here.
 unset(OPENCOLLADA_ANIMATION_CLIP CACHE)
 
@@ -120,11 +120,6 @@ set(LIB
 
 if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-  # COLLADAFWArray.h gives error with gcc 4.5
-  string(APPEND CMAKE_CXX_FLAGS " -fpermissive")
 endif()
 
 blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

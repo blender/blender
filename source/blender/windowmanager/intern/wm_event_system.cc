@@ -56,6 +56,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "GPU_context.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"
@@ -323,7 +325,7 @@ void WM_event_add_notifier(const bContext *C, uint type, void *reference)
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
-void WM_main_add_notifier(unsigned int type, void *reference)
+void WM_main_add_notifier(uint type, void *reference)
 {
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -357,7 +359,7 @@ void WM_main_remove_notifier_reference(const void *reference)
   }
 }
 
-static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void *UNUSED(user_data))
+static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void * /*user_data*/)
 {
   ED_assetlist_storage_id_remap(old_id, new_id);
 }
@@ -484,11 +486,15 @@ static void wm_event_execute_timers(bContext *C)
 
 void wm_event_do_notifiers(bContext *C)
 {
+  /* Ensure inside render boundary. */
+  GPU_render_begin();
+
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see T80028. */
   wm_event_execute_timers(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
+    GPU_render_end();
     return;
   }
 
@@ -561,7 +567,7 @@ void wm_event_do_notifiers(bContext *C)
       }
 
       if (note->window == win ||
-          (note->window == nullptr && (ELEM(note->reference, nullptr, scene)))) {
+          (note->window == nullptr && ELEM(note->reference, nullptr, scene))) {
         if (note->category == NC_SCENE) {
           if (note->data == ND_FRAME) {
             do_anim = true;
@@ -626,6 +632,7 @@ void wm_event_do_notifiers(bContext *C)
                win->screen->id.name + 2,
                note->category);
 #  endif
+        ED_workspace_do_listen(C, note);
         ED_screen_do_listen(C, note);
 
         LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
@@ -691,6 +698,8 @@ void wm_event_do_notifiers(bContext *C)
 
   /* Auto-run warning. */
   wm_test_autorun_warning(C);
+
+  GPU_render_end();
 }
 
 static bool wm_event_always_pass(const wmEvent *event)
@@ -1217,7 +1226,7 @@ int WM_operator_repeat_last(bContext *C, wmOperator *op)
   op->flag &= ~op_flag;
   return ret;
 }
-bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
+bool WM_operator_repeat_check(const bContext * /*C*/, wmOperator *op)
 {
   if (op->type->exec != nullptr) {
     return true;
@@ -1591,6 +1600,7 @@ static int wm_operator_call_internal(bContext *C,
         case WM_OP_EXEC_AREA:
         case WM_OP_EXEC_SCREEN:
           event = nullptr;
+          break;
         default:
           break;
       }
@@ -2176,26 +2186,26 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   /* Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
     const bool shift = (winevent->modifier & KM_SHIFT) != 0;
-    if ((shift != (bool)kmi->shift) &&
+    if ((shift != bool(kmi->shift)) &&
         !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
     const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
-    if (ctrl != (bool)kmi->ctrl && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+    if (ctrl != bool(kmi->ctrl) && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
     const bool alt = (winevent->modifier & KM_ALT) != 0;
-    if (alt != (bool)kmi->alt && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
+    if (alt != bool(kmi->alt) && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
     const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
-    if ((oskey != (bool)kmi->oskey) && (winevent->type != EVT_OSKEY)) {
+    if ((oskey != bool(kmi->oskey)) && (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }
@@ -2220,7 +2230,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
     /* Should already be handled by #wm_user_modal_keymap_set_items. */
     BLI_assert(kmi->propvalue_str[0] == '\0');
     if (wm_eventmatch(event, kmi)) {
-      if ((keymap->poll_modal_item == nullptr) || (keymap->poll_modal_item(op, kmi->propvalue))) {
+      if ((keymap->poll_modal_item == nullptr) || keymap->poll_modal_item(op, kmi->propvalue)) {
         return kmi;
       }
     }
@@ -2378,7 +2388,7 @@ static int wm_handler_operator_call(bContext *C,
       /* When the window changes the modal modifier may have loaded a new blend file
        * (the `system_demo_mode` add-on does this), so we have to assume the event,
        * operator, area, region etc have all been freed. */
-      if ((CTX_wm_window(C) == win)) {
+      if (CTX_wm_window(C) == win) {
 
         wm_event_modalkeymap_end(event, &event_backup);
 
@@ -4081,9 +4091,9 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
  * An appropriate window is either of the following:
  * * A parent window that does not yet contain a modal File Browser. This is determined using
  *   #ED_fileselect_handler_area_find_any_with_op().
- * * A parent window containing a modal File Browser, but in a maximized/fullscreen state. Users
+ * * A parent window containing a modal File Browser, but in a maximized/full-screen state. Users
  *   shouldn't be able to put a temporary screen like the modal File Browser into
- *   maximized/fullscreen state themselves. So this setup indicates that the File Browser was
+ *   maximized/full-screen state themselves. So this setup indicates that the File Browser was
  *   opened using #USER_TEMP_SPACE_DISPLAY_FULLSCREEN.
  *
  * If no appropriate parent window can be found from the context window, return the first
@@ -4266,7 +4276,7 @@ void WM_event_modal_handler_region_replace(wmWindow *win,
        * it needs to keep old region stored in handler, so don't change it. */
       if ((handler->context.region == old_region) && (handler->is_fileselect == false)) {
         handler->context.region = new_region;
-        handler->context.region_type = new_region ? new_region->regiontype : (int)RGN_TYPE_WINDOW;
+        handler->context.region_type = new_region ? new_region->regiontype : int(RGN_TYPE_WINDOW);
       }
     }
   }
@@ -4447,7 +4457,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
                                                             wmKeyMap *keymap,
-                                                            int UNUSED(priority))
+                                                            int /*priority*/)
 {
   WM_event_remove_keymap_handler(handlers, keymap);
 
@@ -4669,16 +4679,16 @@ void WM_event_add_mousemove(wmWindow *win)
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
-    return (EVT_AKEY + ((int)key - GHOST_kKeyA));
+    return (EVT_AKEY + (int(key) - GHOST_kKeyA));
   }
   if (key >= GHOST_kKey0 && key <= GHOST_kKey9) {
-    return (EVT_ZEROKEY + ((int)key - GHOST_kKey0));
+    return (EVT_ZEROKEY + (int(key) - GHOST_kKey0));
   }
   if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
-    return (EVT_PAD0 + ((int)key - GHOST_kKeyNumpad0));
+    return (EVT_PAD0 + (int(key) - GHOST_kKeyNumpad0));
   }
   if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
-    return (EVT_F1KEY + ((int)key - GHOST_kKeyF1));
+    return (EVT_F1KEY + (int(key) - GHOST_kKeyF1));
   }
 
   switch (key) {
@@ -4732,7 +4742,8 @@ static int convert_key(GHOST_TKey key)
       return EVT_LEFTCTRLKEY;
     case GHOST_kKeyRightControl:
       return EVT_RIGHTCTRLKEY;
-    case GHOST_kKeyOS:
+    case GHOST_kKeyLeftOS:
+    case GHOST_kKeyRightOS:
       return EVT_OSKEY;
     case GHOST_kKeyLeftAlt:
       return EVT_LEFTALTKEY;
@@ -4820,7 +4831,7 @@ static int convert_key(GHOST_TKey key)
 #endif
   }
 
-  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", (int)key);
+  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", int(key));
   return EVENT_NONE;
 }
 
@@ -4933,7 +4944,7 @@ void WM_event_tablet_data_default_set(wmTabletData *tablet_data)
 void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
 {
   if ((tablet_data != nullptr) && tablet_data->Active != GHOST_kTabletModeNone) {
-    wmtab->active = (int)tablet_data->Active;
+    wmtab->active = int(tablet_data->Active);
     wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
     wmtab->x_tilt = tablet_data->Xtilt;
     wmtab->y_tilt = tablet_data->Ytilt;
@@ -5258,7 +5269,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event.prev_val = event.val;
 
   /* Always use modifiers from the active window since
-     changes to modifiers aren't sent to inactive windows, see: T66088. */
+   * changes to modifiers aren't sent to inactive windows, see: T66088. */
   if ((wm->winactive != win) && (wm->winactive && wm->winactive->eventstate)) {
     event.modifier = wm->winactive->eventstate->modifier;
     event.keymodifier = wm->winactive->eventstate->keymodifier;
@@ -5460,7 +5471,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
          * special handling of Latin1 when building without UTF8 support.
          * Avoid regressions by adding this conversions, it should eventually be removed. */
         if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
-          const uint c = (uint)event.utf8_buf[0];
+          const uint c = uint(event.utf8_buf[0]);
           int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected non-ASCII single byte character '%u', converting to utf8 "
@@ -5474,10 +5485,29 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
-                     (int)(unsigned char)event.utf8_buf[0]);
+                     int(uchar(event.utf8_buf[0])));
           event.utf8_buf[0] = '\0';
         }
       }
+
+      /* NOTE(@campbellbarton): Setting the modifier state based on press/release
+       * is technically incorrect.
+       *
+       * - The user might hold both left/right modifier keys, then only release one.
+       *
+       *   This could be solved by storing a separate flag for the left/right modifiers,
+       *   and combine them into `event.modifiers`.
+       *
+       * - The user might have multiple keyboards (or keyboard + NDOF device)
+       *   where it's possible to press the same modifier key multiple times.
+       *
+       *   This could be solved by tracking the number of held modifier keys,
+       *   (this is in fact what LIBXKB does), however doing this relies on all GHOST
+       *   back-ends properly reporting every press/release as any mismatch could result
+       *   in modifier keys being stuck (which is very bad!).
+       *
+       * To my knowledge users never reported a bug relating to these limitations so
+       * it seems reasonable to keep the current logic. */
 
       switch (event.type) {
         case EVT_LEFTSHIFTKEY:
@@ -5928,11 +5958,12 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     bToolRef *tref = nullptr;
     if ((region->regiontype == RGN_TYPE_WINDOW) &&
         ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK)) {
+      const Scene *scene = WM_window_get_active_scene(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       WorkSpace *workspace = WM_window_get_active_workspace(win);
       bToolKey tkey{};
       tkey.space_type = area->spacetype;
-      tkey.mode = WM_toolsystem_mode_from_spacetype(view_layer, area, area->spacetype);
+      tkey.mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, area, area->spacetype);
       tref = WM_toolsystem_ref_find(workspace, &tkey);
     }
     wm_event_cursor_store(&cd->state, win->eventstate, area->spacetype, region->regiontype, tref);

@@ -107,13 +107,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_principled(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_GGX;
   node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
@@ -125,7 +125,7 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
@@ -166,6 +166,27 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
   if (use_transparency) {
     flag |= GPU_MATFLAG_TRANSPARENT;
+  }
+  if (use_clear) {
+    flag |= GPU_MATFLAG_CLEARCOAT;
+  }
+
+  /* Ref. T98190: Defines are optimizations for old compilers.
+   * Might become unnecessary with EEVEE-Next. */
+  if (use_diffuse == false && use_refract == false && use_clear == true) {
+    flag |= GPU_MATFLAG_PRINCIPLED_CLEARCOAT;
+  }
+  else if (use_diffuse == false && use_refract == false && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_METALLIC;
+  }
+  else if (use_diffuse == true && use_refract == false && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_DIELECTRIC;
+  }
+  else if (use_diffuse == false && use_refract == true && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_GLASS;
+  }
+  else {
+    flag |= GPU_MATFLAG_PRINCIPLED_ANY;
   }
 
   if (use_subsurf) {

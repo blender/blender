@@ -37,7 +37,7 @@
 
 namespace blender ::io ::gpencil {
 
-static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *UNUSED(user_data))
+static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void * /*user_data*/)
 {
   printf("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
 }
@@ -192,7 +192,7 @@ void GpencilExporterPDF::export_gpencil_layers()
           }
           else {
             bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-                rv3d_, gpd_, gpl, gps_duplicate, 3, diff_mat_.values, 0.0f);
+                rv3d_->viewmat, gpd_, gpl, gps_duplicate, 3, diff_mat_.values, 0.0f);
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {

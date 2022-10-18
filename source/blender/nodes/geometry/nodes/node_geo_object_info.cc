@@ -3,6 +3,7 @@
 #include "BLI_math_matrix.h"
 
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_instances.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -25,7 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
@@ -68,14 +69,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     GeometrySet geometry_set;
     if (params.get_input<bool>("As Instance")) {
-      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-      const int handle = instances.add_reference(*object);
+      std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+      const int handle = instances->add_reference(*object);
       if (transform_space_relative) {
-        instances.add_instance(handle, transform);
+        instances->add_instance(handle, transform);
       }
       else {
-        instances.add_instance(handle, float4x4::identity());
+        instances->add_instance(handle, float4x4::identity());
       }
+      geometry_set = GeometrySet::create_with_instances(instances.release());
     }
     else {
       geometry_set = bke::object_get_evaluated_geometry_set(*object);
@@ -88,7 +90,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-static void node_node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryObjectInfo *data = MEM_cnew<NodeGeometryObjectInfo>(__func__);
   data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;

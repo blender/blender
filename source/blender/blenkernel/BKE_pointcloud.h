@@ -25,16 +25,17 @@ extern const char *POINTCLOUD_ATTR_RADIUS;
 void *BKE_pointcloud_add(struct Main *bmain, const char *name);
 void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
+void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
+                                         struct PointCloud *pointcloud_dst,
+                                         bool take_ownership);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 bool BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3]);
 
-bool BKE_pointcloud_customdata_required(const struct PointCloud *pointcloud, const char *name);
+bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_new_for_eval(const struct PointCloud *pointcloud_src,
-                                               int totpoint);
 struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference);
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,

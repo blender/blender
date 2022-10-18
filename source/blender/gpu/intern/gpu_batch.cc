@@ -56,7 +56,6 @@ void GPU_batch_init_ex(GPUBatch *batch,
                        GPUIndexBuf *elem,
                        eGPUBatchFlag owns_flag)
 {
-  BLI_assert(verts != nullptr);
   /* Do not pass any other flag */
   BLI_assert((owns_flag & ~(GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX)) == 0);
 
@@ -198,6 +197,13 @@ bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *verts)
     }
   }
   return false;
+}
+
+void GPU_batch_resource_id_buf_set(GPUBatch *batch, GPUStorageBuf *resource_id_buf)
+{
+  BLI_assert(resource_id_buf);
+  batch->flag |= GPU_BATCH_DIRTY;
+  batch->resource_id_buf = resource_id_buf;
 }
 
 /** \} */

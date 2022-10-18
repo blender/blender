@@ -26,7 +26,7 @@ static void fn_node_align_euler_to_vector_declare(NodeDeclarationBuilder &b)
 }
 
 static void fn_node_align_euler_to_vector_layout(uiLayout *layout,
-                                                 bContext *UNUSED(C),
+                                                 bContext * /*C*/,
                                                  PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
@@ -159,7 +159,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &input_rotations = params.readonly_single_input<float3>(0, "Rotation");
     const VArray<float> &factors = params.readonly_single_input<float>(1, "Factor");
@@ -190,7 +190,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
 
 static void fn_node_align_euler_to_vector_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
 }
 

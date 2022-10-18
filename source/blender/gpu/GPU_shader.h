@@ -64,7 +64,8 @@ struct GPU_ShaderCreateFromArray_Params {
 /**
  * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
  *
- * Similar to #DRW_shader_create_with_lib with the ability to include libs for each type of shader.
+ * Similar to #DRW_shader_create_with_lib with the ability to include libraries for each type of
+ * shader.
  *
  * It has the advantage that each item can be conditionally included
  * without having to build the string inline, then free it.
@@ -144,6 +145,7 @@ typedef enum {
   GPU_UNIFORM_BLOCK_DRW_VIEW,
   GPU_UNIFORM_BLOCK_DRW_MODEL,
   GPU_UNIFORM_BLOCK_DRW_INFOS,
+  GPU_UNIFORM_BLOCK_DRW_CLIPPING,
 
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;
@@ -191,7 +193,12 @@ void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const floa
 void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
 void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
 
+unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
+bool GPU_shader_get_attribute_info(const GPUShader *shader,
+                                   int attr_location,
+                                   char r_name[256],
+                                   int *r_type);
 
 void GPU_shader_set_framebuffer_srgb_target(int use_srgb_to_linear);
 
@@ -201,30 +208,12 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_TEXT,
   GPU_SHADER_KEYFRAME_SHAPE,
   GPU_SHADER_SIMPLE_LIGHTING,
-  /* for simple 2D drawing */
-  /**
-   * Take a single color for all the vertices and a 2D position for each vertex.
-   *
-   * \param color: uniform vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_UNIFORM_COLOR,
-  /**
-   * Take a 2D position and color for each vertex without color interpolation.
-   *
-   * \param color: in vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_FLAT_COLOR,
   /**
    * Take a 2D position and color for each vertex with linear interpolation in window space.
    *
    * \param color: in vec4
    * \param pos: in vec2
    */
-  GPU_SHADER_2D_SMOOTH_COLOR,
-  GPU_SHADER_2D_IMAGE,
-  GPU_SHADER_2D_IMAGE_COLOR,
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
   GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR,
@@ -300,14 +289,14 @@ typedef enum eGPUBuiltinShader {
    */
   GPU_SHADER_3D_IMAGE,
   /**
-   * Draw texture with alpha. Take a 3D position and a 2D texture coordinate for each vertex.
+   * Take a 3D position and color for each vertex with linear interpolation in window space.
    *
-   * \param alpha: uniform float
+   * \param color: uniform vec4
    * \param image: uniform sampler2D
    * \param texCoord: in vec2
    * \param pos: in vec3
    */
-  GPU_SHADER_3D_IMAGE_MODULATE_ALPHA,
+  GPU_SHADER_3D_IMAGE_COLOR,
   /* points */
   /**
    * Draw round points with a constant size.
@@ -356,7 +345,6 @@ typedef enum eGPUBuiltinShader {
    */
   GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
   /* lines */
-  GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR,
   GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,
   /* grease pencil drawing */
   GPU_SHADER_GPENCIL_STROKE,

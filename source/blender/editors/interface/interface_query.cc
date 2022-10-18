@@ -84,7 +84,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if ((but->type == UI_BTYPE_TEXT) &&
-      (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) && !labeledit) {
+      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) && !labeledit) {
     return false;
   }
   if ((but->type == UI_BTYPE_LISTROW) && labeledit) {
@@ -103,7 +103,7 @@ bool UI_but_is_utf8(const uiBut *but)
 {
   if (but->rnaprop) {
     const int subtype = RNA_property_subtype(but->rnaprop);
-    return !(ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING));
+    return !ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING);
   }
   return !(but->flag & UI_BUT_NO_UTF8);
 }
@@ -182,7 +182,7 @@ void ui_but_pie_dir(RadialDirection dir, float vec[2])
 
   BLI_assert(dir != UI_RADIAL_NONE);
 
-  angle = DEG2RADF((float)ui_radial_dir_to_angle[dir]);
+  angle = DEG2RADF(float(ui_radial_dir_to_angle[dir]));
   vec[0] = cosf(angle);
   vec[1] = sinf(angle);
 }
@@ -251,7 +251,7 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEv
     /* use button size itself */
   }
   else if (but->drawflag & UI_BUT_ICON_LEFT) {
-    rect.xmax = rect.xmin + (BLI_rcti_size_y(&rect));
+    rect.xmax = rect.xmin + BLI_rcti_size_y(&rect);
   }
   else {
     const int delta = BLI_rcti_size_x(&rect) - BLI_rcti_size_y(&rect);
@@ -424,7 +424,7 @@ uiBut *ui_list_find_from_row(const ARegion *region, const uiBut *row_but)
   return ui_but_find(region, ui_but_is_listbox_with_row, row_but);
 }
 
-static bool ui_but_is_listrow(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_listrow(const uiBut *but, const void * /*customdata*/)
 {
   return but->type == UI_BTYPE_LISTROW;
 }
@@ -456,7 +456,7 @@ uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut
   return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
-static bool ui_but_is_view_item_fn(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_view_item_fn(const uiBut *but, const void * /*customdata*/)
 {
   return but->type == UI_BTYPE_VIEW_ITEM;
 }
@@ -466,7 +466,7 @@ uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2])
   return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_view_item_fn, nullptr);
 }
 
-static bool ui_but_is_active_view_item(const uiBut *but, const void *UNUSED(customdata))
+static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customdata*/)
 {
   if (but->type != UI_BTYPE_VIEW_ITEM) {
     return false;

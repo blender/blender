@@ -73,7 +73,9 @@ gpu::MTLBuffer *MTLBufferPool::allocate_with_data(uint64_t size,
   return this->allocate_aligned_with_data(size, 256, cpu_visible, data);
 }
 
-gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size, uint alignment, bool cpu_visible)
+gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
+                                                uint32_t alignment,
+                                                bool cpu_visible)
 {
   /* Check not required. Main GPU module usage considered thread-safe. */
   // BLI_assert(BLI_thread_is_main());
@@ -167,7 +169,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size, uint alignment, b
 }
 
 gpu::MTLBuffer *MTLBufferPool::allocate_aligned_with_data(uint64_t size,
-                                                          uint alignment,
+                                                          uint32_t alignment,
                                                           bool cpu_visible,
                                                           const void *data)
 {
@@ -548,9 +550,10 @@ void gpu::MTLBuffer::set_label(NSString *str)
 void gpu::MTLBuffer::debug_ensure_used()
 {
   /* Debug: If buffer is not flagged as in-use, this is a problem. */
-  BLI_assert(in_use_ &&
-             "Buffer should be marked as 'in-use' if being actively used by an instance. Buffer "
-             "has likely already been freed.");
+  BLI_assert_msg(
+      in_use_,
+      "Buffer should be marked as 'in-use' if being actively used by an instance. Buffer "
+      "has likely already been freed.");
 }
 
 void gpu::MTLBuffer::flush()
@@ -665,9 +668,9 @@ MTLTemporaryBuffer MTLScratchBufferManager::scratch_buffer_allocate_range_aligne
   /* Ensure scratch buffer allocation alignment adheres to offset alignment requirements. */
   alignment = max_uu(alignment, 256);
 
-  BLI_assert(current_scratch_buffer_ >= 0 && "Scratch Buffer index not set");
+  BLI_assert_msg(current_scratch_buffer_ >= 0, "Scratch Buffer index not set");
   MTLCircularBuffer *current_scratch_buff = this->scratch_buffers_[current_scratch_buffer_];
-  BLI_assert(current_scratch_buff != nullptr && "Scratch Buffer does not exist");
+  BLI_assert_msg(current_scratch_buff != nullptr, "Scratch Buffer does not exist");
   MTLTemporaryBuffer allocated_range = current_scratch_buff->allocate_range_aligned(alloc_size,
                                                                                     alignment);
   BLI_assert(allocated_range.size >= alloc_size && allocated_range.size <= alloc_size + alignment);

@@ -22,6 +22,7 @@ struct wmTimer;
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_enums.h"
+#include "DNA_viewer_path_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -205,6 +206,7 @@ typedef struct View3DOverlay {
   float weight_paint_mode_opacity;
   float sculpt_mode_mask_opacity;
   float sculpt_mode_face_sets_opacity;
+  float viewer_attribute_opacity;
 
   /** Armature edit/pose mode settings. */
   float xray_alpha_bone;
@@ -227,8 +229,6 @@ typedef struct View3DOverlay {
   float gpencil_vertex_paint_opacity;
   /** Handles display type for curves. */
   int handle_display;
-
-  char _pad[4];
 } View3DOverlay;
 
 /** #View3DOverlay.handle_display */
@@ -296,7 +296,9 @@ typedef struct View3D {
   char _pad6[2];
   int layact DNA_DEPRECATED;
   unsigned short local_collections_uuid;
-  short _pad7[3];
+  short _pad7[2];
+
+  short debug_flag;
 
   /** Optional bool for 3d cursor to define center. */
   short ob_center_cursor;
@@ -346,6 +348,9 @@ typedef struct View3D {
   View3DShading shading;
   View3DOverlay overlay;
 
+  /** Path to the viewer node that is currently previewed. This is retrieved from the workspace. */
+  ViewerPath viewer_path;
+
   /** Runtime evaluation data (keep last). */
   View3D_Runtime runtime;
 } View3D;
@@ -389,7 +394,7 @@ enum {
 #define RV3D_PAINTING (1 << 5)
 /*#define RV3D_IS_GAME_ENGINE       (1 << 5) */ /* UNUSED */
 /**
- * Disable zbuffer offset, skip calls to #ED_view3d_polygon_offset.
+ * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
  * Use when precise surface depth is needed and picking bias isn't, see T45434).
  */
 #define RV3D_ZOFFSET_DISABLED 64
@@ -441,7 +446,7 @@ enum {
 
 /** #View3D.flag2 (int) */
 #define V3D_HIDE_OVERLAYS (1 << 2)
-#define V3D_FLAG2_UNUSED_3 (1 << 3) /* cleared */
+#define V3D_SHOW_VIEWER (1 << 3)
 #define V3D_SHOW_ANNOTATION (1 << 4)
 #define V3D_LOCK_CAMERA (1 << 5)
 #define V3D_FLAG2_UNUSED_6 (1 << 6) /* cleared */
@@ -489,6 +494,11 @@ enum {
   V3D_SHADING_COMPOSITOR = (1 << 15),
 };
 
+/** #View3D.debug_flag */
+enum {
+  V3D_DEBUG_FREEZE_CULLING = (1 << 0),
+};
+
 #define V3D_USES_SCENE_LIGHTS(v3d) \
   ((((v3d)->shading.type == OB_MATERIAL) && ((v3d)->shading.flag & V3D_SHADING_SCENE_LIGHTS)) || \
    (((v3d)->shading.type == OB_RENDER) && \
@@ -521,6 +531,7 @@ enum {
   V3D_OVERLAY_HIDE_OBJECT_ORIGINS = (1 << 10),
   V3D_OVERLAY_STATS = (1 << 11),
   V3D_OVERLAY_FADE_INACTIVE = (1 << 12),
+  V3D_OVERLAY_VIEWER_ATTRIBUTE = (1 << 13),
 };
 
 /** #View3DOverlay.edit_flag */

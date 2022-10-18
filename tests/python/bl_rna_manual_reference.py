@@ -15,12 +15,12 @@ import bpy
 def test_data():
     import rna_manual_reference
 
-    assert(isinstance(rna_manual_reference.url_manual_mapping, tuple))
+    assert isinstance(rna_manual_reference.url_manual_mapping, tuple)
     for i, value in enumerate(rna_manual_reference.url_manual_mapping):
         try:
-            assert(len(value) == 2)
-            assert(isinstance(value[0], str))
-            assert(isinstance(value[1], str))
+            assert len(value) == 2
+            assert isinstance(value[0], str)
+            assert isinstance(value[1], str)
         except:
             print("Expected a tuple of 2 strings, instead item %d is a %s: %r" % (i, type(value), value))
             import traceback

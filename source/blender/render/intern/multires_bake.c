@@ -63,6 +63,7 @@ typedef struct {
   MVert *mvert;
   const float (*vert_normals)[3];
   MPoly *mpoly;
+  const int *material_indices;
   MLoop *mloop;
   MLoopUV *mloopuv;
   float uv_offset[2];
@@ -382,8 +383,7 @@ static void *do_multires_bake_thread(void *data_v)
 
   while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
     const MLoopTri *lt = &data->mlooptri[tri_index];
-    const MPoly *mp = &data->mpoly[lt->poly];
-    const short mat_nr = mp->mat_nr;
+    const short mat_nr = data->material_indices == NULL ? 0 : data->material_indices[lt->poly];
     const MLoopUV *mloopuv = data->mloopuv;
 
     if (multiresbake_test_break(bkr)) {
@@ -485,10 +485,18 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
       dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
-  memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
-  memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
-  memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
-  memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
+  memcpy(BKE_mesh_verts_for_write(temp_mesh),
+         dm->getVertArray(dm),
+         temp_mesh->totvert * sizeof(MVert));
+  memcpy(BKE_mesh_edges_for_write(temp_mesh),
+         dm->getEdgeArray(dm),
+         temp_mesh->totedge * sizeof(MEdge));
+  memcpy(BKE_mesh_polys_for_write(temp_mesh),
+         dm->getPolyArray(dm),
+         temp_mesh->totpoly * sizeof(MPoly));
+  memcpy(BKE_mesh_loops_for_write(temp_mesh),
+         dm->getLoopArray(dm),
+         temp_mesh->totloop * sizeof(MLoop));
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
@@ -545,6 +553,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->queue = &queue;
 
     handle->data.mpoly = mpoly;
+    handle->data.material_indices = CustomData_get_layer_named(
+        &dm->polyData, CD_PROP_INT32, "material_index");
     handle->data.mvert = mvert;
     handle->data.vert_normals = vert_normals;
     handle->data.mloopuv = mloopuv;
@@ -986,7 +996,7 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm,
     rrgbf[3] = 1.0f;
   }
   else {
-    unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
+    uchar *rrgb = (uchar *)ibuf->rect + pixel * 4;
     rgb_float_to_uchar(rrgb, vec);
     rrgb[3] = 255;
   }
@@ -999,8 +1009,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm,
 /* Must be a power of two. */
 #  define MAX_NUMBER_OF_AO_RAYS 1024
 
-static unsigned short ao_random_table_1[MAX_NUMBER_OF_AO_RAYS];
-static unsigned short ao_random_table_2[MAX_NUMBER_OF_AO_RAYS];
+static ushort ao_random_table_1[MAX_NUMBER_OF_AO_RAYS];
+static ushort ao_random_table_2[MAX_NUMBER_OF_AO_RAYS];
 
 static void init_ao_random(void)
 {
@@ -1012,18 +1022,18 @@ static void init_ao_random(void)
   }
 }
 
-static unsigned short get_ao_random1(const int i)
+static ushort get_ao_random1(const int i)
 {
   return ao_random_table_1[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
 }
 
-static unsigned short get_ao_random2(const int i)
+static ushort get_ao_random2(const int i)
 {
   return ao_random_table_2[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
 }
 
-static void build_permutation_table(unsigned short permutation[],
-                                    unsigned short temp_permutation[],
+static void build_permutation_table(ushort permutation[],
+                                    ushort temp_permutation[],
                                     const int number_of_rays,
                                     const int is_first_perm_table)
 {
@@ -1034,9 +1044,9 @@ static void build_permutation_table(unsigned short permutation[],
   }
 
   for (i = 0; i < number_of_rays; i++) {
-    const unsigned int nr_entries_left = number_of_rays - i;
-    unsigned short rnd = is_first_perm_table != false ? get_ao_random1(i) : get_ao_random2(i);
-    const unsigned short entry = rnd % nr_entries_left;
+    const uint nr_entries_left = number_of_rays - i;
+    ushort rnd = is_first_perm_table != false ? get_ao_random1(i) : get_ao_random2(i);
+    const ushort entry = rnd % nr_entries_left;
 
     /* pull entry */
     permutation[i] = temp_permutation[entry];
@@ -1106,7 +1116,7 @@ static void *init_ao_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
 {
   MAOBakeData *ao_data;
   DerivedMesh *lodm = bkr->lores_dm;
-  unsigned short *temp_permutation_table;
+  ushort *temp_permutation_table;
   size_t permutation_size;
 
   init_ao_random();
@@ -1121,7 +1131,7 @@ static void *init_ao_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
   create_ao_raytree(bkr, ao_data);
 
   /* initialize permutation tables */
-  permutation_size = sizeof(unsigned short) * bkr->number_of_rays;
+  permutation_size = sizeof(ushort) * bkr->number_of_rays;
   ao_data->permutation_table_1 = MEM_callocN(permutation_size, "multires AO baker perm1");
   ao_data->permutation_table_2 = MEM_callocN(permutation_size, "multires AO baker perm2");
   temp_permutation_table = MEM_callocN(permutation_size, "multires AO baker temp perm");
@@ -1263,9 +1273,9 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
     /* use N-Rooks to distribute our N ray samples across
      * a multi-dimensional domain (2D)
      */
-    const unsigned short I =
+    const ushort I =
         ao_data->permutation_table_1[(i + perm_ofs) % ao_data->number_of_rays];
-    const unsigned short J = ao_data->permutation_table_2[i];
+    const ushort J = ao_data->permutation_table_2[i];
 
     const float JitPh = (get_ao_random2(I + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
                         ((float)MAX_NUMBER_OF_AO_RAYS);
@@ -1307,7 +1317,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
     rrgbf[3] = 1.0f;
   }
   else {
-    unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
+    uchar *rrgb = (uchar *)ibuf->rect + pixel * 4;
     rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(value);
     rrgb[3] = 255;
   }
@@ -1383,7 +1393,7 @@ static void bake_ibuf_normalize_displacement(ImBuf *ibuf,
       }
 
       if (ibuf->rect) {
-        unsigned char *cp = (unsigned char *)(ibuf->rect + i);
+        uchar *cp = (uchar *)(ibuf->rect + i);
         cp[0] = cp[1] = cp[2] = unit_float_to_uchar_clamp(normalized_displacement);
         cp[3] = 255;
       }

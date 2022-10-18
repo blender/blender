@@ -258,10 +258,20 @@ char *BKE_reports_string(ReportList *reports, eReportType level)
 
 bool BKE_reports_print_test(const ReportList *reports, eReportType type)
 {
+  if (reports == NULL) {
+    return true;
+  }
+  if (reports->flag & RPT_PRINT_HANDLED_BY_OWNER) {
+    return false;
+  }
   /* In background mode always print otherwise there are cases the errors won't be displayed,
-   * but still add to the report list since this is used for python exception handling. */
-  return (G.background || (reports == NULL) ||
-          ((reports->flag & RPT_PRINT) && (type >= reports->printlevel)));
+   * but still add to the report list since this is used for Python exception handling. */
+  if (G.background) {
+    return true;
+  }
+
+  /* Common case. */
+  return (reports->flag & RPT_PRINT) && (type >= reports->printlevel);
 }
 
 void BKE_reports_print(ReportList *reports, eReportType level)

@@ -26,6 +26,7 @@ struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Collection;
+struct ID;
 struct Library;
 struct Main;
 struct Object;
@@ -94,7 +95,7 @@ struct Collection *BKE_collection_duplicate(struct Main *bmain,
 /* Master Collection for Scene */
 
 #define BKE_SCENE_COLLECTION_NAME "Scene Collection"
-struct Collection *BKE_collection_master_add(void);
+struct Collection *BKE_collection_master_add(struct Scene *scene);
 
 /* Collection Objects */
 
@@ -215,7 +216,8 @@ struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
 void BKE_collection_object_cache_free(struct Collection *collection);
 
-struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer,
+struct Base *BKE_collection_or_layer_objects(const struct Scene *scene,
+                                             struct ViewLayer *view_layer,
                                              struct Collection *collection);
 
 /* Editing. */
@@ -238,7 +240,8 @@ const char *BKE_collection_ui_name_get(struct Collection *collection);
  * Select all the objects in this Collection (and its nested collections) for this ViewLayer.
  * Return true if any object was selected.
  */
-bool BKE_collection_objects_select(struct ViewLayer *view_layer,
+bool BKE_collection_objects_select(const struct Scene *scene,
+                                   struct ViewLayer *view_layer,
                                    struct Collection *collection,
                                    bool deselect);
 
@@ -296,7 +299,9 @@ void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 /* .blend file I/O */
 
 void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collection *collection);
-void BKE_collection_blend_read_data(struct BlendDataReader *reader, struct Collection *collection);
+void BKE_collection_blend_read_data(struct BlendDataReader *reader,
+                                    struct Collection *collection,
+                                    struct ID *owner_id);
 void BKE_collection_blend_read_lib(struct BlendLibReader *reader, struct Collection *collection);
 void BKE_collection_blend_read_expand(struct BlendExpander *expander,
                                       struct Collection *collection);

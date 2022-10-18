@@ -12,19 +12,24 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Fac"))
+      .no_muted_links()
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Vector")).min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
-static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_vec(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_vec(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
@@ -78,7 +83,7 @@ class CurveVecFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<float3> &vec_in = params.readonly_single_input<float3>(1, "Vector");
@@ -95,7 +100,7 @@ class CurveVecFunction : public fn::MultiFunction {
 
 static void sh_node_curve_vec_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap);
@@ -127,19 +132,24 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Fac"))
+      .no_muted_links()
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_rgb(GPUMaterial *mat,
                                 bNode *node,
-                                bNodeExecData *UNUSED(execdata),
+                                bNodeExecData * /*execdata*/,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
@@ -218,7 +228,7 @@ class CurveRGBFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col_in = params.readonly_single_input<ColorGeometry4f>(1,
@@ -237,7 +247,7 @@ class CurveRGBFunction : public fn::MultiFunction {
 
 static void sh_node_curve_rgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap);
@@ -270,6 +280,7 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("Factor"))
+      .no_muted_links()
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
@@ -278,14 +289,14 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_shader_init_curve_float(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_curve_float(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_float(GPUMaterial *mat,
                                   bNode *node,
-                                  bNodeExecData *UNUSED(execdata),
+                                  bNodeExecData * /*execdata*/,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
@@ -339,7 +350,7 @@ class CurveFloatFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<float> &val_in = params.readonly_single_input<float>(1, "Value");
@@ -356,7 +367,7 @@ class CurveFloatFunction : public fn::MultiFunction {
 
 static void sh_node_curve_float_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap);

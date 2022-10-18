@@ -354,7 +354,7 @@ typedef enum {
   UI_BTYPE_LABEL = 20 << 9,
   UI_BTYPE_KEY_EVENT = 24 << 9,
   UI_BTYPE_HSVCUBE = 26 << 9,
-  /** menu (often used in headers), **_MENU /w different draw-type */
+  /** Menu (often used in headers), `*_MENU` with different draw-type. */
   UI_BTYPE_PULLDOWN = 27 << 9,
   UI_BTYPE_ROUNDBOX = 28 << 9,
   UI_BTYPE_COLORBAND = 30 << 9,
@@ -532,6 +532,7 @@ typedef struct ARegion *(*uiButSearchTooltipFn)(struct bContext *C,
                                                 const struct rcti *item_rect,
                                                 void *arg,
                                                 void *active);
+typedef void (*uiButSearchListenFn)(const struct wmRegionListenerParams *params, void *arg);
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
@@ -1392,6 +1393,7 @@ void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *ext
  * - AutoButR: RNA property button with type automatically defined.
  */
 enum {
+  UI_ID_NOP = 0,
   UI_ID_RENAME = 1 << 0,
   UI_ID_BROWSE = 1 << 1,
   UI_ID_ADD_NEW = 1 << 2,
@@ -1659,6 +1661,7 @@ void UI_but_func_search_set(uiBut *but,
                             void *active);
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn);
+void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn);
 /**
  * \param search_sep_string: when not NULL, this string is used as a separator,
  * showing the icon and highlighted text after the last instance of this string.

@@ -107,7 +107,6 @@ bool nla_panel_context(const bContext *C,
         found = 1;
         break;
       }
-      case ANIMTYPE_NLAACTION:
       case ANIMTYPE_SCENE: /* Top-Level Widgets doubling up as datablocks */
       case ANIMTYPE_OBJECT:
       case ANIMTYPE_DSMAT: /* Datablock AnimData Expanders */
@@ -158,6 +157,11 @@ bool nla_panel_context(const bContext *C,
         }
         break;
       }
+      /* Don't set a pointer for NLA Actions.
+       * This will break the dependency graph for the context menu.
+       */
+      case ANIMTYPE_NLAACTION:
+        break;
     }
 
     if (found > 0) {
@@ -213,7 +217,9 @@ static bool nla_panel_poll(const bContext *C, PanelType *pt)
 static bool nla_animdata_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   PointerRNA ptr;
-  return (nla_panel_context(C, &ptr, NULL, NULL) && (ptr.data != NULL));
+  PointerRNA strip_ptr;
+  return (nla_panel_context(C, &ptr, NULL, &strip_ptr) && (ptr.data != NULL) &&
+          (ptr.owner_id != strip_ptr.owner_id));
 }
 
 static bool nla_strip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
@@ -265,13 +271,18 @@ static bool nla_strip_eval_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 static void nla_panel_animdata(const bContext *C, Panel *panel)
 {
   PointerRNA adt_ptr;
+  PointerRNA strip_ptr;
   /* AnimData *adt; */
   uiLayout *layout = panel->layout;
   uiLayout *row;
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, &adt_ptr, NULL, NULL)) {
+  if (!nla_panel_context(C, &adt_ptr, NULL, &strip_ptr)) {
+    return;
+  }
+
+  if (adt_ptr.owner_id == strip_ptr.owner_id) {
     return;
   }
 

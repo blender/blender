@@ -54,7 +54,7 @@ void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
     /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
     uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_, &CD_MASK_MESH, true);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
     mesh->flag |= autosmooth;
 
     if (is_time_varying()) {
@@ -151,7 +151,6 @@ struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
       MPoly &poly = mpolys[i];
       poly.loopstart = loop_index;
       poly.totloop = face_size;
-      poly.mat_nr = 0;
 
       /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
       poly.flag |= is_cube ? 0 : ME_SMOOTH;

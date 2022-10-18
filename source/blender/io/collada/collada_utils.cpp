@@ -66,7 +66,7 @@
 #include "ExportSettings.h"
 #include "collada_utils.h"
 
-float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index)
+float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, uint index)
 {
   if (index >= array.getValuesCount()) {
     return 0.0f;
@@ -197,6 +197,7 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   /* TODO: is setting active needed? */
   BKE_view_layer_base_select_and_set_active(view_layer, base);
@@ -709,13 +710,13 @@ float bc_get_property(Bone *bone, std::string key, float def)
   if (property) {
     switch (property->type) {
       case IDP_INT:
-        result = (float)(IDP_Int(property));
+        result = float(IDP_Int(property));
         break;
       case IDP_FLOAT:
-        result = (float)(IDP_Float(property));
+        result = float(IDP_Float(property));
         break;
       case IDP_DOUBLE:
-        result = (float)(IDP_Double(property));
+        result = float(IDP_Double(property));
         break;
       default:
         result = def;
@@ -1007,9 +1008,9 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 void bc_sanitize_v3(float v[3], int precision)
 {
   for (int i = 0; i < 3; i++) {
-    double val = (double)v[i];
+    double val = double(v[i]);
     val = double_round(val, precision);
-    v[i] = (float)val;
+    v[i] = float(val);
   }
 }
 
@@ -1108,7 +1109,7 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 static bNodeTree *prepare_material_nodetree(Material *ma)
 {
   if (ma->nodetree == nullptr) {
-    ma->nodetree = ntreeAddTree(nullptr, "Shader Nodetree", "ShaderNodeTree");
+    ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
     ma->use_nodes = true;
   }
   return ma->nodetree;
@@ -1338,7 +1339,7 @@ bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
-    val = (double)ref->value;
+    val = double(ref->value);
     return true;
   }
   return false;

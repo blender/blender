@@ -81,7 +81,7 @@ static void vfont_copy_data(Main *UNUSED(bmain),
 {
   VFont *vfont_dst = (VFont *)id_dst;
 
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   /* Just to be sure, should not have any value actually after reading time. */
@@ -171,7 +171,7 @@ IDTypeInfo IDType_ID_VF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = vfont_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = vfont_blend_write,
     .blend_read_data = vfont_blend_read_data,
@@ -423,7 +423,7 @@ VFont *BKE_vfont_builtin_get(void)
   return BKE_vfont_load(G_MAIN, FO_BUILTIN_NAME);
 }
 
-static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
+static VChar *find_vfont_char(VFontData *vfd, uint character)
 {
   return BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character));
 }
@@ -494,7 +494,7 @@ static void build_underline(Curve *cu,
 
 void BKE_vfont_build_char(Curve *cu,
                           ListBase *nubase,
-                          unsigned int character,
+                          uint character,
                           CharInfo *info,
                           float ofsx,
                           float ofsy,
@@ -1044,7 +1044,7 @@ static bool vfont_to_curve(Object *ob,
 
       CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
 
-      if ((tb_scale.h != 0.0f) && ((-(yof - tb_scale.y)) > (tb_scale.h - linedist) - yof_scale)) {
+      if ((tb_scale.h != 0.0f) && (-(yof - tb_scale.y) > (tb_scale.h - linedist) - yof_scale)) {
         if (cu->totbox > (curbox + 1)) {
           maxlen = 0;
           curbox++;
@@ -1175,7 +1175,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
       for (i = 0; i <= slen; i++) {
-        for (j = i; (!ELEM(mem[j], '\0', '\n')) && (chartransdata[j].dobreak == 0) && (j < slen);
+        for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
              j++) {
           /* do nothing */
         }
@@ -1194,7 +1194,7 @@ static bool vfont_to_curve(Object *ob,
           /* pass */
         }
 
-        if ((mem[j] != '\n') && ((chartransdata[j].dobreak != 0))) {
+        if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
           if (mem[i] == ' ') {
             struct TempLineInfo *li;
 
@@ -1422,7 +1422,8 @@ static bool vfont_to_curve(Object *ob,
     for (i = 0; i <= selend; i++, ct++) {
       if (i >= selstart) {
         selboxes[i - selstart].x = ct->xof * font_size;
-        selboxes[i - selstart].y = ct->yof * font_size;
+        selboxes[i - selstart].y = (ct->yof - 0.25f) * font_size;
+        selboxes[i - selstart].h = font_size;
       }
     }
   }
@@ -1481,17 +1482,17 @@ static bool vfont_to_curve(Object *ob,
 
     f = ef->textcurs[0];
 
-    f[0] = font_size * (-0.1f * co + ct->xof);
-    f[1] = font_size * (0.1f * si + ct->yof);
+    f[0] = font_size * (-0.02f * co + ct->xof);
+    f[1] = font_size * (0.1f * si - (0.25f * co) + ct->yof);
 
-    f[2] = font_size * (0.1f * co + ct->xof);
-    f[3] = font_size * (-0.1f * si + ct->yof);
+    f[2] = font_size * (0.02f * co + ct->xof);
+    f[3] = font_size * (-0.1f * si - (0.25f * co) + ct->yof);
 
-    f[4] = font_size * (0.1f * co + 0.8f * si + ct->xof);
-    f[5] = font_size * (-0.1f * si + 0.8f * co + ct->yof);
+    f[4] = font_size * (0.02f * co + 0.8f * si + ct->xof);
+    f[5] = font_size * (-0.1f * si + 0.75f * co + ct->yof);
 
-    f[6] = font_size * (-0.1f * co + 0.8f * si + ct->xof);
-    f[7] = font_size * (0.1f * si + 0.8f * co + ct->yof);
+    f[6] = font_size * (-0.02f * co + 0.8f * si + ct->xof);
+    f[7] = font_size * (0.1f * si + 0.75f * co + ct->yof);
   }
 
   if (mode == FO_SELCHANGE) {
@@ -1504,7 +1505,7 @@ static bool vfont_to_curve(Object *ob,
 
     ct = chartransdata;
     for (i = 0; i < slen; i++) {
-      unsigned int cha = (unsigned int)mem[i];
+      uint cha = (uint)mem[i];
       info = &(custrinfo[i]);
 
       if ((cu->overflow == CU_OVERFLOW_TRUNCATE) && (ob && ob->mode != OB_MODE_EDIT) &&

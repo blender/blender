@@ -5,10 +5,10 @@
  * \ingroup render
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -169,7 +169,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
     return;
   }
 
-  const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
+  const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   rp->rect = MEM_cnew_array<float>(rectsize, rp->name);
 
   if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
@@ -251,8 +251,6 @@ RenderResult *render_result_new(Render *re,
   rr = MEM_cnew<RenderResult>("new render result");
   rr->rectx = rectx;
   rr->recty = recty;
-  rr->renrect.xmin = 0;
-  rr->renrect.xmax = rectx;
 
   /* tilerect is relative coordinates within render disprect. do not subtract crop yet */
   rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
@@ -654,8 +652,8 @@ static int order_render_passes(const void *a, const void *b)
   /* 1 if `a` is after `b`. */
   RenderPass *rpa = (RenderPass *)a;
   RenderPass *rpb = (RenderPass *)b;
-  unsigned int passtype_a = passtype_from_name(rpa->name);
-  unsigned int passtype_b = passtype_from_name(rpb->name);
+  uint passtype_a = passtype_from_name(rpa->name);
+  uint passtype_b = passtype_from_name(rpb->name);
 
   /* Render passes with default type always go first. */
   if (passtype_b && !passtype_a) {
@@ -780,7 +778,7 @@ static void do_merge_tile(
   copylen = tilex = rrpart->rectx;
   tiley = rrpart->recty;
 
-  ofs = (((size_t)rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
+  ofs = (size_t(rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
   target += pixsize * ofs;
 
   copylen *= sizeof(float) * pixsize;
@@ -929,7 +927,11 @@ int render_result_exr_file_read_path(RenderResult *rr,
   return 1;
 }
 
-static void render_result_exr_file_cache_path(Scene *sce, const char *root, char *r_path)
+#define FILE_CACHE_MAX (FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100)
+
+static void render_result_exr_file_cache_path(Scene *sce,
+                                              const char *root,
+                                              char r_path[FILE_CACHE_MAX])
 {
   char filename_full[FILE_MAX + MAX_ID_NAME + 100], filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
   char path_digest[16] = {0};
@@ -948,7 +950,7 @@ static void render_result_exr_file_cache_path(Scene *sce, const char *root, char
   }
   BLI_hash_md5_to_hexdigest(path_digest, path_hexdigest);
 
-  /* Default to *non-volatile* tmp dir. */
+  /* Default to *non-volatile* temp dir. */
   if (*root == '\0') {
     root = BKE_tempdir_base();
   }
@@ -959,13 +961,17 @@ static void render_result_exr_file_cache_path(Scene *sce, const char *root, char
                filename,
                sce->id.name + 2,
                path_hexdigest);
-  BLI_make_file_string(dirname, r_path, root, filename_full);
+
+  BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
+  if (BLI_path_is_rel(r_path)) {
+    BLI_path_abs(r_path, dirname);
+  }
 }
 
 void render_result_exr_file_cache_write(Render *re)
 {
   RenderResult *rr = re->result;
-  char str[FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100];
+  char str[FILE_CACHE_MAX];
   char *root = U.render_cachedir;
 
   render_result_passes_allocated_ensure(rr);
@@ -979,7 +985,7 @@ void render_result_exr_file_cache_write(Render *re)
 bool render_result_exr_file_cache_read(Render *re)
 {
   /* File path to cache. */
-  char filepath[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
+  char filepath[FILE_CACHE_MAX] = "";
   char *root = U.render_cachedir;
   render_result_exr_file_cache_path(re->scene, root, filepath);
 
@@ -1018,7 +1024,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
-  ibuf->rect = (unsigned int *)rv->rect32;
+  ibuf->rect = (uint *)rv->rect32;
   ibuf->rect_float = rv->rectf;
   ibuf->zbuf_float = rv->rectz;
 
@@ -1047,7 +1053,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (imf->planes == R_IMF_PLANES_BW) {
+  if (imf->planes == R_IMF_PLANES_BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
     IMB_color_to_bw(ibuf_bw);
     IMB_freeImBuf(ibuf);
@@ -1104,7 +1110,7 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
 }
 
 void render_result_rect_get_pixels(RenderResult *rr,
-                                   unsigned int *rect,
+                                   uint *rect,
                                    int rectx,
                                    int recty,
                                    const ColorManagedViewSettings *view_settings,
@@ -1117,14 +1123,8 @@ void render_result_rect_get_pixels(RenderResult *rr,
     memcpy(rect, rv->rect32, sizeof(int) * rr->rectx * rr->recty);
   }
   else if (rv && rv->rectf) {
-    IMB_display_buffer_transform_apply((unsigned char *)rect,
-                                       rv->rectf,
-                                       rr->rectx,
-                                       rr->recty,
-                                       4,
-                                       view_settings,
-                                       display_settings,
-                                       true);
+    IMB_display_buffer_transform_apply(
+        (uchar *)rect, rv->rectf, rr->rectx, rr->recty, 4, view_settings, display_settings, true);
   }
   else {
     /* else fill with black */
@@ -1134,13 +1134,13 @@ void render_result_rect_get_pixels(RenderResult *rr,
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasCombinedLayer(const RenderResult *rr)
+bool RE_HasCombinedLayer(const RenderResult *result)
 {
-  if (rr == nullptr) {
+  if (result == nullptr) {
     return false;
   }
 
-  const RenderView *rv = static_cast<RenderView *>(rr->views.first);
+  const RenderView *rv = static_cast<RenderView *>(result->views.first);
   if (rv == nullptr) {
     return false;
   }
@@ -1148,9 +1148,9 @@ bool RE_HasCombinedLayer(const RenderResult *rr)
   return (rv->rect32 || rv->rectf);
 }
 
-bool RE_HasFloatPixels(const RenderResult *rr)
+bool RE_HasFloatPixels(const RenderResult *result)
 {
-  LISTBASE_FOREACH (const RenderView *, rview, &rr->views) {
+  LISTBASE_FOREACH (const RenderView *, rview, &result->views) {
     if (rview->rect32 && !rview->rectf) {
       return false;
     }
@@ -1159,13 +1159,13 @@ bool RE_HasFloatPixels(const RenderResult *rr)
   return true;
 }
 
-bool RE_RenderResult_is_stereo(const RenderResult *rr)
+bool RE_RenderResult_is_stereo(const RenderResult *result)
 {
-  if (!BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&result->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 
-  if (!BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&result->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 

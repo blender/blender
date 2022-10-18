@@ -128,7 +128,7 @@ class Params:
         self.legacy = legacy
 
         if use_mouse_emulate_3_button:
-            assert(use_alt_tool_or_cursor is False)
+            assert use_alt_tool_or_cursor is False
 
         if select_mouse == 'RIGHT':
             # Right mouse select.
@@ -2072,6 +2072,8 @@ def km_node_editor(params):
          {"properties": [("replace", True)]}),
         op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True},
+         {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
+        ("node.duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.duplicate_move_keep_inputs", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
@@ -5069,8 +5071,8 @@ def km_sculpt(params):
          {"properties": [("mode", 'TOGGLE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
-        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'SHOW_ALL')]}),
+        ("sculpt.reveal_all", {"type": 'H', "value": 'PRESS', "alt": True},
+         {"properties": []}),
 
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'GROW')]}),

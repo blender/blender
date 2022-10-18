@@ -78,9 +78,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
   Collection *col = bmd->collection;
@@ -144,11 +142,9 @@ static Mesh *get_quick_mesh(
           invert_m4_m4(imat, ob_self->obmat);
           mul_m4_m4m4(omat, imat, ob_operand_ob->obmat);
 
-          const int mverts_len = result->totvert;
-          MVert *mv = result->mvert;
-
-          for (int i = 0; i < mverts_len; i++, mv++) {
-            mul_m4_v3(omat, mv->co);
+          MutableSpan<MVert> verts = result->verts_for_write();
+          for (const int i : verts.index_range()) {
+            mul_m4_v3(omat, verts[i].co);
           }
 
           BKE_mesh_tag_coords_changed(result);
@@ -171,7 +167,7 @@ static Mesh *get_quick_mesh(
 /**
  * Compare selected/unselected.
  */
-static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 {
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
@@ -572,16 +568,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   r_cddata_masks->emask |= CD_MASK_MEDGE;
   r_cddata_masks->fmask |= CD_MASK_MTFACE;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
@@ -603,7 +597,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);

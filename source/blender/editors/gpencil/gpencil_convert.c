@@ -270,14 +270,13 @@ static void gpencil_timing_data_add_point(tGpTimingData *gtd,
   }
   else if (time < 0.0f) {
     /* This is a gap, negative value! */
-    gtd->times[cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time +
-                              gtd->offset_time);
+    gtd->times[cur_point] = -((float)(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
     delta_time = -gtd->times[cur_point] - gtd->times[cur_point - 1];
 
     gtd->gap_tot_time += delta_time;
   }
   else {
-    gtd->times[cur_point] = (((float)(stroke_inittime - gtd->inittime)) + time + gtd->offset_time);
+    gtd->times[cur_point] = ((float)(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
     delta_time = gtd->times[cur_point] - fabsf(gtd->times[cur_point - 1]);
   }
 
@@ -1303,6 +1302,7 @@ static void gpencil_layer_to_curve(bContext *C,
   ob = BKE_object_add_only_object(bmain, OB_CURVES_LEGACY, gpl->info);
   cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVES_LEGACY);
   BKE_collection_object_add(bmain, collection, ob);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   base_new = BKE_view_layer_base_find(view_layer, ob);
   DEG_relations_tag_update(bmain); /* added object */
 
@@ -1482,7 +1482,7 @@ static bool gpencil_convert_poll(bContext *C)
    */
   return ((area && area->spacetype == SPACE_VIEW3D) && (gpl = BKE_gpencil_layer_active_get(gpd)) &&
           (gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV)) &&
-          (gpf->strokes.first) && (!GPENCIL_ANY_EDIT_MODE(gpd)));
+          (gpf->strokes.first) && !GPENCIL_ANY_EDIT_MODE(gpd));
 }
 
 static int gpencil_convert_layer_exec(bContext *C, wmOperator *op)

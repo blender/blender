@@ -7,7 +7,7 @@
 
 namespace blender::compositor {
 
-void ChunkOrder::update_distance(ChunkOrderHotspot *hotspots, unsigned int len_hotspots)
+void ChunkOrder::update_distance(ChunkOrderHotspot *hotspots, uint len_hotspots)
 {
   double new_distance = DBL_MAX;
   for (int index = 0; index < len_hotspots; index++) {

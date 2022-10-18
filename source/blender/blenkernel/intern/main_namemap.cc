@@ -62,7 +62,7 @@ static bool id_name_final_build(char *name, char *base_name, size_t base_name_le
 
     /* Code above may have generated invalid utf-8 string, due to raw truncation.
      * Ensure we get a valid one now. */
-    base_name_len -= (size_t)BLI_str_utf8_invalid_strip(base_name, base_name_len);
+    base_name_len -= size_t(BLI_str_utf8_invalid_strip(base_name, base_name_len));
 
     /* Also truncate orig name, and start the whole check again. */
     name[base_name_len] = '\0';
@@ -97,7 +97,7 @@ struct UniqueName_Key {
  *   one larger.
  */
 struct UniqueName_Value {
-  static constexpr unsigned max_exact_tracking = 1024;
+  static constexpr uint max_exact_tracking = 1024;
   BLI_BITMAP_DECLARE(mask, max_exact_tracking);
   int max_value = 0;
 
@@ -228,7 +228,7 @@ static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, 
 
 /* Get the name map object used for the given Main/ID.
  * Lazily creates and populates the contents of the name map, if ensure_created is true.
- * Note: if the contents are populated, the name of the given ID itself is not added. */
+ * NOTE: if the contents are populated, the name of the given ID itself is not added. */
 static UniqueName_Map *get_namemap_for(Main *bmain, ID *id, bool ensure_created)
 {
   if (id->lib != nullptr) {

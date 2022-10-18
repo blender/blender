@@ -43,7 +43,7 @@ set(SRC
   intern/MOD_collision.c
   intern/MOD_correctivesmooth.c
   intern/MOD_curve.c
-  intern/MOD_datatransfer.c
+  intern/MOD_datatransfer.cc
   intern/MOD_decimate.c
   intern/MOD_displace.c
   intern/MOD_dynamicpaint.c
@@ -63,11 +63,10 @@ set(SRC
   intern/MOD_meshdeform.c
   intern/MOD_meshsequencecache.cc
   intern/MOD_mirror.c
-  intern/MOD_multires.c
+  intern/MOD_multires.cc
   intern/MOD_nodes.cc
-  intern/MOD_nodes_evaluator.cc
   intern/MOD_none.c
-  intern/MOD_normal_edit.c
+  intern/MOD_normal_edit.cc
   intern/MOD_ocean.c
   intern/MOD_particleinstance.c
   intern/MOD_particlesystem.cc
@@ -82,30 +81,29 @@ set(SRC
   intern/MOD_solidify.c
   intern/MOD_solidify_extrude.c
   intern/MOD_solidify_nonmanifold.c
-  intern/MOD_subsurf.c
+  intern/MOD_subsurf.cc
   intern/MOD_surface.c
   intern/MOD_surfacedeform.c
   intern/MOD_triangulate.c
   intern/MOD_ui_common.c
-  intern/MOD_util.c
-  intern/MOD_uvproject.c
-  intern/MOD_uvwarp.c
+  intern/MOD_util.cc
+  intern/MOD_uvproject.cc
+  intern/MOD_uvwarp.cc
   intern/MOD_volume_displace.cc
   intern/MOD_volume_to_mesh.cc
   intern/MOD_warp.c
-  intern/MOD_wave.c
-  intern/MOD_weighted_normal.c
+  intern/MOD_wave.cc
+  intern/MOD_weighted_normal.cc
   intern/MOD_weightvg_util.c
-  intern/MOD_weightvgedit.c
-  intern/MOD_weightvgmix.c
-  intern/MOD_weightvgproximity.c
+  intern/MOD_weightvgedit.cc
+  intern/MOD_weightvgmix.cc
+  intern/MOD_weightvgproximity.cc
   intern/MOD_weld.cc
   intern/MOD_wireframe.c
 
   MOD_modifiertypes.h
   MOD_nodes.h
   intern/MOD_meshcache_util.h
-  intern/MOD_nodes_evaluator.hh
   intern/MOD_solidify_util.h
   intern/MOD_ui_common.h
   intern/MOD_util.h

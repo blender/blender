@@ -1,6 +1,7 @@
 /** This describe the entire interface of the shader. */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 #define SURFACE_INTERFACE \
   vec3 worldPosition; \
@@ -98,10 +99,11 @@ GlobalData init_globals(void)
 
 #  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
   surf.P = transform_direction(ViewMatrixInverse, -viewCameraVec(viewPosition));
-  surf.N = surf.Ng = -surf.P;
+  surf.N = surf.Ng = surf.Ni = -surf.P;
   surf.ray_length = 0.0;
 #  else
   surf.P = worldPosition;
+  surf.Ni = worldNormal;
   surf.N = safe_normalize(worldNormal);
   surf.Ng = safe_normalize(cross(dFdx(surf.P), dFdy(surf.P)));
   surf.ray_length = distance(surf.P, cameraPos);
@@ -109,6 +111,7 @@ GlobalData init_globals(void)
   surf.barycentric_coords = vec2(0.0);
   surf.barycentric_dists = vec3(0.0);
   surf.N = (FrontFacing) ? surf.N : -surf.N;
+  surf.Ni = (FrontFacing) ? surf.Ni : -surf.Ni;
 #  ifdef HAIR_SHADER
   vec3 V = cameraVec(surf.P);
   /* Shade as a cylinder. */
@@ -123,7 +126,7 @@ GlobalData init_globals(void)
     cos_theta = hairThickTime / hairThickness;
   }
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
-  surf.N = safe_normalize(worldNormal * sin_theta + B * cos_theta);
+  surf.N = surf.Ni = safe_normalize(worldNormal * sin_theta + B * cos_theta);
   surf.curve_T = -hairTangent;
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
   surf.curve_B = cross(V, surf.curve_T);
@@ -174,13 +177,13 @@ vec3 coordinate_screen(vec3 P)
   /* Unsupported. It would make the probe camera-dependent. */
   window.xy = vec2(0.5);
 
-#elif defined(WORLD_BACKGROUND)
+#elif defined(WORLD_BACKGROUND) && defined(COMMON_UNIFORMS_LIB)
   window.xy = project_point(ProjectionMatrix, viewPosition).xy * 0.5 + 0.5;
-  window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
+  window.xy = window.xy * cameraUvScaleBias.xy + cameraUvScaleBias.zw;
 
-#else /* MESH */
-  window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
-  window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
+#elif defined(COMMON_UNIFORMS_LIB) /* MESH */
+  window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
+  window.xy = window.xy * cameraUvScaleBias.xy + cameraUvScaleBias.zw;
 #endif
   return window;
 }

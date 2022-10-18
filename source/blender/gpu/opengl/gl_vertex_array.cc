@@ -11,6 +11,7 @@
 #include "gl_batch.hh"
 #include "gl_context.hh"
 #include "gl_index_buffer.hh"
+#include "gl_storage_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
 #include "gl_vertex_array.hh"
@@ -46,7 +47,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
     }
 
     /* This is in fact an offset in memory. */
-    const GLvoid *pointer = (const GLubyte *)(intptr_t)(offset + v_first * stride);
+    const GLvoid *pointer = (const GLubyte *)intptr_t(offset + v_first * stride);
     const GLenum type = to_gl(static_cast<GPUVertCompType>(a->comp_type));
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
@@ -118,13 +119,25 @@ void GLVertArray::update_bindings(const GLuint vao,
     }
   }
 
+  if (batch->resource_id_buf) {
+    const ShaderInput *input = interface->attr_get("drw_ResourceID");
+    if (input) {
+      dynamic_cast<GLStorageBuf *>(unwrap(batch->resource_id_buf))->bind_as(GL_ARRAY_BUFFER);
+      glEnableVertexAttribArray(input->location);
+      glVertexAttribDivisor(input->location, 1);
+      glVertexAttribIPointer(
+          input->location, 1, to_gl(GPU_COMP_I32), sizeof(uint32_t), (GLvoid *)nullptr);
+      attr_mask &= ~(1 << input->location);
+    }
+  }
+
   if (attr_mask != 0 && GLContext::vertex_attrib_binding_support) {
     for (uint16_t mask = 1, a = 0; a < 16; a++, mask <<= 1) {
       if (attr_mask & mask) {
         GLContext *ctx = GLContext::get();
         /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
          * Fix issues for some drivers (see T75069). */
-        glBindVertexBuffer(a, ctx->default_attr_vbo_, (intptr_t)0, (intptr_t)0);
+        glBindVertexBuffer(a, ctx->default_attr_vbo_, intptr_t(0), intptr_t(0));
         glEnableVertexAttribArray(a);
         glVertexAttribFormat(a, 4, GL_FLOAT, GL_FALSE, 0);
         glVertexAttribBinding(a, a);

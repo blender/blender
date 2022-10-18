@@ -225,10 +225,9 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
       imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   /* Use 3D image for correct display of planar tracked images. */
-  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
   immBindTexture("image", texture);
-  immUniform1f("alpha", 1.0f);
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
@@ -263,7 +262,7 @@ static void wm_software_cursor_draw_crosshair(const int event_xy[2])
   const float unit = max_ff(U.dpi_fac, 1.0f);
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(1, 1, 1, 1);
   {
@@ -895,7 +894,8 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     if (area->flag & AREA_FLAG_ACTIVE_TOOL_UPDATE) {
       if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-        WM_toolsystem_update_from_context(C, CTX_wm_workspace(C), CTX_data_view_layer(C), area);
+        WM_toolsystem_update_from_context(
+            C, CTX_wm_workspace(C), CTX_data_scene(C), CTX_data_view_layer(C), area);
       }
       area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }

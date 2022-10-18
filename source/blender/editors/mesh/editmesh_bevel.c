@@ -240,7 +240,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   {
     uint ob_store_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, v3d, &ob_store_len);
+        scene, view_layer, v3d, &ob_store_len);
     opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
     for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
       Object *obedit = objects[ob_index];
@@ -260,7 +260,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   int otype = RNA_enum_get(op->ptr, "offset_type");
   opdata->value_mode = (otype == BEVEL_AMT_PERCENT) ? OFFSET_VALUE_PERCENT : OFFSET_VALUE;
   opdata->segments = (float)RNA_int_get(op->ptr, "segments");
-  float pixels_per_inch = U.dpi * U.pixelsize;
+  float pixels_per_inch = U.dpi;
 
   for (int i = 0; i < NUM_VALUE_KINDS; i++) {
     opdata->shift_value[i] = -1.0f;
@@ -649,7 +649,7 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Bevel Modal Map");
 
-  /* This function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
@@ -751,7 +751,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
         /* Update offset accordingly to new offset_type. */
-        if (!has_numinput && (ELEM(opdata->value_mode, OFFSET_VALUE, OFFSET_VALUE_PERCENT))) {
+        if (!has_numinput && ELEM(opdata->value_mode, OFFSET_VALUE, OFFSET_VALUE_PERCENT)) {
           edbm_bevel_mouse_set_value(op, event);
         }
         edbm_bevel_calc(op);

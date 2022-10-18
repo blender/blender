@@ -432,7 +432,7 @@ bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
 }
 
 bool WM_xr_session_state_controller_grip_location_get(const wmXrData *xr,
-                                                      unsigned int subaction_idx,
+                                                      uint subaction_idx,
                                                       float r_location[3])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
@@ -449,7 +449,7 @@ bool WM_xr_session_state_controller_grip_location_get(const wmXrData *xr,
 }
 
 bool WM_xr_session_state_controller_grip_rotation_get(const wmXrData *xr,
-                                                      unsigned int subaction_idx,
+                                                      uint subaction_idx,
                                                       float r_rotation[4])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
@@ -466,7 +466,7 @@ bool WM_xr_session_state_controller_grip_rotation_get(const wmXrData *xr,
 }
 
 bool WM_xr_session_state_controller_aim_location_get(const wmXrData *xr,
-                                                     unsigned int subaction_idx,
+                                                     uint subaction_idx,
                                                      float r_location[3])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
@@ -483,7 +483,7 @@ bool WM_xr_session_state_controller_aim_location_get(const wmXrData *xr,
 }
 
 bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
-                                                     unsigned int subaction_idx,
+                                                     uint subaction_idx,
                                                      float r_rotation[4])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
@@ -615,7 +615,7 @@ static void wm_xr_session_controller_data_update(const XrSessionSettings *settin
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
   BLI_assert(grip_action->count_subaction_paths == BLI_listbase_count(&state->controllers));
 
-  unsigned int subaction_idx = 0;
+  uint subaction_idx = 0;
   float view_ofs[3], base_mat[4][4], nav_mat[4][4];
 
   if ((settings->flag & XR_SESSION_USE_POSITION_TRACKING) == 0) {
@@ -816,7 +816,7 @@ static void wm_xr_session_haptic_timers_check(ListBase *active_haptic_actions, i
 static void wm_xr_session_action_states_interpret(wmXrData *xr,
                                                   const char *action_set_name,
                                                   wmXrAction *action,
-                                                  unsigned int subaction_idx,
+                                                  uint subaction_idx,
                                                   ListBase *active_modal_actions,
                                                   ListBase *active_haptic_actions,
                                                   int64_t time_now,
@@ -960,8 +960,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
 
 static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_state,
                                                wmXrAction *action,
-                                               unsigned int subaction_idx,
-                                               unsigned int *r_subaction_idx_other,
+                                               uint subaction_idx,
+                                               uint *r_subaction_idx_other,
                                                const GHOST_XrPose **r_aim_pose_other)
 {
   if ((action->action_flag & XR_ACTION_BIMANUAL) == 0) {
@@ -971,7 +971,7 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
   bool bimanual = false;
 
   *r_subaction_idx_other = (subaction_idx == 0) ?
-                               (unsigned int)min_ii(1, action->count_subaction_paths - 1) :
+                               (uint)min_ii(1, action->count_subaction_paths - 1) :
                                0;
 
   switch (action->type) {
@@ -1018,8 +1018,8 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
                                                   const wmXrAction *action,
                                                   const GHOST_XrPose *controller_aim_pose,
                                                   const GHOST_XrPose *controller_aim_pose_other,
-                                                  unsigned int subaction_idx,
-                                                  unsigned int subaction_idx_other,
+                                                  uint subaction_idx,
+                                                  uint subaction_idx_other,
                                                   bool bimanual)
 {
   wmXrActionData *data = MEM_callocN(sizeof(wmXrActionData), __func__);
@@ -1092,7 +1092,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
 {
   const char *action_set_name = action_set->name;
 
-  const unsigned int count = GHOST_XrGetActionCount(xr_context, action_set_name);
+  const uint count = GHOST_XrGetActionCount(xr_context, action_set_name);
   if (count < 1) {
     return;
   }
@@ -1109,14 +1109,14 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
   /* Check haptic action timers. */
   wm_xr_session_haptic_timers_check(active_haptic_actions, time_now);
 
-  for (unsigned int action_idx = 0; action_idx < count; ++action_idx) {
+  for (uint action_idx = 0; action_idx < count; ++action_idx) {
     wmXrAction *action = actions[action_idx];
     if (action && action->ot) {
       const bool modal = action->ot->modal;
       const bool haptic = (GHOST_XrGetActionCustomdata(
                                xr_context, action_set_name, action->haptic_name) != NULL);
 
-      for (unsigned int subaction_idx = 0; subaction_idx < action->count_subaction_paths;
+      for (uint subaction_idx = 0; subaction_idx < action->count_subaction_paths;
            ++subaction_idx) {
         short val = KM_NOTHING;
 
@@ -1143,7 +1143,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
           const GHOST_XrPose *aim_pose = wm_xr_session_controller_aim_pose_find(
               session_state, action->subaction_paths[subaction_idx]);
           const GHOST_XrPose *aim_pose_other = NULL;
-          unsigned int subaction_idx_other = 0;
+          uint subaction_idx_other = 0;
 
           /* Test for bimanual interaction. */
           const bool bimanual = wm_xr_session_action_test_bimanual(
@@ -1242,11 +1242,11 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
   ListBase *controllers = &state->controllers;
 
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
-  const unsigned int count = grip_action->count_subaction_paths;
+  const uint count = grip_action->count_subaction_paths;
 
   wm_xr_session_controller_data_free(state);
 
-  for (unsigned int i = 0; i < count; ++i) {
+  for (uint i = 0; i < count; ++i) {
     wmXrController *controller = MEM_callocN(sizeof(*controller), __func__);
 
     BLI_assert(STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i]));

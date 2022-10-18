@@ -234,7 +234,7 @@ PyDoc_STRVAR(Interface1D_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *Interface1D_name_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_name_get(BPy_Interface1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
@@ -244,7 +244,7 @@ PyDoc_STRVAR(Interface1D_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *Interface1D_id_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_id_get(BPy_Interface1D *self, void * /*closure*/)
 {
   Id id(self->if1D->getId());
   if (PyErr_Occurred()) {
@@ -258,7 +258,7 @@ PyDoc_STRVAR(Interface1D_nature_doc,
              "\n"
              ":type: :class:`Nature`");
 
-static PyObject *Interface1D_nature_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_nature_get(BPy_Interface1D *self, void * /*closure*/)
 {
   Nature::VertexNature nature = self->if1D->getNature();
   if (PyErr_Occurred()) {
@@ -272,13 +272,13 @@ PyDoc_STRVAR(Interface1D_length_2d_doc,
              "\n"
              ":type: float");
 
-static PyObject *Interface1D_length_2d_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_length_2d_get(BPy_Interface1D *self, void * /*closure*/)
 {
   real length = self->if1D->getLength2D();
   if (PyErr_Occurred()) {
     return nullptr;
   }
-  return PyFloat_FromDouble((double)length);
+  return PyFloat_FromDouble(double(length));
 }
 
 PyDoc_STRVAR(Interface1D_time_stamp_doc,
@@ -286,14 +286,12 @@ PyDoc_STRVAR(Interface1D_time_stamp_doc,
              "\n"
              ":type: int");
 
-static PyObject *Interface1D_time_stamp_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_time_stamp_get(BPy_Interface1D *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->if1D->getTimeStamp());
 }
 
-static int Interface1D_time_stamp_set(BPy_Interface1D *self,
-                                      PyObject *value,
-                                      void *UNUSED(closure))
+static int Interface1D_time_stamp_set(BPy_Interface1D *self, PyObject *value, void * /*closure*/)
 {
   int timestamp;
 

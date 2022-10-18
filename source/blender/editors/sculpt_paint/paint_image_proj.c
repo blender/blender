@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -414,6 +415,8 @@ typedef struct ProjPaintState {
   const float (*vert_normals)[3];
   const MEdge *medge_eval;
   const MPoly *mpoly_eval;
+  const bool *select_poly_eval;
+  const int *material_indices;
   const MLoop *mloop_eval;
   const MLoopTri *mlooptri_eval;
 
@@ -542,8 +545,8 @@ static int project_paint_face_paint_tile(Image *ima, const float *uv)
 
 static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   return ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 }
 
@@ -553,23 +556,23 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
     return ps->stencil_ima;
   }
 
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
   return slot ? slot->ima : ps->canvas_ima;
 }
 
 static TexPaintSlot *project_paint_face_clone_slot(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   return ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 }
 
 static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
   return slot ? slot->ima : ps->clone_ima;
 }
@@ -589,8 +592,8 @@ static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[
    *
    * Second multiplication does similar but for vertical offset
    */
-  return ((int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x)) +
-         (((int)(((projCoSS[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y)) *
+  return (int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) +
+         ((int)(((projCoSS[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) *
           ps->buckets_x);
 }
 
@@ -1231,12 +1234,12 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
     LISTBASE_CIRCULAR_BACKWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
   else {
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (vert_seams, adjacent, seam) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (VertSeam *, vert_seams, adjacent, seam) {
       if ((adjacent->normal_cw != seam->normal_cw) && cmp_uv(adjacent->uv, seam->uv)) {
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(vert_seams, adjacent, seam);
+    LISTBASE_CIRCULAR_FORWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
 
   BLI_assert(adjacent);
@@ -1521,7 +1524,7 @@ static void project_face_seams_init(const ProjPaintState *ps,
 static void screen_px_from_ortho(const float uv[2],
                                  const float v1co[3],
                                  const float v2co[3],
-                                 const float v3co[3], /* Screenspace coords */
+                                 const float v3co[3], /* Screen-space coords */
                                  const float uv1co[2],
                                  const float uv2co[2],
                                  const float uv3co[2],
@@ -1939,8 +1942,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   }
 
   /* which bounding box cell are we in?, needed for undo */
-  projPixel->bb_cell_index = ((int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV)) +
-                             ((int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV)) *
+  projPixel->bb_cell_index = (int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV) +
+                             (int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV) *
                                  PROJ_BOUNDBOX_DIV;
 
   /* done with view3d_project_float inline */
@@ -2409,7 +2412,7 @@ static bool IsectPT2Df_limit(
     const float pt[2], const float v1[2], const float v2[2], const float v3[2], const float limit)
 {
   return ((area_tri_v2(pt, v1, v2) + area_tri_v2(pt, v2, v3) + area_tri_v2(pt, v3, v1)) /
-          (area_tri_v2(v1, v2, v3))) < limit;
+          area_tri_v2(v1, v2, v3)) < limit;
 }
 
 /**
@@ -4053,13 +4056,17 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mat_array[totmat - 1] = NULL;
 
-  ps->mvert_eval = ps->me_eval->mvert;
+  ps->mvert_eval = BKE_mesh_verts(ps->me_eval);
   ps->vert_normals = BKE_mesh_vertex_normals_ensure(ps->me_eval);
   if (ps->do_mask_cavity) {
-    ps->medge_eval = ps->me_eval->medge;
+    ps->medge_eval = BKE_mesh_edges(ps->me_eval);
   }
-  ps->mloop_eval = ps->me_eval->mloop;
-  ps->mpoly_eval = ps->me_eval->mpoly;
+  ps->mloop_eval = BKE_mesh_loops(ps->me_eval);
+  ps->mpoly_eval = BKE_mesh_polys(ps->me_eval);
+  ps->select_poly_eval = (const bool *)CustomData_get_layer_named(
+      &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
+  ps->material_indices = (const int *)CustomData_get_layer_named(
+      &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
 
   ps->totvert_eval = ps->me_eval->totvert;
   ps->totedge_eval = ps->me_eval->totedge;
@@ -4067,7 +4074,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->totloop_eval = ps->me_eval->totloop;
 
   ps->mlooptri_eval = BKE_mesh_runtime_looptri_ensure(ps->me_eval);
-  ps->totlooptri_eval = ps->me_eval->runtime.looptris.len;
+  ps->totlooptri_eval = BKE_mesh_runtime_looptri_len(ps->me_eval);
 
   ps->poly_to_loop_uv = MEM_mallocN(ps->totpoly_eval * sizeof(MLoopUV *), "proj_paint_mtfaces");
 
@@ -4141,7 +4148,7 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 }
 
 typedef struct {
-  const MPoly *mpoly_orig;
+  const bool *select_poly_orig;
 
   const int *index_mp_to_orig;
 } ProjPaintFaceLookup;
@@ -4150,8 +4157,10 @@ static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceL
 {
   memset(face_lookup, 0, sizeof(*face_lookup));
   if (ps->do_face_sel) {
+    Mesh *orig_mesh = (Mesh *)ps->ob->data;
     face_lookup->index_mp_to_orig = CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX);
-    face_lookup->mpoly_orig = ((Mesh *)ps->ob->data)->mpoly;
+    face_lookup->select_poly_orig = CustomData_get_layer_named(
+        &orig_mesh->pdata, CD_PROP_BOOL, ".select_poly");
   }
 }
 
@@ -4162,17 +4171,12 @@ static bool project_paint_check_face_sel(const ProjPaintState *ps,
 {
   if (ps->do_face_sel) {
     int orig_index;
-    const MPoly *mp;
 
     if ((face_lookup->index_mp_to_orig != NULL) &&
-        (((orig_index = (face_lookup->index_mp_to_orig[lt->poly]))) != ORIGINDEX_NONE)) {
-      mp = &face_lookup->mpoly_orig[orig_index];
+        ((orig_index = (face_lookup->index_mp_to_orig[lt->poly])) != ORIGINDEX_NONE)) {
+      return face_lookup->select_poly_orig && face_lookup->select_poly_orig[orig_index];
     }
-    else {
-      mp = &ps->mpoly_eval[lt->poly];
-    }
-
-    return ((mp->flag & ME_FACE_SEL) != 0);
+    return ps->select_poly_eval && ps->select_poly_eval[lt->poly];
   }
   return true;
 }
@@ -6038,7 +6042,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   int orig_brush_size;
   IDProperty *idgroup;
   IDProperty *view_data = NULL;
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   bool uvs, mat, tex;
 
   if (ob == NULL || ob->type != OB_MESH) {
@@ -6245,8 +6250,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
                                         err_out);
 
   if (!ibuf) {
-    /* Mostly happens when OpenGL offscreen buffer was failed to create, */
-    /* but could be other reasons. Should be handled in the future. nazgul */
+    /* NOTE(@sergey): Mostly happens when OpenGL off-screen buffer was failed to create, */
+    /* but could be other reasons. Should be handled in the future. */
     BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer: %s", err_out);
     return OPERATOR_CANCELLED;
   }

@@ -20,6 +20,8 @@
 
 namespace blender::nodes::node_composite_colorcorrection_cc {
 
+NODE_STORAGE_FUNCS(NodeColorCorrection)
+
 static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -33,7 +35,7 @@ static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_colorcorrection(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorCorrection *n = MEM_cnew<NodeColorCorrection>(__func__);
   n->startmidtones = 0.2f;
@@ -62,9 +64,7 @@ static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *
   node->storage = n;
 }
 
-static void node_composit_buts_colorcorrection(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -153,7 +153,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout,
 }
 
 static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiLayout *row;
@@ -294,7 +294,7 @@ class ColorCorrectionShaderNode : public ShaderNode {
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
-    const NodeColorCorrection *node_color_correction = get_node_color_correction();
+    const NodeColorCorrection &node_color_correction = node_storage(bnode());
 
     GPU_stack_link(material,
                    &bnode(),
@@ -302,28 +302,28 @@ class ColorCorrectionShaderNode : public ShaderNode {
                    inputs,
                    outputs,
                    GPU_constant(enabled_channels),
-                   GPU_uniform(&node_color_correction->startmidtones),
-                   GPU_uniform(&node_color_correction->endmidtones),
-                   GPU_uniform(&node_color_correction->master.saturation),
-                   GPU_uniform(&node_color_correction->master.contrast),
-                   GPU_uniform(&node_color_correction->master.gamma),
-                   GPU_uniform(&node_color_correction->master.gain),
-                   GPU_uniform(&node_color_correction->master.lift),
-                   GPU_uniform(&node_color_correction->shadows.saturation),
-                   GPU_uniform(&node_color_correction->shadows.contrast),
-                   GPU_uniform(&node_color_correction->shadows.gamma),
-                   GPU_uniform(&node_color_correction->shadows.gain),
-                   GPU_uniform(&node_color_correction->shadows.lift),
-                   GPU_uniform(&node_color_correction->midtones.saturation),
-                   GPU_uniform(&node_color_correction->midtones.contrast),
-                   GPU_uniform(&node_color_correction->midtones.gamma),
-                   GPU_uniform(&node_color_correction->midtones.gain),
-                   GPU_uniform(&node_color_correction->midtones.lift),
-                   GPU_uniform(&node_color_correction->highlights.saturation),
-                   GPU_uniform(&node_color_correction->highlights.contrast),
-                   GPU_uniform(&node_color_correction->highlights.gamma),
-                   GPU_uniform(&node_color_correction->highlights.gain),
-                   GPU_uniform(&node_color_correction->highlights.lift),
+                   GPU_uniform(&node_color_correction.startmidtones),
+                   GPU_uniform(&node_color_correction.endmidtones),
+                   GPU_uniform(&node_color_correction.master.saturation),
+                   GPU_uniform(&node_color_correction.master.contrast),
+                   GPU_uniform(&node_color_correction.master.gamma),
+                   GPU_uniform(&node_color_correction.master.gain),
+                   GPU_uniform(&node_color_correction.master.lift),
+                   GPU_uniform(&node_color_correction.shadows.saturation),
+                   GPU_uniform(&node_color_correction.shadows.contrast),
+                   GPU_uniform(&node_color_correction.shadows.gamma),
+                   GPU_uniform(&node_color_correction.shadows.gain),
+                   GPU_uniform(&node_color_correction.shadows.lift),
+                   GPU_uniform(&node_color_correction.midtones.saturation),
+                   GPU_uniform(&node_color_correction.midtones.contrast),
+                   GPU_uniform(&node_color_correction.midtones.gamma),
+                   GPU_uniform(&node_color_correction.midtones.gain),
+                   GPU_uniform(&node_color_correction.midtones.lift),
+                   GPU_uniform(&node_color_correction.highlights.saturation),
+                   GPU_uniform(&node_color_correction.highlights.contrast),
+                   GPU_uniform(&node_color_correction.highlights.gamma),
+                   GPU_uniform(&node_color_correction.highlights.gain),
+                   GPU_uniform(&node_color_correction.highlights.lift),
                    GPU_constant(luminance_coefficients));
   }
 
@@ -332,11 +332,6 @@ class ColorCorrectionShaderNode : public ShaderNode {
     for (int i = 0; i < 3; i++) {
       enabled_channels[i] = (bnode().custom1 & (1 << i)) ? 1.0f : 0.0f;
     }
-  }
-
-  NodeColorCorrection *get_node_color_correction()
-  {
-    return static_cast<NodeColorCorrection *>(bnode().storage);
   }
 };
 

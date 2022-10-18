@@ -254,7 +254,7 @@ int Director_BPy_UnaryFunction0D___call__(void *uf0D, void *py_uf0D, Interface0D
     ((UnaryFunction0D<FrsMaterial> *)uf0D)->result = *(((BPy_FrsMaterial *)result)->m);
   }
   else if (BPy_UnaryFunction0DUnsigned_Check(obj)) {
-    ((UnaryFunction0D<unsigned> *)uf0D)->result = PyLong_AsLong(result);
+    ((UnaryFunction0D<uint> *)uf0D)->result = PyLong_AsLong(result);
   }
   else if (BPy_UnaryFunction0DVec2f_Check(obj)) {
     Vec2f vec;
@@ -312,7 +312,7 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, void *py_uf1D, Interface1D
     ((UnaryFunction1D<float> *)uf1D)->result = PyFloat_AsDouble(result);
   }
   else if (BPy_UnaryFunction1DUnsigned_Check(obj)) {
-    ((UnaryFunction1D<unsigned> *)uf1D)->result = PyLong_AsLong(result);
+    ((UnaryFunction1D<uint> *)uf1D)->result = PyLong_AsLong(result);
   }
   else if (BPy_UnaryFunction1DVec2f_Check(obj)) {
     Vec2f vec;

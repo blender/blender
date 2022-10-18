@@ -234,7 +234,7 @@ struct TreeViewContext {
   struct ViewLayer *view_layer;
 
   /* Object level. */
-  /** Avoid OBACT macro everywhere. */
+  /** Avoid `BKE_view_layer_active_object_get` everywhere. */
   Object *obact;
   Object *ob_edit;
   /**

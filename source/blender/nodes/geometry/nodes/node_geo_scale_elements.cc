@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).supports_field();
   b.add_input<decl::Vector>(N_("Center"))
       .subtype(PROP_TRANSLATION)
-      .implicit_field()
+      .implicit_field(implicit_field_inputs::position)
       .description(N_("Origin of the scaling for each element. If multiple elements are "
                       "connected, their center is averaged"));
   b.add_input<decl::Vector>(N_("Axis"))
@@ -36,13 +36,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 };
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "scale_mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = ATTR_DOMAIN_FACE;
   node->custom2 = GEO_NODE_SCALE_ELEMENTS_UNIFORM;
@@ -56,8 +56,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *center_socket = scale_float_socket->next;
   bNodeSocket *axis_socket = center_socket->next;
 
-  const GeometryNodeScaleElementsMode mode = static_cast<GeometryNodeScaleElementsMode>(
-      node->custom2);
+  const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
   const bool use_single_axis = mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS;
 
   nodeSetSocketAvailability(ntree, axis_socket, use_single_axis);
@@ -147,14 +146,22 @@ static float4x4 create_single_axis_transform(const float3 &center,
   return transform;
 }
 
-using GetVertexIndicesFn =
-    FunctionRef<void(const Mesh &mesh, int element_index, VectorSet<int> &r_vertex_indices)>;
+using GetVertexIndicesFn = FunctionRef<void(Span<MEdge> edges,
+                                            Span<MPoly> polys,
+                                            Span<MLoop> loops,
+                                            int element_index,
+                                            VectorSet<int> &r_vertex_indices)>;
 
 static void scale_vertex_islands_uniformly(Mesh &mesh,
                                            const Span<ElementIsland> islands,
                                            const UniformScaleParams &params,
                                            const GetVertexIndicesFn get_vertex_indices)
 {
+  MutableSpan<MVert> verts = mesh.verts_for_write();
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
+
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
     for (const int island_index : range) {
       const ElementIsland &island = islands[island_index];
@@ -164,7 +171,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
 
       VectorSet<int> vertex_indices;
       for (const int poly_index : island.element_indices) {
-        get_vertex_indices(mesh, poly_index, vertex_indices);
+        get_vertex_indices(edges, polys, loops, poly_index, vertex_indices);
         center += params.centers[poly_index];
         scale += params.scales[poly_index];
       }
@@ -175,7 +182,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
       center *= f;
 
       for (const int vert_index : vertex_indices) {
-        MVert &vert = mesh.mvert[vert_index];
+        MVert &vert = verts[vert_index];
         const float3 old_position = vert.co;
         const float3 new_position = transform_with_uniform_scale(old_position, center, scale);
         copy_v3_v3(vert.co, new_position);
@@ -191,6 +198,11 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
                                          const AxisScaleParams &params,
                                          const GetVertexIndicesFn get_vertex_indices)
 {
+  MutableSpan<MVert> verts = mesh.verts_for_write();
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
+
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
     for (const int island_index : range) {
       const ElementIsland &island = islands[island_index];
@@ -201,7 +213,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       VectorSet<int> vertex_indices;
       for (const int poly_index : island.element_indices) {
-        get_vertex_indices(mesh, poly_index, vertex_indices);
+        get_vertex_indices(edges, polys, loops, poly_index, vertex_indices);
         center += params.centers[poly_index];
         scale += params.scales[poly_index];
         axis += params.axis_vectors[poly_index];
@@ -219,7 +231,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       const float4x4 transform = create_single_axis_transform(center, axis, scale);
       for (const int vert_index : vertex_indices) {
-        MVert &vert = mesh.mvert[vert_index];
+        MVert &vert = verts[vert_index];
         const float3 old_position = vert.co;
         const float3 new_position = transform * old_position;
         copy_v3_v3(vert.co, new_position);
@@ -232,11 +244,14 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
 static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexMask face_selection)
 {
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
+
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet disjoint_set(mesh.totvert);
   for (const int poly_index : face_selection) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    const Span<MLoop> poly_loops{mesh.mloop + poly.loopstart, poly.totloop};
+    const MPoly &poly = polys[poly_index];
+    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
     for (const int loop_index : IndexRange(poly.totloop - 1)) {
       const int v1 = poly_loops[loop_index].v;
       const int v2 = poly_loops[loop_index + 1].v;
@@ -252,8 +267,8 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
 
   /* Gather all of the face indices in each island into separate vectors. */
   for (const int poly_index : face_selection) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    const Span<MLoop> poly_loops{mesh.mloop + poly.loopstart, poly.totloop};
+    const MPoly &poly = polys[poly_index];
+    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
     const int island_id = disjoint_set.find_root(poly_loops[0].v);
     const int island_index = island_ids.index_of_or_add(island_id);
     if (island_index == islands.size()) {
@@ -266,10 +281,14 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
   return islands;
 }
 
-static void get_face_vertices(const Mesh &mesh, int face_index, VectorSet<int> &r_vertex_indices)
+static void get_face_verts(const Span<MEdge> /*edges*/,
+                           const Span<MPoly> polys,
+                           const Span<MLoop> loops,
+                           int face_index,
+                           VectorSet<int> &r_vertex_indices)
 {
-  const MPoly &poly = mesh.mpoly[face_index];
-  const Span<MLoop> poly_loops{mesh.mloop + poly.loopstart, poly.totloop};
+  const MPoly &poly = polys[face_index];
+  const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
   for (const MLoop &loop : poly_loops) {
     r_vertex_indices.add(loop.v);
   }
@@ -290,15 +309,12 @@ static AxisScaleParams evaluate_axis_scale_fields(FieldEvaluator &evaluator,
 
 static void scale_faces_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  mesh.mvert = static_cast<MVert *>(
-      CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
-
   bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator{field_context, mesh.totpoly};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_face_islands(mesh, params.selection);
-  scale_vertex_islands_on_axis(mesh, island, params, get_face_vertices);
+  scale_vertex_islands_on_axis(mesh, island, params, get_face_verts);
 }
 
 static UniformScaleParams evaluate_uniform_scale_fields(FieldEvaluator &evaluator,
@@ -315,23 +331,22 @@ static UniformScaleParams evaluate_uniform_scale_fields(FieldEvaluator &evaluato
 
 static void scale_faces_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  mesh.mvert = static_cast<MVert *>(
-      CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
-
   bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator{field_context, mesh.totpoly};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_face_islands(mesh, params.selection);
-  scale_vertex_islands_uniformly(mesh, island, params, get_face_vertices);
+  scale_vertex_islands_uniformly(mesh, island, params, get_face_verts);
 }
 
 static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexMask edge_selection)
 {
+  const Span<MEdge> edges = mesh.edges();
+
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet disjoint_set(mesh.totvert);
   for (const int edge_index : edge_selection) {
-    const MEdge &edge = mesh.medge[edge_index];
+    const MEdge &edge = edges[edge_index];
     disjoint_set.join(edge.v1, edge.v2);
   }
 
@@ -342,7 +357,7 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
 
   /* Gather all of the edge indices in each island into separate vectors. */
   for (const int edge_index : edge_selection) {
-    const MEdge &edge = mesh.medge[edge_index];
+    const MEdge &edge = edges[edge_index];
     const int island_id = disjoint_set.find_root(edge.v1);
     const int island_index = island_ids.index_of_or_add(island_id);
     if (island_index == islands.size()) {
@@ -355,45 +370,42 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
   return islands;
 }
 
-static void get_edge_vertices(const Mesh &mesh, int edge_index, VectorSet<int> &r_vertex_indices)
+static void get_edge_verts(const Span<MEdge> edges,
+                           const Span<MPoly> /*polys*/,
+                           const Span<MLoop> /*loops*/,
+                           int edge_index,
+                           VectorSet<int> &r_vertex_indices)
 {
-  const MEdge &edge = mesh.medge[edge_index];
+  const MEdge &edge = edges[edge_index];
   r_vertex_indices.add(edge.v1);
   r_vertex_indices.add(edge.v2);
 }
 
 static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  mesh.mvert = static_cast<MVert *>(
-      CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
-
   bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, mesh.totedge};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_edge_islands(mesh, params.selection);
-  scale_vertex_islands_uniformly(mesh, island, params, get_edge_vertices);
+  scale_vertex_islands_uniformly(mesh, island, params, get_edge_verts);
 }
 
 static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  mesh.mvert = static_cast<MVert *>(
-      CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
-
   bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, mesh.totedge};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_edge_islands(mesh, params.selection);
-  scale_vertex_islands_on_axis(mesh, island, params, get_edge_vertices);
+  scale_vertex_islands_on_axis(mesh, island, params, get_edge_verts);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
-  const GeometryNodeScaleElementsMode scale_mode = static_cast<GeometryNodeScaleElementsMode>(
-      node.custom2);
+  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const GeometryNodeScaleElementsMode scale_mode = GeometryNodeScaleElementsMode(node.custom2);
 
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
 

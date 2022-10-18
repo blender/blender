@@ -30,19 +30,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   });
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "component", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = GEO_COMPONENT_TYPE_MESH;
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *point_socket = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *point_socket = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *edge_socket = point_socket->next;
   bNodeSocket *face_socket = edge_socket->next;
   bNodeSocket *face_corner_socket = face_socket->next;

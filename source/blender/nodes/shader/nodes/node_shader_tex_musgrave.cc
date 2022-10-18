@@ -15,7 +15,9 @@ NODE_STORAGE_FUNCS(NodeTexMusgrave)
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .hide_value()
+      .implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
@@ -29,13 +31,13 @@ static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 }
 
-static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "musgrave_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "musgrave_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_musgrave(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexMusgrave *tex = MEM_cnew<NodeTexMusgrave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -83,7 +85,7 @@ static const char *gpu_shader_name_get(const int type, const int dimensions)
 
 static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
                                         bNode *node,
-                                        bNodeExecData *UNUSED(execdata),
+                                        bNodeExecData * /*execdata*/,
                                         GPUNodeStack *in,
                                         GPUNodeStack *out)
 {
@@ -192,7 +194,7 @@ class MusgraveFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -516,7 +518,7 @@ class MusgraveFunction : public fn::MultiFunction {
 
 static void sh_node_musgrave_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node.storage;
   builder.construct_and_set_matching_fn<MusgraveFunction>(tex->dimensions, tex->musgrave_type);
 }

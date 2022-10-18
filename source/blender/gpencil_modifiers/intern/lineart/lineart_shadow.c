@@ -108,8 +108,8 @@ void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *
           (e->v1->fbcoord[3] - la1 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
     la2 = la2 * e->v2->fbcoord[3] /
           (e->v1->fbcoord[3] - la2 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
-    unsigned char shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
-                                                       LRT_SHADOW_MASK_ILLUMINATED;
+    uchar shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
+                                               LRT_SHADOW_MASK_ILLUMINATED;
 
     if (lineart_contour_viewed_from_dark_side(ld, e) &&
         shadow_bits == LRT_SHADOW_MASK_ILLUMINATED) {
@@ -1303,7 +1303,7 @@ static void lineart_shadow_finalize_shadow_edges_task(
       int v2i = (e[i].edge_identifier & LRT_OBINDEX_LOWER);
       LineartVert *v = (LineartVert *)eln->pointer;
       /* If the global position is close enough, use the original vertex to prevent flickering
-       * caused by very slim boundary condition in point_triangle_relation().*/
+       * caused by very slim boundary condition in point_triangle_relation(). */
       if (LRT_CLOSE_LOOSER_v3(e[i].v1->gloc, v[v1i].gloc)) {
         e[i].v1 = &v[v1i];
       }

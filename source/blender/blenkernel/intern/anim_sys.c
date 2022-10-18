@@ -3198,7 +3198,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
    * (which making new strips doesn't do due to the troublesome nature of that). */
   calc_action_range(r_action_strip->act, &r_action_strip->actstart, &r_action_strip->actend, 1);
   r_action_strip->start = r_action_strip->actstart;
-  r_action_strip->end = (IS_EQF(r_action_strip->actstart, r_action_strip->actend)) ?
+  r_action_strip->end = IS_EQF(r_action_strip->actstart, r_action_strip->actend) ?
                             (r_action_strip->actstart + 1.0f) :
                             (r_action_strip->actend);
 
@@ -3624,16 +3624,6 @@ void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
   }
 }
 
-/** Using \a blended_snapshot and \a upper_snapshot, we can solve for the \a r_lower_snapshot.
- *
- * Only channels that exist within \a blended_snapshot are processed.
- * Only blended values within the \a remap_domain are processed.
- *
- * Writes to \a r_upper_snapshot NlaEvalChannelSnapshot->remap_domain to match remapping success.
- *
- * Assumes caller marked upper values that are in the \a blend_domain. This determines whether the
- * blended value came directly from the lower snapshot or a result of blending.
- **/
 void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
                                                    NlaEvalSnapshot *blended_snapshot,
                                                    NlaEvalSnapshot *upper_snapshot,

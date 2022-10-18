@@ -36,6 +36,7 @@
 
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   float cent[3], axis[3];
   const float d[3] = {0.0f, 0.0f, 0.0f};
@@ -47,7 +48,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
   const bool dupli = RNA_boolean_get(op->ptr, "dupli");
   const bool use_auto_merge = (RNA_boolean_get(op->ptr, "use_auto_merge") && (dupli == false) &&
-                               (steps >= 3) && fabsf((fabsf(angle) - (float)(M_PI * 2))) <= 1e-6f);
+                               (steps >= 3) && fabsf(fabsf(angle) - (float)(M_PI * 2)) <= 1e-6f);
 
   if (is_zero_v3(axis)) {
     BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
@@ -56,7 +57,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];

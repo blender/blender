@@ -78,7 +78,7 @@ static float icon_width_get(const SeqChannelDrawContext *context)
 
 static float widget_y_offset(const SeqChannelDrawContext *context)
 {
-  return (((context->channel_height / context->scale) - icon_width_get(context))) / 2;
+  return ((context->channel_height / context->scale) - icon_width_get(context)) / 2;
 }
 
 static float channel_index_y_min(const SeqChannelDrawContext *context, const int index)

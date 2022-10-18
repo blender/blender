@@ -66,7 +66,6 @@ static void sig_handle_fpe(int UNUSED(sig))
 #  endif
 
 /* Handling `Ctrl-C` event in the console. */
-#  if !defined(WITH_HEADLESS)
 static void sig_handle_blender_esc(int sig)
 {
   G.is_break = true; /* forces render loop to read queue, not sure if its needed */
@@ -81,7 +80,6 @@ static void sig_handle_blender_esc(int sig)
     count++;
   }
 }
-#  endif
 
 static void sig_handle_crash_backtrace(FILE *fp)
 {
@@ -103,7 +101,7 @@ static void sig_handle_crash(int signum)
       char fname[FILE_MAX];
 
       if (!(G_MAIN && G_MAIN->filepath[0])) {
-        BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
+        BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
       }
       else {
         STRNCPY(fname, G_MAIN->filepath);
@@ -124,11 +122,10 @@ static void sig_handle_crash(int signum)
   char fname[FILE_MAX];
 
   if (!(G_MAIN && G_MAIN->filepath[0])) {
-    BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
+    BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
   }
   else {
-    BLI_join_dirfile(
-        fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
+    BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
     BLI_path_extension_replace(fname, sizeof(fname), ".crash.txt");
   }
 

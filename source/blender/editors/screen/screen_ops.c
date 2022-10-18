@@ -241,7 +241,7 @@ bool ED_operator_animview_active(bContext *C)
 {
   if (ED_operator_areaactive(C)) {
     SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);
-    if (sl && (ELEM(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH))) {
+    if (sl && ELEM(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
       return true;
     }
   }
@@ -834,8 +834,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
               az->alpha = 1.0f;
             }
             else if (mouse_sq < fadeout_sq) {
-              az->alpha = 1.0f -
-                          ((float)(mouse_sq - fadein_sq)) / ((float)(fadeout_sq - fadein_sq));
+              az->alpha = 1.0f - (float)(mouse_sq - fadein_sq) / (float)(fadeout_sq - fadein_sq);
             }
             else {
               az->alpha = 0.0f;
@@ -859,7 +858,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         /* Check if we even have scroll bars. */
         if (((az->direction == AZ_SCROLL_HOR) && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
             ((az->direction == AZ_SCROLL_VERT) && !(scroll_flag & V2D_SCROLL_VERTICAL))) {
-          /* no scrollbars, do nothing. */
+          /* No scroll-bars, do nothing. */
         }
         else if (test_only) {
           if (isect_value != 0) {
@@ -1584,28 +1583,28 @@ static void area_move_set_limits(wmWindow *win,
 
       /* logic here is only tested for lower edge :) */
       /* left edge */
-      if ((area->v1->editflag && area->v2->editflag)) {
+      if (area->v1->editflag && area->v2->editflag) {
         *smaller = area->v4->vec.x - size_max;
         *bigger = area->v4->vec.x - size_min;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* top edge */
-      if ((area->v2->editflag && area->v3->editflag)) {
+      if (area->v2->editflag && area->v3->editflag) {
         *smaller = area->v1->vec.y + size_min;
         *bigger = area->v1->vec.y + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* right edge */
-      if ((area->v3->editflag && area->v4->editflag)) {
+      if (area->v3->editflag && area->v4->editflag) {
         *smaller = area->v1->vec.x + size_min;
         *bigger = area->v1->vec.x + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* lower edge */
-      if ((area->v4->editflag && area->v1->editflag)) {
+      if (area->v4->editflag && area->v1->editflag) {
         *smaller = area->v2->vec.y - size_max;
         *bigger = area->v2->vec.y - size_min;
         *use_bigger_smaller_snap = true;
@@ -1639,7 +1638,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      int areamin = AREAMINX;
+      int areamin = AREAMINX * U.dpi_fac;
 
       if (area->v1->vec.x > window_rect.xmin) {
         areamin += U.pixelsize;
@@ -2062,7 +2061,7 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
     return false;
   }
 
-  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX) ||
+  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * U.dpi_fac) ||
       (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
     /* Must be at least double minimum sizes to split into two. */
     return false;
@@ -2277,8 +2276,8 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     /* The factor will be close to 1.0f when near the top-left and the bottom-right corners. */
-    const float factor_v = ((float)(event->xy[1] - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy;
-    const float factor_h = ((float)(event->xy[0] - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx;
+    const float factor_v = (float)(event->xy[1] - sad->sa1->v1->vec.y) / (float)sad->sa1->winy;
+    const float factor_h = (float)(event->xy[0] - sad->sa1->v1->vec.x) / (float)sad->sa1->winx;
     const bool is_left = factor_v < 0.5f;
     const bool is_bottom = factor_h < 0.5f;
     const bool is_right = !is_left;
@@ -2316,11 +2315,11 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     dir_axis = RNA_property_enum_get(op->ptr, prop_dir);
     if (dir_axis == SCREEN_AXIS_H) {
       RNA_property_float_set(
-          op->ptr, prop_factor, ((float)(event->xy[0] - area->v1->vec.x)) / (float)area->winx);
+          op->ptr, prop_factor, (float)(event->xy[0] - area->v1->vec.x) / (float)area->winx);
     }
     else {
       RNA_property_float_set(
-          op->ptr, prop_factor, ((float)(event->xy[1] - area->v1->vec.y)) / (float)area->winy);
+          op->ptr, prop_factor, (float)(event->xy[1] - area->v1->vec.y) / (float)area->winy);
     }
 
     if (!area_split_init(C, op)) {
@@ -3267,7 +3266,7 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
 
   BLI_assert(!screen->temp);
 
-  /* search current screen for 'fullscreen' areas */
+  /* search current screen for 'full-screen' areas */
   /* prevents restoring info header, when mouse is over it */
   LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
     if (area_iter->full) {
@@ -4503,7 +4502,7 @@ static void screen_animation_region_tag_redraw(
 {
   /* Do follow time here if editor type supports it */
   if ((redraws & TIME_FOLLOW) &&
-      (screen_animation_region_supports_time_follow(area->spacetype, region->regiontype))) {
+      screen_animation_region_supports_time_follow(area->spacetype, region->regiontype)) {
     float w = BLI_rctf_size_x(&region->v2d.cur);
     if (scene->r.cfra < region->v2d.cur.xmin) {
       region->v2d.cur.xmax = scene->r.cfra;
@@ -4842,11 +4841,11 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 
 static int screen_animation_play_exec(bContext *C, wmOperator *op)
 {
-  int mode = (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+  int mode = RNA_boolean_get(op->ptr, "reverse") ? -1 : 1;
   int sync = -1;
 
   if (RNA_struct_property_is_set(op->ptr, "sync")) {
-    sync = (RNA_boolean_get(op->ptr, "sync"));
+    sync = RNA_boolean_get(op->ptr, "sync");
   }
 
   return ED_screen_animation_play(C, sync, mode);
@@ -5742,7 +5741,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_BLEND, ICON_BLENDER)) {
+    if (ELEM(drag->icon, ICON_FILE_BLEND, ICON_FILE_BACKUP, ICON_BLENDER)) {
       return true;
     }
   }

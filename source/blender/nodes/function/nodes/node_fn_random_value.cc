@@ -33,7 +33,7 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .supports_field()
       .make_available([](bNode &node) { node_storage(node).data_type = CD_PROP_BOOL; });
-  b.add_input<decl::Int>(N_("ID")).implicit_field();
+  b.add_input<decl::Int>(N_("ID")).implicit_field(implicit_field_inputs::id_or_index);
   b.add_input<decl::Int>(N_("Seed")).default_value(0).min(-10000).max(10000).supports_field();
 
   b.add_output<decl::Vector>(N_("Value")).dependent_field();
@@ -42,12 +42,12 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Value"), "Value_003").dependent_field();
 }
 
-static void fn_node_random_value_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_random_value_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
 
-static void fn_node_random_value_init(bNodeTree *UNUSED(tree), bNode *node)
+static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeRandomValue *data = MEM_cnew<NodeRandomValue>(__func__);
   data->data_type = CD_PROP_FLOAT;

@@ -4,6 +4,7 @@
 #ifndef __UTIL_HASH_H__
 #define __UTIL_HASH_H__
 
+#include "util/math.h"
 #include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -407,42 +408,16 @@ ccl_device_inline uint hash_hp_seeded_uint(uint i, uint seed)
   return hash_hp_uint(i ^ seed);
 }
 
-/* Outputs [0.0, 1.0]. */
+/* Outputs [0.0, 1.0). */
+ccl_device_inline float hash_hp_float(uint i)
+{
+  return uint_to_float_excl(hash_hp_uint(i));
+}
+
+/* Outputs [0.0, 1.0). */
 ccl_device_inline float hash_hp_seeded_float(uint i, uint seed)
 {
-  return uint_to_float_incl(hash_hp_seeded_uint(i, seed));
-}
-
-/* ***** CMJ Hash Functions *****
- *
- * These are based on one of the hash functions in the paper
- * "Correlated Multi-Jittered Sampling" by Andrew Kensler, 2013.
- *
- * These are here for backwards-compatibility, and can be replaced
- * by the Hash Prospector hashes above at some point.
- * See https://developer.blender.org/D15679#426304
- */
-
-ccl_device_inline uint hash_cmj_seeded_uint(uint i, uint seed)
-{
-  i ^= seed;
-  i ^= i >> 17;
-  i ^= i >> 10;
-  i *= 0xb36534e5;
-  i ^= i >> 12;
-  i ^= i >> 21;
-  i *= 0x93fc4795;
-  i ^= 0xdf6e307f;
-  i ^= i >> 17;
-  i *= 1 | seed >> 18;
-
-  return i;
-}
-
-/* Outputs [0.0, 1.0]. */
-ccl_device_inline float hash_cmj_seeded_float(uint i, uint seed)
-{
-  return uint_to_float_excl(hash_cmj_seeded_uint(i, seed));
+  return uint_to_float_excl(hash_hp_seeded_uint(i, seed));
 }
 
 /* ***** Modified Wang Hash Functions *****
@@ -463,10 +438,58 @@ ccl_device_inline uint hash_wang_seeded_uint(uint i, uint seed)
   return i;
 }
 
-/* Outputs [0.0, 1.0]. */
+/* Outputs [0.0, 1.0). */
 ccl_device_inline float hash_wang_seeded_float(uint i, uint seed)
 {
-  return uint_to_float_incl(hash_wang_seeded_uint(i, seed));
+  return uint_to_float_excl(hash_wang_seeded_uint(i, seed));
+}
+
+/* ***** Index Shuffling Hash Function *****
+ *
+ * This function takes an index, the length of the thing the index points
+ * into, and returns a shuffled index.  For example, if you pass indices
+ * 0 through 19 to this function with a length parameter of 20, it will
+ * return the indices in a shuffled order with no repeats.  Indices
+ * larger than the length parameter will simply repeat the same shuffled
+ * pattern over and over.
+ *
+ * This is useful for iterating over an array in random shuffled order
+ * without having to shuffle the array itself.
+ *
+ * Passing different seeds results in different random shuffles.
+ *
+ * This function runs in average O(1) time.
+ *
+ * See https://andrew-helmer.github.io/permute/ for details on how this
+ * works.
+ */
+ccl_device_inline uint hash_shuffle_uint(uint i, uint length, uint seed)
+{
+  i = i % length;
+  uint mask = (1 << (32 - count_leading_zeros(length - 1))) - 1;
+
+  do {
+    i ^= seed;
+    i *= 0xe170893d;
+    i ^= seed >> 16;
+    i ^= (i & mask) >> 4;
+    i ^= seed >> 8;
+    i *= 0x0929eb3f;
+    i ^= seed >> 23;
+    i ^= (i & mask) >> 1;
+    i *= 1 | seed >> 27;
+    i *= 0x6935fa69;
+    i ^= (i & mask) >> 11;
+    i *= 0x74dcb303;
+    i ^= (i & mask) >> 2;
+    i *= 0x9e501cc3;
+    i ^= (i & mask) >> 2;
+    i *= 0xc860a3df;
+    i &= mask;
+    i ^= i >> 5;
+  } while (i >= length);
+
+  return i;
 }
 
 /* ********** */

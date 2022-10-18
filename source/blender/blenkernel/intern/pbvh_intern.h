@@ -33,7 +33,7 @@ struct MeshElemMap;
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  struct GPU_PBVH_Buffers *draw_buffers;
+  struct PBVHBatches *draw_batches;
 
   /* Voxel bounds */
   BB vb;
@@ -96,7 +96,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 16;
+  PBVHNodeFlags flag : 32;
 
   /* Used for raycasting: how close bb is to the ray point. */
   float tmin;
@@ -116,8 +116,11 @@ struct PBVHNode {
   GSet *bm_faces;
   GSet *bm_unique_verts;
   GSet *bm_other_verts;
+
+  /* Deprecated. Stores original coordinates of triangles. */
   float (*bm_orco)[3];
   int (*bm_ortri)[3];
+  BMVert **bm_orvert;
   int bm_tot_ortri;
 
   /* Used to store the brush color during a stroke and composite it over the original color */
@@ -156,6 +159,9 @@ struct PBVH {
   bool *hide_vert;
   struct MVert *verts;
   const struct MPoly *mpoly;
+  bool *hide_poly;
+  /** Material indices. Only valid for polygon meshes. */
+  const int *material_indices;
   const struct MLoop *mloop;
   const struct MLoopTri *looptri;
   CustomData *vdata;

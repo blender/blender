@@ -19,8 +19,8 @@ DefocusNode::DefocusNode(bNode *editor_node) : Node(editor_node)
 void DefocusNode::convert_to_operations(NodeConverter &converter,
                                         const CompositorContext &context) const
 {
-  bNode *node = this->get_bnode();
-  NodeDefocus *data = (NodeDefocus *)node->storage;
+  const bNode *node = this->get_bnode();
+  const NodeDefocus *data = (const NodeDefocus *)node->storage;
   Scene *scene = node->id ? (Scene *)node->id : context.get_scene();
   Object *camob = scene ? scene->camera : nullptr;
 

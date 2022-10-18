@@ -60,7 +60,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw a light green line to indicate current frame */
   immUniformThemeColor(TH_CFRAME);
@@ -87,7 +87,7 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
     /* XXX: Fix this hardcoded color (anim_active) */
     // immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f);
@@ -118,7 +118,7 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
 
   if (scene->r.sfra < scene->r.efra) {
@@ -193,7 +193,7 @@ void ANIM_draw_action_framerange(
   GPU_blend(GPU_BLEND_NONE);
 
   /* Thin lines where the actual frames are. */
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShade(TH_BACK, -60);
 
   GPU_line_width(1.0f);

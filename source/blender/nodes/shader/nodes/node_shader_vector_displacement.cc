@@ -13,14 +13,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Displacement"));
 }
 
-static void node_shader_init_vector_displacement(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_vector_displacement(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_SPACE_TANGENT; /* space */
 }
 
 static int gpu_shader_vector_displacement(GPUMaterial *mat,
                                           bNode *node,
-                                          bNodeExecData *UNUSED(execdata),
+                                          bNodeExecData * /*execdata*/,
                                           GPUNodeStack *in,
                                           GPUNodeStack *out)
 {

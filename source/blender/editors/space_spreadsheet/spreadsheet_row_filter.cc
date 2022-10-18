@@ -14,6 +14,8 @@
 
 #include "RNA_access.h"
 
+#include "BKE_instances.hh"
+
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
@@ -70,6 +72,14 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
         break;
       }
     }
+  }
+  else if (column_data.type().is<bool>()) {
+    const bool value = (row_filter.flag & SPREADSHEET_ROW_FILTER_BOOL_VALUE) != 0;
+    apply_filter_operation(
+        column_data.typed<bool>(),
+        [&](const bool cell) { return cell == value; },
+        prev_mask,
+        new_indices);
   }
   else if (column_data.type().is<int8_t>()) {
     const int value = row_filter.value_int;
@@ -234,14 +244,14 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
         const float4 value_floats = {
-            (float)value.r, (float)value.g, (float)value.b, (float)value.a};
+            float(value.r), float(value.g), float(value.b), float(value.a)};
         const float threshold_sq = pow2f(row_filter.threshold);
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell_bytes) {
               const ColorGeometry4f cell = cell_bytes.decode();
               const float4 cell_floats = {
-                  (float)cell.r, (float)cell.g, (float)cell.b, (float)cell.a};
+                  float(cell.r), float(cell.g), float(cell.b), float(cell.a)};
               return len_squared_v4v4(value_floats, cell_floats) <= threshold_sq;
             },
             prev_mask,
@@ -272,23 +282,22 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
-  else if (column_data.type().is<InstanceReference>()) {
+  else if (column_data.type().is<bke::InstanceReference>()) {
     const StringRef value = row_filter.value_string;
-
     apply_filter_operation(
-        column_data.typed<InstanceReference>(),
-        [&](const InstanceReference cell) {
+        column_data.typed<bke::InstanceReference>(),
+        [&](const bke::InstanceReference cell) {
           switch (cell.type()) {
-            case InstanceReference::Type::Object: {
+            case bke::InstanceReference::Type::Object: {
               return value == (reinterpret_cast<ID &>(cell.object()).name + 2);
             }
-            case InstanceReference::Type::Collection: {
+            case bke::InstanceReference::Type::Collection: {
               return value == (reinterpret_cast<ID &>(cell.collection()).name + 2);
             }
-            case InstanceReference::Type::GeometrySet: {
+            case bke::InstanceReference::Type::GeometrySet: {
               return false;
             }
-            case InstanceReference::Type::None: {
+            case bke::InstanceReference::Type::None: {
               return false;
             }
           }

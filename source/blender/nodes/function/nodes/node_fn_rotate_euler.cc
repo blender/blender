@@ -46,13 +46,13 @@ static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
       ntree, angle_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
 }
 
-static void fn_node_rotate_euler_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_rotate_euler_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   static fn::CustomMF_SI_SI_SO<float3, float3, float3> obj_euler_rot{
       "Rotate Euler by Euler/Object", [](const float3 &input, const float3 &rotation) {

@@ -19,6 +19,8 @@
 
 namespace blender::nodes::node_composite_translate_cc {
 
+NODE_STORAGE_FUNCS(NodeTranslateData)
+
 static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -37,13 +39,13 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_translate(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_translate(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTranslateData *data = MEM_cnew<NodeTranslateData>(__func__);
   node->storage = data;
 }
 
-static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_translate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
@@ -76,24 +78,19 @@ class TranslateOperation : public NodeOperation {
     result.get_realization_options().repeat_y = get_repeat_y();
   }
 
-  NodeTranslateData &get_node_translate()
-  {
-    return *static_cast<NodeTranslateData *>(bnode().storage);
-  }
-
   bool get_use_relative()
   {
-    return get_node_translate().relative;
+    return node_storage(bnode()).relative;
   }
 
   bool get_repeat_x()
   {
-    return ELEM(get_node_translate().wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
   }
 
   bool get_repeat_y()
   {
-    return ELEM(get_node_translate().wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
   }
 };
 

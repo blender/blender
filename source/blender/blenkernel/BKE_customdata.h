@@ -137,7 +137,7 @@ void CustomData_data_add(int type, void *data1, const void *data2);
 
 /**
  * Initializes a CustomData object with the same layer setup as source.
- * mask is a bitfield where `(mask & (1 << (layer type)))` indicates
+ * mask is a bit-field where `(mask & (1 << (layer type)))` indicates
  * if a layer should be copied or not. alloctype must be one of the above.
  */
 void CustomData_copy(const struct CustomData *source,
@@ -145,15 +145,6 @@ void CustomData_copy(const struct CustomData *source,
                      eCustomDataMask mask,
                      eCDAllocType alloctype,
                      int totelem);
-
-/**
- * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
- */
-void CustomData_copy_mesh_to_bmesh(const struct CustomData *source,
-                                   struct CustomData *dest,
-                                   eCustomDataMask mask,
-                                   eCDAllocType alloctype,
-                                   int totelem);
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
@@ -169,22 +160,11 @@ bool CustomData_merge(const struct CustomData *source,
                       int totelem);
 
 /**
- * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
+ * Reallocate custom data to a new element count. If the new size is larger, the new values use
+ * the #CD_CONSTRUCT behavior, so trivial types must be initialized by the caller. After being
+ * resized, the #CustomData does not contain any referenced layers.
  */
-bool CustomData_merge_mesh_to_bmesh(const struct CustomData *source,
-                                    struct CustomData *dest,
-                                    eCustomDataMask mask,
-                                    eCDAllocType alloctype,
-                                    int totelem);
-
-/**
- * Reallocate custom data to a new element count.
- * Only affects on data layers which are owned by the CustomData itself,
- * referenced data is kept unchanged,
- *
- * \note Take care of referenced layers by yourself!
- */
-void CustomData_realloc(struct CustomData *data, int totelem);
+void CustomData_realloc(struct CustomData *data, int old_size, int new_size);
 
 /**
  * BMesh version of CustomData_merge; merges the layouts of source and `dest`,
@@ -197,6 +177,14 @@ bool CustomData_bmesh_merge(const struct CustomData *source,
                             eCDAllocType alloctype,
                             struct BMesh *bm,
                             char htype);
+
+/**
+ * Remove layers that aren't stored in BMesh or are stored as flags on BMesh.
+ * The `layers` array of the returned #CustomData must be freed, but may be null.
+ * Used during conversion of #Mesh data to #BMesh storage format.
+ */
+CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
+                                                               eCustomDataMask mask);
 
 /**
  * NULL's all members and resets the #CustomData.typemap.
@@ -459,12 +447,6 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, int 
  */
 const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
-/**
- * Copies the data from source to the data element at index in the first layer of type
- * no effect if there is no layer of type.
- */
-void CustomData_set(const struct CustomData *data, int index, int type, const void *source);
-
 void CustomData_bmesh_set(const struct CustomData *data,
                           void *block,
                           int type,
@@ -472,18 +454,6 @@ void CustomData_bmesh_set(const struct CustomData *data,
 
 void CustomData_bmesh_set_n(
     struct CustomData *data, void *block, int type, int n, const void *source);
-/**
- * Sets the data of the block at physical layer n.
- * no real type checking is performed.
- */
-void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n, const void *source);
-
-/**
- * Set the pointer of to the first layer of type. the old data is not freed.
- * returns the value of `ptr` if the layer is found, NULL otherwise.
- */
-void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
-void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr);
 
 /**
  * Sets the nth layer of type as active.
@@ -592,7 +562,6 @@ void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype
  * \return True if some errors were found.
  */
 bool CustomData_layer_validate(struct CustomDataLayer *layer, uint totitems, bool do_fixes);
-void CustomData_layers__print(struct CustomData *data);
 
 /* External file storage */
 
@@ -636,11 +605,9 @@ enum {
                      CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
 
   /* Edges. */
-  CD_FAKE_SEAM = CD_FAKE | 100,         /* UV seam flag for edges. */
-  CD_FAKE_CREASE = CD_FAKE | CD_CREASE, /* *sigh*. */
+  CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
 
   /* Multiple types of mesh elements... */
-  CD_FAKE_BWEIGHT = CD_FAKE | CD_BWEIGHT, /* *sigh*. */
   CD_FAKE_UV = CD_FAKE |
                CD_MLOOPUV, /* UV flag, because we handle both loop's UVs and poly's textures. */
 
@@ -742,6 +709,8 @@ void CustomData_blend_write(BlendWriter *writer,
 #endif
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
+
+size_t CustomData_get_elem_size(struct CustomDataLayer *layer);
 
 #ifndef NDEBUG
 struct DynStr;

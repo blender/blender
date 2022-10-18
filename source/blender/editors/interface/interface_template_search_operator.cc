@@ -34,7 +34,7 @@
 /** \name Operator Search Template Implementation
  * \{ */
 
-static void operator_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void operator_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   wmOperatorType *ot = static_cast<wmOperatorType *>(arg2);
 
@@ -44,10 +44,10 @@ static void operator_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 }
 
 static void operator_search_update_fn(const bContext *C,
-                                      void *UNUSED(arg),
+                                      void * /*arg*/,
                                       const char *str,
                                       uiSearchItems *items,
-                                      const bool UNUSED(is_first))
+                                      const bool /*is_first*/)
 {
   GHashIterator iter;
 

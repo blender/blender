@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/film/light_passes.h"
+#include "kernel/integrator/surface_shader.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
@@ -17,6 +17,8 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   /* Setup light sample. */
   Intersection isect ccl_optional_struct_init;
   integrator_state_read_isect(kg, state, &isect);
+
+  guiding_record_light_surface_segment(kg, state, &isect);
 
   float3 ray_P = INTEGRATOR_STATE(state, ray, P);
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
@@ -57,17 +59,17 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   }
 
   /* MIS weighting. */
+  float mis_weight = 1.0f;
   if (!(path_flag & PATH_RAY_MIS_SKIP)) {
     /* multiple importance sampling, get regular light pdf,
      * and compute weight with respect to BSDF pdf */
     const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
-    light_eval *= mis_weight;
+    mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
   }
 
   /* Write to render buffer. */
-  const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput * light_eval, render_buffer, ls.group);
+  guiding_record_surface_emission(kg, state, light_eval, mis_weight);
+  film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
 }
 
 ccl_device void integrator_shade_light(KernelGlobals kg,

@@ -52,8 +52,8 @@ void main()
   /* Use jittered projmatrix to be able to match exact sample depth (depth equal test).
    * Note that currModelMatrix needs to also be equal to ModelMatrix for the samples to match. */
 #ifndef HAIR
-  gl_Position = ViewProjectionMatrix * vec4(currWorldPos, 1.0);
+  gl_Position = ProjectionMatrix * (ViewMatrix * vec4(currWorldPos, 1.0));
 #else
-  gl_Position = ViewProjectionMatrix * vec4(wpos, 1.0);
+  gl_Position = ProjectionMatrix * (ViewMatrix * vec4(wpos, 1.0));
 #endif
 }

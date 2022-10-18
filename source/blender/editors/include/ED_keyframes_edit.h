@@ -235,7 +235,7 @@ typedef enum eKeyPasteError {
   KEYFRAME_PASTE_OK,
   /* Nothing was copied */
   KEYFRAME_PASTE_NOTHING_TO_PASTE,
-  /* No F-curves was selected to paste into*/
+  /* No F-curves was selected to paste into. */
   KEYFRAME_PASTE_NOWHERE_TO_PASTE
 } eKeyPasteError;
 

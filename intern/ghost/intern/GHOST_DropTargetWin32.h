@@ -21,7 +21,7 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * inherited, directly or indirectly, from IUnknown. Therefore, the three
    * methods in IUnknown are the first entries in the VTable for every interface.
    */
-  HRESULT __stdcall QueryInterface(REFIID riid, void **ppvObj);
+  HRESULT __stdcall QueryInterface(REFIID riid, void **ppv_obj);
   ULONG __stdcall AddRef(void);
   ULONG __stdcall Release(void);
 
@@ -44,13 +44,16 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * RevokeDragDrop functions.
    */
 
-  HRESULT __stdcall DragEnter(IDataObject *pDataObject,
-                              DWORD grfKeyState,
+  HRESULT __stdcall DragEnter(IDataObject *p_data_object,
+                              DWORD grf_key_state,
                               POINTL pt,
-                              DWORD *pdwEffect);
-  HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+                              DWORD *pdw_effect);
+  HRESULT __stdcall DragOver(DWORD grf_key_state, POINTL pt, DWORD *pdw_effect);
   HRESULT __stdcall DragLeave(void);
-  HRESULT __stdcall Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+  HRESULT __stdcall Drop(IDataObject *p_data_object,
+                         DWORD grf_key_state,
+                         POINTL pt,
+                         DWORD *pdw_effect);
 
   /**
    * Constructor
@@ -76,36 +79,36 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * \param dwAllowed: Drop sources allowed drop effect.
    * \return The allowed drop effect.
    */
-  DWORD allowedDropEffect(DWORD dwAllowed);
+  DWORD allowedDropEffect(DWORD dw_allowed);
 
   /**
    * Query DataObject for the data types it supports.
-   * \param pDataObject: Pointer to the DataObject.
+   * \param p_data_object: Pointer to the DataObject.
    * \return GHOST data type.
    */
-  GHOST_TDragnDropTypes getGhostType(IDataObject *pDataObject);
+  GHOST_TDragnDropTypes getGhostType(IDataObject *p_data_object);
 
   /**
    * Get data to pass in event.
    * It checks the type and calls specific functions for each type.
-   * \param pDataObject: Pointer to the DataObject.
+   * \param p_data_object: Pointer to the DataObject.
    * \return Pointer to data.
    */
-  void *getGhostData(IDataObject *pDataObject);
+  void *getGhostData(IDataObject *p_data_object);
 
   /**
    * Allocate data as file array to pass in event.
-   * \param pDataObject: Pointer to the DataObject.
+   * \param p_data_object: Pointer to the DataObject.
    * \return Pointer to data.
    */
-  void *getDropDataAsFilenames(IDataObject *pDataObject);
+  void *getDropDataAsFilenames(IDataObject *p_data_object);
 
   /**
    * Allocate data as string to pass in event.
-   * \param pDataObject: Pointer to the DataObject.
+   * \param p_data_object: Pointer to the DataObject.
    * \return Pointer to data.
    */
-  void *getDropDataAsString(IDataObject *pDataObject);
+  void *getDropDataAsString(IDataObject *p_data_object);
 
   /**
    * Convert Unicode to ANSI, replacing uncomfortable chars with '?'.

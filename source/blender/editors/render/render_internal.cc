@@ -32,6 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -807,7 +808,7 @@ static int render_breakjob(void *rjv)
  * For exec() when there is no render job
  * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
-static int render_break(void *UNUSED(rjv))
+static int render_break(void * /*rjv*/)
 {
   if (G.is_break) {
     return 1;
@@ -856,7 +857,7 @@ static void screen_render_cancel(bContext *C, wmOperator *op)
 
 static void clean_viewport_memory_base(Base *base)
 {
-  if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return;
   }
 
@@ -885,9 +886,10 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
        wm = static_cast<wmWindowManager *>(wm->id.next)) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+      BKE_view_layer_synced_ensure(scene, view_layer);
 
-      for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next) {
-        clean_viewport_memory_base(base);
+      LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
+        clean_viewport_memory_base(b);
       }
     }
   }

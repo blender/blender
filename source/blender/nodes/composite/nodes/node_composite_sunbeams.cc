@@ -20,7 +20,7 @@ static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeSunBeams *data = MEM_cnew<NodeSunBeams>(__func__);
 
@@ -29,7 +29,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_sunbeams(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "source", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, "", ICON_NONE);
   uiItemR(layout,

@@ -19,14 +19,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_init_glass(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_glass(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_BECKMANN;
 }
 
 static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
                                       bNode *node,
-                                      bNodeExecData *UNUSED(execdata),
+                                      bNodeExecData * /*execdata*/,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {

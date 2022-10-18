@@ -140,7 +140,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
     ARegion *region = stroke->vc.region;
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(paint->paint_cursor_col);
 
     immBegin(GPU_PRIM_LINES, 2);
@@ -168,7 +168,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -1140,7 +1140,7 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 
   struct wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (!keymap) {
     keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
   }
@@ -1672,6 +1672,11 @@ float paint_stroke_distance_get(struct PaintStroke *stroke)
 void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
 {
   stroke->mode_data = mode_data;
+}
+
+bool paint_stroke_started(PaintStroke *stroke)
+{
+  return stroke->stroke_started;
 }
 
 bool PAINT_brush_tool_poll(bContext *C)

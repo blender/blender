@@ -36,6 +36,10 @@ extern GHOST_SystemHandle GHOST_CreateSystemBackground(void);
  */
 extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug);
 
+#if !(defined(WIN32) || defined(__APPLE__))
+extern const char *GHOST_SystemBackend(void);
+#endif
+
 /**
  * Disposes the one and only system.
  * \param systemhandle: The handle to the system.
@@ -50,7 +54,7 @@ extern GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle);
  * \param message: Message of the message box.
  * \param help_label: Text to show on the help button that opens a link.
  * \param continue_label: Text to show on the ok button that continues.
- * \param link: Optional (hyper)link to a webpage to show when pressing help.
+ * \param link: Optional (hyper)link to a web-page to show when pressing help.
  * \param dialog_options: Options to configure the message box.
  */
 extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
@@ -739,6 +743,13 @@ extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle
  * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
  */
 extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle);
+
+/**
+ * Use multi-touch gestures if supported.
+ * \param systemhandle: The handle to the system.
+ * \param use: Enable or disable.
+ */
+extern void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use);
 
 /**
  * Set which tablet API to use. Only affects Windows, other platforms have a single API.

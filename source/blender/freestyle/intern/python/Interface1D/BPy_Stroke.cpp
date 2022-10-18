@@ -351,12 +351,12 @@ PyDoc_STRVAR(Stroke_medium_type_doc,
              "\n"
              ":type: :class:`MediumType`");
 
-static PyObject *Stroke_medium_type_get(BPy_Stroke *self, void *UNUSED(closure))
+static PyObject *Stroke_medium_type_get(BPy_Stroke *self, void * /*closure*/)
 {
   return BPy_MediumType_from_MediumType(self->s->getMediumType());
 }
 
-static int Stroke_medium_type_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
+static int Stroke_medium_type_set(BPy_Stroke *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_MediumType_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a MediumType");
@@ -371,14 +371,14 @@ PyDoc_STRVAR(Stroke_texture_id_doc,
              "\n"
              ":type: int");
 
-static PyObject *Stroke_texture_id_get(BPy_Stroke *self, void *UNUSED(closure))
+static PyObject *Stroke_texture_id_get(BPy_Stroke *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->s->getTextureId());
 }
 
-static int Stroke_texture_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
+static int Stroke_texture_id_set(BPy_Stroke *self, PyObject *value, void * /*closure*/)
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }
@@ -391,12 +391,12 @@ PyDoc_STRVAR(Stroke_tips_doc,
              "\n"
              ":type: bool");
 
-static PyObject *Stroke_tips_get(BPy_Stroke *self, void *UNUSED(closure))
+static PyObject *Stroke_tips_get(BPy_Stroke *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->s->hasTips());
 }
 
-static int Stroke_tips_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
+static int Stroke_tips_set(BPy_Stroke *self, PyObject *value, void * /*closure*/)
 {
   if (!PyBool_Check(value)) {
     return -1;
@@ -410,12 +410,12 @@ PyDoc_STRVAR(Stroke_length_2d_doc,
              "\n"
              ":type: float");
 
-static PyObject *Stroke_length_2d_get(BPy_Stroke *self, void *UNUSED(closure))
+static PyObject *Stroke_length_2d_get(BPy_Stroke *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->s->getLength2D());
 }
 
-static int Stroke_length_2d_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
+static int Stroke_length_2d_set(BPy_Stroke *self, PyObject *value, void * /*closure*/)
 {
   float scalar;
   if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -432,13 +432,13 @@ PyDoc_STRVAR(Stroke_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *Stroke_id_get(BPy_Stroke *self, void *UNUSED(closure))
+static PyObject *Stroke_id_get(BPy_Stroke *self, void * /*closure*/)
 {
   Id id(self->s->getId());
   return BPy_Id_from_Id(id);  // return a copy
 }
 
-static int Stroke_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
+static int Stroke_id_set(BPy_Stroke *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Id_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an Id");

@@ -42,10 +42,10 @@ DefaultWorldNodeTree::~DefaultWorldNodeTree()
   MEM_SAFE_FREE(ntree_);
 }
 
-/* Configure a default nodetree with the given world.  */
+/* Configure a default node-tree with the given world. */
 bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
 {
-  /* WARNING: This function is not threadsafe. Which is not a problem for the moment. */
+  /* WARNING: This function is not thread-safe. Which is not a problem for the moment. */
   copy_v3_fl3(color_socket_->value, wo->horr, wo->horg, wo->horb);
   return ntree_;
 }
@@ -87,6 +87,9 @@ void World::sync()
                          default_tree.nodetree_get(bl_world);
 
   GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree);
+
+  inst_.manager->register_layer_attributes(gpumat);
+
   inst_.pipelines.world.sync(gpumat);
 }
 

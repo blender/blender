@@ -367,6 +367,8 @@ void pseudoinverse_m4_m4(float inverse[4][4], const float mat[4][4], float epsil
 void pseudoinverse_m3_m3(float inverse[3][3], const float mat[3][3], float epsilon);
 
 bool has_zero_axis_m4(const float matrix[4][4]);
+/** Fix any zero scale axis adding a small bias orthogonal to the other valid axis. */
+void zero_axis_bias_m4(float mat[4][4]);
 
 void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4]);
 
@@ -410,6 +412,8 @@ float mat4_to_xy_scale(const float mat[4][4]);
 void size_to_mat3(float R[3][3], const float size[3]);
 void size_to_mat4(float R[4][4], const float size[3]);
 
+/** Return 2D size assuming the given matrix is a 2D affine matrix. */
+void mat3_to_size_2d(float size[2], const float M[3][3]);
 void mat3_to_size(float size[3], const float M[3][3]);
 void mat4_to_size(float size[3], const float M[4][4]);
 

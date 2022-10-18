@@ -31,7 +31,7 @@ PyDoc_STRVAR(pygpu_select_load_id_doc,
              "\n"
              "   Set the selection ID.\n"
              "\n"
-             "   :param id: Number (32-bit uint).\n"
+             "   :arg id: Number (32-bit uint).\n"
              "   :type select: int\n");
 static PyObject *pygpu_select_load_id(PyObject *UNUSED(self), PyObject *value)
 {

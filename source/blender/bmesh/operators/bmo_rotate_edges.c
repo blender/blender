@@ -66,7 +66,7 @@ static float bm_edge_rotate_is_boundary(const BMEdge *e)
     do {
       BMEdge *e_iter = l_iter->e;
       const int e_iter_index = BM_elem_index_get(e_iter);
-      if ((e_iter_index != -1)) {
+      if (e_iter_index != -1) {
         if (count == 1) {
           return false;
         }

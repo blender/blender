@@ -55,18 +55,19 @@ struct GHOST_ModifierKeys {
    */
   bool equals(const GHOST_ModifierKeys &keys) const;
 
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_LeftShift : 1;
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_RightShift : 1;
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_LeftAlt : 1;
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_RightAlt : 1;
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_LeftControl : 1;
-  /** Bitfield that stores the appropriate key state. */
+  /** Bit-field that stores the appropriate key state. */
   uint8_t m_RightControl : 1;
-  /** Bitfield that stores the appropriate key state. */
-  uint8_t m_OS : 1;
+  /** Bit-field that stores the appropriate key state. */
+  uint8_t m_LeftOS : 1;
+  uint8_t m_RightOS : 1;
 };

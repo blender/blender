@@ -14,7 +14,7 @@ MemoryProxy::MemoryProxy(DataType datatype)
   datatype_ = datatype;
 }
 
-void MemoryProxy::allocate(unsigned int width, unsigned int height)
+void MemoryProxy::allocate(uint width, uint height)
 {
   rcti result;
   result.xmin = 0;

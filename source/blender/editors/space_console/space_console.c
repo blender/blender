@@ -28,6 +28,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "console_intern.h" /* own include */
 
 /* ******************** default callbacks for console space ***************** */
@@ -125,6 +127,10 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
+  /* Include after "Console" so cursor motion keys such as "Home" isn't overridden. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   /* add drop boxes */
   lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
@@ -155,7 +161,7 @@ static void id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
-  char *text = RNA_path_full_ID_py(G_MAIN, id);
+  char *text = RNA_path_full_ID_py(id);
   RNA_string_set(drop->ptr, "text", text);
   MEM_freeN(text);
 }
@@ -280,13 +286,48 @@ static void console_main_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  SpaceConsole *sconsole = (SpaceConsole *)sl;
+
+  BLO_read_list(reader, &sconsole->scrollback);
+  BLO_read_list(reader, &sconsole->history);
+
+  /* Comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
+   * from left to right.  the right-most expression sets the result of the comma
+   * expression as a whole. */
+  LISTBASE_FOREACH_MUTABLE (ConsoleLine *, cl, &sconsole->history) {
+    BLO_read_data_address(reader, &cl->line);
+    if (cl->line) {
+      /* The allocated length is not written, so reset here. */
+      cl->len_alloc = cl->len + 1;
+    }
+    else {
+      BLI_remlink(&sconsole->history, cl);
+      MEM_freeN(cl);
+    }
+  }
+}
+
+static void console_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  SpaceConsole *con = (SpaceConsole *)sl;
+
+  LISTBASE_FOREACH (ConsoleLine *, cl, &con->history) {
+    /* 'len_alloc' is invalid on write, set from 'len' on read */
+    BLO_write_struct(writer, ConsoleLine, cl);
+    BLO_write_raw(writer, (size_t)cl->len + 1, cl->line);
+  }
+  BLO_write_struct(writer, SpaceConsole, sl);
+}
+
 void ED_spacetype_console(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype console");
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
-  strncpy(st->name, "Console", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Console");
 
   st->create = console_create;
   st->free = console_free;
@@ -295,6 +336,8 @@ void ED_spacetype_console(void)
   st->operatortypes = console_operatortypes;
   st->keymap = console_keymap;
   st->dropboxes = console_dropboxes;
+  st->blend_read_data = console_blend_read_data;
+  st->blend_write = console_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype console region");

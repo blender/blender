@@ -145,13 +145,12 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   LineartCache *local_lc = gpd->runtime.lineart_cache;
   if (!gpd->runtime.lineart_cache) {
     MOD_lineart_compute_feature_lines(
-        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+        depsgraph, lmd, &gpd->runtime.lineart_cache, !(ob->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data(lmd);
   }
   else {
     if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
-      MOD_lineart_compute_feature_lines(
-          depsgraph, lmd, &local_lc, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+      MOD_lineart_compute_feature_lines(depsgraph, lmd, &local_lc, !(ob->dtx & OB_DRAW_IN_FRONT));
       MOD_lineart_destroy_render_data(lmd);
     }
     MOD_lineart_chain_clear_picked_flag(local_lc);
@@ -198,7 +197,7 @@ static void bakeModifier(Main *UNUSED(bmain),
     lmd->shadow_selection_override = lmd->shadow_selection;
 
     MOD_lineart_compute_feature_lines(
-        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
+        depsgraph, lmd, &gpd->runtime.lineart_cache, !(ob->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data(lmd);
   }
 
@@ -397,7 +396,12 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(entry, false);
   uiItemR(sub, ptr, "use_light_contour", 0, IFACE_("Light Contour"), ICON_NONE);
 
-  uiItemR(entry, ptr, "use_shadow", 0, IFACE_("Cast Shadow"), ICON_NONE);
+  uiItemR(entry,
+          ptr,
+          "use_shadow",
+          0,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
+          ICON_NONE);
 
   uiItemL(layout, IFACE_("Options"), ICON_NONE);
 
@@ -442,8 +446,8 @@ static void options_light_reference_draw(const bContext *UNUSED(C), Panel *panel
   uiItemR(remaining, ptr, "shadow_camera_size", 0, NULL, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(remaining, true);
-  uiItemR(col, ptr, "shadow_camera_near", 0, "Near", ICON_NONE);
-  uiItemR(col, ptr, "shadow_camera_far", 0, "Far", ICON_NONE);
+  uiItemR(col, ptr, "shadow_camera_near", 0, IFACE_("Near"), ICON_NONE);
+  uiItemR(col, ptr, "shadow_camera_far", 0, IFACE_("Far"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)

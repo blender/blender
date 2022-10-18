@@ -106,7 +106,7 @@ class IMeshBuilder {
   }
 };
 
-static int all_shape_zero(int UNUSED(t))
+static int all_shape_zero(int /*t*/)
 {
   return 0;
 }

@@ -178,10 +178,10 @@ def context_path_decompose(data_path):
         prop_item = "".join(path_split[i + 1:])
 
         if base_path:
-            assert(base_path.startswith("."))
+            assert base_path.startswith(".")
             base_path = base_path[1:]
         if prop_attr:
-            assert(prop_attr.startswith("."))
+            assert prop_attr.startswith(".")
             prop_attr = prop_attr[1:]
     else:
         # If there are no properties, everything is an item.
@@ -2518,6 +2518,7 @@ class WM_OT_batch_rename(Operator):
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
+            ('ACTION_CLIP', "Action Clips", ""),
         ),
         description="Type of data to rename",
     )
@@ -2690,6 +2691,30 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     iface_("Material(s)"),
                 )
+            elif data_type == "ACTION_CLIP":
+                data = (
+                    (
+                        # Outliner.
+                        tuple(set(
+                            action for id in context.selected_ids
+                            if (((animation_data := id.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            action for ob in context.selected_objects
+                            if (((animation_data := ob.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                    )
+                    if only_selected else
+                    [id for id in bpy.data.actions if id.library is None],
+                    "name",
+                    iface_("Action(s)"),
+                )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]
                 data = (
@@ -2730,7 +2755,7 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'SUFFIX':
                     name = name + text
                 else:
-                    assert(0)
+                    assert 0
 
             elif ty == 'STRIP':
                 chars = action.strip_chars
@@ -2775,9 +2800,9 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'TITLE':
                     name = name.title()
                 else:
-                    assert(0)
+                    assert 0
             else:
-                assert(0)
+                assert 0
         return name
 
     def _data_update(self, context):
@@ -3133,6 +3158,15 @@ class WM_MT_splash_about(Menu):
                                                 bpy.app.build_commit_time.decode('utf-8', 'replace')), translate=False)
         col.label(text=iface_("Hash: %s") % bpy.app.build_hash.decode('ascii'), translate=False)
         col.label(text=iface_("Branch: %s") % bpy.app.build_branch.decode('utf-8', 'replace'), translate=False)
+
+        # This isn't useful information on MS-Windows or Apple systems as dynamically switching
+        # between windowing systems is only supported between X11/WAYLAND.
+        from _bpy import _ghost_backend
+        ghost_backend = _ghost_backend()
+        if ghost_backend not in {'NONE', 'DEFAULT'}:
+            col.label(text=iface_("Windowing Environment: %s") % _ghost_backend(), translate=False)
+        del _ghost_backend, ghost_backend
+
         col.separator(factor=2.0)
         col.label(text="Blender is free software")
         col.label(text="Licensed under the GNU General Public License")

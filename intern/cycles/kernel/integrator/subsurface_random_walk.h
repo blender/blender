@@ -5,6 +5,8 @@
 
 #include "kernel/bvh/bvh.h"
 
+#include "kernel/integrator/guiding.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Random walk subsurface scattering.
@@ -165,8 +167,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
                                               ccl_private Ray &ray,
                                               ccl_private LocalIntersection &ss_isect)
 {
-  float bssrdf_u, bssrdf_v;
-  path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+  const float2 rand_bsdf = path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF);
 
   const float3 P = INTEGRATOR_STATE(state, ray, P);
   const float3 N = INTEGRATOR_STATE(state, ray, D);
@@ -179,7 +180,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   /* Sample diffuse surface scatter into the object. */
   float3 D;
   float pdf;
-  sample_cos_hemisphere(-N, bssrdf_u, bssrdf_v, &D, &pdf);
+  sample_cos_hemisphere(-N, rand_bsdf.x, rand_bsdf.y, &D, &pdf);
   if (dot(-Ng, D) <= 0.0f) {
     return false;
   }
@@ -204,7 +205,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float anisotropy = INTEGRATOR_STATE(state, subsurface, anisotropy);
 
   Spectrum sigma_t, alpha;
-  Spectrum throughput = INTEGRATOR_STATE_WRITE(state, path, throughput);
+  Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
   subsurface_random_walk_coefficients(albedo, radius, anisotropy, &sigma_t, &alpha, &throughput);
   Spectrum sigma_s = sigma_t * alpha;
 
@@ -229,7 +230,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float phase_log = logf((diffusion_length + 1.0f) / (diffusion_length - 1.0f));
 
   /* Modify state for RNGs, decorrelated from other paths. */
-  rng_state.rng_hash = hash_cmj_seeded_uint(rng_state.rng_hash + rng_state.rng_offset, 0xdeadbeef);
+  rng_state.rng_hash = hash_hp_seeded_uint(rng_state.rng_hash + rng_state.rng_offset, 0xdeadbeef);
 
   /* Random walk until we hit the surface again. */
   bool hit = false;
@@ -272,11 +273,11 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
 #endif
 
     /* Sample color channel, use MIS with balance heuristic. */
-    float rphase = path_state_rng_1D(kg, &rng_state, PRNG_PHASE_CHANNEL);
+    float rphase = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_PHASE_CHANNEL);
     Spectrum channel_pdf;
     int channel = volume_sample_channel(alpha, throughput, rphase, &channel_pdf);
     float sample_sigma_t = volume_channel_get(sigma_t, channel);
-    float randt = path_state_rng_1D(kg, &rng_state, PRNG_SCATTER_DISTANCE);
+    float randt = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_SCATTER_DISTANCE);
 
     /* We need the result of the ray-cast to compute the full guided PDF, so just remember the
      * relevant terms to avoid recomputing them later. */
@@ -289,7 +290,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* For the initial ray, we already know the direction, so just do classic distance sampling. */
     if (bounce > 0) {
       /* Decide whether we should use guided or classic sampling. */
-      bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_LIGHT_TERMINATE) < guided_fraction);
+      bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_STRATEGY) <
+                     guided_fraction);
 
       /* Determine if we want to sample away from the incoming interface.
        * This only happens if we found a nearby opposite interface, and the probability for it
@@ -303,27 +305,28 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
         float x = clamp(dot(ray.P - P, -N), 0.0f, opposite_distance);
         backward_fraction = 1.0f /
                             (1.0f + expf((opposite_distance - 2.0f * x) / diffusion_length));
-        guide_backward = path_state_rng_1D(kg, &rng_state, PRNG_TERMINATE) < backward_fraction;
+        guide_backward = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_DIRECTION) <
+                         backward_fraction;
       }
 
       /* Sample scattering direction. */
-      float scatter_u, scatter_v;
-      path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &scatter_u, &scatter_v);
+      const float2 rand_scatter = path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF);
       float cos_theta;
       float hg_pdf;
       if (guided) {
-        cos_theta = sample_phase_dwivedi(diffusion_length, phase_log, scatter_u);
+        cos_theta = sample_phase_dwivedi(diffusion_length, phase_log, rand_scatter.x);
         /* The backwards guiding distribution is just mirrored along `sd->N`, so swapping the
          * sign here is enough to sample from that instead. */
         if (guide_backward) {
           cos_theta = -cos_theta;
         }
-        float3 newD = direction_from_cosine(N, cos_theta, scatter_v);
+        float3 newD = direction_from_cosine(N, cos_theta, rand_scatter.y);
         hg_pdf = single_peaked_henyey_greenstein(dot(ray.D, newD), anisotropy);
         ray.D = newD;
       }
       else {
-        float3 newD = henyey_greenstrein_sample(ray.D, anisotropy, scatter_u, scatter_v, &hg_pdf);
+        float3 newD = henyey_greenstrein_sample(
+            ray.D, anisotropy, rand_scatter.x, rand_scatter.y, &hg_pdf);
         cos_theta = dot(newD, N);
         ray.D = newD;
       }
@@ -349,7 +352,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       }
     }
 
-    /* Sample direction along ray. */
+    /* Sample distance along ray. */
     float t = -logf(1.0f - randt) / sample_sigma_t;
 
     /* On the first bounce, we use the ray-cast to check if the opposite side is nearby.
@@ -431,6 +434,16 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
 
   if (hit) {
     kernel_assert(isfinite_safe(throughput));
+
+    guiding_record_bssrdf_bounce(
+        kg,
+        state,
+        pdf,
+        N,
+        D,
+        safe_divide_color(throughput, INTEGRATOR_STATE(state, path, throughput)),
+        albedo);
+
     INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
   }
 

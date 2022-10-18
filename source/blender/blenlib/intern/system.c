@@ -34,7 +34,7 @@ int BLI_cpu_support_sse2(void)
   return 1;
 #elif defined(__GNUC__) && defined(i386)
   /* for GCC x86 we check cpuid */
-  unsigned int d;
+  uint d;
   __asm__(
       "pushl %%ebx\n\t"
       "cpuid\n\t"
@@ -44,7 +44,7 @@ int BLI_cpu_support_sse2(void)
   return (d & 0x04000000) != 0;
 #elif (defined(_MSC_VER) && defined(_M_IX86))
   /* also check cpuid for MSVC x86 */
-  unsigned int d;
+  uint d;
   __asm {
     xor     eax, eax
     inc eax
@@ -154,12 +154,12 @@ void BLI_hostname_get(char *buffer, size_t bufsize)
   if (gethostname(buffer, bufsize - 1) < 0) {
     BLI_strncpy(buffer, "-unknown-", bufsize);
   }
-  /* When gethostname() truncates, it doesn't guarantee the trailing \0. */
+  /* When `gethostname()` truncates, it doesn't guarantee the trailing `\0`. */
   buffer[bufsize - 1] = '\0';
 #else
   DWORD bufsize_inout = bufsize;
   if (!GetComputerName(buffer, &bufsize_inout)) {
-    strncpy(buffer, "-unknown-", bufsize);
+    BLI_strncpy(buffer, "-unknown-", bufsize);
   }
 #endif
 }

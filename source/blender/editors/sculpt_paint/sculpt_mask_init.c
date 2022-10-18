@@ -7,27 +7,20 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
-
 #include "PIL_time.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -39,8 +32,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_sculpt.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "bmesh.h"
@@ -119,6 +110,9 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
+
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 

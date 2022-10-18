@@ -1356,7 +1356,7 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
       }
       mul_v3_m4v3(data->grabtarget, flip_mtx, td->loc);
       if (pid) {
-        /* TODO(germano): Relative Mirror support. */
+        /* TODO(@germano): Relative Mirror support. */
       }
       data->flag |= CONSTRAINT_IK_AUTO;
       /* Add a temporary auto IK constraint here, as we will only temporarily active this
@@ -1506,7 +1506,7 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
     if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED)) {
       bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
     }
-    else if ((bone->flag & BONE_TRANSFORM) && (ELEM(mode, TFM_ROTATION, TFM_TRACKBALL)) &&
+    else if ((bone->flag & BONE_TRANSFORM) && ELEM(mode, TFM_ROTATION, TFM_TRACKBALL) &&
              (around == V3D_AROUND_LOCAL_ORIGINS)) {
       bone->flag |= BONE_TRANSFORM_CHILD;
     }

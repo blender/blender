@@ -732,7 +732,7 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 
   if (PyLong_Check(length_ob)) {
     ndimensions = 1;
-    if (((dimensions[0] = PyLong_AsLong(length_ob)) < 1)) {
+    if ((dimensions[0] = PyLong_AsLong(length_ob)) < 1) {
       PyErr_SetString(PyExc_AttributeError,
                       "dimensions must be between 1 and " STRINGIFY(MAX_DIMENSIONS));
       return NULL;
@@ -1397,7 +1397,7 @@ static struct PyModuleDef BGL_module_def = {
     NULL,  /* m_doc */
     0,     /* m_size */
     NULL,  /* m_methods */
-    NULL,  /* m_reload */
+    NULL,  /* m_slots */
     NULL,  /* m_traverse */
     NULL,  /* m_clear */
     NULL,  /* m_free */

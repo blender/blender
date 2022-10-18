@@ -364,7 +364,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = rigidbody_get_mesh(ob);
-    mvert = (mesh) ? mesh->mvert : NULL;
+    mvert = (mesh) ? BKE_mesh_verts_for_write(mesh) : NULL;
     totvert = (mesh) ? mesh->totvert : 0;
   }
   else {
@@ -390,11 +390,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = NULL;
-    MVert *mvert;
     const MLoopTri *looptri;
     int totvert;
     int tottri;
-    const MLoop *mloop;
 
     mesh = rigidbody_get_mesh(ob);
 
@@ -403,11 +401,11 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       return NULL;
     }
 
-    mvert = mesh->mvert;
+    const MVert *mvert = BKE_mesh_verts(mesh);
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-    tottri = mesh->runtime.looptris.len;
-    mloop = mesh->mloop;
+    tottri = BKE_mesh_runtime_looptri_len(mesh);
+    const MLoop *mloop = BKE_mesh_loops(mesh);
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -670,21 +668,19 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *lt = NULL;
         int totvert, tottri = 0;
-        const MLoop *mloop = NULL;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        tottri = BKE_mesh_runtime_looptri_len(mesh);
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
@@ -746,21 +742,19 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *looptri;
         int totvert, tottri;
-        const MLoop *mloop;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        tottri = BKE_mesh_runtime_looptri_len(mesh);
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
@@ -1551,7 +1545,7 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
 
-    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+    /* Relying on user-count of the object should be OK, and it is much cheaper than looping in all
      * collections to check whether the object is already in another one... */
     if (ID_REAL_USERS(&ob->id) == 1) {
       /* Some users seems to find it funny to use a view-layer instancing collection
@@ -1670,14 +1664,16 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     return;
   }
 
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   const bool is_selected = base ? (base->flag & BASE_SELECTED) != 0 : false;
 
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
     Mesh *mesh = ob->runtime.mesh_deform_eval;
     if (mesh) {
-      MVert *mvert = mesh->mvert;
+      MVert *mvert = BKE_mesh_verts_for_write(mesh);
       int totvert = mesh->totvert;
       const BoundBox *bb = BKE_object_boundbox_get(ob);
 
@@ -2014,7 +2010,9 @@ static void rigidbody_free_substep_data(ListBase *substep_targets)
 }
 static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBodyWorld *rbw)
 {
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
 
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -2263,7 +2261,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 
     /* write cache for current frame */
     BKE_ptcache_validate(cache, (int)ctime);
-    BKE_ptcache_write(&pid, (unsigned int)ctime);
+    BKE_ptcache_write(&pid, (uint)ctime);
 
     rbw->ltime = ctime;
   }

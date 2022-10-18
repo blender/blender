@@ -45,7 +45,6 @@ void Evaluator::reset()
 {
   operations_stream_.clear();
   derived_node_tree_.reset();
-  node_tree_reference_map_.clear();
 
   is_compiled_ = false;
 }
@@ -67,7 +66,7 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_ = std::make_unique<DerivedNodeTree>(node_tree_, node_tree_reference_map_);
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(node_tree_);
 
   if (!validate_node_tree()) {
     return;
@@ -93,7 +92,7 @@ void Evaluator::compile_and_evaluate()
 
 void Evaluator::compile_and_evaluate_node(DNode node, CompileState &compile_state)
 {
-  NodeOperation *operation = node->typeinfo()->get_compositor_operation(context_, node);
+  NodeOperation *operation = node->typeinfo->get_compositor_operation(context_, node);
 
   compile_state.map_node_to_node_operation(node, operation);
 
@@ -113,16 +112,16 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
                                                            NodeOperation *operation,
                                                            CompileState &compile_state)
 {
-  for (const InputSocketRef *input_ref : node->inputs()) {
-    const DInputSocket input{node.context(), input_ref};
+  for (const bNodeSocket *input : node->input_sockets()) {
+    const DInputSocket dinput{node.context(), input};
 
-    DSocket origin = get_input_origin_socket(input);
+    DSocket dorigin = get_input_origin_socket(dinput);
 
     /* The origin socket is an output, which means the input is linked. So map the input to the
      * result we get from the output. */
-    if (origin->is_output()) {
-      Result &result = compile_state.get_result_from_output_socket(DOutputSocket(origin));
-      operation->map_input_to_result(input->identifier(), &result);
+    if (dorigin->is_output()) {
+      Result &result = compile_state.get_result_from_output_socket(DOutputSocket(dorigin));
+      operation->map_input_to_result(input->identifier, &result);
       continue;
     }
 
@@ -130,8 +129,8 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
      * origin is the input socket itself or the input is connected to an unlinked input of a group
      * input node and the origin is the input of the group input node. So map the input to the
      * result of a newly created Input Single Value Operation. */
-    auto *input_operation = new InputSingleValueOperation(context_, DInputSocket(origin));
-    operation->map_input_to_result(input->identifier(), &input_operation->get_result());
+    auto *input_operation = new InputSingleValueOperation(context_, DInputSocket(dorigin));
+    operation->map_input_to_result(input->identifier, &input_operation->get_result());
 
     operations_stream_.append(std::unique_ptr<InputSingleValueOperation>(input_operation));
 

@@ -174,7 +174,7 @@ TEST(string, StrPartitionEx)
 /* BLI_str_partition_utf8 */
 TEST(string, StrPartitionUtf8)
 {
-  const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
+  const uint delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
   size_t pre_len;
 
@@ -233,7 +233,7 @@ TEST(string, StrPartitionUtf8)
 /* BLI_str_rpartition_utf8 */
 TEST(string, StrRPartitionUtf8)
 {
-  const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
+  const uint delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
   size_t pre_len;
 
@@ -292,7 +292,7 @@ TEST(string, StrRPartitionUtf8)
 /* BLI_str_partition_ex_utf8 */
 TEST(string, StrPartitionExUtf8)
 {
-  const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
+  const uint delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
   size_t pre_len;
 

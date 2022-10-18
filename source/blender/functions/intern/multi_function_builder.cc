@@ -27,14 +27,12 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
 CustomMF_GenericConstant::~CustomMF_GenericConstant()
 {
   if (owns_value_) {
-    signature_.param_types[0].data_type().single_type().destruct((void *)value_);
-    MEM_freeN((void *)value_);
+    signature_.param_types[0].data_type().single_type().destruct(const_cast<void *>(value_));
+    MEM_freeN(const_cast<void *>(value_));
   }
 }
 
-void CustomMF_GenericConstant::call(IndexMask mask,
-                                    MFParams params,
-                                    MFContext UNUSED(context)) const
+void CustomMF_GenericConstant::call(IndexMask mask, MFParams params, MFContext /*context*/) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
   type_.fill_construct_indices(value_, output.data(), mask);
@@ -42,7 +40,7 @@ void CustomMF_GenericConstant::call(IndexMask mask,
 
 uint64_t CustomMF_GenericConstant::hash() const
 {
-  return type_.hash_or_fallback(value_, (uintptr_t)this);
+  return type_.hash_or_fallback(value_, uintptr_t(this));
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
@@ -68,7 +66,7 @@ CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : arra
 
 void CustomMF_GenericConstantArray::call(IndexMask mask,
                                          MFParams params,
-                                         MFContext UNUSED(context)) const
+                                         MFContext /*context*/) const
 {
   GVectorArray &vectors = params.vector_output(0);
   for (int64_t i : mask) {
@@ -90,7 +88,7 @@ CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<MFDataType> input_types,
   signature_ = signature.build();
   this->set_signature(&signature_);
 }
-void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const
+void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext /*context*/) const
 {
   for (int param_index : this->param_indices()) {
     MFParamType param_type = this->param_type(param_index);
@@ -115,7 +113,7 @@ CustomMF_GenericCopy::CustomMF_GenericCopy(MFDataType data_type)
   this->set_signature(&signature_);
 }
 
-void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const
+void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, MFContext /*context*/) const
 {
   const MFDataType data_type = this->param_type(0).data_type();
   switch (data_type.category()) {

@@ -7,9 +7,6 @@
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "node_geometry_util.hh"
 
 #include <set>
@@ -28,6 +25,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
+  const Span<MEdge> edges = src_mesh.edges();
+
   Array<bool> selection(src_mesh.totvert, false);
 
   for (const int start_vert : start_selection) {
@@ -45,8 +44,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
     }
   }
 
-  for (const int i : IndexRange(src_mesh.totedge)) {
-    const MEdge &edge = src_mesh.medge[i];
+  for (const int i : edges.index_range()) {
+    const MEdge &edge = edges[i];
     if ((selection[edge.v1] && selection[edge.v2]) &&
         (edge.v1 == next_indices[edge.v2] || edge.v2 == next_indices[edge.v1])) {
       r_selection[i] = true;
@@ -60,9 +59,9 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
   Field<int> next_vertex_;
 
  public:
-  PathToEdgeSelectionFieldInput(Field<bool> start_vertices, Field<int> next_vertex)
+  PathToEdgeSelectionFieldInput(Field<bool> start_verts, Field<int> next_vertex)
       : bke::MeshFieldInput(CPPType::get<bool>(), "Edge Selection"),
-        start_vertices_(start_vertices),
+        start_vertices_(start_verts),
         next_vertex_(next_vertex)
   {
     category_ = Category::Generated;
@@ -89,7 +88,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
     edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
 
-    return bke::mesh_attributes(mesh).adapt_domain<bool>(
+    return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -107,14 +106,19 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> start_vertices = params.extract_input<Field<bool>>("Start Vertices");
+  Field<bool> start_verts = params.extract_input<Field<bool>>("Start Vertices");
   Field<int> next_vertex = params.extract_input<Field<int>>("Next Vertex Index");
   Field<bool> selection_field{
-      std::make_shared<PathToEdgeSelectionFieldInput>(start_vertices, next_vertex)};
+      std::make_shared<PathToEdgeSelectionFieldInput>(start_verts, next_vertex)};
   params.set_output("Selection", std::move(selection_field));
 }
 

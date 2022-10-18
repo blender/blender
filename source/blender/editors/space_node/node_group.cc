@@ -25,6 +25,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
@@ -462,8 +463,7 @@ static bool node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       /* make a copy */
-      newnode = blender::bke::node_copy_with_mapping(
-          &ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      newnode = bke::node_copy_with_mapping(&ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, newnode);
     }
     else {
@@ -603,9 +603,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_group_separate_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      const wmEvent *UNUSED(event))
+static int node_group_separate_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
@@ -653,7 +651,7 @@ static bool node_group_make_use_node(bNode &node, bNode *gnode)
 static bool node_group_make_test_selected(bNodeTree &ntree,
                                           bNode *gnode,
                                           const char *ntree_idname,
-                                          struct ReportList &reports)
+                                          ReportList &reports)
 {
   int ok = true;
 
@@ -717,13 +715,13 @@ static int node_get_selected_minmax(
   INIT_MINMAX2(min, max);
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node_group_make_use_node(*node, gnode)) {
-      float loc[2];
-      nodeToView(node, node->offsetx, node->offsety, &loc[0], &loc[1]);
-      minmax_v2v2_v2(min, max, loc);
+      float2 loc;
+      nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+      math::min_max(loc, min, max);
       if (use_size) {
-        loc[0] += node->width;
-        loc[1] -= node->height;
-        minmax_v2v2_v2(min, max, loc);
+        loc.x += node->width;
+        loc.y -= node->height;
+        math::min_max(loc, min, max);
       }
       totselect++;
     }
@@ -837,8 +835,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* relink external sockets */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
       /* remove all links to/from the gnode.
@@ -918,8 +916,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* move internal links */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if (fromselect && toselect) {
       BLI_remlink(&ntree.links, link);
@@ -1042,13 +1040,12 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     nodeSetActive(&ntree, gnode);
     if (ngroup) {
       ED_node_tree_push(&snode, ngroup, gnode);
-      LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(snode, *node, nullptr, nullptr);
-      }
     }
   }
 
   ED_node_tree_propagate_change(C, bmain, nullptr);
+
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
   /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);

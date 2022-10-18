@@ -69,7 +69,7 @@ BLI_INLINE uint64_t fmix64(uint64_t k)
   return k;
 }
 
-uint32_t BLI_hash_mm3(const unsigned char *data, size_t len, uint32_t seed)
+uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 {
   const uint8_t *in_data = (const uint8_t *)data;
   const int nblocks = len / 4;

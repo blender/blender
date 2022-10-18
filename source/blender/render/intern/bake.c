@@ -456,10 +456,13 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   TriTessFace *triangles;
 
   /* calculate normal for each polygon only once */
-  unsigned int mpoly_prev = UINT_MAX;
+  uint mpoly_prev = UINT_MAX;
   float no[3];
 
-  const MVert *mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
+  const MLoop *loops = BKE_mesh_loops(me);
+
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
   triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
 
@@ -470,10 +473,10 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 
   if (precomputed_normals != NULL) {
     BKE_mesh_recalc_looptri_with_normals(
-        me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri, precomputed_normals);
+        loops, polys, verts, me->totloop, me->totpoly, looptri, precomputed_normals);
   }
   else {
-    BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+    BKE_mesh_recalc_looptri(loops, polys, verts, me->totloop, me->totpoly, looptri);
   }
 
   const TSpace *tspace = NULL;
@@ -492,14 +495,14 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
-    const MPoly *mp = &me->mpoly[lt->poly];
+    const MPoly *mp = &polys[lt->poly];
 
-    triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
-    triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
-    triangles[i].mverts[2] = &mvert[me->mloop[lt->tri[2]].v];
-    triangles[i].vert_normals[0] = vert_normals[me->mloop[lt->tri[0]].v];
-    triangles[i].vert_normals[1] = vert_normals[me->mloop[lt->tri[1]].v];
-    triangles[i].vert_normals[2] = vert_normals[me->mloop[lt->tri[2]].v];
+    triangles[i].mverts[0] = &verts[loops[lt->tri[0]].v];
+    triangles[i].mverts[1] = &verts[loops[lt->tri[1]].v];
+    triangles[i].mverts[2] = &verts[loops[lt->tri[2]].v];
+    triangles[i].vert_normals[0] = vert_normals[loops[lt->tri[0]].v];
+    triangles[i].vert_normals[1] = vert_normals[loops[lt->tri[1]].v];
+    triangles[i].vert_normals[2] = vert_normals[loops[lt->tri[2]].v];
     triangles[i].is_smooth = (mp->flag & ME_SMOOTH) != 0;
 
     if (tangent) {
@@ -516,7 +519,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 
     if (calculate_normal) {
       if (lt->poly != mpoly_prev) {
-        BKE_mesh_calc_poly_normal(mp, &me->mloop[mp->loopstart], me->mvert, no);
+        BKE_mesh_calc_poly_normal(mp, &loops[mp->loopstart], verts, no);
         mpoly_prev = lt->poly;
       }
       copy_v3_v3(triangles[i].normal, no);
@@ -587,7 +590,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
     me_highpoly[i] = highpoly[i].me;
     BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
 
-    if (me_highpoly[i]->runtime.looptris.len != 0) {
+    if (BKE_mesh_runtime_looptri_len(me_highpoly[i]) != 0) {
       /* Create a BVH-tree for each `highpoly` object. */
       BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_LOOPTRI, 2);
 
@@ -738,16 +741,20 @@ void RE_bake_pixels_populate(Mesh *me,
   const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
+  const MLoop *loops = BKE_mesh_loops(me);
+  BKE_mesh_recalc_looptri(loops, polys, verts, me->totloop, me->totpoly, looptri);
+
+  const int *material_indices = BKE_mesh_material_indices(me);
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
-    const MPoly *mp = &me->mpoly[lt->poly];
 
     bd.primitive_id = i;
 
     /* Find images matching this material. */
-    Image *image = targets->material_to_image[mp->mat_nr];
+    Image *image = targets->material_to_image[material_indices ? material_indices[lt->poly] : 0];
     for (int image_id = 0; image_id < targets->images_num; image_id++) {
       BakeImage *bk_image = &targets->images[image_id];
       if (bk_image->image != image) {

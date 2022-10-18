@@ -40,6 +40,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -94,8 +95,8 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
 
   int totvert, totedge, totface, totloop;
 
-  const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
-  const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime.subsurf_runtime_data;
+  const SubdivCCG *subdiv_ccg = me_eval->runtime->subdiv_ccg;
+  const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime->subsurf_runtime_data;
 
   if (subdiv_ccg != nullptr) {
     BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
@@ -130,7 +131,7 @@ static void stats_object(Object *ob,
                          SceneStats *stats,
                          GSet *objects_gset)
 {
-  if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
     return;
   }
 
@@ -345,7 +346,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       stats->tottri = ob->sculpt->bm->totface;
       break;
     case PBVH_GRIDS:
-      stats->totvertsculpt = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(ss->pbvh);
       stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(ss->pbvh);
       break;
   }
@@ -353,19 +354,21 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Depsgraph *depsgraph,
+                         const Scene *scene,
                          ViewLayer *view_layer,
                          View3D *v3d_local,
                          SceneStats *stats)
 {
-  const Object *ob = OBACT(view_layer);
-  const Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  const Object *ob = BKE_view_layer_active_object_get(view_layer);
+  const Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   memset(stats, 0x0, sizeof(*stats));
 
   if (obedit) {
     /* Edit Mode. */
-    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+    FOREACH_OBJECT_BEGIN (scene, view_layer, ob_iter) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_EDIT) {
           stats_object_edit(ob_iter, stats);
           stats->totobjsel++;
@@ -373,7 +376,7 @@ static void stats_update(Depsgraph *depsgraph,
         else {
           /* Skip hidden objects in local view that are not in edit-mode,
            * an exception for edit-mode, in most other modes these would be considered hidden. */
-          if ((v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter))) {
+          if (v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter)) {
             continue;
           }
         }
@@ -384,15 +387,15 @@ static void stats_update(Depsgraph *depsgraph,
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode. */
-    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+    FOREACH_OBJECT_BEGIN (scene, view_layer, ob_iter) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_POSE) {
           stats_object_pose(ob_iter, stats);
           stats->totobjsel++;
         }
         else {
           /* See comment for edit-mode. */
-          if ((v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter))) {
+          if (v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter)) {
             continue;
           }
         }
@@ -408,10 +411,13 @@ static void stats_update(Depsgraph *depsgraph,
   else {
     /* Objects. */
     GSet *objects_gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob_iter) {
+    DEGObjectIterSettings deg_iter_settings{};
+    deg_iter_settings.depsgraph = depsgraph;
+    deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob_iter) {
       stats_object(ob_iter, v3d_local, stats, objects_gset);
     }
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+    DEG_OBJECT_ITER_END;
     BLI_gset_free(objects_gset, nullptr);
   }
 }
@@ -450,7 +456,7 @@ static bool format_stats(
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     *stats_p = (SceneStats *)MEM_mallocN(sizeof(SceneStats), __func__);
-    stats_update(depsgraph, view_layer, v3d_local, *stats_p);
+    stats_update(depsgraph, scene, view_layer, v3d_local, *stats_p);
   }
 
   SceneStats *stats = *stats_p;
@@ -489,13 +495,18 @@ static bool format_stats(
   return true;
 }
 
-static void get_stats_string(
-    char *info, int len, size_t *ofs, ViewLayer *view_layer, SceneStatsFmt *stats_fmt)
+static void get_stats_string(char *info,
+                             int len,
+                             size_t *ofs,
+                             const Scene *scene,
+                             ViewLayer *view_layer,
+                             SceneStatsFmt *stats_fmt)
 {
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
-  LayerCollection *layer_collection = view_layer->active_collection;
+  LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
 
   if (object_mode == OB_MODE_OBJECT) {
     *ofs += BLI_snprintf_rlen(info + *ofs,
@@ -599,7 +610,7 @@ static const char *info_statusbar_string(Main *bmain,
   if (statusbar_flag & STATUSBAR_SHOW_STATS) {
     SceneStatsFmt stats_fmt;
     if (format_stats(bmain, scene, view_layer, nullptr, &stats_fmt)) {
-      get_stats_string(info + ofs, len, &ofs, view_layer, &stats_fmt);
+      get_stats_string(info + ofs, len, &ofs, scene, view_layer, &stats_fmt);
     }
   }
 
@@ -614,7 +625,7 @@ static const char *info_statusbar_string(Main *bmain,
   }
 
   /* GPU VRAM status. */
-  if ((statusbar_flag & STATUSBAR_SHOW_VRAM) && (GPU_mem_stats_supported())) {
+  if ((statusbar_flag & STATUSBAR_SHOW_VRAM) && GPU_mem_stats_supported()) {
     int gpu_free_mem_kb, gpu_tot_mem_kb;
     GPU_mem_stats_get(&gpu_tot_mem_kb, &gpu_free_mem_kb);
     float gpu_total_gb = gpu_tot_mem_kb / 1048576.0f;
@@ -684,7 +695,8 @@ void ED_info_draw_stats(
     return;
   }
 
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_set_default();

@@ -7,111 +7,91 @@
 #pragma once
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline uint32_t nested_uniform_scramble(uint32_t x, uint32_t seed)
+ccl_device float pmj_sample_1D(KernelGlobals kg,
+                               uint sample,
+                               const uint rng_hash,
+                               const uint dimension)
 {
-  x = reverse_integer_bits(x);
-  x = laine_karras_permutation(x, seed);
-  x = reverse_integer_bits(x);
+  uint seed = rng_hash;
+
+  /* Use the same sample sequence seed for all pixels when using
+   * scrambling distance. */
+  if (kernel_data.integrator.scrambling_distance < 1.0f) {
+    seed = kernel_data.integrator.seed;
+  }
+
+  /* Shuffle the pattern order and sample index to better decorrelate
+   * dimensions and make the most of the finite patterns we have.
+   * The funky sample mask stuff is to ensure that we only shuffle
+   * *within* the current sample pattern, which is necessary to avoid
+   * early repeat pattern use. */
+  const uint pattern_i = hash_shuffle_uint(dimension, NUM_PMJ_PATTERNS, seed);
+  /* NUM_PMJ_SAMPLES should be a power of two, so this results in a mask. */
+  const uint sample_mask = NUM_PMJ_SAMPLES - 1;
+  const uint sample_shuffled = nested_uniform_scramble(sample,
+                                                       hash_wang_seeded_uint(dimension, seed));
+  sample = (sample & ~sample_mask) | (sample_shuffled & sample_mask);
+
+  /* Fetch the sample. */
+  const uint index = ((pattern_i * NUM_PMJ_SAMPLES) + sample) %
+                     (NUM_PMJ_SAMPLES * NUM_PMJ_PATTERNS);
+  float x = kernel_data_fetch(sample_pattern_lut, index * 2);
+
+  /* Do limited Cranley-Patterson rotation when using scrambling distance. */
+  if (kernel_data.integrator.scrambling_distance < 1.0f) {
+    const float jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
+                           kernel_data.integrator.scrambling_distance;
+    x += jitter_x;
+    x -= floorf(x);
+  }
 
   return x;
 }
 
-ccl_device float pmj_sample_1D(KernelGlobals kg, uint sample, uint rng_hash, uint dimension)
+ccl_device float2 pmj_sample_2D(KernelGlobals kg,
+                                uint sample,
+                                const uint rng_hash,
+                                const uint dimension)
 {
-  uint hash = rng_hash;
-  float jitter_x = 0.0f;
-  if (kernel_data.integrator.scrambling_distance < 1.0f) {
-    hash = kernel_data.integrator.seed;
+  uint seed = rng_hash;
 
-    jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
-               kernel_data.integrator.scrambling_distance;
+  /* Use the same sample sequence seed for all pixels when using
+   * scrambling distance. */
+  if (kernel_data.integrator.scrambling_distance < 1.0f) {
+    seed = kernel_data.integrator.seed;
   }
 
-  /* Perform Owen shuffle of the sample number to reorder the samples. */
-  const uint rv = hash_cmj_seeded_uint(dimension, hash);
-#ifdef _XOR_SHUFFLE_
-#  warning "Using XOR shuffle."
-  const uint s = sample ^ rv;
-#else /* Use _OWEN_SHUFFLE_ for reordering. */
-  const uint s = nested_uniform_scramble(sample, rv);
-#endif
+  /* Shuffle the pattern order and sample index to better decorrelate
+   * dimensions and make the most of the finite patterns we have.
+   * The funky sample mask stuff is to ensure that we only shuffle
+   * *within* the current sample pattern, which is necessary to avoid
+   * early repeat pattern use. */
+  const uint pattern_i = hash_shuffle_uint(dimension, NUM_PMJ_PATTERNS, seed);
+  /* NUM_PMJ_SAMPLES should be a power of two, so this results in a mask. */
+  const uint sample_mask = NUM_PMJ_SAMPLES - 1;
+  const uint sample_shuffled = nested_uniform_scramble(sample,
+                                                       hash_wang_seeded_uint(dimension, seed));
+  sample = (sample & ~sample_mask) | (sample_shuffled & sample_mask);
 
-  /* Based on the sample number a sample pattern is selected and offset by the dimension. */
-  const uint sample_set = s / NUM_PMJ_SAMPLES;
-  const uint d = (dimension + sample_set);
-  const uint dim = d % NUM_PMJ_PATTERNS;
+  /* Fetch the sample. */
+  const uint index = ((pattern_i * NUM_PMJ_SAMPLES) + sample) %
+                     (NUM_PMJ_SAMPLES * NUM_PMJ_PATTERNS);
+  float x = kernel_data_fetch(sample_pattern_lut, index * 2);
+  float y = kernel_data_fetch(sample_pattern_lut, index * 2 + 1);
 
-  /* The PMJ sample sets contain a sample with (x,y) with NUM_PMJ_SAMPLES so for 1D
-   *  the x part is used for even dims and the y for odd. */
-  int index = 2 * ((dim >> 1) * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES)) + (dim & 1);
-
-  float fx = kernel_data_fetch(sample_pattern_lut, index);
-
-#ifndef _NO_CRANLEY_PATTERSON_ROTATION_
-  /* Use Cranley-Patterson rotation to displace the sample pattern. */
-  float dx = hash_cmj_seeded_float(d, hash);
-  /* Jitter sample locations and map back into [0 1]. */
-  fx = fx + dx + jitter_x;
-  fx = fx - floorf(fx);
-#else
-#  warning "Not using Cranley-Patterson Rotation."
-#endif
-
-  return fx;
-}
-
-ccl_device void pmj_sample_2D(KernelGlobals kg,
-                              uint sample,
-                              uint rng_hash,
-                              uint dimension,
-                              ccl_private float *x,
-                              ccl_private float *y)
-{
-  uint hash = rng_hash;
-  float jitter_x = 0.0f;
-  float jitter_y = 0.0f;
+  /* Do limited Cranley-Patterson rotation when using scrambling distance. */
   if (kernel_data.integrator.scrambling_distance < 1.0f) {
-    hash = kernel_data.integrator.seed;
-
-    jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
-               kernel_data.integrator.scrambling_distance;
-    jitter_y = hash_wang_seeded_float(dimension + 1, rng_hash) *
-               kernel_data.integrator.scrambling_distance;
+    const float jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
+                           kernel_data.integrator.scrambling_distance;
+    const float jitter_y = hash_wang_seeded_float(dimension, rng_hash ^ 0xca0e1151) *
+                           kernel_data.integrator.scrambling_distance;
+    x += jitter_x;
+    y += jitter_y;
+    x -= floorf(x);
+    y -= floorf(y);
   }
 
-  /* Perform a shuffle on the sample number to reorder the samples. */
-  const uint rv = hash_cmj_seeded_uint(dimension, hash);
-#ifdef _XOR_SHUFFLE_
-#  warning "Using XOR shuffle."
-  const uint s = sample ^ rv;
-#else /* Use _OWEN_SHUFFLE_ for reordering. */
-  const uint s = nested_uniform_scramble(sample, rv);
-#endif
-
-  /* Based on the sample number a sample pattern is selected and offset by the dimension. */
-  const uint sample_set = s / NUM_PMJ_SAMPLES;
-  const uint d = dimension + sample_set;
-  uint dim = d % NUM_PMJ_PATTERNS;
-  int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
-
-  float fx = kernel_data_fetch(sample_pattern_lut, index);
-  float fy = kernel_data_fetch(sample_pattern_lut, index + 1);
-
-#ifndef _NO_CRANLEY_PATTERSON_ROTATION_
-  /* Use Cranley-Patterson rotation to displace the sample pattern. */
-  float dx = hash_cmj_seeded_float(d, hash);
-  float dy = hash_cmj_seeded_float(d + 1, hash);
-  /* Jitter sample locations and map back to the unit square [0 1]x[0 1]. */
-  float sx = fx + dx + jitter_x;
-  float sy = fy + dy + jitter_y;
-  sx = sx - floorf(sx);
-  sy = sy - floorf(sy);
-#else
-#  warning "Not using Cranley Patterson Rotation."
-#endif
-
-  (*x) = sx;
-  (*y) = sy;
+  return make_float2(x, y);
 }
 
 CCL_NAMESPACE_END

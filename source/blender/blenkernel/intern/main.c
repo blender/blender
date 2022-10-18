@@ -29,11 +29,12 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-Main *BKE_main_new(void)
+Main *BKE_main_new()
 {
   Main *bmain = MEM_callocN(sizeof(Main), "new main");
   bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");
   BLI_spin_init((SpinLock *)bmain->lock);
+  bmain->is_global_main = false;
   return bmain;
 }
 

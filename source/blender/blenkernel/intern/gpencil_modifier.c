@@ -677,7 +677,7 @@ static void copy_frame_to_eval_cb(bGPDlayer *gpl,
    * - When the frame is the layer's active frame (already handled in
    * gpencil_copy_visible_frames_to_eval).
    */
-  if (gpf == NULL || gpf == gpl->actframe) {
+  if (ELEM(gpf, NULL, gpl->actframe)) {
     return;
   }
 
@@ -695,7 +695,7 @@ static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *sce
       gpl_eval->actframe = BKE_gpencil_layer_frame_get(gpl_eval, remap_cfra, GP_GETFRAME_USE_PREV);
     }
     /* Always copy active frame to eval, because the modifiers always evaluate the active frame,
-     * even if it's not visible (e.g. the layer is hidden).*/
+     * even if it's not visible (e.g. the layer is hidden). */
     if (gpl_eval->actframe != NULL) {
       copy_frame_to_eval_ex(gpl_eval->actframe->runtime.gpf_orig, gpl_eval->actframe);
     }
@@ -720,7 +720,14 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
       do_parent = true;
       break;
     }
-    if ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) || (!is_one_v3(gpl->scale))) {
+
+    /* Only do layer transformations for non-zero or animated transforms. */
+    bool transformed = (!is_zero_v3(gpl->location) || !is_zero_v3(gpl->rotation) ||
+                        !is_one_v3(gpl->scale));
+    float tmp_mat[4][4];
+    loc_eul_size_to_mat4(tmp_mat, gpl->location, gpl->rotation, gpl->scale);
+    transformed |= !equals_m4m4(gpl->layer_mat, tmp_mat);
+    if (transformed) {
       do_transform = true;
       break;
     }
@@ -745,7 +752,7 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_orig);
   const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
                                    (ob_orig->greasepencil_modifiers.first != NULL) &&
-                                   (!GPENCIL_SIMPLIFY_MODIF(scene)));
+                                   !GPENCIL_SIMPLIFY_MODIF(scene));
   if ((!do_modifiers) && (!do_parent) && (!do_transform)) {
     BLI_assert(ob->data != NULL);
     return;
@@ -775,7 +782,7 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   const bool is_multiedit = (bool)(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !is_render);
   const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
                                    (ob->greasepencil_modifiers.first != NULL) &&
-                                   (!GPENCIL_SIMPLIFY_MODIF(scene)));
+                                   !GPENCIL_SIMPLIFY_MODIF(scene));
   if (!do_modifiers) {
     return;
   }
@@ -897,6 +904,11 @@ void BKE_gpencil_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
       BLO_write_struct_array(
           writer, DashGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
     }
+    else if (md->type == eGpencilModifierType_Time) {
+      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
+      BLO_write_struct_array(
+          writer, TimeGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
+    }
   }
 }
 
@@ -981,6 +993,13 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->segments);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].dmd = gpmd;
+      }
+    }
+    else if (md->type == eGpencilModifierType_Time) {
+      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
+      BLO_read_data_address(reader, &gpmd->segments);
+      for (int i = 0; i < gpmd->segments_len; i++) {
+        gpmd->segments[i].gpmd = gpmd;
       }
     }
     if (md->type == eGpencilModifierType_Shrinkwrap) {

@@ -66,6 +66,11 @@ Domain Operation::compute_domain()
       continue;
     }
 
+    /* An input that skips realization can't be a domain input. */
+    if (descriptor.skip_realization) {
+      continue;
+    }
+
     /* Notice that the lower the domain priority value is, the higher the priority is, hence the
      * less than comparison. */
     if (descriptor.domain_priority < current_domain_priority) {
@@ -83,7 +88,7 @@ void Operation::add_and_evaluate_input_processors()
    * because the construction of the input processors may depend on the result of previous input
    * processors for all inputs. For instance, the realize on domain input processor considers the
    * value of all inputs, so previous input processors for all inputs needs to be added and
-   * evaluated first.  */
+   * evaluated first. */
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *single_value = ReduceToSingleValueOperation::construct_if_needed(

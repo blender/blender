@@ -5,6 +5,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_mesh.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_uv_pack_islands_cc {
@@ -35,8 +37,12 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const float margin,
                                            const eAttrDomain domain)
 {
+  const Span<MVert> verts = mesh.verts();
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
+
   bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
-  FieldEvaluator face_evaluator{face_context, mesh.totpoly};
+  FieldEvaluator face_evaluator{face_context, polys.size()};
   face_evaluator.add(selection_field);
   face_evaluator.evaluate();
   const IndexMask selection = face_evaluator.get_evaluated_as_mask(0);
@@ -50,14 +56,9 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());
   evaluator.evaluate();
 
-  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
-  const Span<MEdge> edges(mesh.medge, mesh.totedge);
-  const Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
-  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
-
   ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
   for (const int mp_index : selection) {
-    const MPoly &mp = polygons[mp_index];
+    const MPoly &mp = polys[mp_index];
     Array<ParamKey, 16> mp_vkeys(mp.totloop);
     Array<bool, 16> mp_pin(mp.totloop);
     Array<bool, 16> mp_select(mp.totloop);
@@ -66,7 +67,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     for (const int i : IndexRange(mp.totloop)) {
       const MLoop &ml = loops[mp.loopstart + i];
       mp_vkeys[i] = ml.v;
-      mp_co[i] = vertices[ml.v].co;
+      mp_co[i] = verts[ml.v].co;
       mp_uv[i] = uv[mp.loopstart + i];
       mp_pin[i] = false;
       mp_select[i] = false;
@@ -86,7 +87,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
 
-  return bke::mesh_attributes(mesh).adapt_domain<float3>(
+  return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);
 }
 
@@ -113,9 +114,14 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     return construct_uv_gvarray(mesh, selection_field, uv_field, rotate, margin, domain);
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_CORNER;
   }
 };
 

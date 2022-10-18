@@ -61,7 +61,7 @@ static CLG_LogRef LOG = {"bke.blendfile_link_append"};
 typedef struct BlendfileLinkAppendContextItem {
   /** Name of the ID (without the heading two-chars IDcode). */
   char *name;
-  /** All libs (from BlendfileLinkAppendContext.libraries) to try to load this ID from. */
+  /** All libraries (from #BlendfileLinkAppendContext.libraries) to try to load this ID from. */
   BLI_bitmap *libraries;
   /** ID type. */
   short idcode;
@@ -493,6 +493,7 @@ static void loose_data_instantiate_ensure_active_collection(
 static void loose_data_instantiate_object_base_instance_init(Main *bmain,
                                                              Collection *collection,
                                                              Object *ob,
+                                                             const Scene *scene,
                                                              ViewLayer *view_layer,
                                                              const View3D *v3d,
                                                              const int flag,
@@ -506,7 +507,7 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
   }
 
   BKE_collection_object_add(bmain, collection, ob);
-
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (v3d != NULL) {
@@ -686,8 +687,14 @@ static void loose_data_instantiate_collection_process(
       /* TODO: why is it OK to make this active here but not in other situations?
        * See other callers of #object_base_instance_init */
       const bool set_active = set_selected;
-      loose_data_instantiate_object_base_instance_init(
-          bmain, active_collection, ob, view_layer, v3d, lapp_context->params->flag, set_active);
+      loose_data_instantiate_object_base_instance_init(bmain,
+                                                       active_collection,
+                                                       ob,
+                                                       scene,
+                                                       view_layer,
+                                                       v3d,
+                                                       lapp_context->params->flag,
+                                                       set_active);
 
       /* Assign the collection. */
       ob->instance_collection = collection;
@@ -698,6 +705,7 @@ static void loose_data_instantiate_collection_process(
     else {
       /* Add collection as child of active collection. */
       BKE_collection_child_add(bmain, active_collection, collection);
+      BKE_view_layer_synced_ensure(scene, view_layer);
 
       if ((lapp_context->params->flag & FILE_AUTOSELECT) != 0) {
         LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
@@ -717,6 +725,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
 {
   BlendfileLinkAppendContext *lapp_context = instantiate_context->lapp_context;
   Main *bmain = lapp_context->params->bmain;
+  const Scene *scene = lapp_context->params->context.scene;
   ViewLayer *view_layer = lapp_context->params->context.view_layer;
   const View3D *v3d = lapp_context->params->context.v3d;
 
@@ -762,6 +771,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
     loose_data_instantiate_object_base_instance_init(bmain,
                                                      active_collection,
                                                      ob,
+                                                     scene,
                                                      view_layer,
                                                      v3d,
                                                      lapp_context->params->flag,
@@ -809,6 +819,7 @@ static void loose_data_instantiate_obdata_process(LooseDataInstantiateContext *i
     loose_data_instantiate_object_base_instance_init(bmain,
                                                      active_collection,
                                                      ob,
+                                                     scene,
                                                      view_layer,
                                                      v3d,
                                                      lapp_context->params->flag,
@@ -1247,7 +1258,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     }
 
     /* For each lib file, we try to link all items belonging to that lib,
-     * and tag those successful to not try to load them again with the other libs. */
+     * and tag those successful to not try to load them again with the other libraries. */
     for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
          item_idx++, itemlink = itemlink->next) {
       BlendfileLinkAppendContextItem *item = itemlink->link;
@@ -1261,7 +1272,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
           mainl, &blo_handle, item->idcode, item->name, lapp_context->params);
 
       if (new_id) {
-        /* If the link is successful, clear item's libs 'todo' flags.
+        /* If the link is successful, clear item's libraries 'todo' flags.
          * This avoids trying to link same item with other libraries to come. */
         BLI_bitmap_set_all(item->libraries, false, lapp_context->num_libraries);
         item->new_id = new_id;

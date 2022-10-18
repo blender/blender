@@ -22,6 +22,7 @@
 
 #  include "BLT_translation.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "MEM_guardedalloc.h"
@@ -180,21 +181,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
   RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-    const char *main_blendfile_path = BKE_main_blendfile_path(bmain);
-
-    if (main_blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, main_blendfile_path, sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".usd");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".usdc");
 
   WM_event_add_fileselect(C, op);
 
@@ -214,7 +201,7 @@ static char *usd_ensure_prim_path(char *primpath)
 
 static int wm_usd_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -564,6 +551,19 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
 }
 
+static void free_operator_customdata(wmOperator *op)
+{
+  if (op->customdata) {
+    MEM_freeN(op->customdata);
+    op->customdata = NULL;
+  }
+}
+
+static void wm_usd_export_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+  free_operator_customdata(op);
+}
+
 static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -588,6 +588,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
+  ot->cancel = wm_usd_export_cancel;
   ot->check = wm_usd_export_check;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_PRESET; /* No UNDO possible. */
@@ -1024,7 +1025,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -1070,7 +1071,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
 
-  char *prim_path_mask = malloc(1024);
+  char prim_path_mask[1024];
   RNA_string_get(op->ptr, "prim_path_mask", prim_path_mask);
 
   const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
@@ -1148,9 +1149,16 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .attr_import_mode = attr_import_mode,
                                    .import_shapes = import_shapes};
 
+  STRNCPY(params.prim_path_mask, prim_path_mask);
+
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+static void wm_usd_import_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+  free_operator_customdata(op);
 }
 
 static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
@@ -1223,8 +1231,10 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   ot->invoke = wm_usd_import_invoke;
   ot->exec = wm_usd_import_exec;
+  ot->cancel = wm_usd_import_cancel;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
@@ -1233,7 +1243,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_float(
       ot->srna,

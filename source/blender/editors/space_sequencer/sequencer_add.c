@@ -201,7 +201,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
-    if ((ELEM(type, -1, seq->type)) && (strip_end < timeline_frame) &&
+    if (ELEM(type, -1, seq->type) && (strip_end < timeline_frame) &&
         (timeline_frame - strip_end < proximity)) {
       tgt = seq;
       proximity = timeline_frame - strip_end;
@@ -274,7 +274,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
         BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
-        BLI_join_dirfile(load_data->path, sizeof(load_data->path), directory, filename);
+        BLI_path_join(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
         break;
       }
@@ -399,7 +399,7 @@ static bool seq_effect_add_properties_poll(const bContext *UNUSED(C),
       return false;
     }
   }
-  if ((type != SEQ_TYPE_COLOR) && (STREQ(prop_id, "color"))) {
+  if ((type != SEQ_TYPE_COLOR) && STREQ(prop_id, "color")) {
     return false;
   }
 
@@ -564,7 +564,7 @@ static const EnumPropertyItem *strip_new_sequencer_enum_itemf(bContext *C,
   else {
     Scene *scene = CTX_data_scene(C);
     Sequence *seq = SEQ_select_active_get(scene);
-    if ((seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL))) {
+    if (seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL)) {
       has_scene_or_no_context = true;
     }
   }
@@ -747,7 +747,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  return !(STR_ELEM(prop_id, "filepath", "directory", "filename"));
+  return !STR_ELEM(prop_id, "filepath", "directory", "filename");
 }
 
 /* Strips are added in context of timeline which has different preview size than actual preview. We
@@ -834,7 +834,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     char file_only[FILE_MAX];
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
-    BLI_join_dirfile(load_data->path, sizeof(load_data->path), dir_only, file_only);
+    BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq_movie = NULL;
     Sequence *seq_sound = NULL;
@@ -1082,7 +1082,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     char file_only[FILE_MAX];
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
-    BLI_join_dirfile(load_data->path, sizeof(load_data->path), dir_only, file_only);
+    BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
     if (seq == NULL) {

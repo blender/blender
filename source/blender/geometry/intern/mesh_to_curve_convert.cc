@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -12,23 +13,11 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_mesh.h"
 
 #include "GEO_mesh_to_curve.hh"
 
 namespace blender::geometry {
-
-template<typename T>
-static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> dst)
-{
-  devirtualize_varray(src, [&](const auto &src) {
-    threading::parallel_for(map.index_range(), 1024, [&](const IndexRange range) {
-      for (const int i : range) {
-        const int vert_index = map[i];
-        dst[i] = src[vert_index];
-      }
-    });
-  });
-}
 
 bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
                                                    const Span<int> vert_indices,
@@ -43,7 +32,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
   curves.cyclic_for_write().fill(false);
   curves.cyclic_for_write().slice(cyclic_curves).fill(true);
 
-  const bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(mesh);
+  const bke::AttributeAccessor mesh_attributes = mesh.attributes();
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();
@@ -70,7 +59,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
       using T = decltype(dummy);
       bke::SpanAttributeWriter<T> attribute =
           curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
-      copy_with_map<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
+      array_utils::gather<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
       attribute.finish();
     });
   }
@@ -213,8 +202,9 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
 static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const IndexMask selection)
 {
   Vector<std::pair<int, int>> selected_edges;
+  const Span<MEdge> edges = mesh.edges();
   for (const int i : selection) {
-    selected_edges.append({mesh.medge[i].v1, mesh.medge[i].v2});
+    selected_edges.append({edges[i].v1, edges[i].v2});
   }
   return selected_edges;
 }
@@ -222,8 +212,8 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
 bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh, const IndexMask selection)
 {
   Vector<std::pair<int, int>> selected_edges = get_selected_edges(mesh, selection);
-  CurveFromEdgesOutput output = edges_to_curve_point_indices({mesh.mvert, mesh.totvert},
-                                                             selected_edges);
+  const Span<MVert> verts = mesh.verts();
+  CurveFromEdgesOutput output = edges_to_curve_point_indices(verts, selected_edges);
 
   return create_curve_from_vert_indices(
       mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves);

@@ -156,7 +156,7 @@ struct USDImportParams {
   bool import_blendshapes;
   bool import_volumes;
   bool import_skeletons;
-  char *prim_path_mask;
+  char prim_path_mask[1024];
   bool import_subdiv;
   bool import_instance_proxies;
   bool create_collection;

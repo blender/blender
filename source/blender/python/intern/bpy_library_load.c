@@ -108,7 +108,7 @@ static PyTypeObject bpy_lib_Type = {
     NULL, /* ternaryfunc tp_call; */
     NULL, /* reprfunc tp_str; */
 
-    /* will only use these if this is a subtype of a py class */
+    /* Will only use these if this is a sub-type of a Python class. */
     PyObject_GenericGetAttr, /* getattrofunc tp_getattro; */
     NULL,                    /* setattrofunc tp_setattro; */
 

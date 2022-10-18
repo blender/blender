@@ -240,7 +240,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
           float cone_angle = 0.0f;
           if (cone_angle_attr.Get(&cone_angle, motionSampleTime)) {
-            float spot_size = cone_angle * ((float)M_PI / 180.0f) * 2.0f;
+            float spot_size = cone_angle * (float(M_PI) / 180.0f) * 2.0f;
 
             if (spot_size <= M_PI) {
               blight->spotsize = spot_size;
@@ -273,7 +273,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         float angle;
         if (get_authored_value(distant_light.GetAngleAttr(), motionSampleTime, &angle) ||
             prim_.GetAttribute(usdtokens::angle).Get(&angle, motionSampleTime)) {
-          blight->sun_angle = angle * (float)M_PI / 180.0f;
+          blight->sun_angle = angle * float(M_PI) / 180.0f;
         }
       }
       break;

@@ -115,8 +115,8 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
 static void cdDM_recalc_looptri(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  const unsigned int totpoly = dm->numPolyData;
-  const unsigned int totloop = dm->numLoopData;
+  const uint totpoly = dm->numPolyData;
+  const uint totloop = dm->numLoopData;
 
   DM_ensure_looptri_data(dm);
   BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
@@ -198,7 +198,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
           DM_TYPE_CDDM,
           mesh->totvert,
           mesh->totedge,
-          0 /* mesh->totface */,
+          0 /* `mesh->totface` */,
           mesh->totloop,
           mesh->totpoly);
 
@@ -206,7 +206,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
    * but only if the original mesh had its deformed_only flag correctly set
    * (which isn't generally the case). */
   dm->deformedOnly = 1;
-  dm->cd_flag = mesh->cd_flag;
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);
@@ -214,7 +213,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
                    &dm->faceData,
                    cddata_masks.fmask | CD_MASK_ORIGINDEX,
                    alloctype,
-                   0 /* mesh->totface */);
+                   0 /* `mesh->totface` */);
   CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype, mesh->totloop);
   CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
 
@@ -243,44 +242,4 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
 DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
   return cdDM_from_mesh_ex(mesh, CD_REFERENCE, &CD_MASK_MESH);
-}
-
-DerivedMesh *CDDM_copy(DerivedMesh *source)
-{
-  CDDerivedMesh *cddm = cdDM_create("CDDM_copy cddm");
-  DerivedMesh *dm = &cddm->dm;
-  int numVerts = source->numVertData;
-  int numEdges = source->numEdgeData;
-  int numTessFaces = 0;
-  int numLoops = source->numLoopData;
-  int numPolys = source->numPolyData;
-
-  /* NOTE: Don't copy tessellation faces if not requested explicitly. */
-
-  /* ensure these are created if they are made on demand */
-  source->getVertDataArray(source, CD_ORIGINDEX);
-  source->getEdgeDataArray(source, CD_ORIGINDEX);
-  source->getPolyDataArray(source, CD_ORIGINDEX);
-
-  /* this initializes dm, and copies all non mvert/medge/mface layers */
-  DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces, numLoops, numPolys);
-  dm->deformedOnly = source->deformedOnly;
-  dm->cd_flag = source->cd_flag;
-
-  CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
-  CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);
-
-  /* now add mvert/medge/mface layers */
-  cddm->mvert = source->dupVertArray(source);
-  cddm->medge = source->dupEdgeArray(source);
-
-  CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, cddm->mvert, numVerts);
-  CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
-
-  DM_DupPolys(source, dm);
-
-  cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
-  cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
-
-  return dm;
 }

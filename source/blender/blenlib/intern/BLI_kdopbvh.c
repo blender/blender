@@ -58,7 +58,7 @@
 /** \name Struct Definitions
  * \{ */
 
-typedef unsigned char axis_t;
+typedef uchar axis_t;
 
 typedef struct BVHNode {
   struct BVHNode **children;
@@ -386,12 +386,12 @@ static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int e
     /* for all Axes. */
     for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
       newmin = node_bv[(2 * axis_iter)];
-      if ((newmin < bv[(2 * axis_iter)])) {
+      if (newmin < bv[(2 * axis_iter)]) {
         bv[(2 * axis_iter)] = newmin;
       }
 
       newmax = node_bv[(2 * axis_iter) + 1];
-      if ((newmax > bv[(2 * axis_iter) + 1])) {
+      if (newmax > bv[(2 * axis_iter) + 1]) {
         bv[(2 * axis_iter) + 1] = newmax;
       }
     }
@@ -1385,7 +1385,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 
 static bool tree_intersect_plane_test(const float *bv, const float plane[4])
 {
-  /* TODO(germano): Support other KDOP geometries. */
+  /* TODO(@germano): Support other KDOP geometries. */
   const float bb_min[3] = {bv[0], bv[2], bv[4]};
   const float bb_max[3] = {bv[1], bv[3], bv[5]};
   float bb_near[3], bb_far[3];

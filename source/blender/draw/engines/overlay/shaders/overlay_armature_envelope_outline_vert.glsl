@@ -137,7 +137,7 @@ void main()
   vec2 ofs_dir = compute_dir(ss0, ss1, ss2);
 
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += ofs_dir * drw_view.viewport_size_inverse * gl_Position.w;
+  gl_Position.xy += ofs_dir * sizeViewportInv * gl_Position.w;
 
   edgeStart = edgePos = proj(gl_Position);
 

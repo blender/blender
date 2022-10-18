@@ -39,7 +39,7 @@ class AssetLibraryServiceTest : public testing::Test {
     if (test_files_dir.empty()) {
       FAIL();
     }
-    asset_library_root_ = test_files_dir + "/" + "asset_library";
+    asset_library_root_ = test_files_dir + SEP_STR + "asset_library";
     temp_library_path_ = "";
   }
 
@@ -59,7 +59,7 @@ class AssetLibraryServiceTest : public testing::Test {
   {
     BKE_tempdir_init("");
     const CatalogFilePath tempdir = BKE_tempdir_session();
-    temp_library_path_ = tempdir + "test-temporary-path/";
+    temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
     return temp_library_path_;
   }
 
@@ -168,7 +168,8 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
 TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
 {
   const CatalogFilePath writable_dir = create_temp_path(); /* Has trailing slash. */
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
   CatalogFilePath writable_cdf_file = writable_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   BLI_path_slash_native(writable_cdf_file.data());
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));

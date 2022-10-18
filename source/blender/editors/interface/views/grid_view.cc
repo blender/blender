@@ -237,7 +237,7 @@ IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
 
   const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
   if (!IS_EQF(scroll_ofs_y, 0)) {
-    const int scrolled_away_rows = (int)scroll_ofs_y / style_.tile_height;
+    const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
 
     first_idx_in_view = scrolled_away_rows * cols_per_row_;
   }
@@ -263,7 +263,7 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) c
     return;
   }
 
-  const int scrolled_away_rows = (int)scroll_ofs_y / style_.tile_height;
+  const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
   add_spacer_button(block, scrolled_away_rows);
 }
 
