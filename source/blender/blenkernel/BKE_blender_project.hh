@@ -170,7 +170,7 @@ class ProjectSettings {
    * Both Unix and Windows style slashes are allowed. Path is expected to be normalized.
    *
    * \return True on success. If the .blender_project directory doesn't exist, that's treated
-   * as failure.
+   *         as failure.
    */
   auto save_to_disk(StringRef project_path) -> bool;
 

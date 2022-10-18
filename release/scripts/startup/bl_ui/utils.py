@@ -73,4 +73,3 @@ class CenterAlignMixIn:
 
         if is_wide:
             row.label()  # Needed so col above is centered.
-

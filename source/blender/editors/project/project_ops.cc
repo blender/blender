@@ -180,12 +180,6 @@ static void PROJECT_OT_delete_setup(wmOperatorType *ot)
 static int custom_asset_library_add_exec(bContext *UNUSED(C), wmOperator *op)
 {
   BlenderProject *project = CTX_wm_project();
-  if (!project) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Couldn't create project asset library, there is no active project");
-    return OPERATOR_CANCELLED;
-  }
 
   char path[FILE_MAXDIR];
   char dirname[FILE_MAXFILE];
@@ -230,6 +224,7 @@ static void PROJECT_OT_custom_asset_library_add(wmOperatorType *ot)
 
   ot->exec = custom_asset_library_add_exec;
   ot->invoke = custom_asset_library_add_invoke;
+  ot->poll = has_active_project_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 
@@ -253,13 +248,6 @@ static int custom_asset_library_remove_exec(bContext *UNUSED(C), wmOperator *op)
   const int index = RNA_int_get(op->ptr, "index");
 
   BlenderProject *project = CTX_wm_project();
-  if (!project) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Couldn't remove project asset library, there is no active project");
-    return OPERATOR_CANCELLED;
-  }
-
   ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
   CustomAssetLibraryDefinition *library = BKE_asset_library_custom_find_from_index(asset_libraries,
                                                                                    index);
@@ -282,6 +270,7 @@ static void PROJECT_OT_custom_asset_library_remove(wmOperatorType *ot)
       "anymore";
 
   ot->exec = custom_asset_library_remove_exec;
+  ot->poll = has_active_project_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 
