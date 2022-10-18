@@ -258,30 +258,19 @@ void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *
   BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
 }
 
-static bool rna_CustomAssetLibraryDefinition_is_from_prefs(
-    const CustomAssetLibraryDefinition *library)
-{
-  return BLI_findindex(&U.asset_libraries, library) > -1;
-}
-
 static void rna_CustomAssetLibraryDefinition_name_set(PointerRNA *ptr, const char *value)
 {
   CustomAssetLibraryDefinition *library = (CustomAssetLibraryDefinition *)ptr->data;
-  if (!rna_CustomAssetLibraryDefinition_is_from_prefs(library)) {
-    BLI_assert_unreachable();
-    return;
-  }
 
-  BKE_asset_library_custom_name_set(&U.asset_libraries, library, value);
+  /* We can't cleanly access the owning listbase here, but reconstructing the list from the link is
+   * fine. */
+  ListBase asset_libraries = BLI_listbase_from_link((Link *)library);
+  BKE_asset_library_custom_name_set(&asset_libraries, library, value);
 }
 
 static void rna_CustomAssetLibraryDefinition_path_set(PointerRNA *ptr, const char *value)
 {
   CustomAssetLibraryDefinition *library = (CustomAssetLibraryDefinition *)ptr->data;
-  if (!rna_CustomAssetLibraryDefinition_is_from_prefs(library)) {
-    BLI_assert_unreachable();
-    return;
-  }
 
   char dirpath[FILE_MAX];
   BLI_strncpy(dirpath, value, sizeof(dirpath));
