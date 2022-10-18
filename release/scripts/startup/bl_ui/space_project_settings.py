@@ -86,7 +86,7 @@ class PROJECTSETTINGS_MT_advanced_operations(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("wm.delete_project_setup")
+        layout.operator("project.delete_setup")
 
 
 class PROJECTSETTINGS_PT_save_project_settings(Panel):
