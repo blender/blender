@@ -590,7 +590,7 @@ void initTranslation(TransInfo *t)
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  copy_v2_v2(t->snap, t->snap_spatial);
+  copy_v2_v2(t->snap, t->snap_spatial_x);
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
