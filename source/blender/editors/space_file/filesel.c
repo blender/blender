@@ -436,11 +436,8 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 
       if (BLI_path_is_rel(custom_library->path)) {
         const char *project_root_path = BKE_project_root_path_get(project);
-        BLI_path_join(base_params->dir,
-                      sizeof(base_params->dir),
-                      project_root_path,
-                      custom_library->path,
-                      NULL);
+        BLI_path_join(
+            base_params->dir, sizeof(base_params->dir), project_root_path, custom_library->path);
       }
       else {
         BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));

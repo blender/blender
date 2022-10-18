@@ -162,7 +162,7 @@ void AssetList::setup()
         BLI_path_is_rel(custom_library->path)) {
       BlenderProject *project = CTX_wm_project();
       const char *project_root_path = BKE_project_root_path_get(project);
-      BLI_path_join(path, sizeof(path), project_root_path, custom_library->path, NULL);
+      BLI_path_join(path, sizeof(path), project_root_path, custom_library->path);
     }
     else {
       BLI_strncpy(path, custom_library->path, sizeof(path));
