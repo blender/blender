@@ -102,7 +102,6 @@ typedef enum eAssetLibraryType {
 /**
  * Information to identify an asset library. May be either one of the predefined types ("Current
  * File" builtin library), or a custom type as defined in the Preferences/Project.
- *
  */
 typedef struct AssetLibraryReference {
   /* If set to #ASSET_LIBRARY_CUSTOM_XXX, `custom_library_index` must be set to identify
@@ -117,6 +116,10 @@ typedef struct AssetLibraryReference {
   int custom_library_index;
 } AssetLibraryReference;
 
+/**
+ * Custom asset libraries can be registered in the preferences or project settings. This is the
+ * container to hold these settings.
+ */
 typedef struct CustomAssetLibraryDefinition {
   struct CustomAssetLibraryDefinition *next, *prev;
 
