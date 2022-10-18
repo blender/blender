@@ -53,7 +53,7 @@ set(SRC
   paint_image_proj.c
   paint_mask.c
   paint_ops.c
-  paint_stroke.c
+  paint_stroke.cc
   paint_utils.c
   paint_vertex.cc
   paint_vertex_color_ops.cc

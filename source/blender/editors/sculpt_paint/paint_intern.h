@@ -16,7 +16,16 @@
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
+namespace blender {
+template<typename Float, int axes> class BezierSpline;
+}
+
+using BezierSpline2f = blender::BezierSpline<float, 2>;
+using BezierSpline3f = blender::BezierSpline<float, 3>;
 extern "C" {
+#else
+typedef struct BezierSpline2f BezierSpline2f;
+typedef struct BezierSpline3f BezierSpline3f;
 #endif
 
 struct ARegion;
@@ -67,6 +76,14 @@ typedef struct PaintSample {
   float pressure;
 } PaintSample;
 
+typedef struct PaintStrokePoint {
+  float mouse_in[2], mouse_out[2];
+  float location[3];
+  float pressure, x_tilt, y_tilt;
+  bool pen_flip;
+  float size;
+} PaintStrokePoint;
+
 typedef struct PaintStroke {
   void *mode_data;
   void *stroke_cursor;
@@ -84,6 +101,15 @@ typedef struct PaintStroke {
   /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
    * to smooth the stroke */
   PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
+  PaintStrokePoint points[PAINT_MAX_INPUT_SAMPLES];
+
+  BezierSpline2f *spline;
+  BezierSpline3f *world_spline;
+
+  int num_points;
+  int cur_point;
+  int tot_points;
+
   int num_samples;
   int cur_sample;
   int tot_samples;
@@ -623,6 +649,15 @@ void paint_delete_blur_kernel(BlurKernel *);
 bool paint_stroke_has_cubic(const PaintStroke *stroke);
 float bezier3_arclength_v2(const float control[4][2]);
 float bezier3_arclength_v3(const float control[4][3]);
+void evaluate_cubic_bezier(const float control[4][3], float t, float r_pos[3], float r_tangent[3]);
+
+void paint_project_spline(struct bContext *C,
+                          struct StrokeCache *cache,
+                          struct PaintStroke *stroke);
+;
+void paint_calc_cubic_uv_v3(
+    PaintStroke *stroke, struct StrokeCache *cache, const float co[3], float r_out[3], float r_tan[3]);
+float paint_stroke_spline_length(PaintStroke *stroke);
 
 #ifdef __cplusplus
 }

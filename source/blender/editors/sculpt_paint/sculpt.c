@@ -1278,6 +1278,10 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
                                                                int v1,
                                                                int v2)
 {
+  if (!ss->face_sets) {
+    return true;
+  }
+
   const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
@@ -3770,10 +3774,7 @@ float bezier3_arclength_v2(const float control[4][2])
 
 /* Evaluate bezier position and tangent at a specific parameter value
  * using the De Casteljau algorithm. */
-static void evaluate_cubic_bezier(const float control[4][3],
-                                  float t,
-                                  float r_pos[3],
-                                  float r_tangent[3])
+void evaluate_cubic_bezier(const float control[4][3], float t, float r_pos[3], float r_tangent[3])
 {
   float layer1[3][3];
   interp_v3_v3v3(layer1[0], control[0], control[1], t);
@@ -4126,49 +4127,31 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       float point_3d[3];
       point_3d[2] = 0.0f;
 
-      calc_cubic_uv_v3(ss->cache->world_cubic, SCULPT_vertex_co_get(ss, vertex), point_3d);
+      // calc_cubic_uv_v3(ss->cache->world_cubic, SCULPT_vertex_co_get(ss, vertex), point_3d);
+      float tan[3], curv[3];
 
-      float eps = 0.001;
-      if (point_3d[0] < eps || point_3d[0] >= 1.0f - eps) {
-        return 0.0f;
-      }
+      paint_calc_cubic_uv_v3(
+          ss->cache->stroke, ss->cache, SCULPT_vertex_co_get(ss, vertex), point_3d, tan);
 
-      if (point_3d[1] >= ss->cache->radius) {
-        // return 0.0f;
-      }
+      point_3d[1] = (ss->cache->radius + point_3d[1]) * 0.5f;
 
-      float pos[3], tan[3];
-      evaluate_cubic_bezier(ss->cache->world_cubic, point_3d[0], pos, tan);
-
-      float vec[3], vec2[3];
-
-      normalize_v3(tan);
-      sub_v3_v3v3(vec, SCULPT_vertex_co_get(ss, vertex), pos);
-      normalize_v3(vec);
-
-      cross_v3_v3v3(vec2, vec, tan);
-
-      if (dot_v3v3(vec2, ss->cache->view_normal) < 0.0) {
-        point_3d[1] = (ss->cache->radius + point_3d[1]) * 0.5f;
-      }
-      else {
-        point_3d[1] = (ss->cache->radius - point_3d[1]) * 0.5f;
-      }
-
+      /* Calc global distance. */
       float t1 = ss->cache->last_stroke_distance_t;
-      float t2 = point_3d[0] * ss->cache->world_cubic_arclength / ss->cache->radius;
+      float t2 = point_3d[0] / ss->cache->radius;
 
       point_3d[0] = t1 + t2;
       point_3d[0] *= ss->cache->radius;
 
 #if 0
-      float color[4] = {point_3d[0], point_3d[0], point_3d[0], 1.0f};
-      mul_v3_fl(color, 0.25f / ss->cache->radius);
-      color[0] -= floorf(color[0]);
-      color[1] -= floorf(color[1]);
-      color[2] -= floorf(color[2]);
+      if (SCULPT_has_colors(ss)) {
+        float color[4] = {point_3d[0], point_3d[1], 0.0f, 1.0f};
+        mul_v3_fl(color, 0.25f / ss->cache->radius);
+        color[0] -= floorf(color[0]);
+        color[1] -= floorf(color[1]);
+        color[2] -= floorf(color[2]);
 
-      SCULPT_vertex_color_set(ss, vertex, color);
+        SCULPT_vertex_color_set(ss, vertex, color);
+      }
 
 // avg = 0.0f;
 #endif
@@ -7378,6 +7361,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   if (cache->has_cubic) {
     float mouse_cubic[4][2];
 
+    // paint_project_spline(C, cache,
     RNA_float_get_array(ptr, "mouse_cubic", (float *)mouse_cubic);
 
     // printf("\n");
@@ -7407,7 +7391,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 #endif
     }
 
-    cache->world_cubic_arclength = bezier3_arclength_v3(cache->world_cubic);
+    cache->world_cubic_arclength = paint_stroke_spline_length(cache->stroke);
     cache->mouse_cubic_arclength = bezier3_arclength_v3(cache->mouse_cubic);
   }
 }
@@ -8360,6 +8344,10 @@ static void sculpt_stroke_update_step(bContext *C,
   cache->stroke_distance = paint_stroke_distance_get(stroke);
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
+  if (stroke) {
+    paint_project_spline(C, ss->cache, stroke);
+  }
+
   if (itemptr) {
     sculpt_update_cache_variants(C, sd, ob, itemptr);
   }
@@ -9471,7 +9459,7 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
 
     mv->valence = tot;
   }
-  #if 0
+#if 0
   else {
 
     int tot = 0;
@@ -9485,7 +9473,7 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
       printf("%s: error: valence error!\n", __func__);
     }
   }
-  #endif
+#endif
 
   return mv->valence;
 }
