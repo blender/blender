@@ -160,7 +160,8 @@ void WM_file_tag_modified(void)
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
   return !wm->file_saved || ED_image_should_save_modified(bmain) ||
-         BKE_asset_library_has_any_unsaved_catalogs();
+         BKE_asset_library_has_any_unsaved_catalogs() ||
+         BKE_project_has_unsaved_changes(CTX_wm_project());
 }
 
 /** \} */
@@ -3576,6 +3577,7 @@ void wm_test_autorun_warning(bContext *C)
  * \{ */
 
 static char save_images_when_file_is_closed = true;
+static char save_project_settings_when_file_is_closed = true;
 
 static void wm_block_file_close_cancel(bContext *C, void *arg_block, void *UNUSED(arg_data))
 {
@@ -3616,6 +3618,12 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
     else {
       execute_callback = false;
     }
+  }
+
+  BlenderProject *project = CTX_wm_project();
+  if (project && BKE_project_has_unsaved_changes(project) &&
+      save_project_settings_when_file_is_closed) {
+    BKE_project_settings_save(project);
   }
 
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
@@ -3749,6 +3757,30 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
                  0,
                  UI_UNIT_Y,
                  &save_images_when_file_is_closed,
+                 0,
+                 0,
+                 0,
+                 0,
+                 "");
+    has_extra_checkboxes = true;
+  }
+
+  if (BKE_project_has_unsaved_changes(CTX_wm_project())) {
+    /* Only the first checkbox should get extra separation. */
+    if (!has_extra_checkboxes) {
+      uiItemS(layout);
+    }
+
+    uiDefButBitC(block,
+                 UI_BTYPE_CHECKBOX,
+                 1,
+                 0,
+                 "Save modified project settings",
+                 0,
+                 0,
+                 0,
+                 UI_UNIT_Y,
+                 &save_project_settings_when_file_is_closed,
                  0,
                  0,
                  0,

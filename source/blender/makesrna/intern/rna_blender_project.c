@@ -104,10 +104,6 @@ static void rna_BlenderProject_asset_libraries_begin(CollectionPropertyIterator 
 static bool rna_BlenderProject_is_dirty_get(PointerRNA *ptr)
 {
   const BlenderProject *project = ptr->data;
-  if (!project) {
-    return false;
-  }
-
   return BKE_project_has_unsaved_changes(project);
 }
 

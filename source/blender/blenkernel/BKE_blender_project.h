@@ -62,8 +62,13 @@ const char *BKE_project_name_get(const BlenderProject *project) ATTR_WARN_UNUSED
 ListBase *BKE_project_custom_asset_libraries_get(const BlenderProject *project)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void BKE_project_tag_has_unsaved_changes(const BlenderProject *project) ATTR_NONNULL();
-bool BKE_project_has_unsaved_changes(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+/**
+ * Check if the project is marked as having unsaved changes. For convenience this allows passing
+ * null as the project (returns false then), so a call like
+ * `BKE_project_has_unsaved_changes(CTX_wm_project())` can be done without having to null-check the
+ * project first.
+ */
+bool BKE_project_has_unsaved_changes(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT;
 
 #ifdef __cplusplus
 }

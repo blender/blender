@@ -298,6 +298,10 @@ void BKE_project_tag_has_unsaved_changes(const BlenderProject *project_handle)
 
 bool BKE_project_has_unsaved_changes(const BlenderProject *project_handle)
 {
+  if (!project_handle) {
+    return false;
+  }
+
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
   const bke::ProjectSettings &settings = project->get_settings();
