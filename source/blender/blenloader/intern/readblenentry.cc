@@ -138,11 +138,15 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
   BHead *bhead;
   int tot = 0;
 
+  const int sdna_nr_preview_image = DNA_struct_find_nr(fd->filesdna, "PreviewImage");
+
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == ENDB) {
       break;
     }
     if (bhead->code == ofblocktype) {
+      BHead *id_bhead = bhead;
+
       const char *name = blo_bhead_id_name(fd, bhead) + 2;
       AssetMetaData *asset_meta_data = blo_bhead_id_asset_data_address(fd, bhead);
 
@@ -164,6 +168,17 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
 
       STRNCPY(info->name, name);
       info->asset_data = asset_meta_data;
+
+      bool has_preview = false;
+      /* See if we can find a preview in the data of this ID. */
+      for (BHead *data_bhead = blo_bhead_next(fd, id_bhead); data_bhead->code == DATA;
+           data_bhead = blo_bhead_next(fd, data_bhead)) {
+        if (data_bhead->SDNAnr == sdna_nr_preview_image) {
+          has_preview = true;
+          break;
+        }
+      }
+      info->no_preview_found = !has_preview;
 
       BLI_linklist_prepend(&infos, info);
       tot++;

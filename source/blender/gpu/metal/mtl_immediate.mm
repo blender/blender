@@ -99,6 +99,9 @@ void MTLImmediate::end()
     MTLRenderPipelineStateDescriptor &desc = state_manager->get_pipeline_descriptor();
     const MTLShaderInterface *interface = active_mtl_shader->get_interface();
 
+    /* Reset vertex descriptor to default state. */
+    desc.reset_vertex_descriptor();
+
     desc.vertex_descriptor.num_attributes = interface->get_total_attributes();
     desc.vertex_descriptor.num_vert_buffers = 1;
 

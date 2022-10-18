@@ -555,7 +555,9 @@ typedef struct TransInfo {
   /** Snapping Gears. */
   float snap[2];
   /** Spatial snapping gears(even when rotating, scaling... etc). */
-  float snap_spatial[2];
+  float snap_spatial_x[2];
+  /** Spatial snapping in the Y coordinate, for non-uniform grid in UV Editor. */
+  float snap_spatial_y[2];
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 

@@ -15,6 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
@@ -36,6 +37,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_appdir.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
@@ -119,7 +121,7 @@ static void blo_update_defaults_screen(bScreen *screen,
 
     if (area->spacetype == SPACE_IMAGE) {
       if (STREQ(workspace_name, "UV Editing")) {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         if (sima->mode == SI_MODE_VIEW) {
           sima->mode = SI_MODE_UV;
         }
@@ -127,7 +129,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (area->spacetype == SPACE_ACTION) {
       /* Show markers region, hide channels and collapse summary in timelines. */
-      SpaceAction *saction = area->spacedata.first;
+      SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
       saction->flag |= SACTION_SHOW_MARKERS;
       if (saction->mode == SACTCONT_TIMELINE) {
         saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
@@ -148,15 +150,15 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
     }
     else if (area->spacetype == SPACE_GRAPH) {
-      SpaceGraph *sipo = area->spacedata.first;
+      SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
       sipo->flag |= SIPO_SHOW_MARKERS;
     }
     else if (area->spacetype == SPACE_NLA) {
-      SpaceNla *snla = area->spacedata.first;
+      SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
       snla->flag |= SNLA_SHOW_MARKERS;
     }
     else if (area->spacetype == SPACE_SEQ) {
-      SpaceSeq *seq = area->spacedata.first;
+      SpaceSeq *seq = static_cast<SpaceSeq *>(area->spacedata.first);
       seq->flag |= SEQ_SHOW_MARKERS | SEQ_ZOOM_TO_FIT | SEQ_USE_PROXIES | SEQ_SHOW_OVERLAY;
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
       seq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_NAME |
@@ -166,12 +168,12 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (area->spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */
-      SpaceText *stext = area->spacedata.first;
+      SpaceText *stext = static_cast<SpaceText *>(area->spacedata.first);
       stext->showsyntax = true;
       stext->showlinenrs = true;
     }
     else if (area->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = area->spacedata.first;
+      View3D *v3d = static_cast<View3D *>(area->spacedata.first);
       /* Screen space cavity by default for faster performance. */
       v3d->shading.cavity_type = V3D_SHADING_CAVITY_CURVATURE;
       v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
@@ -195,7 +197,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       v3d->overlay.normals_constant_screen_size = 7.0f;
     }
     else if (area->spacetype == SPACE_CLIP) {
-      SpaceClip *sclip = area->spacedata.first;
+      SpaceClip *sclip = static_cast<SpaceClip *>(area->spacedata.first);
       sclip->around = V3D_AROUND_CENTER_MEDIAN;
       sclip->mask_info.blend_factor = 0.7f;
       sclip->mask_info.draw_flag = MASK_DRAWFLAG_SPLINE;
@@ -206,7 +208,9 @@ static void blo_update_defaults_screen(bScreen *screen,
   const bool hide_image_tool_header = STREQ(workspace_name, "Rendering");
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-      ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+      ListBase *regionbase = (sl == static_cast<SpaceLink *>(area->spacedata.first)) ?
+                                 &area->regionbase :
+                                 &sl->regionbase;
 
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -226,12 +230,12 @@ static void blo_update_defaults_screen(bScreen *screen,
   if (app_template && STREQ(app_template, "2D_Animation")) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacetype == SPACE_ACTION) {
-        SpaceAction *saction = area->spacedata.first;
+        SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
         /* Enable Sliders. */
         saction->flag |= SACTION_SLIDERS;
       }
       else if (area->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = area->spacedata.first;
+        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
         /* Set Material Color by default. */
         v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
         /* Enable Annotations. */
@@ -252,7 +256,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
   if (blo_is_builtin_template(app_template)) {
     /* Clear all tools to use default options instead, ignore the tool saved in the file. */
     while (!BLI_listbase_is_empty(&workspace->tools)) {
-      BKE_workspace_tool_remove(workspace, workspace->tools.first);
+      BKE_workspace_tool_remove(workspace, static_cast<bToolRef *>(workspace->tools.first));
     }
 
     /* For 2D animation template. */
@@ -268,7 +272,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
           LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
             LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
               if (area->spacetype == SPACE_VIEW3D) {
-                View3D *v3d = area->spacedata.first;
+                View3D *v3d = static_cast<View3D *>(area->spacedata.first);
                 v3d->shading.flag &= ~V3D_SHADING_CAVITY;
                 copy_v3_fl(v3d->shading.single_color, 1.0f);
                 STRNCPY(v3d->shading.matcap, "basic_1");
@@ -296,7 +300,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Rename render layers. */
-  BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "ViewLayer");
+  BKE_view_layer_rename(
+      bmain, scene, static_cast<ViewLayer *>(scene->view_layers.first), "ViewLayer");
 
   /* Disable Z pass by default. */
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -308,7 +313,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   scene->eevee.bloom_clamp = 0.0f;
   scene->eevee.motion_blur_shutter = 0.5f;
 
-  copy_v3_v3(scene->display.light_direction, (float[3]){M_SQRT1_3, M_SQRT1_3, M_SQRT1_3});
+  copy_v3_v3(scene->display.light_direction, blender::float3(M_SQRT1_3));
   copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
   copy_v2_fl2(scene->safe_areas.action, 0.035f, 0.035f);
 
@@ -344,9 +349,9 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Correct default startup UV's. */
-  Mesh *me = BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2);
+  Mesh *me = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
   if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
-    MLoopUV *mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
+    MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
@@ -373,7 +378,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
   /* For all app templates. */
-  for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+  LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
     BLO_update_defaults_workspace(workspace, app_template);
   }
 
@@ -389,7 +394,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     do_versions_rename_id(bmain, ID_BR, "Draw Pen", "Pen");
 
     /* Pen Soft brush. */
-    brush = (Brush *)do_versions_rename_id(bmain, ID_BR, "Draw Soft", "Pencil Soft");
+    brush = reinterpret_cast<Brush *>(
+        do_versions_rename_id(bmain, ID_BR, "Draw Soft", "Pencil Soft"));
     if (brush) {
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
     }
@@ -407,7 +413,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     do_versions_rename_id(bmain, ID_BR, "Draw Block", "Marker Chisel");
 
     /* Remove useless Fill Area.001 brush. */
-    brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2));
     if (brush) {
       BKE_id_delete(bmain, brush);
     }
@@ -421,21 +428,24 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       do_versions_rename_id(bmain, ID_MA, "Black Dots", "Dots Stroke");
 
       /* Dots Stroke. */
-      ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
+      ma = static_cast<Material *>(
+          BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2));
       if (ma == NULL) {
         ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
 
       /* Squares Stroke. */
-      ma = BLI_findstring(&bmain->materials, "Squares Stroke", offsetof(ID, name) + 2);
+      ma = static_cast<Material *>(
+          BLI_findstring(&bmain->materials, "Squares Stroke", offsetof(ID, name) + 2));
       if (ma == NULL) {
         ma = BKE_gpencil_material_add(bmain, "Squares Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_SQUARE;
 
       /* Change Solid Stroke settings. */
-      ma = BLI_findstring(&bmain->materials, "Solid Stroke", offsetof(ID, name) + 2);
+      ma = static_cast<Material *>(
+          BLI_findstring(&bmain->materials, "Solid Stroke", offsetof(ID, name) + 2));
       if (ma != NULL) {
         ma->gp_style->mix_rgba[3] = 1.0f;
         ma->gp_style->texture_offset[0] = -0.5f;
@@ -443,7 +453,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
 
       /* Change Solid Fill settings. */
-      ma = BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2);
+      ma = static_cast<Material *>(
+          BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2));
       if (ma != NULL) {
         ma->gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
         ma->gp_style->mix_rgba[3] = 1.0f;
@@ -451,14 +462,15 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         ma->gp_style->mix_factor = 0.5f;
       }
 
-      Object *ob = BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2);
+      Object *ob = static_cast<Object *>(
+          BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2));
       if (ob && ob->type == OB_GPENCIL) {
         ob->dtx |= OB_USE_GPENCIL_LIGHTS;
       }
     }
 
     /* Reset all grease pencil brushes. */
-    Scene *scene = bmain->scenes.first;
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
     BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings, true);
     BKE_brush_gpencil_sculpt_presets(bmain, scene->toolsettings, true);
     BKE_brush_gpencil_vertex_presets(bmain, scene->toolsettings, true);
@@ -511,7 +523,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   /* Scenes */
-  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     blo_update_defaults_scene(bmain, scene);
 
     if (app_template && STREQ(app_template, "Video_Editing")) {
@@ -537,7 +549,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   do_versions_rename_id(bmain, ID_LA, "Lamp", "Light");
 
   if (app_template && STREQ(app_template, "2D_Animation")) {
-    for (Object *object = bmain->objects.first; object; object = object->id.next) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
       if (object->type == OB_GPENCIL) {
         /* Set grease pencil object in drawing mode */
         bGPdata *gpd = (bGPdata *)object->data;
@@ -548,7 +560,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
   }
 
-  for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
+  LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     /* Match default for new meshes. */
     mesh->smoothresh = DEG2RADF(30);
     /* Match voxel remesher options for all existing meshes in templates. */
@@ -565,22 +577,23 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       CustomData_free_layers(&mesh->vdata, CD_PAINT_MASK, mesh->totvert);
       CustomData_free_layers(&mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop);
     }
+    mesh->attributes_for_write().remove(".sculpt_face_set");
   }
 
-  for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
+  LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
     /* Initialize to a useful value. */
     camera->dof.focus_distance = 10.0f;
     camera->dof.aperture_fstop = 2.8f;
   }
 
-  for (Light *light = bmain->lights.first; light; light = light->id.next) {
+  LISTBASE_FOREACH (Light *, light, &bmain->lights) {
     /* Fix lights defaults. */
     light->clipsta = 0.05f;
     light->att_dist = 40.0f;
   }
 
   /* Materials */
-  for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
+  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
     /* Update default material to be a bit more rough. */
     ma->roughness = 0.5f;
 
@@ -588,7 +601,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
-          bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
+          bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(
+              roughness_socket->default_value);
           roughness_data->value = 0.5f;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
@@ -606,13 +620,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* Enable for UV sculpt (other brush types will be created as needed),
      * without this the grab brush will be active but not selectable from the list. */
     const char *brush_name = "Grab";
-    Brush *brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    Brush *brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (brush) {
       brush->ob_mode |= OB_MODE_EDIT;
     }
   }
 
-  for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
+  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
     brush->blur_kernel_radius = 2;
 
     /* Use full strength for all non-sculpt brushes,
@@ -632,13 +647,15 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     Brush *brush;
 
     brush_name = "Smear";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (brush) {
       brush->spacing = 3.0;
     }
 
     brush_name = "Draw Sharp";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -646,7 +663,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Elastic Deform";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -654,7 +672,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Pose";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -662,7 +681,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Multi-plane Scrape";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -670,7 +690,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Clay Thumb";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -678,7 +699,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Cloth";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -686,7 +708,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Slide Relax";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -694,7 +717,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Paint";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -702,7 +726,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Smear";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -710,7 +735,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Boundary";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -718,7 +744,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Simplify";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -726,7 +753,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Draw Face Sets";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -734,7 +762,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Multires Displacement Eraser";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -742,7 +771,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     brush_name = "Multires Displacement Smear";
-    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    brush = static_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
     if (!brush) {
       brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
@@ -750,7 +780,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     /* Use the same tool icon color in the brush cursor */
-    for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode & OB_MODE_SCULPT) {
         BLI_assert(brush->sculpt_tool != 0);
         BKE_brush_sculpt_reset(brush);

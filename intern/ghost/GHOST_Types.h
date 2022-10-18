@@ -526,7 +526,7 @@ typedef struct {
 } GHOST_TStringArray;
 
 typedef enum {
-  GHOST_kNotStarted,
+  GHOST_kNotStarted = 0,
   GHOST_kStarting,
   GHOST_kInProgress,
   GHOST_kFinishing,

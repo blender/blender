@@ -60,8 +60,6 @@
  * and being able to set it to zero is handy. */
 /* #define USE_NUM_NO_ZERO */
 
-static void initSnapSpatial(TransInfo *t, float r_snap[2]);
-
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
@@ -1723,7 +1721,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 }
 
-static void initSnapSpatial(TransInfo *t, float r_snap[2])
+static void initSnapSpatial(TransInfo *t, float r_snap[2], float r_snap_y[2])
 {
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->region->regiondata) {
@@ -1737,18 +1735,15 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
     View2D *v2d = &t->region->v2d;
     int grid_size = SI_GRID_STEPS_LEN;
     float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
-    float grid_steps[SI_GRID_STEPS_LEN];
+    float grid_steps_x[SI_GRID_STEPS_LEN];
     float grid_steps_y[SI_GRID_STEPS_LEN];
 
-    ED_space_image_grid_steps(sima, grid_steps, grid_steps_y, grid_size);
+    ED_space_image_grid_steps(sima, grid_steps_x, grid_steps_y, grid_size);
     /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
-    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps, zoom_factor);
+    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_x, zoom_factor);
     r_snap[1] = r_snap[0] / 2.0f;
-
-    /* TODO: Implement snapping for custom grid sizes with `grid_steps[0] != grid_steps_y[0]`.
-     * r_snap_y[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
-     * r_snap_y[1] = r_snap_y[0] / 2.0f;
-     */
+    r_snap_y[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+    r_snap_y[1] = r_snap_y[0] / 2.0f;
   }
   else if (t->spacetype == SPACE_CLIP) {
     r_snap[0] = 0.125f;
@@ -1903,7 +1898,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   initSnapping(t, op); /* Initialize snapping data AFTER mode flags */
 
-  initSnapSpatial(t, t->snap_spatial);
+  initSnapSpatial(t, t->snap_spatial_x, t->snap_spatial_y);
 
   /* EVIL! posemode code can switch translation to rotate when 1 bone is selected.
    * will be removed (ton) */

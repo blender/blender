@@ -1714,23 +1714,32 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   }
 
 #ifdef DEBUG
-  int debug_print_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
-  if (debug_print_location != -1) {
-    GPUStorageBuf *buf = drw_debug_gpu_print_buf_get();
-    drw_shgroup_uniform_create_ex(
-        shgroup, debug_print_location, DRW_UNIFORM_STORAGE_BLOCK, buf, GPU_SAMPLER_DEFAULT, 0, 1);
+  /* TODO(Metal): Support Shader debug print.
+   * This is not currently supported by Metal Backend. */
+  if (GPU_backend_get_type() != GPU_BACKEND_METAL) {
+    int debug_print_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+    if (debug_print_location != -1) {
+      GPUStorageBuf *buf = drw_debug_gpu_print_buf_get();
+      drw_shgroup_uniform_create_ex(shgroup,
+                                    debug_print_location,
+                                    DRW_UNIFORM_STORAGE_BLOCK,
+                                    buf,
+                                    GPU_SAMPLER_DEFAULT,
+                                    0,
+                                    1);
 #  ifndef DISABLE_DEBUG_SHADER_PRINT_BARRIER
-    /* Add a barrier to allow multiple shader writing to the same buffer. */
-    DRW_shgroup_barrier(shgroup, GPU_BARRIER_SHADER_STORAGE);
+      /* Add a barrier to allow multiple shader writing to the same buffer. */
+      DRW_shgroup_barrier(shgroup, GPU_BARRIER_SHADER_STORAGE);
 #  endif
-  }
+    }
 
-  int debug_draw_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
-  if (debug_draw_location != -1) {
-    GPUStorageBuf *buf = drw_debug_gpu_draw_buf_get();
-    drw_shgroup_uniform_create_ex(
-        shgroup, debug_draw_location, DRW_UNIFORM_STORAGE_BLOCK, buf, GPU_SAMPLER_DEFAULT, 0, 1);
-    /* NOTE(fclem): No barrier as ordering is not important. */
+    int debug_draw_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
+    if (debug_draw_location != -1) {
+      GPUStorageBuf *buf = drw_debug_gpu_draw_buf_get();
+      drw_shgroup_uniform_create_ex(
+          shgroup, debug_draw_location, DRW_UNIFORM_STORAGE_BLOCK, buf, GPU_SAMPLER_DEFAULT, 0, 1);
+      /* NOTE(fclem): No barrier as ordering is not important. */
+    }
   }
 #endif
 

@@ -182,6 +182,11 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
+  /* Optimization: Tag data-blocks for which we know there is no preview.
+   * Knowing this can be used to skip the (potentially expensive) preview loading process. If this
+   * is set to true it means we looked for a preview and couldn't find one. False may mean that
+   * either no preview was found, or that it wasn't looked for in the first place. */
+  bool no_preview_found;
 } BLODataBlockInfo;
 
 /**
