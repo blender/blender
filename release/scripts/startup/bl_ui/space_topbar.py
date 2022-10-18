@@ -273,13 +273,14 @@ class TOPBAR_MT_file(Menu):
 
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", text_ctxt=i18n_contexts.id_windowmanager, icon='FILE_NEW')
-        layout.operator("wm.open_mainfile", text="Open File...", icon='FILE_FOLDER')
+        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("TOPBAR_MT_file_open_recent")
         layout.operator("wm.revert_mainfile")
         layout.menu("TOPBAR_MT_file_recover")
 
-        props = layout.operator("project.new", text="Set up Project...")
-        props.open_settings_after = True
+        if context.preferences.experimental.use_blender_projects:
+            props = layout.operator("project.new", text="Set up Project...")
+            props.open_settings_after = True
 
         layout.separator()
 
@@ -627,7 +628,8 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("screen.project_settings_show", text="Project Settings...")
+        if context.preferences.experimental.use_blender_projects:
+            layout.operator("screen.project_settings_show", text="Project Settings...")
         layout.operator("screen.userpref_show",
                         text="Preferences...", icon='PREFERENCES')
 
@@ -734,7 +736,7 @@ class TOPBAR_MT_help(Menu):
 class TOPBAR_MT_file_context_menu(Menu):
     bl_label = "File Context Menu"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_AREA'
@@ -753,7 +755,8 @@ class TOPBAR_MT_file_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("screen.project_settings_show", text="Project Settings...")
+        if context.preferences.experimental.use_blender_projects:
+            layout.operator("screen.project_settings_show", text="Project Settings...")
         layout.operator("screen.userpref_show",
                         text="Preferences...", icon='PREFERENCES')
 

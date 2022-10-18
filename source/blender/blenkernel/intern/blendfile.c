@@ -448,6 +448,9 @@ static void setup_app_blend_file_data(bContext *C,
 
 static void setup_app_project_data(BlendFileData *bfd, const struct BlendFileReadParams *params)
 {
+  if (!U.experimental.use_blender_projects) {
+    return;
+  }
   if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
     BKE_project_active_load_from_path(bfd->main->filepath);
   }

@@ -647,7 +647,8 @@ typedef struct UserDef_Experimental {
   char use_sculpt_texture_paint;
   char use_draw_manager_acquire_lock;
   char use_realtime_compositor;
-  char _pad[7];
+  char use_blender_projects;
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

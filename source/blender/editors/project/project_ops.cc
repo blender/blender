@@ -39,6 +39,15 @@ static bool has_active_project_poll(bContext *C)
 /** \name New project operator
  * \{ */
 
+static bool new_project_poll(bContext *C)
+{
+  if (!U.experimental.use_blender_projects) {
+    CTX_wm_operator_poll_msg_set(C, "Experimental project support is not enabled");
+    return false;
+  }
+  return true;
+}
+
 static int new_project_exec(bContext *C, wmOperator *op)
 {
   const Main *bmain = CTX_data_main(C);
@@ -89,6 +98,7 @@ static void PROJECT_OT_new(wmOperatorType *ot)
   ot->invoke = new_project_invoke;
   ot->exec = new_project_exec;
   /* omit window poll so this can work in background mode */
+  ot->poll = new_project_poll;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,

@@ -186,6 +186,10 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
       continue;
     }
 
+    if (!U.experimental.use_blender_projects && (item_from->value == SPACE_PROJECT_SETTINGS)) {
+      continue;
+    }
+
     SpaceType *st = item_from->identifier[0] ? BKE_spacetype_from_id(item_from->value) : NULL;
     int totitem_prev = totitem;
     if (st && st->space_subtype_item_extend != NULL) {

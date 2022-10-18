@@ -1234,6 +1234,10 @@ class ThemeGenericClassGenerator:
             if theme_area.identifier in {'USER_INTERFACE', 'STYLE', 'BONE_COLOR_SETS'}:
                 continue
 
+            prefs = bpy.context.preferences
+            if not prefs.experimental.use_blender_projects and theme_area.identifier == 'PROJECT_SETTINGS':
+                continue
+
             panel_id = "USERPREF_PT_theme_" + theme_area.identifier.lower()
             # Generate panel-class from theme_area
             yield type(panel_id, (PreferenceThemeSpacePanel, ThemePanel, Panel), {
@@ -2285,6 +2289,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_full_frame_compositor"}, "T88150"),
                 ({"property": "enable_eevee_next"}, "T93220"),
                 ({"property": "use_draw_manager_acquire_lock"}, "T98016"),
+                ({"property": "use_blender_projects"}, None),
             ),
         )
 
