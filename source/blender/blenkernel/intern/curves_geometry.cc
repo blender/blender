@@ -1402,6 +1402,9 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
     if (meta_data.domain != ATTR_DOMAIN_POINT) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_named() && bezier_handle_names.contains(id.name())) {
       return true;
     }

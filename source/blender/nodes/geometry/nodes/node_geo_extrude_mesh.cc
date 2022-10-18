@@ -260,6 +260,9 @@ static void extrude_mesh_vertices(Mesh &mesh,
     if (!ELEM(meta_data.domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE)) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
     attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
@@ -506,6 +509,9 @@ static void extrude_mesh_edges(Mesh &mesh,
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
     if (!attribute) {
@@ -889,6 +895,9 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
     if (!attribute) {
@@ -1143,6 +1152,9 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
     if (!attribute) {

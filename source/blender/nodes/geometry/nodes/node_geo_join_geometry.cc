@@ -31,6 +31,9 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
           if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
             return true;
           }
+          if (meta_data.data_type == CD_PROP_STRING) {
+            return true;
+          }
           info.add_or_modify(
               attribute_id,
               [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
