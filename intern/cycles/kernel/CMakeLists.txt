@@ -715,6 +715,7 @@ endif()
 if(WITH_CYCLES_DEVICE_ONEAPI)
   if(WIN32)
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.dll)
+    set(cycles_kernel_oneapi_linker_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.lib)
   else()
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/libcycles_kernel_oneapi.so)
   endif()
@@ -851,7 +852,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
                 -Xclang --dependent-lib=${sycl_library_debug_name})
 
     add_custom_command(
-      OUTPUT ${cycles_kernel_oneapi_lib}
+      OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
               "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
               "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
