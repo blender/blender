@@ -317,6 +317,12 @@ bool MetalKernelPipeline::should_use_binary_archive() const
       }
     }
 
+    /* Workaround for Intel GPU having issue using Binary Archives */
+    MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
+    if (gpu_vendor == METAL_GPU_INTEL) {
+      return false;
+    }
+
     if (pso_type == PSO_GENERIC) {
       /* Archive the generic kernels. */
       return true;

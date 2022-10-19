@@ -339,6 +339,12 @@ bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
 
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
+  if (@available(macos 13.0, *)) {
+    if (device_vendor == METAL_GPU_INTEL) {
+      [options setOptimizationLevel:MTLLibraryOptimizationLevelSize];
+    }
+  }
+
   options.fastMathEnabled = YES;
   if (@available(macOS 12.0, *)) {
     options.languageVersion = MTLLanguageVersion2_4;
