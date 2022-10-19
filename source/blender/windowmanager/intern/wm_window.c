@@ -1633,6 +1633,11 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
       return GHOST_kDrawingContextTypeNone;
 #endif
   }
+
+  /* Avoid control reaches end of non-void function compilation warning, which could be promoted
+   * to error. */
+  BLI_assert_unreachable();
+  return GHOST_kDrawingContextTypeNone;
 }
 
 /** \} */
