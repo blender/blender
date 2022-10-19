@@ -523,6 +523,10 @@ void applyGridAbsolute(TransInfo *t)
   float grid_size_y = (t->modifiers & MOD_PRECISION) ? t->snap_spatial_y[1] : t->snap_spatial_y[0];
   float grid_size_z = grid_size_x;
 
+  if (grid_size_y == 0.0f) {
+    grid_size_y = grid_size_x; /* Just use `grid_size_x` when `grid_size_y` isn't set correctly. */
+  }
+
   /* Early exit on unusable grid size. */
   if (grid_size_x == 0.0f || grid_size_y == 0.0f || grid_size_z == 0.0f) {
     return;
