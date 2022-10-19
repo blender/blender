@@ -110,6 +110,10 @@ vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
       usable |= (vendor == METAL_GPU_AMD);
     }
 
+    if (@available(macos 13.0, *)) {
+      usable |= (vendor == METAL_GPU_INTEL);
+    }
+
     if (usable) {
       metal_printf("- %s\n", device_name.c_str());
       [device retain];
