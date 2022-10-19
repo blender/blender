@@ -153,7 +153,7 @@ void MTLDrawList::submit()
 {
   /* Metal does not support MDI from the host side, but we still benefit from only executing the
    * batch bind a single time, rather than per-draw.
-   * NOTE(Metal): Consider using MTLIndirectCommandBuffer to achieve similar behaviour. */
+   * NOTE(Metal): Consider using #MTLIndirectCommandBuffer to achieve similar behavior. */
   if (command_len_ == 0) {
     return;
   }
@@ -194,12 +194,12 @@ void MTLDrawList::submit()
   /* Common properties. */
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(batch_->prim_type);
 
-  /* Execute multidraw indirect. */
+  /* Execute multi-draw indirect. */
   if (can_use_MDI && false) {
     /* Metal Doesn't support MDI -- Singular Indirect draw calls are supported,
-     * but Multidraw is not.
-     * TODO(Metal): Consider using IndirectCommandBuffers to provide similar
-     * behaviour. */
+     * but Multi-draw is not.
+     * TODO(Metal): Consider using #IndirectCommandBuffers to provide similar
+     * behavior. */
   }
   else {
 
@@ -216,7 +216,7 @@ void MTLDrawList::submit()
       uint32_t index_count = cmd->indexCount;
 
       /* Fetch index buffer. May return an index buffer of a differing format,
-       * if index buffer optimisation is used. In these cases, mtl_prim_type and
+       * if index buffer optimization is used. In these cases, mtl_prim_type and
        * index_count get updated with the new properties. */
       GPUPrimType final_prim_type = batch_->prim_type;
       id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);

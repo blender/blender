@@ -69,7 +69,7 @@ void MTLBatch::MTLVertexDescriptorCache::vertex_descriptor_cache_ensure()
     }
   }
 
-  /* Initialise cache if not ready. */
+  /* Initialize cache if not ready. */
   if (cache_context_ == nullptr) {
     this->vertex_descriptor_cache_init(MTLContext::get());
   }
@@ -189,7 +189,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
                        buffer_stride);
         }
         else {
-          /* Ensure stride is correct for de-interlevaed attributes. */
+          /* Ensure stride is correct for de-interleaved attributes. */
           desc.vertex_descriptor.buffer_layouts[buffer_index].stride = buffer_stride;
         }
 
@@ -279,7 +279,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
            * elements).
            *
            * Certain conversion cannot be performed however, and in these cases, we need to
-           * instruct the shader to generate a specialised version with a conversion routine upon
+           * instruct the shader to generate a specialized version with a conversion routine upon
            * attribute read.
            *   - This handles cases such as conversion between types e.g. Integer to float without
            * normalization.
@@ -311,7 +311,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
              * This then controls how a given attribute is interpreted. The data will be read
              * as specified and then converted appropriately to the correct form.
              *
-             * e.g. if `GPU_FETCH_INT_TO_FLOAT` is specified, the specialised read-routine
+             * e.g. if `GPU_FETCH_INT_TO_FLOAT` is specified, the specialized read-routine
              * in the shader will read the data as an int, and cast this to floating point
              * representation. (Rather than reading the source data as float).
              *
@@ -404,7 +404,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
   active_shader_ = (shader) ? static_cast<MTLShader *>(unwrap(shader)) : nullptr;
 
   if (active_shader_ == nullptr || !active_shader_->is_valid()) {
-    /* Skip drawing if there is no vaid Metal shader.
+    /* Skip drawing if there is no valid Metal shader.
      * This will occur if the path through which the shader is prepared
      * is invalid (e.g. Python without create-info), or, the source shader uses a geometry pass. */
     BLI_assert_msg(false, "No valid Metal shader!");
@@ -456,7 +456,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
   /* Fetch RenderPassState to enable resource binding for active pass. */
   MTLRenderPassState &rps = ctx->main_command_buffer.get_render_pass_state();
 
-  /* Debug Check: Ensure Framebuffer instance is not dirty. */
+  /* Debug Check: Ensure Frame-buffer instance is not dirty. */
   BLI_assert(!ctx->main_command_buffer.get_active_framebuffer()->get_dirty());
 
   /* Bind Shader. */
@@ -496,8 +496,8 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
 
     if (mtl_elem != nullptr) {
 
-      /* Fetch index buffer. This function can situationally return an optimised
-       * index buffer of a different primtiive type. If this is the case, `final_prim_type`
+      /* Fetch index buffer. This function can situationally return an optimized
+       * index buffer of a different primitive type. If this is the case, `final_prim_type`
        * and `v_count` will be updated with the new format.
        * NOTE: For indexed rendering, v_count represents the number of indices. */
       idx_buffer = mtl_elem->get_index_buffer(final_prim_type, v_count);
@@ -672,7 +672,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(
       }
     }
 
-    /* Extract Vertex attribues (First-bound vertex buffer takes priority). */
+    /* Extract Vertex attributes (First-bound vertex buffer takes priority). */
     for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
       if (mtl_verts[v] != NULL) {
         MTL_LOG_INFO(" -- [Batch] Checking bindings for bound vertex buffer %p\n", mtl_verts[v]);
@@ -830,7 +830,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
                    "Index offset is not 2/4-byte aligned as per METAL spec");
 
     /* Fetch index buffer. May return an index buffer of a differing format,
-     * if index buffer optimisation is used. In these cases, final_prim_type and
+     * if index buffer optimization is used. In these cases, final_prim_type and
      * index_count get updated with the new properties. */
     GPUPrimType final_prim_type = this->prim_type;
     uint index_count = v_count;

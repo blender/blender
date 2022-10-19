@@ -445,7 +445,7 @@ struct VolumeGrid {
    * may actually be loaded by another user while this is false. But only after
    * calling load() and is_loaded changes to true is it safe to access.
    *
-   * Const write access to this must be protected by `entry->mutex`.
+   * `const` write access to this must be protected by `entry->mutex`.
    */
   mutable bool is_loaded;
 };
@@ -480,7 +480,7 @@ struct VolumeGridVector : public std::list<VolumeGrid> {
     metadata.reset();
   }
 
-  /* Mutex for file loading of grids list. Const write access to the fields after this must be
+  /* Mutex for file loading of grids list. `const` write access to the fields after this must be
    * protected by locking with this mutex. */
   mutable std::mutex mutex;
   /* Absolute file path that grids have been loaded from. */

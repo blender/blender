@@ -266,7 +266,7 @@ bool Instances::owns_direct_data() const
 void Instances::ensure_owns_direct_data()
 {
   for (const InstanceReference &const_reference : references_) {
-    /* Const cast is fine because we are not changing anything that would change the hash of the
+    /* `const` cast is fine because we are not changing anything that would change the hash of the
      * reference. */
     InstanceReference &reference = const_cast<InstanceReference &>(const_reference);
     reference.ensure_owns_direct_data();
