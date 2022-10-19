@@ -969,6 +969,40 @@ static void engine_render_view_layer(Render *re,
   engine_depsgraph_exit(engine);
 }
 
+/* Callback function for engine_render_create_result to add all render passes to the result. */
+static void engine_render_add_result_pass_cb(void *user_data,
+                                             struct Scene *UNUSED(scene),
+                                             struct ViewLayer *view_layer,
+                                             const char *name,
+                                             int channels,
+                                             const char *chanid,
+                                             eNodeSocketDatatype UNUSED(type))
+{
+  RenderResult *rr = (RenderResult *)user_data;
+  RE_create_render_pass(rr, name, channels, chanid, view_layer->name, RR_ALL_VIEWS, false);
+}
+
+static RenderResult *engine_render_create_result(Render *re)
+{
+  RenderResult *rr = render_result_new(re, &re->disprect, RR_ALL_LAYERS, RR_ALL_VIEWS);
+  if (rr == nullptr) {
+    return nullptr;
+  }
+
+  FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer) {
+    RE_engine_update_render_passes(
+        re->engine, re->scene, view_layer, engine_render_add_result_pass_cb, rr);
+  }
+  FOREACH_VIEW_LAYER_TO_RENDER_END;
+
+  /* Preview does not support deferred render result allocation. */
+  if (re->r.scemode & R_BUTS_PREVIEW) {
+    render_result_passes_allocated_ensure(rr);
+  }
+
+  return rr;
+}
+
 bool RE_engine_render(Render *re, bool do_all)
 {
   RenderEngineType *type = RE_engines_find(re->r.engine);
@@ -1008,6 +1042,14 @@ bool RE_engine_render(Render *re, bool do_all)
     render_update_anim_renderdata(re, &re->scene->r, &re->scene->view_layers);
   }
 
+  /* Create engine. */
+  RenderEngine *engine = re->engine;
+
+  if (!engine) {
+    engine = RE_engine_create(type);
+    re->engine = engine;
+  }
+
   /* create render result */
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
   if (re->result == nullptr || !(re->r.scemode & R_BUTS_PREVIEW)) {
@@ -1015,7 +1057,7 @@ bool RE_engine_render(Render *re, bool do_all)
       render_result_free(re->result);
     }
 
-    re->result = render_result_new(re, &re->disprect, RR_ALL_LAYERS, RR_ALL_VIEWS);
+    re->result = engine_render_create_result(re);
   }
   BLI_rw_mutex_unlock(&re->resultmutex);
 
@@ -1024,6 +1066,9 @@ bool RE_engine_render(Render *re, bool do_all)
     if (re->draw_lock) {
       re->draw_lock(re->dlh, false);
     }
+    /* Free engine. */
+    RE_engine_free(engine);
+    re->engine = nullptr;
     /* Too small image is handled earlier, here it could only happen if
      * there was no sufficient memory to allocate all passes.
      */
@@ -1035,14 +1080,6 @@ bool RE_engine_render(Render *re, bool do_all)
   /* set render info */
   re->i.cfra = re->scene->r.cfra;
   BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name));
-
-  /* render */
-  RenderEngine *engine = re->engine;
-
-  if (!engine) {
-    engine = RE_engine_create(type);
-    re->engine = engine;
-  }
 
   engine->flag |= RE_ENGINE_RENDERING;
 
