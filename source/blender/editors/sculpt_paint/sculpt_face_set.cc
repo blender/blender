@@ -18,6 +18,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -313,6 +314,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
 
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -396,25 +398,16 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_SELECTION) {
-    BMesh *bm;
-    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-    BMeshCreateParams create_params{};
-    create_params.use_toolflags = true;
-    bm = BM_mesh_create(&allocsize, &create_params);
-
-    BMeshFromMeshParams convert_params{};
-    convert_params.calc_vert_normal = true;
-    convert_params.calc_face_normal = true;
-    BM_mesh_bm_from_me(bm, mesh, &convert_params);
-
-    BMIter iter;
-    BMFace *f;
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        ss->face_sets[BM_elem_index_get(f)] = next_face_set;
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    const VArraySpan<bool> select_poly = attributes.lookup_or_default<bool>(
+        ".select_poly", ATTR_DOMAIN_FACE, false);
+    threading::parallel_for(IndexRange(mesh->totvert), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        if (select_poly[i]) {
+          ss->face_sets[i] = next_face_set;
+        }
       }
-    }
-    BM_mesh_free(bm);
+    });
   }
 
   for (int i = 0; i < totnode; i++) {
