@@ -87,8 +87,7 @@ typedef enum {
   NDOF_BUTTON_ALT,
   NDOF_BUTTON_SHIFT,
   NDOF_BUTTON_CTRL,
-  /* The end. */
-  NDOF_BUTTON_LAST
+#define NDOF_BUTTON_NUM (NDOF_BUTTON_CTRL + 1)
 } NDOF_ButtonT;
 
 class GHOST_NDOFManager {

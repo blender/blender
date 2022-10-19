@@ -81,8 +81,6 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_ALT",
     "NDOF_BUTTON_SHIFT",
     "NDOF_BUTTON_CTRL",
-    /* the end */
-    "NDOF_BUTTON_LAST",
 };
 
 /* Shared by the latest 3Dconnexion hardware
@@ -389,7 +387,7 @@ void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button,
                                         uint64_t time,
                                         GHOST_IWindow *window)
 {
-  GHOST_ASSERT(button > NDOF_BUTTON_NONE && button < NDOF_BUTTON_LAST,
+  GHOST_ASSERT(button > NDOF_BUTTON_NONE && button < NDOF_BUTTON_NUM,
                "rogue button trying to escape NDOF manager");
 
   GHOST_EventNDOFButton *event = new GHOST_EventNDOFButton(time, window);
