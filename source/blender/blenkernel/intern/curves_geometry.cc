@@ -1224,6 +1224,10 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
     attribute.dst.finish();
   }
 
+  if (new_curves.curves_num() != curves.curves_num()) {
+    new_curves.remove_attributes_based_on_types();
+  }
+
   return new_curves;
 }
 
@@ -1328,6 +1332,8 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
   for (bke::AttributeTransferData &attribute : curve_attributes) {
     attribute.dst.finish();
   }
+
+  new_curves.remove_attributes_based_on_types();
 
   return new_curves;
 }
