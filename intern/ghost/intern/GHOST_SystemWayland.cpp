@@ -1904,11 +1904,11 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
     seat->pointer.scroll_xy[1] = 0;
   }
 
-  /* Discrete Y steps currently unsupported. */
-  if (seat->pointer.scroll_discrete_xy[0]) {
+  /* Discrete X axis currently unsupported. */
+  if (seat->pointer.scroll_discrete_xy[1]) {
     if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-      const int32_t discrete = seat->pointer.scroll_discrete_xy[0];
+      const int32_t discrete = seat->pointer.scroll_discrete_xy[1];
       seat->system->pushEvent(new GHOST_EventWheel(
           seat->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
     }
