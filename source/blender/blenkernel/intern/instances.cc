@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_cpp_type_make.hh"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
@@ -107,18 +108,6 @@ blender::Span<InstanceReference> Instances::references() const
   return references_;
 }
 
-template<typename T>
-static void copy_data_based_on_mask(Span<T> src, MutableSpan<T> dst, IndexMask mask)
-{
-  BLI_assert(src.data() != dst.data());
-  using namespace blender;
-  threading::parallel_for(mask.index_range(), 1024, [&](IndexRange range) {
-    for (const int i : range) {
-      dst[i] = src[mask[i]];
-    }
-  });
-}
-
 void Instances::remove(const IndexMask mask)
 {
   using namespace blender;
@@ -129,11 +118,14 @@ void Instances::remove(const IndexMask mask)
     return;
   }
 
+  const Span<int> old_handles = this->reference_handles();
   Vector<int> new_handles(mask.size());
-  copy_data_based_on_mask<int>(this->reference_handles(), new_handles, mask);
+  array_utils::gather(old_handles, mask.indices(), new_handles.as_mutable_span());
   reference_handles_ = std::move(new_handles);
+
+  const Span<float4x4> old_tansforms = this->transforms();
   Vector<float4x4> new_transforms(mask.size());
-  copy_data_based_on_mask<float4x4>(this->transforms(), new_transforms, mask);
+  array_utils::gather(old_tansforms, mask.indices(), new_transforms.as_mutable_span());
   transforms_ = std::move(new_transforms);
 
   const bke::CustomDataAttributes &src_attributes = attributes_;
@@ -150,11 +142,8 @@ void Instances::remove(const IndexMask mask)
         GSpan src = *src_attributes.get_for_read(id);
         dst_attributes.create(id, meta_data.data_type);
         GMutableSpan dst = *dst_attributes.get_for_write(id);
+        array_utils::gather(src, mask.indices(), dst);
 
-        attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-          using T = decltype(dummy);
-          copy_data_based_on_mask<T>(src.typed<T>(), dst.typed<T>(), mask);
-        });
         return true;
       },
       ATTR_DOMAIN_INSTANCE);
