@@ -595,8 +595,10 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(
   desc.reset_vertex_descriptor();
 
   /* Fetch Vertex and Instance Buffers. */
-  Span<MTLVertBuf *> mtl_verts(reinterpret_cast<MTLVertBuf **>(this->verts), GPU_BATCH_VBO_MAX_LEN);
-  Span<MTLVertBuf *> mtl_inst(reinterpret_cast<MTLVertBuf **>(this->inst), GPU_BATCH_INST_VBO_MAX_LEN);
+  Span<MTLVertBuf *> mtl_verts(reinterpret_cast<MTLVertBuf **>(this->verts),
+                               GPU_BATCH_VBO_MAX_LEN);
+  Span<MTLVertBuf *> mtl_inst(reinterpret_cast<MTLVertBuf **>(this->inst),
+                              GPU_BATCH_INST_VBO_MAX_LEN);
 
   /* SSBO Vertex fetch also passes vertex descriptor information into the shader. */
   if (active_shader_->get_uses_ssbo_vertex_fetch()) {
