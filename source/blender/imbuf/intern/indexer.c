@@ -498,7 +498,9 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->anim = anim;
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
-  BLI_make_existing_file(filepath);
+  if (!BLI_make_existing_file(filepath)) {
+    return NULL;
+  }
 
   rv->of = avformat_alloc_context();
   rv->of->oformat = av_guess_format("avi", NULL, NULL);
@@ -903,6 +905,11 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
         proxy_sizes_in_use &= ~proxy_sizes[i];
       }
     }
+  }
+
+  if (context->proxy_ctx[0] == NULL && context->proxy_ctx[1] == NULL &&
+      context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL) {
+    return NULL; /* Nothing to transcode. */
   }
 
   for (i = 0; i < num_indexers; i++) {
