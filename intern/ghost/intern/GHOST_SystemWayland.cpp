@@ -1277,9 +1277,14 @@ static void data_source_handle_send(void *data,
   close(fd);
 }
 
-static void data_source_handle_cancelled(void * /*data*/, struct wl_data_source *wl_data_source)
+static void data_source_handle_cancelled(void *data, struct wl_data_source *wl_data_source)
 {
   CLOG_INFO(LOG, 2, "cancelled");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  GWL_DataSource *data_source = seat->data_source;
+  GHOST_ASSERT(seat->data_source->wl_data_source == wl_data_source, "Data source mismatch!");
+  data_source->wl_data_source = nullptr;
+
   wl_data_source_destroy(wl_data_source);
 }
 
