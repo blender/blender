@@ -294,6 +294,10 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
      * is never affected). */
     for (ID *id = tagged_deleted_ids.first; id; id = id->next) {
       id->tag |= LIB_TAG_NO_MAIN;
+      /* Usercount needs to be reset artificially, since some usages may not be cleared in batch
+       * deletion (typically, if one deleted ID uses another deleted ID, this may not be cleared by
+       * remapping code, depending on order in which these are handled). */
+      id->us = ID_FAKE_USERS(id);
     }
   }
   else {
