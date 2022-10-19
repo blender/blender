@@ -58,11 +58,6 @@ typedef enum {
   NDOF_BUTTON_DOMINANT,
   NDOF_BUTTON_PLUS,
   NDOF_BUTTON_MINUS,
-  /* Keyboard emulation. */
-  NDOF_BUTTON_ESC,
-  NDOF_BUTTON_ALT,
-  NDOF_BUTTON_SHIFT,
-  NDOF_BUTTON_CTRL,
   /* General-purpose buttons.
    * Users can assign functions via keymap editor. */
   NDOF_BUTTON_1,
@@ -79,6 +74,19 @@ typedef enum {
   NDOF_BUTTON_A,
   NDOF_BUTTON_B,
   NDOF_BUTTON_C,
+  /* Store Views. */
+  NDOF_BUTTON_V1,
+  NDOF_BUTTON_V2,
+  NDOF_BUTTON_V3,
+  /* Keyboard emulation. */
+  NDOF_BUTTON_ESC,
+  NDOF_BUTTON_ENTER,
+  NDOF_BUTTON_DELETE,
+  NDOF_BUTTON_TAB,
+  NDOF_BUTTON_SPACE,
+  NDOF_BUTTON_ALT,
+  NDOF_BUTTON_SHIFT,
+  NDOF_BUTTON_CTRL,
   /* The end. */
   NDOF_BUTTON_LAST
 } NDOF_ButtonT;

@@ -53,11 +53,6 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_DOMINANT",
     "NDOF_BUTTON_PLUS",
     "NDOF_BUTTON_MINUS",
-    /* keyboard emulation */
-    "NDOF_BUTTON_ESC",
-    "NDOF_BUTTON_ALT",
-    "NDOF_BUTTON_SHIFT",
-    "NDOF_BUTTON_CTRL",
     /* general-purpose buttons */
     "NDOF_BUTTON_1",
     "NDOF_BUTTON_2",
@@ -73,6 +68,19 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_A",
     "NDOF_BUTTON_B",
     "NDOF_BUTTON_C",
+    /* Stored views. */
+    "NDOF_BUTTON_V1",
+    "NDOF_BUTTON_V2",
+    "NDOF_BUTTON_V3",
+    /* Keyboard emulation. */
+    "NDOF_BUTTON_ESC",
+    "NDOF_BUTTON_ENTER",
+    "NDOF_BUTTON_DELETE",
+    "NDOF_BUTTON_TAB",
+    "NDOF_BUTTON_SPACE",
+    "NDOF_BUTTON_ALT",
+    "NDOF_BUTTON_SHIFT",
+    "NDOF_BUTTON_CTRL",
     /* the end */
     "NDOF_BUTTON_LAST",
 };
@@ -132,6 +140,41 @@ static const NDOF_ButtonT Generic_HID_map[] = {
     NDOF_BUTTON_A,
     NDOF_BUTTON_B,
     NDOF_BUTTON_C,
+};
+
+/* Values taken from: https://github.com/FreeSpacenav/spacenavd/wiki/Device-button-names */
+static const NDOF_ButtonT SpaceMouseEnterprise_HID_map[] = {
+    NDOF_BUTTON_1,       /* (0) */
+    NDOF_BUTTON_2,       /* (1) */
+    NDOF_BUTTON_3,       /* (2) */
+    NDOF_BUTTON_4,       /* (3) */
+    NDOF_BUTTON_5,       /* (4) */
+    NDOF_BUTTON_6,       /* (5) */
+    NDOF_BUTTON_7,       /* (6) */
+    NDOF_BUTTON_8,       /* (7) */
+    NDOF_BUTTON_9,       /* (8) */
+    NDOF_BUTTON_A,       /* Labeled "10" (9). */
+    NDOF_BUTTON_B,       /* Labeled "11" (10). */
+    NDOF_BUTTON_C,       /* Labeled "12" (11). */
+    NDOF_BUTTON_MENU,    /* (12). */
+    NDOF_BUTTON_FIT,     /* (13). */
+    NDOF_BUTTON_TOP,     /* (14). */
+    NDOF_BUTTON_RIGHT,   /* (15). */
+    NDOF_BUTTON_FRONT,   /* (16). */
+    NDOF_BUTTON_ROLL_CW, /* (17). */
+    NDOF_BUTTON_ESC,     /* (18). */
+    NDOF_BUTTON_ALT,     /* (19). */
+    NDOF_BUTTON_SHIFT,   /* (20). */
+    NDOF_BUTTON_CTRL,    /* (21). */
+    NDOF_BUTTON_ROTATE,  /* Labeled "Lock Rotate" (22). */
+    NDOF_BUTTON_ENTER,   /* Labeled "Enter" (23). */
+    NDOF_BUTTON_DELETE,  /* (24). */
+    NDOF_BUTTON_TAB,     /* (25). */
+    NDOF_BUTTON_SPACE,   /* (26). */
+    NDOF_BUTTON_V1,      /* Labeled "V1" (27). */
+    NDOF_BUTTON_V2,      /* Labeled "V2" (28). */
+    NDOF_BUTTON_V3,      /* Labeled "V3" (29). */
+    NDOF_BUTTON_ISO1,    /* Labeled "ISO1" (30). */
 };
 
 static const int genericButtonCount = ARRAY_SIZE(Generic_HID_map);
@@ -257,7 +300,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
           puts("ndof: using SpaceMouse Enterprise");
           m_deviceType = NDOF_SpaceMouseEnterprise;
           m_buttonCount = 31;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = SpaceMouseEnterprise_HID_map;
           break;
 
         default:
@@ -313,6 +356,18 @@ static GHOST_TKey ghost_map_keyboard_from_ndof_buttom(const NDOF_ButtonT button)
   switch (button) {
     case NDOF_BUTTON_ESC: {
       return GHOST_kKeyEsc;
+    }
+    case NDOF_BUTTON_ENTER: {
+      return GHOST_kKeyEnter;
+    }
+    case NDOF_BUTTON_DELETE: {
+      return GHOST_kKeyDelete;
+    }
+    case NDOF_BUTTON_TAB: {
+      return GHOST_kKeyTab;
+    }
+    case NDOF_BUTTON_SPACE: {
+      return GHOST_kKeySpace;
     }
     case NDOF_BUTTON_ALT: {
       return GHOST_kKeyLeftAlt;
