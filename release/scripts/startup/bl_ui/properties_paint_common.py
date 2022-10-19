@@ -760,7 +760,6 @@ class UnifiedPaintPanel:
             ch = UnifiedPaintPanel.get_channel(context, brush, prop_name)
 
             if ch is not None:
-                print("FOUND CH", ch.idname)
                 prop_owner = ch
                 prop_name = "value"
 

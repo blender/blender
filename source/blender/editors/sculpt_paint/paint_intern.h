@@ -171,6 +171,7 @@ typedef struct PaintStroke {
   StrokeDone done;
 
   float spacing;
+  float spacing_raw;
   void *debug_draw_handle;
 
   bool original;

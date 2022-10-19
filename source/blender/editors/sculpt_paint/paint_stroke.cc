@@ -7,10 +7,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_arc_spline.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_arc_spline.hh"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -58,14 +58,21 @@ using blender::float3;
 static void paint_stroke_add_sample(
     const Paint *paint, PaintStroke *stroke, float x, float y, float pressure);
 
-#define DRAW_DEBUG_VIS
+//#define DRAW_DEBUG_VIS
 
 static int paint_stroke_max_points(const Paint *paint, PaintStroke *stroke)
 {
-  float s = max_ff(stroke->spacing, 0.05);
+  if (!stroke->has_cubic_stroke) {
+    return 1;
+  }
 
-  return stroke->has_cubic_stroke ? 8.0 : 1;
-  return stroke->has_cubic_stroke ? (int)(1.0f / s + 4.5f) : 1;
+  float s = max_ff(stroke->spacing_raw, 0.05);
+
+  int tot = (int)ceilf(1.0f / s) + 2;
+  tot = max_ii(tot, 5);
+
+  // return stroke->has_cubic_stroke ? 8.0 : 1;
+  return tot;
 }
 
 static int paint_stroke_max_samples(const Paint *paint, PaintStroke *stroke)
@@ -109,15 +116,6 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   float t = 0.0f, dt = 1.0f / (float)(steps - 1);
 
   immUniformColor4ub(45, 75, 255, 255);
-  immBegin(GPU_PRIM_LINE_STRIP, steps);
-
-  for (int i = 0; i < steps; i++, t += dt) {
-    float co[3], tan[3];
-
-    evaluate_cubic_bezier(ss->cache->world_cubic, t, co, tan);
-    immVertex3fv(pos, co);
-  }
-  immEnd();
 
   immBegin(GPU_PRIM_LINE_STRIP, steps);
 
@@ -142,17 +140,21 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
     float3 co = stroke->world_spline->evaluate(s);
 #  endif
 
+    mul_v3_m4v3(co, ob->obmat, co);
     immVertex3fv(pos, co);
   }
   immEnd();
 
-  immUniformColor4ub(0, 255, 25, 255);
+  immUniformColor4ub(0, 255, 25, 55);
 
   for (int is_points = 0; is_points < 2; is_points++) {
     immBegin(is_points ? GPU_PRIM_POINTS : GPU_PRIM_LINE_STRIP, stroke->num_points);
     for (int i = 0; i < stroke->num_points; i++) {
       int idx = (i + stroke->cur_point) % stroke->num_points;
-      immVertex3fv(pos, stroke->points[idx].location);
+      float3 co = stroke->points[idx].location;
+      mul_v3_m4v3(co, ob->obmat, co);
+
+      immVertex3fv(pos, co);
     }
     immEnd();
   }
@@ -472,10 +474,10 @@ void paint_calc_cubic_uv_v3(
     PaintStroke *stroke, StrokeCache *cache, const float co[3], float r_out[3], float r_tan[3])
 {
   float3 tan;
-  float3 p = stroke->world_spline->closest_point(co, r_out[0], tan, r_out[1]);
+  float3 p = stroke->world_spline->closest_point(co, r_out[1], tan, r_out[0]);
 
   r_tan = tan;
-  r_out[1] = len_v3v3(p, co);
+  r_out[0] = len_v3v3(p, co);
   r_out[2] = 0.0f;
 
   float3 vec = p - float3(co);
@@ -484,7 +486,7 @@ void paint_calc_cubic_uv_v3(
   cross_v3_v3v3(vec2, vec, tan);
 
   if (dot_v3v3(vec2, cache->view_normal) < 0.0f) {
-    r_out[1] = -r_out[1];
+    r_out[0] = -r_out[0];
   }
 }
 
@@ -861,25 +863,38 @@ static void paint_brush_stroke_add_step(
     PaintStrokePoint *point;
     PaintStrokePoint temp;
 
-    paint_stroke_add_point(paint,
-                           stroke,
-                           mouse_in,
-                           mouse_out,
-                           location,
-                           ups->pixel_radius,
-                           pressure,
-                           stroke->pen_flip,
-                           stroke->x_tilt,
-                           stroke->y_tilt);
+    int n = 1;
+    int max_points = paint_stroke_max_points(paint, stroke);
+
+    if (stroke->num_points < max_points) {
+      // n = max_points - stroke->num_points;
+    }
+    for (int i = 0; i < n; i++) {
+      paint_stroke_add_point(paint,
+                             stroke,
+                             mouse_in,
+                             mouse_out,
+                             location,
+                             ups->pixel_radius,
+                             pressure,
+                             stroke->pen_flip,
+                             stroke->x_tilt,
+                             stroke->y_tilt);
+      if (stroke->has_cubic_stroke) {
+        paint_brush_make_cubic(stroke);
+      }
+    }
 
     if (stroke->has_cubic_stroke) {
-      if (stroke->num_points < paint_stroke_max_points(paint, stroke)) {
+      // paint_brush_make_cubic(stroke);
+
+      if (stroke->spline->segments.size() < paint_stroke_max_points(paint, stroke)) {
         return;
       }
 
-      int cur = stroke->cur_point - (paint_stroke_max_points(paint, stroke) >> 1);
+      int cur = stroke->cur_point - (paint_stroke_max_points(paint, stroke) >> 1) - 2;
+      cur = (cur + stroke->num_points) % stroke->num_points;
 
-      paint_brush_make_cubic(stroke);
       PaintStrokePoint *p1 = stroke->points + ((cur + stroke->num_points) % stroke->num_points);
       PaintStrokePoint *p2 = stroke->points +
                              ((cur - 1 + stroke->num_points) % stroke->num_points);
@@ -1010,6 +1025,8 @@ static float paint_space_stroke_spacing(bContext *C,
     else {
       spacing = BRUSHSET_GET_FINAL_FLOAT(stroke->brush->channels, sd->channels, spacing, &mapping);
     }
+
+    stroke->spacing_raw = spacing * 0.01;
   }
   else {
     spacing = stroke->brush->spacing;
@@ -1017,6 +1034,8 @@ static float paint_space_stroke_spacing(bContext *C,
     if (stroke->brush->flag & BRUSH_SPACING_PRESSURE) {
       spacing = spacing * (1.5f - spacing_pressure);
     }
+
+    stroke->spacing_raw = spacing * 0.01;
   }
 
   if (SCULPT_is_cloth_deform_brush(brush)) {

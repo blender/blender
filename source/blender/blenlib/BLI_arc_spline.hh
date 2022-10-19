@@ -546,7 +546,7 @@ template<typename Float, int axes = 2> class BezierSpline {
       Float start = s - ds;
       Float end = s;
       Float mid = (start + end) * 0.5;
-      const int binary_steps = 4;
+      const int binary_steps = 10;
 
       for (int j = 0; j < binary_steps; j++) {
         Vector dvmid = derivative(mid);

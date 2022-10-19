@@ -4133,14 +4133,12 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       paint_calc_cubic_uv_v3(
           ss->cache->stroke, ss->cache, SCULPT_vertex_co_get(ss, vertex), point_3d, tan);
 
-      point_3d[1] = (ss->cache->radius + point_3d[1]) * 0.5f;
-
       /* Calc global distance. */
       float t1 = ss->cache->last_stroke_distance_t;
-      float t2 = point_3d[0] / ss->cache->radius;
+      float t2 = point_3d[1] / ss->cache->radius;
 
-      point_3d[0] = t1 + t2;
-      point_3d[0] *= ss->cache->radius;
+      point_3d[1] = t1 + t2;
+      point_3d[1] *= ss->cache->radius;
 
 #if 0
       if (SCULPT_has_colors(ss)) {
