@@ -57,6 +57,9 @@ darc := sqrt(dx**2 + dy**2);
 
 arcstep := darc*dt + 0.5*df(darc, t)*dt*dt;
 
+d2x := df(dx / darc, t);
+d2y := df(dy / darc, t);
+
 gentran
 begin
 declare <<
@@ -72,6 +75,8 @@ cubic;
 dcubic;
 icubic;
 arcstep;
+d2x;
+d2y;
 off fort;
 
 */
@@ -270,13 +275,22 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
     return r;
   }
 
-  Vector derivative(Float s)
+  Vector derivative(Float s, bool exact = true)
   {
     Float t = arc_to_t(s);
     Vector r;
 
     for (int i = 0; i < axes; i++) {
       r[i] = dcubic(ps[0][i], ps[1][i], ps[2][i], ps[3][i], t) * length;
+    }
+
+    /* Real arc length parameterized tangent has unit length. */
+    if (exact) {
+      Float len = sqrt(_dot(r, r));
+
+      if (len > 0.00001) {
+        r = r / len;
+      }
     }
 
     return r;
@@ -287,8 +301,63 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
     Float t = arc_to_t(s);
     Vector r;
 
-    for (int i = 0; i < axes; i++) {
-      r[i] = d2cubic(ps[0][i], ps[1][i], ps[2][i], ps[3][i], t) * length;
+    Float dx = dcubic(ps[0][0], ps[1][0], ps[2][0], ps[3][0], t);
+    Float d2x = dcubic(ps[0][0], ps[1][0], ps[2][0], ps[3][0], t);
+    Float dy = dcubic(ps[0][1], ps[1][1], ps[2][1], ps[3][1], t);
+    Float d2y = dcubic(ps[0][1], ps[1][1], ps[2][1], ps[3][1], t);
+
+    /*
+    comment: arc length second derivative;
+
+    operator x, y, z, dx, dy, dz, d2x, d2y, d2z;
+    forall t let df(x(t), t) = dx(t);
+    forall t let df(y(t), t) = dy(t);
+    forall t let df(z(t), t) = dz(t);
+    forall t let df(dx(t), t) = d2x(t);
+    forall t let df(dy(t), t) = d2y(t);
+    forall t let df(dz(t), t) = d2z(t);
+
+    comment: arc length first derivative is just the normalized tangent;
+
+    comment: 2d case;
+
+    dlen := sqrt(df(x(t), t)**2 + df(y(t), t)**2);
+
+    df(df(x(t), t) / dlen, t);
+    df(df(y(t), t) / dlen, t);
+
+    comment: 3d case;
+
+    dlen := sqrt(df(x(t), t)**2 + df(y(t), t)**2 + df(z(t), t)**2);
+
+    comment: final derivatives;
+
+    df(df(x(t), t) / dlen, t);
+    df(df(y(t), t) / dlen, t);
+    df(df(z(t), t) / dlen, t);
+    */
+    if constexpr (axes == 2) {
+      /* Basically the 2d perpidicular normalized tangent multiplied by the curvature. */
+
+      Float div = sqrt(dx * dx + dy * dy) * (dx * dx + dy * dy);
+
+      r[0] = ((d2x * dy - d2y * dx) * dy) / div;
+      r[1] = (-(d2x * dy - d2y * dx) * dx) / div;
+    }
+    else if (constexpr(axes == 3)) {
+      Float dz = dcubic(ps[0][2], ps[1][2], ps[2][2], ps[3][2], t);
+      Float d2z = d2cubic(ps[0][2], ps[1][2], ps[2][2], ps[3][2], t);
+
+      Float div = sqrt(dx * dx + dy * dy + dz * dz) * (dy * dy + dz * dz + dx * dx);
+
+      r[0] = (d2x * dy * dy + d2x * dz * dz - d2y * dx * dy - d2z * dx * dz) / div;
+      r[1] = (-(d2x * dx * dy - d2y * dx * dx - d2y * dz * dz + d2z * dy * dz)) / div;
+      r[2] = (-(d2x * dx * dz + d2y * dy * dz - d2z * dx * dx - d2z * dy * dy)) / div;
+    }
+    else {
+      for (int i = 0; i < axes; i++) {
+        r[i] = d2cubic(ps[0][i], ps[1][i], ps[2][i], ps[3][i], t) * length;
+      }
     }
 
     return r;
@@ -296,25 +365,16 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
 
   Float curvature(Float s)
   {
-    /* Get signed curvature if in 2d. */
+    Vector dv2 = derivative2(s);
+
     if constexpr (axes == 2) {
-      Vector dv1 = derivative(s);
-      Vector dv2 = derivative2(s);
+      Vector dv = derivative(s, true);
 
-      return (dv1[0] * dv2[1] - dv1[1] * dv2[0]) /
-             powf(dv1[0] * dv1[0] + dv1[1] * dv1[1], 3.0 / 2.0);
+      /* Calculate signed curvature. Remember that dv is normalized. */
+      return dv[0] * dv2[1] - dv[1] * dv2[0];
     }
-    else { /* Otherwise use magnitude of second derivative (this works because we are arc-length
-              parameterized). */
-      Vector dv2 = derivative2(s);
-      Float len = 0.0;
 
-      for (int i = 0; i < axes; i++) {
-        len += dv2[i] * dv2[i];
-      }
-
-      return sqrt(len);
-    }
+    return sqrt(_dot(dv2, dv2));
   }
 
  private:
@@ -336,6 +396,17 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
   Float d2cubic(Float k1, Float k2, Float k3, Float k4, Float t)
   {
     return -6.0 * (k1 * t - k1 - 3.0 * k2 * t + 2.0 * k2 + 3.0 * k3 * t - k3 - k4 * t);
+  }
+
+  Float _dot(Vector a, Vector b)
+  {
+    Float sum = 0.0;
+
+    for (int i = 0; i < axes; i++) {
+      sum += a[i] * b[i];
+    }
+
+    return sum;
   }
 
   Float clamp_s(Float s)
@@ -458,7 +529,7 @@ template<typename Float, int axes = 2> class BezierSpline {
     return seg->bezier.evaluate(s - seg->start);
   }
 
-  Vector derivative(Float s)
+  Vector derivative(Float s, bool exact = true)
   {
     if (segments.size() == 0) {
       return Vector();
@@ -467,7 +538,7 @@ template<typename Float, int axes = 2> class BezierSpline {
     s = clamp_s(s);
     Segment *seg = get_segment(s);
 
-    return seg->bezier.derivative(s - seg->start);
+    return seg->bezier.derivative(s - seg->start, exact);
   }
 
   Vector derivative2(Float s)
@@ -508,7 +579,7 @@ template<typename Float, int axes = 2> class BezierSpline {
 
     for (int i = 0; i < steps + 1; i++, s += ds, lastp = b, lastdv = dvb) {
       b = evaluate(s);
-      dvb = derivative(s);
+      dvb = derivative(s, false); /* We don't need real normalized derivative here. */
 
       if (i == 0) {
         continue;
@@ -549,7 +620,7 @@ template<typename Float, int axes = 2> class BezierSpline {
       const int binary_steps = 10;
 
       for (int j = 0; j < binary_steps; j++) {
-        Vector dvmid = derivative(mid);
+        Vector dvmid = derivative(mid, false);
         Vector vecmid = evaluate(mid) - p;
         Float sign_mid = _dot(vecmid, dvmid);
 
@@ -580,7 +651,7 @@ template<typename Float, int axes = 2> class BezierSpline {
       mindis = _dot(vec, vec);
     }
 
-    r_tan = derivative(mins);
+    r_tan = derivative(mins, true);
     r_s = mins;
     r_dis = sqrtf(mindis);
 
