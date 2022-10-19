@@ -126,7 +126,7 @@ float BKE_brush_sample_masktex(const struct Scene *scene,
  * Get the mask texture for this given object mode.
  *
  * This is preferred above using mtex/mask_mtex attributes directly as due to legacy these
- * attributes got switched in sculpt mode. 
+ * attributes got switched in sculpt mode.
  */
 const struct MTex *BKE_brush_mask_texture_get(const struct Brush *brush,
                                               const eObjectMode object_mode);

@@ -29,8 +29,8 @@ typedef enum {
 
 /* NDOF device button event types */
 typedef enum {
-  /* Used internally, never sent. */
-  NDOF_BUTTON_NONE = 0,
+  /* Used internally, never sent or used as an index. */
+  NDOF_BUTTON_NONE = -1,
   /* These two are available from any 3Dconnexion device. */
   NDOF_BUTTON_MENU,
   NDOF_BUTTON_FIT,
@@ -162,7 +162,7 @@ class GHOST_NDOFManager {
   int rotation_[3];
   int button_depressed_; /* Bit field. */
 
-  uint64_t motion_time_;     /* In milliseconds. */
+  uint64_t motion_time_;      /* In milliseconds. */
   uint64_t motion_time_prev_; /* Time of most recent motion event sent. */
 
   GHOST_TProgress motion_state_;

@@ -252,8 +252,6 @@ enum {
 #define _NDOF_MIN NDOF_MOTION
 #define _NDOF_BUTTON_MIN NDOF_BUTTON_MENU
 
-  /* used internally, never sent */
-  NDOF_BUTTON_NONE = NDOF_MOTION,
   /* these two are available from any 3Dconnexion device */
 
   NDOF_BUTTON_MENU = 0x0191, /* 401 */
@@ -455,6 +453,8 @@ enum eEventType_Mask {
 #define EVT_TYPE_MASK_HOTKEY_INCLUDE \
   (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF)
 #define EVT_TYPE_MASK_HOTKEY_EXCLUDE EVT_TYPE_MASK_KEYBOARD_MODIFIER
+
+#define NDOF_BUTTON_INDEX_AS_EVENT(i) (_NDOF_BUTTON_MIN + (i))
 
 bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
 

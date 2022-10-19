@@ -29,8 +29,7 @@ static const char *ndof_progress_string[] = {
 
 /* Printable values for #NDOF_ButtonT enum (keep aligned) */
 static const char *ndof_button_names[] = {
-    "NDOF_BUTTON_NONE",
-    /* Real button values. */
+    /* Exclude `NDOF_BUTTON_NONE` (-1). */
     "NDOF_BUTTON_MENU",
     "NDOF_BUTTON_FIT",
     "NDOF_BUTTON_TOP",
@@ -68,6 +67,7 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_V1",
     "NDOF_BUTTON_V2",
     "NDOF_BUTTON_V3",
+    /* Keyboard emulation. */
     "NDOF_BUTTON_ESC",
     "NDOF_BUTTON_ENTER",
     "NDOF_BUTTON_DELETE",
@@ -270,7 +270,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
         }
         case 0xC62B: {
           device_type_ = NDOF_SpaceMousePro;
-          hid_map_button_num_ = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
+          hid_map_button_num_ = 27; /* 15 physical buttons, but HID codes range from 0 to 26. */
           hid_map_button_mask_ = 0x07C0F137;
           hid_map_ = ndof_HID_map_Modern3Dx;
           break;
@@ -312,7 +312,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
         case 0xC632: /* Wireless. */
         {
           device_type_ = NDOF_SpaceMouseProWireless;
-          hid_map_button_num_ = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
+          hid_map_button_num_ = 27; /* 15 physical buttons, but HID codes range from 0 to 26. */
           hid_map_button_mask_ = 0x07C0F137;
           hid_map_ = ndof_HID_map_Modern3Dx;
           break;
