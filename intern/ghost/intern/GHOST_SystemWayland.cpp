@@ -10,6 +10,7 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventKey.h"
+#include "GHOST_EventTrackpad.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_PathUtils.h"
 #include "GHOST_TimerManager.h"
@@ -339,6 +340,11 @@ struct GWL_SeatStatePointer {
    * \endcode
    */
   wl_fixed_t xy[2] = {0, 0};
+
+  /** Smooth scrolling (handled & reset with pointer "frame" callback). */
+  wl_fixed_t scroll_xy[2] = {0, 0};
+  /** Discrete scrolling (handled & reset with pointer "frame" callback). */
+  int32_t scroll_discrete_xy[2] = {0, 0};
 
   /** Outputs on which the cursor is visible. */
   std::unordered_set<const GWL_Output *> outputs;
@@ -841,6 +847,21 @@ static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32
   }
 
   return gkey;
+}
+
+static int pointer_axis_as_index(const uint32_t axis)
+{
+  switch (axis) {
+    case WL_POINTER_AXIS_HORIZONTAL_SCROLL: {
+      return 0;
+    }
+    case WL_POINTER_AXIS_VERTICAL_SCROLL: {
+      return 1;
+    }
+    default: {
+      return -1;
+    }
+  }
 }
 
 static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wl_tablet_tool_type)
@@ -1732,6 +1753,14 @@ static void pointer_handle_enter(void *data,
   seat->pointer.serial = serial;
   seat->pointer.xy[0] = surface_x;
   seat->pointer.xy[1] = surface_y;
+
+  /* Resetting scroll events is likely unnecessary,
+   * do this to avoid any possible problems as it's harmless. */
+  seat->pointer.scroll_xy[0] = 0;
+  seat->pointer.scroll_xy[1] = 0;
+  seat->pointer.scroll_discrete_xy[0] = 0;
+  seat->pointer.scroll_discrete_xy[1] = 0;
+
   seat->pointer.wl_surface = wl_surface;
 
   win->setCursorShape(win->getCursorShape());
@@ -1843,18 +1872,69 @@ static void pointer_handle_button(void *data,
   }
 }
 
-static void pointer_handle_axis(void * /*data*/,
+static void pointer_handle_axis(void *data,
                                 struct wl_pointer * /*wl_pointer*/,
                                 const uint32_t /*time*/,
                                 const uint32_t axis,
                                 const wl_fixed_t value)
 {
+  /* NOTE: this is used for touch based scrolling - or other input that doesn't scroll with
+   * discrete "steps". This allows supporting smooth-scrolling without "touch" gesture support. */
   CLOG_INFO(LOG, 2, "axis (axis=%u, value=%d)", axis, value);
+  const int index = pointer_axis_as_index(axis);
+  if (UNLIKELY(index == -1)) {
+    return;
+  }
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer.scroll_xy[index] = value;
 }
 
-static void pointer_handle_frame(void * /*data*/, struct wl_pointer * /*wl_pointer*/)
+static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
 {
   CLOG_INFO(LOG, 2, "frame");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+  /* Discrete steps may generate non-discrete scrolling, in this case,
+   * give the mouse wheel priority otherwise mouse wheel events would be recognized
+   * as touch-pad scrolling too. */
+  if (seat->pointer.scroll_discrete_xy[0]) {
+    seat->pointer.scroll_xy[0] = 0;
+  }
+  if (seat->pointer.scroll_discrete_xy[1]) {
+    seat->pointer.scroll_xy[1] = 0;
+  }
+
+  /* Discrete Y steps currently unsupported. */
+  if (seat->pointer.scroll_discrete_xy[0]) {
+    if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
+      GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+      const int32_t discrete = seat->pointer.scroll_discrete_xy[0];
+      seat->system->pushEvent(new GHOST_EventWheel(
+          seat->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
+    }
+    seat->pointer.scroll_discrete_xy[0] = 0;
+    seat->pointer.scroll_discrete_xy[1] = 0;
+  }
+
+  if (seat->pointer.scroll_xy[0] || seat->pointer.scroll_xy[1]) {
+    if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
+      GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+      const wl_fixed_t scale = win->scale();
+      seat->system->pushEvent(new GHOST_EventTrackpad(
+          seat->system->getMilliSeconds(),
+          win,
+          GHOST_kTrackpadEventScroll,
+          wl_fixed_to_int(scale * seat->pointer.xy[0]),
+          wl_fixed_to_int(scale * seat->pointer.xy[1]),
+          wl_fixed_to_int(seat->pointer.scroll_xy[0]),
+          wl_fixed_to_int(seat->pointer.scroll_xy[1]),
+          /* TODO: investigate a way to request this configuration from the system. */
+          true));
+    }
+
+    seat->pointer.scroll_xy[0] = 0;
+    seat->pointer.scroll_xy[1] = 0;
+  }
 }
 static void pointer_handle_axis_source(void * /*data*/,
                                        struct wl_pointer * /*wl_pointer*/,
@@ -1874,18 +1954,15 @@ static void pointer_handle_axis_discrete(void *data,
                                          uint32_t axis,
                                          int32_t discrete)
 {
+  /* NOTE: a discrete axis are typically mouse wheel events.
+   * The non-discrete version of this function is used for touch-pad. */
   CLOG_INFO(LOG, 2, "axis_discrete (axis=%u, discrete=%d)", axis, discrete);
-
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  if (axis != WL_POINTER_AXIS_VERTICAL_SCROLL) {
+  const int index = pointer_axis_as_index(axis);
+  if (UNLIKELY(index == -1)) {
     return;
   }
-
-  if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent(new GHOST_EventWheel(
-        seat->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
-  }
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer.scroll_discrete_xy[index] = discrete;
 }
 
 static const struct wl_pointer_listener pointer_listener = {
