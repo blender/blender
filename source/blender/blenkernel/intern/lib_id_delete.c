@@ -23,6 +23,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
@@ -217,6 +218,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 
   BKE_main_lock(bmain);
   if (do_tagged_deletion) {
+    BKE_layer_collection_resync_forbid();
     /* Main idea of batch deletion is to remove all IDs to be deleted from Main database.
      * This means that we won't have to loop over all deleted IDs to remove usages
      * of other deleted IDs.
@@ -278,6 +280,9 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
             (ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | ID_REMAP_SKIP_USER_CLEAR));
       }
     }
+
+    BKE_layer_collection_resync_allow();
+    BKE_main_collection_sync_remap(bmain);
 
     /* Now we can safely mark that ID as not being in Main database anymore. */
     /* NOTE: This needs to be done in a separate loop than above, otherwise some user-counts of
