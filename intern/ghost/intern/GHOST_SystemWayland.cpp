@@ -416,6 +416,7 @@ struct GWL_Seat {
   std::string name;
   struct wl_seat *wl_seat = nullptr;
   struct wl_pointer *wl_pointer = nullptr;
+  struct wl_touch *wl_touch = nullptr;
   struct wl_keyboard *wl_keyboard = nullptr;
   struct zwp_tablet_seat_v2 *tablet_seat = nullptr;
 
@@ -643,6 +644,11 @@ static void display_destroy(GWL_Display *display)
         wl_pointer_destroy(seat->wl_pointer);
       }
     }
+
+    if (seat->wl_touch) {
+      wl_touch_destroy(seat->wl_touch);
+    }
+
     if (seat->wl_keyboard) {
       if (seat->key_repeat.timer) {
         keyboard_handle_key_repeat_cancel(seat);
@@ -1899,6 +1905,89 @@ static const struct wl_pointer_listener pointer_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Listener (Touch Seat), #wl_touch_listener
+ *
+ * TODO(@campbellbarton): Only setup the callbacks for now as I don't have
+ * hardware that generates touch events.
+ * \{ */
+
+static CLG_LogRef LOG_WL_TOUCH = {"ghost.wl.handle.touch"};
+#define LOG (&LOG_WL_TOUCH)
+
+static void touch_seat_handle_down(void * /*data*/,
+                                   struct wl_touch * /*wl_touch*/,
+                                   uint32_t /*serial*/,
+                                   uint32_t /*time*/,
+                                   struct wl_surface * /*wl_surface*/,
+                                   int32_t /*id*/,
+                                   wl_fixed_t /*x*/,
+                                   wl_fixed_t /*y*/)
+{
+  CLOG_INFO(LOG, 2, "down");
+}
+
+static void touch_seat_handle_up(void * /*data*/,
+                                 struct wl_touch * /*wl_touch*/,
+                                 uint32_t /*serial*/,
+                                 uint32_t /*time*/,
+                                 int32_t /*id*/)
+{
+  CLOG_INFO(LOG, 2, "up");
+}
+
+static void touch_seat_handle_motion(void * /*data*/,
+                                     struct wl_touch * /*wl_touch*/,
+                                     uint32_t /*time*/,
+                                     int32_t /*id*/,
+                                     wl_fixed_t /*x*/,
+                                     wl_fixed_t /*y*/)
+{
+  CLOG_INFO(LOG, 2, "motion");
+}
+
+static void touch_seat_handle_frame(void * /*data*/, struct wl_touch * /*wl_touch*/)
+{
+  CLOG_INFO(LOG, 2, "frame");
+}
+
+static void touch_seat_handle_cancel(void * /*data*/, struct wl_touch * /*wl_touch*/)
+{
+
+  CLOG_INFO(LOG, 2, "cancel");
+}
+
+static void touch_seat_handle_shape(void * /*data*/,
+                                    struct wl_touch * /*touch*/,
+                                    int32_t /*id*/,
+                                    wl_fixed_t /*major*/,
+                                    wl_fixed_t /*minor*/)
+{
+  CLOG_INFO(LOG, 2, "shape");
+}
+
+static void touch_seat_handle_orientation(void * /*data*/,
+                                          struct wl_touch * /*touch*/,
+                                          int32_t /*id*/,
+                                          wl_fixed_t /*orientation*/)
+{
+  CLOG_INFO(LOG, 2, "orientation");
+}
+
+static const struct wl_touch_listener touch_seat_listener = {
+    touch_seat_handle_down,
+    touch_seat_handle_up,
+    touch_seat_handle_motion,
+    touch_seat_handle_frame,
+    touch_seat_handle_cancel,
+    touch_seat_handle_shape,
+    touch_seat_handle_orientation,
+};
+
+#undef LOG
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Listener (Tablet Tool), #zwp_tablet_tool_v2_listener
  * \{ */
 
@@ -2715,6 +2804,12 @@ static void seat_handle_capabilities(void *data,
 
     wl_surface_add_listener(seat->cursor.wl_surface, &cursor_surface_listener, data);
     ghost_wl_surface_tag_cursor_pointer(seat->cursor.wl_surface);
+  }
+
+  if (capabilities & WL_SEAT_CAPABILITY_TOUCH) {
+    seat->wl_touch = wl_seat_get_touch(wl_seat);
+    wl_touch_set_user_data(seat->wl_touch, seat);
+    wl_touch_add_listener(seat->wl_touch, &touch_seat_listener, seat);
   }
 
   if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
