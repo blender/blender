@@ -1004,6 +1004,11 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
   else {
     interface = new GLShaderInterface(shader_program_);
   }
+  /**
+   * WORKAROUND: Creating the shader interface changes the active program.
+   * Make sure to update the context, otherwise we might have a missing bind.
+   */
+  Context::get()->shader = this;
 
   return true;
 }
