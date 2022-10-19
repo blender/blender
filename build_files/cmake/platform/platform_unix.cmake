@@ -341,10 +341,10 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   file(GLOB _sycl_runtime_libraries
     ${SYCL_ROOT_DIR}/lib/libsycl.so
-    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9]
-    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.*
     ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
   )
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
