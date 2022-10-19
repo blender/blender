@@ -1050,31 +1050,6 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 /** \name Pack UV Islands Operator
  * \{ */
 
-/**
- * \warning Since this uses #ParamHandle it doesn't work with non-manifold meshes (see T82637).
- * Use #ED_uvedit_pack_islands_multi for a more general solution.
- *
- * TODO: remove this function, in favor of #ED_uvedit_pack_islands_multi.
- */
-static void uvedit_pack_islands_multi(const Scene *scene,
-                                      Object **objects,
-                                      const uint objects_len,
-                                      const UnwrapOptions *options,
-                                      bool rotate,
-                                      bool ignore_pinned)
-{
-  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, options);
-  GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
-
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
-  }
-}
-
 /* Packing targets. */
 enum {
   PACK_UDIM_SRC_CLOSEST = 0,
@@ -1119,16 +1094,22 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
       sima, use_active, &udim_params);
 
-  struct UVPackIsland_Params params = {
+  const struct UVPackIsland_Params pack_island_params = {
       .rotate = RNA_boolean_get(op->ptr, "rotate"),
-      .only_selected_uvs = true,
-      .only_selected_faces = true,
-      .correct_aspect = true,
+      .only_selected_uvs = options.only_selected_uvs,
+      .only_selected_faces = options.only_selected_faces,
+      .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
+      .correct_aspect = options.correct_aspect,
+      .ignore_pinned = false,
       .margin_method = RNA_enum_get(op->ptr, "margin_method"),
       .margin = RNA_float_get(op->ptr, "margin"),
   };
-  ED_uvedit_pack_islands_multi(
-      scene, objects, objects_len, NULL, use_udim_params ? &udim_params : NULL, &params);
+  ED_uvedit_pack_islands_multi(scene,
+                               objects,
+                               objects_len,
+                               NULL,
+                               use_udim_params ? &udim_params : NULL,
+                               &pack_island_params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -1889,12 +1870,19 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
         .fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0,
         .correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0,
     };
-
-    bool rotate = true;
-    bool ignore_pinned = true;
-
     uvedit_unwrap_multi(scene, objects, objects_len, &options, NULL);
-    uvedit_pack_islands_multi(scene, objects, objects_len, &options, rotate, ignore_pinned);
+
+    const struct UVPackIsland_Params pack_island_params = {
+        .rotate = true,
+        .only_selected_uvs = options.only_selected_uvs,
+        .only_selected_faces = options.only_selected_faces,
+        .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
+        .correct_aspect = options.correct_aspect,
+        .ignore_pinned = true,
+        .margin_method = ED_UVPACK_MARGIN_SCALED,
+        .margin = scene->toolsettings->uvcalc_margin,
+    };
+    ED_uvedit_pack_islands_multi(scene, objects, objects_len, NULL, NULL, &pack_island_params);
   }
 }
 
@@ -1926,8 +1914,6 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       .correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect"),
   };
 
-  bool rotate = true;
-  bool ignore_pinned = true;
   if (CTX_wm_space_image(C)) {
     /* Inside the UV Editor, only unwrap selected UVs. */
     options.only_selected_uvs = true;
@@ -2032,7 +2018,18 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       .count_failed = 0,
   };
   uvedit_unwrap_multi(scene, objects, objects_len, &options, &result_info);
-  uvedit_pack_islands_multi(scene, objects, objects_len, &options, rotate, ignore_pinned);
+
+  const struct UVPackIsland_Params pack_island_params = {
+      .rotate = true,
+      .only_selected_uvs = options.only_selected_uvs,
+      .only_selected_faces = options.only_selected_faces,
+      .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
+      .correct_aspect = options.correct_aspect,
+      .ignore_pinned = true,
+      .margin_method = RNA_enum_get(op->ptr, "margin_method"),
+      .margin = RNA_float_get(op->ptr, "margin"),
+  };
+  ED_uvedit_pack_islands_multi(scene, objects, objects_len, NULL, NULL, &pack_island_params);
 
   MEM_freeN(objects);
 
