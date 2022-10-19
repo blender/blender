@@ -198,22 +198,22 @@ static const NDOF_ButtonT ndof_HID_map_SpaceMouseEnterprise[] = {
 static const int genericButtonCount = ARRAY_SIZE(ndof_HID_map_Generic);
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
-    : m_system(sys),
-      m_deviceType(NDOF_UnknownDevice), /* Each platform has its own device detection code. */
-      m_buttonCount(genericButtonCount),
-      m_buttonMask(0),
-      m_hidMap(ndof_HID_map_Generic),
-      m_buttons(0),
-      m_motionTime(0),
-      m_prevMotionTime(0),
-      m_motionState(GHOST_kNotStarted),
-      m_motionEventPending(false),
-      m_deadZone(0.0f)
+    : system_(sys),
+      device_type_(NDOF_UnknownDevice), /* Each platform has its own device detection code. */
+      hid_map_button_num_(genericButtonCount),
+      hid_map_button_mask_(0),
+      hid_map_(ndof_HID_map_Generic),
+      button_depressed_(0),
+      motion_time_(0),
+      motion_time_prev_(0),
+      motion_state_(GHOST_kNotStarted),
+      motion_event_pending_(false),
+      motion_dead_zone_(0.0f)
 {
   /* To avoid the rare situation where one triple is updated and
    * the other is not, initialize them both here: */
-  memset(m_translation, 0, sizeof(m_translation));
-  memset(m_rotation, 0, sizeof(m_rotation));
+  memset(translation_, 0, sizeof(translation_));
+  memset(rotation_, 0, sizeof(rotation_));
 }
 
 /** \} */
@@ -235,10 +235,10 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
    * unidentified devices will emit motion events like normal
    * rogue buttons do nothing by default, but can be customized by the user. */
 
-  m_deviceType = NDOF_UnknownDevice;
-  m_hidMap = ndof_HID_map_Generic;
-  m_buttonCount = genericButtonCount;
-  m_buttonMask = 0;
+  device_type_ = NDOF_UnknownDevice;
+  hid_map_ = ndof_HID_map_Generic;
+  hid_map_button_num_ = genericButtonCount;
+  hid_map_button_mask_ = 0;
 
   /* "mystery device" owners can help build a HID_map for their hardware
    * A few users have already contributed information about several older devices
@@ -251,46 +251,46 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
         case 0xC626: /* Full-size SpaceNavigator. */
         case 0xC628: /* The "for Notebooks" one. */
         {
-          m_deviceType = NDOF_SpaceNavigator;
-          m_buttonCount = 2;
-          m_hidMap = ndof_HID_map_Modern3Dx;
+          device_type_ = NDOF_SpaceNavigator;
+          hid_map_button_num_ = 2;
+          hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
         case 0xC627: {
-          m_deviceType = NDOF_SpaceExplorer;
-          m_buttonCount = 15;
-          m_hidMap = ndof_HID_map_SpaceExplorer;
+          device_type_ = NDOF_SpaceExplorer;
+          hid_map_button_num_ = 15;
+          hid_map_ = ndof_HID_map_SpaceExplorer;
           break;
         }
         case 0xC629: {
-          m_deviceType = NDOF_SpacePilotPro;
-          m_buttonCount = 31;
-          m_hidMap = ndof_HID_map_Modern3Dx;
+          device_type_ = NDOF_SpacePilotPro;
+          hid_map_button_num_ = 31;
+          hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
         case 0xC62B: {
-          m_deviceType = NDOF_SpaceMousePro;
-          m_buttonCount = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
-          m_buttonMask = 0x07C0F137;
-          m_hidMap = ndof_HID_map_Modern3Dx;
+          device_type_ = NDOF_SpaceMousePro;
+          hid_map_button_num_ = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
+          hid_map_button_mask_ = 0x07C0F137;
+          hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
 
         /* -- older devices -- */
         case 0xC625: {
-          m_deviceType = NDOF_SpacePilot;
-          m_buttonCount = 21;
-          m_hidMap = ndof_HID_map_SpacePilot;
+          device_type_ = NDOF_SpacePilot;
+          hid_map_button_num_ = 21;
+          hid_map_ = ndof_HID_map_SpacePilot;
           break;
         }
         case 0xC621: {
-          m_deviceType = NDOF_Spaceball5000;
-          m_buttonCount = 12;
+          device_type_ = NDOF_Spaceball5000;
+          hid_map_button_num_ = 12;
           break;
         }
         case 0xC623: {
-          m_deviceType = NDOF_SpaceTraveler;
-          m_buttonCount = 8;
+          device_type_ = NDOF_SpaceTraveler;
+          hid_map_button_num_ = 8;
           break;
         }
         default: {
@@ -303,24 +303,24 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
         case 0xC62E: /* Plugged in. */
         case 0xC62F: /* Wireless. */
         {
-          m_deviceType = NDOF_SpaceMouseWireless;
-          m_buttonCount = 2;
-          m_hidMap = ndof_HID_map_Modern3Dx;
+          device_type_ = NDOF_SpaceMouseWireless;
+          hid_map_button_num_ = 2;
+          hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
         case 0xC631: /* Plugged in. */
         case 0xC632: /* Wireless. */
         {
-          m_deviceType = NDOF_SpaceMouseProWireless;
-          m_buttonCount = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
-          m_buttonMask = 0x07C0F137;
-          m_hidMap = ndof_HID_map_Modern3Dx;
+          device_type_ = NDOF_SpaceMouseProWireless;
+          hid_map_button_num_ = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
+          hid_map_button_mask_ = 0x07C0F137;
+          hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
         case 0xC633: {
-          m_deviceType = NDOF_SpaceMouseEnterprise;
-          m_buttonCount = 31;
-          m_hidMap = ndof_HID_map_SpaceMouseEnterprise;
+          device_type_ = NDOF_SpaceMouseEnterprise;
+          hid_map_button_num_ = 31;
+          hid_map_ = ndof_HID_map_SpaceMouseEnterprise;
           break;
         }
         default: {
@@ -332,17 +332,17 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
       CLOG_INFO(LOG, 2, "unknown device %04hx:%04hx", vendor_id, product_id);
   }
 
-  if (m_deviceType != NDOF_UnknownDevice) {
-    CLOG_INFO(LOG, 2, "using %s", ndof_device_names[m_deviceType]);
+  if (device_type_ != NDOF_UnknownDevice) {
+    CLOG_INFO(LOG, 2, "using %s", ndof_device_names[device_type_]);
   }
 
-  if (m_buttonMask == 0) {
-    m_buttonMask = int(~(UINT_MAX << m_buttonCount));
+  if (hid_map_button_mask_ == 0) {
+    hid_map_button_mask_ = int(~(UINT_MAX << hid_map_button_num_));
   }
 
-  CLOG_INFO(LOG, 2, "%d buttons -> hex:%X", m_buttonCount, (uint)m_buttonMask);
+  CLOG_INFO(LOG, 2, "%d buttons -> hex:%X", hid_map_button_num_, (uint)hid_map_button_mask_);
 
-  return m_deviceType != NDOF_UnknownDevice;
+  return device_type_ != NDOF_UnknownDevice;
 }
 
 #undef LOG
@@ -355,16 +355,16 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
 
 void GHOST_NDOFManager::updateTranslation(const int t[3], uint64_t time)
 {
-  memcpy(m_translation, t, sizeof(m_translation));
-  m_motionTime = time;
-  m_motionEventPending = true;
+  memcpy(translation_, t, sizeof(translation_));
+  motion_time_ = time;
+  motion_event_pending_ = true;
 }
 
 void GHOST_NDOFManager::updateRotation(const int r[3], uint64_t time)
 {
-  memcpy(m_rotation, r, sizeof(m_rotation));
-  m_motionTime = time;
-  m_motionEventPending = true;
+  memcpy(rotation_, r, sizeof(rotation_));
+  motion_time_ = time;
+  motion_event_pending_ = true;
 }
 
 /** \} */
@@ -423,7 +423,7 @@ void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button,
   data->action = press ? GHOST_kPress : GHOST_kRelease;
   data->button = button;
 
-  m_system.pushEvent(event);
+  system_.pushEvent(event);
 }
 
 void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
@@ -434,21 +434,21 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
   GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
   GHOST_EventKey *event = new GHOST_EventKey(time, type, window, key, false);
 
-  m_system.pushEvent(event);
+  system_.pushEvent(event);
 }
 
 void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t time)
 {
-  if (button_number >= m_buttonCount) {
+  if (button_number >= hid_map_button_num_) {
     CLOG_INFO(LOG,
               2,
               "button=%d, press=%d (out of range %d, ignoring!)",
               button_number,
               (int)press,
-              m_buttonCount);
+              hid_map_button_num_);
     return;
   }
-  const NDOF_ButtonT button = m_hidMap[button_number];
+  const NDOF_ButtonT button = hid_map_[button_number];
   if (button == NDOF_BUTTON_NONE) {
     CLOG_INFO(
         LOG, 2, "button=%d, press=%d (mapped to none, ignoring!)", button_number, (int)press);
@@ -462,7 +462,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
             (int)press,
             ndof_button_names[button]);
 
-  GHOST_IWindow *window = m_system.getWindowManager()->getActiveWindow();
+  GHOST_IWindow *window = system_.getWindowManager()->getActiveWindow();
   const GHOST_TKey key = ghost_map_keyboard_from_ndof_buttom(button);
   if (key != GHOST_kKeyUnknown) {
     sendKeyEvent(key, press, time, window);
@@ -473,20 +473,20 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
 
   int mask = 1 << button_number;
   if (press) {
-    m_buttons |= mask; /* Set this button's bit. */
+    button_depressed_ |= mask; /* Set this button's bit. */
   }
   else {
-    m_buttons &= ~mask; /* Clear this button's bit. */
+    button_depressed_ &= ~mask; /* Clear this button's bit. */
   }
 }
 
 void GHOST_NDOFManager::updateButtons(int button_bits, uint64_t time)
 {
-  button_bits &= m_buttonMask; /* Discard any "garbage" bits. */
+  button_bits &= hid_map_button_mask_; /* Discard any "garbage" bits. */
 
-  int diff = m_buttons ^ button_bits;
+  int diff = button_depressed_ ^ button_bits;
 
-  for (int button_number = 0; button_number < m_buttonCount; ++button_number) {
+  for (int button_number = 0; button_number < hid_map_button_num_; ++button_number) {
     int mask = 1 << button_number;
 
     if (diff & mask) {
@@ -513,7 +513,7 @@ void GHOST_NDOFManager::setDeadZone(float dz)
     /* Negative values don't make sense, so clamp at zero. */
     dz = 0.0f;
   }
-  m_deadZone = dz;
+  motion_dead_zone_ = dz;
 
   /* Warn the rogue user/developer about high dead-zone, but allow it. */
   CLOG_INFO(LOG, 2, "dead zone set to %.2f%s", dz, (dz > 0.5f) ? " (unexpectedly high)" : "");
@@ -538,20 +538,20 @@ static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 
 bool GHOST_NDOFManager::sendMotionEvent()
 {
-  if (!m_motionEventPending) {
+  if (!motion_event_pending_) {
     return false;
   }
 
-  m_motionEventPending = false; /* Any pending motion is handled right now. */
+  motion_event_pending_ = false; /* Any pending motion is handled right now. */
 
-  GHOST_IWindow *window = m_system.getWindowManager()->getActiveWindow();
+  GHOST_IWindow *window = system_.getWindowManager()->getActiveWindow();
 
   if (window == nullptr) {
-    m_motionState = GHOST_kNotStarted; /* Avoid large `dt` times when changing windows. */
+    motion_state_ = GHOST_kNotStarted; /* Avoid large `dt` times when changing windows. */
     return false;                      /* Delivery will fail, so don't bother sending. */
   }
 
-  GHOST_EventNDOFMotion *event = new GHOST_EventNDOFMotion(m_motionTime, window);
+  GHOST_EventNDOFMotion *event = new GHOST_EventNDOFMotion(motion_time_, window);
   GHOST_TEventNDOFMotionData *data = (GHOST_TEventNDOFMotionData *)event->getData();
 
   /* Scale axis values here to normalize them to around +/- 1
@@ -559,26 +559,26 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
   const float scale = 1.0f / 350.0f; /* 3Dconnexion devices send +/- 350 usually */
 
-  data->tx = scale * m_translation[0];
-  data->ty = scale * m_translation[1];
-  data->tz = scale * m_translation[2];
+  data->tx = scale * translation_[0];
+  data->ty = scale * translation_[1];
+  data->tz = scale * translation_[2];
 
-  data->rx = scale * m_rotation[0];
-  data->ry = scale * m_rotation[1];
-  data->rz = scale * m_rotation[2];
-  data->dt = 0.001f * (m_motionTime - m_prevMotionTime); /* In seconds. */
-  m_prevMotionTime = m_motionTime;
+  data->rx = scale * rotation_[0];
+  data->ry = scale * rotation_[1];
+  data->rz = scale * rotation_[2];
+  data->dt = 0.001f * (motion_time_ - motion_time_prev_); /* In seconds. */
+  motion_time_prev_ = motion_time_;
 
-  bool weHaveMotion = !nearHomePosition(data, m_deadZone);
+  bool weHaveMotion = !nearHomePosition(data, motion_dead_zone_);
 
   /* Determine what kind of motion event to send `(Starting, InProgress, Finishing)`
    * and where that leaves this NDOF manager `(NotStarted, InProgress, Finished)`. */
-  switch (m_motionState) {
+  switch (motion_state_) {
     case GHOST_kNotStarted:
     case GHOST_kFinished: {
       if (weHaveMotion) {
         data->progress = GHOST_kStarting;
-        m_motionState = GHOST_kInProgress;
+        motion_state_ = GHOST_kInProgress;
         /* Previous motion time will be ancient, so just make up a reasonable time delta. */
         data->dt = 0.0125f;
       }
@@ -597,7 +597,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
       }
       else {
         data->progress = GHOST_kFinishing;
-        m_motionState = GHOST_kFinished;
+        motion_state_ = GHOST_kFinished;
       }
       break;
     }
@@ -624,15 +624,15 @@ bool GHOST_NDOFManager::sendMotionEvent()
   CLOG_INFO(LOG,
             2,
             "motion sent, T=(%d,%d,%d) R=(%d,%d,%d) status=%s",
-            m_translation[0],
-            m_translation[1],
-            m_translation[2],
-            m_rotation[0],
-            m_rotation[1],
-            m_rotation[2],
+            translation_[0],
+            translation_[1],
+            translation_[2],
+            rotation_[0],
+            rotation_[1],
+            rotation_[2],
             ndof_progress_string[data->progress]);
 #endif
-  m_system.pushEvent(event);
+  system_.pushEvent(event);
 
   return true;
 }

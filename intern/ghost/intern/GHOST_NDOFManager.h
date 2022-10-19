@@ -147,25 +147,25 @@ class GHOST_NDOFManager {
   bool sendMotionEvent();
 
  protected:
-  GHOST_System &m_system;
+  GHOST_System &system_;
 
  private:
   void sendButtonEvent(NDOF_ButtonT, bool press, uint64_t time, GHOST_IWindow *);
   void sendKeyEvent(GHOST_TKey, bool press, uint64_t time, GHOST_IWindow *);
 
-  NDOF_DeviceT m_deviceType;
-  int m_buttonCount;
-  int m_buttonMask;
-  const NDOF_ButtonT *m_hidMap;
+  NDOF_DeviceT device_type_;
+  int hid_map_button_num_;
+  int hid_map_button_mask_;
+  const NDOF_ButtonT *hid_map_;
 
-  int m_translation[3];
-  int m_rotation[3];
-  int m_buttons; /* Bit field. */
+  int translation_[3];
+  int rotation_[3];
+  int button_depressed_; /* Bit field. */
 
-  uint64_t m_motionTime;     /* In milliseconds. */
-  uint64_t m_prevMotionTime; /* Time of most recent motion event sent. */
+  uint64_t motion_time_;     /* In milliseconds. */
+  uint64_t motion_time_prev_; /* Time of most recent motion event sent. */
 
-  GHOST_TProgress m_motionState;
-  bool m_motionEventPending;
-  float m_deadZone; /* Discard motion with each component < this. */
+  GHOST_TProgress motion_state_;
+  bool motion_event_pending_;
+  float motion_dead_zone_; /* Discard motion with each component < this. */
 };
