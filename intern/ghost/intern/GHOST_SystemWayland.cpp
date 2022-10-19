@@ -117,6 +117,8 @@ static bool use_gnome_confine_hack = false;
  * This define could be removed without changing any functionality,
  * it just means GNOME users will see verbose warning messages that alert them about
  * a known problem that needs to be fixed up-stream.
+ *
+ * This has been fixed for GNOME 43. Keep the workaround until support for gnome 42 is dropped.
  * See: https://gitlab.gnome.org/GNOME/mutter/-/issues/2457
  */
 #define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
