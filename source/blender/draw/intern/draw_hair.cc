@@ -293,6 +293,11 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadRoot", hair_rad_root);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", hair_rad_tip);
   DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);
+  if (gpu_material) {
+    /* \note: This needs to happen before the drawcall to allow correct attribute extraction.
+     * (see T101896) */
+    DRW_shgroup_add_material_resources(shgrp, gpu_material);
+  }
   /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass
    * culling test. */
   GPUBatch *geom = hair_cache->final[subdiv].proc_hairs[thickness_res - 1];
