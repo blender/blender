@@ -9,7 +9,7 @@
 #include "GHOST_System.h"
 
 typedef enum {
-  NDOF_UnknownDevice,
+  NDOF_UnknownDevice = 0,
 
   /* Current devices. */
   NDOF_SpaceNavigator,

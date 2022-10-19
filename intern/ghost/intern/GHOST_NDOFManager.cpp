@@ -12,11 +12,14 @@
 
 #include <climits>
 #include <cmath>
-#include <cstdio>  /* For error/info reporting. */
 #include <cstring> /* For memory functions. */
 
-/* Printable version of each GHOST_TProgress value. */
-static const char *progress_string[] = {
+/* -------------------------------------------------------------------- */
+/** \name NDOF Enum Strings
+ * \{ */
+
+/* Printable values for #GHOST_TProgress enum (keep aligned). */
+static const char *ndof_progress_string[] = {
     "not started",
     "starting",
     "in progress",
@@ -24,36 +27,31 @@ static const char *progress_string[] = {
     "finished",
 };
 
+/* Printable values for #NDOF_ButtonT enum (keep aligned) */
 static const char *ndof_button_names[] = {
-    /* used internally, never sent */
     "NDOF_BUTTON_NONE",
-    /* these two are available from any 3Dconnexion device */
+    /* Real button values. */
     "NDOF_BUTTON_MENU",
     "NDOF_BUTTON_FIT",
-    /* standard views */
     "NDOF_BUTTON_TOP",
     "NDOF_BUTTON_BOTTOM",
     "NDOF_BUTTON_LEFT",
     "NDOF_BUTTON_RIGHT",
     "NDOF_BUTTON_FRONT",
     "NDOF_BUTTON_BACK",
-    /* more views */
     "NDOF_BUTTON_ISO1",
     "NDOF_BUTTON_ISO2",
-    /* 90 degree rotations */
     "NDOF_BUTTON_ROLL_CW",
     "NDOF_BUTTON_ROLL_CCW",
     "NDOF_BUTTON_SPIN_CW",
     "NDOF_BUTTON_SPIN_CCW",
     "NDOF_BUTTON_TILT_CW",
     "NDOF_BUTTON_TILT_CCW",
-    /* device control */
     "NDOF_BUTTON_ROTATE",
     "NDOF_BUTTON_PANZOOM",
     "NDOF_BUTTON_DOMINANT",
     "NDOF_BUTTON_PLUS",
     "NDOF_BUTTON_MINUS",
-    /* general-purpose buttons */
     "NDOF_BUTTON_1",
     "NDOF_BUTTON_2",
     "NDOF_BUTTON_3",
@@ -64,15 +62,12 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_8",
     "NDOF_BUTTON_9",
     "NDOF_BUTTON_10",
-    /* more general-purpose buttons */
     "NDOF_BUTTON_A",
     "NDOF_BUTTON_B",
     "NDOF_BUTTON_C",
-    /* Stored views. */
     "NDOF_BUTTON_V1",
     "NDOF_BUTTON_V2",
     "NDOF_BUTTON_V3",
-    /* Keyboard emulation. */
     "NDOF_BUTTON_ESC",
     "NDOF_BUTTON_ENTER",
     "NDOF_BUTTON_DELETE",
@@ -83,10 +78,30 @@ static const char *ndof_button_names[] = {
     "NDOF_BUTTON_CTRL",
 };
 
+static const char *ndof_device_names[] = {
+    "UnknownDevice",
+    "SpaceNavigator",
+    "SpaceExplorer",
+    "SpacePilotPro",
+    "SpaceMousePro",
+    "SpaceMouseWireless",
+    "SpaceMouseProWireless",
+    "SpaceMouseEnterprise",
+    "SpacePilot",
+    "Spaceball5000",
+    "SpaceTraveler",
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Button Maps
+ * \{ */
+
 /* Shared by the latest 3Dconnexion hardware
  * SpacePilotPro uses all of these
  * smaller devices use only some, based on button mask. */
-static const NDOF_ButtonT Modern3Dx_HID_map[] = {
+static const NDOF_ButtonT ndof_HID_map_Modern3Dx[] = {
     NDOF_BUTTON_MENU,     NDOF_BUTTON_FIT,      NDOF_BUTTON_TOP,    NDOF_BUTTON_LEFT,
     NDOF_BUTTON_RIGHT,    NDOF_BUTTON_FRONT,    NDOF_BUTTON_BOTTOM, NDOF_BUTTON_BACK,
     NDOF_BUTTON_ROLL_CW,  NDOF_BUTTON_ROLL_CCW, NDOF_BUTTON_ISO1,   NDOF_BUTTON_ISO2,
@@ -96,7 +111,7 @@ static const NDOF_ButtonT Modern3Dx_HID_map[] = {
     NDOF_BUTTON_SHIFT,    NDOF_BUTTON_CTRL,     NDOF_BUTTON_ROTATE, NDOF_BUTTON_PANZOOM,
     NDOF_BUTTON_DOMINANT, NDOF_BUTTON_PLUS,     NDOF_BUTTON_MINUS};
 
-static const NDOF_ButtonT SpaceExplorer_HID_map[] = {
+static const NDOF_ButtonT ndof_HID_map_SpaceExplorer[] = {
     NDOF_BUTTON_1,
     NDOF_BUTTON_2,
     NDOF_BUTTON_TOP,
@@ -114,9 +129,8 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[] = {
     NDOF_BUTTON_ROTATE,
 };
 
-/* This is the older SpacePilot (sans Pro)
- * thanks to polosson for info about this device. */
-static const NDOF_ButtonT SpacePilot_HID_map[] = {
+/* This is the older SpacePilot (sans Pro). */
+static const NDOF_ButtonT ndof_HID_map_SpacePilot[] = {
     NDOF_BUTTON_1,     NDOF_BUTTON_2,     NDOF_BUTTON_3,        NDOF_BUTTON_4,
     NDOF_BUTTON_5,     NDOF_BUTTON_6,     NDOF_BUTTON_TOP,      NDOF_BUTTON_LEFT,
     NDOF_BUTTON_RIGHT, NDOF_BUTTON_FRONT, NDOF_BUTTON_ESC,      NDOF_BUTTON_ALT,
@@ -125,7 +139,7 @@ static const NDOF_ButtonT SpacePilot_HID_map[] = {
     NDOF_BUTTON_NONE /* the CONFIG button -- what does it do? */
 };
 
-static const NDOF_ButtonT Generic_HID_map[] = {
+static const NDOF_ButtonT ndof_HID_map_Generic[] = {
     NDOF_BUTTON_1,
     NDOF_BUTTON_2,
     NDOF_BUTTON_3,
@@ -141,7 +155,7 @@ static const NDOF_ButtonT Generic_HID_map[] = {
 };
 
 /* Values taken from: https://github.com/FreeSpacenav/spacenavd/wiki/Device-button-names */
-static const NDOF_ButtonT SpaceMouseEnterprise_HID_map[] = {
+static const NDOF_ButtonT ndof_HID_map_SpaceMouseEnterprise[] = {
     NDOF_BUTTON_1,       /* (0) */
     NDOF_BUTTON_2,       /* (1) */
     NDOF_BUTTON_3,       /* (2) */
@@ -175,14 +189,20 @@ static const NDOF_ButtonT SpaceMouseEnterprise_HID_map[] = {
     NDOF_BUTTON_ISO1,    /* Labeled "ISO1" (30). */
 };
 
-static const int genericButtonCount = ARRAY_SIZE(Generic_HID_map);
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Manager Class
+ * \{ */
+
+static const int genericButtonCount = ARRAY_SIZE(ndof_HID_map_Generic);
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
     : m_system(sys),
       m_deviceType(NDOF_UnknownDevice), /* Each platform has its own device detection code. */
       m_buttonCount(genericButtonCount),
       m_buttonMask(0),
-      m_hidMap(Generic_HID_map),
+      m_hidMap(ndof_HID_map_Generic),
       m_buttons(0),
       m_motionTime(0),
       m_prevMotionTime(0),
@@ -196,6 +216,8 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
   memset(m_rotation, 0, sizeof(m_rotation));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name NDOF Device Setup
  * \{ */
@@ -207,14 +229,14 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
 {
   /* Call this function until it returns true
    * it's a good idea to stop calling it after that, as it will "forget"
-   * whichever device it already found */
+   * whichever device it already found. */
 
   /* Default to safe generic behavior for "unknown" devices
    * unidentified devices will emit motion events like normal
    * rogue buttons do nothing by default, but can be customized by the user. */
 
   m_deviceType = NDOF_UnknownDevice;
-  m_hidMap = Generic_HID_map;
+  m_hidMap = ndof_HID_map_Generic;
   m_buttonCount = genericButtonCount;
   m_buttonMask = 0;
 
@@ -226,87 +248,92 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
     case 0x046D: /* Logitech (3Dconnexion was a subsidiary). */
       switch (product_id) {
         /* -- current devices -- */
-        case 0xC626: /* full-size SpaceNavigator */
-        case 0xC628: /* the "for Notebooks" one */
-          puts("ndof: using SpaceNavigator");
+        case 0xC626: /* Full-size SpaceNavigator. */
+        case 0xC628: /* The "for Notebooks" one. */
+        {
           m_deviceType = NDOF_SpaceNavigator;
           m_buttonCount = 2;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = ndof_HID_map_Modern3Dx;
           break;
-        case 0xC627:
-          puts("ndof: using SpaceExplorer");
+        }
+        case 0xC627: {
           m_deviceType = NDOF_SpaceExplorer;
           m_buttonCount = 15;
-          m_hidMap = SpaceExplorer_HID_map;
+          m_hidMap = ndof_HID_map_SpaceExplorer;
           break;
-        case 0xC629:
-          puts("ndof: using SpacePilot Pro");
+        }
+        case 0xC629: {
           m_deviceType = NDOF_SpacePilotPro;
           m_buttonCount = 31;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = ndof_HID_map_Modern3Dx;
           break;
-        case 0xC62B:
-          puts("ndof: using SpaceMouse Pro");
+        }
+        case 0xC62B: {
           m_deviceType = NDOF_SpaceMousePro;
-          m_buttonCount = 27;
-          /* ^^ actually has 15 buttons, but their HID codes range from 0 to 26 */
+          m_buttonCount = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
           m_buttonMask = 0x07C0F137;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = ndof_HID_map_Modern3Dx;
           break;
+        }
 
         /* -- older devices -- */
-        case 0xC625:
-          puts("ndof: using SpacePilot");
+        case 0xC625: {
           m_deviceType = NDOF_SpacePilot;
           m_buttonCount = 21;
-          m_hidMap = SpacePilot_HID_map;
+          m_hidMap = ndof_HID_map_SpacePilot;
           break;
-        case 0xC621:
-          puts("ndof: using Spaceball 5000");
+        }
+        case 0xC621: {
           m_deviceType = NDOF_Spaceball5000;
           m_buttonCount = 12;
           break;
-        case 0xC623:
-          puts("ndof: using SpaceTraveler");
+        }
+        case 0xC623: {
           m_deviceType = NDOF_SpaceTraveler;
           m_buttonCount = 8;
           break;
-
-        default:
-          printf("ndof: unknown Logitech product %04hx\n", product_id);
+        }
+        default: {
+          CLOG_INFO(LOG, 2, "unknown Logitech product %04hx", product_id);
+        }
       }
       break;
-    case 0x256F: /* 3Dconnexion */
+    case 0x256F: /* 3Dconnexion. */
       switch (product_id) {
         case 0xC62E: /* Plugged in. */
         case 0xC62F: /* Wireless. */
-          puts("ndof: using SpaceMouse Wireless");
+        {
           m_deviceType = NDOF_SpaceMouseWireless;
           m_buttonCount = 2;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = ndof_HID_map_Modern3Dx;
           break;
+        }
         case 0xC631: /* Plugged in. */
         case 0xC632: /* Wireless. */
-          puts("ndof: using SpaceMouse Pro Wireless");
+        {
           m_deviceType = NDOF_SpaceMouseProWireless;
-          m_buttonCount = 27;
-          /* ^^ actually has 15 buttons, but their HID codes range from 0 to 26. */
+          m_buttonCount = 27; /* Actually has 15 buttons, but HID codes range from 0 to 26. */
           m_buttonMask = 0x07C0F137;
-          m_hidMap = Modern3Dx_HID_map;
+          m_hidMap = ndof_HID_map_Modern3Dx;
           break;
-        case 0xC633:
-          puts("ndof: using SpaceMouse Enterprise");
+        }
+        case 0xC633: {
           m_deviceType = NDOF_SpaceMouseEnterprise;
           m_buttonCount = 31;
-          m_hidMap = SpaceMouseEnterprise_HID_map;
+          m_hidMap = ndof_HID_map_SpaceMouseEnterprise;
           break;
-
-        default:
-          printf("ndof: unknown 3Dconnexion product %04hx\n", product_id);
+        }
+        default: {
+          CLOG_INFO(LOG, 2, "unknown 3Dconnexion product %04hx", product_id);
+        }
       }
       break;
     default:
-      printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
+      CLOG_INFO(LOG, 2, "unknown device %04hx:%04hx", vendor_id, product_id);
+  }
+
+  if (m_deviceType != NDOF_UnknownDevice) {
+    CLOG_INFO(LOG, 2, "using %s", ndof_device_names[m_deviceType]);
   }
 
   if (m_buttonMask == 0) {
@@ -591,7 +618,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
             data->ry,
             data->rz,
             data->dt,
-            progress_string[data->progress]);
+            ndof_progress_string[data->progress]);
 #else
   /* Raw values, may be useful for debugging. */
   CLOG_INFO(LOG,
@@ -603,7 +630,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
             m_rotation[0],
             m_rotation[1],
             m_rotation[2],
-            progress_string[data->progress]);
+            ndof_progress_string[data->progress]);
 #endif
   m_system.pushEvent(event);
 
