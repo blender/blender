@@ -232,7 +232,6 @@ class GHOST_ISystem {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param type: The type of drawing context installed in this window.
    * \param glSettings: Misc OpenGL settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
@@ -245,7 +244,6 @@ class GHOST_ISystem {
                                       uint32_t width,
                                       uint32_t height,
                                       GHOST_TWindowState state,
-                                      GHOST_TDrawingContextType type,
                                       GHOST_GLSettings glSettings,
                                       const bool exclusive = false,
                                       const bool is_dialog = false,
