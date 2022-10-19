@@ -88,7 +88,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   ~GHOST_SystemWayland() override;
 
-  GHOST_TSuccess init();
+  GHOST_TSuccess init() override;
 
   bool processEvents(bool waitForEvent) override;
 
@@ -149,8 +149,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess setCursorVisibility(bool visible);
 
-  bool supportsCursorWarp();
-  bool supportsWindowPosition();
+  bool supportsCursorWarp() override;
+  bool supportsWindowPosition() override;
 
   bool getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode);
 

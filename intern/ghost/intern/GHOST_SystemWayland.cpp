@@ -193,42 +193,42 @@ struct GWL_ModifierInfo {
 };
 
 static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
-    [MOD_INDEX_SHIFT] =
-        {
-            .display_name = "Shift",
-            .xkb_id = XKB_MOD_NAME_SHIFT,
-            .key_l = GHOST_kKeyLeftShift,
-            .key_r = GHOST_kKeyRightShift,
-            .mod_l = GHOST_kModifierKeyLeftShift,
-            .mod_r = GHOST_kModifierKeyRightShift,
-        },
-    [MOD_INDEX_ALT] =
-        {
-            .display_name = "Alt",
-            .xkb_id = XKB_MOD_NAME_ALT,
-            .key_l = GHOST_kKeyLeftAlt,
-            .key_r = GHOST_kKeyRightAlt,
-            .mod_l = GHOST_kModifierKeyLeftAlt,
-            .mod_r = GHOST_kModifierKeyRightAlt,
-        },
-    [MOD_INDEX_CTRL] =
-        {
-            .display_name = "Control",
-            .xkb_id = XKB_MOD_NAME_CTRL,
-            .key_l = GHOST_kKeyLeftControl,
-            .key_r = GHOST_kKeyRightControl,
-            .mod_l = GHOST_kModifierKeyLeftControl,
-            .mod_r = GHOST_kModifierKeyRightControl,
-        },
-    [MOD_INDEX_OS] =
-        {
-            .display_name = "OS",
-            .xkb_id = XKB_MOD_NAME_LOGO,
-            .key_l = GHOST_kKeyLeftOS,
-            .key_r = GHOST_kKeyRightOS,
-            .mod_l = GHOST_kModifierKeyLeftOS,
-            .mod_r = GHOST_kModifierKeyRightOS,
-        },
+    /* MOD_INDEX_SHIFT */
+    {
+        /* display_name */ "Shift",
+        /* xkb_id */ XKB_MOD_NAME_SHIFT,
+        /* key_l */ GHOST_kKeyLeftShift,
+        /* key_r */ GHOST_kKeyRightShift,
+        /* mod_l */ GHOST_kModifierKeyLeftShift,
+        /* mod_r */ GHOST_kModifierKeyRightShift,
+    },
+    /* MOD_INDEX_ALT */
+    {
+        /* display_name */ "Alt",
+        /* xkb_id */ XKB_MOD_NAME_ALT,
+        /* key_l */ GHOST_kKeyLeftAlt,
+        /* key_r */ GHOST_kKeyRightAlt,
+        /* mod_l */ GHOST_kModifierKeyLeftAlt,
+        /* mod_r */ GHOST_kModifierKeyRightAlt,
+    },
+    /* MOD_INDEX_CTRL */
+    {
+        /* display_name */ "Control",
+        /* xkb_id */ XKB_MOD_NAME_CTRL,
+        /* key_l */ GHOST_kKeyLeftControl,
+        /* key_r */ GHOST_kKeyRightControl,
+        /* mod_l */ GHOST_kModifierKeyLeftControl,
+        /* mod_r */ GHOST_kModifierKeyRightControl,
+    },
+    /* MOD_INDEX_OS */
+    {
+        /* display_name */ "OS",
+        /* xkb_id */ XKB_MOD_NAME_LOGO,
+        /* key_l */ GHOST_kKeyLeftOS,
+        /* key_r */ GHOST_kKeyRightOS,
+        /* mod_l */ GHOST_kModifierKeyLeftOS,
+        /* mod_r */ GHOST_kModifierKeyRightOS,
+    },
 };
 
 /** \} */
@@ -2989,11 +2989,10 @@ static void keyboard_handle_key(void *data,
     /* Start timer for repeating key, if applicable. */
     if ((seat->key_repeat.rate > 0) && (etype == GHOST_kEventKeyDown) &&
         xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code)) {
-      key_repeat_payload = new GWL_KeyRepeatPlayload({
-          .seat = seat,
-          .key_code = key_code,
-          .key_data = {.gkey = gkey},
-      });
+      key_repeat_payload = new GWL_KeyRepeatPlayload();
+      key_repeat_payload->seat = seat;
+      key_repeat_payload->key_code = key_code;
+      key_repeat_payload->key_data.gkey = gkey;
     }
   }
 
@@ -4683,11 +4682,10 @@ static GWL_SeatStateGrab seat_grab_state_from_mode(const GHOST_TGrabCursorMode m
                                                    const bool use_software_confine)
 {
   /* Initialize all members. */
-  const struct GWL_SeatStateGrab grab_state = {
-      /* Warping happens to require software cursor which also hides. */
-      .use_lock = ELEM(mode, GHOST_kGrabWrap, GHOST_kGrabHide) || use_software_confine,
-      .use_confine = (mode == GHOST_kGrabNormal) && (use_software_confine == false),
-  };
+  GWL_SeatStateGrab grab_state;
+  /* Warping happens to require software cursor which also hides. */
+  grab_state.use_lock = ELEM(mode, GHOST_kGrabWrap, GHOST_kGrabHide) || use_software_confine;
+  grab_state.use_confine = (mode == GHOST_kGrabNormal) && (use_software_confine == false);
   return grab_state;
 }
 
