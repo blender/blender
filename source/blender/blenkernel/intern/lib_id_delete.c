@@ -16,6 +16,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 
 #include "BKE_anim_data.h"
@@ -27,7 +28,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 
@@ -203,7 +203,6 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 {
   const int tag = LIB_TAG_DOIT;
   ListBase *lbarray[INDEX_ID_MAX];
-  Link dummy_link = {0};
   int base_count, i;
 
   /* Used by batch tagged deletion, when we call BKE_id_free then, id is no more in Main database,
@@ -218,7 +217,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 
   BKE_main_lock(bmain);
   if (do_tagged_deletion) {
-    BKE_layer_collection_resync_forbid();
+    struct IDRemapper *id_remapper = BKE_id_remapper_create();
+
     /* Main idea of batch deletion is to remove all IDs to be deleted from Main database.
      * This means that we won't have to loop over all deleted IDs to remove usages
      * of other deleted IDs.
@@ -229,7 +229,6 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
     bool keep_looping = true;
     while (keep_looping) {
       ID *id, *id_next;
-      ID *last_remapped_id = tagged_deleted_ids.last;
       keep_looping = false;
 
       /* First tag and remove from Main all datablocks directly from target lib.
@@ -245,6 +244,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
             BLI_remlink(lb, id);
             BKE_main_namemap_remove_name(bmain, id, id->name + 2);
             BLI_addtail(&tagged_deleted_ids, id);
+            BKE_id_remapper_add(id_remapper, id, NULL);
             /* Do not tag as no_main now, we want to unlink it first (lower-level ID management
              * code has some specific handling of 'no main' IDs that would be a problem in that
              * case). */
@@ -253,33 +253,37 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
           }
         }
       }
-      if (last_remapped_id == NULL) {
-        dummy_link.next = tagged_deleted_ids.first;
-        last_remapped_id = (ID *)(&dummy_link);
-      }
-      for (id = last_remapped_id->next; id; id = id->next) {
-        /* Will tag 'never NULL' users of this ID too.
-         *
-         * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
-         * links, this can lead to nasty crashing here in second, actual deleting loop.
-         * Also, this will also flag users of deleted data that cannot be unlinked
-         * (object using deleted obdata, etc.), so that they also get deleted. */
-        BKE_libblock_remap_locked(bmain,
-                                  id,
-                                  NULL,
-                                  (ID_REMAP_FLAG_NEVER_NULL_USAGE |
-                                   ID_REMAP_FORCE_NEVER_NULL_USAGE |
-                                   ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS));
-        /* Since we removed ID from Main,
-         * we also need to unlink its own other IDs usages ourself. */
-        BKE_libblock_relink_ex(
-            bmain,
-            id,
-            NULL,
-            NULL,
-            (ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | ID_REMAP_SKIP_USER_CLEAR));
-      }
     }
+
+    BKE_layer_collection_resync_forbid();
+
+    /* Will tag 'never NULL' users of this ID too.
+     *
+     * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
+     * links, this can lead to nasty crashing here in second, actual deleting loop.
+     * Also, this will also flag users of deleted data that cannot be unlinked
+     * (object using deleted obdata, etc.), so that they also get deleted. */
+    BKE_libblock_remap_multiple_locked(bmain,
+                                       id_remapper,
+                                       ID_REMAP_FLAG_NEVER_NULL_USAGE |
+                                           ID_REMAP_FORCE_NEVER_NULL_USAGE |
+                                           ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS);
+    BKE_id_remapper_clear(id_remapper);
+
+    /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
+    LinkNode *cleanup_ids = NULL;
+    for (ID *id = tagged_deleted_ids.first; id; id = id->next) {
+      BLI_linklist_prepend(&cleanup_ids, id);
+    }
+    BKE_libblock_relink_multiple(bmain,
+                                 cleanup_ids,
+                                 ID_REMAP_TYPE_CLEANUP,
+                                 id_remapper,
+                                 ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS |
+                                     ID_REMAP_SKIP_USER_CLEAR);
+
+    BKE_id_remapper_free(id_remapper);
+    BLI_linklist_free(cleanup_ids, NULL);
 
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync_remap(bmain);
