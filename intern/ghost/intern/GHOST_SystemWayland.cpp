@@ -141,8 +141,7 @@ static bool use_gnome_confine_hack = false;
  * \{ */
 
 /**
- * The event codes are used to
- * to differentiate from which mouse button an event comes from.
+ * The event codes are used to differentiate from which mouse button an event comes from.
  */
 #define BTN_LEFT 0x110
 #define BTN_RIGHT 0x111
@@ -341,11 +340,6 @@ struct GWL_SeatStatePointer {
    */
   wl_fixed_t xy[2] = {0, 0};
 
-  /** Smooth scrolling (handled & reset with pointer "frame" callback). */
-  wl_fixed_t scroll_xy[2] = {0, 0};
-  /** Discrete scrolling (handled & reset with pointer "frame" callback). */
-  int32_t scroll_discrete_xy[2] = {0, 0};
-
   /** Outputs on which the cursor is visible. */
   std::unordered_set<const GWL_Output *> outputs;
 
@@ -361,6 +355,19 @@ struct GWL_SeatStatePointer {
   struct wl_surface *wl_surface = nullptr;
 
   GHOST_Buttons buttons = GHOST_Buttons();
+};
+
+/**
+ * Scroll state, applying to pointer (not tablet) events.
+ * Otherwise this would be part of #GWL_SeatStatePointer.
+ */
+struct GWL_SeatStatePointerScroll {
+  /** Smooth scrolling (handled & reset with pointer "frame" callback). */
+  wl_fixed_t smooth_xy[2] = {0, 0};
+  /** Discrete scrolling (handled & reset with pointer "frame" callback). */
+  int32_t discrete_xy[2] = {0, 0};
+  /** The source of scroll event. */
+  enum wl_pointer_axis_source axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 };
 
 /**
@@ -433,6 +440,7 @@ struct GWL_Seat {
   uint32_t cursor_source_serial = 0;
 
   GWL_SeatStatePointer pointer;
+  GWL_SeatStatePointerScroll pointer_scroll;
 
   /** Mostly this can be interchanged with `pointer` however it can't be locked/confined. */
   GWL_SeatStatePointer tablet;
@@ -1756,10 +1764,11 @@ static void pointer_handle_enter(void *data,
 
   /* Resetting scroll events is likely unnecessary,
    * do this to avoid any possible problems as it's harmless. */
-  seat->pointer.scroll_xy[0] = 0;
-  seat->pointer.scroll_xy[1] = 0;
-  seat->pointer.scroll_discrete_xy[0] = 0;
-  seat->pointer.scroll_discrete_xy[1] = 0;
+  seat->pointer_scroll.smooth_xy[0] = 0;
+  seat->pointer_scroll.smooth_xy[1] = 0;
+  seat->pointer_scroll.discrete_xy[0] = 0;
+  seat->pointer_scroll.discrete_xy[1] = 0;
+  seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 
   seat->pointer.wl_surface = wl_surface;
 
@@ -1886,7 +1895,7 @@ static void pointer_handle_axis(void *data,
     return;
   }
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->pointer.scroll_xy[index] = value;
+  seat->pointer_scroll.smooth_xy[index] = value;
 }
 
 static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
@@ -1894,29 +1903,39 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
   CLOG_INFO(LOG, 2, "frame");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
 
-  /* Discrete steps may generate non-discrete scrolling, in this case,
-   * give the mouse wheel priority otherwise mouse wheel events would be recognized
-   * as touch-pad scrolling too. */
-  if (seat->pointer.scroll_discrete_xy[0]) {
-    seat->pointer.scroll_xy[0] = 0;
+  /* Both discrete and smooth events may be set at once, never generate events for both
+   * as this will be handling the same event in to different ways.
+   * Prioritize discrete axis events for the mouse wheel, otherwise smooth scroll. */
+  if (seat->pointer_scroll.axis_source == WL_POINTER_AXIS_SOURCE_WHEEL) {
+    if (seat->pointer_scroll.discrete_xy[0]) {
+      seat->pointer_scroll.smooth_xy[0] = 0;
+    }
+    if (seat->pointer_scroll.discrete_xy[1]) {
+      seat->pointer_scroll.smooth_xy[1] = 0;
+    }
   }
-  if (seat->pointer.scroll_discrete_xy[1]) {
-    seat->pointer.scroll_xy[1] = 0;
+  else {
+    if (seat->pointer_scroll.smooth_xy[0]) {
+      seat->pointer_scroll.discrete_xy[0] = 0;
+    }
+    if (seat->pointer_scroll.smooth_xy[1]) {
+      seat->pointer_scroll.discrete_xy[1] = 0;
+    }
   }
 
   /* Discrete X axis currently unsupported. */
-  if (seat->pointer.scroll_discrete_xy[1]) {
+  if (seat->pointer_scroll.discrete_xy[1]) {
     if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-      const int32_t discrete = seat->pointer.scroll_discrete_xy[1];
+      const int32_t discrete = seat->pointer_scroll.discrete_xy[1];
       seat->system->pushEvent(new GHOST_EventWheel(
           seat->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
     }
-    seat->pointer.scroll_discrete_xy[0] = 0;
-    seat->pointer.scroll_discrete_xy[1] = 0;
+    seat->pointer_scroll.discrete_xy[0] = 0;
+    seat->pointer_scroll.discrete_xy[1] = 0;
   }
 
-  if (seat->pointer.scroll_xy[0] || seat->pointer.scroll_xy[1]) {
+  if (seat->pointer_scroll.smooth_xy[0] || seat->pointer_scroll.smooth_xy[1]) {
     if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
       const wl_fixed_t scale = win->scale();
@@ -1926,21 +1945,26 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
           GHOST_kTrackpadEventScroll,
           wl_fixed_to_int(scale * seat->pointer.xy[0]),
           wl_fixed_to_int(scale * seat->pointer.xy[1]),
-          wl_fixed_to_int(seat->pointer.scroll_xy[0]),
-          wl_fixed_to_int(seat->pointer.scroll_xy[1]),
+          /* NOTE: scaling the delta doesn't seem necessary. */
+          wl_fixed_to_int(seat->pointer_scroll.smooth_xy[0]),
+          wl_fixed_to_int(seat->pointer_scroll.smooth_xy[1]),
           /* TODO: investigate a way to request this configuration from the system. */
           true));
     }
 
-    seat->pointer.scroll_xy[0] = 0;
-    seat->pointer.scroll_xy[1] = 0;
+    seat->pointer_scroll.smooth_xy[0] = 0;
+    seat->pointer_scroll.smooth_xy[1] = 0;
   }
+
+  seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 }
-static void pointer_handle_axis_source(void * /*data*/,
+static void pointer_handle_axis_source(void *data,
                                        struct wl_pointer * /*wl_pointer*/,
                                        uint32_t axis_source)
 {
   CLOG_INFO(LOG, 2, "axis_source (axis_source=%u)", axis_source);
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer_scroll.axis_source = (enum wl_pointer_axis_source)axis_source;
 }
 static void pointer_handle_axis_stop(void * /*data*/,
                                      struct wl_pointer * /*wl_pointer*/,
@@ -1962,7 +1986,7 @@ static void pointer_handle_axis_discrete(void *data,
     return;
   }
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->pointer.scroll_discrete_xy[index] = discrete;
+  seat->pointer_scroll.discrete_xy[index] = discrete;
 }
 
 static const struct wl_pointer_listener pointer_listener = {
