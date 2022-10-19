@@ -1093,20 +1093,22 @@ bool USDMeshReader::get_local_usd_xform(pxr::GfMatrix4d *r_xform,
     return USDXformReader::get_local_usd_xform(r_xform, r_is_constant, time);
   }
 
-  if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
-    if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
-      pxr::GfMatrix4d bind_xf;
-      if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
-        /* Assume that if a bind transform is defined, then the
-         * transform is constant. */
-        if (r_is_constant) {
-          *r_is_constant = true;
+  if (!(prim_.IsInstanceProxy() || prim_.IsInPrototype())) {
+    if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
+      if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
+        pxr::GfMatrix4d bind_xf;
+        if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
+          /* Assume that if a bind transform is defined, then the
+           * transform is constant. */
+          if (r_is_constant) {
+            *r_is_constant = true;
+          }
+          return get_geom_bind_xform_correction(bind_xf, r_xform, time);
         }
-        return get_geom_bind_xform_correction(bind_xf, r_xform, time);
-      }
-      else {
-        std::cout << "WARNING: couldn't compute geom bind transform for " << prim_.GetPath()
-                  << std::endl;
+        else {
+          std::cout << "WARNING: couldn't compute geom bind transform for " << prim_.GetPath()
+                    << std::endl;
+        }
       }
     }
   }

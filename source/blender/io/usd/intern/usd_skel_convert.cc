@@ -586,6 +586,12 @@ void import_skel_bindings(Main *bmain, Object *mesh_obj, pxr::UsdPrim prim)
     return;
   }
 
+  if (prim.IsInstanceProxy() || prim.IsInPrototype()) {
+    /* Attempting to create a UsdSkelBindingAPI for
+     * instance proxies and prototypes generates USD errors. */
+    return;
+  }
+
   if (mesh_obj->type != OB_MESH) {
     return;
   }
