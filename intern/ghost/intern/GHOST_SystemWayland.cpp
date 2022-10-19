@@ -289,7 +289,7 @@ struct GWL_DataOffer {
 };
 
 struct GWL_DataSource {
-  struct wl_data_source *data_source = nullptr;
+  struct wl_data_source *wl_data_source = nullptr;
   char *buffer_out = nullptr;
 };
 
@@ -616,8 +616,8 @@ static void display_destroy(GWL_Display *display)
       std::lock_guard lock{seat->data_source_mutex};
       if (seat->data_source) {
         free(seat->data_source->buffer_out);
-        if (seat->data_source->data_source) {
-          wl_data_source_destroy(seat->data_source->data_source);
+        if (seat->data_source->wl_data_source) {
+          wl_data_source_destroy(seat->data_source->wl_data_source);
         }
         delete seat->data_source;
       }
@@ -3580,18 +3580,18 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
   data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
   std::memcpy(data_source->buffer_out, buffer, buffer_size);
 
-  data_source->data_source = wl_data_device_manager_create_data_source(
+  data_source->wl_data_source = wl_data_device_manager_create_data_source(
       display_->data_device_manager);
 
-  wl_data_source_add_listener(data_source->data_source, &data_source_listener, seat);
+  wl_data_source_add_listener(data_source->wl_data_source, &data_source_listener, seat);
 
   for (const std::string &type : mime_send) {
-    wl_data_source_offer(data_source->data_source, type.c_str());
+    wl_data_source_offer(data_source->wl_data_source, type.c_str());
   }
 
   if (seat->data_device) {
     wl_data_device_set_selection(
-        seat->data_device, data_source->data_source, seat->data_source_serial);
+        seat->data_device, data_source->wl_data_source, seat->data_source_serial);
   }
 }
 
