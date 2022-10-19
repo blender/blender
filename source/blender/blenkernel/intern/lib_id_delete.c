@@ -218,6 +218,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
   BKE_main_lock(bmain);
   if (do_tagged_deletion) {
     struct IDRemapper *id_remapper = BKE_id_remapper_create();
+    BKE_layer_collection_resync_forbid();
 
     /* Main idea of batch deletion is to remove all IDs to be deleted from Main database.
      * This means that we won't have to loop over all deleted IDs to remove usages
@@ -253,22 +254,20 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
           }
         }
       }
+
+      /* Will tag 'never NULL' users of this ID too.
+       *
+       * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
+       * links, this can lead to nasty crashing here in second, actual deleting loop.
+       * Also, this will also flag users of deleted data that cannot be unlinked
+       * (object using deleted obdata, etc.), so that they also get deleted. */
+      BKE_libblock_remap_multiple_locked(bmain,
+                                         id_remapper,
+                                         ID_REMAP_FLAG_NEVER_NULL_USAGE |
+                                             ID_REMAP_FORCE_NEVER_NULL_USAGE |
+                                             ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS);
+      BKE_id_remapper_clear(id_remapper);
     }
-
-    BKE_layer_collection_resync_forbid();
-
-    /* Will tag 'never NULL' users of this ID too.
-     *
-     * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
-     * links, this can lead to nasty crashing here in second, actual deleting loop.
-     * Also, this will also flag users of deleted data that cannot be unlinked
-     * (object using deleted obdata, etc.), so that they also get deleted. */
-    BKE_libblock_remap_multiple_locked(bmain,
-                                       id_remapper,
-                                       ID_REMAP_FLAG_NEVER_NULL_USAGE |
-                                           ID_REMAP_FORCE_NEVER_NULL_USAGE |
-                                           ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS);
-    BKE_id_remapper_clear(id_remapper);
 
     /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
     LinkNode *cleanup_ids = NULL;
