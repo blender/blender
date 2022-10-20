@@ -112,7 +112,7 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   immVertex3fv(pos, ss->cache->world_cubic[3]);
   immEnd();
 
-  const int steps = 256;
+  int steps = 256;
   float t = 0.0f, dt = 1.0f / (float)(steps - 1);
 
   immUniformColor4ub(45, 75, 255, 255);
@@ -145,8 +145,43 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   }
   immEnd();
 
-  immUniformColor4ub(0, 255, 25, 55);
+#  if 1
 
+  s = 0.0f;
+  ds = 0.1f;
+  steps = (int)floorf(stroke->world_spline->length / ds + 0.5f);
+
+  immUniformColor4ub(255, 0, 0, 170);
+  immBegin(GPU_PRIM_POINTS, steps);
+  for (int i = 0; i < steps; i++, s += ds) {
+    float3 co = stroke->world_spline->evaluate(s);
+    mul_v3_m4v3(co, ob->obmat, co);
+
+    immVertex3fv(pos, co);
+  }
+
+  immEnd();
+
+  s = 0.0f;
+  immUniformColor4ub(255, 0, 0, 170);
+  immBegin(GPU_PRIM_LINES, steps * 2);
+  for (int i = 0; i < steps; i++, s += ds) {
+    float3 co = stroke->world_spline->evaluate(s);
+    float3 dv2 = stroke->world_spline->derivative2(s);
+
+    mul_v3_m4v3(co, ob->obmat, co);
+
+    immVertex3fv(pos, co);
+
+    co += dv2;
+    immVertex3fv(pos, co);
+  }
+
+  immEnd();
+
+#  endif
+
+  immUniformColor4ub(0, 255, 25, 55);
   for (int is_points = 0; is_points < 2; is_points++) {
     immBegin(is_points ? GPU_PRIM_POINTS : GPU_PRIM_LINE_STRIP, stroke->num_points);
     for (int i = 0; i < stroke->num_points; i++) {
@@ -366,10 +401,37 @@ static void paint_stroke_add_point(const Paint *paint,
   }
 }
 
-static void paint_brush_make_cubic(PaintStroke *stroke)
+static void paint_project_cubic(bContext *C,
+                                PaintStroke *stroke,
+                                blender::CubicBezier<float, 2> &bezier2d,
+                                blender::CubicBezier<float, 3> &bezier3d)
+{
+  Object *ob = CTX_data_active_object(C);
+  float2 mvals[4];
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 2; j++) {
+      mvals[i][j] = bezier2d.ps[i][j];
+    }
+  }
+
+  for (int i = 0; i < 4; i++) {
+    if (!SCULPT_stroke_get_location(C, bezier3d.ps[i], mvals[i], true)) {
+      ED_view3d_win_to_3d(CTX_wm_view3d(C),
+                          CTX_wm_region(C),
+                          stroke->last_world_space_position,
+                          mvals[i],
+                          bezier3d.ps[i]);
+    }
+  }
+
+  bezier3d.update();
+}
+
+static void paint_brush_make_cubic(bContext *C, PaintStroke *stroke)
 {
   float a[2], b[2], c[2], d[2];
-  int count = paint_stroke_max_points(NULL, stroke);
+  int count = paint_stroke_max_points(nullptr, stroke);
 
   if (stroke->num_points < 4) {
     return;
@@ -432,13 +494,25 @@ static void paint_brush_make_cubic(PaintStroke *stroke)
   bez.update();
   stroke->spline->add(bez);
 
+  blender::CubicBezier<float, 3> bez3d;
+  paint_project_cubic(C, stroke, bez, bez3d);
+  bez3d.update();
+
+  stroke->world_spline->add(bez3d);
+
   while (stroke->spline->segments.size() > paint_stroke_max_points(nullptr, stroke) + 1) {
     stroke->spline->pop_front();
+  }
+
+  while (stroke->world_spline->segments.size() > paint_stroke_max_points(nullptr, stroke) + 1) {
+    stroke->stroke_distance_world += stroke->world_spline->segments[0].bezier.length;
+    stroke->world_spline->pop_front();
   }
 }
 
 void paint_project_spline(bContext *C, StrokeCache *cache, PaintStroke *stroke)
 {
+  return;
   Object *ob = CTX_data_active_object(C);
 
   stroke->world_spline->clear();
@@ -488,6 +562,8 @@ void paint_calc_cubic_uv_v3(
   if (dot_v3v3(vec2, cache->view_normal) < 0.0f) {
     r_out[0] = -r_out[0];
   }
+
+  r_out[1] += stroke->stroke_distance_world;
 }
 
 float paint_stroke_spline_length(struct PaintStroke *stroke)
@@ -881,7 +957,7 @@ static void paint_brush_stroke_add_step(
                              stroke->x_tilt,
                              stroke->y_tilt);
       if (stroke->has_cubic_stroke) {
-        paint_brush_make_cubic(stroke);
+        paint_brush_make_cubic(C, stroke);
       }
     }
 

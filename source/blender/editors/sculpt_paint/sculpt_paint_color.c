@@ -132,9 +132,6 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   float alpha = BKE_brush_channelset_get_final_float(
       BKE_paint_brush(&data->sd->paint)->channels, data->sd->channels, "strength", NULL);
 
-  bool do_test = brush->mtex.brush_map_mode != MTEX_MAP_MODE_ROLL &&
-                 brush->mtex.brush_map_mode != MTEX_MAP_MODE_ROLL;
-
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
@@ -185,7 +182,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       distance_to_stroke_location = sqrtf(test.dist);
     }
 
-    if (do_test && !affect_vertex) {
+    if (!affect_vertex) {
       continue;
     }
 

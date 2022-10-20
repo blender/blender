@@ -4130,20 +4130,12 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       // calc_cubic_uv_v3(ss->cache->world_cubic, SCULPT_vertex_co_get(ss, vertex), point_3d);
       float tan[3], curv[3];
 
-      paint_calc_cubic_uv_v3(
-          ss->cache->stroke, ss->cache, SCULPT_vertex_co_get(ss, vertex), point_3d, tan);
-
-      /* Calc global distance. */
-      float t1 = ss->cache->last_stroke_distance_t;
-      float t2 = point_3d[1] / ss->cache->radius;
-
-      point_3d[1] = t1 + t2;
-      point_3d[1] *= ss->cache->radius;
+      paint_calc_cubic_uv_v3(ss->cache->stroke, ss->cache, brush_point, point_3d, tan);
 
 #if 0
       if (SCULPT_has_colors(ss)) {
         float color[4] = {point_3d[0], point_3d[1], 0.0f, 1.0f};
-        mul_v3_fl(color, 0.25f / ss->cache->radius);
+        mul_v3_fl(color, 0.25f / ss->cache->initial_radius);
         color[0] -= floorf(color[0]);
         color[1] -= floorf(color[1]);
         color[2] -= floorf(color[2]);
@@ -4153,15 +4145,11 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 
 // avg = 0.0f;
 #endif
-      //#else
-      // point_3d[0] /= ss->cache->radius;
-      // point_3d[0] -= floorf(point_3d[0]);
 
       float pixel_radius = br->size;
-      mul_v3_fl(point_3d, pixel_radius / ss->cache->radius);
+      mul_v3_fl(point_3d, pixel_radius / ss->cache->initial_radius);
 
       avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, thread_id, ss->tex_pool);
-      //#endif
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
@@ -5401,7 +5389,12 @@ static void SCULPT_run_command(Sculpt *sd,
 
   ss->cache->radius = radius;
   ss->cache->radius_squared = radius * radius;
-  ss->cache->initial_radius = radius;
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    cmd->initial_radius = radius;
+  }
+
+  ss->cache->initial_radius = cmd->initial_radius;
 
   get_nodes_undo(sd, ob, ss->cache->brush, ups, paint_mode_settings, data, cmd->tool);
 

@@ -10,6 +10,8 @@
 #include <cstdio>
 #include <utility>
 
+//#define FINITE_DIFF
+
 /*
  * Arc length parameterized spline library.
  */
@@ -263,7 +265,7 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
 #endif
   }
 
-  Vector evaluate(Float s)
+  inline Vector evaluate(Float s)
   {
     Float t = arc_to_t(s);
     Vector r;
@@ -298,13 +300,31 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
 
   Vector derivative2(Float s)
   {
+#ifdef FINITE_DIFF
+    const Float df = 0.0005;
+    Float s1, s2;
+
+    if (s >= 1.0 - df) {
+      s1 = s - df;
+      s2 = s;
+    }
+    else {
+      s1 = s;
+      s2 = s + df;
+    }
+
+    Vector a = derivative(s1);
+    Vector b = derivative(s2);
+
+    return (b - a) / df;
+#else
     Float t = arc_to_t(s);
     Vector r;
 
     Float dx = dcubic(ps[0][0], ps[1][0], ps[2][0], ps[3][0], t);
-    Float d2x = dcubic(ps[0][0], ps[1][0], ps[2][0], ps[3][0], t);
+    Float d2x = d2cubic(ps[0][0], ps[1][0], ps[2][0], ps[3][0], t);
     Float dy = dcubic(ps[0][1], ps[1][1], ps[2][1], ps[3][1], t);
-    Float d2y = dcubic(ps[0][1], ps[1][1], ps[2][1], ps[3][1], t);
+    Float d2y = d2cubic(ps[0][1], ps[1][1], ps[2][1], ps[3][1], t);
 
     /*
     comment: arc length second derivative;
@@ -344,7 +364,7 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
       r[0] = ((d2x * dy - d2y * dx) * dy) / div;
       r[1] = (-(d2x * dy - d2y * dx) * dx) / div;
     }
-    else if (constexpr(axes == 3)) {
+    else if constexpr (axes == 3) {
       Float dz = dcubic(ps[0][2], ps[1][2], ps[2][2], ps[3][2], t);
       Float d2z = d2cubic(ps[0][2], ps[1][2], ps[2][2], ps[3][2], t);
 
@@ -361,6 +381,7 @@ template<typename Float, int axes = 2, int table_size = 512> class CubicBezier {
     }
 
     return r;
+#endif
   }
 
   Float curvature(Float s)
@@ -510,12 +531,8 @@ template<typename Float, int axes = 2> class BezierSpline {
     }
   }
 
-  Vector evaluate(Float s)
+  inline Vector evaluate(Float s)
   {
-    if (segments.size() == 0) {
-      return Vector();
-    }
-
     if (s == 0.0) {
       return segments[0].bezier.ps[0];
     }
@@ -565,8 +582,16 @@ template<typename Float, int axes = 2> class BezierSpline {
     return seg->bezier.curvature(s - seg->start);
   }
 
+  /* Find the closest point on the spline.  Uses a bisecting root finding approach.
+   * Note: in thoery we could split the spline into quadratic segments and solve
+   * for the closest point directy.
+   */
   Vector closest_point(const Vector p, Float &r_s, Vector &r_tan, Float &r_dis)
   {
+    if (segments.size() == 0) {
+      return Vector();
+    }
+
     const int steps = 5;
     Float s = 0.0, ds = length / steps;
     Float mindis = FLT_MAX;

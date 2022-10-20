@@ -128,7 +128,8 @@ typedef struct PaintStroke {
   /* space distance covered so far */
   int stroke_sample_index;
   float stroke_distance;
-  float stroke_distance_t;  // divided by brush radius
+  float stroke_distance_t;     /* Divided by brush radius. */
+  float stroke_distance_world; /* Created by .world_spline. */
 
   /* Set whether any stroke step has yet occurred
    * e.g. in sculpt mode, stroke doesn't start until cursor
@@ -656,8 +657,11 @@ void paint_project_spline(struct bContext *C,
                           struct StrokeCache *cache,
                           struct PaintStroke *stroke);
 ;
-void paint_calc_cubic_uv_v3(
-    PaintStroke *stroke, struct StrokeCache *cache, const float co[3], float r_out[3], float r_tan[3]);
+void paint_calc_cubic_uv_v3(PaintStroke *stroke,
+                            struct StrokeCache *cache,
+                            const float co[3],
+                            float r_out[3],
+                            float r_tan[3]);
 float paint_stroke_spline_length(PaintStroke *stroke);
 
 #ifdef __cplusplus

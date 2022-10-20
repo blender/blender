@@ -207,6 +207,7 @@ typedef struct BrushCommand {
   struct BrushChannelSet *params_mapped; /* with pressure etc applied */
 
   BrushTex *texture_slots[MAKE_BRUSHTEX_SLOTS]; /* currently unused */
+  float initial_radius;
 } BrushCommand;
 
 typedef struct BrushCommandList {
