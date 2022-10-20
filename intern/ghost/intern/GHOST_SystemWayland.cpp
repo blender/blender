@@ -391,16 +391,16 @@ struct GWL_SeatStateKeyboard {
  *
  * Needed as #GWL_Seat.xkb_state doesn't store which modifier keys are held.
  */
-struct WGL_KeyboardDepressedState {
+struct GWL_KeyboardDepressedState {
   int16_t mods[GHOST_KEY_MODIFIER_NUM] = {0};
 };
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-struct WGL_LibDecor_System {
+struct GWL_LibDecor_System {
   struct libdecor *context = nullptr;
 };
 
-static void wgl_libdecor_system_destroy(WGL_LibDecor_System *decor)
+static void gwl_libdecor_system_destroy(GWL_LibDecor_System *decor)
 {
   if (decor->context) {
     libdecor_unref(decor->context);
@@ -409,12 +409,12 @@ static void wgl_libdecor_system_destroy(WGL_LibDecor_System *decor)
 }
 #endif
 
-struct WGL_XDG_Decor_System {
+struct GWL_XDG_Decor_System {
   struct xdg_wm_base *shell = nullptr;
   struct zxdg_decoration_manager_v1 *manager = nullptr;
 };
 
-static void wgl_xdg_decor_system_destroy(WGL_XDG_Decor_System *decor)
+static void gwl_xdg_decor_system_destroy(GWL_XDG_Decor_System *decor)
 {
   if (decor->manager) {
     zxdg_decoration_manager_v1_destroy(decor->manager);
@@ -475,7 +475,7 @@ struct GWL_Seat {
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
 
   /** Keys held matching `xkb_state`. */
-  struct WGL_KeyboardDepressedState key_depressed;
+  struct GWL_KeyboardDepressedState key_depressed;
 
 #ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
   struct {
@@ -525,10 +525,10 @@ struct GWL_Display {
   struct wl_compositor *wl_compositor = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  WGL_LibDecor_System *libdecor = nullptr;
+  GWL_LibDecor_System *libdecor = nullptr;
   bool libdecor_required = false;
 #endif
-  WGL_XDG_Decor_System *xdg_decor = nullptr;
+  GWL_XDG_Decor_System *xdg_decor = nullptr;
 
   struct zxdg_output_manager_v1 *xdg_output_manager = nullptr;
   struct wl_shm *wl_shm = nullptr;
@@ -702,14 +702,14 @@ static void display_destroy(GWL_Display *display)
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
     if (display->libdecor) {
-      wgl_libdecor_system_destroy(display->libdecor);
+      gwl_libdecor_system_destroy(display->libdecor);
     }
   }
   else
 #endif
   {
     if (display->xdg_decor) {
-      wgl_xdg_decor_system_destroy(display->xdg_decor);
+      gwl_xdg_decor_system_destroy(display->xdg_decor);
     }
   }
 
@@ -1082,7 +1082,7 @@ static void keyboard_depressed_state_key_event(GWL_Seat *seat,
 }
 
 static void keyboard_depressed_state_push_events_from_change(
-    GWL_Seat *seat, const WGL_KeyboardDepressedState &key_depressed_prev)
+    GWL_Seat *seat, const GWL_KeyboardDepressedState &key_depressed_prev)
 {
   GHOST_IWindow *win = ghost_wl_surface_user_data(seat->keyboard.wl_surface);
   GHOST_SystemWayland *system = seat->system;
@@ -2576,7 +2576,7 @@ static void keyboard_handle_enter(void *data,
   /* If there are any keys held when activating the window,
    * modifiers will be compared against the seat state,
    * only enabling modifiers that were previously disabled. */
-  WGL_KeyboardDepressedState key_depressed_prev = seat->key_depressed;
+  GWL_KeyboardDepressedState key_depressed_prev = seat->key_depressed;
   keyboard_depressed_state_reset(seat);
 
   uint32_t *key;
@@ -3231,13 +3231,13 @@ static void global_handle_add(void *data,
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
   else if (STREQ(interface, xdg_wm_base_interface.name)) {
-    WGL_XDG_Decor_System &decor = *display->xdg_decor;
+    GWL_XDG_Decor_System &decor = *display->xdg_decor;
     decor.shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
     xdg_wm_base_add_listener(decor.shell, &shell_listener, nullptr);
   }
   else if (STREQ(interface, zxdg_decoration_manager_v1_interface.name)) {
-    WGL_XDG_Decor_System &decor = *display->xdg_decor;
+    GWL_XDG_Decor_System &decor = *display->xdg_decor;
     decor.manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
@@ -3361,7 +3361,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
   }
 
   /* This may be removed later if decorations are required, needed as part of registration. */
-  display_->xdg_decor = new WGL_XDG_Decor_System;
+  display_->xdg_decor = new GWL_XDG_Decor_System;
 
   /* Register interfaces. */
   struct wl_registry *registry = wl_display_get_registry(display_->wl_display);
@@ -3374,7 +3374,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (display_->libdecor_required) {
-    wgl_xdg_decor_system_destroy(display_->xdg_decor);
+    gwl_xdg_decor_system_destroy(display_->xdg_decor);
     display_->xdg_decor = nullptr;
 
     if (!has_libdecor) {
@@ -3395,8 +3395,8 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    display_->libdecor = new WGL_LibDecor_System;
-    WGL_LibDecor_System &decor = *display_->libdecor;
+    display_->libdecor = new GWL_LibDecor_System;
+    GWL_LibDecor_System &decor = *display_->libdecor;
     decor.context = libdecor_new(display_->wl_display, &libdecor_interface);
     if (!decor.context) {
       display_destroy(display_);
@@ -3406,7 +3406,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
   else
 #endif
   {
-    WGL_XDG_Decor_System &decor = *display_->xdg_decor;
+    GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
       display_destroy(display_);
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
@@ -3505,7 +3505,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
   }
 #endif
 
-  /* Use local #WGL_KeyboardDepressedState to check which key is pressed.
+  /* Use local #GWL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
   for (int i = 0; i < MOD_INDEX_NUM; i++) {
     if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
