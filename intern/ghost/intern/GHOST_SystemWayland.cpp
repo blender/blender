@@ -234,7 +234,7 @@ static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Private Types & Defines
+/** \name Internal #GWL_SimpleBuffer Type
  * \{ */
 
 struct GWL_SimpleBuffer {
@@ -250,7 +250,9 @@ static void gwl_simple_buffer_free_data(GWL_SimpleBuffer *buffer)
   buffer->data_size = 0;
 }
 
-static void gwl_simple_buffer_set(GWL_SimpleBuffer *buffer, const char *data, size_t data_size)
+static void gwl_simple_buffer_set_and_take_ownership(GWL_SimpleBuffer *buffer,
+                                                     const char *data,
+                                                     size_t data_size)
 {
   free(const_cast<char *>(buffer->data));
   buffer->data = data;
@@ -274,6 +276,12 @@ static char *gwl_simple_buffer_as_string(const GWL_SimpleBuffer *buffer)
   return buffer_str;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_Cursor Type
+ * \{ */
+
 /**
  * From XKB internals, use for converting a scan-code from WAYLAND to a #xkb_keycode_t.
  * Ideally this wouldn't need a local define.
@@ -289,16 +297,26 @@ struct GWL_Cursor {
    * the hardware cursor is used.
    */
   bool is_hardware = true;
+  /** When true, a custom image is used to display the cursor (stored in `wl_image`). */
   bool is_custom = false;
   struct wl_surface *wl_surface = nullptr;
   struct wl_buffer *wl_buffer = nullptr;
   struct wl_cursor_image wl_image = {0};
   struct wl_cursor_theme *wl_theme = nullptr;
   void *custom_data = nullptr;
+  /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
-  int size = 0;
+  /**
+   * The name of the theme (loaded by DBUS, depends on #WITH_GHOST_WAYLAND_DBUS).
+   * When disabled, leave as an empty string and the default theme will be used.
+   */
   std::string theme_name;
-
+  /**
+   * The size of the cursor (when looking up a cursor theme).
+   * This must be scaled by the maximum output scale when passing to wl_cursor_theme_load.
+   * See #update_cursor_scale.
+   * */
+  int theme_size = 0;
   int custom_scale = 1;
 };
 
@@ -309,6 +327,7 @@ struct GWL_Cursor {
  */
 struct GWL_TabletTool {
   struct GWL_Seat *seat = nullptr;
+  /** Tablets have a separate cursor to the 'pointer', this surface is used for cursor drawing. */
   struct wl_surface *wl_surface_cursor = nullptr;
   /** Used to delay clearing tablet focused wl_surface until the frame is handled. */
   bool proximity = false;
@@ -316,22 +335,50 @@ struct GWL_TabletTool {
   GHOST_TabletData data = GHOST_TABLET_DATA_NONE;
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_DataOffer Type
+ * \{ */
+
+/**
+ * Data storage used for clipboard paste & drag-and-drop.
+ */
 struct GWL_DataOffer {
-  std::unordered_set<std::string> types;
-  uint32_t source_actions = 0;
-  uint32_t dnd_action = 0;
   struct wl_data_offer *id = nullptr;
+  std::unordered_set<std::string> types;
   std::atomic<bool> in_use = false;
+
   struct {
+    /**
+     * Bit-mask with available drop options.
+     * #WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY, #WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE.. etc.
+     * The application that initializes the drag may set these depending on modifiers held
+     * \note when dragging begins. Currently ghost doesn't make use of these.
+     */
+    enum wl_data_device_manager_dnd_action source_actions = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
+    enum wl_data_device_manager_dnd_action action = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
     /** Compatible with #GWL_Seat.xy coordinates. */
     wl_fixed_t xy[2] = {0, 0};
   } dnd;
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_DataSource Type
+ * \{ */
+
 struct GWL_DataSource {
-  struct wl_data_source *wl_data_source = nullptr;
+  struct wl_data_source *wl_source = nullptr;
   GWL_SimpleBuffer buffer_out;
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_Seat Type (#wl_seat wrapper & associated types)
+ * \{ */
 
 /**
  * Data used to implement client-side key-repeat.
@@ -605,6 +652,12 @@ struct GWL_Seat {
   uint32_t data_source_serial = 0;
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_Display Type (#wl_display & #wl_compositor wrapper)
+ * \{ */
+
 struct GWL_Display {
   GHOST_SystemWayland *system = nullptr;
 
@@ -632,8 +685,6 @@ struct GWL_Display {
   GWL_SimpleBuffer clipboard;
   GWL_SimpleBuffer clipboard_primary;
 };
-
-#undef LOG
 
 /** \} */
 
@@ -710,8 +761,8 @@ static void display_destroy(GWL_Display *display)
       std::lock_guard lock{seat->data_source_mutex};
       if (seat->data_source) {
         gwl_simple_buffer_free_data(&seat->data_source->buffer_out);
-        if (seat->data_source->wl_data_source) {
-          wl_data_source_destroy(seat->data_source->wl_data_source);
+        if (seat->data_source->wl_source) {
+          wl_data_source_destroy(seat->data_source->wl_source);
         }
         delete seat->data_source;
       }
@@ -833,8 +884,11 @@ static void display_destroy(GWL_Display *display)
     wl_display_disconnect(display->wl_display);
   }
 
-  gwl_simple_buffer_free_data(&display->clipboard);
-  gwl_simple_buffer_free_data(&display->clipboard_primary);
+  {
+    std::lock_guard lock{system_clipboard_mutex};
+    gwl_simple_buffer_free_data(&display->clipboard);
+    gwl_simple_buffer_free_data(&display->clipboard_primary);
+  }
 
   delete display;
 }
@@ -1399,16 +1453,17 @@ static const char *read_file_as_buffer(const int fd, size_t *r_len)
   return buf;
 }
 
-static const char *read_pipe(GWL_DataOffer *data_offer,
-                             const std::string mime_receive,
-                             std::mutex *mutex,
-                             size_t *r_len)
+static const char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
+                                               const char *mime_receive,
+                                               std::mutex *mutex,
+                                               size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
-    return {};
+    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+    return nullptr;
   }
-  wl_data_offer_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
+  wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
   close(pipefd[1]);
 
   data_offer->in_use.store(false);
@@ -1423,16 +1478,18 @@ static const char *read_pipe(GWL_DataOffer *data_offer,
   return buf;
 }
 
-static const char *read_pipe_primary(GWL_PrimarySelection_DataOffer *data_offer,
-                                     const std::string mime_receive,
-                                     std::mutex *mutex,
-                                     size_t *r_len)
+static const char *read_buffer_from_primary_selection_offer(
+    GWL_PrimarySelection_DataOffer *data_offer,
+    const char *mime_receive,
+    std::mutex *mutex,
+    size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
-    return {};
+    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+    return nullptr;
   }
-  zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
+  zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
   close(pipefd[1]);
 
   data_offer->in_use.store(false);
@@ -1481,8 +1538,8 @@ static void data_source_handle_cancelled(void *data, struct wl_data_source *wl_d
   CLOG_INFO(LOG, 2, "cancelled");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   GWL_DataSource *data_source = seat->data_source;
-  if (seat->data_source->wl_data_source == wl_data_source) {
-    data_source->wl_data_source = nullptr;
+  if (seat->data_source->wl_source == wl_data_source) {
+    data_source->wl_source = nullptr;
   }
 
   wl_data_source_destroy(wl_data_source);
@@ -1553,7 +1610,8 @@ static void data_offer_handle_offer(void *data,
                                     const char *mime_type)
 {
   CLOG_INFO(LOG, 2, "offer (mime_type=%s)", mime_type);
-  static_cast<GWL_DataOffer *>(data)->types.insert(mime_type);
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
+  data_offer->types.insert(mime_type);
 }
 
 static void data_offer_handle_source_actions(void *data,
@@ -1561,7 +1619,8 @@ static void data_offer_handle_source_actions(void *data,
                                              const uint32_t source_actions)
 {
   CLOG_INFO(LOG, 2, "source_actions (%u)", source_actions);
-  static_cast<GWL_DataOffer *>(data)->source_actions = source_actions;
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
+  data_offer->dnd.source_actions = (enum wl_data_device_manager_dnd_action)source_actions;
 }
 
 static void data_offer_handle_action(void *data,
@@ -1569,7 +1628,8 @@ static void data_offer_handle_action(void *data,
                                      const uint32_t dnd_action)
 {
   CLOG_INFO(LOG, 2, "actions (%u)", dnd_action);
-  static_cast<GWL_DataOffer *>(data)->dnd_action = dnd_action;
+  GWL_DataOffer *data_offer = static_cast<GWL_DataOffer *>(data);
+  data_offer->dnd.action = (enum wl_data_device_manager_dnd_action)dnd_action;
 }
 
 static const struct wl_data_offer_listener data_offer_listener = {
@@ -1693,7 +1753,8 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     size_t data_buf_len = 0;
-    const char *data_buf = read_pipe(data_offer, mime_receive, nullptr, &data_buf_len);
+    const char *data_buf = read_buffer_from_data_offer(
+        data_offer, mime_receive.c_str(), nullptr, &data_buf_len);
     std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
     free(const_cast<char *>(data_buf));
 
@@ -1812,13 +1873,13 @@ static void data_device_handle_selection(void *data,
     }
 
     size_t data_len = 0;
-    const char *data = read_pipe(
-        data_offer, mime_receive, &seat->data_offer_copy_paste_mutex, &data_len);
+    const char *data = read_buffer_from_data_offer(
+        data_offer, mime_receive.c_str(), &seat->data_offer_copy_paste_mutex, &data_len);
 
     {
       std::lock_guard lock{system_clipboard_mutex};
       GWL_SimpleBuffer *buf = system->clipboard_data(false);
-      gwl_simple_buffer_set(buf, data, data_len);
+      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
     }
   };
 
@@ -1892,7 +1953,8 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
       wl_surface_set_buffer_scale(wl_cursor_surface, scale);
     }
     wl_cursor_theme_destroy(cursor.wl_theme);
-    cursor.wl_theme = wl_cursor_theme_load(cursor.theme_name.c_str(), scale * cursor.size, shm);
+    cursor.wl_theme = wl_cursor_theme_load(
+        cursor.theme_name.c_str(), scale * cursor.theme_size, shm);
     return true;
   }
   return false;
@@ -3165,13 +3227,13 @@ static void primary_selection_device_handle_selection(
       }
     }
     size_t data_len = 0;
-    const char *data = read_pipe_primary(
-        data_offer, mime_receive, &primary->data_offer_mutex, &data_len);
+    const char *data = read_buffer_from_primary_selection_offer(
+        data_offer, mime_receive.c_str(), &primary->data_offer_mutex, &data_len);
 
     {
       std::lock_guard lock{system_clipboard_mutex};
       GWL_SimpleBuffer *buf = system->clipboard_data(true);
-      gwl_simple_buffer_set(buf, data, data_len);
+      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
     }
   };
 
@@ -3262,9 +3324,9 @@ static void seat_handle_capabilities(void *data,
     seat->cursor.wl_surface = wl_compositor_create_surface(seat->system->wl_compositor());
     seat->cursor.visible = true;
     seat->cursor.wl_buffer = nullptr;
-    if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.size)) {
+    if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.theme_size)) {
       seat->cursor.theme_name = std::string();
-      seat->cursor.size = default_cursor_size;
+      seat->cursor.theme_size = default_cursor_size;
     }
     wl_pointer_add_listener(seat->wl_pointer, &pointer_listener, data);
 
@@ -3990,18 +4052,17 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
   /* Copy buffer. */
   gwl_simple_buffer_set_from_string(&data_source->buffer_out, buffer);
 
-  data_source->wl_data_source = wl_data_device_manager_create_data_source(
-      display->data_device_manager);
+  data_source->wl_source = wl_data_device_manager_create_data_source(display->data_device_manager);
 
-  wl_data_source_add_listener(data_source->wl_data_source, &data_source_listener, seat);
+  wl_data_source_add_listener(data_source->wl_source, &data_source_listener, seat);
 
   for (const std::string &type : mime_send) {
-    wl_data_source_offer(data_source->wl_data_source, type.c_str());
+    wl_data_source_offer(data_source->wl_source, type.c_str());
   }
 
   if (seat->data_device) {
     wl_data_device_set_selection(
-        seat->data_device, data_source->wl_data_source, seat->data_source_serial);
+        seat->data_device, data_source->wl_source, seat->data_source_serial);
   }
 }
 
@@ -4284,22 +4345,22 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
  */
 static void cursor_buffer_show(const GWL_Seat *seat)
 {
-  const GWL_Cursor *c = &seat->cursor;
+  const GWL_Cursor *cursor = &seat->cursor;
 
   if (seat->wl_pointer) {
-    const int scale = c->is_custom ? c->custom_scale : seat->pointer.theme_scale;
-    const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / scale;
-    const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / scale;
+    const int scale = cursor->is_custom ? cursor->custom_scale : seat->pointer.theme_scale;
+    const int32_t hotspot_x = int32_t(cursor->wl_image.hotspot_x) / scale;
+    const int32_t hotspot_y = int32_t(cursor->wl_image.hotspot_y) / scale;
     if (seat->wl_pointer) {
       wl_pointer_set_cursor(
-          seat->wl_pointer, seat->pointer.serial, c->wl_surface, hotspot_x, hotspot_y);
+          seat->wl_pointer, seat->pointer.serial, cursor->wl_surface, hotspot_x, hotspot_y);
     }
   }
 
   if (!seat->tablet_tools.empty()) {
-    const int scale = c->is_custom ? c->custom_scale : seat->tablet.theme_scale;
-    const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / scale;
-    const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / scale;
+    const int scale = cursor->is_custom ? cursor->custom_scale : seat->tablet.theme_scale;
+    const int32_t hotspot_x = int32_t(cursor->wl_image.hotspot_x) / scale;
+    const int32_t hotspot_y = int32_t(cursor->wl_image.hotspot_y) / scale;
     for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->tablet_tools) {
       GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
@@ -4362,21 +4423,21 @@ static void cursor_buffer_set_surface_impl(const GWL_Seat *seat,
 
 static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
 {
-  const GWL_Cursor *c = &seat->cursor;
+  const GWL_Cursor *cursor = &seat->cursor;
   const wl_cursor_image *wl_image = &seat->cursor.wl_image;
-  const bool visible = (c->visible && c->is_hardware);
+  const bool visible = (cursor->visible && cursor->is_hardware);
 
   /* This is a requirement of WAYLAND, when this isn't the case,
    * it causes Blender's window to close intermittently. */
   if (seat->wl_pointer) {
     const int scale = cursor_buffer_compatible_scale_from_image(
-        wl_image, c->is_custom ? c->custom_scale : seat->pointer.theme_scale);
+        wl_image, cursor->is_custom ? cursor->custom_scale : seat->pointer.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
-    cursor_buffer_set_surface_impl(seat, buffer, c->wl_surface, scale);
+    cursor_buffer_set_surface_impl(seat, buffer, cursor->wl_surface, scale);
     wl_pointer_set_cursor(seat->wl_pointer,
                           seat->pointer.serial,
-                          visible ? c->wl_surface : nullptr,
+                          visible ? cursor->wl_surface : nullptr,
                           hotspot_x,
                           hotspot_y);
   }
@@ -4384,7 +4445,7 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
   /* Set the cursor for all tablet tools as well. */
   if (!seat->tablet_tools.empty()) {
     const int scale = cursor_buffer_compatible_scale_from_image(
-        wl_image, c->is_custom ? c->custom_scale : seat->tablet.theme_scale);
+        wl_image, cursor->is_custom ? cursor->custom_scale : seat->tablet.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
     for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->tablet_tools) {
@@ -4471,31 +4532,31 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
                                 (*cursor_find).second;
 
   GWL_Seat *seat = display_->seats[0];
-  GWL_Cursor *c = &seat->cursor;
+  GWL_Cursor *cursor = &seat->cursor;
 
-  if (!c->wl_theme) {
+  if (!cursor->wl_theme) {
     /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
-    c->wl_theme = wl_cursor_theme_load(
-        c->theme_name.c_str(), c->size, display_->seats[0]->system->wl_shm());
+    cursor->wl_theme = wl_cursor_theme_load(
+        cursor->theme_name.c_str(), cursor->theme_size, wl_shm());
   }
 
-  wl_cursor *cursor = wl_cursor_theme_get_cursor(c->wl_theme, cursor_name);
+  wl_cursor *wl_cursor = wl_cursor_theme_get_cursor(cursor->wl_theme, cursor_name);
 
-  if (!cursor) {
+  if (!wl_cursor) {
     GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
     return GHOST_kFailure;
   }
 
-  struct wl_cursor_image *image = cursor->images[0];
+  struct wl_cursor_image *image = wl_cursor->images[0];
   struct wl_buffer *buffer = wl_cursor_image_get_buffer(image);
   if (!buffer) {
     return GHOST_kFailure;
   }
 
-  c->visible = true;
-  c->is_custom = false;
-  c->wl_buffer = buffer;
-  c->wl_image = *image;
+  cursor->visible = true;
+  cursor->is_custom = false;
+  cursor->wl_buffer = buffer;
+  cursor->wl_image = *image;
 
   cursor_buffer_set(seat, buffer);
 
