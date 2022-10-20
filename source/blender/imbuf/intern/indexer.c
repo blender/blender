@@ -909,6 +909,9 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
 
   if (context->proxy_ctx[0] == NULL && context->proxy_ctx[1] == NULL &&
       context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL) {
+    avformat_close_input(&context->iFormatCtx);
+    avcodec_free_context(&context->iCodecCtx);
+    MEM_freeN(context);
     return NULL; /* Nothing to transcode. */
   }
 
