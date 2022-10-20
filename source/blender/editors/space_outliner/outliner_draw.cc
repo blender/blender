@@ -2877,7 +2877,8 @@ static bool tselem_draw_icon(uiBlock *block,
                              TreeStoreElem *tselem,
                              TreeElement *te,
                              float alpha,
-                             const bool is_clickable)
+                             const bool is_clickable,
+                             const int num_elements)
 {
   TreeElementIcon data = tree_element_get_icon(tselem, te);
   if (data.icon == 0) {
@@ -2885,6 +2886,8 @@ static bool tselem_draw_icon(uiBlock *block,
   }
 
   const bool is_collection = outliner_is_collection_tree_element(te);
+  IconTextOverlay text_overlay;
+  UI_icon_text_overlay_init_from_count(&text_overlay, num_elements);
 
   /* Collection colors and icons covered by restrict buttons. */
   if (!is_clickable || x >= xmax || is_collection) {
@@ -2904,7 +2907,8 @@ static bool tselem_draw_icon(uiBlock *block,
                         alpha,
                         0.0f,
                         btheme->collection_color[collection->color_tag].color,
-                        true);
+                        true,
+                        &text_overlay);
         return true;
       }
     }
@@ -2915,10 +2919,10 @@ static bool tselem_draw_icon(uiBlock *block,
     /* Restrict column clip. it has been coded by simply overdrawing, doesn't work for buttons. */
     uchar color[4];
     if (UI_icon_get_theme_color(data.icon, color)) {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
+      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true, &text_overlay);
     }
     else {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, nullptr, false);
+      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, nullptr, false, &text_overlay);
     }
   }
   else {
@@ -2939,104 +2943,6 @@ static bool tselem_draw_icon(uiBlock *block,
   }
 
   return true;
-}
-
-static bool outliner_is_main_row(const ARegion *region, const int ys)
-{
-  int ystart;
-
-  ystart = int(region->v2d.tot.ymax);
-  ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
-
-  return ((ys - ystart) / UI_UNIT_Y) % 2;
-}
-
-/**
- * Get the expected row background color to use for the data-block counter
- *
- * This reproduces some of the logic of outliner_draw_highlights.
- * At the moment it doesn't implement the search match color since
- * we don't draw the data-block counter in those cases.
- */
-static void outliner_get_row_color(const ARegion *region,
-                                   const TreeElement *te,
-                                   int ys,
-                                   float r_color[4])
-{
-  const TreeStoreElem *tselem = TREESTORE(te);
-
-  if ((tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED)) {
-    UI_GetThemeColor3fv(TH_ACTIVE, r_color);
-  }
-  else if (tselem->flag & TSE_SELECTED) {
-    UI_GetThemeColor3fv(TH_SELECT_HIGHLIGHT, r_color);
-  }
-  else if (outliner_is_main_row(region, ys)) {
-    UI_GetThemeColor3fv(TH_BACK, r_color);
-  }
-  else {
-    float color_alternating[4];
-    UI_GetThemeColor4fv(TH_ROW_ALTERNATE, color_alternating);
-    UI_GetThemeColorBlend3f(TH_BACK, TH_ROW_ALTERNATE, color_alternating[3], r_color);
-  }
-
-  if (tselem->flag & TSE_HIGHLIGHTED) {
-    const float color_highlight[4] = {1.0f, 1.0f, 1.0f, 0.13f};
-    interp_v3_v3v3(r_color, r_color, color_highlight, color_highlight[3]);
-  }
-  r_color[3] = 1.0f;
-}
-
-/**
- * For icon-only children of a collapsed tree,
- * Draw small number over the icon to show how many items of this type are displayed.
- */
-static void outliner_draw_iconrow_number(const ARegion *region,
-                                         const uiFontStyle *fstyle,
-                                         int offsx,
-                                         int ys,
-                                         const TreeElement *te_visible,
-                                         const int num_elements)
-{
-  float color[4];
-  outliner_get_row_color(region, te_visible, ys, color);
-
-  float ufac = 0.25f * UI_UNIT_X;
-  float offset_x = float(offsx) + UI_UNIT_X * 0.35f;
-  rctf rect{};
-  BLI_rctf_init(&rect,
-                offset_x + ufac,
-                offset_x + UI_UNIT_X - ufac,
-                float(ys) - UI_UNIT_Y * 0.2f + ufac,
-                float(ys) - UI_UNIT_Y * 0.2f + UI_UNIT_Y - ufac);
-
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv_ex(
-      &rect, color, NULL, 1.0f, color, U.pixelsize, float(UI_UNIT_Y) / 2.0f - ufac);
-
-  /* Now the numbers. */
-  uchar text_col[4];
-
-  UI_GetThemeColor3ubv(TH_TEXT, text_col);
-  text_col[3] = 255;
-
-  uiFontStyle fstyle_small = *fstyle;
-  fstyle_small.points *= 0.8f;
-
-  /* We treat +99 as 4 digits to make sure the (eyeballed) alignment looks nice. */
-  int num_digits = 4;
-  char number_text[4] = "+99";
-  if (num_elements < 100) {
-    BLI_snprintf(number_text, sizeof(number_text), "%d", num_elements);
-    num_digits = num_elements < 10 ? 1 : 2;
-  }
-  UI_fontstyle_draw_simple(&fstyle_small,
-                           (offset_x + ufac + UI_UNIT_X * (2 - num_digits) * 0.12f),
-                           float(ys) - UI_UNIT_Y * 0.095f + ufac,
-                           number_text,
-                           text_col);
-  UI_fontstyle_set(fstyle);
-  GPU_blend(GPU_BLEND_ALPHA); /* Round-box and text drawing disables. */
 }
 
 static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
@@ -3069,11 +2975,8 @@ static void outliner_draw_active_indicator(const float minx,
   GPU_blend(GPU_BLEND_ALPHA); /* Round-box disables. */
 }
 
-static void outliner_draw_iconrow_doit(const ARegion *region,
-                                       uiBlock *block,
-                                       TreeElement *te_visible,
+static void outliner_draw_iconrow_doit(uiBlock *block,
                                        TreeElement *te,
-                                       const uiFontStyle *fstyle,
                                        int xmax,
                                        int *offsx,
                                        int ys,
@@ -3102,13 +3005,13 @@ static void outliner_draw_iconrow_doit(const ARegion *region,
   if (tselem->flag & TSE_HIGHLIGHTED_ICON) {
     alpha_fac += 0.5;
   }
-  tselem_draw_icon(block, xmax, float(*offsx), float(ys), tselem, te, alpha_fac, false);
+  tselem_draw_icon(
+      block, xmax, float(*offsx), float(ys), tselem, te, alpha_fac, false, num_elements);
   te->xs = *offsx;
   te->ys = ys;
   te->xend = short(*offsx) + UI_UNIT_X;
 
   if (num_elements > 1) {
-    outliner_draw_iconrow_number(region, fstyle, *offsx, ys, te_visible, num_elements);
     te->flag |= TE_ICONROW_MERGED;
   }
   else {
@@ -3145,7 +3048,6 @@ static void outliner_draw_iconrow(bContext *C,
                                   const uiFontStyle *fstyle,
                                   const TreeViewContext *tvc,
                                   SpaceOutliner *space_outliner,
-                                  TreeElement *te_visible,
                                   ListBase *lb,
                                   int level,
                                   int xmax,
@@ -3154,7 +3056,6 @@ static void outliner_draw_iconrow(bContext *C,
                                   float alpha_fac,
                                   MergedIconRow *merged)
 {
-  const ARegion *region = CTX_wm_region(C);
   eOLDrawState active = OL_DRAWSEL_NONE;
 
   LISTBASE_FOREACH (TreeElement *, te, lb) {
@@ -3194,8 +3095,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_POSE_CHANNEL,
                 TSE_POSEGRP,
                 TSE_DEFGROUP)) {
-        outliner_draw_iconrow_doit(
-            region, block, te_visible, te, fstyle, xmax, offsx, ys, alpha_fac, active, 1);
+        outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
       }
       else {
         const int index = tree_element_id_type_to_index(te);
@@ -3214,7 +3114,6 @@ static void outliner_draw_iconrow(bContext *C,
                             fstyle,
                             tvc,
                             space_outliner,
-                            te,
                             &te->subtree,
                             level + 1,
                             xmax,
@@ -3236,11 +3135,8 @@ static void outliner_draw_iconrow(bContext *C,
       for (int j = 0; j < num_subtypes; j++) {
         const int index = index_base + j;
         if (merged->num_elements[index] != 0) {
-          outliner_draw_iconrow_doit(region,
-                                     block,
-                                     te_visible,
+          outliner_draw_iconrow_doit(block,
                                      merged->tree_element[index],
-                                     fstyle,
                                      xmax,
                                      offsx,
                                      ys,
@@ -3429,7 +3325,8 @@ static void outliner_draw_tree_element(bContext *C,
                          tselem,
                          te,
                          (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
-                         true)) {
+                         true,
+                         1)) {
       offsx += UI_UNIT_X + 4 * ufac;
     }
     else {
@@ -3478,7 +3375,6 @@ static void outliner_draw_tree_element(bContext *C,
                                 fstyle,
                                 tvc,
                                 space_outliner,
-                                te,
                                 &te->subtree,
                                 0,
                                 xmax,

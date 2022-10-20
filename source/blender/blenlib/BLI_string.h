@@ -309,6 +309,28 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) A
  */
 void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL();
 /**
+ * Format a count to up to 3 places (plus minus sign, plus '\0' terminator) string using long
+ * number names abbreviations. Used to produce a compact representation of large numbers as
+ * integers.
+ *
+ * It shows a lower bound instead of rounding the number.
+ *
+ * 1 -> 1
+ * 15 -> 15
+ * 155 -> 155
+ * 1555 -> 1K
+ * 15555 -> 15K
+ * 155555 -> .1M
+ * 1555555 -> 1M
+ * 15555555 -> 15M
+ * 155555555 -> .1B
+ * 1000000000 -> 1B
+ * ...
+ *
+ * Length of 5 is the maximum of the resulting string, for example, `-15K\0`.
+ */
+void BLI_str_format_integer_unit(char dst[5], int number_to_format) ATTR_NONNULL();
+/**
  * Compare two strings without regard to case.
  *
  * \retval True if the strings are equal, false otherwise.

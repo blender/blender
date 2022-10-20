@@ -235,7 +235,8 @@ static bool textview_draw_string(TextViewDrawState *tds,
                     1.0f,
                     0.0f,
                     icon_fg,
-                    false);
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 

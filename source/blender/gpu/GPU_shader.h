@@ -209,6 +209,10 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_KEYFRAME_SHAPE,
   GPU_SHADER_SIMPLE_LIGHTING,
   /**
+   * Draw an icon, leaving a semi-transparent rectangle on top of the icon.
+   */
+  GPU_SHADER_ICON,
+  /**
    * Take a 2D position and color for each vertex with linear interpolation in window space.
    *
    * \param color: in vec4

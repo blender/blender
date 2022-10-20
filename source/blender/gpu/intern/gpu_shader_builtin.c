@@ -153,6 +153,11 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .create_info = "gpu_shader_2D_diag_stripes",
         },
 
+    [GPU_SHADER_ICON] =
+        {
+            .name = "GPU_SHADER_ICON",
+            .create_info = "gpu_shader_icon",
+        },
     [GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE] =
         {
             .name = "GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE",
