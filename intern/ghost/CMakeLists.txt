@@ -376,6 +376,10 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
     )
+    # Primary-selection.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/primary-selection/primary-selection-unstable-v1.xml"
+    )
 
     add_definitions(-DWITH_GHOST_WAYLAND)
 
