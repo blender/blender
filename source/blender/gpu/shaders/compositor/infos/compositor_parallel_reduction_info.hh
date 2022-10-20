@@ -108,6 +108,18 @@ GPU_SHADER_CREATE_INFO(compositor_maximum_luminance)
     .define("REDUCE(lhs, rhs)", "max(lhs, rhs)")
     .do_static_compilation(true);
 
+GPU_SHADER_CREATE_INFO(compositor_maximum_float_in_range)
+    .additional_info("compositor_parallel_reduction_shared")
+    .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .push_constant(Type::FLOAT, "lower_bound")
+    .push_constant(Type::FLOAT, "upper_bound")
+    .define("TYPE", "float")
+    .define("IDENTITY", "vec4(lower_bound)")
+    .define("INITIALIZE(v)", "((v.x <= upper_bound) && (v.x >= lower_bound)) ? v.x : lower_bound")
+    .define("LOAD(value)", "value.x")
+    .define("REDUCE(lhs, rhs)", "((rhs > lhs) && (rhs <= upper_bound)) ? rhs : lhs")
+    .do_static_compilation(true);
+
 /* --------------------------------------------------------------------
  * Minimum Reductions.
  */
@@ -122,4 +134,16 @@ GPU_SHADER_CREATE_INFO(compositor_minimum_luminance)
     .define("INITIALIZE(value)", "dot(value.rgb, luminance_coefficients)")
     .define("LOAD(value)", "value.x")
     .define("REDUCE(lhs, rhs)", "min(lhs, rhs)")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_minimum_float_in_range)
+    .additional_info("compositor_parallel_reduction_shared")
+    .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .push_constant(Type::FLOAT, "lower_bound")
+    .push_constant(Type::FLOAT, "upper_bound")
+    .define("TYPE", "float")
+    .define("IDENTITY", "vec4(upper_bound)")
+    .define("INITIALIZE(v)", "((v.x <= upper_bound) && (v.x >= lower_bound)) ? v.x : upper_bound")
+    .define("LOAD(value)", "value.x")
+    .define("REDUCE(lhs, rhs)", "((rhs < lhs) && (rhs >= lower_bound)) ? rhs : lhs")
     .do_static_compilation(true);

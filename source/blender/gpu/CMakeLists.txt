@@ -349,6 +349,7 @@ set(GLSL_SRC
   shaders/compositor/compositor_morphological_distance_feather.glsl
   shaders/compositor/compositor_morphological_distance_threshold.glsl
   shaders/compositor/compositor_morphological_step.glsl
+  shaders/compositor/compositor_normalize.glsl
   shaders/compositor/compositor_parallel_reduction.glsl
   shaders/compositor/compositor_projector_lens_distortion.glsl
   shaders/compositor/compositor_realize_on_domain.glsl
@@ -633,6 +634,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/compositor/infos/compositor_morphological_distance_info.hh
   shaders/compositor/infos/compositor_morphological_distance_threshold_info.hh
   shaders/compositor/infos/compositor_morphological_step_info.hh
+  shaders/compositor/infos/compositor_normalize_info.hh
   shaders/compositor/infos/compositor_parallel_reduction_info.hh
   shaders/compositor/infos/compositor_projector_lens_distortion_info.hh
   shaders/compositor/infos/compositor_realize_on_domain_info.hh
