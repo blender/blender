@@ -357,6 +357,8 @@ set(GLSL_SRC
   shaders/compositor/compositor_split_viewer.glsl
   shaders/compositor/compositor_symmetric_blur.glsl
   shaders/compositor/compositor_symmetric_separable_blur.glsl
+  shaders/compositor/compositor_tone_map_photoreceptor.glsl
+  shaders/compositor/compositor_tone_map_simple.glsl
 
   shaders/compositor/library/gpu_shader_compositor_alpha_over.glsl
   shaders/compositor/library/gpu_shader_compositor_blur_common.glsl
@@ -639,6 +641,8 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/compositor/infos/compositor_split_viewer_info.hh
   shaders/compositor/infos/compositor_symmetric_blur_info.hh
   shaders/compositor/infos/compositor_symmetric_separable_blur_info.hh
+  shaders/compositor/infos/compositor_tone_map_photoreceptor_info.hh
+  shaders/compositor/infos/compositor_tone_map_simple_info.hh
 )
 
 set(SRC_SHADER_CREATE_INFOS_MTL

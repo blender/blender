@@ -12,13 +12,16 @@ GPU_SHADER_CREATE_INFO(compositor_parallel_reduction_shared)
  * Sum Reductions.
  */
 
-GPU_SHADER_CREATE_INFO(compositor_sum_float_shared)
+GPU_SHADER_CREATE_INFO(compositor_sum_shared)
     .additional_info("compositor_parallel_reduction_shared")
+    .define("IDENTITY", "vec4(0.0)")
+    .define("REDUCE(lhs, rhs)", "lhs + rhs");
+
+GPU_SHADER_CREATE_INFO(compositor_sum_float_shared)
+    .additional_info("compositor_sum_shared")
     .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .define("TYPE", "float")
-    .define("IDENTITY", "vec4(0.0)")
-    .define("LOAD(value)", "value.x")
-    .define("REDUCE(lhs, rhs)", "lhs + rhs");
+    .define("LOAD(value)", "value.x");
 
 GPU_SHADER_CREATE_INFO(compositor_sum_red)
     .additional_info("compositor_sum_float_shared")
@@ -39,6 +42,20 @@ GPU_SHADER_CREATE_INFO(compositor_sum_luminance)
     .additional_info("compositor_sum_float_shared")
     .push_constant(Type::VEC3, "luminance_coefficients")
     .define("INITIALIZE(value)", "dot(value.rgb, luminance_coefficients)")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_sum_log_luminance)
+    .additional_info("compositor_sum_float_shared")
+    .push_constant(Type::VEC3, "luminance_coefficients")
+    .define("INITIALIZE(value)", "log(max(dot(value.rgb, luminance_coefficients), 1e-5))")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_sum_color)
+    .additional_info("compositor_sum_shared")
+    .image(0, GPU_RGBA32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .define("TYPE", "vec4")
+    .define("INITIALIZE(value)", "value")
+    .define("LOAD(value)", "value")
     .do_static_compilation(true);
 
 /* --------------------------------------------------------------------
@@ -73,4 +90,36 @@ GPU_SHADER_CREATE_INFO(compositor_sum_luminance_squared_difference)
     .additional_info("compositor_sum_squared_difference_float_shared")
     .push_constant(Type::VEC3, "luminance_coefficients")
     .define("INITIALIZE(value)", "pow(dot(value.rgb, luminance_coefficients) - subtrahend, 2.0)")
+    .do_static_compilation(true);
+
+/* --------------------------------------------------------------------
+ * Maximum Reductions.
+ */
+
+GPU_SHADER_CREATE_INFO(compositor_maximum_luminance)
+    .additional_info("compositor_parallel_reduction_shared")
+    .typedef_source("common_math_lib.glsl")
+    .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .push_constant(Type::VEC3, "luminance_coefficients")
+    .define("TYPE", "float")
+    .define("IDENTITY", "vec4(FLT_MIN)")
+    .define("INITIALIZE(value)", "dot(value.rgb, luminance_coefficients)")
+    .define("LOAD(value)", "value.x")
+    .define("REDUCE(lhs, rhs)", "max(lhs, rhs)")
+    .do_static_compilation(true);
+
+/* --------------------------------------------------------------------
+ * Minimum Reductions.
+ */
+
+GPU_SHADER_CREATE_INFO(compositor_minimum_luminance)
+    .additional_info("compositor_parallel_reduction_shared")
+    .typedef_source("common_math_lib.glsl")
+    .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .push_constant(Type::VEC3, "luminance_coefficients")
+    .define("TYPE", "float")
+    .define("IDENTITY", "vec4(FLT_MAX)")
+    .define("INITIALIZE(value)", "dot(value.rgb, luminance_coefficients)")
+    .define("LOAD(value)", "value.x")
+    .define("REDUCE(lhs, rhs)", "min(lhs, rhs)")
     .do_static_compilation(true);

@@ -27,6 +27,13 @@ float sum_blue(Context &context, GPUTexture *texture);
  * coefficients to compute the luminance. */
 float sum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
 
+/* Computes the sum of the logarithm of the luminance of all pixels in the given texture, using the
+ * given luminance coefficients to compute the luminance. */
+float sum_log_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
+
+/* Computes the sum of the colors of all pixels in the given texture. */
+float4 sum_color(Context &context, GPUTexture *texture);
+
 /* --------------------------------------------------------------------
  * Sum Of Squared Difference Reductions.
  */
@@ -54,5 +61,21 @@ float sum_luminance_squared_difference(Context &context,
                                        GPUTexture *texture,
                                        float3 luminance_coefficients,
                                        float subtrahend);
+
+/* --------------------------------------------------------------------
+ * Maximum Reductions.
+ */
+
+/* Computes the maximum luminance of all pixels in the given texture, using the given luminance
+ * coefficients to compute the luminance. */
+float maximum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
+
+/* --------------------------------------------------------------------
+ * Minimum Reductions.
+ */
+
+/* Computes the minimum luminance of all pixels in the given texture, using the given luminance
+ * coefficients to compute the luminance. */
+float minimum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
 
 }  // namespace blender::realtime_compositor
