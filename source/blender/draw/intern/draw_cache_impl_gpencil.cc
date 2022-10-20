@@ -97,7 +97,8 @@ static GpencilBatchCache *gpencil_batch_cache_init(Object *ob, int cfra)
   GpencilBatchCache *cache = gpd->runtime.gpencil_cache;
 
   if (!cache) {
-    cache = gpd->runtime.gpencil_cache = MEM_callocN(sizeof(*cache), __func__);
+    cache = gpd->runtime.gpencil_cache = (GpencilBatchCache *)MEM_callocN(sizeof(*cache),
+                                                                          __func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -509,7 +510,7 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
     GPUVertBuf *vbo = cache->vbo;
 
     gpIterData iter = {
-        .gpd = ob->data,
+        .gpd = (bGPdata *)ob->data,
         .ibo = {0},
     };
 
@@ -540,7 +541,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
   Brush *brush = gpd->runtime.sbuffer_brush;
   /* Convert the sbuffer to a bGPDstroke. */
   if (gpd->runtime.sbuffer_gps == NULL) {
-    bGPDstroke *gps = MEM_callocN(sizeof(*gps), "bGPDstroke sbuffer");
+    bGPDstroke *gps = (bGPDstroke *)MEM_callocN(sizeof(*gps), "bGPDstroke sbuffer");
     gps->totpoints = gpd->runtime.sbuffer_used;
     gps->mat_nr = max_ii(0, gpd->runtime.matid - 1);
     gps->flag = gpd->runtime.sbuffer_sflag;
@@ -565,7 +566,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
 
 static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_fill)
 {
-  tGPspoint *tpoints = gpd->runtime.sbuffer;
+  tGPspoint *tpoints = (tGPspoint *)gpd->runtime.sbuffer;
   bGPDstroke *gps = gpd->runtime.sbuffer_gps;
   int vert_len = gpd->runtime.sbuffer_used;
 
@@ -573,7 +574,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
   BLI_assert(gps != NULL);
 
   if (do_stroke && (gpd->runtime.sbuffer_stroke_batch == NULL)) {
-    gps->points = MEM_mallocN(vert_len * sizeof(*gps->points), __func__);
+    gps->points = (bGPDspoint *)MEM_mallocN(vert_len * sizeof(*gps->points), __func__);
 
     const DRWContextState *draw_ctx = DRW_context_state_get();
     Scene *scene = draw_ctx->scene;
@@ -625,7 +626,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
     GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, gps->tot_triangles, vert_len);
 
     if (gps->tot_triangles > 0) {
-      float(*tpoints2d)[2] = MEM_mallocN(sizeof(*tpoints2d) * vert_len, __func__);
+      float(*tpoints2d)[2] = (float(*)[2])MEM_mallocN(sizeof(*tpoints2d) * vert_len, __func__);
       /* Triangulate in 2D. */
       for (int i = 0; i < vert_len; i++) {
         copy_v2_v2(tpoints2d[i], tpoints[i].m_xy);
