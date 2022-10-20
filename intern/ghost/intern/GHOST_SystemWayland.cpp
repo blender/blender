@@ -293,6 +293,7 @@ struct GWL_DataOffer {
 struct GWL_DataSource {
   struct wl_data_source *wl_data_source = nullptr;
   char *buffer_out = nullptr;
+  size_t buffer_out_len = 0;
 };
 
 /**
@@ -1273,7 +1274,7 @@ static void data_source_handle_send(void *data,
   CLOG_INFO(LOG, 2, "send");
 
   const char *const buffer = seat->data_source->buffer_out;
-  if (write(fd, buffer, strlen(buffer)) < 0) {
+  if (write(fd, buffer, seat->data_source->buffer_out_len) < 0) {
     GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
   }
   close(fd);
@@ -3584,9 +3585,9 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
 
   /* Copy buffer. */
   free(data_source->buffer_out);
-  const size_t buffer_size = strlen(buffer) + 1;
-  data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
-  std::memcpy(data_source->buffer_out, buffer, buffer_size);
+  data_source->buffer_out_len = strlen(buffer);
+  data_source->buffer_out = static_cast<char *>(malloc(data_source->buffer_out_len));
+  std::memcpy(data_source->buffer_out, buffer, data_source->buffer_out_len);
 
   data_source->wl_data_source = wl_data_device_manager_create_data_source(
       display_->data_device_manager);
