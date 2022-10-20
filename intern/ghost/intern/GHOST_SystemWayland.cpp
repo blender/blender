@@ -1284,8 +1284,9 @@ static void data_source_handle_cancelled(void *data, struct wl_data_source *wl_d
   CLOG_INFO(LOG, 2, "cancelled");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   GWL_DataSource *data_source = seat->data_source;
-  GHOST_ASSERT(seat->data_source->wl_data_source == wl_data_source, "Data source mismatch!");
-  data_source->wl_data_source = nullptr;
+  if (seat->data_source->wl_data_source == wl_data_source) {
+    data_source->wl_data_source = nullptr;
+  }
 
   wl_data_source_destroy(wl_data_source);
 }
