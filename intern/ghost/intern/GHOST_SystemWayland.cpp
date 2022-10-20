@@ -1695,6 +1695,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     size_t data_buf_len = 0;
     const char *data_buf = read_pipe(data_offer, mime_receive, nullptr, &data_buf_len);
     std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
+    free(const_cast<char *>(data_buf));
 
     CLOG_INFO(
         LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive.c_str(), data.c_str());
