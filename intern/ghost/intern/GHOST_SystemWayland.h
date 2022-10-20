@@ -173,9 +173,6 @@ class GHOST_SystemWayland : public GHOST_System {
 
   /* WAYLAND utility functions. */
 
-  void clipboard_set(const std::string &clipboard);
-  void clipboard_primary_set(const std::string &clipboard);
-
   /** Clear all references to this surface to prevent accessing NULL pointers. */
   void window_surface_unref(const wl_surface *wl_surface);
 
@@ -187,12 +184,12 @@ class GHOST_SystemWayland : public GHOST_System {
                               wl_surface *wl_surface,
                               int scale);
 
+  struct GWL_SimpleBuffer *clipboard_data(bool selection) const;
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   static bool use_libdecor_runtime();
 #endif
 
  private:
   struct GWL_Display *display_;
-  std::string clipboard_;
-  std::string clipboard_primary_;
 };

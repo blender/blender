@@ -237,6 +237,43 @@ static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
 /** \name Private Types & Defines
  * \{ */
 
+struct GWL_SimpleBuffer {
+  /** Constant data, but may be freed. */
+  const char *data = nullptr;
+  size_t data_size = 0;
+};
+
+static void gwl_simple_buffer_free_data(GWL_SimpleBuffer *buffer)
+{
+  free(const_cast<char *>(buffer->data));
+  buffer->data = nullptr;
+  buffer->data_size = 0;
+}
+
+static void gwl_simple_buffer_set(GWL_SimpleBuffer *buffer, const char *data, size_t data_size)
+{
+  free(const_cast<char *>(buffer->data));
+  buffer->data = data;
+  buffer->data_size = data_size;
+}
+
+static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const char *str)
+{
+  free(const_cast<char *>(buffer->data));
+  buffer->data_size = strlen(str);
+  char *data = static_cast<char *>(malloc(buffer->data_size));
+  std::memcpy(data, str, buffer->data_size);
+  buffer->data = data;
+}
+
+static char *gwl_simple_buffer_as_string(const GWL_SimpleBuffer *buffer)
+{
+  char *buffer_str = static_cast<char *>(malloc(buffer->data_size + 1));
+  memcpy(buffer_str, buffer->data, buffer->data_size);
+  buffer_str[buffer->data_size] = '\0';
+  return buffer_str;
+}
+
 /**
  * From XKB internals, use for converting a scan-code from WAYLAND to a #xkb_keycode_t.
  * Ideally this wouldn't need a local define.
@@ -293,8 +330,7 @@ struct GWL_DataOffer {
 
 struct GWL_DataSource {
   struct wl_data_source *wl_data_source = nullptr;
-  char *buffer_out = nullptr;
-  size_t buffer_out_len = 0;
+  GWL_SimpleBuffer buffer_out;
 };
 
 /**
@@ -436,8 +472,7 @@ struct GWL_PrimarySelection_DataOffer {
 
 struct GWL_PrimarySelection_DataSource {
   struct zwp_primary_selection_source_v1 *wl_source = nullptr;
-  char *buffer_out = nullptr;
-  size_t buffer_out_len = 0;
+  GWL_SimpleBuffer buffer_out;
 };
 
 /** Primary selection support. */
@@ -466,7 +501,7 @@ static void gwl_primary_selection_discard_source(GWL_PrimarySelection *primary)
   if (data_source == nullptr) {
     return;
   }
-  free(data_source->buffer_out);
+  gwl_simple_buffer_free_data(&data_source->buffer_out);
   if (data_source->wl_source) {
     zwp_primary_selection_source_v1_destroy(data_source->wl_source);
   }
@@ -593,6 +628,9 @@ struct GWL_Display {
   struct zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
 
   struct zwp_primary_selection_device_manager_v1 *primary_selection_device_manager = nullptr;
+
+  GWL_SimpleBuffer clipboard;
+  GWL_SimpleBuffer clipboard_primary;
 };
 
 #undef LOG
@@ -671,7 +709,7 @@ static void display_destroy(GWL_Display *display)
     {
       std::lock_guard lock{seat->data_source_mutex};
       if (seat->data_source) {
-        free(seat->data_source->buffer_out);
+        gwl_simple_buffer_free_data(&seat->data_source->buffer_out);
         if (seat->data_source->wl_data_source) {
           wl_data_source_destroy(seat->data_source->wl_data_source);
         }
@@ -794,6 +832,9 @@ static void display_destroy(GWL_Display *display)
   if (display->wl_display) {
     wl_display_disconnect(display->wl_display);
   }
+
+  gwl_simple_buffer_free_data(&display->clipboard);
+  gwl_simple_buffer_free_data(&display->clipboard_primary);
 
   delete display;
 }
@@ -1294,9 +1335,74 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
   }
 }
 
-static std::string read_pipe(GWL_DataOffer *data_offer,
+/**
+ * Read from `fd` into a buffer which is returned.
+ * \return the buffer or null on failure.
+ */
+static const char *read_file_as_buffer(const int fd, size_t *r_len)
+{
+  struct ByteChunk {
+    ByteChunk *next;
+    char data[4096 - sizeof(ByteChunk *)];
+  };
+  ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
+  bool ok = true;
+  size_t len = 0;
+  while (true) {
+    ByteChunk *chunk = static_cast<typeof(chunk)>(malloc(sizeof(*chunk)));
+    if (UNLIKELY(chunk == nullptr)) {
+      CLOG_WARN(LOG, "unable to allocate chunk for file buffer");
+      ok = false;
+      break;
+    }
+    chunk->next = nullptr;
+    const ssize_t len_chunk = read(fd, chunk->data, sizeof(chunk->data));
+    if (len_chunk <= 0) {
+      if (UNLIKELY(len_chunk < 0)) {
+        CLOG_WARN(LOG, "error reading from pipe: %s", std::strerror(errno));
+        ok = false;
+      }
+      free(chunk);
+      break;
+    }
+    if (chunk_first == nullptr) {
+      chunk_first = chunk;
+    }
+    *chunk_link_p = chunk;
+    chunk_link_p = &chunk->next;
+    len += len_chunk;
+  }
+
+  char *buf = nullptr;
+  if (ok) {
+    buf = static_cast<char *>(malloc(len));
+    if (UNLIKELY(buf == nullptr)) {
+      CLOG_WARN(LOG, "unable to allocate file buffer: %zu bytes", len);
+      ok = false;
+    }
+  }
+
+  *r_len = ok ? len : 0;
+  char *buf_stride = buf;
+  while (chunk_first) {
+    if (ok) {
+      const size_t len_chunk = std::min(len, sizeof(chunk_first->data));
+      memcpy(buf_stride, chunk_first->data, len_chunk);
+      buf_stride += len_chunk;
+      len -= len_chunk;
+    }
+    ByteChunk *chunk = chunk_first->next;
+    free(chunk_first);
+    chunk_first = chunk;
+  }
+
+  return buf;
+}
+
+static const char *read_pipe(GWL_DataOffer *data_offer,
                              const std::string mime_receive,
-                             std::mutex *mutex)
+                             std::mutex *mutex,
+                             size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
@@ -1312,20 +1418,15 @@ static std::string read_pipe(GWL_DataOffer *data_offer,
   }
   /* WARNING: `data_offer` may be freed from now on. */
 
-  std::string data;
-  ssize_t len;
-  char buffer[4096];
-  while ((len = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
-    data.insert(data.end(), buffer, buffer + len);
-  }
+  const char *buf = read_file_as_buffer(pipefd[0], r_len);
   close(pipefd[0]);
-
-  return data;
+  return buf;
 }
 
-static std::string read_pipe_primary(GWL_PrimarySelection_DataOffer *data_offer,
+static const char *read_pipe_primary(GWL_PrimarySelection_DataOffer *data_offer,
                                      const std::string mime_receive,
-                                     std::mutex *mutex)
+                                     std::mutex *mutex,
+                                     size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
@@ -1339,17 +1440,10 @@ static std::string read_pipe_primary(GWL_PrimarySelection_DataOffer *data_offer,
   if (mutex) {
     mutex->unlock();
   }
-  /* WARNING: `data_offer_base` may be freed from now on. */
-
-  std::string data;
-  ssize_t len;
-  char buffer[4096];
-  while ((len = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
-    data.insert(data.end(), buffer, buffer + len);
-  }
+  /* WARNING: `data_offer` may be freed from now on. */
+  const char *buf = read_file_as_buffer(pipefd[0], r_len);
   close(pipefd[0]);
-
-  return data;
+  return buf;
 }
 
 /**
@@ -1375,9 +1469,9 @@ static void data_source_handle_send(void *data,
 
   CLOG_INFO(LOG, 2, "send");
 
-  const char *const buffer = seat->data_source->buffer_out;
-  if (write(fd, buffer, seat->data_source->buffer_out_len) < 0) {
-    GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
+  const char *const buffer = seat->data_source->buffer_out.data;
+  if (UNLIKELY(write(fd, buffer, seat->data_source->buffer_out.data_size) < 0)) {
+    CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
   }
   close(fd);
 }
@@ -1598,7 +1692,9 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
                          const std::string mime_receive) {
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
-    const std::string data = read_pipe(data_offer, mime_receive, nullptr);
+    size_t data_buf_len = 0;
+    const char *data_buf = read_pipe(data_offer, mime_receive, nullptr, &data_buf_len);
+    std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
 
     CLOG_INFO(
         LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive.c_str(), data.c_str());
@@ -1713,12 +1809,15 @@ static void data_device_handle_selection(void *data,
         break;
       }
     }
-    const std::string data = read_pipe(
-        data_offer, mime_receive, &seat->data_offer_copy_paste_mutex);
+
+    size_t data_len = 0;
+    const char *data = read_pipe(
+        data_offer, mime_receive, &seat->data_offer_copy_paste_mutex, &data_len);
 
     {
       std::lock_guard lock{system_clipboard_mutex};
-      system->clipboard_set(data);
+      GWL_SimpleBuffer *buf = system->clipboard_data(false);
+      gwl_simple_buffer_set(buf, data, data_len);
     }
   };
 
@@ -3065,12 +3164,14 @@ static void primary_selection_device_handle_selection(
         break;
       }
     }
-    const std::string data = read_pipe_primary(
-        data_offer, mime_receive, &primary->data_offer_mutex);
+    size_t data_len = 0;
+    const char *data = read_pipe_primary(
+        data_offer, mime_receive, &primary->data_offer_mutex, &data_len);
 
     {
       std::lock_guard lock{system_clipboard_mutex};
-      system->clipboard_primary_set(data);
+      GWL_SimpleBuffer *buf = system->clipboard_data(true);
+      gwl_simple_buffer_set(buf, data, data_len);
     }
   };
 
@@ -3106,9 +3207,9 @@ static void primary_selection_source_send(void *data,
   std::lock_guard lock{primary->data_source_mutex};
   GWL_PrimarySelection_DataSource *data_source = primary->data_source;
 
-  const char *const buffer = data_source->buffer_out;
-  if (write(fd, buffer, data_source->buffer_out_len) < 0) {
-    GHOST_PRINT("error writing to primary clipboard: " << std::strerror(errno) << std::endl);
+  const char *const buffer = data_source->buffer_out.data;
+  if (UNLIKELY(write(fd, buffer, data_source->buffer_out.data_size) < 0)) {
+    CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
   }
   close(fd);
 }
@@ -3837,10 +3938,11 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 
 char *GHOST_SystemWayland::getClipboard(bool selection) const
 {
-  const std::string &buf = selection ? clipboard_primary_ : clipboard_;
-  char *clipboard = static_cast<char *>(malloc(buf.size() + 1));
-  memcpy(clipboard, buf.data(), buf.size() + 1);
-  return clipboard;
+  const GWL_SimpleBuffer *buf = clipboard_data(selection);
+  if (buf->data == nullptr) {
+    return nullptr;
+  }
+  return gwl_simple_buffer_as_string(buf);
 }
 
 static void system_clipboard_put_primary_selection(GWL_Display *display, const char *buffer)
@@ -3858,9 +3960,8 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
   GWL_PrimarySelection_DataSource *data_source = new GWL_PrimarySelection_DataSource;
   primary->data_source = data_source;
 
-  data_source->buffer_out_len = strlen(buffer);
-  data_source->buffer_out = static_cast<char *>(malloc(data_source->buffer_out_len));
-  std::memcpy(data_source->buffer_out, buffer, data_source->buffer_out_len);
+  /* Copy buffer. */
+  gwl_simple_buffer_set_from_string(&data_source->buffer_out, buffer);
 
   data_source->wl_source = zwp_primary_selection_device_manager_v1_create_source(
       display->primary_selection_device_manager);
@@ -3887,10 +3988,7 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
   GWL_DataSource *data_source = seat->data_source;
 
   /* Copy buffer. */
-  free(data_source->buffer_out);
-  data_source->buffer_out_len = strlen(buffer);
-  data_source->buffer_out = static_cast<char *>(malloc(data_source->buffer_out_len));
-  std::memcpy(data_source->buffer_out, buffer, data_source->buffer_out_len);
+  gwl_simple_buffer_set_from_string(&data_source->buffer_out, buffer);
 
   data_source->wl_data_source = wl_data_device_manager_create_data_source(
       display->data_device_manager);
@@ -4729,16 +4827,6 @@ GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface)
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
-void GHOST_SystemWayland::clipboard_set(const std::string &clipboard)
-{
-  clipboard_ = clipboard;
-}
-
-void GHOST_SystemWayland::clipboard_primary_set(const std::string &clipboard)
-{
-  clipboard_primary_ = clipboard;
-}
-
 void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
 {
 #define SURFACE_CLEAR_PTR(surface_test) \
@@ -4937,6 +5025,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #endif
 
   return GHOST_kSuccess;
+}
+
+struct GWL_SimpleBuffer *GHOST_SystemWayland::clipboard_data(bool selection) const
+{
+  return selection ? &display_->clipboard_primary : &display_->clipboard;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
