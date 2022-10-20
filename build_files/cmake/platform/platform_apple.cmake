@@ -331,20 +331,9 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
-  set(CYCLES_OSL ${LIBDIR}/osl)
+  find_package(OSL)
 
-  find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-  # WARNING! depends on correct order of OSL libs linking
-  list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -force_load ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
-  find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
-  find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-  find_path(OSL_SHADER_DIR NAMES stdosl.h PATHS ${CYCLES_OSL}/share/OSL/shaders)
-
-  if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER AND OSL_SHADER_DIR)
-    set(OSL_FOUND TRUE)
-  else()
+  if(NOT OSL_FOUND)
     message(WARNING "OSL not found, disabling WITH_CYCLES_OSL")
     set(WITH_CYCLES_OSL OFF)
   endif()

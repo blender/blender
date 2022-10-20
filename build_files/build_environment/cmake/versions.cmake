@@ -189,9 +189,9 @@ set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_CPE "cpe:2.3:a:libtiff:libtiff:${TIFF_VERSION}:*:*:*:*:*:*:*")
 
-set(OSL_VERSION 1.11.17.0)
-set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.tar.gz)
-set(OSL_HASH 63265472ce14548839ace2e21e401544)
+set(OSL_VERSION 1.12.6.2)
+set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v${OSL_VERSION}.tar.gz)
+set(OSL_HASH 6fef11548adfdd3e5b25c49d2dae96ee)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
