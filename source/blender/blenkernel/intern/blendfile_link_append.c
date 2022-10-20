@@ -1614,6 +1614,9 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
         (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
       continue;
     }
+    if ((id->override_library->reference->tag & LIB_TAG_MISSING) == 0) {
+      id->tag &= ~LIB_TAG_MISSING;
+    }
     if ((id->override_library->reference->tag & LIB_TAG_PRE_EXISTING) == 0) {
       BKE_lib_override_library_update(bmain, id);
     }
