@@ -15,6 +15,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
