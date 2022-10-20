@@ -7,8 +7,11 @@ set(FREETYPE_EXTRA_ARGS
   -DFT_DISABLE_HARFBUZZ=ON
   -DFT_DISABLE_PNG=ON
   -DFT_REQUIRE_BROTLI=ON
+  -DFT_REQUIRE_ZLIB=ON
   -DPC_BROTLIDEC_INCLUDEDIR=${LIBDIR}/brotli/include
   -DPC_BROTLIDEC_LIBDIR=${LIBDIR}/brotli/lib
+  -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
+  -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
   )
 
 ExternalProject_Add(external_freetype
@@ -23,6 +26,7 @@ ExternalProject_Add(external_freetype
 add_dependencies(
   external_freetype
   external_brotli
+  external_zlib
 )
 
 if(BUILD_MODE STREQUAL Release AND WIN32)

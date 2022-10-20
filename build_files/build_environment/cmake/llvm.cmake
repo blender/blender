@@ -9,6 +9,7 @@ endif()
 if(APPLE)
   set(LLVM_XML2_ARGS
     -DLIBXML2_LIBRARY=${LIBDIR}/xml2/lib/libxml2.a
+    -DLIBXML2_INCLUDE_DIR=${LIBDIR}/xml2/include/libxml2
   )
   set(LLVM_BUILD_CLANG_TOOLS_EXTRA ^^clang-tools-extra)
   set(BUILD_CLANG_TOOLS ON)

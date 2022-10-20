@@ -15,9 +15,11 @@ if(WIN32)
   endmacro()
 
   set(PYTHON_EXTERNALS_FOLDER ${BUILD_DIR}/python/src/external_python/externals)
+  set(ZLIB_SOURCE_FOLDER ${BUILD_DIR}/zlib/src/external_zlib)
   set(DOWNLOADS_EXTERNALS_FOLDER ${DOWNLOAD_DIR}/externals)
 
   cmake_to_dos_path(${PYTHON_EXTERNALS_FOLDER} PYTHON_EXTERNALS_FOLDER_DOS)
+  cmake_to_dos_path(${ZLIB_SOURCE_FOLDER} ZLIB_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${DOWNLOADS_EXTERNALS_FOLDER} DOWNLOADS_EXTERNALS_FOLDER_DOS)
 
   ExternalProject_Add(external_python
@@ -25,12 +27,21 @@ if(WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${PYTHON_HASH_TYPE}=${PYTHON_HASH}
     PREFIX ${BUILD_DIR}/python
-    CONFIGURE_COMMAND ""
+    # Python will download its own deps and there's very little we can do about
+    # that beyond placing some code in their externals dir before it tries.
+    # the foldernames *HAVE* to match the ones inside pythons get_externals.cmd.
+    # python 3.10.8 still ships zlib 1.2.12, replace it with our 1.2.13
+    # copy until they update.
+    CONFIGURE_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.2.12 ${ZLIB_SOURCE_FOLDER_DOS} &&
+      ${CMAKE_COMMAND} -E copy ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.12/zconf.h
     BUILD_COMMAND cd ${BUILD_DIR}/python/src/external_python/pcbuild/ && set IncludeTkinter=false && call build.bat -e -p x64 -c ${BUILD_MODE}
-    PATCH_COMMAND ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_windows.diff
     INSTALL_COMMAND ${PYTHON_BINARY_INTERNAL} ${PYTHON_SRC}/PC/layout/main.py -b ${PYTHON_SRC}/PCbuild/amd64 -s ${PYTHON_SRC} -t ${PYTHON_SRC}/tmp/ --include-stable --include-pip --include-dev --include-launchers  --include-venv --include-symbols ${PYTHON_EXTRA_INSTLAL_FLAGS} --copy ${LIBDIR}/python
   )
-
+  add_dependencies(
+    external_python
+    external_zlib
+  )
 else()
   if(APPLE)
     # Disable functions that can be in 10.13 sdk but aren't available on 10.9 target.
