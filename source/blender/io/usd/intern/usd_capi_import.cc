@@ -166,6 +166,11 @@ static void create_proto_collections(Main *bmain,
 {
   Collection *all_protos_collection = create_collection(bmain, parent_collection, "prototypes");
 
+  if (all_protos_collection) {
+    all_protos_collection->flag |= COLLECTION_HIDE_VIEWPORT;
+    all_protos_collection->flag |= COLLECTION_HIDE_RENDER;
+  }
+
   std::map<pxr::SdfPath, Collection *> proto_collection_map;
 
   for (const auto &pair : proto_readers) {
@@ -178,12 +183,6 @@ static void create_proto_collections(Main *bmain,
 
     Collection *proto_collection = create_collection(
         bmain, all_protos_collection, proto_collection_name.c_str());
-
-    LayerCollection *proto_lc = BKE_layer_collection_first_from_scene_collection(view_layer,
-                                                                                 proto_collection);
-    if (proto_lc) {
-      proto_lc->flag |= LAYER_COLLECTION_HIDE;
-    }
 
     proto_collection_map.insert(std::make_pair(pair.first, proto_collection));
   }
