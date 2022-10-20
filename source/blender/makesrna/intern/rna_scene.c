@@ -5945,7 +5945,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
       {AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
       {AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-      {AV_CODEC_ID_VP9, "WEBM", 0, "WEBM / VP9", ""},
+      {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
