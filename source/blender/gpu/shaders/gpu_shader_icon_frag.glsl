@@ -27,15 +27,15 @@ void main()
   bool lower_half = mask_coord_interp.y < circle_center.y;
   bool right_half = mask_coord_interp.x > circle_center.x;
 
-  if (right_half && mask_coord_interp.t < circle_center.y + circle_radius_outer) {
+  if (right_half && mask_coord_interp.y < circle_center.y + circle_radius_outer) {
     mask = smoothstep(circle_center.y + circle_radius_inner,
                       circle_center.y + circle_radius_outer,
-                      mask_coord_interp.t);
+                      mask_coord_interp.y);
   }
-  if (lower_half && mask_coord_interp.s > circle_center.x - circle_radius_outer) {
+  if (lower_half && mask_coord_interp.x > circle_center.x - circle_radius_outer) {
     mask = smoothstep(circle_center.x - circle_radius_inner,
                       circle_center.x - circle_radius_outer,
-                      mask_coord_interp.s);
+                      mask_coord_interp.x);
   }
 
   fragColor = mix(vec4(0.0), fragColor, max(mask_transparency, mask));
