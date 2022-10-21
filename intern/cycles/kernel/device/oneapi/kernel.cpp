@@ -230,13 +230,6 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
     /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
      * we extend work size to fit uniformity requirements. */
     global_size = groups_count * local_size;
-
-#  ifdef WITH_ONEAPI_SYCL_HOST_ENABLED
-    if (queue->get_device().is_host()) {
-      global_size = 1;
-      local_size = 1;
-    }
-#  endif
   }
 
   /* Let the compiler throw an error if there are any kernels missing in this implementation. */

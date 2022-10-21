@@ -430,8 +430,7 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
   sycl::usm::alloc usm_type = get_pointer_type(usm_ptr, queue->get_context());
   (void)usm_type;
   assert(usm_type == sycl::usm::alloc::device ||
-         ((device_type == sycl::info::device_type::host ||
-           device_type == sycl::info::device_type::cpu || allow_host) &&
+         ((device_type == sycl::info::device_type::cpu || allow_host) &&
               usm_type == sycl::usm::alloc::host ||
           usm_type == sycl::usm::alloc::unknown));
 #  else
@@ -672,14 +671,6 @@ std::vector<sycl::device> OneapiDevice::available_devices()
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr)
     allow_all_devices = true;
 
-    /* Host device is useful only for debugging at the moment
-     * so we hide this device with default build settings. */
-#  ifdef WITH_ONEAPI_SYCL_HOST_ENABLED
-  bool allow_host = true;
-#  else
-  bool allow_host = false;
-#  endif
-
   const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
 
   std::vector<sycl::device> available_devices;
@@ -691,17 +682,11 @@ std::vector<sycl::device> OneapiDevice::available_devices()
     }
 
     const std::vector<sycl::device> &oneapi_devices =
-        (allow_all_devices || allow_host) ? platform.get_devices(sycl::info::device_type::all) :
-                                            platform.get_devices(sycl::info::device_type::gpu);
+        (allow_all_devices) ? platform.get_devices(sycl::info::device_type::all) :
+                              platform.get_devices(sycl::info::device_type::gpu);
 
     for (const sycl::device &device : oneapi_devices) {
-      if (allow_all_devices) {
-        /* still filter out host device if build doesn't support it. */
-        if (allow_host || !device.is_host()) {
-          available_devices.push_back(device);
-        }
-      }
-      else {
+      if (!allow_all_devices) {
         bool filter_out = false;
 
         /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
@@ -732,9 +717,6 @@ std::vector<sycl::device> OneapiDevice::available_devices()
               filter_out = true;
             }
           }
-        }
-        else if (!allow_host && device.is_host()) {
-          filter_out = true;
         }
         else if (!allow_all_devices) {
           filter_out = true;
@@ -798,9 +780,7 @@ char *OneapiDevice::device_capabilities()
     GET_NUM_ATTR(native_vector_width_double)
     GET_NUM_ATTR(native_vector_width_half)
 
-    size_t max_clock_frequency =
-        (size_t)(device.is_host() ? (size_t)0 :
-                                    device.get_info<sycl::info::device::max_clock_frequency>());
+    size_t max_clock_frequency = device.get_info<sycl::info::device::max_clock_frequency>();
     WRITE_ATTR("max_clock_frequency", max_clock_frequency)
 
     GET_NUM_ATTR(address_bits)

@@ -752,10 +752,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       ${SYCL_CPP_FLAGS}
       )
 
-  if (WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
-    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_ENABLED)
-  endif()
-
   # Set defaults for spir64 and spir64_gen options
   if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
