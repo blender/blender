@@ -30,6 +30,7 @@ SET(_sycl_search_dirs
 # dpcpp binary.
 FIND_PROGRAM(SYCL_COMPILER
   NAMES
+    icpx
     dpcpp
     clang++
   HINTS
@@ -45,6 +46,7 @@ FIND_PROGRAM(SYCL_COMPILER
 if(NOT SYCL_COMPILER)
   FIND_PROGRAM(SYCL_COMPILER
     NAMES
+      icpx
       dpcpp
     HINTS
       ${_sycl_search_dirs}
@@ -55,6 +57,8 @@ endif()
 
 FIND_LIBRARY(SYCL_LIBRARY
   NAMES
+    sycl7
+    sycl6
     sycl
   HINTS
     ${_sycl_search_dirs}
@@ -63,20 +67,25 @@ FIND_LIBRARY(SYCL_LIBRARY
 )
 
 if(WIN32)
-  string(REPLACE ".lib" "d.lib" SYCL_LIBRARY_DEBUG ${SYCL_LIBRARY})
-  set(SYCL_LIBRARY_DEBUG ${SYCL_LIBRARY_DEBUG} CACHE FILEPATH "Path to SYCL debug library")
-else()
-  set(SYCL_LIBRARY_DEBUG ${SYCL_LIBRARY} CACHE FILEPATH "Path to SYCL debug library")
+  FIND_LIBRARY(SYCL_LIBRARY_DEBUG
+    NAMES
+      sycl7d
+      sycl6d
+      sycld
+    HINTS
+      ${_sycl_search_dirs}
+    PATH_SUFFIXES
+      lib64 lib
+  )
 endif()
 
 FIND_PATH(SYCL_INCLUDE_DIR
   NAMES
-    CL/sycl.hpp
+    sycl/sycl.hpp
   HINTS
     ${_sycl_search_dirs}
   PATH_SUFFIXES
     include
-    include/sycl
 )
 
 INCLUDE(FindPackageHandleStandardArgs)
@@ -84,13 +93,11 @@ INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SYCL DEFAULT_MSG SYCL_LIBRARY SYCL_INCLUDE_DIR)
 
 IF(SYCL_FOUND)
-  get_filename_component(_SYCL_INCLUDE_PARENT_DIR ${SYCL_INCLUDE_DIR} DIRECTORY)
-  SET(SYCL_INCLUDE_DIR ${SYCL_INCLUDE_DIR} ${_SYCL_INCLUDE_PARENT_DIR})
+  SET(SYCL_INCLUDE_DIR ${SYCL_INCLUDE_DIR} ${SYCL_INCLUDE_DIR}/sycl)
 ELSE()
   SET(SYCL_SYCL_FOUND FALSE)
 ENDIF()
 
 MARK_AS_ADVANCED(
   _SYCL_INCLUDE_PARENT_DIR
-  SYCL_LIBRARY_DEBUG
 )

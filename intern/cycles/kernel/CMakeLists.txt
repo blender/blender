@@ -844,12 +844,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
     set(sycl_compiler_flags_MinSizeRel ${sycl_compiler_flags})
     list(APPEND sycl_compiler_flags_RelWithDebInfo -g)
-    get_filename_component(sycl_library_debug_name ${SYCL_LIBRARY_DEBUG} NAME_WE)
     list(APPEND sycl_compiler_flags_Debug
                 -g
                 -D_DEBUG
-                -nostdlib -Xclang --dependent-lib=msvcrtd
-                -Xclang --dependent-lib=${sycl_library_debug_name})
+                -nostdlib -Xclang --dependent-lib=msvcrtd)
 
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}

@@ -192,13 +192,12 @@ if (WITH_CYCLES_DEVICE_ONEAPI)
   else()
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi.so)
   endif()
-  list(APPEND LIB
-    ${cycles_kernel_oneapi_lib}
-    "$<$<CONFIG:Debug>:${SYCL_LIBRARY_DEBUG}>"
-    "$<$<CONFIG:Release>:${SYCL_LIBRARY}>"
-    "$<$<CONFIG:RelWithDebInfo>:${SYCL_LIBRARY}>"
-    "$<$<CONFIG:MinSizeRel>:${SYCL_LIBRARY}>"
-  )
+  list(APPEND LIB ${cycles_kernel_oneapi_lib})
+  if(WIN32)
+    list(APPEND LIB debug ${SYCL_LIBRARY_DEBUG} optimized ${SYCL_LIBRARY})
+  else()
+    list(APPEND LIB ${SYCL_LIBRARY})
+  endif()
   add_definitions(-DWITH_ONEAPI)
   list(APPEND SRC
     ${SRC_ONEAPI}
