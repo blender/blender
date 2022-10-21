@@ -115,8 +115,8 @@ int main(int argc, const char *argv[])
       exit_code = 1;
     }
     builder.exit();
-    exit(exit_code);
   }
 
+  exit(exit_code);
   return exit_code;
 }
