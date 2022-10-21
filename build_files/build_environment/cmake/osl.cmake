@@ -83,6 +83,7 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslcomp.lib ${HARVEST_TARGET}/osl/lib/oslcomp_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslexec.lib ${HARVEST_TARGET}/osl/lib/oslexec_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslquery.lib ${HARVEST_TARGET}/osl/lib/oslquery_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslnoise.lib ${HARVEST_TARGET}/osl/lib/oslnoise_d.lib
       DEPENDEES install
     )
   endif()
