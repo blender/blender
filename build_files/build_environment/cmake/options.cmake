@@ -3,6 +3,7 @@
 if(WIN32)
   option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
 endif()
+option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
 option(WITH_BOOST_PYTHON "Enable building of boost with python support" OFF)
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
