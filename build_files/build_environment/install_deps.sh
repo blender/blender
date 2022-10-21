@@ -523,8 +523,8 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.11.17.0"
-OSL_VERSION_SHORT="1.11"
+OSL_VERSION="1.12.6.2"
+OSL_VERSION_SHORT="1.12"
 OSL_VERSION_MIN="1.11"
 OSL_VERSION_MEX="2.0"
 OSL_FORCE_BUILD=false
@@ -1139,7 +1139,7 @@ LLVM_SOURCE=( "$_LLVM_SOURCE_ROOT/llvm-$LLVM_VERSION.src.tar.xz" )
 LLVM_CLANG_SOURCE=( "$_LLVM_SOURCE_ROOT/clang-$LLVM_VERSION.src.tar.xz" "$_LLVM_SOURCE_ROOT/cfe-$LLVM_VERSION.src.tar.xz" )
 
 OSL_USE_REPO=false
-OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
+OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/v$OSL_VERSION.tar.gz" )
 #~ OSL_SOURCE_REPO=( "https://github.com/imageworks/OpenShadingLanguage.git" )
 #~ OSL_SOURCE_REPO_BRANCH="master"
 #~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
