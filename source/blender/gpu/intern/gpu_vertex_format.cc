@@ -361,8 +361,12 @@ void VertexFormat_texture_buffer_pack(GPUVertFormat *format)
    * minimum per-vertex stride, which mandates 4-byte alignment in Metal.
    * This additional alignment padding caused smaller data types, e.g. U16,
    * to mis-align. */
-  BLI_assert_msg(format->attr_len == 1,
-                 "Texture buffer mode should only use a single vertex attribute.");
+  for (int i = 0; i < format->attr_len; i++) {
+    /* The buffer texture setup uses the first attribute for type and size.
+     * Make sure all attributes use the same size. */
+    BLI_assert_msg(format->attrs[i].size == format->attrs[0].size,
+                   "Texture buffer mode should only use a attributes with the same size.");
+  }
 
   /* Pack vertex format without minimum stride, as this is not required by texture buffers. */
   VertexFormat_pack_impl(format, 1);

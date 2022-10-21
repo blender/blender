@@ -248,15 +248,15 @@ static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
     return;
   }
 
+  GPUBatch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
+
   if (show_fill) {
-    GPUBatch *geom = DRW_cache_gpencil_fills_get(iter.ob, iter.cfra);
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, false);
   }
 
   if (show_stroke) {
-    GPUBatch *geom = DRW_cache_gpencil_strokes_get(iter.ob, iter.cfra);
     /* Start one vert before to have gl_InstanceID > 0 (see shader). */
     int vfirst = gps->runtime.stroke_start - 1;
     /* Include "potential" cyclic vertex and start adj vertex (see shader). */

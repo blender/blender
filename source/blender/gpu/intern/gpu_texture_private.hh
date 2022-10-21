@@ -588,7 +588,7 @@ inline eGPUFrameBufferBits to_framebuffer_bits(eGPUTextureFormat tex_format)
 
 static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
 {
-  if (format->attr_len > 1 || format->attr_len == 0) {
+  if (format->attr_len == 0) {
     BLI_assert_msg(0, "Incorrect vertex format for buffer texture");
     return GPU_DEPTH_COMPONENT24;
   }

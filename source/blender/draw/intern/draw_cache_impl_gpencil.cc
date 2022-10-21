@@ -23,12 +23,14 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_polyfill_2d.h"
 
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
 
 #include "../engines/gpencil/gpencil_defines.h"
+#include "../engines/gpencil/gpencil_shader_shared.h"
 
 #define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
@@ -41,11 +43,13 @@ typedef struct GpencilBatchCache {
   /** Instancing Data */
   GPUVertBuf *vbo;
   GPUVertBuf *vbo_col;
-  /** Fill Topology */
+  /** Indices in material order, then stroke order with fill first.
+   * Strokes can be individually rendered using `gps->runtime.stroke_start` and
+   * `gps->runtime.stroke_start`. */
   GPUIndexBuf *ibo;
-  /** Instancing Batches */
-  GPUBatch *stroke_batch;
-  GPUBatch *fill_batch;
+  /** Batches */
+  GPUBatch *geom_batch;
+  /** Stroke lines only */
   GPUBatch *lines_batch;
 
   /** Edit Mode */
@@ -117,8 +121,7 @@ static void gpencil_batch_cache_clear(GpencilBatchCache *cache)
   }
 
   GPU_BATCH_DISCARD_SAFE(cache->lines_batch);
-  GPU_BATCH_DISCARD_SAFE(cache->fill_batch);
-  GPU_BATCH_DISCARD_SAFE(cache->stroke_batch);
+  GPU_BATCH_DISCARD_SAFE(cache->geom_batch);
   GPU_VERTBUF_DISCARD_SAFE(cache->vbo);
   GPU_VERTBUF_DISCARD_SAFE(cache->vbo_col);
   GPU_INDEXBUF_DISCARD_SAFE(cache->ibo);
@@ -173,9 +176,10 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
 
 /* MUST match the format below. */
 typedef struct gpStrokeVert {
-  int32_t mat, stroke_id, point_id, packed_asp_hard_rot;
   /** Position and thickness packed in the same attribute. */
   float pos[3], thickness;
+  /** Material Index, Stroke Index, Point Index, Packed aspect + hardness + rotation. */
+  int32_t mat, stroke_id, point_id, packed_asp_hard_rot;
   /** UV and strength packed in the same attribute. */
   float uv_fill[2], u_stroke, strength;
 } gpStrokeVert;
@@ -184,12 +188,9 @@ static GPUVertFormat *gpencil_stroke_format(void)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    /* IMPORTANT: This means having only 4 attributes
-     * to fit into GPU module limit of 16 attributes. */
-    GPU_vertformat_multiload_enable(&format, 4);
   }
   return &format;
 }
@@ -239,9 +240,6 @@ static GPUVertFormat *gpencil_color_format(void)
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "col", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "fcol", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    /* IMPORTANT: This means having only 4 attributes
-     * to fit into GPU module limit of 16 attributes. */
-    GPU_vertformat_multiload_enable(&format, 4);
   }
   return &format;
 }
@@ -296,7 +294,8 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   return packed;
 }
 
-static void gpencil_buffer_add_point(gpStrokeVert *verts,
+static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
+                                     gpStrokeVert *verts,
                                      gpColorVert *cols,
                                      const bGPDstroke *gps,
                                      const bGPDspoint *pt,
@@ -330,27 +329,36 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
 
   vert->packed_asp_hard_rot = pack_rotation_aspect_hardness(
       pt->uv_rot, aspect_ratio, gps->hardeness);
+
+  if (!is_endpoint) {
+    /* Issue a Quad per point. */
+    /* The attribute loading uses a different shader and will undo this bit packing. */
+    int v_mat = (v << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
+    GPU_indexbuf_add_tri_verts(ibo, v_mat + 0, v_mat + 1, v_mat + 2);
+    GPU_indexbuf_add_tri_verts(ibo, v_mat + 2, v_mat + 1, v_mat + 3);
+  }
 }
 
-static void gpencil_buffer_add_stroke(gpStrokeVert *verts,
+static void gpencil_buffer_add_stroke(GPUIndexBufBuilder *ibo,
+                                      gpStrokeVert *verts,
                                       gpColorVert *cols,
                                       const bGPDstroke *gps)
 {
   const bGPDspoint *pts = gps->points;
   int pts_len = gps->totpoints;
   bool is_cyclic = gpencil_stroke_is_cyclic(gps);
-  int v = gps->runtime.stroke_start;
+  int v = gps->runtime.vertex_start;
 
   /* First point for adjacency (not drawn). */
   int adj_idx = (is_cyclic) ? (pts_len - 1) : min_ii(pts_len - 1, 1);
-  gpencil_buffer_add_point(verts, cols, gps, &pts[adj_idx], v++, true);
+  gpencil_buffer_add_point(ibo, verts, cols, gps, &pts[adj_idx], v++, true);
 
   for (int i = 0; i < pts_len; i++) {
-    gpencil_buffer_add_point(verts, cols, gps, &pts[i], v++, false);
+    gpencil_buffer_add_point(ibo, verts, cols, gps, &pts[i], v++, false);
   }
   /* Draw line to first point to complete the loop for cyclic strokes. */
   if (is_cyclic) {
-    gpencil_buffer_add_point(verts, cols, gps, &pts[0], v, false);
+    gpencil_buffer_add_point(ibo, verts, cols, gps, &pts[0], v, false);
     /* UV factor needs to be adjusted for the last point to not be equal to the UV factor of the
      * first point. It should be the factor of the last point plus the distance from the last point
      * to the first.
@@ -361,16 +369,20 @@ static void gpencil_buffer_add_stroke(gpStrokeVert *verts,
   }
   /* Last adjacency point (not drawn). */
   adj_idx = (is_cyclic) ? 1 : max_ii(0, pts_len - 2);
-  gpencil_buffer_add_point(verts, cols, gps, &pts[adj_idx], v++, true);
+  gpencil_buffer_add_point(ibo, verts, cols, gps, &pts[adj_idx], v++, true);
 }
 
 static void gpencil_buffer_add_fill(GPUIndexBufBuilder *ibo, const bGPDstroke *gps)
 {
   int tri_len = gps->tot_triangles;
-  int v = gps->runtime.stroke_start;
+  int v = gps->runtime.vertex_start + 1;
   for (int i = 0; i < tri_len; i++) {
     uint *tri = gps->triangles[i].verts;
-    GPU_indexbuf_add_tri_verts(ibo, v + tri[0], v + tri[1], v + tri[2]);
+    /* The attribute loading uses a different shader and will undo this bit packing. */
+    GPU_indexbuf_add_tri_verts(ibo,
+                               (v + tri[0]) << GP_VERTEX_ID_SHIFT,
+                               (v + tri[1]) << GP_VERTEX_ID_SHIFT,
+                               (v + tri[2]) << GP_VERTEX_ID_SHIFT);
   }
 }
 
@@ -380,10 +392,10 @@ static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
                                    void *thunk)
 {
   gpIterData *iter = (gpIterData *)thunk;
-  gpencil_buffer_add_stroke(iter->verts, iter->cols, gps);
   if (gps->tot_triangles > 0) {
     gpencil_buffer_add_fill(&iter->ibo, gps);
   }
+  gpencil_buffer_add_stroke(&iter->ibo, iter->verts, iter->cols, gps);
 }
 
 static void gpencil_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
@@ -392,12 +404,15 @@ static void gpencil_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
                                           void *thunk)
 {
   gpIterData *iter = (gpIterData *)thunk;
-
-  /* Store first index offset */
-  gps->runtime.stroke_start = iter->vert_len;
+  int stroke_vert_len = gps->totpoints + gpencil_stroke_is_cyclic(gps);
+  gps->runtime.vertex_start = iter->vert_len;
+  /* Add additional padding at the start and end. */
+  iter->vert_len += 1 + stroke_vert_len + 1;
+  /* Store first index offset. */
   gps->runtime.fill_start = iter->tri_len;
-  iter->vert_len += gps->totpoints + 2 + gpencil_stroke_is_cyclic(gps);
   iter->tri_len += gps->tot_triangles;
+  gps->runtime.stroke_start = iter->tri_len;
+  iter->tri_len += stroke_vert_len * 2;
 }
 
 static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfra)
@@ -407,7 +422,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
   if (cache->vbo == NULL) {
     /* Should be discarded together. */
     BLI_assert(cache->vbo == NULL && cache->ibo == NULL);
-    BLI_assert(cache->fill_batch == NULL && cache->stroke_batch == NULL);
+    BLI_assert(cache->geom_batch == NULL);
     /* TODO/PERF: Could be changed to only do it if needed.
      * For now it's simpler to assume we always need it
      * since multiple viewport could or could not need it.
@@ -420,25 +435,26 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
         .gpd = gpd,
         .verts = NULL,
         .ibo = {0},
-        .vert_len = 1, /* Start at 1 for the gl_InstanceID trick to work (see vert shader). */
+        .vert_len = 0,
         .tri_len = 0,
         .curve_len = 0,
     };
     BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_object_verts_count_cb, &iter, do_onion, cfra);
 
+    GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
     /* Create VBOs. */
     GPUVertFormat *format = gpencil_stroke_format();
     GPUVertFormat *format_col = gpencil_color_format();
-    cache->vbo = GPU_vertbuf_create_with_format(format);
-    cache->vbo_col = GPU_vertbuf_create_with_format(format_col);
+    cache->vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
+    cache->vbo_col = GPU_vertbuf_create_with_format_ex(format_col, vbo_flag);
     /* Add extra space at the end of the buffer because of quad load. */
     GPU_vertbuf_data_alloc(cache->vbo, iter.vert_len + 2);
     GPU_vertbuf_data_alloc(cache->vbo_col, iter.vert_len + 2);
     iter.verts = (gpStrokeVert *)GPU_vertbuf_get_data(cache->vbo);
     iter.cols = (gpColorVert *)GPU_vertbuf_get_data(cache->vbo_col);
     /* Create IBO. */
-    GPU_indexbuf_init(&iter.ibo, GPU_PRIM_TRIS, iter.tri_len, iter.vert_len);
+    GPU_indexbuf_init(&iter.ibo, GPU_PRIM_TRIS, iter.tri_len, 0xFFFFFFFFu);
 
     /* Fill buffers with data. */
     BKE_gpencil_visible_stroke_advanced_iter(
@@ -453,33 +469,39 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
 
     /* Finish the IBO. */
     cache->ibo = GPU_indexbuf_build(&iter.ibo);
-
     /* Create the batches */
-    cache->fill_batch = GPU_batch_create(GPU_PRIM_TRIS, cache->vbo, cache->ibo);
-    GPU_batch_vertbuf_add(cache->fill_batch, cache->vbo_col);
-    cache->stroke_batch = GPU_batch_create(GPU_PRIM_TRI_STRIP, gpencil_dummy_buffer_get(), NULL);
-    GPU_batch_instbuf_add_ex(cache->stroke_batch, cache->vbo, 0);
-    GPU_batch_instbuf_add_ex(cache->stroke_batch, cache->vbo_col, 0);
+    cache->geom_batch = GPU_batch_create(GPU_PRIM_TRIS, cache->vbo, cache->ibo);
+    /* Allow creation of buffer texture. */
+    GPU_vertbuf_use(cache->vbo);
+    GPU_vertbuf_use(cache->vbo_col);
 
     gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
     cache->is_dirty = false;
   }
 }
 
-GPUBatch *DRW_cache_gpencil_strokes_get(Object *ob, int cfra)
+GPUBatch *DRW_cache_gpencil_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
 
-  return cache->stroke_batch;
+  return cache->geom_batch;
 }
 
-GPUBatch *DRW_cache_gpencil_fills_get(Object *ob, int cfra)
+GPUVertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
 
-  return cache->fill_batch;
+  return cache->vbo;
+}
+
+GPUVertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra)
+{
+  GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
+  gpencil_batches_ensure(ob, cache, cfra);
+
+  return cache->vbo_col;
 }
 
 static void gpencil_lines_indices_cb(bGPDlayer *UNUSED(gpl),
@@ -490,7 +512,7 @@ static void gpencil_lines_indices_cb(bGPDlayer *UNUSED(gpl),
   gpIterData *iter = (gpIterData *)thunk;
   int pts_len = gps->totpoints + gpencil_stroke_is_cyclic(gps);
 
-  int start = gps->runtime.stroke_start + 1;
+  int start = gps->runtime.vertex_start + 1;
   int end = start + pts_len;
   for (int i = start; i < end; i++) {
     GPU_indexbuf_add_generic_vert(&iter->ibo, i);
@@ -573,7 +595,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
   /* DRW_cache_gpencil_sbuffer_stroke_data_get need to have been called previously. */
   BLI_assert(gps != NULL);
 
-  if (do_stroke && (gpd->runtime.sbuffer_stroke_batch == NULL)) {
+  if (do_stroke && (gpd->runtime.sbuffer_batch == NULL)) {
     gps->points = (bGPDspoint *)MEM_mallocN(vert_len * sizeof(*gps->points), __func__);
 
     const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -597,35 +619,24 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
     /* Calc uv data along the stroke. */
     BKE_gpencil_stroke_uv_update(gps);
 
+    int vert_len = gps->tot_triangles + (gps->totpoints + gpencil_stroke_is_cyclic(gps)) * 2;
+    /* Create IBO. */
+    GPUIndexBufBuilder ibo_builder;
+    GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, vert_len, 0xFFFFFFFFu);
     /* Create VBO. */
+    GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
     GPUVertFormat *format = gpencil_stroke_format();
     GPUVertFormat *format_color = gpencil_color_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(format);
-    GPUVertBuf *vbo_col = GPU_vertbuf_create_with_format(format_color);
-    /* Add extra space at the end (and start) of the buffer because of quad load and cyclic. */
-    GPU_vertbuf_data_alloc(vbo, 1 + vert_len + 1 + 2);
-    GPU_vertbuf_data_alloc(vbo_col, 1 + vert_len + 1 + 2);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
+    GPUVertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(format_color, vbo_flag);
+    /* Add extra space at the end the buffer because of quad load and cyclic. */
+    GPU_vertbuf_data_alloc(vbo, vert_len + 2);
+    GPU_vertbuf_data_alloc(vbo_col, vert_len + 2);
     gpStrokeVert *verts = (gpStrokeVert *)GPU_vertbuf_get_data(vbo);
     gpColorVert *cols = (gpColorVert *)GPU_vertbuf_get_data(vbo_col);
 
-    /* Fill buffers with data. */
-    gpencil_buffer_add_stroke(verts, cols, gps);
-
-    GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_STRIP, gpencil_dummy_buffer_get(), NULL);
-    GPU_batch_instbuf_add_ex(batch, vbo, true);
-    GPU_batch_instbuf_add_ex(batch, vbo_col, true);
-
-    gpd->runtime.sbuffer_stroke_batch = batch;
-
-    MEM_freeN(gps->points);
-  }
-
-  if (do_fill && (gpd->runtime.sbuffer_fill_batch == NULL)) {
-    /* Create IBO. */
-    GPUIndexBufBuilder ibo_builder;
-    GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, gps->tot_triangles, vert_len);
-
-    if (gps->tot_triangles > 0) {
+    /* Create fill indices. */
+    if (do_fill && gps->tot_triangles > 0) {
       float(*tpoints2d)[2] = (float(*)[2])MEM_mallocN(sizeof(*tpoints2d) * vert_len, __func__);
       /* Triangulate in 2D. */
       for (int i = 0; i < vert_len; i++) {
@@ -645,40 +656,56 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
       MEM_freeN(tpoints2d);
     }
 
-    GPUIndexBuf *ibo = GPU_indexbuf_build(&ibo_builder);
-    GPUVertBuf *vbo = gpd->runtime.sbuffer_stroke_batch->inst[0];
-    GPUVertBuf *vbo_col = gpd->runtime.sbuffer_stroke_batch->inst[1];
+    /* Fill buffers with data. */
+    gpencil_buffer_add_stroke(&ibo_builder, verts, cols, gps);
 
-    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, ibo, GPU_BATCH_OWNS_INDEX);
-    GPU_batch_vertbuf_add(batch, vbo_col);
+    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS,
+                                          gpencil_dummy_buffer_get(),
+                                          GPU_indexbuf_build(&ibo_builder),
+                                          GPU_BATCH_OWNS_INDEX);
 
-    gpd->runtime.sbuffer_fill_batch = batch;
+    gpd->runtime.sbuffer_position_buf = vbo;
+    gpd->runtime.sbuffer_color_buf = vbo_col;
+    gpd->runtime.sbuffer_batch = batch;
+
+    MEM_freeN(gps->points);
   }
 }
 
-GPUBatch *DRW_cache_gpencil_sbuffer_stroke_get(Object *ob)
-{
-  bGPdata *gpd = (bGPdata *)ob->data;
-  gpencil_sbuffer_stroke_ensure(gpd, true, false);
-
-  return gpd->runtime.sbuffer_stroke_batch;
-}
-
-GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(Object *ob)
+GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
   gpencil_sbuffer_stroke_ensure(gpd, true, true);
 
-  return gpd->runtime.sbuffer_fill_batch;
+  return gpd->runtime.sbuffer_batch;
+}
+
+GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob)
+{
+  bGPdata *gpd = (bGPdata *)ob->data;
+  /* Fill batch also need stroke batch to be created (vbo is shared). */
+  gpencil_sbuffer_stroke_ensure(gpd, true, true);
+
+  return gpd->runtime.sbuffer_position_buf;
+}
+
+GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob)
+{
+  bGPdata *gpd = (bGPdata *)ob->data;
+  /* Fill batch also need stroke batch to be created (vbo is shared). */
+  gpencil_sbuffer_stroke_ensure(gpd, true, true);
+
+  return gpd->runtime.sbuffer_color_buf;
 }
 
 void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   MEM_SAFE_FREE(gpd->runtime.sbuffer_gps);
-  GPU_BATCH_DISCARD_SAFE(gpd->runtime.sbuffer_fill_batch);
-  GPU_BATCH_DISCARD_SAFE(gpd->runtime.sbuffer_stroke_batch);
+  GPU_BATCH_DISCARD_SAFE(gpd->runtime.sbuffer_batch);
+  GPU_VERTBUF_DISCARD_SAFE(gpd->runtime.sbuffer_position_buf);
+  GPU_VERTBUF_DISCARD_SAFE(gpd->runtime.sbuffer_color_buf);
 }
 
 /** \} */
