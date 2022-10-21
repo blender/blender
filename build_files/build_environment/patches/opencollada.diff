@@ -130,3 +130,28 @@ index 715d903..24423ce 100644
  		{
  			string id = node.attribute("id").value();
  			size_t line = node.line();
+diff -Naur a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -274,7 +274,7 @@
+ add_subdirectory(${EXTERNAL_LIBRARIES}/UTF)
+ add_subdirectory(common/libBuffer)
+ add_subdirectory(${EXTERNAL_LIBRARIES}/MathMLSolver)
+-add_subdirectory(${EXTERNAL_LIBRARIES}/zlib)
++#add_subdirectory(${EXTERNAL_LIBRARIES}/zlib)
+ 
+ # building OpenCOLLADA libs
+ add_subdirectory(COLLADABaseUtils)
+@@ -284,10 +284,10 @@
+ add_subdirectory(COLLADAStreamWriter)
+ 
+ # building COLLADAValidator app
+-add_subdirectory(COLLADAValidator)
++#add_subdirectory(COLLADAValidator)
+ 
+ # DAE validator app
+-add_subdirectory(DAEValidator)
++#add_subdirectory(DAEValidator)
+ 
+ # Library export
+ install(EXPORT LibraryExport DESTINATION ${OPENCOLLADA_INST_CMAKECONFIG} FILE OpenCOLLADATargets.cmake)
