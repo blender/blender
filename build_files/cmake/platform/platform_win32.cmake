@@ -358,7 +358,6 @@ if(WITH_OPENCOLLADA)
     optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
     optimized ${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
     optimized ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/xml.lib
     optimized ${OPENCOLLADA}/lib/opencollada/buffer.lib
     optimized ${OPENCOLLADA}/lib/opencollada/ftoa.lib
 
@@ -368,10 +367,14 @@ if(WITH_OPENCOLLADA)
     debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/MathMLSolver_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/xml_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/buffer_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/ftoa_d.lib
   )
+  if(EXISTS ${LIBDIR}/xml2/lib/libxml2s.lib) # 3.4 libraries
+    list(APPEND OPENCOLLADA_LIBRARIES ${LIBDIR}/xml2/lib/libxml2s.lib)
+  else()
+    list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/xml.lib)
+  endif()
 
   list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
 
