@@ -95,11 +95,6 @@ class FrameBuffer {
 #endif
 
  public:
-  /* Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
-   * Points to #BPyGPUFrameBuffer::fb */
-  void **ref = nullptr;
-
- public:
   FrameBuffer(const char *name);
   virtual ~FrameBuffer();
 
