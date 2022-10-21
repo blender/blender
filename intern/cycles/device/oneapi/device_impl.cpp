@@ -698,11 +698,11 @@ std::vector<sycl::device> OneapiDevice::available_devices()
           int number_of_eus = 96;
           int threads_per_eu = 7;
           if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
-            number_of_eus = device.get_info<sycl::info::device::ext_intel_gpu_eu_count>();
+            number_of_eus = device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
           }
           if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
             threads_per_eu =
-                device.get_info<sycl::info::device::ext_intel_gpu_hw_threads_per_eu>();
+                device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
           }
           /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
           if (number_of_eus <= 96 && threads_per_eu == 7) {
@@ -818,7 +818,7 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
     std::string name = device.get_info<sycl::info::device::name>();
     std::string id = "ONEAPI_" + platform_name + "_" + name;
     if (device.has(sycl::aspect::ext_intel_pci_address)) {
-      id.append("_" + device.get_info<sycl::info::device::ext_intel_pci_address>());
+      id.append("_" + device.get_info<sycl::ext::intel::info::device::pci_address>());
     }
     (cb)(id.c_str(), name.c_str(), num, user_ptr);
     num++;
@@ -836,7 +836,7 @@ int OneapiDevice::get_num_multiprocessors()
 {
   const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
   if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
-    return device.get_info<sycl::info::device::ext_intel_gpu_eu_count>();
+    return device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
   }
   else
     return 0;
@@ -847,8 +847,8 @@ int OneapiDevice::get_max_num_threads_per_multiprocessor()
   const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
   if (device.has(sycl::aspect::ext_intel_gpu_eu_simd_width) &&
       device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
-    return device.get_info<sycl::info::device::ext_intel_gpu_eu_simd_width>() *
-           device.get_info<sycl::info::device::ext_intel_gpu_hw_threads_per_eu>();
+    return device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() *
+           device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
   }
   else
     return 0;
