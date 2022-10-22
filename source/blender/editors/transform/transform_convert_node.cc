@@ -16,7 +16,6 @@
 #include "BKE_context.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "ED_node.h"
@@ -159,7 +158,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 /** \name Flush Transform Nodes
  * \{ */
 
-static void applyGridAbsolute(TransInfo *t)
+static void node_snap_grid_apply(TransInfo *t)
 {
   int i;
 
@@ -167,14 +166,14 @@ static void applyGridAbsolute(TransInfo *t)
     return;
   }
 
-  float grid_size[3];
-  copy_v3_v3(grid_size, t->snap_spatial);
+  float grid_size[2];
+  copy_v2_v2(grid_size, t->snap_spatial);
   if (t->modifiers & MOD_PRECISION) {
-    mul_v3_fl(grid_size, t->snap_spatial_precision);
+    mul_v2_fl(grid_size, t->snap_spatial_precision);
   }
 
   /* Early exit on unusable grid size. */
-  if (is_zero_v3(grid_size)) {
+  if (is_zero_v2(grid_size)) {
     return;
   }
 
@@ -182,7 +181,7 @@ static void applyGridAbsolute(TransInfo *t)
     TransData *td;
 
     for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-      float iloc[3], loc[3], tvec[3];
+      float iloc[2], loc[2], tvec[2];
       if (td->flag & TD_SKIP) {
         continue;
       }
@@ -191,22 +190,13 @@ static void applyGridAbsolute(TransInfo *t)
         continue;
       }
 
-      copy_v3_v3(iloc, td->loc);
-      if (tc->use_local_mat) {
-        mul_m4_v3(tc->mat, iloc);
-      }
-      else if (t->options & CTX_OBJECT) {
-        BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-        copy_v3_v3(iloc, td->ob->obmat[3]);
-      }
+      copy_v2_v2(iloc, td->loc);
 
       loc[0] = roundf(iloc[0] / grid_size[0]) * grid_size[0];
       loc[1] = roundf(iloc[1] / grid_size[1]) * grid_size[1];
-      loc[2] = grid_size[2] ? roundf(iloc[2] / grid_size[2]) * grid_size[2] : iloc[2];
 
-      sub_v3_v3v3(tvec, loc, iloc);
-      mul_m3_v3(td->smtx, tvec);
-      add_v3_v3(td->loc, tvec);
+      sub_v2_v2v2(tvec, loc, iloc);
+      add_v2_v2(td->loc, tvec);
     }
   }
 }
@@ -244,7 +234,7 @@ static void flushTransNodes(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    applyGridAbsolute(t);
+    node_snap_grid_apply(t);
 
     /* flush to 2d vector from internally used 3d vector */
     for (int i = 0; i < tc->data_len; i++) {
