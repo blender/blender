@@ -1731,7 +1731,8 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3], float *r_snap_precisi
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->region->regiondata) {
       View3D *v3d = t->area->spacedata.first;
-      r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(t->scene, v3d, t->region, NULL);
+      r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
+          t->scene, v3d, t->region, NULL);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {

@@ -370,10 +370,10 @@ static void translate_snap_target_grid_ensure(TransInfo *t)
 }
 
 static void translate_snap_grid_apply(TransInfo *t,
-                            const int max_index,
-                            const float grid_dist[3],
-                            const float loc[3],
-                            float r_out[3])
+                                      const int max_index,
+                                      const float grid_dist[3],
+                                      const float loc[3],
+                                      float r_out[3])
 {
   BLI_assert(max_index <= 2);
   translate_snap_target_grid_ensure(t);
