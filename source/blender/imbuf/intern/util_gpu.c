@@ -174,6 +174,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       /* Other colorspace, store as float texture to avoid precision loss. */
       data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
       *r_freedata = freedata = true;
+      is_float_rect = true;
 
       if (data_rect == NULL) {
         return NULL;
