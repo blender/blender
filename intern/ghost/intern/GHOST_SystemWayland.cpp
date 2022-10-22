@@ -84,6 +84,10 @@ static void keyboard_handle_key_repeat_cancel(struct GWL_Seat *seat);
 
 static void output_handle_done(void *data, struct wl_output *wl_output);
 
+static void gwl_seat_capability_pointer_disable(GWL_Seat *seat);
+static void gwl_seat_capability_keyboard_disable(GWL_Seat *seat);
+static void gwl_seat_capability_touch_disable(GWL_Seat *seat);
+
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
  *
@@ -808,28 +812,14 @@ static void display_destroy(GWL_Display *display)
       munmap(seat->cursor.custom_data, seat->cursor.custom_data_size);
     }
 
-    if (seat->wl_pointer) {
-      if (seat->cursor.wl_surface) {
-        wl_surface_destroy(seat->cursor.wl_surface);
-      }
-      if (seat->cursor.wl_theme) {
-        wl_cursor_theme_destroy(seat->cursor.wl_theme);
-      }
-      if (seat->wl_pointer) {
-        wl_pointer_destroy(seat->wl_pointer);
-      }
-    }
-
-    if (seat->wl_touch) {
-      wl_touch_destroy(seat->wl_touch);
-    }
-
-    if (seat->wl_keyboard) {
-      if (seat->key_repeat.timer) {
-        keyboard_handle_key_repeat_cancel(seat);
-      }
-      wl_keyboard_destroy(seat->wl_keyboard);
-    }
+    /* Disable all capabilities as a way to free:
+     * - `seat.wl_pointer` (and related cursor variables).
+     * - `seat.wl_touch`.
+     * - `seat.wl_keyboard`.
+     */
+    gwl_seat_capability_pointer_disable(seat);
+    gwl_seat_capability_keyboard_disable(seat);
+    gwl_seat_capability_touch_disable(seat);
 
     /* Un-referencing checks for NULL case. */
     xkb_state_unref(seat->xkb_state);
@@ -3304,6 +3294,83 @@ static const struct zwp_primary_selection_source_v1_listener primary_selection_s
 static CLG_LogRef LOG_WL_SEAT = {"ghost.wl.handle.seat"};
 #define LOG (&LOG_WL_SEAT)
 
+static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
+{
+  if (seat->wl_pointer) {
+    return;
+  }
+  seat->wl_pointer = wl_seat_get_pointer(seat->wl_seat);
+  seat->cursor.wl_surface = wl_compositor_create_surface(seat->system->wl_compositor());
+  seat->cursor.visible = true;
+  seat->cursor.wl_buffer = nullptr;
+  if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.theme_size)) {
+    seat->cursor.theme_name = std::string();
+    seat->cursor.theme_size = default_cursor_size;
+  }
+  wl_pointer_add_listener(seat->wl_pointer, &pointer_listener, seat);
+
+  wl_surface_add_listener(seat->cursor.wl_surface, &cursor_surface_listener, seat);
+  ghost_wl_surface_tag_cursor_pointer(seat->cursor.wl_surface);
+}
+
+static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
+{
+  if (!seat->wl_pointer) {
+    return;
+  }
+  if (seat->cursor.wl_surface) {
+    wl_surface_destroy(seat->cursor.wl_surface);
+    seat->cursor.wl_surface = nullptr;
+  }
+  if (seat->cursor.wl_theme) {
+    wl_cursor_theme_destroy(seat->cursor.wl_theme);
+    seat->cursor.wl_theme = nullptr;
+  }
+
+  wl_pointer_destroy(seat->wl_pointer);
+  seat->wl_pointer = nullptr;
+}
+
+static void gwl_seat_capability_keyboard_enable(GWL_Seat *seat)
+{
+  if (seat->wl_keyboard) {
+    return;
+  }
+  seat->wl_keyboard = wl_seat_get_keyboard(seat->wl_seat);
+  wl_keyboard_add_listener(seat->wl_keyboard, &keyboard_listener, seat);
+}
+
+static void gwl_seat_capability_keyboard_disable(GWL_Seat *seat)
+{
+  if (!seat->wl_keyboard) {
+    return;
+  }
+  if (seat->key_repeat.timer) {
+    keyboard_handle_key_repeat_cancel(seat);
+  }
+  wl_keyboard_destroy(seat->wl_keyboard);
+  seat->wl_keyboard = nullptr;
+}
+
+static void gwl_seat_capability_touch_enable(GWL_Seat *seat)
+{
+  if (seat->wl_touch) {
+    return;
+  }
+  seat->wl_touch = wl_seat_get_touch(seat->wl_seat);
+  wl_touch_set_user_data(seat->wl_touch, seat);
+  wl_touch_add_listener(seat->wl_touch, &touch_seat_listener, seat);
+}
+
+static void gwl_seat_capability_touch_disable(GWL_Seat *seat)
+{
+  if (!seat->wl_touch) {
+    return;
+  }
+  wl_touch_destroy(seat->wl_touch);
+  seat->wl_touch = nullptr;
+}
+
 static void seat_handle_capabilities(void *data,
                                      struct wl_seat *wl_seat,
                                      const uint32_t capabilities)
@@ -3316,44 +3383,43 @@ static void seat_handle_capabilities(void *data,
             (capabilities & WL_SEAT_CAPABILITY_TOUCH) != 0);
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->wl_pointer = nullptr;
-  seat->wl_keyboard = nullptr;
+  GHOST_ASSERT(seat->wl_seat == wl_seat, "Seat mismatch");
 
   if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
-    seat->wl_pointer = wl_seat_get_pointer(wl_seat);
-    seat->cursor.wl_surface = wl_compositor_create_surface(seat->system->wl_compositor());
-    seat->cursor.visible = true;
-    seat->cursor.wl_buffer = nullptr;
-    if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.theme_size)) {
-      seat->cursor.theme_name = std::string();
-      seat->cursor.theme_size = default_cursor_size;
-    }
-    wl_pointer_add_listener(seat->wl_pointer, &pointer_listener, data);
-
-    wl_surface_add_listener(seat->cursor.wl_surface, &cursor_surface_listener, data);
-    ghost_wl_surface_tag_cursor_pointer(seat->cursor.wl_surface);
+    gwl_seat_capability_pointer_enable(seat);
   }
-
-  if (capabilities & WL_SEAT_CAPABILITY_TOUCH) {
-    seat->wl_touch = wl_seat_get_touch(wl_seat);
-    wl_touch_set_user_data(seat->wl_touch, seat);
-    wl_touch_add_listener(seat->wl_touch, &touch_seat_listener, seat);
+  else {
+    gwl_seat_capability_pointer_disable(seat);
   }
 
   if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
-    seat->wl_keyboard = wl_seat_get_keyboard(wl_seat);
-    wl_keyboard_add_listener(seat->wl_keyboard, &keyboard_listener, data);
+    gwl_seat_capability_keyboard_enable(seat);
+  }
+  else {
+    gwl_seat_capability_keyboard_disable(seat);
   }
 
+  if (capabilities & WL_SEAT_CAPABILITY_TOUCH) {
+    gwl_seat_capability_touch_enable(seat);
+  }
+  else {
+    gwl_seat_capability_touch_disable(seat);
+  }
+
+  /* TODO(@campbellbarton): this could be moved out elsewhere. */
   if (seat->system) {
     zwp_primary_selection_device_manager_v1 *primary_selection_device_manager =
         seat->system->wl_primary_selection_manager();
-    seat->primary_selection_device = zwp_primary_selection_device_manager_v1_get_device(
-        primary_selection_device_manager, seat->wl_seat);
+    if (primary_selection_device_manager) {
+      if (seat->primary_selection_device == nullptr) {
+        seat->primary_selection_device = zwp_primary_selection_device_manager_v1_get_device(
+            primary_selection_device_manager, seat->wl_seat);
 
-    zwp_primary_selection_device_v1_add_listener(seat->primary_selection_device,
-                                                 &primary_selection_device_listener,
-                                                 &seat->primary_selection);
+        zwp_primary_selection_device_v1_add_listener(seat->primary_selection_device,
+                                                     &primary_selection_device_listener,
+                                                     &seat->primary_selection);
+      }
+    }
   }
 }
 
