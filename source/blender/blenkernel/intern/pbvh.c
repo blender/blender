@@ -5227,7 +5227,7 @@ bool BKE_pbvh_get_origvert(
 
           copy_v3_v3(mv->origco, CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index)));
           copy_v3_v3(mv->origno, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
-          mask = CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
+          mask = key->has_mask ? CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index)) : NULL;
         }
 
         if (mask) {
