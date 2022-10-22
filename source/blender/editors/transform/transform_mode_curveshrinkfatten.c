@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -62,7 +63,14 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
       }
 
       if (td->val) {
-        *td->val = td->ival * ratio;
+        if (td->ival == 0.0f && ratio > 1.0f) {
+          /* Allow Shrink/Fatten for zero radius. */
+          *td->val = (ratio - 1.0f) * uint_as_float(POINTER_AS_UINT(t->custom.mode.data));
+        }
+        else {
+          *td->val = td->ival * ratio;
+        }
+
         /* apply PET */
         *td->val = interpf(*td->val, td->ival, td->factor);
         CLAMP_MIN(*td->val, 0.0f);
@@ -92,6 +100,13 @@ void initCurveShrinkFatten(TransInfo *t)
   t->num.unit_type[0] = B_UNIT_NONE;
 
   t->flag |= T_NO_CONSTRAINT;
+
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    /* Save a factor to multiply the ratio and use in zero radius cases. */
+    RegionView3D *rv3d = t->region->regiondata;
+    float scale_factor = rv3d->pixsize * t->mouse.factor * t->zfac;
+    t->custom.mode.data = POINTER_FROM_UINT(float_as_uint(scale_factor));
+  }
 }
 
 /** \} */
