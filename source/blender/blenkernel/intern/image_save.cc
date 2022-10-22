@@ -968,6 +968,7 @@ bool BKE_image_render_write(ReportList *reports,
         /* optional preview images for exr */
         if (ok && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
           image_format.imtype = R_IMF_IMTYPE_JPEG90;
+          image_format.depth = R_IMF_CHAN_DEPTH_8;
 
           if (BLI_path_extension_check(filepath, ".exr")) {
             filepath[strlen(filepath) - 4] = 0;
@@ -1025,6 +1026,7 @@ bool BKE_image_render_write(ReportList *reports,
       /* optional preview images for exr */
       if (ok && is_exr_rr && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
         image_format.imtype = R_IMF_IMTYPE_JPEG90;
+        image_format.depth = R_IMF_CHAN_DEPTH_8;
 
         if (BLI_path_extension_check(filepath, ".exr")) {
           filepath[strlen(filepath) - 4] = 0;
