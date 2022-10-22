@@ -158,7 +158,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   struct wl_display *wl_display();
   struct wl_compositor *wl_compositor();
-  struct zwp_primary_selection_device_manager_v1 *wl_primary_selection_manager();
+  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager();
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   libdecor *libdecor_context();

@@ -522,7 +522,7 @@ struct GWL_PrimarySelection_DataOffer {
 };
 
 struct GWL_PrimarySelection_DataSource {
-  struct zwp_primary_selection_source_v1 *wl_source = nullptr;
+  struct zwp_primary_selection_source_v1 *wp_source = nullptr;
   GWL_SimpleBuffer buffer_out;
 };
 
@@ -553,8 +553,8 @@ static void gwl_primary_selection_discard_source(GWL_PrimarySelection *primary)
     return;
   }
   gwl_simple_buffer_free_data(&data_source->buffer_out);
-  if (data_source->wl_source) {
-    zwp_primary_selection_source_v1_destroy(data_source->wl_source);
+  if (data_source->wp_source) {
+    zwp_primary_selection_source_v1_destroy(data_source->wp_source);
   }
   delete primary->data_source;
   primary->data_source = nullptr;
@@ -568,7 +568,7 @@ struct GWL_Seat {
   struct wl_pointer *wl_pointer = nullptr;
   struct wl_touch *wl_touch = nullptr;
   struct wl_keyboard *wl_keyboard = nullptr;
-  struct zwp_tablet_seat_v2 *tablet_seat = nullptr;
+  struct zwp_tablet_seat_v2 *wp_tablet_seat = nullptr;
 
   /** All currently active tablet tools (needed for changing the cursor). */
   std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
@@ -592,9 +592,9 @@ struct GWL_Seat {
 
   struct GWL_Cursor cursor;
 
-  struct zwp_relative_pointer_v1 *relative_pointer = nullptr;
-  struct zwp_locked_pointer_v1 *locked_pointer = nullptr;
-  struct zwp_confined_pointer_v1 *confined_pointer = nullptr;
+  struct zwp_relative_pointer_v1 *wp_relative_pointer = nullptr;
+  struct zwp_locked_pointer_v1 *wp_locked_pointer = nullptr;
+  struct zwp_confined_pointer_v1 *wp_confined_pointer = nullptr;
 
   struct xkb_context *xkb_context = nullptr;
 
@@ -637,7 +637,7 @@ struct GWL_Seat {
 
   struct wl_surface *wl_surface_focus_dnd = nullptr;
 
-  struct wl_data_device *data_device = nullptr;
+  struct wl_data_device *wl_data_device = nullptr;
   /** Drag & Drop. */
   struct GWL_DataOffer *data_offer_dnd = nullptr;
   std::mutex data_offer_dnd_mutex;
@@ -649,7 +649,7 @@ struct GWL_Seat {
   struct GWL_DataSource *data_source = nullptr;
   std::mutex data_source_mutex;
 
-  struct zwp_primary_selection_device_v1 *primary_selection_device = nullptr;
+  struct zwp_primary_selection_device_v1 *wp_primary_selection_device = nullptr;
   struct GWL_PrimarySelection primary_selection;
 
   /** Last device that was active. */
@@ -679,12 +679,12 @@ struct GWL_Display {
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
 
-  struct wl_data_device_manager *data_device_manager = nullptr;
-  struct zwp_tablet_manager_v2 *tablet_manager = nullptr;
-  struct zwp_relative_pointer_manager_v1 *relative_pointer_manager = nullptr;
-  struct zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
+  struct wl_data_device_manager *wl_data_device_manager = nullptr;
+  struct zwp_tablet_manager_v2 *wp_tablet_manager = nullptr;
+  struct zwp_relative_pointer_manager_v1 *wp_relative_pointer_manager = nullptr;
+  struct zwp_pointer_constraints_v1 *wp_pointer_constraints = nullptr;
 
-  struct zwp_primary_selection_device_manager_v1 *primary_selection_device_manager = nullptr;
+  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
 
   GWL_SimpleBuffer clipboard;
   GWL_SimpleBuffer clipboard_primary;
@@ -744,12 +744,12 @@ static GWL_SeatStatePointer *seat_state_pointer_from_cursor_surface(GWL_Seat *se
 
 static void display_destroy(GWL_Display *display)
 {
-  if (display->data_device_manager) {
-    wl_data_device_manager_destroy(display->data_device_manager);
+  if (display->wl_data_device_manager) {
+    wl_data_device_manager_destroy(display->wl_data_device_manager);
   }
 
-  if (display->tablet_manager) {
-    zwp_tablet_manager_v2_destroy(display->tablet_manager);
+  if (display->wp_tablet_manager) {
+    zwp_tablet_manager_v2_destroy(display->wp_tablet_manager);
   }
 
   for (GWL_Output *output : display->outputs) {
@@ -800,12 +800,12 @@ static void display_destroy(GWL_Display *display)
       gwl_primary_selection_discard_source(primary);
     }
 
-    if (seat->primary_selection_device) {
-      zwp_primary_selection_device_v1_destroy(seat->primary_selection_device);
+    if (seat->wp_primary_selection_device) {
+      zwp_primary_selection_device_v1_destroy(seat->wp_primary_selection_device);
     }
 
-    if (seat->data_device) {
-      wl_data_device_release(seat->data_device);
+    if (seat->wl_data_device) {
+      wl_data_device_release(seat->wl_data_device);
     }
 
     if (seat->cursor.custom_data) {
@@ -836,16 +836,16 @@ static void display_destroy(GWL_Display *display)
     wl_shm_destroy(display->wl_shm);
   }
 
-  if (display->relative_pointer_manager) {
-    zwp_relative_pointer_manager_v1_destroy(display->relative_pointer_manager);
+  if (display->wp_relative_pointer_manager) {
+    zwp_relative_pointer_manager_v1_destroy(display->wp_relative_pointer_manager);
   }
 
-  if (display->pointer_constraints) {
-    zwp_pointer_constraints_v1_destroy(display->pointer_constraints);
+  if (display->wp_pointer_constraints) {
+    zwp_pointer_constraints_v1_destroy(display->wp_pointer_constraints);
   }
 
-  if (display->primary_selection_device_manager) {
-    zwp_primary_selection_device_manager_v1_destroy(display->primary_selection_device_manager);
+  if (display->wp_primary_selection_device_manager) {
+    zwp_primary_selection_device_manager_v1_destroy(display->wp_primary_selection_device_manager);
   }
 
   if (display->wl_compositor) {
@@ -1033,9 +1033,9 @@ static int pointer_axis_as_index(const uint32_t axis)
   }
 }
 
-static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wl_tablet_tool_type)
+static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_tablet_tool_type)
 {
-  switch (wl_tablet_tool_type) {
+  switch (wp_tablet_tool_type) {
     case ZWP_TABLET_TOOL_V2_TYPE_ERASER: {
       return GHOST_kTabletModeEraser;
     }
@@ -3273,7 +3273,7 @@ static void primary_selection_source_cancelled(void *data,
 
   GWL_PrimarySelection *primary = static_cast<GWL_PrimarySelection *>(data);
 
-  if (source == primary->data_source->wl_source) {
+  if (source == primary->data_source->wp_source) {
     gwl_primary_selection_discard_source(primary);
   }
 }
@@ -3409,13 +3409,13 @@ static void seat_handle_capabilities(void *data,
   /* TODO(@campbellbarton): this could be moved out elsewhere. */
   if (seat->system) {
     zwp_primary_selection_device_manager_v1 *primary_selection_device_manager =
-        seat->system->wl_primary_selection_manager();
+        seat->system->wp_primary_selection_manager();
     if (primary_selection_device_manager) {
-      if (seat->primary_selection_device == nullptr) {
-        seat->primary_selection_device = zwp_primary_selection_device_manager_v1_get_device(
+      if (seat->wp_primary_selection_device == nullptr) {
+        seat->wp_primary_selection_device = zwp_primary_selection_device_manager_v1_get_device(
             primary_selection_device_manager, seat->wl_seat);
 
-        zwp_primary_selection_device_v1_add_listener(seat->primary_selection_device,
+        zwp_primary_selection_device_v1_add_listener(seat->wp_primary_selection_device,
                                                      &primary_selection_device_listener,
                                                      &seat->primary_selection);
       }
@@ -3776,23 +3776,23 @@ static void global_handle_add(void *data,
         wl_registry_bind(wl_registry, name, &wl_shm_interface, 1));
   }
   else if (STREQ(interface, wl_data_device_manager_interface.name)) {
-    display->data_device_manager = static_cast<wl_data_device_manager *>(
+    display->wl_data_device_manager = static_cast<wl_data_device_manager *>(
         wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
   else if (STREQ(interface, zwp_tablet_manager_v2_interface.name)) {
-    display->tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
+    display->wp_tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
         wl_registry_bind(wl_registry, name, &zwp_tablet_manager_v2_interface, 1));
   }
   else if (STREQ(interface, zwp_relative_pointer_manager_v1_interface.name)) {
-    display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
+    display->wp_relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_relative_pointer_manager_v1_interface, 1));
   }
   else if (STREQ(interface, zwp_pointer_constraints_v1_interface.name)) {
-    display->pointer_constraints = static_cast<zwp_pointer_constraints_v1 *>(
+    display->wp_pointer_constraints = static_cast<zwp_pointer_constraints_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_pointer_constraints_v1_interface, 1));
   }
   else if (!strcmp(interface, zwp_primary_selection_device_manager_v1_interface.name)) {
-    display->primary_selection_device_manager =
+    display->wp_primary_selection_device_manager =
         static_cast<zwp_primary_selection_device_manager_v1 *>(wl_registry_bind(
             wl_registry, name, &zwp_primary_selection_device_manager_v1_interface, 1));
   }
@@ -3915,19 +3915,19 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
   }
 
   /* Register data device per seat for IPC between Wayland clients. */
-  if (display_->data_device_manager) {
+  if (display_->wl_data_device_manager) {
     for (GWL_Seat *seat : display_->seats) {
-      seat->data_device = wl_data_device_manager_get_data_device(display_->data_device_manager,
-                                                                 seat->wl_seat);
-      wl_data_device_add_listener(seat->data_device, &data_device_listener, seat);
+      seat->wl_data_device = wl_data_device_manager_get_data_device(
+          display_->wl_data_device_manager, seat->wl_seat);
+      wl_data_device_add_listener(seat->wl_data_device, &data_device_listener, seat);
     }
   }
 
-  if (display_->tablet_manager) {
+  if (display_->wp_tablet_manager) {
     for (GWL_Seat *seat : display_->seats) {
-      seat->tablet_seat = zwp_tablet_manager_v2_get_tablet_seat(display_->tablet_manager,
-                                                                seat->wl_seat);
-      zwp_tablet_seat_v2_add_listener(seat->tablet_seat, &tablet_seat_listener, seat);
+      seat->wp_tablet_seat = zwp_tablet_manager_v2_get_tablet_seat(display_->wp_tablet_manager,
+                                                                   seat->wl_seat);
+      zwp_tablet_seat_v2_add_listener(seat->wp_tablet_seat, &tablet_seat_listener, seat);
     }
   }
 }
@@ -4075,7 +4075,7 @@ char *GHOST_SystemWayland::getClipboard(bool selection) const
 
 static void system_clipboard_put_primary_selection(GWL_Display *display, const char *buffer)
 {
-  if (!display->primary_selection_device_manager) {
+  if (!display->wp_primary_selection_device_manager) {
     return;
   }
   GWL_Seat *seat = display->seats[0];
@@ -4091,19 +4091,19 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
   /* Copy buffer. */
   gwl_simple_buffer_set_from_string(&data_source->buffer_out, buffer);
 
-  data_source->wl_source = zwp_primary_selection_device_manager_v1_create_source(
-      display->primary_selection_device_manager);
+  data_source->wp_source = zwp_primary_selection_device_manager_v1_create_source(
+      display->wp_primary_selection_device_manager);
 
   zwp_primary_selection_source_v1_add_listener(
-      data_source->wl_source, &primary_selection_source_listener, primary);
+      data_source->wp_source, &primary_selection_source_listener, primary);
 
   for (const std::string &type : mime_send) {
-    zwp_primary_selection_source_v1_offer(data_source->wl_source, type.c_str());
+    zwp_primary_selection_source_v1_offer(data_source->wp_source, type.c_str());
   }
 
-  if (seat->primary_selection_device) {
+  if (seat->wp_primary_selection_device) {
     zwp_primary_selection_device_v1_set_selection(
-        seat->primary_selection_device, data_source->wl_source, seat->data_source_serial);
+        seat->wp_primary_selection_device, data_source->wp_source, seat->data_source_serial);
   }
 }
 
@@ -4118,7 +4118,8 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
   /* Copy buffer. */
   gwl_simple_buffer_set_from_string(&data_source->buffer_out, buffer);
 
-  data_source->wl_source = wl_data_device_manager_create_data_source(display->data_device_manager);
+  data_source->wl_source = wl_data_device_manager_create_data_source(
+      display->wl_data_device_manager);
 
   wl_data_source_add_listener(data_source->wl_source, &data_source_listener, seat);
 
@@ -4126,15 +4127,15 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
     wl_data_source_offer(data_source->wl_source, type.c_str());
   }
 
-  if (seat->data_device) {
+  if (seat->wl_data_device) {
     wl_data_device_set_selection(
-        seat->data_device, data_source->wl_source, seat->data_source_serial);
+        seat->wl_data_device, data_source->wl_source, seat->data_source_serial);
   }
 }
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 {
-  if (UNLIKELY(!display_->data_device_manager || display_->seats.empty())) {
+  if (UNLIKELY(!display_->wl_data_device_manager || display_->seats.empty())) {
     return;
   }
 
@@ -4171,7 +4172,7 @@ static GHOST_TSuccess setCursorPositionClientRelative_impl(GWL_Seat *seat,
   /* NOTE: WAYLAND doesn't support warping the cursor.
    * However when grab is enabled, we already simulate a cursor location
    * so that can be set to a new location. */
-  if (!seat->relative_pointer) {
+  if (!seat->wp_relative_pointer) {
     return GHOST_kFailure;
   }
   const wl_fixed_t scale = win->scale();
@@ -4886,9 +4887,9 @@ wl_compositor *GHOST_SystemWayland::wl_compositor()
   return display_->wl_compositor;
 }
 
-struct zwp_primary_selection_device_manager_v1 *GHOST_SystemWayland::wl_primary_selection_manager()
+struct zwp_primary_selection_device_manager_v1 *GHOST_SystemWayland::wp_primary_selection_manager()
 {
-  return display_->primary_selection_device_manager;
+  return display_->wp_primary_selection_device_manager;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -4980,7 +4981,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                  const int scale)
 {
   /* Ignore, if the required protocols are not supported. */
-  if (UNLIKELY(!display_->relative_pointer_manager || !display_->pointer_constraints)) {
+  if (UNLIKELY(!display_->wp_relative_pointer_manager || !display_->wp_pointer_constraints)) {
     return GHOST_kFailure;
   }
 
@@ -5019,11 +5020,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
    * in this case disable the current locks as it makes logic confusing,
    * postpone changing the cursor to avoid flickering. */
   if (!grab_state_next.use_lock) {
-    if (seat->relative_pointer) {
-      zwp_relative_pointer_v1_destroy(seat->relative_pointer);
-      seat->relative_pointer = nullptr;
+    if (seat->wp_relative_pointer) {
+      zwp_relative_pointer_v1_destroy(seat->wp_relative_pointer);
+      seat->wp_relative_pointer = nullptr;
     }
-    if (seat->locked_pointer) {
+    if (seat->wp_locked_pointer) {
       /* Potentially add a motion event so the application has updated X/Y coordinates. */
       int32_t xy_motion[2] = {0, 0};
       bool xy_motion_create_event = false;
@@ -5052,7 +5053,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         seat->pointer.xy[0] = xy_next[0];
         seat->pointer.xy[1] = xy_next[1];
 
-        zwp_locked_pointer_v1_set_cursor_position_hint(seat->locked_pointer, UNPACK2(xy_next));
+        zwp_locked_pointer_v1_set_cursor_position_hint(seat->wp_locked_pointer, UNPACK2(xy_next));
         wl_surface_commit(wl_surface);
       }
       else if (mode_current == GHOST_kGrabHide) {
@@ -5062,7 +5063,8 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
               wl_fixed_from_int(init_grab_xy[0]) / scale,
               wl_fixed_from_int(init_grab_xy[1]) / scale,
           };
-          zwp_locked_pointer_v1_set_cursor_position_hint(seat->locked_pointer, UNPACK2(xy_next));
+          zwp_locked_pointer_v1_set_cursor_position_hint(seat->wp_locked_pointer,
+                                                         UNPACK2(xy_next));
           wl_surface_commit(wl_surface);
 
           /* NOTE(@campbellbarton): The new cursor position is a hint,
@@ -5076,7 +5078,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #ifdef USE_GNOME_CONFINE_HACK
       else if (mode_current == GHOST_kGrabNormal) {
         if (was_software_confine) {
-          zwp_locked_pointer_v1_set_cursor_position_hint(seat->locked_pointer,
+          zwp_locked_pointer_v1_set_cursor_position_hint(seat->wp_locked_pointer,
                                                          UNPACK2(seat->pointer.xy));
           wl_surface_commit(wl_surface);
         }
@@ -5092,15 +5094,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                       GHOST_TABLET_DATA_NONE));
       }
 
-      zwp_locked_pointer_v1_destroy(seat->locked_pointer);
-      seat->locked_pointer = nullptr;
+      zwp_locked_pointer_v1_destroy(seat->wp_locked_pointer);
+      seat->wp_locked_pointer = nullptr;
     }
   }
 
   if (!grab_state_next.use_confine) {
-    if (seat->confined_pointer) {
-      zwp_confined_pointer_v1_destroy(seat->confined_pointer);
-      seat->confined_pointer = nullptr;
+    if (seat->wp_confined_pointer) {
+      zwp_confined_pointer_v1_destroy(seat->wp_confined_pointer);
+      seat->wp_confined_pointer = nullptr;
     }
   }
 
@@ -5111,12 +5113,12 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
          * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
          * An alternative could be to draw the cursor in software (and hide the real cursor),
          * or just accept a locked cursor on WAYLAND. */
-        seat->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-            display_->relative_pointer_manager, seat->wl_pointer);
+        seat->wp_relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
+            display_->wp_relative_pointer_manager, seat->wl_pointer);
         zwp_relative_pointer_v1_add_listener(
-            seat->relative_pointer, &relative_pointer_listener, seat);
-        seat->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-            display_->pointer_constraints,
+            seat->wp_relative_pointer, &relative_pointer_listener, seat);
+        seat->wp_locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
+            display_->wp_pointer_constraints,
             wl_surface,
             seat->wl_pointer,
             nullptr,
@@ -5133,8 +5135,8 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
     }
     else if (grab_state_next.use_confine) {
       if (!grab_state_prev.use_confine) {
-        seat->confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
-            display_->pointer_constraints,
+        seat->wp_confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
+            display_->wp_pointer_constraints,
             wl_surface,
             seat->wl_pointer,
             nullptr,
