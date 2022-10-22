@@ -2546,6 +2546,7 @@ typedef enum StrokeIDUser {
   STROKEID_USER_BOUNDARY = 1 << 1,
   STROKEID_USER_SCULPTVERT = 1 << 2,
   STROKEID_USER_PREV_COLOR = 1 << 3,
+  STROKEID_USER_SMOOTH = 1 << 4,
 } StrokeIDUser;
 
 BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)

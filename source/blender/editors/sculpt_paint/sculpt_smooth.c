@@ -1530,10 +1530,8 @@ static void do_enhance_details_brush_dir_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
-  SculptAttribute *strokeid_scl = data->scl2;
   SculptAttribute *scl = data->scl;
 
-  const uint current_stroke_id = (uint)ss->stroke_id;
   bool modified = false;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -1541,10 +1539,8 @@ static void do_enhance_details_brush_dir_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    uint *strokeid = SCULPT_vertex_attr_get(vd.vertex, strokeid_scl);
 
-    if ((*strokeid) >> 1UL != current_stroke_id) {
-      *strokeid = current_stroke_id << 1UL;
+    if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_SMOOTH)) {
       modified = true;
 
       float avg[3];
@@ -1588,8 +1584,6 @@ static void do_enhance_details_brush_dir2_task_cb_ex(void *__restrict userdata,
   SculptAttribute *scl = data->scl;
   bool use_area_weights = data->use_area_cos;
 
-  // const uint current_stroke_id = (uint)ss->stroke_id;
-
   int lastvalence = 8;
   float *areas = MEM_malloc_arrayN(lastvalence, sizeof(float), __func__);
 
@@ -1609,8 +1603,6 @@ static void do_enhance_details_brush_dir2_task_cb_ex(void *__restrict userdata,
 
       BKE_pbvh_get_vert_face_areas(ss->pbvh, vd.vertex, areas, valence);
     }
-
-    // uint *strokeid = SCULPT_vertex_attr_get(vd.vertex, strokeid_scl);
 
     /* this check here is overly restrictive,
        we already get filtered by whether stage
@@ -1778,8 +1770,7 @@ void SCULPT_enhance_details_brush(
                                  .cd_temp = 0,
                                  .cd_temp2 = 0,
                                  .nodes = nodes,
-                                 .scl = scl,
-                                 .scl2 = strokeid_scl};
+                                 .scl = scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

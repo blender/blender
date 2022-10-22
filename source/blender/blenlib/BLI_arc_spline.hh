@@ -592,7 +592,7 @@ template<typename Float, int axes = 2> class BezierSpline {
       return Vector();
     }
 
-    const int steps = 5;
+    const int steps = 12;
     Float s = 0.0, ds = length / steps;
     Float mindis = FLT_MAX;
     Vector minp;
