@@ -519,16 +519,14 @@ void applyGridAbsolute(TransInfo *t)
     return;
   }
 
-  float grid_size_x = (t->modifiers & MOD_PRECISION) ? t->snap_spatial_x[1] : t->snap_spatial_x[0];
-  float grid_size_y = (t->modifiers & MOD_PRECISION) ? t->snap_spatial_y[1] : t->snap_spatial_y[0];
-  float grid_size_z = grid_size_x;
-
-  if (grid_size_y == 0.0f) {
-    grid_size_y = grid_size_x; /* Just use `grid_size_x` when `grid_size_y` isn't set correctly. */
+  float grid_size[3];
+  copy_v3_v3(grid_size, t->snap_spatial);
+  if (t->modifiers & MOD_PRECISION) {
+    mul_v3_fl(grid_size, t->snap_spatial_precision);
   }
 
   /* Early exit on unusable grid size. */
-  if (grid_size_x == 0.0f || grid_size_y == 0.0f || grid_size_z == 0.0f) {
+  if (is_zero_v3(grid_size)) {
     return;
   }
 
@@ -554,9 +552,9 @@ void applyGridAbsolute(TransInfo *t)
         copy_v3_v3(iloc, td->ob->obmat[3]);
       }
 
-      loc[0] = roundf(iloc[0] / grid_size_x) * grid_size_x;
-      loc[1] = roundf(iloc[1] / grid_size_y) * grid_size_y;
-      loc[2] = roundf(iloc[2] / grid_size_z) * grid_size_z;
+      loc[0] = roundf(iloc[0] / grid_size[0]) * grid_size[0];
+      loc[1] = roundf(iloc[1] / grid_size[1]) * grid_size[1];
+      loc[2] = grid_size[2] ? roundf(iloc[2] / grid_size[2]) * grid_size[2] : iloc[2];
 
       sub_v3_v3v3(tvec, loc, iloc);
       mul_m3_v3(td->smtx, tvec);
@@ -1660,8 +1658,7 @@ bool snapNodesTransform(
 
 static void snap_grid_apply(TransInfo *t,
                             const int max_index,
-                            const float grid_dist_x,
-                            const float grid_dist_y,
+                            const float grid_dist[3],
                             const float loc[3],
                             float r_out[3])
 {
@@ -1680,7 +1677,7 @@ static void snap_grid_apply(TransInfo *t,
   }
 
   for (int i = 0; i <= max_index; i++) {
-    const float iter_fac = ((i == 1) ? grid_dist_y : grid_dist_x) * asp[i];
+    const float iter_fac = grid_dist[i] * asp[i];
     r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac) - center_global[i];
   }
 }
@@ -1705,15 +1702,18 @@ bool transform_snap_grid(TransInfo *t, float *val)
     return false;
   }
 
-  float grid_dist_x = (t->modifiers & MOD_PRECISION) ? t->snap_spatial_x[1] : t->snap_spatial_x[0];
-  float grid_dist_y = (t->modifiers & MOD_PRECISION) ? t->snap_spatial_y[1] : t->snap_spatial_y[0];
+  float grid_dist[3];
+  copy_v3_v3(grid_dist, t->snap_spatial);
+  if (t->modifiers & MOD_PRECISION) {
+    mul_v3_fl(grid_dist, t->snap_spatial_precision);
+  }
 
   /* Early bailing out if no need to snap */
-  if (grid_dist_x == 0.0f || grid_dist_y == 0.0f) {
+  if (is_zero_v3(grid_dist)) {
     return false;
   }
 
-  snap_grid_apply(t, t->idx_max, grid_dist_x, grid_dist_y, val, val);
+  snap_grid_apply(t, t->idx_max, grid_dist, val, val);
   t->tsnap.snapElem = SCE_SNAP_MODE_GRID;
   return true;
 }

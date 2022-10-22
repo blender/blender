@@ -1721,13 +1721,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 }
 
-static void initSnapSpatial(TransInfo *t, float r_snap[2], float r_snap_y[2])
+static void initSnapSpatial(TransInfo *t, float r_snap[3], float *r_snap_precision)
 {
+  /* Default values. */
+  r_snap[0] = r_snap[1] = 1.0f;
+  r_snap[1] = 0.0f;
+  *r_snap_precision = 0.1f;
+
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->region->regiondata) {
       View3D *v3d = t->area->spacedata.first;
-      r_snap[0] = ED_view3d_grid_view_scale(t->scene, v3d, t->region, NULL) * 1.0f;
-      r_snap[1] = r_snap[0] * 0.1f;
+      r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(t->scene, v3d, t->region, NULL);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -1741,23 +1745,15 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2], float r_snap_y[2])
     ED_space_image_grid_steps(sima, grid_steps_x, grid_steps_y, grid_size);
     /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
     r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_x, zoom_factor);
-    r_snap[1] = r_snap[0] / 2.0f;
-    r_snap_y[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
-    r_snap_y[1] = r_snap_y[0] / 2.0f;
+    r_snap[1] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+    *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    r_snap[0] = 0.125f;
-    r_snap[1] = 0.0625f;
+    r_snap[0] = r_snap[1] = 0.125f;
+    *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_NODE) {
     r_snap[0] = r_snap[1] = ED_node_grid_size();
-  }
-  else if (t->spacetype == SPACE_GRAPH) {
-    r_snap[0] = 1.0;
-    r_snap[1] = 0.1f;
-  }
-  else {
-    r_snap[0] = r_snap[1] = 1.0f;
   }
 }
 
@@ -1898,7 +1894,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   initSnapping(t, op); /* Initialize snapping data AFTER mode flags */
 
-  initSnapSpatial(t, t->snap_spatial_x, t->snap_spatial_y);
+  initSnapSpatial(t, t->snap_spatial, &t->snap_spatial_precision);
 
   /* EVIL! posemode code can switch translation to rotate when 1 bone is selected.
    * will be removed (ton) */
