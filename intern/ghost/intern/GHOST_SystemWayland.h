@@ -84,7 +84,8 @@ struct GWL_Output {
 
 class GHOST_SystemWayland : public GHOST_System {
  public:
-  GHOST_SystemWayland();
+  GHOST_SystemWayland(bool background);
+  GHOST_SystemWayland() : GHOST_SystemWayland(true){};
 
   ~GHOST_SystemWayland() override;
 

@@ -118,9 +118,11 @@ class GHOST_ISystem {
   /**
    * Creates the one and only system.
    * \param verbose: report back-ends that were attempted no back-end could be loaded.
+   * \param background: loading the system for background rendering (no visible windows).
    * \return An indication of success.
    */
-  static GHOST_TSuccess createSystem(bool verbose);
+
+  static GHOST_TSuccess createSystem(bool verbose, bool background);
   static GHOST_TSuccess createSystemBackground();
 
   /**

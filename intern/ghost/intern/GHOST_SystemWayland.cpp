@@ -4162,7 +4162,8 @@ static const struct wl_registry_listener registry_listener = {
  * WAYLAND specific implementation of the #GHOST_System interface.
  * \{ */
 
-GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Display)
+GHOST_SystemWayland::GHOST_SystemWayland(bool background)
+    : GHOST_System(), display_(new GWL_Display)
 {
   wl_log_set_handler_client(ghost_wayland_log_handler);
 
@@ -4187,6 +4188,14 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
   wl_registry_destroy(registry);
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  /* Ignore windowing requirements when running in background mode,
+   * as it doesn't make sense to fall back to X11 because of windowing functionality
+   * in background mode, also LIBDECOR is crashing in background mode `blender -b -f 1`
+   * for e.g. while it could be fixed, requiring the library at all makes no sense . */
+  if (background) {
+    display_->libdecor_required = false;
+  }
+
   if (display_->libdecor_required) {
     gwl_xdg_decor_system_destroy(display_->xdg_decor);
     display_->xdg_decor = nullptr;
@@ -4200,6 +4209,8 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), display_(new GWL_Di
 #  endif
       display_destroy(display_);
       throw std::runtime_error("Wayland: unable to find libdecor!");
+
+      use_libdecor = true;
     }
   }
   else {

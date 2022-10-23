@@ -34,7 +34,7 @@ const char *GHOST_ISystem::m_system_backend_id = nullptr;
 
 GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
 
-GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
+GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
 {
   /* When GHOST fails to start, report the back-ends that were attempted.
    * A Verbose argument could be supported in printing isn't always desired. */
@@ -61,7 +61,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     if (has_wayland_libraries) {
       backends_attempted[backends_attempted_num++] = "WAYLAND";
       try {
-        m_system = new GHOST_SystemWayland();
+        m_system = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &) {
         delete m_system;
@@ -99,7 +99,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     if (has_wayland_libraries) {
       backends_attempted[backends_attempted_num++] = "WAYLAND";
       try {
-        m_system = new GHOST_SystemWayland();
+        m_system = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &) {
         delete m_system;
@@ -160,7 +160,7 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
   if (!m_system) {
 #if !defined(WITH_HEADLESS)
     /* Try to create a off-screen render surface with the graphical systems. */
-    success = createSystem(false);
+    success = createSystem(false, true);
     if (success) {
       return success;
     }
