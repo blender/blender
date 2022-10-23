@@ -686,8 +686,8 @@ void initTranslation(TransInfo *t)
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  t->snap[0] = 1.0;
-  t->snap[1] = t->snap_spatial_precision;
+  t->snap[0] = t->snap_spatial[0];
+  t->snap[1] = t->snap_spatial[0] * t->snap_spatial_precision;
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
