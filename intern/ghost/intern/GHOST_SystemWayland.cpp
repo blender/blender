@@ -604,9 +604,15 @@ struct GWL_Seat {
   struct wl_keyboard *wl_keyboard = nullptr;
   struct zwp_tablet_seat_v2 *wp_tablet_seat = nullptr;
 
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
   struct zwp_pointer_gesture_hold_v1 *wp_pointer_gesture_hold = nullptr;
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
   struct zwp_pointer_gesture_pinch_v1 *wp_pointer_gesture_pinch = nullptr;
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
   struct zwp_pointer_gesture_swipe_v1 *wp_pointer_gesture_swipe = nullptr;
+#endif
 
   /** All currently active tablet tools (needed for changing the cursor). */
   std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
@@ -2313,8 +2319,9 @@ static const struct wl_pointer_listener pointer_listener = {
 /** \name Listener (Pointer Gesture: Hold), #zwp_pointer_gesture_hold_v1_listener
  * \{ */
 
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
 static CLG_LogRef LOG_WL_POINTER_GESTURE_HOLD = {"ghost.wl.handle.pointer_gesture.hold"};
-#define LOG (&LOG_WL_POINTER_GESTURE_HOLD)
+#  define LOG (&LOG_WL_POINTER_GESTURE_HOLD)
 
 static void gesture_hold_handle_begin(
     void * /*data*/,
@@ -2342,7 +2349,8 @@ static const struct zwp_pointer_gesture_hold_v1_listener gesture_hold_listener =
     gesture_hold_handle_end,
 };
 
-#undef LOG
+#  undef LOG
+#endif /* ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE */
 
 /** \} */
 
@@ -2350,8 +2358,9 @@ static const struct zwp_pointer_gesture_hold_v1_listener gesture_hold_listener =
 /** \name Listener (Pointer Gesture: Pinch), #zwp_pointer_gesture_pinch_v1_listener
  * \{ */
 
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
 static CLG_LogRef LOG_WL_POINTER_GESTURE_PINCH = {"ghost.wl.handle.pointer_gesture.pinch"};
-#define LOG (&LOG_WL_POINTER_GESTURE_PINCH)
+#  define LOG (&LOG_WL_POINTER_GESTURE_PINCH)
 
 static void gesture_pinch_handle_begin(void *data,
                                        struct zwp_pointer_gesture_pinch_v1 * /*pinch*/,
@@ -2469,7 +2478,8 @@ static const struct zwp_pointer_gesture_pinch_v1_listener gesture_pinch_listener
     gesture_pinch_handle_end,
 };
 
-#undef LOG
+#  undef LOG
+#endif /* ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE */
 
 /** \} */
 
@@ -2482,8 +2492,9 @@ static const struct zwp_pointer_gesture_pinch_v1_listener gesture_pinch_listener
  * (swiping with 3+ fingers, for e.g.). So keep this to allow logging & testing gestures.
  * \{ */
 
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
 static CLG_LogRef LOG_WL_POINTER_GESTURE_SWIPE = {"ghost.wl.handle.pointer_gesture.swipe"};
-#define LOG (&LOG_WL_POINTER_GESTURE_SWIPE)
+#  define LOG (&LOG_WL_POINTER_GESTURE_SWIPE)
 
 static void gesture_swipe_handle_begin(
     void * /*data*/,
@@ -2522,7 +2533,8 @@ static const struct zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener
     gesture_swipe_handle_end,
 };
 
-#undef LOG
+#  undef LOG
+#endif /* ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE */
 
 /** \} */
 
@@ -3571,6 +3583,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
 
   zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures();
   if (pointer_gestures) {
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
     { /* Hold gesture. */
       struct zwp_pointer_gesture_hold_v1 *gesture = zwp_pointer_gestures_v1_get_hold_gesture(
           pointer_gestures, seat->wl_pointer);
@@ -3578,6 +3591,8 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
       zwp_pointer_gesture_hold_v1_add_listener(gesture, &gesture_hold_listener, seat);
       seat->wp_pointer_gesture_hold = gesture;
     }
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
     { /* Pinch gesture. */
       struct zwp_pointer_gesture_pinch_v1 *gesture = zwp_pointer_gestures_v1_get_pinch_gesture(
           pointer_gestures, seat->wl_pointer);
@@ -3585,6 +3600,8 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
       zwp_pointer_gesture_pinch_v1_add_listener(gesture, &gesture_pinch_listener, seat);
       seat->wp_pointer_gesture_pinch = gesture;
     }
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
     { /* Swipe gesture. */
       struct zwp_pointer_gesture_swipe_v1 *gesture = zwp_pointer_gestures_v1_get_swipe_gesture(
           pointer_gestures, seat->wl_pointer);
@@ -3592,6 +3609,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
       zwp_pointer_gesture_swipe_v1_add_listener(gesture, &gesture_swipe_listener, seat);
       seat->wp_pointer_gesture_swipe = gesture;
     }
+#endif
   }
 }
 
@@ -3603,6 +3621,7 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
 
   zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures();
   if (pointer_gestures) {
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
     { /* Hold gesture. */
       struct zwp_pointer_gesture_hold_v1 **gesture_p = &seat->wp_pointer_gesture_hold;
       if (*gesture_p) {
@@ -3610,6 +3629,8 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
         *gesture_p = nullptr;
       }
     }
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
     { /* Pinch gesture. */
       struct zwp_pointer_gesture_pinch_v1 **gesture_p = &seat->wp_pointer_gesture_pinch;
       if (*gesture_p) {
@@ -3617,6 +3638,8 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
         *gesture_p = nullptr;
       }
     }
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
     { /* Swipe gesture. */
       struct zwp_pointer_gesture_swipe_v1 **gesture_p = &seat->wp_pointer_gesture_swipe;
       if (*gesture_p) {
@@ -3624,6 +3647,7 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
         *gesture_p = nullptr;
       }
     }
+#endif
   }
 
   if (seat->cursor.wl_surface) {
