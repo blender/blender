@@ -1096,7 +1096,7 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
     }
   }
 
-  GHOST_PRINT("unknown tablet tool: " << wl_tablet_tool_type << std::endl);
+  GHOST_PRINT("unknown tablet tool: " << wp_tablet_tool_type << std::endl);
   return GHOST_kTabletModeStylus;
 }
 
