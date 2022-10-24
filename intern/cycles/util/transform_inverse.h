@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline float3 transform_inverse_cross(const float3 a, const float3 b)
 {
-#ifdef __AVX2__
+#if defined(__AVX2__) && defined(__KERNEL_SSE2__)
   const ssef sse_a = (const __m128 &)a;
   const ssef sse_b = (const __m128 &)b;
   const ssef r = shuffle<1, 2, 0, 3>(
