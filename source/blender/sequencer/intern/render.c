@@ -1026,6 +1026,15 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
   return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
 
+static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Sequence *seq)
+{
+  bool use_timecodes = (seq->flag & SEQ_USE_PROXY) != 0;
+  if (!use_timecodes) {
+    return IMB_TC_NONE;
+  }
+  return seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_NONE;
+}
+
 /**
  * Render individual view for multi-view or single (default view) for mono-view.
  */
@@ -1049,7 +1058,7 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
     else {
       ibuf = IMB_anim_absolute(sanim->anim,
                                frame_index + seq->anim_startofs,
-                               seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
+                               seq_render_movie_strip_timecode_get(seq),
                                psize);
     }
 
@@ -1062,7 +1071,7 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
   if (ibuf == NULL) {
     ibuf = IMB_anim_absolute(sanim->anim,
                              frame_index + seq->anim_startofs,
-                             seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
+                             seq_render_movie_strip_timecode_get(seq),
                              IMB_PROXY_NONE);
   }
   if (ibuf == NULL) {
