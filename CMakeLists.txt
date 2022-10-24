@@ -54,11 +54,6 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
 )
 
 
-# -----------------------------------------------------------------------------
-# Set policy
-
-# see "cmake --help-policy CMP0003"
-# So library linking is more sane
 cmake_policy(SET CMP0003 NEW)
 
 # So BUILDINFO and BLENDERPATH strings are automatically quoted
