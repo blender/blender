@@ -2,13 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 '''
-This script generates the blender.1 man page, embedding the help text
-from the Blender executable itself. Invoke it as follows:
-
-    blender.1.py --blender <path-to-blender> --output <output-filename>
-
-where <path-to-blender> is the path to the Blender executable,
-and <output-filename> is where to write the generated man page.
+This is the docstring
 '''
 
 import argparse
