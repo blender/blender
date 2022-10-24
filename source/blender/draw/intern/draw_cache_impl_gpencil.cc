@@ -431,14 +431,13 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
     bool do_onion = true;
 
     /* First count how many vertices and triangles are needed for the whole object. */
-    gpIterData iter = {
-        .gpd = gpd,
-        .verts = NULL,
-        .ibo = {0},
-        .vert_len = 0,
-        .tri_len = 0,
-        .curve_len = 0,
-    };
+    gpIterData iter = {};
+    iter.gpd = gpd;
+    iter.verts = NULL;
+    iter.ibo = {0};
+    iter.vert_len = 0;
+    iter.tri_len = 0;
+    iter.curve_len = 0;
     BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_object_verts_count_cb, &iter, do_onion, cfra);
 
@@ -531,10 +530,9 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
   if (cache->lines_batch == NULL) {
     GPUVertBuf *vbo = cache->vbo;
 
-    gpIterData iter = {
-        .gpd = (bGPdata *)ob->data,
-        .ibo = {0},
-    };
+    gpIterData iter = {};
+    iter.gpd = (bGPdata *)ob->data;
+    iter.ibo = {0};
 
     uint vert_len = GPU_vertbuf_get_vertex_len(vbo);
     GPU_indexbuf_init_ex(&iter.ibo, GPU_PRIM_LINE_STRIP, vert_len, vert_len);
@@ -904,14 +902,13 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
   /* Curve Handles and Points for Editing. */
   if (cache->edit_curve_vbo == NULL) {
-    gpIterData iterdata = {
-        .gpd = gpd,
-        .verts = NULL,
-        .ibo = {0},
-        .vert_len = 0,
-        .tri_len = 0,
-        .curve_len = 0,
-    };
+    gpIterData iterdata = {};
+    iterdata.gpd = gpd;
+    iterdata.verts = NULL;
+    iterdata.ibo = {0};
+    iterdata.vert_len = 0;
+    iterdata.tri_len = 0;
+    iterdata.curve_len = 0;
 
     /* Create VBO. */
     GPUVertFormat *format = gpencil_edit_curve_format();
