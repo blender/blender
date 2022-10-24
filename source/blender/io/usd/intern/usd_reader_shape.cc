@@ -132,15 +132,17 @@ struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
         existing_mesh, positions.size(), 0, 0, face_indices.size(), face_counts.size());
   }
 
+  MutableSpan<MVert> verts = active_mesh->verts_for_write();
+
   for (int i = 0; i < positions.size(); i++) {
-    MVert &mvert = active_mesh->mvert[i];
+    MVert &mvert = verts[i];
     mvert.co[0] = positions[i][0];
     mvert.co[1] = positions[i][1];
     mvert.co[2] = positions[i][2];
   }
 
-  MPoly *mpolys = active_mesh->mpoly;
-  MLoop *mloops = active_mesh->mloop;
+  MutableSpan<MPoly> polys = active_mesh->polys_for_write();
+  MutableSpan<MLoop> loops = active_mesh->loops_for_write();
 
   int loop_index = 0;
 
@@ -148,7 +150,7 @@ struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
     for (int i = 0; i < face_counts.size(); i++) {
       const int face_size = face_counts[i];
 
-      MPoly &poly = mpolys[i];
+      MPoly &poly = polys[i];
       poly.loopstart = loop_index;
       poly.totloop = face_size;
 
@@ -156,7 +158,7 @@ struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
       poly.flag |= is_cube ? 0 : ME_SMOOTH;
 
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices[loop_index];
+        loops[loop_index].v = face_indices[loop_index];
       }
     }
   }
