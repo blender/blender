@@ -76,8 +76,6 @@ if(POLICY CMP0087)
 endif()
 
 
-# -----------------------------------------------------------------------------
-# Load Blender's Local Macros
 
 include(build_files/cmake/macros.cmake)
 
