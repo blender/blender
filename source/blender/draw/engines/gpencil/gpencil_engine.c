@@ -526,9 +526,6 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
   if (show_fill) {
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
-    if (do_sbuffer) {
-      printf("draw_fill vfirst %d vcount %d\n", vfirst, vcount);
-    }
     gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 

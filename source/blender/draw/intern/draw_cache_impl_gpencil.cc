@@ -619,10 +619,10 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     /* Calc uv data along the stroke. */
     BKE_gpencil_stroke_uv_update(gps);
 
-    int vert_len = gps->tot_triangles + (gps->totpoints + gpencil_stroke_is_cyclic(gps)) * 2;
+    int tri_len = gps->tot_triangles + (gps->totpoints + gpencil_stroke_is_cyclic(gps)) * 2;
     /* Create IBO. */
     GPUIndexBufBuilder ibo_builder;
-    GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, vert_len, 0xFFFFFFFFu);
+    GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, tri_len, 0xFFFFFFFFu);
     /* Create VBO. */
     GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
     GPUVertFormat *format = gpencil_stroke_format();
@@ -652,6 +652,9 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
       /* HACK since we didn't use the builder API to avoid another malloc and copy,
        * we need to set the number of indices manually. */
       ibo_builder.index_len = gps->tot_triangles * 3;
+      ibo_builder.index_min = 0;
+      /* For this case, do not allow index compaction to avoid yet another preprocessing step. */
+      ibo_builder.index_max = 0xFFFFFFFFu - 1u;
 
       gps->runtime.stroke_start = gps->tot_triangles;
 
