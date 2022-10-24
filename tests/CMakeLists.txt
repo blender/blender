@@ -1,9 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-
-# Always run tests from install path, so all required scripts and libraries
-# are available and we are testing the actual installation layout.
-#
-# Getting the install path of the executable is somewhat involved, as there are
 # no direct CMake generator expressions to get the install paths of executables.
 set(TEST_INSTALL_DIR ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
 
