@@ -574,7 +574,9 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
 
     gps->tot_triangles = max_ii(0, gpd->runtime.sbuffer_used - 2);
     gps->caps[0] = gps->caps[1] = GP_STROKE_CAP_ROUND;
-    gps->runtime.stroke_start = 1; /* Add one for the adjacency index. */
+    gps->runtime.vertex_start = 0;
+    gps->runtime.fill_start = 0;
+    gps->runtime.stroke_start = 0;
     copy_v4_v4(gps->vert_color_fill, gpd->runtime.vert_color_fill);
     /* Caps. */
     gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
@@ -584,7 +586,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
   return gpd->runtime.sbuffer_gps;
 }
 
-static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_fill)
+static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
 {
   tGPspoint *tpoints = (tGPspoint *)gpd->runtime.sbuffer;
   bGPDstroke *gps = gpd->runtime.sbuffer_gps;
@@ -593,7 +595,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
   /* DRW_cache_gpencil_sbuffer_stroke_data_get need to have been called previously. */
   BLI_assert(gps != NULL);
 
-  if (do_stroke && (gpd->runtime.sbuffer_batch == NULL)) {
+  if (gpd->runtime.sbuffer_batch == NULL) {
     gps->points = (bGPDspoint *)MEM_mallocN(vert_len * sizeof(*gps->points), __func__);
 
     const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -643,19 +645,18 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
       /* Compute directly inside the IBO data buffer. */
       /* OPTI: This is a bottleneck if the stroke is very long. */
       BLI_polyfill_calc(tpoints2d, (uint)vert_len, 0, (uint(*)[3])ibo_builder.data);
-      /* Add stroke start offset. */
+      /* Add stroke start offset and shift. */
       for (int i = 0; i < gps->tot_triangles * 3; i++) {
-        ibo_builder.data[i] += gps->runtime.stroke_start;
+        ibo_builder.data[i] = (ibo_builder.data[i] + 1) << GP_VERTEX_ID_SHIFT;
       }
       /* HACK since we didn't use the builder API to avoid another malloc and copy,
        * we need to set the number of indices manually. */
       ibo_builder.index_len = gps->tot_triangles * 3;
 
+      gps->runtime.stroke_start = gps->tot_triangles;
+
       MEM_freeN(tpoints2d);
     }
-    gps->runtime.stroke_start = do_fill ? gps->tot_triangles : 0;
-    gps->runtime.fill_start = 0;
-    gps->runtime.vertex_start = 0;
 
     /* Fill buffers with data. */
     gpencil_buffer_add_stroke(&ibo_builder, verts, cols, gps);
@@ -673,29 +674,29 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
   }
 }
 
-GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob)
+GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
-  gpencil_sbuffer_stroke_ensure(gpd, true, true);
+  gpencil_sbuffer_stroke_ensure(gpd, show_fill);
 
   return gpd->runtime.sbuffer_batch;
 }
 
-GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob)
+GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
-  gpencil_sbuffer_stroke_ensure(gpd, true, true);
+  gpencil_sbuffer_stroke_ensure(gpd, show_fill);
 
   return gpd->runtime.sbuffer_position_buf;
 }
 
-GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob)
+GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
-  gpencil_sbuffer_stroke_ensure(gpd, true, true);
+  gpencil_sbuffer_stroke_ensure(gpd, show_fill);
 
   return gpd->runtime.sbuffer_color_buf;
 }

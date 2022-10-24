@@ -342,7 +342,6 @@ typedef struct gpIterPopulateData {
   int stroke_index_offset;
   /* Infos for call batching. */
   struct GPUBatch *geom;
-  bool instancing;
   int vfirst, vcount;
 } gpIterPopulateData;
 
@@ -352,12 +351,7 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 {
 #if !DISABLE_BATCHING
   if (iter->geom != NULL) {
-    if (iter->instancing) {
-      DRW_shgroup_call_instance_range(iter->grp, iter->ob, iter->geom, iter->vfirst, iter->vcount);
-    }
-    else {
-      DRW_shgroup_call_range(iter->grp, iter->ob, iter->geom, iter->vfirst, iter->vcount);
-    }
+    DRW_shgroup_call_range(iter->grp, iter->ob, iter->geom, iter->vfirst, iter->vcount);
   }
 #endif
 
@@ -367,16 +361,13 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 }
 
 /* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
-static void gpencil_drawcall_add(
-    gpIterPopulateData *iter, struct GPUBatch *geom, bool instancing, int v_first, int v_count)
+static void gpencil_drawcall_add(gpIterPopulateData *iter,
+                                 struct GPUBatch *geom,
+                                 int v_first,
+                                 int v_count)
 {
 #if DISABLE_BATCHING
-  if (instancing) {
-    DRW_shgroup_call_instance_range(iter->grp, iter->ob, geom, v_first, v_count);
-  }
-  else {
-    DRW_shgroup_call_range(iter->grp, iter->ob, geom, v_first, v_count);
-  }
+  DRW_shgroup_call_range(iter->grp, iter->ob, geom, v_first, v_count);
   return;
 #endif
 
@@ -386,7 +377,6 @@ static void gpencil_drawcall_add(
     gpencil_drawcall_flush(iter);
   }
   iter->geom = geom;
-  iter->instancing = instancing;
   if (iter->vfirst == -1) {
     iter->vfirst = v_first;
   }
@@ -517,16 +507,17 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
   bool do_sbuffer = (iter->do_sbuffer_call == DRAW_NOW);
 
-  GPUBatch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob) :
+  GPUBatch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob, show_fill) :
                                 DRW_cache_gpencil_get(iter->ob, iter->pd->cfra);
   if (geom != iter->geom) {
     gpencil_drawcall_flush(iter);
 
     GPUVertBuf *position_tx = do_sbuffer ?
-                                  DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob) :
+                                  DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob,
+                                                                                show_fill) :
                                   DRW_cache_gpencil_position_buffer_get(iter->ob, iter->pd->cfra);
     GPUVertBuf *color_tx = do_sbuffer ?
-                               DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob) :
+                               DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob, show_fill) :
                                DRW_cache_gpencil_color_buffer_get(iter->ob, iter->pd->cfra);
     DRW_shgroup_buffer_texture(iter->grp, "gp_pos_tx", position_tx);
     DRW_shgroup_buffer_texture(iter->grp, "gp_col_tx", color_tx);
@@ -535,14 +526,17 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
   if (show_fill) {
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
-    gpencil_drawcall_add(iter, geom, false, vfirst, vcount);
+    if (do_sbuffer) {
+      printf("draw_fill vfirst %d vcount %d\n", vfirst, vcount);
+    }
+    gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
   if (show_stroke) {
     int vfirst = gps->runtime.stroke_start * 3;
     bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
     int vcount = (gps->totpoints + (int)is_cyclic) * 2 * 3;
-    gpencil_drawcall_add(iter, geom, false, vfirst, vcount);
+    gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
   iter->stroke_index_last = gps->runtime.stroke_start + gps->totpoints + 1;
