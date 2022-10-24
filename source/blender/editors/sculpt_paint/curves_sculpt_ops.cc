@@ -786,7 +786,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.obmat;
+  float4x4 curves_to_world_mat = curves_ob.object_to_world;
   float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   float4x4 projection;

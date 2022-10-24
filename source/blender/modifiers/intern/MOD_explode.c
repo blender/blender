@@ -985,7 +985,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   MTFace *mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
 
   /* getting back to object space */
-  invert_m4_m4(imat, ctx->object->obmat);
+  invert_m4_m4(imat, ctx->object->object_to_world);
 
   psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
@@ -1020,7 +1020,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_particle_state(&sim, ed_v2, &state, 1);
 
       vertco = explode_verts[v].co;
-      mul_m4_v3(ctx->object->obmat, vertco);
+      mul_m4_v3(ctx->object->object_to_world, vertco);
 
       sub_v3_v3(vertco, birth.co);
 

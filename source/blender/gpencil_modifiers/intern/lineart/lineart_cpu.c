@@ -2633,7 +2633,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                           scene,
                                           eval_ob,
                                           eval_ob,
-                                          eval_ob->obmat,
+                                          eval_ob->object_to_world,
                                           is_render,
                                           olti,
                                           thread_count,
@@ -3589,11 +3589,11 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(ld->conf.camera_pos, camera->obmat[3]);
+  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world[3]);
   if (active_camera) {
-    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->obmat[3]);
+    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
   }
-  copy_m4_m4(ld->conf.cam_obmat, camera->obmat);
+  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
 
   ld->conf.cam_is_persp = (c->type == CAM_PERSP);
   ld->conf.near_clip = c->clip_start + clipping_offset;
@@ -3620,8 +3620,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   if (lmd->light_contour_object) {
     Object *light_obj = lmd->light_contour_object;
-    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->obmat[3]);
-    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->obmat);
+    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
+    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
     ld->conf.light_reference_available = true;
     if (light_obj->type == OB_LAMP) {
       ld->conf.cam_is_persp_secondary = ((Light *)light_obj->data)->type != LA_SUN;
@@ -5418,7 +5418,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
   }
 
   float gp_obmat_inverse[4][4];
-  invert_m4_m4(gp_obmat_inverse, ob->obmat);
+  invert_m4_m4(gp_obmat_inverse, ob->object_to_world);
   lineart_gpencil_generate(cache,
                            depsgraph,
                            ob,

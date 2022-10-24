@@ -55,8 +55,8 @@ static void edbm_extrude_edge_exclude_mirror(
         float mtx[4][4];
         if (mmd->mirror_ob) {
           float imtx[4][4];
-          invert_m4_m4(imtx, mmd->mirror_ob->obmat);
-          mul_m4_m4m4(mtx, imtx, obedit->obmat);
+          invert_m4_m4(imtx, mmd->mirror_ob->object_to_world);
+          mul_m4_m4m4(mtx, imtx, obedit->object_to_world);
         }
 
         BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
@@ -293,7 +293,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    copy_m3_m4(tmat, obedit->obmat);
+    copy_m3_m4(tmat, obedit->object_to_world);
     invert_m3(tmat);
     mul_v3_m3v3(offset_local, tmat, offset);
 
@@ -736,7 +736,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     }
 
     mul_v3_fl(local_center, 1.0f / (float)local_verts_len);
-    mul_m4_v3(vc.obedit->obmat, local_center);
+    mul_m4_v3(vc.obedit->object_to_world, local_center);
     mul_v3_fl(local_center, (float)local_verts_len);
 
     add_v3_v3(center, local_center);
@@ -761,7 +761,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       continue;
     }
 
-    invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
+    invert_m4_m4(vc.obedit->imat, vc.obedit->object_to_world);
     ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
     float local_center[3];
@@ -823,7 +823,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       /* center */
       copy_v3_v3(ofs, local_center);
 
-      mul_m4_v3(vc.obedit->obmat, ofs); /* view space */
+      mul_m4_v3(vc.obedit->object_to_world, ofs); /* view space */
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, ofs, event->mval, ofs);
       mul_m4_v3(vc.obedit->imat, ofs); /* back in object space */
 

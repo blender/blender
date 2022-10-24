@@ -3930,7 +3930,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
       copy_v3_v3(co_root, co);
       copy_v3_v3(no_root, &edit->emitter_cosnos[point_index * 6 + 3]);
-      mul_mat3_m4_v3(data->ob->obmat, no_root); /* normal into global-space */
+      mul_mat3_m4_v3(data->ob->object_to_world, no_root); /* normal into global-space */
       normalize_v3(no_root);
 
       if (puff_volume) {
@@ -4016,8 +4016,8 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
             point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, NULL);
             if (point_index != -1) {
               copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
-              mul_mat3_m4_v3(data->ob->obmat, onor); /* Normal into world-space. */
-              mul_mat3_m4_v3(imat, onor);            /* World-space into particle-space. */
+              mul_mat3_m4_v3(data->ob->object_to_world, onor); /* Normal into world-space. */
+              mul_mat3_m4_v3(imat, onor); /* World-space into particle-space. */
               normalize_v3(onor);
             }
             else {
@@ -4412,7 +4412,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
   short size = pset->brush[PE_BRUSH_ADD].size;
   RNG *rng;
 
-  invert_m4_m4(imat, ob->obmat);
+  invert_m4_m4(imat, ob->object_to_world);
 
   if (psys->flag & PSYS_GLOBAL_HAIR) {
     return 0;
@@ -4797,7 +4797,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             data.combfac = 1.0f - data.combfac;
           }
 
-          invert_m4_m4(ob->imat, ob->obmat);
+          invert_m4_m4(ob->imat, ob->object_to_world);
 
           ED_view3d_win_to_delta(region, xy_delta, bedit->zfac, vec);
           data.dvec = vec;
@@ -4865,7 +4865,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             }
 
             data.invert = (brush->invert ^ flip);
-            invert_m4_m4(ob->imat, ob->obmat);
+            invert_m4_m4(ob->imat, ob->object_to_world);
 
             foreach_mouse_hit_point(&data, brush_puff, selected);
           }
@@ -4895,7 +4895,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
           data.smoothfac = brush->strength;
 
-          invert_m4_m4(ob->imat, ob->obmat);
+          invert_m4_m4(ob->imat, ob->object_to_world);
 
           foreach_mouse_hit_key(&data, brush_smooth_get, selected);
 

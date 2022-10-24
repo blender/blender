@@ -2644,7 +2644,7 @@ static void springs_from_mesh(Object *ob)
       bp = ob->soft->bpoint;
       for (a = 0; a < me->totvert; a++, bp++) {
         copy_v3_v3(bp->origS, verts[a].co);
-        mul_m4_v3(ob->obmat, bp->origS);
+        mul_m4_v3(ob->object_to_world, bp->origS);
       }
     }
     /* recalculate spring length for meshes here */
@@ -2809,9 +2809,9 @@ static float globallen(float *v1, float *v2, Object *ob)
 {
   float p1[3], p2[3];
   copy_v3_v3(p1, v1);
-  mul_m4_v3(ob->obmat, p1);
+  mul_m4_v3(ob->object_to_world, p1);
   copy_v3_v3(p2, v2);
-  mul_m4_v3(ob->obmat, p2);
+  mul_m4_v3(ob->object_to_world, p2);
   return len_v3v3(p1, p2);
 }
 
@@ -3073,7 +3073,7 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
       SB_estimate_transform(ob, sb->lcom, sb->lrot, sb->lscale);
     }
     /* Inverse matrix is not up to date. */
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->imat, ob->object_to_world);
 
     for (a = 0; a < numVerts; a++, bp++) {
       copy_v3_v3(vertexCos[a], bp->pos);
@@ -3223,7 +3223,7 @@ static void softbody_update_positions(Object *ob,
     /* copy the position of the goals at desired end time */
     copy_v3_v3(bp->origE, vertexCos[a]);
     /* vertexCos came from local world, go global */
-    mul_m4_v3(ob->obmat, bp->origE);
+    mul_m4_v3(ob->object_to_world, bp->origE);
     /* just to be save give bp->origT a defined value
      * will be calculated in interpolate_exciter() */
     copy_v3_v3(bp->origT, bp->origE);
@@ -3279,7 +3279,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 
   for (a = 0, bp = sb->bpoint; a < numVerts; a++, bp++) {
     copy_v3_v3(bp->pos, vertexCos[a]);
-    mul_m4_v3(ob->obmat, bp->pos); /* Yep, soft-body is global coords. */
+    mul_m4_v3(ob->object_to_world, bp->pos); /* Yep, soft-body is global coords. */
     copy_v3_v3(bp->origS, bp->pos);
     copy_v3_v3(bp->origE, bp->pos);
     copy_v3_v3(bp->origT, bp->pos);

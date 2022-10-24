@@ -94,8 +94,8 @@ static void generate_vert_coordinates(Mesh *mesh,
     /* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
     /* Get ob_center (world) coordinates in ob local coordinates.
      * No need to take into account ob_center's space here, see T44027. */
-    invert_m4_m4(inv_obmat, ob->obmat);
-    mul_v3_m4v3(diff, inv_obmat, ob_center->obmat[3]);
+    invert_m4_m4(inv_obmat, ob->object_to_world);
+    mul_v3_m4v3(diff, inv_obmat, ob_center->object_to_world[3]);
     negate_v3(diff);
 
     do_diff = true;
@@ -383,8 +383,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   /* Get target's center coordinates in ob local coordinates. */
   float mat[4][4];
 
-  invert_m4_m4(mat, ob->obmat);
-  mul_m4_m4m4(mat, mat, ob_target->obmat);
+  invert_m4_m4(mat, ob->object_to_world);
+  mul_m4_m4m4(mat, mat, ob_target->object_to_world);
   copy_v3_v3(target_co, mat[3]);
 
   if (use_parallel_normals) {

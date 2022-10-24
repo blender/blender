@@ -967,7 +967,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
   size_t i;
   float iobmat[4][4];
 
-  invert_m4_m4(iobmat, ob->obmat);
+  invert_m4_m4(iobmat, ob->object_to_world);
 
   for (i = 0; i < pixels_num; i++) {
     size_t offset;

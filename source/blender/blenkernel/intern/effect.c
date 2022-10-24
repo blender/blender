@@ -154,8 +154,8 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
       if (eff->ob->runtime.curve_cache->anim_path_accum_length) {
         BKE_where_on_path(
             eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);
-        mul_m4_v3(eff->ob->obmat, eff->guide_loc);
-        mul_mat3_m4_v3(eff->ob->obmat, eff->guide_dir);
+        mul_m4_v3(eff->ob->object_to_world, eff->guide_loc);
+        mul_mat3_m4_v3(eff->ob->object_to_world, eff->guide_dir);
       }
     }
   }
@@ -707,8 +707,8 @@ bool get_effector_data(EffectorCache *eff,
       copy_v3_v3(efd->loc, verts[*efd->index].co);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
-      mul_m4_v3(eff->ob->obmat, efd->loc);
-      mul_mat3_m4_v3(eff->ob->obmat, efd->nor);
+      mul_m4_v3(eff->ob->object_to_world, efd->loc);
+      mul_mat3_m4_v3(eff->ob->object_to_world, efd->nor);
 
       normalize_v3(efd->nor);
 
@@ -760,23 +760,23 @@ bool get_effector_data(EffectorCache *eff,
     const Object *ob = eff->ob;
 
     /* Use z-axis as normal. */
-    normalize_v3_v3(efd->nor, ob->obmat[2]);
+    normalize_v3_v3(efd->nor, ob->object_to_world[2]);
 
     if (eff->pd && ELEM(eff->pd->shape, PFIELD_SHAPE_PLANE, PFIELD_SHAPE_LINE)) {
       float temp[3], translate[3];
-      sub_v3_v3v3(temp, point->loc, ob->obmat[3]);
+      sub_v3_v3v3(temp, point->loc, ob->object_to_world[3]);
       project_v3_v3v3(translate, temp, efd->nor);
 
       /* for vortex the shape chooses between old / new force */
       if (eff->pd->forcefield == PFIELD_VORTEX || eff->pd->shape == PFIELD_SHAPE_LINE) {
-        add_v3_v3v3(efd->loc, ob->obmat[3], translate);
+        add_v3_v3v3(efd->loc, ob->object_to_world[3], translate);
       }
       else { /* normally efd->loc is closest point on effector xy-plane */
         sub_v3_v3v3(efd->loc, point->loc, translate);
       }
     }
     else {
-      copy_v3_v3(efd->loc, ob->obmat[3]);
+      copy_v3_v3(efd->loc, ob->object_to_world[3]);
     }
 
     zero_v3(efd->vel);
@@ -801,8 +801,8 @@ bool get_effector_data(EffectorCache *eff,
     }
     else {
       /* for some effectors we need the object center every time */
-      sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
-      normalize_v3_v3(efd->nor2, eff->ob->obmat[2]);
+      sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->object_to_world[3]);
+      normalize_v3_v3(efd->nor2, eff->ob->object_to_world[2]);
     }
   }
 

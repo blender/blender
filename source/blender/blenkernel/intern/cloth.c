@@ -269,7 +269,7 @@ static int do_step_cloth(
 
     /* Get the current position. */
     copy_v3_v3(verts->xconst, mvert[i].co);
-    mul_m4_v3(ob->obmat, verts->xconst);
+    mul_m4_v3(ob->object_to_world, verts->xconst);
 
     if (vert_mass_changed) {
       verts->mass = clmd->sim_parms->mass;
@@ -581,7 +581,7 @@ static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexC
 
   if (clmd->clothObject) {
     /* Inverse matrix is not up to date. */
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->imat, ob->object_to_world);
 
     for (i = 0; i < cloth->mvert_num; i++) {
       copy_v3_v3(vertexCos[i], cloth->verts[i].x);
@@ -763,11 +763,11 @@ static bool cloth_from_object(
     if (first) {
       copy_v3_v3(verts->x, mvert[i].co);
 
-      mul_m4_v3(ob->obmat, verts->x);
+      mul_m4_v3(ob->object_to_world, verts->x);
 
       if (shapekey_rest) {
         copy_v3_v3(verts->xrest, shapekey_rest[i]);
-        mul_m4_v3(ob->obmat, verts->xrest);
+        mul_m4_v3(ob->object_to_world, verts->xrest);
       }
       else {
         copy_v3_v3(verts->xrest, verts->x);
@@ -1155,7 +1155,7 @@ static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
   /* vertex count is already ensured to match */
   for (i = 0; i < mesh->totvert; i++, verts++) {
     copy_v3_v3(verts->xrest, mvert[i].co);
-    mul_m4_v3(ob->obmat, verts->xrest);
+    mul_m4_v3(ob->object_to_world, verts->xrest);
   }
 }
 

@@ -112,7 +112,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         else {
           sub_v3_v3(transform.values[3], collection->instance_offset);
         }
-        mul_m4_m4_post(transform.values, child_object->obmat);
+        mul_m4_m4_post(transform.values, child_object->object_to_world);
       }
       entries.append({handle, &(child_object->id.name[2]), transform});
     }

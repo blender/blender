@@ -273,7 +273,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       break;
     case eParticleInstanceSpace_Local:
       /* get particle states in the particle object's local space */
-      invert_m4_m4(spacemat, pimd->ob->obmat);
+      invert_m4_m4(spacemat, pimd->ob->object_to_world);
       break;
     default:
       /* should not happen */

@@ -1129,9 +1129,9 @@ static void sound_update_base(Scene *scene, Object *object, void *new_set)
         AUD_SequenceEntry_setConeAngleInner(strip->speaker_handle, speaker->cone_angle_inner);
         AUD_SequenceEntry_setConeVolumeOuter(strip->speaker_handle, speaker->cone_volume_outer);
 
-        mat4_to_quat(quat, object->obmat);
+        mat4_to_quat(quat, object->object_to_world);
         AUD_SequenceEntry_setAnimationData(
-            strip->speaker_handle, AUD_AP_LOCATION, scene->r.cfra, object->obmat[3], 1);
+            strip->speaker_handle, AUD_AP_LOCATION, scene->r.cfra, object->object_to_world[3], 1);
         AUD_SequenceEntry_setAnimationData(
             strip->speaker_handle, AUD_AP_ORIENTATION, scene->r.cfra, quat, 1);
         AUD_SequenceEntry_setAnimationData(
@@ -1171,9 +1171,9 @@ void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
   }
 
   if (scene->camera) {
-    mat4_to_quat(quat, scene->camera->obmat);
+    mat4_to_quat(quat, scene->camera->object_to_world);
     AUD_Sequence_setAnimationData(
-        scene->sound_scene, AUD_AP_LOCATION, scene->r.cfra, scene->camera->obmat[3], 1);
+        scene->sound_scene, AUD_AP_LOCATION, scene->r.cfra, scene->camera->object_to_world[3], 1);
     AUD_Sequence_setAnimationData(scene->sound_scene, AUD_AP_ORIENTATION, scene->r.cfra, quat, 1);
   }
 

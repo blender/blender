@@ -146,8 +146,8 @@ void SCULPT_filter_cache_init(bContext *C,
       0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
 
   /* Setup orientation matrices. */
-  copy_m4_m4(ss->filter_cache->obmat, ob->obmat);
-  invert_m4_m4(ss->filter_cache->obmat_inv, ob->obmat);
+  copy_m4_m4(ss->filter_cache->obmat, ob->object_to_world);
+  invert_m4_m4(ss->filter_cache->obmat_inv, ob->object_to_world);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -203,7 +203,7 @@ void SCULPT_filter_cache_init(bContext *C,
 
     /* Update last stroke location */
 
-    mul_m4_v3(ob->obmat, co);
+    mul_m4_v3(ob->object_to_world, co);
 
     add_v3_v3(ups->average_stroke_accum, co);
     ups->average_stroke_counter++;
@@ -221,7 +221,7 @@ void SCULPT_filter_cache_init(bContext *C,
 
   ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
 
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->imat, ob->object_to_world);
   copy_m3_m4(mat, vc.rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
   copy_m3_m4(mat, ob->imat);

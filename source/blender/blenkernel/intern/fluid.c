@@ -433,7 +433,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   copy_v3_v3(fds->global_size, size);
   copy_v3_v3(fds->dp0, min);
 
-  invert_m4_m4(fds->imat, ob->obmat);
+  invert_m4_m4(fds->imat, ob->object_to_world);
 
   /* Prevent crash when initializing a plane as domain. */
   if (!init_resolution || (size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) ||
@@ -498,8 +498,8 @@ static bool fluid_modifier_init(
     zero_v3(fds->shift_f);
     add_v3_fl(fds->shift_f, 0.5f);
     zero_v3(fds->prev_loc);
-    mul_m4_v3(ob->obmat, fds->prev_loc);
-    copy_m4_m4(fds->obmat, ob->obmat);
+    mul_m4_v3(ob->object_to_world, fds->prev_loc);
+    copy_m4_m4(fds->obmat, ob->object_to_world);
 
     /* Set resolutions. */
     if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS &&
@@ -566,11 +566,11 @@ static int get_light(Scene *scene, ViewLayer *view_layer, float *light)
       Light *la = base_tmp->object->data;
 
       if (la->type == LA_LOCAL) {
-        copy_v3_v3(light, base_tmp->object->obmat[3]);
+        copy_v3_v3(light, base_tmp->object->object_to_world[3]);
         return 1;
       }
       if (!found_light) {
-        copy_v3_v3(light, base_tmp->object->obmat[3]);
+        copy_v3_v3(light, base_tmp->object->object_to_world[3]);
         found_light = 1;
       }
     }
@@ -1036,7 +1036,7 @@ static void obstacles_from_mesh(Object *coll_ob,
       float co[3];
 
       /* Vertex position. */
-      mul_m4_v3(coll_ob->obmat, verts[i].co);
+      mul_m4_v3(coll_ob->object_to_world, verts[i].co);
       manta_pos_to_cell(fds, verts[i].co);
 
       /* Vertex velocity. */
@@ -2099,11 +2099,11 @@ static void emit_from_mesh(
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
-      mul_m4_v3(flow_ob->obmat, verts[i].co);
+      mul_m4_v3(flow_ob->object_to_world, verts[i].co);
       manta_pos_to_cell(fds, verts[i].co);
 
       /* Vertex normal. */
-      mul_mat3_m4_v3(flow_ob->obmat, vert_normals[i]);
+      mul_mat3_m4_v3(flow_ob->object_to_world, vert_normals[i]);
       mul_mat3_m4_v3(fds->imat, vert_normals[i]);
       normalize_v3(vert_normals[i]);
 
@@ -2121,7 +2121,7 @@ static void emit_from_mesh(
       /* Calculate emission map bounds. */
       bb_boundInsert(bb, verts[i].co);
     }
-    mul_m4_v3(flow_ob->obmat, flow_center);
+    mul_m4_v3(flow_ob->object_to_world, flow_center);
     manta_pos_to_cell(fds, flow_center);
 
     /* Set emission map.
@@ -2191,7 +2191,7 @@ static void adaptive_domain_adjust(
   float frame_shift_f[3];
   float ob_loc[3] = {0};
 
-  mul_m4_v3(ob->obmat, ob_loc);
+  mul_m4_v3(ob->object_to_world, ob_loc);
 
   sub_v3_v3v3(frame_shift_f, ob_loc, fds->prev_loc);
   copy_v3_v3(fds->prev_loc, ob_loc);
@@ -3495,8 +3495,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
     /* Calculate required shift to match domain's global position
      * it was originally simulated at (if object moves without manta step). */
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_m4_v3(ob->obmat, ob_loc);
+    invert_m4_m4(ob->imat, ob->object_to_world);
+    mul_m4_v3(ob->object_to_world, ob_loc);
     mul_m4_v3(fds->obmat, ob_cache_loc);
     sub_v3_v3v3(fds->obj_shift_f, ob_cache_loc, ob_loc);
     /* Convert shift to local space and apply to vertices. */
@@ -3525,8 +3525,8 @@ static int manta_step(
   bool mode_replay = (mode == FLUID_DOMAIN_CACHE_REPLAY);
 
   /* Update object state. */
-  invert_m4_m4(fds->imat, ob->obmat);
-  copy_m4_m4(fds->obmat, ob->obmat);
+  invert_m4_m4(fds->imat, ob->object_to_world);
+  copy_m4_m4(fds->obmat, ob->object_to_world);
 
   /* Gas domain might use adaptive domain. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS) {

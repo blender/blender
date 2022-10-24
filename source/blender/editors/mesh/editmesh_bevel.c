@@ -244,7 +244,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
     for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
       Object *obedit = objects[ob_index];
-      float scale = mat4_to_scale(obedit->obmat);
+      float scale = mat4_to_scale(obedit->object_to_world);
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {

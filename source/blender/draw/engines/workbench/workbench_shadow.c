@@ -172,7 +172,7 @@ static const BoundBox *workbench_shadow_object_shadow_bbox_get(WORKBENCH_Private
 {
   if (oed->shadow_bbox_dirty || wpd->shadow_changed) {
     float tmp_mat[4][4];
-    mul_m4_m4m4(tmp_mat, wpd->shadow_inv, ob->obmat);
+    mul_m4_m4m4(tmp_mat, wpd->shadow_inv, ob->object_to_world);
 
     /* Get AABB in shadow space. */
     INIT_MINMAX(oed->shadow_min, oed->shadow_max);

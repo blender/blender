@@ -1330,14 +1330,14 @@ void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
 
       /* Calculate the world-space matrix for the pose-channel target first,
        * then carry on as usual. */
-      mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
+      mul_m4_m4m4(mat, hmd->object->object_to_world, pchan->pose_mat);
 
       invert_m4_m4(imat, mat);
-      mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
+      mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
     }
     else {
-      invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-      mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
+      invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
+      mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
     }
   }
 }
@@ -1355,14 +1355,14 @@ void BKE_object_modifier_gpencil_hook_reset(Object *ob, HookGpencilModifierData 
 
     /* Calculate the world-space matrix for the pose-channel target first,
      * then carry on as usual. */
-    mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
+    mul_m4_m4m4(mat, hmd->object->object_to_world, pchan->pose_mat);
 
     invert_m4_m4(imat, mat);
-    mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
+    mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
   }
   else {
-    invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-    mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
+    invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
+    mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
   }
 }
 
@@ -3102,10 +3102,10 @@ void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4])
 
     BKE_object_get_parent_matrix(ob, ob->parent, par_imat);
     invert_m4(par_imat);
-    mul_m4_m4m4(r_mat, par_imat, ob->obmat);
+    mul_m4_m4m4(r_mat, par_imat, ob->object_to_world);
   }
   else {
-    copy_m4_m4(r_mat, ob->obmat);
+    copy_m4_m4(r_mat, ob->object_to_world);
   }
 }
 
@@ -3359,32 +3359,32 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
       }
 
       if (ok) {
-        mul_m4_m4m4(r_parentmat, par->obmat, tmat);
+        mul_m4_m4m4(r_parentmat, par->object_to_world, tmat);
       }
       else {
-        copy_m4_m4(r_parentmat, par->obmat);
+        copy_m4_m4(r_parentmat, par->object_to_world);
       }
 
       break;
     }
     case PARBONE:
       ob_parbone(ob, par, tmat);
-      mul_m4_m4m4(r_parentmat, par->obmat, tmat);
+      mul_m4_m4m4(r_parentmat, par->object_to_world, tmat);
       break;
 
     case PARVERT1:
       unit_m4(r_parentmat);
       give_parvert(par, ob->par1, vec);
-      mul_v3_m4v3(r_parentmat[3], par->obmat, vec);
+      mul_v3_m4v3(r_parentmat[3], par->object_to_world, vec);
       break;
     case PARVERT3:
       ob_parvert3(ob, par, tmat);
 
-      mul_m4_m4m4(r_parentmat, par->obmat, tmat);
+      mul_m4_m4m4(r_parentmat, par->object_to_world, tmat);
       break;
 
     case PARSKEL:
-      copy_m4_m4(r_parentmat, par->obmat);
+      copy_m4_m4(r_parentmat, par->object_to_world);
       break;
   }
 }
@@ -3422,7 +3422,7 @@ static void solve_parenting(
   /* origin, for help line */
   if (set_origin) {
     if ((ob->partype & PARTYPE) == PARSKEL) {
-      copy_v3_v3(ob->runtime.parent_display_origin, par->obmat[3]);
+      copy_v3_v3(ob->runtime.parent_display_origin, par->object_to_world[3]);
     }
     else {
       copy_v3_v3(ob->runtime.parent_display_origin, totmat[3]);
@@ -3441,10 +3441,10 @@ static void object_where_is_calc_ex(Depsgraph *depsgraph,
     Object *par = ob->parent;
 
     /* calculate parent matrix */
-    solve_parenting(ob, par, true, ob->obmat, r_originmat);
+    solve_parenting(ob, par, true, ob->object_to_world, r_originmat);
   }
   else {
-    BKE_object_to_mat4(ob, ob->obmat);
+    BKE_object_to_mat4(ob, ob->object_to_world);
   }
 
   /* try to fall back to the scene rigid body world if none given */
@@ -3461,7 +3461,7 @@ static void object_where_is_calc_ex(Depsgraph *depsgraph,
   }
 
   /* set negative scale flag in object */
-  if (is_negative_m4(ob->obmat)) {
+  if (is_negative_m4(ob->object_to_world)) {
     ob->transflag |= OB_NEG_SCALE;
   }
   else {
@@ -3507,7 +3507,7 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
 {
   BKE_object_workob_clear(workob);
 
-  unit_m4(workob->obmat);
+  unit_m4(workob->object_to_world);
   unit_m4(workob->parentinv);
   unit_m4(workob->constinv);
 
@@ -3599,7 +3599,7 @@ void BKE_object_apply_parent_inverse(struct Object *ob)
    *    `inv(parent) @ world = parentinv`
    *    `parentinv = inv(parent) @ world`
    *
-   * NOTE: If `ob->obmat` has shear, then this `parentinv` is insufficient because
+   * NOTE: If `ob->object_to_world` has shear, then this `parentinv` is insufficient because
    *    `parent @ parentinv => shearless result`
    *
    *    Thus, local will have shear which cannot be decomposed into TRS:
@@ -3628,7 +3628,7 @@ void BKE_object_apply_parent_inverse(struct Object *ob)
   copy_m4_m4(ob_local, ob->parentinv);
   invert_m4(ob_local);
   mul_m4_m4_post(ob_local, par_imat);
-  mul_m4_m4_post(ob_local, ob->obmat);
+  mul_m4_m4_post(ob_local, ob->object_to_world);
 
   /* Send use_compat=False so the rotation is predictable. */
   BKE_object_apply_mat4(ob, ob_local, false, false);
@@ -3793,7 +3793,7 @@ void BKE_object_dimensions_get(Object *ob, float r_vec[3])
   const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float3 scale;
-    mat4_to_size(scale, ob->obmat);
+    mat4_to_size(scale, ob->object_to_world);
 
     r_vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
     r_vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
@@ -3850,19 +3850,19 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     case OB_FONT:
     case OB_SURF: {
       const BoundBox bb = *BKE_curve_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
     case OB_MESH: {
       const BoundBox bb = *BKE_mesh_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
     case OB_GPENCIL: {
       const BoundBox bb = *BKE_gpencil_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
@@ -3875,7 +3875,7 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
         for (v = 0; v < lt->pntsv; v++) {
           for (u = 0; u < lt->pntsu; u++, bp++) {
             float3 vec;
-            mul_v3_m4v3(vec, ob->obmat, bp->vec);
+            mul_v3_m4v3(vec, ob->object_to_world, bp->vec);
             minmax_v3v3_v3(r_min, r_max, vec);
           }
         }
@@ -3890,7 +3890,8 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     case OB_MBALL: {
       float ob_min[3], ob_max[3];
 
-      changed = BKE_mball_minmax_ex((const MetaBall *)ob->data, ob_min, ob_max, ob->obmat, 0);
+      changed = BKE_mball_minmax_ex(
+          (const MetaBall *)ob->data, ob_min, ob_max, ob->object_to_world, 0);
       if (changed) {
         minmax_v3v3_v3(r_min, r_max, ob_min);
         minmax_v3v3_v3(r_min, r_max, ob_max);
@@ -3899,20 +3900,20 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     }
     case OB_CURVES: {
       const BoundBox bb = *BKE_curves_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
 
     case OB_POINTCLOUD: {
       const BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
     case OB_VOLUME: {
       const BoundBox bb = *BKE_volume_boundbox_get(ob);
-      BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
     }
@@ -3926,14 +3927,14 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       size *= ob->empty_drawsize;
     }
 
-    minmax_v3v3_v3(r_min, r_max, ob->obmat[3]);
+    minmax_v3v3_v3(r_min, r_max, ob->object_to_world[3]);
 
     float3 vec;
-    copy_v3_v3(vec, ob->obmat[3]);
+    copy_v3_v3(vec, ob->object_to_world[3]);
     add_v3_v3(vec, size);
     minmax_v3v3_v3(r_min, r_max, vec);
 
-    copy_v3_v3(vec, ob->obmat[3]);
+    copy_v3_v3(vec, ob->object_to_world[3]);
     sub_v3_v3(vec, size);
     minmax_v3v3_v3(r_min, r_max, vec);
   }
@@ -3980,12 +3981,12 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
        * however the issue with empty objects being visible when viewed from the side
        * is only noticeable in orthographic views. */
       float3 view_dir;
-      sub_v3_v3v3(view_dir, rv3d->viewinv[3], ob->obmat[3]);
-      dot = dot_v3v3(ob->obmat[2], view_dir);
+      sub_v3_v3v3(view_dir, rv3d->viewinv[3], ob->object_to_world[3]);
+      dot = dot_v3v3(ob->object_to_world[2], view_dir);
       eps = 0.0f;
     }
     else {
-      dot = dot_v3v3(ob->obmat[2], rv3d->viewinv[2]);
+      dot = dot_v3v3(ob->object_to_world[2], rv3d->viewinv[2]);
       eps = 1e-5f;
     }
     if (visibility_flag & OB_EMPTY_IMAGE_HIDE_BACK) {
@@ -4002,7 +4003,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
 
   if (visibility_flag & OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED) {
     float3 proj, ob_z_axis;
-    normalize_v3_v3(ob_z_axis, ob->obmat[2]);
+    normalize_v3_v3(ob_z_axis, ob->object_to_world[2]);
     project_plane_v3_v3v3(proj, ob_z_axis, rv3d->viewinv[2]);
     const float proj_length_sq = len_squared_v3(proj);
     if (proj_length_sq > 1e-5f) {
@@ -4194,7 +4195,7 @@ void BKE_scene_foreach_display_point(Depsgraph *depsgraph,
                             DEG_ITER_OBJECT_FLAG_DUPLI;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if ((ob->base_flag & BASE_SELECTED) != 0) {
-      BKE_object_foreach_display_point(ob, ob->obmat, func_cb, user_data);
+      BKE_object_foreach_display_point(ob, ob->object_to_world, func_cb, user_data);
     }
   }
   DEG_OBJECT_ITER_END;
@@ -4237,7 +4238,7 @@ void *BKE_object_tfm_backup(Object *ob)
   copy_v3_v3(obtfm->drotAxis, ob->drotAxis);
   obtfm->rotAngle = ob->rotAngle;
   obtfm->drotAngle = ob->drotAngle;
-  copy_m4_m4(obtfm->obmat, ob->obmat);
+  copy_m4_m4(obtfm->obmat, ob->object_to_world);
   copy_m4_m4(obtfm->parentinv, ob->parentinv);
   copy_m4_m4(obtfm->constinv, ob->constinv);
   copy_m4_m4(obtfm->imat, ob->imat);
@@ -4260,7 +4261,7 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
   copy_v3_v3(ob->drotAxis, obtfm->drotAxis);
   ob->rotAngle = obtfm->rotAngle;
   ob->drotAngle = obtfm->drotAngle;
-  copy_m4_m4(ob->obmat, obtfm->obmat);
+  copy_m4_m4(ob->object_to_world, obtfm->obmat);
   copy_m4_m4(ob->parentinv, obtfm->parentinv);
   copy_m4_m4(ob->constinv, obtfm->constinv);
   copy_m4_m4(ob->imat, obtfm->imat);
@@ -5291,7 +5292,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
         for (i = 0; i < verts.size(); i++) {
           if (index[i] != ORIGINDEX_NONE) {
             float co[3];
-            mul_v3_m4v3(co, ob->obmat, verts[i].co);
+            mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
             BLI_kdtree_3d_insert(tree, index[i], co);
             tot++;
           }
@@ -5305,7 +5306,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
         for (i = 0; i < tot; i++) {
           float co[3];
-          mul_v3_m4v3(co, ob->obmat, verts[i].co);
+          mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
           BLI_kdtree_3d_insert(tree, i, co);
         }
       }
@@ -5334,7 +5335,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
           a = nu->pntsu;
           while (a--) {
             float co[3];
-            mul_v3_m4v3(co, ob->obmat, bezt->vec[1]);
+            mul_v3_m4v3(co, ob->object_to_world, bezt->vec[1]);
             BLI_kdtree_3d_insert(tree, i++, co);
             bezt++;
           }
@@ -5346,7 +5347,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
           a = nu->pntsu * nu->pntsv;
           while (a--) {
             float co[3];
-            mul_v3_m4v3(co, ob->obmat, bp->vec);
+            mul_v3_m4v3(co, ob->object_to_world, bp->vec);
             BLI_kdtree_3d_insert(tree, i++, co);
             bp++;
           }
@@ -5369,7 +5370,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
       for (bp = lt->def; i < tot; bp++) {
         float co[3];
-        mul_v3_m4v3(co, ob->obmat, bp->vec);
+        mul_v3_m4v3(co, ob->object_to_world, bp->vec);
         BLI_kdtree_3d_insert(tree, i++, co);
       }
 

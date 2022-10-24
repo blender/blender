@@ -3684,7 +3684,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
   ps->viewDir[1] = 0.0f;
   ps->viewDir[2] = 1.0f;
 
-  copy_m4_m4(ps->obmat, ps->ob->obmat);
+  copy_m4_m4(ps->obmat, ps->ob->object_to_world);
 
   if (symmetry_flag) {
     int i;
@@ -3742,7 +3742,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
       CameraParams params;
 
       /* viewmat & viewinv */
-      copy_m4_m4(viewinv, cam_ob_eval->obmat);
+      copy_m4_m4(viewinv, cam_ob_eval->object_to_world);
       normalize_m4(viewinv);
       invert_m4_m4(viewmat, viewinv);
 
@@ -4462,7 +4462,7 @@ static void project_paint_begin(const bContext *C,
 
   if (ps->source == PROJ_SRC_VIEW) {
     /* faster clipping lookups */
-    ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);
+    ED_view3d_clipping_local(ps->rv3d, ps->ob->object_to_world);
   }
 
   ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);

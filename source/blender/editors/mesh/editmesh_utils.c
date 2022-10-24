@@ -1858,7 +1858,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
 
   ED_view3d_win_to_segment_clipped(depsgraph, region, v3d, mval_f, origin, end, false);
 
-  invert_m4_m4(invmat, obedit->obmat);
+  invert_m4_m4(invmat, obedit->object_to_world);
   mul_m4_v3(invmat, origin);
 
   copy_v3_v3(co1, e->v1->co);

@@ -2691,7 +2691,7 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
   /* if not layer parented, try with object parented */
   if (obparent_eval == NULL) {
     if ((ob_eval != NULL) && (ob_eval->type == OB_GPENCIL)) {
-      copy_m4_m4(diff_mat, ob_eval->obmat);
+      copy_m4_m4(diff_mat, ob_eval->object_to_world);
       mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
       return;
     }
@@ -2701,8 +2701,8 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
   }
 
   if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-    mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
-    add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
+    mul_m4_m4m4(diff_mat, obparent_eval->object_to_world, gpl->inverse);
+    add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
   }
@@ -2710,14 +2710,14 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
     bPoseChannel *pchan = BKE_pose_channel_find_name(obparent_eval->pose, gpl->parsubstr);
     if (pchan) {
       float tmp_mat[4][4];
-      mul_m4_m4m4(tmp_mat, obparent_eval->obmat, pchan->pose_mat);
+      mul_m4_m4m4(tmp_mat, obparent_eval->object_to_world, pchan->pose_mat);
       mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
-      add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
+      add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     }
     else {
       /* if bone not found use object (armature) */
-      mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
-      add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
+      mul_m4_m4m4(diff_mat, obparent_eval->object_to_world, gpl->inverse);
+      add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     }
     mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
@@ -2771,12 +2771,12 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
       Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        mul_m4_m4m4(cur_mat, ob->imat, ob_parent->obmat);
+        mul_m4_m4m4(cur_mat, ob->imat, ob_parent->object_to_world);
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
         if (pchan != NULL) {
-          mul_m4_series(cur_mat, ob->imat, ob_parent->obmat, pchan->pose_mat);
+          mul_m4_series(cur_mat, ob->imat, ob_parent->object_to_world, pchan->pose_mat);
         }
         else {
           unit_m4(cur_mat);

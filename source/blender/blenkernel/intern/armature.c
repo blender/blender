@@ -1596,7 +1596,7 @@ void BKE_armature_mat_world_to_pose(Object *ob, const float inmat[4][4], float o
   }
 
   /* Get inverse of (armature) object's matrix. */
-  invert_m4_m4(obmat, ob->obmat);
+  invert_m4_m4(obmat, ob->object_to_world);
 
   /* multiply given matrix by object's-inverse to find pose-space matrix */
   mul_m4_m4m4(outmat, inmat, obmat);
@@ -2569,7 +2569,7 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
     }
   }
   else {
-    invert_m4_m4(ob->imat, ob->obmat); /* imat is needed */
+    invert_m4_m4(ob->imat, ob->object_to_world); /* imat is needed */
 
     /* 1. clear flags */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -2696,14 +2696,14 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[0],
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
-    mul_m4_series(mat, ob->obmat, tmp, rmat, smat);
+    mul_m4_series(mat, ob->object_to_world, tmp, rmat, smat);
     BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
   }
   else {
     float vec[3];
-    mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
+    mul_v3_m4v3(vec, ob->object_to_world, pchan_tx->pose_head);
     minmax_v3v3_v3(r_min, r_max, vec);
-    mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
+    mul_v3_m4v3(vec, ob->object_to_world, pchan_tx->pose_tail);
     minmax_v3v3_v3(r_min, r_max, vec);
   }
 }

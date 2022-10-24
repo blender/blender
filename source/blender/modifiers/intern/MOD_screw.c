@@ -274,8 +274,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (ob_axis != NULL) {
     /* Calculate the matrix relative to the axis object. */
-    invert_m4_m4(mtx_tmp_a, ctx->object->obmat);
-    copy_m4_m4(mtx_tx_inv, ob_axis->obmat);
+    invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world);
+    copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world);
     mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
     /* Calculate the axis vector. */

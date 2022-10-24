@@ -317,7 +317,7 @@ static void add_endpoint_radius_help(tGPDfill *tgpf,
 
     /* Rotate to object rotation. */
     sub_v3_v3(&pt->x, endpoint);
-    mul_mat3_m4_v3(tgpf->ob->obmat, &pt->x);
+    mul_mat3_m4_v3(tgpf->ob->object_to_world, &pt->x);
     add_v3_v3(&pt->x, endpoint);
   }
 }

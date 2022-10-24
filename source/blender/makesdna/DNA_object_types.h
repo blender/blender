@@ -323,7 +323,7 @@ typedef struct Object {
   /** Axis angle rotation - angle part. */
   float rotAngle, drotAngle;
   /** Final world-space matrix with constraints & animsys applied. */
-  float obmat[4][4];
+  float object_to_world[4][4];
   /** Inverse result of parent, so that object doesn't 'stick' to parent. */
   float parentinv[4][4];
   /** Inverse result of constraints.
@@ -333,7 +333,7 @@ typedef struct Object {
    * Inverse matrix of 'obmat' for any other use than rendering!
    *
    * \note this isn't assured to be valid as with 'obmat',
-   * before using this value you should do: `invert_m4_m4(ob->imat, ob->obmat)`
+   * before using this value you should do: `invert_m4_m4(ob->imat, ob->object_to_world)`
    */
   float imat[4][4];
 

@@ -321,7 +321,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
     }
     else {
       /* Object. */
-      mat[i] = ob->obmat;
+      mat[i] = ob->object_to_world;
     }
   }
 
@@ -399,7 +399,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
       else {
         /* Convert to world-space. */
         copy_v3_v3(tmp_loc, pchan->pose_head);
-        mul_m4_v3(ob->obmat, tmp_loc);
+        mul_m4_v3(ob->object_to_world, tmp_loc);
       }
     }
     else {
@@ -410,7 +410,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
           float mat[4][4];
 
           /* Extract transform just like how the constraints do it! */
-          copy_m4_m4(mat, ob->obmat);
+          copy_m4_m4(mat, ob->object_to_world);
           BKE_constraint_mat_convertspace(
               ob, NULL, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, false);
 
@@ -424,7 +424,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
       }
       else {
         /* World-space. */
-        copy_v3_v3(tmp_loc, ob->obmat[3]);
+        copy_v3_v3(tmp_loc, ob->object_to_world[3]);
       }
     }
 
@@ -500,7 +500,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     }
     else {
       /* World-space matrix. */
-      mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
+      mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
     }
   }
   else {
@@ -514,7 +514,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
       if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
         /* Just like how the constraints do it! */
-        copy_m4_m4(mat, ob->obmat);
+        copy_m4_m4(mat, ob->object_to_world);
         BKE_constraint_mat_convertspace(
             ob, NULL, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, false);
       }
@@ -525,7 +525,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     }
     else {
       /* World-space matrix - just the good-old one. */
-      copy_m4_m4(mat, ob->obmat);
+      copy_m4_m4(mat, ob->object_to_world);
     }
   }
 

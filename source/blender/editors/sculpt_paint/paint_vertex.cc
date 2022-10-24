@@ -1647,7 +1647,7 @@ static void vwpaint_update_cache_invariants(
   /* cache projection matrix */
   ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->imat, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
   copy_m3_m4(mat, ob->imat);
@@ -2518,7 +2518,7 @@ static void wpaint_stroke_update_step(bContext *C,
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -2556,7 +2556,7 @@ static void wpaint_stroke_update_step(bContext *C,
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -3847,7 +3847,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
@@ -3870,7 +3870,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
 
   ED_region_tag_redraw(vc->region);
