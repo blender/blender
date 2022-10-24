@@ -84,11 +84,12 @@ struct GWL_Output {
 
 class GHOST_SystemWayland : public GHOST_System {
  public:
-  GHOST_SystemWayland();
+  GHOST_SystemWayland(bool background);
+  GHOST_SystemWayland() : GHOST_SystemWayland(true){};
 
   ~GHOST_SystemWayland() override;
 
-  GHOST_TSuccess init();
+  GHOST_TSuccess init() override;
 
   bool processEvents(bool waitForEvent) override;
 
@@ -128,7 +129,6 @@ class GHOST_SystemWayland : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool exclusive,
                               const bool is_dialog,
@@ -150,8 +150,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess setCursorVisibility(bool visible);
 
-  bool supportsCursorWarp();
-  bool supportsWindowPosition();
+  bool supportsCursorWarp() override;
+  bool supportsWindowPosition() override;
 
   bool getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode);
 
@@ -159,6 +159,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   struct wl_display *wl_display();
   struct wl_compositor *wl_compositor();
+  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager();
+  struct zwp_pointer_gestures_v1 *wp_pointer_gestures();
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   libdecor *libdecor_context();
@@ -173,8 +175,6 @@ class GHOST_SystemWayland : public GHOST_System {
 
   /* WAYLAND utility functions. */
 
-  void clipboard_set(const std::string &clipboard);
-
   /** Clear all references to this surface to prevent accessing NULL pointers. */
   void window_surface_unref(const wl_surface *wl_surface);
 
@@ -186,11 +186,12 @@ class GHOST_SystemWayland : public GHOST_System {
                               wl_surface *wl_surface,
                               int scale);
 
+  struct GWL_SimpleBuffer *clipboard_data(bool selection) const;
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   static bool use_libdecor_runtime();
 #endif
 
  private:
   struct GWL_Display *display_;
-  std::string clipboard_;
 };

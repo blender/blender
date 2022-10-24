@@ -1043,6 +1043,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_TEXTURE_PAINT;
     case PAINT_MODE_SCULPT_UV:
       return OB_MODE_EDIT;
+    case PAINT_MODE_SCULPT_CURVES:
+      return OB_MODE_SCULPT_CURVES;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;

@@ -299,6 +299,10 @@ static const char **get_file_extensions(int format)
       static const char *rv[] = {".webm", NULL};
       return rv;
     }
+    case FFMPEG_AV1: {
+      static const char *rv[] = {".mp4", ".mkv", NULL};
+      return rv;
+    }
     default:
       return NULL;
   }
@@ -455,6 +459,204 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
   return time_base;
 }
 
+static const AVCodec *get_av1_encoder(
+    FFMpegContext *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
+{
+  /* There are three possible encoders for AV1: libaom-av1, librav1e, and libsvtav1. librav1e tends
+   * to give the best compression quality while libsvtav1 tends to be the fastest encoder. One of
+   * each will be picked based on the preset setting, and if a particular encoder is not available,
+   * then use the default returned by FFMpeg. */
+  const AVCodec *codec = NULL;
+  switch (context->ffmpeg_preset) {
+    case FFM_PRESET_BEST:
+      /* Default to libaom-av1 for BEST preset due to it performing better than rav1e in terms of
+       * video quality (VMAF scores). Fallback to rav1e if libaom-av1 isn't available. */
+      codec = avcodec_find_encoder_by_name("libaom-av1");
+      if (!codec) {
+        codec = avcodec_find_encoder_by_name("librav1e");
+      }
+      break;
+    case FFM_PRESET_REALTIME:
+      codec = avcodec_find_encoder_by_name("libsvtav1");
+      break;
+    case FFM_PRESET_GOOD:
+    default:
+      codec = avcodec_find_encoder_by_name("libaom-av1");
+      break;
+  }
+
+  /* Use the default AV1 encoder if the specified encoder wasn't found. */
+  if (!codec) {
+    codec = avcodec_find_encoder(AV_CODEC_ID_AV1);
+  }
+
+  /* Apply AV1 encoder specific settings. */
+  if (codec) {
+    if (strcmp(codec->name, "librav1e") == 0) {
+      /* Set "tiles" to 8 to enable multi-threaded encoding. */
+      if (rd->threads > 8) {
+        ffmpeg_dict_set_int(opts, "tiles", rd->threads);
+      }
+      else {
+        ffmpeg_dict_set_int(opts, "tiles", 8);
+      }
+
+      /* Use a reasonable speed setting based on preset. Speed ranges from 0-10.
+       * Must check context->ffmpeg_preset again in case this encoder was selected due to the
+       * absence of another. */
+      switch (context->ffmpeg_preset) {
+        case FFM_PRESET_BEST:
+          ffmpeg_dict_set_int(opts, "speed", 4);
+          break;
+        case FFM_PRESET_REALTIME:
+          ffmpeg_dict_set_int(opts, "speed", 10);
+          break;
+        case FFM_PRESET_GOOD:
+        default:
+          ffmpeg_dict_set_int(opts, "speed", 6);
+          break;
+      }
+      if (context->ffmpeg_crf >= 0) {
+        /* librav1e does not use -crf, but uses -qp in the range of 0-255. Calculates the roughly
+         * equivalent float, and truncates it to an integer. */
+        unsigned int qp_value = ((float)context->ffmpeg_crf) * 255.0F / 51.0F;
+        if (qp_value > 255) {
+          qp_value = 255;
+        }
+        ffmpeg_dict_set_int(opts, "qp", qp_value);
+      }
+      /* Set gop_size as rav1e's "--keyint". */
+      char buffer[64];
+      BLI_snprintf(buffer, sizeof(buffer), "keyint=%d", context->ffmpeg_gop_size);
+      av_dict_set(opts, "rav1e-params", buffer, 0);
+    }
+    else if (strcmp(codec->name, "libsvtav1") == 0) {
+      /* Set preset value based on ffmpeg_preset.
+       * Must check context->ffmpeg_preset again in case this encoder was selected due to the
+       * absence of another. */
+      switch (context->ffmpeg_preset) {
+        case FFM_PRESET_REALTIME:
+          ffmpeg_dict_set_int(opts, "preset", 8);
+          break;
+        case FFM_PRESET_BEST:
+          ffmpeg_dict_set_int(opts, "preset", 3);
+          break;
+        case FFM_PRESET_GOOD:
+        default:
+          ffmpeg_dict_set_int(opts, "preset", 5);
+          break;
+      }
+      if (context->ffmpeg_crf >= 0) {
+        /* libsvtav1 does not support crf until FFmpeg builds since 2022-02-24, use qp as fallback.
+         */
+        ffmpeg_dict_set_int(opts, "qp", context->ffmpeg_crf);
+      }
+    }
+    else if (strcmp(codec->name, "libaom-av1") == 0) {
+      /* Speed up libaom-av1 encoding by enabling multithreading and setting tiles. */
+      ffmpeg_dict_set_int(opts, "row-mt", 1);
+      const char *tiles_string = NULL;
+      bool tiles_string_is_dynamic = false;
+      if (rd->threads > 0) {
+        /* See if threads is a square. */
+        int threads_sqrt = sqrtf(rd->threads);
+        if (threads_sqrt < 4) {
+          /* Ensure a default minimum. */
+          threads_sqrt = 4;
+        }
+        if (is_power_of_2_i(threads_sqrt) && threads_sqrt * threads_sqrt == rd->threads) {
+          /* Is a square num, therefore just do "sqrt x sqrt" for tiles parameter. */
+          int digits = 0;
+          for (int t_sqrt_copy = threads_sqrt; t_sqrt_copy > 0; t_sqrt_copy /= 10) {
+            ++digits;
+          }
+          /* A char array need only an alignment of 1. */
+          char *tiles_string_mut = (char *)calloc(digits * 2 + 2, 1);
+          BLI_snprintf(tiles_string_mut, digits * 2 + 2, "%dx%d", threads_sqrt, threads_sqrt);
+          tiles_string_is_dynamic = true;
+          tiles_string = tiles_string_mut;
+        }
+        else {
+          /* Is not a square num, set greater side based on longer side, or use a square if both
+             sides are equal. */
+          int sqrt_p2 = power_of_2_min_i(threads_sqrt);
+          if (sqrt_p2 < 2) {
+            /* Ensure a default minimum. */
+            sqrt_p2 = 2;
+          }
+          int sqrt_p2_next = power_of_2_min_i((int)rd->threads / sqrt_p2);
+          if (sqrt_p2_next < 1) {
+            sqrt_p2_next = 1;
+          }
+          if (sqrt_p2 > sqrt_p2_next) {
+            /* Ensure sqrt_p2_next is greater or equal to sqrt_p2. */
+            int temp = sqrt_p2;
+            sqrt_p2 = sqrt_p2_next;
+            sqrt_p2_next = temp;
+          }
+          int combined_digits = 0;
+          for (int sqrt_p2_copy = sqrt_p2; sqrt_p2_copy > 0; sqrt_p2_copy /= 10) {
+            ++combined_digits;
+          }
+          for (int sqrt_p2_copy = sqrt_p2_next; sqrt_p2_copy > 0; sqrt_p2_copy /= 10) {
+            ++combined_digits;
+          }
+          /* A char array need only an alignment of 1. */
+          char *tiles_string_mut = (char *)calloc(combined_digits + 2, 1);
+          if (rectx > recty) {
+            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2_next, sqrt_p2);
+          }
+          else if (rectx < recty) {
+            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2_next);
+          }
+          else {
+            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2);
+          }
+          tiles_string_is_dynamic = true;
+          tiles_string = tiles_string_mut;
+        }
+      }
+      else {
+        /* Thread count unknown, default to 8. */
+        if (rectx > recty) {
+          tiles_string = "4x2";
+        }
+        else if (rectx < recty) {
+          tiles_string = "2x4";
+        }
+        else {
+          tiles_string = "2x2";
+        }
+      }
+      av_dict_set(opts, "tiles", tiles_string, 0);
+      if (tiles_string_is_dynamic) {
+        free((void *)tiles_string);
+      }
+      /* libaom-av1 uses "cpu-used" instead of "preset" for defining compression quality.
+       * This value is in a range from 0-8. 0 and 8 are extremes, but we will allow 8.
+       * Must check context->ffmpeg_preset again in case this encoder was selected due to the
+       * absence of another. */
+      switch (context->ffmpeg_preset) {
+        case FFM_PRESET_REALTIME:
+          ffmpeg_dict_set_int(opts, "cpu-used", 8);
+          break;
+        case FFM_PRESET_BEST:
+          ffmpeg_dict_set_int(opts, "cpu-used", 4);
+          break;
+        case FFM_PRESET_GOOD:
+        default:
+          ffmpeg_dict_set_int(opts, "cpu-used", 6);
+          break;
+      }
+
+      /* CRF related settings is similar to H264 for libaom-av1, so we will rely on those settings
+       * applied later. */
+    }
+  }
+
+  return codec;
+}
+
 /* prepare a video stream for the output file */
 
 static AVStream *alloc_video_stream(FFMpegContext *context,
@@ -480,7 +682,14 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
 
   /* Set up the codec context */
 
-  codec = avcodec_find_encoder(codec_id);
+  if (codec_id == AV_CODEC_ID_AV1) {
+    /* Use get_av1_encoder() to get the ideal (hopefully) encoder for AV1 based
+     * on given parameters, and also set up opts. */
+    codec = get_av1_encoder(context, rd, &opts, rectx, recty);
+  }
+  else {
+    codec = avcodec_find_encoder(codec_id);
+  }
   if (!codec) {
     fprintf(stderr, "Couldn't find valid video codec\n");
     context->video_codec = NULL;
@@ -568,7 +777,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
       default:
         printf("Unknown preset number %i, ignoring.\n", context->ffmpeg_preset);
     }
-    if (preset_name != NULL) {
+    /* "codec_id != AV_CODEC_ID_AV1" is required due to "preset" already being set by an AV1 codec.
+     */
+    if (preset_name != NULL && codec_id != AV_CODEC_ID_AV1) {
       av_dict_set(&opts, "preset", preset_name, 0);
     }
     if (deadline_name != NULL) {
@@ -950,6 +1161,9 @@ static int start_ffmpeg_impl(FFMpegContext *context,
       break;
     case FFMPEG_FLV:
       video_codec = AV_CODEC_ID_FLV1;
+      break;
+    case FFMPEG_AV1:
+      video_codec = AV_CODEC_ID_AV1;
       break;
     default:
       /* These containers are not restricted to any specific codec types.
@@ -1482,6 +1696,18 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
       rd->ffcodecdata.mux_packet_size = 2048;
       rd->ffcodecdata.mux_rate = 10080000;
       break;
+    case FFMPEG_PRESET_AV1:
+      rd->ffcodecdata.type = FFMPEG_AV1;
+      rd->ffcodecdata.codec = AV_CODEC_ID_AV1;
+      rd->ffcodecdata.video_bitrate = 6000;
+      rd->ffcodecdata.gop_size = is_ntsc ? 18 : 15;
+      rd->ffcodecdata.rc_max_rate = 9000;
+      rd->ffcodecdata.rc_min_rate = 0;
+      rd->ffcodecdata.rc_buffer_size = 224 * 8;
+      rd->ffcodecdata.mux_packet_size = 2048;
+      rd->ffcodecdata.mux_rate = 10080000;
+
+      break;
   }
 }
 
@@ -1518,6 +1744,12 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
   else if (imf->imtype == R_IMF_IMTYPE_THEORA) {
     if (rd->ffcodecdata.codec != AV_CODEC_ID_THEORA) {
       BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_THEORA);
+      audio = 1;
+    }
+  }
+  else if (imf->imtype == R_IMF_IMTYPE_AV1) {
+    if (rd->ffcodecdata.codec != AV_CODEC_ID_AV1) {
+      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_AV1);
       audio = 1;
     }
   }

@@ -4,6 +4,7 @@
 #include "UI_resources.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -23,15 +24,9 @@ namespace blender::nodes::node_geo_delete_geometry_cc {
 using blender::bke::CustomDataAttributes;
 
 template<typename T>
-static void copy_data_based_on_mask(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
-{
-  for (const int i_out : mask.index_range()) {
-    r_data[i_out] = data[mask[i_out]];
-  }
-}
-
-template<typename T>
-static void copy_data_based_on_map(Span<T> src, MutableSpan<T> dst, Span<int> index_map)
+static void copy_data_based_on_map(const Span<T> src,
+                                   const Span<int> index_map,
+                                   MutableSpan<T> dst)
 {
   for (const int i_src : index_map.index_range()) {
     const int i_dst = index_map[i_src];
@@ -55,26 +50,17 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (!domains.contains(attribute.domain)) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
-
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      out_span.copy_from(span);
-    });
+    attribute.varray.materialize(result_attribute.span.data());
     result_attribute.finish();
   }
 }
@@ -95,26 +81,19 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (domain != attribute.domain) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      copy_data_based_on_mask(span, out_span, mask);
-    });
+    array_utils::gather(attribute.varray, mask, result_attribute.span);
+
     result_attribute.finish();
   }
 }
@@ -131,16 +110,13 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (domain != attribute.domain) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
@@ -149,7 +125,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      copy_data_based_on_map(span, out_span, index_map);
+      copy_data_based_on_map(span, index_map, out_span);
     });
     result_attribute.finish();
   }

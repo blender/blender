@@ -115,6 +115,9 @@ struct FileListInternEntry {
    * Owning pointer. */
   AssetMetaData *imported_asset_data;
 
+  /* See #FILE_ENTRY_BLENDERLIB_NO_PREVIEW. */
+  bool blenderlib_has_no_preview;
+
   /** Defined in BLI_fileops.h */
   eFileAttributes attributes;
   BLI_stat_t st;
@@ -1575,6 +1578,14 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
+  /* If we know this is an external ID without a preview, skip loading the preview. Can save quite
+   * some time in heavy files, because otherwise for each missing preview and for each preview
+   * reload, we'd reopen the .blend to look for the preview. */
+  if ((entry->typeflag & FILE_TYPE_BLENDERLIB) &&
+      (entry->flags & FILE_ENTRY_BLENDERLIB_NO_PREVIEW)) {
+    return;
+  }
+
   FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
   PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
   if (preview_in_memory && !BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW)) {
@@ -2041,6 +2052,9 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
     if (ibuf) {
       ret->preview_icon_id = BKE_icon_imbuf_create(ibuf);
     }
+  }
+  if (entry->blenderlib_has_no_preview) {
+    ret->flags |= FILE_ENTRY_BLENDERLIB_NO_PREVIEW;
   }
   BLI_addtail(&cache->cached_entries, ret);
   return ret;
@@ -2995,10 +3009,15 @@ static void filelist_readjob_list_lib_add_datablock(ListBase *entries,
     entry->relpath = BLI_strdup(datablock_info->name);
   }
   entry->typeflag |= FILE_TYPE_BLENDERLIB;
-  if (datablock_info && datablock_info->asset_data) {
-    entry->typeflag |= FILE_TYPE_ASSET;
-    /* Moves ownership! */
-    entry->imported_asset_data = datablock_info->asset_data;
+
+  if (datablock_info) {
+    entry->blenderlib_has_no_preview = datablock_info->no_preview_found;
+
+    if (datablock_info->asset_data) {
+      entry->typeflag |= FILE_TYPE_ASSET;
+      /* Moves ownership! */
+      entry->imported_asset_data = datablock_info->asset_data;
+    }
   }
   entry->blentype = idcode;
   BLI_addtail(entries, entry);

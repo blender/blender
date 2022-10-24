@@ -19,6 +19,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
+#include "BLI_cpp_type_make.hh"
 #include "BLI_endian_switch.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
@@ -5387,6 +5388,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<int8_t>();
     case CD_PROP_BYTE_COLOR:
       return &CPPType::get<ColorGeometry4b>();
+    case CD_PROP_STRING:
+      return &CPPType::get<MStringProperty>();
     default:
       return nullptr;
   }
@@ -5419,6 +5422,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   if (type.is<ColorGeometry4b>()) {
     return CD_PROP_BYTE_COLOR;
   }
+  if (type.is<MStringProperty>()) {
+    return CD_PROP_STRING;
+  }
   return static_cast<eCustomDataType>(-1);
 }
 
@@ -5430,3 +5436,5 @@ size_t CustomData_get_elem_size(CustomDataLayer *layer)
 {
   return LAYERTYPEINFO[layer->type].size;
 }
+
+BLI_CPP_TYPE_MAKE(MStringProperty, MStringProperty, CPPTypeFlags::None);

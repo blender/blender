@@ -134,6 +134,34 @@ float sum_luminance(Context &context, GPUTexture *texture, float3 luminance_coef
   return sum;
 }
 
+float sum_log_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_sum_log_luminance");
+  GPU_shader_bind(shader);
+
+  GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_R32F);
+  const float sum = *reduced_value;
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return sum;
+}
+
+float4 sum_color(Context &context, GPUTexture *texture)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_sum_color");
+  GPU_shader_bind(shader);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_RGBA32F);
+  const float4 sum = float4(reduced_value);
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return sum;
+}
+
 /* --------------------------------------------------------------------
  * Sum Of Squared Difference Reductions.
  */
@@ -200,6 +228,82 @@ float sum_luminance_squared_difference(Context &context,
   GPU_shader_unbind();
 
   return sum;
+}
+
+/* --------------------------------------------------------------------
+ * Maximum Reductions.
+ */
+
+float maximum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_maximum_luminance");
+  GPU_shader_bind(shader);
+
+  GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_R32F);
+  const float maximum = *reduced_value;
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return maximum;
+}
+
+float maximum_float_in_range(Context &context,
+                             GPUTexture *texture,
+                             float lower_bound,
+                             float upper_bound)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_maximum_float_in_range");
+  GPU_shader_bind(shader);
+
+  GPU_shader_uniform_1f(shader, "lower_bound", lower_bound);
+  GPU_shader_uniform_1f(shader, "upper_bound", upper_bound);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_R32F);
+  const float maximum = *reduced_value;
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return maximum;
+}
+
+/* --------------------------------------------------------------------
+ * Minimum Reductions.
+ */
+
+float minimum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_minimum_luminance");
+  GPU_shader_bind(shader);
+
+  GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_R32F);
+  const float minimum = *reduced_value;
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return minimum;
+}
+
+float minimum_float_in_range(Context &context,
+                             GPUTexture *texture,
+                             float lower_bound,
+                             float upper_bound)
+{
+  GPUShader *shader = context.shader_manager().get("compositor_minimum_float_in_range");
+  GPU_shader_bind(shader);
+
+  GPU_shader_uniform_1f(shader, "lower_bound", lower_bound);
+  GPU_shader_uniform_1f(shader, "upper_bound", upper_bound);
+
+  float *reduced_value = parallel_reduction_dispatch(context, texture, shader, GPU_R32F);
+  const float minimum = *reduced_value;
+  MEM_freeN(reduced_value);
+  GPU_shader_unbind();
+
+  return minimum;
 }
 
 }  // namespace blender::realtime_compositor

@@ -1651,6 +1651,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             box.prop(
                 device, "use", text=device.name
                 .replace('(TM)', unicodedata.lookup('TRADE MARK SIGN'))
+                .replace('(tm)', unicodedata.lookup('TRADE MARK SIGN'))
                 .replace('(R)', unicodedata.lookup('REGISTERED SIGN'))
                 .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN'))
             )

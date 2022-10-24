@@ -292,6 +292,8 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       BKE_lattice_batch_cache_dirty_tag((struct Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
     case OB_CURVES_LEGACY:
+    case OB_SURF:
+    case OB_FONT:
       BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case OB_MBALL: {

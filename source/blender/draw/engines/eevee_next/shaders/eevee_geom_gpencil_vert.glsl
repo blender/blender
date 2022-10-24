@@ -16,30 +16,18 @@ void main()
   float hardness;
   vec2 thickness;
 
-  gl_Position = gpencil_vertex(ma,
-                               ma1,
-                               ma2,
-                               ma3,
-                               pos,
-                               pos1,
-                               pos2,
-                               pos3,
-                               uv1,
-                               uv2,
-                               col1,
-                               col2,
-                               fcol1,
-                               /* TODO */
-                               vec4(1024.0, 1024.0, 1.0 / 1024.0, 1.0 / 1024.0),
-                               interp.P,
-                               interp.N,
-                               g_color,
-                               strength,
-                               g_uvs,
-                               sspos,
-                               aspect,
-                               thickness,
-                               hardness);
+  gl_Position = gpencil_vertex(
+      /* TODO */
+      vec4(1024.0, 1024.0, 1.0 / 1024.0, 1.0 / 1024.0),
+      interp.P,
+      interp.N,
+      g_color,
+      strength,
+      g_uvs,
+      sspos,
+      aspect,
+      thickness,
+      hardness);
 #ifdef MAT_VELOCITY
   /* GPencil do not support deformation motion blur. */
   vec3 lP_curr = transform_point(ModelMatrixInverse, interp.P);

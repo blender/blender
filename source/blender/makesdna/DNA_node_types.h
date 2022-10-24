@@ -2083,6 +2083,12 @@ typedef enum CMPNodeLevelsChannel {
   CMP_NODE_LEVLES_LUMINANCE_BT709 = 5,
 } CMPNodeLevelsChannel;
 
+/* Tone Map Node. Stored in NodeTonemap.type. */
+typedef enum CMPNodeToneMapType {
+  CMP_NODE_TONE_MAP_SIMPLE = 0,
+  CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
+} CMPNodeToneMapType;
+
 /* Plane track deform node. */
 
 enum {

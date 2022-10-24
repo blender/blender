@@ -607,7 +607,10 @@ void GeometrySet::gather_attributes_for_propagation(
             return;
           }
         }
-
+        if (meta_data.data_type == CD_PROP_STRING) {
+          /* Propagating string attributes is not supported yet. */
+          return;
+        }
         if (!attribute_id.should_be_kept()) {
           return;
         }

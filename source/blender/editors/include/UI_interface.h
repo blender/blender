@@ -1683,6 +1683,7 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name);
  * Adds a hint to the button which draws right aligned, grayed out and never clipped.
  */
 void UI_but_hint_drawstr_set(uiBut *but, const char *string);
+void UI_but_icon_indicator_number_set(uiBut *but, const int indicator_number);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
@@ -2788,7 +2789,8 @@ typedef struct uiPropertySplitWrapper {
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout);
 
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
-void uiItemL_ex(uiLayout *layout, const char *name, int icon, bool highlight, bool redalert);
+struct uiBut *uiItemL_ex(
+    uiLayout *layout, const char *name, int icon, bool highlight, bool redalert);
 /**
  * Helper to add a label and creates a property split layout if needed.
  */

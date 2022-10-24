@@ -10,7 +10,7 @@
 #define SPNAV_SOCK_PATH "/var/run/spnav.sock"
 
 GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
-    : GHOST_NDOFManager(sys), m_available(false)
+    : GHOST_NDOFManager(sys), available_(false)
 {
   if (access(SPNAV_SOCK_PATH, F_OK) != 0) {
 #ifdef DEBUG
@@ -20,7 +20,7 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
 #endif
   }
   else if (spnav_open() != -1) {
-    m_available = true;
+    available_ = true;
 
     /* determine exactly which device (if any) is plugged in */
 
@@ -45,14 +45,14 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
 
 GHOST_NDOFManagerUnix::~GHOST_NDOFManagerUnix()
 {
-  if (m_available) {
+  if (available_) {
     spnav_close();
   }
 }
 
 bool GHOST_NDOFManagerUnix::available()
 {
-  return m_available;
+  return available_;
 }
 
 /*
@@ -74,7 +74,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
 {
   bool anyProcessed = false;
 
-  if (m_available) {
+  if (available_) {
     spnav_event e;
 
 #ifdef USE_FINISH_GLITCH_WORKAROUND
@@ -85,7 +85,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
       switch (e.type) {
         case SPNAV_EVENT_MOTION: {
           /* convert to blender view coords */
-          uint64_t now = m_system.getMilliSeconds();
+          uint64_t now = system_.getMilliSeconds();
           const int t[3] = {int(e.motion.x), int(e.motion.y), int(-e.motion.z)};
           const int r[3] = {int(-e.motion.rx), int(-e.motion.ry), int(e.motion.rz)};
 
@@ -97,7 +97,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
           break;
         }
         case SPNAV_EVENT_BUTTON:
-          uint64_t now = m_system.getMilliSeconds();
+          uint64_t now = system_.getMilliSeconds();
           updateButton(e.button.bnum, e.button.press, now);
           break;
       }
@@ -106,7 +106,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
 
 #ifdef USE_FINISH_GLITCH_WORKAROUND
     if (motion_test_prev == true && motion_test == false) {
-      uint64_t now = m_system.getMilliSeconds();
+      uint64_t now = system_.getMilliSeconds();
       const int v[3] = {0, 0, 0};
 
       updateTranslation(v, now);

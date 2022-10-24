@@ -3630,6 +3630,29 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 5)) {
+    /* Fix for T101622 - update flags of sequence editor regions that were not initialized
+     * properly. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          if (sl->spacetype == SPACE_SEQ) {
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_TOOLS) {
+                region->v2d.flag &= ~V2D_VIEWSYNC_AREA_VERTICAL;
+              }
+              if (region->regiontype == RGN_TYPE_CHANNELS) {
+                region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

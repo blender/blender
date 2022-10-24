@@ -1,0 +1,16 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "gpu_shader_create_info.hh"
+
+GPU_SHADER_CREATE_INFO(compositor_tone_map_photoreceptor)
+    .local_group_size(16, 16)
+    .push_constant(Type::VEC4, "global_adaptation_level")
+    .push_constant(Type::FLOAT, "contrast")
+    .push_constant(Type::FLOAT, "intensity")
+    .push_constant(Type::FLOAT, "chromatic_adaptation")
+    .push_constant(Type::FLOAT, "light_adaptation")
+    .push_constant(Type::VEC3, "luminance_coefficients")
+    .sampler(0, ImageType::FLOAT_2D, "input_tx")
+    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .compute_source("compositor_tone_map_photoreceptor.glsl")
+    .do_static_compilation(true);

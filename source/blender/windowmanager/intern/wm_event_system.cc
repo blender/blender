@@ -5620,7 +5620,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventNDOFButton: {
       GHOST_TEventNDOFButtonData *e = static_cast<GHOST_TEventNDOFButtonData *>(customdata);
 
-      event.type = NDOF_BUTTON_NONE + e->button;
+      event.type = NDOF_BUTTON_INDEX_AS_EVENT(e->button);
 
       switch (e->action) {
         case GHOST_kPress:

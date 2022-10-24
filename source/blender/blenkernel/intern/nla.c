@@ -1918,7 +1918,7 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
    * NOTE: this must be done *after* adding the strip to the track, or else
    *       the strip locking will prevent the strip from getting added
    */
-  nlt->flag = (NLATRACK_MUTED | NLATRACK_PROTECTED);
+  nlt->flag |= (NLATRACK_MUTED | NLATRACK_PROTECTED);
   strip->flag &= ~(NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
 
   /* also mark the strip for auto syncing the length, so that the strips accurately

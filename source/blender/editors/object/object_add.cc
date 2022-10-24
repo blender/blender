@@ -3556,11 +3556,62 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /** \name Duplicate Object Operator
  * \{ */
 
+static void object_add_sync_base_collection(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_src, Object *object_new)
+{
+  if ((base_src != nullptr) && (base_src->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
+    BKE_collection_object_add_from(bmain, scene, base_src->object, object_new);
+  }
+  else {
+    LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
+    BKE_collection_object_add(bmain, layer_collection->collection, object_new);
+  }
+}
+
+static void object_add_sync_local_view(Base *base_src, Base *base_new)
+{
+  base_new->local_view_bits = base_src->local_view_bits;
+}
+
+static void object_add_sync_rigid_body(Main *bmain, Object *object_src, Object *object_new)
+{
+  /* 1) duplis should end up in same collection as the original
+   * 2) Rigid Body sim participants MUST always be part of a collection...
+   */
+  /* XXX: is 2) really a good measure here? */
+  if (object_src->rigidbody_object || object_src->rigidbody_constraint) {
+    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+      if (BKE_collection_has_object(collection, object_src)) {
+        BKE_collection_object_add(bmain, collection, object_new);
+      }
+    }
+  }
+}
+
 /**
  * - Assumes `id.new` is correct.
  * - Leaves selection of base/object unaltered.
  * - Sets #ID.newid pointers.
  */
+static void object_add_duplicate_internal(Main *bmain,
+                                          Object *ob,
+                                          const eDupli_ID_Flags dupflag,
+                                          const eLibIDDuplicateFlags duplicate_options,
+                                          Object **r_ob_new)
+{
+  if (ob->mode & OB_MODE_POSE) {
+    return;
+  }
+
+  Object *obn = static_cast<Object *>(
+      ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options)));
+  if (r_ob_new) {
+    *r_ob_new = obn;
+  }
+  DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  return;
+}
+
 static Base *object_add_duplicate_internal(Main *bmain,
                                            Scene *scene,
                                            ViewLayer *view_layer,
@@ -3569,49 +3620,25 @@ static Base *object_add_duplicate_internal(Main *bmain,
                                            const eLibIDDuplicateFlags duplicate_options,
                                            Object **r_ob_new)
 {
-  Base *base, *basen = nullptr;
-  Object *obn;
-
-  if (ob->mode & OB_MODE_POSE) {
-    /* nothing? */
+  Object *object_new = nullptr;
+  object_add_duplicate_internal(bmain, ob, dupflag, duplicate_options, &object_new);
+  if (r_ob_new) {
+    *r_ob_new = object_new;
   }
-  else {
-    obn = static_cast<Object *>(
-        ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options)));
-    if (r_ob_new) {
-      *r_ob_new = obn;
-    }
-    DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    base = BKE_view_layer_base_find(view_layer, ob);
-    if ((base != nullptr) && (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
-      BKE_collection_object_add_from(bmain, scene, ob, obn);
-    }
-    else {
-      LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-      BKE_collection_object_add(bmain, layer_collection->collection, obn);
-    }
-
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    basen = BKE_view_layer_base_find(view_layer, obn);
-    if (base != nullptr && basen != nullptr) {
-      basen->local_view_bits = base->local_view_bits;
-    }
-
-    /* 1) duplis should end up in same collection as the original
-     * 2) Rigid Body sim participants MUST always be part of a collection...
-     */
-    /* XXX: is 2) really a good measure here? */
-    if (ob->rigidbody_object || ob->rigidbody_constraint) {
-      LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-        if (BKE_collection_has_object(collection, ob)) {
-          BKE_collection_object_add(bmain, collection, obn);
-        }
-      }
-    }
+  if (object_new == nullptr) {
+    return nullptr;
   }
-  return basen;
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base_src = BKE_view_layer_base_find(view_layer, ob);
+  object_add_sync_base_collection(bmain, scene, view_layer, base_src, object_new);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base_new = BKE_view_layer_base_find(view_layer, object_new);
+  if (base_src && base_new) {
+    object_add_sync_local_view(base_src, base_new);
+  }
+  object_add_sync_rigid_body(bmain, ob, object_new);
+  return base_new;
 }
 
 Base *ED_object_add_duplicate(
@@ -3665,70 +3692,70 @@ static int duplicate_exec(bContext *C, wmOperator *op)
    * we also want to remap pointers between those... */
   BKE_main_id_newptr_and_tag_clear(bmain);
 
-  /* Do not do collection re-syncs for each object; will do it once afterwards.
-   * However this means we can't get to new duplicated Base's immediately, will
-   * have to process them after the sync. */
-  BKE_layer_collection_resync_forbid();
-
   /* Duplicate the selected objects, remember data needed to process
-   * after the sync (the base of the original object, and the copy of the
-   * original object). */
-  blender::Vector<std::pair<Base *, Object *>> source_bases_new_objects;
-  Object *ob_new_active = nullptr;
+   * after the sync. */
+  struct DuplicateObjectLink {
+    Base *base_src = nullptr;
+    Object *object_new = nullptr;
 
+    DuplicateObjectLink(Base *base_src) : base_src(base_src)
+    {
+    }
+  };
+
+  blender::Vector<DuplicateObjectLink> object_base_links;
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Object *ob_new = nullptr;
-    object_add_duplicate_internal(bmain,
-                                  scene,
-                                  view_layer,
-                                  base->object,
-                                  dupflag,
-                                  LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID,
-                                  &ob_new);
-    if (ob_new == nullptr) {
-      continue;
-    }
-    source_bases_new_objects.append({base, ob_new});
-
-    /* note that this is safe to do with this context iterator,
-     * the list is made in advance */
-    ED_object_base_select(base, BA_DESELECT);
-
-    /* new object will become active */
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    if (BKE_view_layer_active_base_get(view_layer) == base) {
-      ob_new_active = ob_new;
-    }
+    object_base_links.append(DuplicateObjectLink(base));
   }
   CTX_DATA_END;
-  BKE_layer_collection_resync_allow();
 
-  if (source_bases_new_objects.is_empty()) {
+  bool new_objects_created = false;
+  for (DuplicateObjectLink &link : object_base_links) {
+    object_add_duplicate_internal(bmain,
+                                  link.base_src->object,
+                                  dupflag,
+                                  LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID,
+                                  &link.object_new);
+    if (link.object_new) {
+      new_objects_created = true;
+    }
+  }
+
+  if (!new_objects_created) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Sync the collection now, after everything is duplicated. */
-  BKE_main_collection_sync(bmain);
+  /* Sync that could tag the view_layer out of sync. */
+  for (DuplicateObjectLink &link : object_base_links) {
+    /* note that this is safe to do with this context iterator,
+     * the list is made in advance */
+    ED_object_base_select(link.base_src, BA_DESELECT);
+    if (link.object_new) {
+      object_add_sync_base_collection(bmain, scene, view_layer, link.base_src, link.object_new);
+      object_add_sync_rigid_body(bmain, link.base_src->object, link.object_new);
+    }
+  }
 
-  /* After sync we can get to the new Base data, process it here. */
-  for (const auto &item : source_bases_new_objects) {
-    Object *ob_new = item.second;
-    Base *base_source = item.first;
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    Base *base_new = BKE_view_layer_base_find(view_layer, ob_new);
-    if (base_new == nullptr) {
+  /* Sync the view layer. Everything else should not tag the view_layer out of sync. */
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  const Base *active_base = BKE_view_layer_active_base_get(view_layer);
+  for (DuplicateObjectLink &link : object_base_links) {
+    if (!link.object_new) {
       continue;
     }
+
+    Base *base_new = BKE_view_layer_base_find(view_layer, link.object_new);
+    BLI_assert(base_new);
     ED_object_base_select(base_new, BA_SELECT);
-    if (ob_new == ob_new_active) {
+    if (active_base == link.base_src) {
       ED_object_base_activate(C, base_new);
     }
-    if (base_new->object->data) {
-      DEG_id_tag_update(static_cast<ID *>(base_new->object->data), 0);
+
+    if (link.object_new->data) {
+      DEG_id_tag_update(static_cast<ID *>(link.object_new->data), 0);
     }
-    /* #object_add_duplicate_internal will not have done this, since
-     * before the collection sync it would not have found the new base yet. */
-    base_new->local_view_bits = base_source->local_view_bits;
+
+    object_add_sync_local_view(link.base_src, base_new);
   }
 
   /* Note that this will also clear newid pointers and tags. */

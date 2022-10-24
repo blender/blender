@@ -2458,7 +2458,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
-  const MTex *mtex = &br->mtex;
+  const MTex *mtex = BKE_brush_mask_texture_get(br, OB_MODE_SCULPT);
   float avg = 1.0f;
   float rgba[4];
   float point[3];
@@ -2470,7 +2470,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex location directly into a texture. */
-    avg = BKE_brush_sample_tex_3d(scene, br, point, rgba, 0, ss->tex_pool);
+    avg = BKE_brush_sample_tex_3d(scene, br, mtex, point, rgba, 0, ss->tex_pool);
   }
   else {
     float symm_point[3], point_2d[2];
@@ -2499,19 +2499,19 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       x = symm_point[0];
       y = symm_point[1];
 
-      x *= br->mtex.size[0];
-      y *= br->mtex.size[1];
+      x *= mtex->size[0];
+      y *= mtex->size[1];
 
-      x += br->mtex.ofs[0];
-      y += br->mtex.ofs[1];
+      x += mtex->ofs[0];
+      y += mtex->ofs[1];
 
-      avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_id);
+      avg = paint_get_tex_pixel(mtex, x, y, ss->tex_pool, thread_id);
 
       avg += br->texture_sample_bias;
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
-      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
+      avg = BKE_brush_sample_tex_3d(scene, br, mtex, point_3d, rgba, 0, ss->tex_pool);
     }
   }
 

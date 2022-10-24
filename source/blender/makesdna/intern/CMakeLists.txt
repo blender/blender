@@ -116,8 +116,8 @@ blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 # -----------------------------------------------------------------------------
 # Build bf_dna_blenlib library
 set(INC
+  ..
   ../../blenlib
-  ../../makesdna
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
 )

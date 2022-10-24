@@ -1205,8 +1205,24 @@ macro(set_and_warn_dependency
   _dependency _setting _val)
   # when $_dependency is disabled, forces $_setting = $_val
   if(NOT ${${_dependency}} AND ${${_setting}})
-    message(STATUS "'${_dependency}' is disabled: forcing 'set(${_setting} ${_val})'")
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR "${_dependency} disabled but required by ${_setting}")
+    else()
+      message(STATUS "${_dependency} is disabled, setting ${_setting}=${_val}")
+    endif()
     set(${_setting} ${_val})
+  endif()
+endmacro()
+
+macro(set_and_warn_library_found
+  _library_name _library_found _setting)
+  if(NOT ${${_library_found}} AND ${${_setting}})
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR "${_library_name} required but not found")
+    else()
+      message(STATUS "${_library_name} not found, disabling ${_setting}")
+    endif()
+    set(${_setting} OFF)
   endif()
 endmacro()
 

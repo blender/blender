@@ -2,7 +2,7 @@
 
 set(INC
   .
-  ../
+  ..
   ../intern
   ../../editors/include
   ../../blenkernel

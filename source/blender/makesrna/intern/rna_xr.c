@@ -2052,7 +2052,7 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       "Allow the VR tracking origin to be defined independently of the headset location");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
-  rna_def_object_type_visibility_flags_common(srna, NC_WM | ND_XR_DATA_CHANGED);
+  rna_def_object_type_visibility_flags_common(srna, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   /* Helper for drawing the icon. */
   prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);

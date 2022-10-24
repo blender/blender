@@ -713,10 +713,17 @@ endif()
 # oneAPI module
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
-  if(WIN32)
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.dll)
+  if(WITH_CYCLES_ONEAPI_BINARIES)
+    set(cycles_kernel_oneapi_lib_suffix "_aot")
   else()
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/libcycles_kernel_oneapi.so)
+    set(cycles_kernel_oneapi_lib_suffix "_jit")
+  endif()
+
+  if(WIN32)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.dll)
+    set(cycles_kernel_oneapi_linker_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
+  else()
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
   endif()
 
   set(cycles_oneapi_kernel_sources
@@ -751,10 +758,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       ${SYCL_CPP_FLAGS}
       )
 
-  if (WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
-    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_ENABLED)
-  endif()
-
   # Set defaults for spir64 and spir64_gen options
   if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
@@ -767,6 +770,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
 
   if (WITH_CYCLES_ONEAPI_BINARIES)
+    # AoT binaries aren't currently reused when calling sycl::build.
+    list (APPEND sycl_compiler_flags -DSYCL_SKIP_KERNELS_PRELOAD)
     # Iterate over all targest and their options
     list (JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
     list (APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
@@ -819,12 +824,17 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -DONEAPI_EXPORT)
 
     string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
-    if(NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION) # case for Ninja on Windows
+    # Version Folder between Redist and Tools can mismatch sometimes
+    if(NOT EXISTS ${MSVC_TOOLS_DIR})
+      get_filename_component(cmake_ar_dir ${CMAKE_AR} DIRECTORY)
+      get_filename_component(MSVC_TOOLS_DIR "${cmake_ar_dir}/../../../" ABSOLUTE)
+    endif()
+    if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+      set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
+    else() # case for Ninja on Windows
       get_filename_component(cmake_mt_dir ${CMAKE_MT} DIRECTORY)
       string(REPLACE /bin/ /Lib/ WINDOWS_KIT_DIR ${cmake_mt_dir})
       get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
-    else()
-      set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
     endif()
     list(APPEND sycl_compiler_flags
                 -L "${MSVC_TOOLS_DIR}/lib/x64"
@@ -836,15 +846,13 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
     set(sycl_compiler_flags_MinSizeRel ${sycl_compiler_flags})
     list(APPEND sycl_compiler_flags_RelWithDebInfo -g)
-    get_filename_component(sycl_library_debug_name ${SYCL_LIBRARY_DEBUG} NAME_WE)
     list(APPEND sycl_compiler_flags_Debug
                 -g
                 -D_DEBUG
-                -nostdlib -Xclang --dependent-lib=msvcrtd
-                -Xclang --dependent-lib=${sycl_library_debug_name})
+                -nostdlib -Xclang --dependent-lib=msvcrtd)
 
     add_custom_command(
-      OUTPUT ${cycles_kernel_oneapi_lib}
+      OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
               "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
               "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"

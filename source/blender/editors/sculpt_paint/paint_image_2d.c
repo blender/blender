@@ -402,7 +402,8 @@ static ImBuf *brush_painter_imbuf_new(
 
       if (is_texbrush) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-        BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
+        const MTex *mtex = &brush->mtex;
+        BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
         /* TODO(sergey): Support texture paint color space. */
         if (!use_float) {
           IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -446,6 +447,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
 {
   Scene *scene = painter->scene;
   Brush *brush = painter->brush;
+  const MTex *mtex = &brush->mtex;
   BrushPainterCache *cache = &tile->cache;
 
   const char *display_device = scene->display_settings.display_device;
@@ -485,7 +487,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
       if (!use_texture_old) {
         if (is_texbrush) {
           brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-          BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
+          BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
           /* TODO(sergey): Support texture paint color space. */
           if (!use_float) {
             IMB_colormanagement_scene_linear_to_display_v3(rgba, display);

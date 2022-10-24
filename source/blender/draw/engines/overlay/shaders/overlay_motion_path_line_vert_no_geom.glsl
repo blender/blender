@@ -108,8 +108,8 @@ void main()
   vec3 in_pos0 = vertex_fetch_attribute(base_vertex_id, pos, vec3);
   vec3 in_pos1 = vertex_fetch_attribute(base_vertex_id + 1, pos, vec3);
 
-  vec4 out_pos0 = ProjectionMatrix * (ViewMatrix * vec4(in_pos0, 1.0));
-  vec4 out_pos1 = ProjectionMatrix * (ViewMatrix * vec4(in_pos1, 1.0));
+  vec4 out_pos0 = drw_view.winmat * (drw_view.viewmat * vec4(in_pos0, 1.0));
+  vec4 out_pos1 = drw_view.winmat * (drw_view.viewmat * vec4(in_pos1, 1.0));
 
   /* Final calculations required for Geometry Shader alternative.
    * We need to calculate values for each vertex position to correctly determine the final output
@@ -130,28 +130,28 @@ void main()
   float line_size = float(lineThickness) * sizePixel;
 
   if (quad_vertex_id == 0) {
-    view_clipping_distances(out_pos0);
+    view_clipping_distances(out_pos0.xyz);
 
     interp.color = finalColor_geom[0];
     t = edge_dir * (line_size * (is_persp ? out_pos0.w : 1.0));
     gl_Position = out_pos0 + vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 1 || quad_vertex_id == 3) {
-    view_clipping_distances(out_pos0);
+    view_clipping_distances(out_pos0.xyz);
 
     interp.color = finalColor_geom[0];
     t = edge_dir * (line_size * (is_persp ? out_pos0.w : 1.0));
     gl_Position = out_pos0 - vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 2 || quad_vertex_id == 5) {
-    view_clipping_distances(out_pos1);
+    view_clipping_distances(out_pos1.xyz);
 
     interp.color = finalColor_geom[1];
     t = edge_dir * (line_size * (is_persp ? out_pos1.w : 1.0));
     gl_Position = out_pos1 + vec4(t, 0.0, 0.0);
   }
   else if (quad_vertex_id == 4) {
-    view_clipping_distances(out_pos1);
+    view_clipping_distances(out_pos1.xyz);
 
     interp.color = finalColor_geom[1];
     t = edge_dir * (line_size * (is_persp ? out_pos1.w : 1.0));

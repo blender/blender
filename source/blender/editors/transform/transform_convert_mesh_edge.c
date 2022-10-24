@@ -125,5 +125,5 @@ TransConvertTypeInfo TransConvertType_MeshEdge = {
     /* flags */ T_EDIT,
     /* createTransData */ createTransEdge,
     /* recalcData */ recalcData_mesh_edge,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /* special_aftertrans_update */ NULL,
 };

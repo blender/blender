@@ -187,18 +187,22 @@ if(WITH_CYCLES_DEVICE_METAL)
   )
 endif()
 if (WITH_CYCLES_DEVICE_ONEAPI)
-  if(WIN32)
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/cycles_kernel_oneapi.lib)
+  if(WITH_CYCLES_ONEAPI_BINARIES)
+    set(cycles_kernel_oneapi_lib_suffix "_aot")
   else()
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi.so)
+    set(cycles_kernel_oneapi_lib_suffix "_jit")
   endif()
-  list(APPEND LIB
-    ${cycles_kernel_oneapi_lib}
-    "$<$<CONFIG:Debug>:${SYCL_LIBRARY_DEBUG}>"
-    "$<$<CONFIG:Release>:${SYCL_LIBRARY}>"
-    "$<$<CONFIG:RelWithDebInfo>:${SYCL_LIBRARY}>"
-    "$<$<CONFIG:MinSizeRel>:${SYCL_LIBRARY}>"
-  )
+  if(WIN32)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
+  else()
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
+  endif()
+  list(APPEND LIB ${cycles_kernel_oneapi_lib})
+  if(WIN32)
+    list(APPEND LIB debug ${SYCL_LIBRARY_DEBUG} optimized ${SYCL_LIBRARY})
+  else()
+    list(APPEND LIB ${SYCL_LIBRARY})
+  endif()
   add_definitions(-DWITH_ONEAPI)
   list(APPEND SRC
     ${SRC_ONEAPI}

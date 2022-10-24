@@ -52,6 +52,8 @@ class VIEW3D_MT_brush_context_menu(Menu):
         elif context.sculpt_object:
             layout.prop_menu_enum(brush, "sculpt_tool")
             layout.operator("brush.reset")
+        elif context.tool_settings.curves_sculpt:
+            layout.prop_menu_enum(brush, "curves_sculpt_tool")
 
 
 class VIEW3D_MT_brush_gpencil_context_menu(Menu):
@@ -79,22 +81,6 @@ class VIEW3D_MT_brush_gpencil_context_menu(Menu):
 
         layout.operator("gpencil.brush_reset")
         layout.operator("gpencil.brush_reset_all")
-
-
-class VIEW3D_MT_brush_context_menu_paint_modes(Menu):
-    bl_label = "Enabled Modes"
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
-
-        layout.prop(brush, "use_paint_sculpt", text="Sculpt")
-        layout.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
-        layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
-        layout.prop(brush, "use_paint_weight", text="Weight Paint")
-        layout.prop(brush, "use_paint_image", text="Texture Paint")
 
 
 class View3DPanel:
@@ -2373,7 +2359,6 @@ class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
 classes = (
     VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_gpencil_context_menu,
-    VIEW3D_MT_brush_context_menu_paint_modes,
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,

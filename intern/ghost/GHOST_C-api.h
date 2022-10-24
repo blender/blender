@@ -162,7 +162,6 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
@@ -175,7 +174,6 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
 
 /**

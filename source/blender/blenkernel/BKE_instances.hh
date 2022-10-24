@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bke
  *
- * #Instances is a container for geometry instances. It fullfills some key requirements:
+ * #Instances is a container for geometry instances. It fulfills some key requirements:
  * - Support nested instances.
  * - Support instance attributes.
  * - Support referencing different kinds of instances (objects, collections, geometry sets).

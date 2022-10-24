@@ -1169,6 +1169,10 @@ enum {
   FILE_ENTRY_NAME_FREE = 1 << 1,
   /* The preview for this entry is being loaded on another thread. */
   FILE_ENTRY_PREVIEW_LOADING = 1 << 2,
+  /** For #FILE_TYPE_BLENDERLIB only: Denotes that the ID is known to not have a preview (none was
+   * found in the .blend). Stored so we don't keep trying to find non-existent previews every time
+   * we reload previews. When dealing with heavy files this can have quite an impact. */
+  FILE_ENTRY_BLENDERLIB_NO_PREVIEW = 1 << 3,
 };
 
 /** \} */

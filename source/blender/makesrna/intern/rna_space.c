@@ -426,7 +426,11 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
     {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Attribute", "Show active color attribute"},
-    {V3D_SHADING_TEXTURE_COLOR, "TEXTURE", 0, "Texture", "Show texture"},
+    {V3D_SHADING_TEXTURE_COLOR,
+     "TEXTURE",
+     0,
+     "Texture",
+     "Show the texture from the active image texture node using the active UV map coordinates"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -984,6 +988,13 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   }
 
   return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
+}
+
+static void rna_SpaceView3D_object_type_visibility_update(Main *UNUSED(bmain),
+                                                          Scene *scene,
+                                                          PointerRNA *UNUSED(ptr))
+{
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
 static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter,
@@ -5082,7 +5093,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_mirror_xr_session_update");
 
   rna_def_object_type_visibility_flags_common(srna,
-                                              NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING);
+                                              NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING,
+                                              "rna_SpaceView3D_object_type_visibility_update");
 
   /* Helper for drawing the icon. */
   prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);

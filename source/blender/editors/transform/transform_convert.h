@@ -226,8 +226,6 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      struct TransData *r_td);
 void transform_convert_mesh_crazyspace_free(struct TransMeshDataCrazySpace *r_crazyspace_data);
 
-void special_aftertrans_update__mesh(bContext *C, TransInfo *t);
-
 /* transform_convert_mesh_edge.c */
 
 extern TransConvertTypeInfo TransConvertType_MeshEdge;

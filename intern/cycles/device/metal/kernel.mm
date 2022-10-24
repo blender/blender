@@ -162,6 +162,13 @@ bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
     }
   }
 
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE) {
+    if ((device->kernel_features & KERNEL_FEATURE_MNEE) == 0) {
+      /* Skip shade_surface_mnee kernel if the scene doesn't require it. */
+      return false;
+    }
+  }
+
   if (pso_type != PSO_GENERIC) {
     /* Only specialize kernels where it can make an impact. */
     if (device_kernel < DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
@@ -315,6 +322,12 @@ bool MetalKernelPipeline::should_use_binary_archive() const
         /* Don't archive if we have opted out by env var. */
         return false;
       }
+    }
+
+    /* Workaround for Intel GPU having issue using Binary Archives */
+    MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
+    if (gpu_vendor == METAL_GPU_INTEL) {
+      return false;
     }
 
     if (pso_type == PSO_GENERIC) {

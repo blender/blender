@@ -946,7 +946,12 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                      EGL_OPENGL_API);
   }
 
-  return (context->initializeDrawingContext() == GHOST_kSuccess) ? context : nullptr;
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+
+  delete context;
+  return nullptr;
 }
 
 /** \} */

@@ -3,6 +3,7 @@
 if(WIN32)
   option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
 endif()
+option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
 option(WITH_BOOST_PYTHON "Enable building of boost with python support" OFF)
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
@@ -101,34 +102,16 @@ else()
   set(LIBPREFIX "lib")
 
   if(APPLE)
-    # Let's get the current Xcode dir, to support xcode-select
-    execute_process(
-      COMMAND xcode-select --print-path
-      OUTPUT_VARIABLE XCODE_DEV_PATH OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-      COMMAND xcodebuild -version -sdk macosx SDKVersion
-      OUTPUT_VARIABLE MACOSX_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    if(NOT CMAKE_OSX_ARCHITECTURES)
-      execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message(STATUS "Detected native architecture ${ARCHITECTURE}.")
-      set(CMAKE_OSX_ARCHITECTURES "${ARCHITECTURE}")
-    endif()
-    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
-      set(OSX_DEPLOYMENT_TARGET 10.13)
-    else()
-      set(OSX_DEPLOYMENT_TARGET 11.00)
-    endif()
-    set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
+    # Use same Xcode detection as Blender itself.
+    include(../cmake/platform/platform_apple_xcode.cmake)
 
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
       set(BLENDER_PLATFORM_ARM ON)
     endif()
 
-    set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_CXXFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_LDFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
       set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin17.0.0) # OS X 10.13
     else()
@@ -136,8 +119,8 @@ else()
     endif()
     set(PLATFORM_CMAKE_FLAGS
       -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
-      -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
-      -DCMAKE_OSX_SYSROOT:PATH=${OSX_SYSROOT}
+      -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+      -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
     )
   else()
     if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
@@ -171,8 +154,8 @@ else()
   set(BLENDER_CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG ${PLATFORM_CXXFLAGS}")
 
   set(CONFIGURE_ENV
-    export MACOSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET} &&
-    export MACOSX_SDK_VERSION=${OSX_DEPLOYMENT_TARGET} &&
+    export MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} &&
+    export MACOSX_SDK_VERSION=${CMAKE_OSX_DEPLOYMENT_TARGET} &&
     export CFLAGS=${PLATFORM_CFLAGS} &&
     export CXXFLAGS=${PLATFORM_CXXFLAGS} &&
     export LDFLAGS=${PLATFORM_LDFLAGS}
