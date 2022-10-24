@@ -653,6 +653,9 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
 
       MEM_freeN(tpoints2d);
     }
+    gps->runtime.stroke_start = do_fill ? gps->tot_triangles : 0;
+    gps->runtime.fill_start = 0;
+    gps->runtime.vertex_start = 0;
 
     /* Fill buffers with data. */
     gpencil_buffer_add_stroke(&ibo_builder, verts, cols, gps);

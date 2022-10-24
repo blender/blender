@@ -346,7 +346,7 @@ typedef struct gpIterPopulateData {
   int vfirst, vcount;
 } gpIterPopulateData;
 
-#define DISABLE_BATCHING 1
+#define DISABLE_BATCHING 0
 
 static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 {
@@ -382,7 +382,7 @@ static void gpencil_drawcall_add(
 
   int last = iter->vfirst + iter->vcount;
   /* Interrupt draw-call grouping if the sequence is not consecutive. */
-  if ((geom != iter->geom) || (v_first - last > 3)) {
+  if ((geom != iter->geom) || (v_first - last > 0)) {
     gpencil_drawcall_flush(iter);
   }
   iter->geom = geom;
@@ -540,8 +540,8 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
   if (show_stroke) {
     int vfirst = gps->runtime.stroke_start * 3;
-    /* Include "potential" cyclic vertex (see shader). */
-    int vcount = (gps->totpoints + 1) * 2 * 3;
+    bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
+    int vcount = (gps->totpoints + (int)is_cyclic) * 2 * 3;
     gpencil_drawcall_add(iter, geom, false, vfirst, vcount);
   }
 
