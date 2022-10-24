@@ -301,6 +301,16 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
+  /* Correct the smaller size to maintain the original aspect ratio of the image. */
+  if (do_rescale && ibuf->x != ibuf->y) {
+    if (size[0] > size[1]) {
+      size[1] = (int)(ibuf->y * ((float)size[0] / ibuf->x));
+    }
+    else {
+      size[0] = (int)(ibuf->x * ((float)size[1] / ibuf->y));
+    }
+  }
+
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     eGPUTextureFormat compressed_format;
