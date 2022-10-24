@@ -9,6 +9,8 @@
 #include "BKE_mesh_runtime.h"
 
 #include "BLI_array.hh"
+#include "BLI_hash.hh"
+#include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_mesh_inset.hh"
@@ -245,594 +247,37 @@ float3 MeshTopology::edge_dir_from_vert_normalized(int e, int v) const
   return math::normalize(edge_dir_from_vert(e, v));
 }
 
-/** A Vertex Cap consists of a vertex in a mesh and an CCW ordering of
- * alternating edges and faces around it, as viewed from the face's
- * normal side. Some faces may be missing (i.e., gaps).
- * (If there are other edges and faces attached to the vertex that
- * don't fit into this pattern, they need to go into other Vertex Caps
- * or ignored, for the sake of beveling.)
+/** Canon
+ * CanonVertPair is a pair of vertex indices in canonical order (first index <= second index).
+ * This is suitable for a key to look up edges by.
  */
-class VertexCap {
-  Array<int> edges_;
-  Array<int> faces_;  // face_[i] is between edges i and i+1
-
+class CanonVertPair {
  public:
-  /* The vertex (as index into a mesh) that the cap is around. */
-  int vert;
+  int v1;
+  int v2;
 
-  VertexCap() : vert(-1)
+  CanonVertPair(int a, int b)
   {
-  }
-  VertexCap(int vert, Span<int> edges, Span<int> faces) : edges_(edges), faces_(faces), vert(vert)
-  {
-  }
-
-  /* Initialize for vertex v, given a mesh topo. */
-  void init_from_topo(const int vert, const MeshTopology &topo);
-
-  /* The number of edges around the cap. */
-  int size() const
-  {
-    return edges_.size();
-  }
-
-  /* Edges in CCW order (viewed from top) around the cap. */
-  Span<int> edges() const
-  {
-    return edges_.as_span();
-  }
-
-  /* Faces in CCW order (viewed from top) around the cap. -1 means a gap. */
-  Span<int> faces() const
-  {
-    return faces_.as_span();
-  }
-
-  /* The ith edge. */
-  int edge(int i) const
-  {
-    return edges_[i];
-  }
-  /* The edge after the ith edge (with wraparound). */
-  int next_edge(int i) const
-  {
-    return i < edges_.size() - 1 ? edges_[i + 1] : edges_[0];
-  }
-  /* The edge before the ith edge (with wraparound). */
-  int prev_edge(int i) const
-  {
-    return i > 1 ? edges_[i - 1] : edges_.last();
-  }
-
-  /* The face returned may be -1, meaning "gap". */
-  /* The face betwen edge(i) and next_edge(i). */
-  int face(int i) const
-  {
-    return faces_[i];
-  }
-  /* The face between edge(i) and prev_edge(i). */
-  int prev_face(int i) const
-  {
-    return i > 1 ? faces_[i - 1] : faces_.last();
-  }
-  /* True if there is a gap between edges i and next_edge(i). */
-  bool is_gap(int i) const
-  {
-    return face(i) == -1;
-  }
-};
-
-/** Construct and return the VertexCap for vertex `vert`. */
-void VertexCap::init_from_topo(const int vert, const MeshTopology &topo)
-{
-  this->vert = vert;
-  Span<int> incident_edges = topo.vert_edges(vert);
-  const int num_edges = incident_edges.size();
-  if (num_edges == 0) {
-    return;
-  }
-
-  /* First check for the most common case: a complete manifold cap:
-   * That is, each edge is incident on exactly two faces and the
-   * edge--face--edge--...--face chain forms a single cycle.
-   */
-  bool all_edges_manifold = true;
-  for (const int e : incident_edges) {
-    if (!topo.edge_is_manifold(e)) {
-      all_edges_manifold = false;
-      break;
-    }
-  }
-  if (all_edges_manifold) {
-    bool is_manifold_cap = true;
-    Array<int> ordered_edges(num_edges, -1);
-    Array<int> ordered_faces(num_edges, -1);
-    Set<int, 16> used_edges;
-    Set<int, 16> used_faces;
-
-    int next_edge = incident_edges[0];
-    for (int slot = 0; slot < num_edges; slot++) {
-      /* Invariant: ordered_edges and ordered_faces are filled
-       * up to slot-1 with a valid sequence for the cap, and
-       * next_edge is a valid continuation edge but we don't
-       * yet know if it has already been used.
-       */
-      ordered_edges[slot] = next_edge;
-      used_edges.add_new(next_edge);
-      /* Find a face attached to next_edge that is not yet used. */
-      int next_face;
-      if (slot == 0) {
-        next_face = topo.edge_faces(next_edge)[0];
-      }
-      else {
-        const int prev_face = ordered_faces[slot - 1];
-        next_face = topo.edge_other_manifold_face(next_edge, prev_face);
-      }
-      if (used_faces.contains(next_face)) {
-        is_manifold_cap = false;
-        break;
-      }
-      ordered_faces[slot] = next_face;
-      next_edge = topo.face_other_edge_at_vert(next_face, vert, next_edge);
-      if (slot < num_edges - 1 && used_edges.contains(next_edge)) {
-        is_manifold_cap = false;
-        break;
-      }
-    }
-    is_manifold_cap = is_manifold_cap && next_edge == ordered_edges[0];
-    if (is_manifold_cap) {
-      /* Check if cap is oriented properly, and fix it if not.
-       * A pair of successive edges in ordered_edges should be going CW
-       * in the face in between. For now, just check the first pair.
-       */
-      if (num_edges > 1) {
-        if (topo.edge_is_successor_in_face(ordered_edges[0], ordered_edges[1], ordered_faces[0])) {
-          /* They are in the wrong orientation, so we need to reverse.
-           * To make interleaving of edges and faces work out, reverse only 1..end of edges
-           * and reverse all of faces.
-           */
-          std::reverse(ordered_edges.begin() + 1, ordered_edges.end());
-          std::reverse(ordered_faces.begin(), ordered_faces.end());
-        }
-      }
-      this->edges_ = ordered_edges;
-      this->faces_ = ordered_faces;
-      return;
-    }
-  }
-  std::cout << "to implement: VertexCap for non-manifold edges\n";
-}
-
-static std::ostream &operator<<(std::ostream &os, const VertexCap &cap)
-{
-  os << "cap at v" << cap.vert << ": ";
-  for (const int i : cap.edges().index_range()) {
-    os << "e" << cap.edge(i) << " ";
-    if (cap.face(i) == -1) {
-      os << "<gap> ";
+    if (a < b) {
+      v1 = a;
+      v2 = b;
     }
     else {
-      os << "f" << cap.face(i) << " ";
+      v1 = b;
+      v2 = a;
     }
   }
-  os << "\n";
-  return os;
-}
 
-/* The different types of BoundaryVerts (see below). */
-typedef enum eBoundaryVertType {
-  BV_ON_EDGE = 0,
-  BV_ON_FACE = 1,
-  BV_ABOVE_FACE = 2,
-  BV_OTHER = 3,
-} eBoundaryVertType;
-
-static const char *bv_type_name[4] = {"on_edge", "on_face", "above_face", "other"};
-
-/* A BoundaryVert is a vertex placed somewhere around a vertex involved
- * in a bevel. BoundaryVerts will be joined with line or arcs (depending on the
- * number of segments in the bevel).
- */
-class BoundaryVert {
- public:
-  /* The position of the Boundary Vertex. */
-  float3 co;
-  /* If the type references an edge or a face.
-   * the index of the corresponding edge or face in the VertexCap. */
-  int vc_index;
-  /* Mesh index of this vertex in the output mesh. */
-  int mesh_index;
-  /* The type of this Boundary Vertex. */
-  eBoundaryVertType type;
-
-  BoundaryVert() : co(0.0, 0.0, 0.0), vc_index(-1), mesh_index(-1), type(BV_OTHER)
+  uint64_t hash() const
   {
+    return get_default_hash_2(v1, v2);
   }
+
+  friend bool operator==(const CanonVertPair a, const CanonVertPair b);
 };
 
-static std::ostream &operator<<(std::ostream &os, const BoundaryVert &bv)
-{
-  os << "bv{" << bv_type_name[bv.type] << " "
-     << "vc#=" << bv.vc_index << " "
-     << "mesh#" << bv.mesh_index << " "
-     << "co=" << bv.co << "}";
-  return os;
-}
-
-/** The different types of HalfEdges (see below). */
-typedef enum eHalfEdgeType {
-  HE_UNBEVELED = 0,
-  HE_BEVELED = 1,
-  HE_FACE_BEVEL_BOTH = 2,
-  HE_FACE_BEVEL_LEFT = 3,
-  HE_FACE_BEVEL_RIGHT = 4,
-  BE_OTHER = 5,
-} eHalfEdgeType;
-
-static const char *he_type_name[6] = {
-    "unbev", "bev", "facebev_both", "facebev_l", "facebev_r", "other"};
-
-/** A HalfEdge is one end of an edge, attached to a vertex in a VertexCap.
- * This data describes how it is involved in beveling, and how it is attached
- * to BoundaryVerts.
- * Note: when the descriptors "left" and "right" are used to refer to sides of
- * edges, these are to be taken as left and right when looking down the edge
- * towards the VertexCap's vertex.
- */
-class HalfEdge {
- public:
-  /* The mesh index of the edge. */
-  int edge;
-  /* Where it is found in the list of edges in the VertexCap. */
-  int vc_index;
-  /* The boundary vertex index where the edge is attached,
-   * only used for HE_UNBEVELED and HE_FACE_BEVEL_* types. */
-  int bv_index;
-  /* The boundary vertex index where the left half of a HE_BEVELED,
-   * HE_FACE_BEVEL_BOTH, or HE_FACE_BEVEL_LEFT attached. */
-  int bv_left_index;
-  /* The boundary vertex index where the left half of a HE_BEVELED,
-   * HE_FACE_BEVEL_BOTH, or HE_FACE_BEVEL_RIGHT attached. */
-  int bv_right_index;
-  /* The index of this edge, if unbeveled, in output mesh. */
-  int mesh_index;
-  /* The type of this HalfEdge. */
-  eHalfEdgeType type;
-
-  HalfEdge()
-      : edge(-1),
-        vc_index(-1),
-        bv_index(-1),
-        bv_left_index(-1),
-        bv_right_index(-1),
-        mesh_index(-1),
-        type(BE_OTHER)
-  {
-  }
-};
-
-/** A BevelEdge holds the two ends (HalfEdges) of an edge that is to be beveled.
- * The underlying edge has a direction, and he1 is the HalfEdge at the source end,
- * while he2 is the HalfEdge at the destination end.
- */
-class BevelEdge {
-  /* Index in mesh of the underlying edge. */
-  int edge_;
-
- public:
-  /* Source end HalfEdge. */
-  HalfEdge *he1;
-  /* Destination end HalfEdge. */
-  HalfEdge *he2;
-  /* Bevel amount for this edge. */
-  float amount;
-
-  BevelEdge() : edge_(-1), he1(nullptr), he2(nullptr), amount(0.0f)
-  {
-  }
-
-  BevelEdge(int edge, HalfEdge *he1, HalfEdge *he2, float amount)
-      : edge_(edge), he1(he1), he2(he2), amount(amount)
-  {
-  }
-
-  int edge() const
-  {
-    return edge_;
-  }
-};
-
-/** A BoundaryConnector has the vertices and edges in the output mesh
- * of the connection between two successive BoundaryVerts.
- */
-class BoundaryConnector {
- public:
-  /* Temporary: for now, just one edge. Will eventually be array
-   * of vertices with intervening edges. */
-  int edge;
-
-  BoundaryConnector() : edge(-1)
-  {
-  }
-
-  BoundaryConnector(int e) : edge(e)
-  {
-  }
-};
-
-static std::ostream &operator<<(std::ostream &os, const HalfEdge &he)
-{
-  os << "he{" << he_type_name[he.type] << " "
-     << "edge=" << he.edge << " "
-     << "vc#=" << he.vc_index << " "
-     << "bv#=" << he.bv_index << " "
-     << "bvl#=" << he.bv_left_index << " "
-     << "bvr#=" << he.bv_right_index << " "
-     << "eout=" << he.mesh_index << "}";
-  return os;
-}
-
-/** BevelVertexData holds the data used to bevel around a vertex. */
-class BevelVertexData {
-  VertexCap vertex_cap_;
-  Array<BoundaryVert> boundary_vert_;
-  Array<HalfEdge> half_edge_;
-  /* boundary_conn_[i] goes from boundary_vert_[i] to the following one. */
-  Array<BoundaryConnector> boundary_conn_;
-
- public:
-  BevelVertexData()
-  {
-  }
-  ~BevelVertexData()
-  {
-  }
-
-  void construct_vertex_cap(int vert, const MeshTopology &topo)
-  {
-    vertex_cap_.init_from_topo(vert, topo);
-  }
-
-  void construct_vertex_bevel(int vert, float amount, const MeshTopology &topo);
-
-  const VertexCap &vertex_cap() const
-  {
-    return vertex_cap_;
-  }
-
-  const int beveled_vert() const
-  {
-    return vertex_cap_.vert;
-  }
-
-  Span<BoundaryVert> boundary_verts() const
-  {
-    return boundary_vert_.as_span();
-  }
-
-  MutableSpan<BoundaryVert> mutable_boundary_verts()
-  {
-    return boundary_vert_.as_mutable_span();
-  }
-
-  Span<HalfEdge> half_edges() const
-  {
-    return half_edge_.as_span();
-  }
-
-  const BoundaryVert &boundary_vert(int boundary_vert_pos) const
-  {
-    return boundary_vert_[boundary_vert_pos];
-  }
-
-  const BoundaryVert &next_boundary_vert(int boundary_vert_pos) const
-  {
-    int n = (boundary_vert_pos + 1) % boundary_vert_.size();
-    return boundary_vert_[n];
-  }
-
-  void set_boundary_connection(int boundary_vert_pos, const BoundaryConnector conn)
-  {
-    boundary_conn_[boundary_vert_pos] = conn;
-  }
-
-  const int boundary_connector_edge(int boundary_vert_pos, int edge_index) const
-  {
-    BLI_assert(edge_index == 0);  // Temporary
-    return boundary_conn_[boundary_vert_pos].edge;
-  }
-
-  /* Find the HalfEdge for `edge`, returning nullptr if not found. */
-  HalfEdge *find_half_edge(int edge) const;
-};
-
-static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
-{
-  const VertexCap &vc = bvd.vertex_cap();
-  os << "bevel vertex data for vertex " << vc.vert << "\n";
-  os << vc;
-  Span<BoundaryVert> bvs = bvd.boundary_verts();
-  os << "boundary verts:\n";
-  for (const int i : bvs.index_range()) {
-    os << "[" << i << "] " << bvs[i] << "\n";
-  }
-  Span<HalfEdge> hes = bvd.half_edges();
-  os << "boundary edges:\n";
-  for (const int i : hes.index_range()) {
-    os << "[" << i << "] " << hes[i] << "\n";
-  }
-  return os;
-}
-
-/** Calculate the `BevelVertexData` for one vertex, `vert`, by the given `amount`.
- * This doesn't calculate limits to the bevel caused by collisions with vertex bevels
- * at adjacent vertices; that needs to done after all of these are calculated,
- * so that this operation can be done in parallel with all other vertex constructions.
- */
-void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshTopology &topo)
-{
-  construct_vertex_cap(vert, topo);
-
-  const int num_edges = vertex_cap().size();
-
-  /* There will be one boundary vertex on each edge attached to `vert`. */
-  half_edge_.reinitialize(num_edges);
-  boundary_vert_.reinitialize(num_edges);
-  boundary_conn_.reinitialize(num_edges);
-
-  const float3 vert_co = topo.vert_co(vertex_cap().vert);
-  for (const int i : IndexRange(num_edges)) {
-    BoundaryVert &bv = boundary_vert_[i];
-    bv.type = BV_ON_EDGE;
-    bv.vc_index = i;
-    HalfEdge &he = half_edge_[i];
-    he.edge = vertex_cap().edge(i);
-    he.type = HE_UNBEVELED;
-    he.bv_index = i;
-    he.vc_index = i;
-
-    /* Set the position of the boundary vertex by sliding at distance `amount` along the edge. */
-    float3 dir = topo.edge_dir_from_vert_normalized(he.edge, vert);
-    bv.co = vert_co + amount * dir;
-  }
-}
-
-HalfEdge *BevelVertexData::find_half_edge(int edge) const
-{
-  for (int i : half_edge_.index_range()) {
-    if (half_edge_[i].edge == edge) {
-      /* There's no non-const rvalue subscripting in Array. */
-      HalfEdge *he = const_cast<HalfEdge *>(&half_edge_[i]);
-      return he;
-    }
-  }
-  return nullptr;
-}
-
-/** BevelSpec holds the data the specifies what the user wants beveled.
- * There will be a derived class for each type of bevel.
- */
-class BevelSpec {
- public:
-  /* Are we beveling vertices, edges, or faces? */
-  GeometryNodeBevelMeshMode bevel_mode;
-  /* A mask over the elements of the beveled type, saying what is to bovel. */
-  IndexMask to_bevel;
-
-  BevelSpec(GeometryNodeBevelMeshMode mode, IndexMask to_bevel)
-      : bevel_mode(mode), to_bevel(to_bevel)
-  {
-  }
-
-  virtual void dump_spec() = 0;
-};
-
-class VertexBevelSpec : public BevelSpec {
- public:
-  /* Indexed by Mesh vertex index, the amount to slide along all edges
-   * attached to the vertex. */
-  VArray<float> amount;
-
-  VertexBevelSpec(IndexMask to_bevel, VArray<float> amount)
-      : BevelSpec{GEO_NODE_BEVEL_MESH_VERTICES, to_bevel}, amount(amount)
-  {
-  }
-
-  void dump_spec();
-};
-
-void VertexBevelSpec::dump_spec()
-{
-  std::cout << "VertexBevelSpec\n";
-  for (const int v : to_bevel.index_range()) {
-    if (to_bevel[v]) {
-      std::cout << v << ": " << amount[v] << "\n";
-    }
-  }
-}
-
-class FaceBevelSpec : public BevelSpec {
- public:
-  /* Indexed by Mesh poly index, the amount to inset the face by. */
-  VArray<float> amount;
-  /* Indexed by Mesh poly index, the slope to follow when insetting the face. */
-  VArray<float> slope;
-  bool use_regions;
-
-  FaceBevelSpec(IndexMask to_bevel, VArray<float> amount, VArray<float> slope, bool use_regions)
-      : BevelSpec{GEO_NODE_BEVEL_MESH_FACES, to_bevel},
-        amount(amount),
-        slope(slope),
-        use_regions(use_regions)
-  {
-  }
-
-  void dump_spec();
-};
-
-void FaceBevelSpec::dump_spec()
-{
-  std::cout << "FaceBevelSpec\n";
-  if (use_regions) {
-    std::cout << "use regions\n";
-  }
-  for (const int f : to_bevel.index_range()) {
-    if (to_bevel[f]) {
-      std::cout << f << ": " << amount[f] << ", slope=" << slope[f] << "\n";
-    }
-  }
-}
-
-class EdgeBevelSpec : public BevelSpec {
- public:
-  /* Indexed by Mesh edge index, the amounts to bevel the edge.
-   * `left_amount[0]` is the left side amount for the source end and
-   * `right_amount[0]` is the right side amount for the source end,
-   * where "left" and "right" mean: those sides as you look
-   * along the edge to the source.
-   * Similarly, the 1-indexed elements of those arrays are for the
-   * destination end, with left and right as you look towards the dest end.
-   */
-  VArray<float> left_amount[2];
-  VArray<float> right_amount[2];
-
-  EdgeBevelSpec(IndexMask to_bevel, VArray<float> amount)
-      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
-        left_amount{amount, amount},
-        right_amount{amount, amount}
-  {
-  }
-
-  EdgeBevelSpec(IndexMask to_bevel,
-                VArray<float> src_left_amount,
-                VArray<float> src_right_amount,
-                VArray<float> dst_left_amount,
-                VArray<float> dst_right_amount)
-      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
-        left_amount{src_left_amount, dst_left_amount},
-        right_amount{src_right_amount, dst_right_amount}
-  {
-  }
-
-  void dump_spec();
-};
-
-void EdgeBevelSpec::dump_spec()
-{
-  std::cout << "EdgeBevelSpec\n";
-  for (const int e : to_bevel.index_range()) {
-    if (to_bevel[e]) {
-      std::cout << e << ": ";
-      if (left_amount[0] == right_amount[0] && left_amount[0] == left_amount[1] &&
-          left_amount[1] == right_amount[1]) {
-        std::cout << left_amount[0][e] << "\n";
-      }
-      else {
-        std::cout << "0(" << left_amount[0][e] << ", " << right_amount[0][e] << ") 1("
-                  << left_amount[1][e] << ", " << right_amount[1][e] << ")\n";
-      }
-    }
-  }
+bool operator==(const CanonVertPair a, const CanonVertPair b){
+  return a.v1 == b.v1 && a.v2 == b.v2;
 }
 
 /** IndexAlloc allocates sequential integers, starting from a given start value. */
@@ -861,6 +306,10 @@ class IndexAlloc {
 
 /** MeshDelta represents a delta to a Mesh: additions and deletions
  * of Mesh elements.
+ * New elements will get index numbers starting at the end of the current
+ * range of the elements in the base mesh, `mesh_`.
+ * There is also a fast method for finding an edge, if any, joining two
+ * vertices (either in the base mesh, or in the added vertices, or mixed).
  */
 class MeshDelta {
   const Mesh &mesh_;
@@ -881,6 +330,8 @@ class MeshDelta {
   Vector<int> new_edge_rep_;
   Vector<int> new_poly_rep_;
   Vector<int> new_loop_rep_;
+  /* Lookup map for added edges. */
+  Map<CanonVertPair, int> new_edge_map_;
 
  public:
   MeshDelta(const Mesh &mesh, const MeshTopology &topo);
@@ -890,6 +341,8 @@ class MeshDelta {
   int new_edge(int v1, int v2, int rep);
   int new_loop(int v, int e, int rep);
   int new_face(int loopstart, int totloop, int rep);
+  /* A new face from a span of vertex indices and edge indices (-1 means: make a new edge). */
+  int new_face(Span<int> verts, Span<int> edges, int rep);
   /* Find the edge either in mesh or new_edges_, or make a new one if not there. */
   int find_or_add_edge(int v1, int v2, int rep);
 
@@ -945,12 +398,14 @@ int MeshDelta::new_edge(int v1, int v2, int rep)
   medge.flag = ME_EDGEDRAW;
   new_edges_.append(medge);
   new_edge_rep_.append(rep);
+  new_edge_map_.add_new(CanonVertPair(v1, v2), e);
   return e;
 }
 
 int MeshDelta::find_or_add_edge(int v1, int v2, int rep)
 {
-  if (v1 < mesh_.totvert) {
+  /* First see if (v1, v2) is an existing edge in the base mesh. */
+  if (v1 < mesh_.totvert && v2 < mesh_.totvert) {
     for (int i : topo_.vert_edges(v1)) {
       const MEdge &e = mesh_.edges()[i];
       if ((e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1)) {
@@ -958,12 +413,10 @@ int MeshDelta::find_or_add_edge(int v1, int v2, int rep)
       }
     }
   }
-  /* TODO: have an equivalent of vert_edges() in MeshDelta to make this fast! */
-  for (int i : new_edges_.index_range()) {
-    const MEdge &e = new_edges_[i];
-    if ((e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1)) {
-      return mesh_.totedge + i;
-    }
+  /* Look inside the new edge map to see if it is there. */
+  int e = new_edge_map_.lookup_default(CanonVertPair(v1, v2), -1);
+  if (e != -1) {
+    return e;
   }
   return new_edge(v1, v2, rep);
 }
@@ -989,6 +442,28 @@ int MeshDelta::new_face(int loopstart, int totloop, int rep)
   new_polys_.append(mpoly);
   new_poly_rep_.append(rep);
   return f;
+}
+
+int MeshDelta::new_face(Span<int> verts, Span<int> edges, int rep)
+{
+  const int n = verts.size();
+  int lfirst = -1;
+  for (const int i : IndexRange(n)) {
+    const int v1 = verts[i];
+    int e = -1;
+    if (edges.size() != 0) {
+      e = edges[i];
+    }
+    if (e == -1) {
+      const int v2 = verts[(i + 1) % n];
+      e = new_edge(v1, v2, -1);
+    }
+    int l = new_loop(v1, e, -1);
+    if (i == 0) {
+      lfirst = l;
+    }
+  }
+  return new_face(lfirst, n, rep);
 }
 
 /** Delete the MPoly and the loops.
@@ -1487,6 +962,573 @@ void MeshDelta::print(const std::string &label) const
   std::cout << "\n";
 }
 
+class VertexCap;
+
+/** A HalfEdge represents one end of a Mesh Edge.
+ * There is an VertexCap (see following) that the HalfEdge is
+ * connected to, and a position within the ordered edges in
+ * that VertexCap, that will be recorded here.
+ */
+class HalfEdge {
+ public:
+  /* Index of the edge in the Mesh. */
+  int mesh_index{-1};
+  /* Index of this HalfEdge in the edges of a VertexCap. */
+  int cap_index{-1};
+  VertexCap *cap{nullptr};
+
+  HalfEdge()
+  {
+  }
+};
+
+/** A Vertex Cap consists of a vertex in a mesh and an CCW ordering of
+ * alternating edges and faces around it, as viewed from the face's
+ * normal side. Some faces may be missing (i.e., gaps).
+ * (If there are other edges and faces attached to the vertex that
+ * don't fit into this pattern, they need to go into other Vertex Caps
+ * or ignored, for the sake of beveling.)
+ */
+class VertexCap {
+  /* The HalfEdges in CCW order around the cap. */
+  Array<HalfEdge> edges_;
+  /* The mesh indices of the faces: ace_[i] is between edges i and i+1; -1 means no face. */
+  Array<int> faces_;
+
+ public:
+  /* The vertex (as index into a mesh) that the cap is around. */
+  int vert;
+
+  VertexCap() : vert(-1)
+  {
+  }
+
+  /* Initialize for vertex v, given a mesh topo. */
+  void init_from_topo(const int vert, const MeshTopology &topo);
+
+  /* The number of edges around the cap. */
+  int size() const
+  {
+    return edges_.size();
+  }
+
+  /* Edges in CCW order (viewed from top) around the cap. */
+  Span<HalfEdge> edges() const
+  {
+    return edges_.as_span();
+  }
+
+  /* Faces in CCW order (viewed from top) around the cap. -1 means a gap. */
+  Span<int> faces() const
+  {
+    return faces_.as_span();
+  }
+
+  /* The ith edge. */
+  const HalfEdge &edge(int i) const
+  {
+    return edges_[i];
+  }
+  /* The edge after the ith edge (with wraparound). */
+  const HalfEdge &next_edge(int i) const
+  {
+    return i < edges_.size() - 1 ? edges_[i + 1] : edges_[0];
+  }
+  /* The edge before the ith edge (with wraparound). */
+  const HalfEdge &prev_edge(int i) const
+  {
+    return i > 1 ? edges_[i - 1] : edges_.last();
+  }
+
+  /* The face returned may be -1, meaning "gap". */
+  /* The face betwen edge(i) and next_edge(i). */
+  int face(int i) const
+  {
+    return faces_[i];
+  }
+  /* The face between edge(i) and prev_edge(i). */
+  int prev_face(int i) const
+  {
+    return i > 1 ? faces_[i - 1] : faces_.last();
+  }
+  /* True if there is a gap between edges i and next_edge(i). */
+  bool is_gap(int i) const
+  {
+    return face(i) == -1;
+  }
+
+  /* Return the HalfEdge that is for the Mesh edge with index mesh_index. */
+  const HalfEdge *half_edge_for_edge(int mesh_index) const;
+};
+
+/** Construct and return the VertexCap for vertex `vert`. */
+void VertexCap::init_from_topo(const int vert, const MeshTopology &topo)
+{
+  this->vert = vert;
+  Span<int> incident_edges = topo.vert_edges(vert);
+  const int num_edges = incident_edges.size();
+  if (num_edges == 0) {
+    return;
+  }
+
+  /* First check for the most common case: a complete manifold cap:
+   * That is, each edge is incident on exactly two faces and the
+   * edge--face--edge--...--face chain forms a single cycle.
+   */
+  bool all_edges_manifold = true;
+  for (const int e : incident_edges) {
+    if (!topo.edge_is_manifold(e)) {
+      all_edges_manifold = false;
+      break;
+    }
+  }
+  if (all_edges_manifold) {
+    bool is_manifold_cap = true;
+    Array<int> ordered_edges(num_edges, -1);
+    Array<int> ordered_faces(num_edges, -1);
+    Set<int, 16> used_edges;
+    Set<int, 16> used_faces;
+
+    int next_edge = incident_edges[0];
+    for (int slot = 0; slot < num_edges; slot++) {
+      /* Invariant: ordered_edges and ordered_faces are filled
+       * up to slot-1 with a valid sequence for the cap, and
+       * next_edge is a valid continuation edge but we don't
+       * yet know if it has already been used.
+       */
+      ordered_edges[slot] = next_edge;
+      used_edges.add_new(next_edge);
+      /* Find a face attached to next_edge that is not yet used. */
+      int next_face;
+      if (slot == 0) {
+        next_face = topo.edge_faces(next_edge)[0];
+      }
+      else {
+        const int prev_face = ordered_faces[slot - 1];
+        next_face = topo.edge_other_manifold_face(next_edge, prev_face);
+      }
+      if (used_faces.contains(next_face)) {
+        is_manifold_cap = false;
+        break;
+      }
+      ordered_faces[slot] = next_face;
+      next_edge = topo.face_other_edge_at_vert(next_face, vert, next_edge);
+      if (slot < num_edges - 1 && used_edges.contains(next_edge)) {
+        is_manifold_cap = false;
+        break;
+      }
+    }
+    is_manifold_cap = is_manifold_cap && next_edge == ordered_edges[0];
+    if (is_manifold_cap) {
+      /* Check if cap is oriented properly, and fix it if not.
+       * A pair of successive edges in ordered_edges should be going CW
+       * in the face in between. For now, just check the first pair.
+       */
+      if (num_edges > 1) {
+        if (topo.edge_is_successor_in_face(ordered_edges[0], ordered_edges[1], ordered_faces[0])) {
+          /* They are in the wrong orientation, so we need to reverse.
+           * To make interleaving of edges and faces work out, reverse only 1..end of edges
+           * and reverse all of faces.
+           */
+          std::reverse(ordered_edges.begin() + 1, ordered_edges.end());
+          std::reverse(ordered_faces.begin(), ordered_faces.end());
+        }
+      }
+      edges_.reinitialize(ordered_edges.size());
+      for (const int i : ordered_edges.index_range()) {
+        HalfEdge &he = edges_[i];
+        he.cap = this;
+        he.cap_index = i;
+        he.mesh_index = ordered_edges[i];
+      }
+      faces_ = ordered_faces;
+      return;
+    }
+  }
+  std::cout << "to implement: VertexCap for non-manifold edges\n";
+}
+
+const HalfEdge *VertexCap::half_edge_for_edge(int mesh_index) const
+{
+  for (const HalfEdge &he : edges_) {
+    if (he.mesh_index == mesh_index) {
+      return &he;
+    }
+  }
+  return nullptr;
+}
+
+static std::ostream &operator<<(std::ostream &os, const HalfEdge &he)
+{
+  os << "e" << he.mesh_index;
+  if (he.cap != nullptr) {
+    os << "@(v" << he.cap->vert << " pos " << he.cap_index << ")";
+  }
+  return os;
+}
+
+static std::ostream &operator<<(std::ostream &os, const VertexCap &cap)
+{
+  os << "cap at v" << cap.vert << ": ";
+  for (const int i : cap.edges().index_range()) {
+    os << "e" << cap.edge(i).mesh_index << " ";
+    if (cap.face(i) == -1) {
+      os << "<gap> ";
+    }
+    else {
+      os << "f" << cap.face(i) << " ";
+    }
+  }
+  os << "\n";
+  return os;
+}
+
+/** A VertexMesh contains the structure of the new mesh around a bevel-involved vertex.
+ * It uses vertex and face indices in an implicit MeshDelta.
+ * For now, we only need to keep track of the "boundary", the vertices that are on the
+ * outside of the vertex mesh -- the ones that edge meshes and other faces will attach to.
+ * We also need the edges between those vertices, so that we share them when reconstructing faces.
+ */
+class VertexMesh {
+  /* The MeshDelta vertex indices of the boundary of the mesh. */
+  Vector<int> boundary_vert_;
+  /* The MeshDelta edge indices of the edge starting at the corresponding boundary vert. */
+  Vector<int> boundary_edge_;
+
+ public:
+  VertexMesh()
+  {
+  }
+
+  void append_boundary_vert(int v)
+  {
+    boundary_vert_.append(v);
+  }
+
+  void append_boundary_edge(int e)
+  {
+    boundary_edge_.append(e);
+  }
+
+  int boundary_size() const
+  {
+    return boundary_vert_.size();
+  }
+
+  Span<int> boundary_verts_as_span() const
+  {
+    return boundary_vert_.as_span();
+  }
+
+  int boundary_vert(int i) const
+  {
+    return boundary_vert_[i];
+  }
+
+  int next_boundary_vert(int i) const
+  {
+    return boundary_vert_[(i + 1) % boundary_vert_.size()];
+  }
+
+  int next_boundary_pos(int i) const
+  {
+    return (i + 1) % boundary_vert_.size();
+  }
+
+  int prev_boundary_pos(int i) const
+  {
+    return (i + boundary_vert_.size() - 1) % boundary_vert_.size();
+  }
+
+  Span<int> boundary_edges_as_span() const
+  {
+    return boundary_edge_.as_span();
+  }
+
+  int boundary_edge(int i) const
+  {
+    return boundary_edge_[i];
+  }
+
+  /* Find and return the boundary position containing \a v. Return -1 if not found. */
+  int boundary_pos_for_vert(int v) const;
+};
+
+int VertexMesh::boundary_pos_for_vert(int v) const
+{
+  for (int i : boundary_vert_.index_range()) {
+    if (boundary_vert_[i] == v) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+static std::ostream &operator<<(std::ostream &os, const VertexMesh &vm)
+{
+  os << "Vertex Mesh\nboundary:";
+  for (const int v : vm.boundary_verts_as_span()) {
+    os << " " << v;
+  }
+  os << "\n";
+  return os;
+}
+
+/** A BevelEdge holds the two ends (HalfEdges) of an edge that is to be beveled.
+ * The underlying edge has a direction, and he1 is the HalfEdge at the source end,
+ * while he2 is the HalfEdge at the destination end.
+ */
+class BevelEdge {
+  /* Index in mesh of the underlying edge. */
+  int edge_;
+
+ public:
+  /* Source end HalfEdge. */
+  HalfEdge *he1;
+  /* Destination end HalfEdge. */
+  HalfEdge *he2;
+
+  BevelEdge() : edge_(-1), he1(nullptr), he2(nullptr)
+  {
+  }
+
+  BevelEdge(int edge, HalfEdge *he1, HalfEdge *he2) : edge_(edge), he1(he1), he2(he2)
+  {
+  }
+
+  int edge() const
+  {
+    return edge_;
+  }
+};
+
+/** BevelVertexData holds the data used to bevel around a vertex. */
+class BevelVertexData {
+  /* The vertex cap for the vertex. */
+  VertexCap vertex_cap_;
+  /* The vertex mesh for the vertex. */
+  VertexMesh vertex_mesh_;
+  /* Map from vertex_cap_ edge position to the attachement point on the boundary
+   * in vertex_mesh_. If the corresponding edge is beveled, this will be the attachment
+   * point for the left side (looking at the vertex) of the edge mesh.
+   */
+  Array<int> cap_pos_to_boundary_pos_;
+
+ public:
+  BevelVertexData()
+  {
+  }
+  ~BevelVertexData()
+  {
+  }
+
+  /* Initialize the vertex cap data for \a vert. */
+  void construct_vertex_cap(int vert, const MeshTopology &topo)
+  {
+    vertex_cap_.init_from_topo(vert, topo);
+  }
+
+  /* Construct the vertex mesh for this vert, for a vertex bevel by \a amount. Assume the vertex
+   * cap is already built. */
+  void construct_vertex_mesh_for_vertex_bevel(float amount,
+                                              const MeshTopology &topo,
+                                              MeshDelta &mesh_delta);
+
+  const VertexCap &vertex_cap() const
+  {
+    return vertex_cap_;
+  }
+
+  const VertexMesh &vertex_mesh() const
+  {
+    return vertex_mesh_;
+  }
+
+  const int cap_pos_to_boundary_pos(int cap_pos) const
+  {
+    return cap_pos_to_boundary_pos_[cap_pos];
+  }
+
+  const int beveled_vert() const
+  {
+    return vertex_cap_.vert;
+  }
+};
+
+static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
+{
+  const VertexCap &vc = bvd.vertex_cap();
+  os << "bevel vertex data for vertex " << vc.vert << "\n";
+  os << vc;
+  os << bvd.vertex_mesh();
+  return os;
+}
+
+/** Pick a face to be a representative for a beveled vertex. */
+static int face_rep_for_beveled_vert(const BevelVertexData &bvd)
+{
+  /* For now: just pick the first face we find. */
+  for (const int f : bvd.vertex_cap().faces()) {
+    if (f != -1) {
+      return f;
+    }
+  }
+  return -1;
+}
+
+/** Construct the vertex mesh for \a vert, for a vertex bevel by \a amount. Assume the vertex cap
+ * is already built.
+ * TODO: deal with collisions.
+ */
+void BevelVertexData::construct_vertex_mesh_for_vertex_bevel(float amount,
+                                                             const MeshTopology &topo,
+                                                             MeshDelta &mesh_delta)
+{
+  const VertexCap &cap = vertex_cap();
+  const int num_edges = cap.size();
+  const int vert = vertex_cap().vert;
+  const float3 vert_co = topo.vert_co(vertex_cap().vert);
+  cap_pos_to_boundary_pos_.reinitialize(num_edges);
+  for (const int i : IndexRange(num_edges)) {
+    const HalfEdge &he = cap.edge(i);
+    /* Set the position of the boundary vertex by sliding at distance `amount` along the edge. */
+    float3 dir = topo.edge_dir_from_vert_normalized(he.mesh_index, vert);
+    float3 new_co = vert_co + amount * dir;
+    int newv = mesh_delta.new_vert(new_co, vert);
+    cap_pos_to_boundary_pos_[i] = i;
+    vertex_mesh_.append_boundary_vert(newv);
+  }
+  /* All of the edges are new, so can pass an empty span for the edges. */
+  mesh_delta.new_face(
+      vertex_mesh_.boundary_verts_as_span(), Span<int>(), face_rep_for_beveled_vert(*this));
+}
+
+/** BevelSpec holds the data the specifies what the user wants beveled.
+ * There will be a derived class for each type of bevel.
+ */
+class BevelSpec {
+ public:
+  /* Are we beveling vertices, edges, or faces? */
+  GeometryNodeBevelMeshMode bevel_mode;
+  /* A mask over the elements of the beveled type, saying what is to bovel. */
+  IndexMask to_bevel;
+
+  BevelSpec(GeometryNodeBevelMeshMode mode, IndexMask to_bevel)
+      : bevel_mode(mode), to_bevel(to_bevel)
+  {
+  }
+
+  virtual void dump_spec() = 0;
+};
+
+class VertexBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh vertex index, the amount to slide along all edges
+   * attached to the vertex. */
+  VArray<float> amount;
+
+  VertexBevelSpec(IndexMask to_bevel, VArray<float> amount)
+      : BevelSpec{GEO_NODE_BEVEL_MESH_VERTICES, to_bevel}, amount(amount)
+  {
+  }
+
+  void dump_spec();
+};
+
+void VertexBevelSpec::dump_spec()
+{
+  std::cout << "VertexBevelSpec\n";
+  for (const int v : to_bevel.index_range()) {
+    if (to_bevel[v]) {
+      std::cout << v << ": " << amount[v] << "\n";
+    }
+  }
+}
+
+class FaceBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh poly index, the amount to inset the face by. */
+  VArray<float> amount;
+  /* Indexed by Mesh poly index, the slope to follow when insetting the face. */
+  VArray<float> slope;
+  bool use_regions;
+
+  FaceBevelSpec(IndexMask to_bevel, VArray<float> amount, VArray<float> slope, bool use_regions)
+      : BevelSpec{GEO_NODE_BEVEL_MESH_FACES, to_bevel},
+        amount(amount),
+        slope(slope),
+        use_regions(use_regions)
+  {
+  }
+
+  void dump_spec();
+};
+
+void FaceBevelSpec::dump_spec()
+{
+  std::cout << "FaceBevelSpec\n";
+  if (use_regions) {
+    std::cout << "use regions\n";
+  }
+  for (const int f : to_bevel.index_range()) {
+    if (to_bevel[f]) {
+      std::cout << f << ": " << amount[f] << ", slope=" << slope[f] << "\n";
+    }
+  }
+}
+
+class EdgeBevelSpec : public BevelSpec {
+ public:
+  /* Indexed by Mesh edge index, the amounts to bevel the edge.
+   * `left_amount[0]` is the left side amount for the source end and
+   * `right_amount[0]` is the right side amount for the source end,
+   * where "left" and "right" mean: those sides as you look
+   * along the edge to the source.
+   * Similarly, the 1-indexed elements of those arrays are for the
+   * destination end, with left and right as you look towards the dest end.
+   */
+  VArray<float> left_amount[2];
+  VArray<float> right_amount[2];
+
+  EdgeBevelSpec(IndexMask to_bevel, VArray<float> amount)
+      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
+        left_amount{amount, amount},
+        right_amount{amount, amount}
+  {
+  }
+
+  EdgeBevelSpec(IndexMask to_bevel,
+                VArray<float> src_left_amount,
+                VArray<float> src_right_amount,
+                VArray<float> dst_left_amount,
+                VArray<float> dst_right_amount)
+      : BevelSpec(GEO_NODE_BEVEL_MESH_EDGES, to_bevel),
+        left_amount{src_left_amount, dst_left_amount},
+        right_amount{src_right_amount, dst_right_amount}
+  {
+  }
+
+  void dump_spec();
+};
+
+void EdgeBevelSpec::dump_spec()
+{
+  std::cout << "EdgeBevelSpec\n";
+  for (const int e : to_bevel.index_range()) {
+    if (to_bevel[e]) {
+      std::cout << e << ": ";
+      if (left_amount[0] == right_amount[0] && left_amount[0] == left_amount[1] &&
+          left_amount[1] == right_amount[1]) {
+        std::cout << left_amount[0][e] << "\n";
+      }
+      else {
+        std::cout << "0(" << left_amount[0][e] << ", " << right_amount[0][e] << ") 1("
+                  << left_amount[1][e] << ", " << right_amount[1][e] << ")\n";
+      }
+    }
+  }
+}
+
 /** BevelData holds the global data needed for a bevel. */
 class BevelData {
   /* The specification of the bevel. */
@@ -1549,27 +1591,26 @@ class BevelData {
     return nullptr;
   }
 
-  Span<BevelVertexData> beveled_vertices_data() const
-  {
-    return bevel_vert_data_.as_span();
-  }
+  /* Return all faces affected by bevel, in a deterministic order.
+   * Assume the bevel_vert_data_ has been initialized.
+   */
+  Array<int> affected_faces() const;
 
-  MutableSpan<BevelVertexData> mutable_beveled_vertices_data()
-  {
-    return bevel_vert_data_.as_mutable_span();
-  }
+  /* Find and return the input and output vertices in the new mesh that will replace vertex \a v
+   * when in a face with incoming edge \a e.
+   */
+  std::pair<int, int> attach_verts_for_beveled_vert(int v, int e, const BevelVertexData *bvd);
+
+  /* Allocate in mesh_delta_ and return a new MLoop for an edge from v1 to v2. Make the MEdge if
+   * needed. */
+  int new_loop_for_vert_pair(int v1, int v2);
+
+  /* Allocate in mesh_delta_ new MLoops for all int edges from vi to vo in the boundary given in
+   * bvd. If bvd is null, does nothing. */
+  std::pair<int, int> new_loops_for_beveled_vert(const BevelVertexData *bvd, int vi, int vo);
 
   void print(const std::string &label) const;
 };
-
-/** Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
-void BevelData::setup_vert_map()
-{
-  vert_to_bvd_index_.reserve(bevel_vert_data_.size());
-  for (const int i : bevel_vert_data_.index_range()) {
-    vert_to_bvd_index_.add_new(bevel_vert_data_[i].vertex_cap().vert, i);
-  }
-}
 
 void BevelData::print(const std::string &label) const
 {
@@ -1582,18 +1623,103 @@ void BevelData::print(const std::string &label) const
   }
 }
 
-/** Pick a face to be a representative for a beveled vertex. */
-static int face_rep_for_beveled_vert(const BevelVertexData &bvd)
+/** Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
+void BevelData::setup_vert_map()
 {
-  /* For now: just pick the first face we find. */
-  for (const int f : bvd.vertex_cap().faces()) {
-    if (f != -1) {
-      return f;
-    }
+  vert_to_bvd_index_.reserve(bevel_vert_data_.size());
+  for (const int i : bevel_vert_data_.index_range()) {
+    vert_to_bvd_index_.add_new(bevel_vert_data_[i].vertex_cap().vert, i);
   }
-  return -1;
 }
 
+/* Return all faces affected by bevel, in a deterministic order.
+ * Assume the bevel_vert_data_ has been initialized.
+ */
+Array<int> BevelData::affected_faces() const
+{
+  Set<int> need_face;
+  for (const BevelVertexData &bvd : bevel_vert_data_) {
+    for (const int f : bvd.vertex_cap().faces()) {
+      need_face.add(f);
+    }
+  }
+  int n = need_face.size();
+  Array<int> ans(n);
+  int i = 0;
+  for (const int f : need_face) {
+    ans[i++] = f;
+  }
+  /* Sort the answer to make the result deterministic run-to-run. */
+  std::sort(ans.begin(), ans.end());
+  return ans;
+}
+
+/* Find and return the input and output vertices in the new mesh that will replace vertex \a v
+ * when in a face with incoming edge \a e. If \a v is beveled then \a bvd is its BevelVertexData.
+ */
+std::pair<int, int> BevelData::attach_verts_for_beveled_vert(int v,
+                                                             int e,
+                                                             const BevelVertexData *bvd)
+{
+  if (bvd == nullptr) {
+    return std::pair<int, int>(v, v);
+  }
+  const HalfEdge *he = bvd->vertex_cap().half_edge_for_edge(e);
+  BLI_assert(he != nullptr);
+  const HalfEdge *he_next = &bvd->vertex_cap().next_edge(he->cap_index);
+  int vin_pos = bvd->cap_pos_to_boundary_pos(he_next->cap_index);
+  int vout_pos = bvd->cap_pos_to_boundary_pos(he->cap_index);
+  int vin = bvd->vertex_mesh().boundary_vert(vin_pos);
+  int vout = bvd->vertex_mesh().boundary_vert(vout_pos);
+  return std::pair<int, int>(vin, vout);
+}
+
+/* Allocate in mesh_delta_ new MLoop for an edge from v1 to v2. Make the MEdge if needed. */
+int BevelData::new_loop_for_vert_pair(int v1, int v2)
+{
+  /* TODO: something about representative edges and loops. */
+  int e = mesh_delta_.find_or_add_edge(v1, v2, -1);
+  return mesh_delta_.new_loop(v1, e, -1);
+}
+
+/* Allocate in mesh_delta_ new MLoops for all int edges from vi to vo in the boundary given in bvd.
+ * If bvd is null, does nothing.
+ * Return a pair of (index of first loop allocate, number allocated).
+ */
+std::pair<int, int> BevelData::new_loops_for_beveled_vert(const BevelVertexData *bvd,
+                                                          int vi,
+                                                          int vo)
+{
+  int lfirst = -1;
+  int count = 0;
+  if (vi == vo || bvd == nullptr) {
+    return std::pair<int, int>(lfirst, count);
+  }
+  const int vi_boundary_pos = bvd->vertex_mesh().boundary_pos_for_vert(vi);
+  int pos = vi_boundary_pos;
+  const VertexMesh &vmesh = bvd->vertex_mesh();
+  for (;;) {
+    int pos_prev = vmesh.prev_boundary_pos(pos);
+    int v_prev = vmesh.boundary_vert(pos_prev);
+    int v = vmesh.boundary_vert(pos);
+    int l = new_loop_for_vert_pair(v, v_prev);
+    if (pos == vi_boundary_pos) {
+      lfirst = l;
+    }
+    count++;
+    if (v_prev == vo) {
+      break;
+    }
+    pos = pos_prev;
+    BLI_assert(v_prev != vi); /* Shouldn't wrap around. */
+  }
+  return std::pair<int, int>(lfirst, count);
+}
+
+/** Calculate the vertex bevels and leave the result in the mesh_delta_ member.
+ * Assume that the `spec_` member has been set up as a `VertexBevelSpec` to
+ * specify how the vertex bevel is to be done.
+ */
 void BevelData::calculate_vertex_bevel()
 {
   const VertexBevelSpec *spec = dynamic_cast<const VertexBevelSpec *>(spec_);
@@ -1602,164 +1728,71 @@ void BevelData::calculate_vertex_bevel()
   threading::parallel_for(to_bevel.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       const int vert = to_bevel[i];
-      bevel_vert_data_[i].construct_vertex_bevel(vert, spec->amount[vert], *topo_);
+      bevel_vert_data_[i].construct_vertex_cap(vert, *topo_);
     }
   });
 
   setup_vert_map();
 
-  /* Make the polygons that will replace the beveled vertices. */
+  /* Make the polygons that will replace the beveled vertices. Since this allocates new elements
+   * in mesh_delta_, need to do this serially.
+   * Also delete the vertices and the original edges attached to them.
+   */
   for (BevelVertexData &bvd : bevel_vert_data_) {
     /* Allocate vertices for the boundary vertices. */
-    MutableSpan<BoundaryVert> boundary_verts = bvd.mutable_boundary_verts();
-    int n = boundary_verts.size();
-    for (BoundaryVert &bv : boundary_verts) {
-      bv.mesh_index = mesh_delta_.new_vert(bv.co, bvd.beveled_vert());
-    }
-    /* Allocate the edges and loops for the polygon. */
-    Array<int> edges(n);
-    Array<int> loops(n);
-    int lfirst = -1;
-    int lprev = -1;
-    for (int i : IndexRange(n)) {
-      const BoundaryVert &bv = boundary_verts[i];
-      const BoundaryVert &bv_next = boundary_verts[i == n - 1 ? 0 : i + 1];
-      int v1 = bv.mesh_index;
-      int v2 = bv_next.mesh_index;
-      int e = mesh_delta_.new_edge(v1, v2, -1);
-      bvd.set_boundary_connection(i, BoundaryConnector(e));
-      int l = mesh_delta_.new_loop(v1, e, -1);
-      if (i == 0) {
-        lfirst = l;
-      }
-      lprev = l;
-    }
-    /* Now make the face. Assert that we allocated contiguous loop indices. */
-    BLI_assert(lfirst != -1 && lprev == lfirst + n - 1);
-    mesh_delta_.new_face(lfirst, n, face_rep_for_beveled_vert(bvd));
+    const int vert = bvd.beveled_vert();
+    const float amount = spec->amount[vert];
+    bvd.construct_vertex_mesh_for_vertex_bevel(amount, *topo_, mesh_delta_);
+
     /* Delete the beveled vertex, which is now being replaced.
      * TODO: only do this if there is no extra stuff attached to it.
      */
-    mesh_delta_.delete_vert(bvd.vertex_cap().vert);
+    mesh_delta_.delete_vert(vert);
     /* We also delete any edges that were using that vertex. */
     for (int e : topo_->vert_edges(bvd.vertex_cap().vert)) {
       mesh_delta_.delete_edge(e);
     }
   }
 
-  /* Reconstruct all faces that involve a beveled vertex.
-   * For now, go through all faces to see which ones are affected.
-   * TODO: gather affected faces via connections to beveled vertices.
-   */
+  /* Reconstruct all faces that involve a beveled vertex. */
   Span<MPoly> polys = mesh_->polys();
   Span<MLoop> loops = mesh_->loops();
-  for (int f : IndexRange(mesh_->totpoly)) {
+  Array<int> faces_to_reconstruct = affected_faces();
+  for (const int f : faces_to_reconstruct) {
     const MPoly &mpoly = polys[f];
-
-    /* Are there any beveled vertices in f? */
-    int any_affected_vert = false;
+    /* Need new loops in the recontruction because they must be contiguous in the new face. */
+    int lfirst = -1;
+    int num_loops = 0;
     for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
-      const int v = loops[l].v;
-      const BevelVertexData *bvd = bevel_vertex_data(v);
-      if (bvd != nullptr) {
-        any_affected_vert = true;
-        break;
+      const MLoop &mloop = loops[l];
+      int lnext = l < mpoly.loopstart + mpoly.totloop - 1 ? l + 1 : mpoly.loopstart;
+      const MLoop &mloop_next = loops[lnext];
+      int v1 = mloop.v;
+      int v2 = mloop_next.v;
+      const BevelVertexData *bvd1 = bevel_vertex_data(v1);
+      const BevelVertexData *bvd2 = bevel_vertex_data(v2);
+      int v1i, v1o, v2i, v2o;
+      std::tie(v1i, v1o) = attach_verts_for_beveled_vert(v1, mloop.e, bvd1);
+      std::tie(v2i, v2o) = attach_verts_for_beveled_vert(v2, mloop_next.e, bvd2);
+      if (lfirst == -1) {
+        int cnt;
+        std::tie(lfirst, cnt) = new_loops_for_beveled_vert(bvd1, v1i, v1o);
+        num_loops += cnt;
       }
-    }
-    if (any_affected_vert) {
-      /* We need to reconstruct f. We can't reuse unaffected loops since they won't be
-       * contiguous.
-       */
-      int lfirst = -1;
-      int totloop = 0;
-      for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
-        const MLoop &mloop = loops[l];
-        const MLoop &mloop_next =
-            loops[l == mpoly.loopstart + mpoly.totloop - 1 ? mpoly.loopstart : l + 1];
-        int v1 = mloop.v;
-        int v2 = mloop_next.v;
-        int e = mloop.e;
-        BevelVertexData *bvd1 = bevel_vertex_data(v1);
-        BevelVertexData *bvd2 = bevel_vertex_data(v2);
-        HalfEdge *he1 = bvd1 == nullptr ? nullptr : bvd1->find_half_edge(e);
-        HalfEdge *he2 = bvd2 == nullptr ? nullptr : bvd2->find_half_edge(e);
-        const BoundaryVert *bv1 = he1 == nullptr ? nullptr : &bvd1->boundary_vert(he1->bv_index);
-        const BoundaryVert *bv2 = he2 == nullptr ? nullptr : &bvd2->boundary_vert(he2->bv_index);
-
-        /* If v1 is beveled, we need to add the boundary connector from the next boundary vertex
-         * CCW from bv1 (which is therefore the previous boundary vertex when going around our
-         * current face) to bv1. This is the reverse of the connector from the current edge to
-         * the next. Then after that, the new edge that replaces e. We assume the edge(s) for the
-         * connector have already been made.
-         */
-        int lnew = -1;
-        if (bvd1 != nullptr) {
-          /* Temporary: for now assume only one edge in the connector. */
-          int econn = bvd1->boundary_connector_edge(bv1->vc_index, 0);
-          BLI_assert(econn != -1);
-          int econn_v1, econn_v2;
-          mesh_delta_.get_edge_verts(econn, &econn_v1, &econn_v2);
-          BLI_assert(econn_v1 == bv1->mesh_index);
-          lnew = mesh_delta_.new_loop(econn_v2, econn, l);
-          if (l == mpoly.loopstart) {
-            lfirst = lnew;
-          }
-          totloop++;
-          /* Now we need an edge from bv1->mesh_index to either v2 (if v2 is not beveled)
-           * or to bv2->mesh_index. But that edge may have been made already. If so,
-           * we will find its mesh index in he2->mesh_index.
-           * It is also possible we made the edge and stored it in he1->mesh_index,
-           * while doing the adjacent face.
-           */
-          if (bvd2 == nullptr) {
-            if (he1->mesh_index != -1) {
-              e = he1->mesh_index;
-            }
-            else {
-              e = mesh_delta_.new_edge(bv1->mesh_index, v2, mloop.e);
-            }
-            lnew = mesh_delta_.new_loop(bv1->mesh_index, e, l);
-          }
-          else {
-            if (he1->mesh_index != -1) {
-              e = he1->mesh_index;
-            }
-            else if (he2->mesh_index != -1) {
-              e = he2->mesh_index;
-            }
-            else {
-              e = mesh_delta_.new_edge(bv1->mesh_index, bv2->mesh_index, mloop.e);
-              he2->mesh_index = e;
-            }
-            lnew = mesh_delta_.new_loop(bv1->mesh_index, e, l);
-          }
-          he1->mesh_index = e;
-        }
-        else if (bvd2 != nullptr) {
-          /* v1 is not beveled and v2 is. */
-          if (he2->mesh_index != -1) {
-            e = he2->mesh_index;
-          }
-          else {
-            e = mesh_delta_.new_edge(v1, bv2->mesh_index, mloop.e);
-            he2->mesh_index = e;
-          }
-          lnew = mesh_delta_.new_loop(v1, e, l);
-        }
-        else {
-          /* Neither v1 nor v2 is beveled, so we can use the existing e. */
-          lnew = mesh_delta_.new_loop(v1, e, l);
-        }
-        totloop++;
-
-        if (lfirst == -1) {
-          lfirst = lnew;
-        }
+      /* Invariant here: have made new loops for everything in previous part of mpoly,
+       * and up to and including mloop.v (if unbeveled) or the part of the boundary
+       * for mloop.v that replaces mloop.v. num_loops is the number of loops made so far. */
+      int lnew = new_loop_for_vert_pair(v1o, v2i);
+      if (lfirst == -1) {
+        lfirst = lnew;
       }
-      mesh_delta_.new_face(lfirst, totloop, f);
-      /* Delete the old face (which also deletes its loops). */
-      mesh_delta_.delete_face(f);
+      num_loops++;
+      std::pair<int, int> lnew_and_cnt = new_loops_for_beveled_vert(bvd2, v2i, v2o);
+      num_loops += lnew_and_cnt.second;
     }
+    mesh_delta_.new_face(lfirst, num_loops, f);
+    /* Delete the old face (which also deletes its loops). */
+    mesh_delta_.delete_face(f);
   }
 }
 
@@ -1775,6 +1808,19 @@ void BevelData::calculate_edge_bevel()
   }
   const int tot_need_vert = need_vert.size();
   bevel_vert_data_.reinitialize(tot_need_vert);
+  /* We want the vertices in a deterministic order, so loop through edges again, removing from
+   * need_vert as we go. */
+  int bvd_index = 0;
+  for (const int e : to_bevel) {
+    for (const int i : IndexRange(2)) {
+      const int v = i == 0 ? topo_->edge_v1(e) : topo_->edge_v2(e);
+      if (need_vert.contains(v)) {
+        bevel_vert_data_[bvd_index].construct_vertex_cap(v, *topo_);
+        need_vert.remove(v);
+        bvd_index++;
+      }
+    }
+  }
 }
 
 void BevelData::calculate_face_bevel()
