@@ -23,7 +23,7 @@ class MetalDeviceQueue : public DeviceQueue {
   ~MetalDeviceQueue();
 
   virtual int num_concurrent_states(const size_t) const override;
-  virtual int num_concurrent_busy_states() const override;
+  virtual int num_concurrent_busy_states(const size_t) const override;
   virtual int num_sort_partition_elements() const override;
 
   virtual void init_execution() override;

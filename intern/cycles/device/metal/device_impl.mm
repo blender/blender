@@ -296,9 +296,11 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   }
 
   source = global_defines + source;
+#  if 0
   metal_printf("================\n%s================\n\%s================\n",
                global_defines.c_str(),
                baked_constants.c_str());
+#  endif
 
   /* Generate an MD5 from the source and include any baked constants. This is used when caching
    * PSOs. */
