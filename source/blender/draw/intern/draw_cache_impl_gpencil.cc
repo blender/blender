@@ -629,9 +629,9 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     GPUVertFormat *format_color = gpencil_color_format();
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
     GPUVertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(format_color, vbo_flag);
-    /* Add extra space at the end the buffer because of quad load and cyclic. */
-    GPU_vertbuf_data_alloc(vbo, vert_len + 2);
-    GPU_vertbuf_data_alloc(vbo_col, vert_len + 2);
+    /* Add extra space at the start and end the buffer because of quad load and cyclic. */
+    GPU_vertbuf_data_alloc(vbo, 1 + vert_len + 1 + 2);
+    GPU_vertbuf_data_alloc(vbo_col, 1 + vert_len + 1 + 2);
     gpStrokeVert *verts = (gpStrokeVert *)GPU_vertbuf_get_data(vbo);
     gpColorVert *cols = (gpColorVert *)GPU_vertbuf_get_data(vbo_col);
 
