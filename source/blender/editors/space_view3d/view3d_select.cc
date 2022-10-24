@@ -2704,7 +2704,10 @@ static bool ed_object_select_pick(bContext *C,
         /* When there is no `baseact` this will have operated on `oldbasact`,
          * allowing #SelectPick_Params.deselect_all work in pose-mode.
          * In this case no object operations are needed. */
-        if (basact != nullptr) {
+        if (basact == nullptr) {
+          handled = true;
+        }
+        else {
           /* By convention the armature-object is selected when in pose-mode.
            * While leaving it unselected will work, leaving pose-mode would leave the object
            * active + unselected which isn't ideal when performing other actions on the object. */
