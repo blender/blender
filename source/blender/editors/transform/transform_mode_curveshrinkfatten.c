@@ -101,12 +101,17 @@ void initCurveShrinkFatten(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT;
 
-  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-    /* Save a factor to multiply the ratio and use in zero radius cases. */
+  float scale_factor = 0.0f;
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW) &&
+          t->data_len_all == 1 ||
+      (t->data_len_all == 3 && TRANS_DATA_CONTAINER_FIRST_OK(t)->data[0].val == NULL)) {
+    /* For cases where only one point on the curve is being transformed and the radius of that
+     * point is zero, use the factor to multiply the offset of the ratio and allow scaling.
+     * Note that for bezier curves, 3 TransData equals 1 point in most cases. */
     RegionView3D *rv3d = t->region->regiondata;
-    float scale_factor = rv3d->pixsize * t->mouse.factor * t->zfac;
-    t->custom.mode.data = POINTER_FROM_UINT(float_as_uint(scale_factor));
+    scale_factor = rv3d->pixsize * t->mouse.factor * t->zfac;
   }
+  t->custom.mode.data = POINTER_FROM_UINT(float_as_uint(scale_factor));
 }
 
 /** \} */
