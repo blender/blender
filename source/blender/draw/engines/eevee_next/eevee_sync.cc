@@ -258,7 +258,7 @@ static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
 
   if (show_stroke) {
     /* Start one vert before to have gl_InstanceID > 0 (see shader). */
-    int vfirst = gps->runtime.stroke_start - 1;
+    int vfirst = gps->runtime.stroke_start * 3;
     /* Include "potential" cyclic vertex and start adj vertex (see shader). */
     int vcount = gps->totpoints + 1 + 1;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, true);

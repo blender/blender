@@ -45,7 +45,7 @@ typedef struct GpencilBatchCache {
   GPUVertBuf *vbo_col;
   /** Indices in material order, then stroke order with fill first.
    * Strokes can be individually rendered using `gps->runtime.stroke_start` and
-   * `gps->runtime.stroke_start`. */
+   * `gps->runtime.fill_start`. */
   GPUIndexBuf *ibo;
   /** Batches */
   GPUBatch *geom_batch;
@@ -319,7 +319,7 @@ static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
 
   vert->strength = (round_cap0) ? pt->strength : -pt->strength;
   vert->u_stroke = pt->uv_fac;
-  vert->stroke_id = gps->runtime.stroke_start;
+  vert->stroke_id = gps->runtime.vertex_start;
   vert->point_id = v;
   vert->thickness = max_ff(0.0f, gps->thickness * pt->pressure) * (round_cap1 ? 1.0f : -1.0f);
   /* Tag endpoint material to -1 so they get discarded by vertex shader. */
@@ -761,7 +761,7 @@ static void gpencil_edit_stroke_iter_cb(bGPDlayer *gpl,
 {
   gpEditIterData *iter = (gpEditIterData *)thunk;
   const int v_len = gps->totpoints;
-  const int v = gps->runtime.stroke_start + 1;
+  const int v = gps->runtime.vertex_start + 1;
   MDeformVert *dvert = ((iter->vgindex > -1) && gps->dvert) ? gps->dvert : NULL;
   gpEditVert *vert_ptr = iter->verts + v;
 
@@ -776,9 +776,12 @@ static void gpencil_edit_stroke_iter_cb(bGPDlayer *gpl,
     vert_ptr->weight = gpencil_point_edit_weight(dvert, i, iter->vgindex);
     vert_ptr++;
   }
-  /* Draw line to first point to complete the loop for cyclic strokes. */
-  vert_ptr->vflag = sflag | gpencil_point_edit_flag(layer_lock, &gps->points[0], 0, v_len);
-  vert_ptr->weight = gpencil_point_edit_weight(dvert, 0, iter->vgindex);
+
+  if (gpencil_stroke_is_cyclic(gps)) {
+    /* Draw line to first point to complete the loop for cyclic strokes. */
+    vert_ptr->vflag = sflag | gpencil_point_edit_flag(layer_lock, &gps->points[0], 0, v_len);
+    vert_ptr->weight = gpencil_point_edit_weight(dvert, 0, iter->vgindex);
+  }
 }
 
 static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
