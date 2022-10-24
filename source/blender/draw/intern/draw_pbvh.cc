@@ -389,12 +389,19 @@ struct PBVHBatches {
         break;
 
       case CD_PBVH_MASK_TYPE:
-        foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-          float *mask = CCG_elem_mask(&args->ccg_key, elems[i]);
+        if (args->ccg_key.has_mask) {
+          foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
+            float *mask = CCG_elem_mask(&args->ccg_key, elems[i]);
 
-          *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = mask ? uchar(*mask * 255.0f) :
-                                                                        255;
-        });
+            *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = uchar(*mask * 255.0f);
+          });
+        }
+        else {
+          foreach_grids(
+              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
+                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
+              });
+        }
         break;
 
       case CD_PBVH_FSET_TYPE: {
@@ -1158,8 +1165,17 @@ struct PBVHBatches {
     }
 
     for (PBVHBatch &batch : batches.values()) {
-      GPU_batch_elembuf_set(batch.tris, tri_index, false);
-      GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      if (tri_index) {
+        GPU_batch_elembuf_set(batch.tris, tri_index, false);
+      }
+      else {
+        /* Still flag the batch as dirty even if we're using the default index layout. */
+        batch.tris->flag |= GPU_BATCH_DIRTY;
+      }
+
+      if (lines_index) {
+        GPU_batch_elembuf_set(batch.lines, lines_index, false);
+      }
     }
   }
 

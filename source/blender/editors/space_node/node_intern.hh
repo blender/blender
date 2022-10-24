@@ -270,6 +270,8 @@ void NODE_OT_group_edit(wmOperatorType *ot);
 
 /* node_relationships.cc */
 
+void update_multi_input_indices_for_removed_links(bNode &node);
+
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
 void NODE_OT_links_cut(wmOperatorType *ot);

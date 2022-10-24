@@ -292,6 +292,8 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       BKE_lattice_batch_cache_dirty_tag((struct Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
     case OB_CURVES_LEGACY:
+    case OB_SURF:
+    case OB_FONT:
       BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case OB_MBALL: {
@@ -373,10 +375,8 @@ void BKE_object_select_update(Depsgraph *depsgraph, Object *object)
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   if (object->type == OB_MESH && !object->runtime.is_data_eval_owned) {
     Mesh *mesh_input = (Mesh *)object->runtime.data_orig;
-    Mesh_Runtime *mesh_runtime = &mesh_input->runtime;
-    BLI_mutex_lock(static_cast<ThreadMutex *>(mesh_runtime->eval_mutex));
+    std::lock_guard lock{mesh_input->runtime->eval_mutex};
     BKE_object_data_select_update(depsgraph, static_cast<ID *>(object->data));
-    BLI_mutex_unlock(static_cast<ThreadMutex *>(mesh_runtime->eval_mutex));
   }
   else {
     BKE_object_data_select_update(depsgraph, static_cast<ID *>(object->data));

@@ -531,7 +531,7 @@ PyObject *Freestyle_Init(void)
   const char *const path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, "freestyle");
   if (path) {
     char modpath[FILE_MAX];
-    BLI_join_dirfile(modpath, sizeof(modpath), path, "modules");
+    BLI_path_join(modpath, sizeof(modpath), path, "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
     PyObject *py_modpath = PyUnicode_FromString(modpath);
     PyList_Append(sys_path, py_modpath);

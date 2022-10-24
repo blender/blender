@@ -27,6 +27,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph.h"
@@ -166,15 +167,16 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
   if (expand_cache->texture_distortion_strength == 0.0f) {
     return expand_cache->vert_falloff[v_i];
   }
-
-  if (!expand_cache->brush->mtex.tex) {
+  const Brush *brush = expand_cache->brush;
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
+  if (!mtex->tex) {
     return expand_cache->vert_falloff[v_i];
   }
 
   float rgba[4];
   const float *vertex_co = SCULPT_vertex_co_get(ss, v);
   const float avg = BKE_brush_sample_tex_3d(
-      expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
+      expand_cache->scene, brush, mtex, vertex_co, rgba, 0, ss->tex_pool);
 
   const float distortion = (avg - 0.5f) * expand_cache->texture_distortion_strength *
                            expand_cache->max_vert_falloff;
@@ -2107,6 +2109,11 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   }
 
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
+    BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
 
   /* Do nothing when the mesh has 0 vertices. */
@@ -2119,11 +2126,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     Mesh *mesh = ob->data;
     ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
-  }
-
-  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
-    BKE_sculpt_mask_layers_ensure(ob, mmd);
   }
 
   /* Face Set operations are not supported in dyntopo. */

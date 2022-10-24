@@ -788,7 +788,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
    * existing on its own.
    */
   BKE_copybuffer_copy_tag_ID(&ob_copy.id);
-  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
+  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
   BKE_copybuffer_copy_end(temp_bmain, str, op->reports);
   /* We clear the lists so no datablocks gets freed,
    * This is required because objects in temp bmain shares same pointers
@@ -844,7 +844,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   Main *tmp_bmain = BKE_main_new();
   STRNCPY(tmp_bmain->filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
+  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
   if (!BKE_copybuffer_read(tmp_bmain, str, op->reports, FILTER_ID_OB)) {
     BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
     BKE_main_free(tmp_bmain);

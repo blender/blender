@@ -21,6 +21,7 @@
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1041,11 +1042,11 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
-
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
-  BKE_sculpt_mask_layers_ensure(ob, mmd);
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -1116,10 +1117,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-
-  /* Unlike other operators we do not tag the ID for update here;
-   * it triggers a PBVH rebuild which is too slow and ruins
-   * the interactivity of the tool. */
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1294,11 +1292,10 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
 
   SCULPT_visibility_sync_all_from_faces(ob);
 
-  /* Note: SCULPT_visibility_sync_all_from_faces may have deleted
-   * pbvh->hide_vert if hide_poly did not exist, which is why
-   * we call BKE_pbvh_update_hide_attributes_from_mesh here instead of
-   * after CustomData_free_layer_named above.
-   */
+  /* NOTE: #SCULPT_visibility_sync_all_from_faces may have deleted
+   * `pbvh->hide_vert` if hide_poly did not exist, which is why
+   * we call #BKE_pbvh_update_hide_attributes_from_mesh here instead of
+   * after #CustomData_free_layer_named above. */
   if (!with_bmesh) {
     BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
   }

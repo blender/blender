@@ -54,7 +54,8 @@ void register_node_type_cmp_sephsva()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA_LEGACY, "Separate HSVA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, CMP_NODE_SEPHSVA_LEGACY, "Separate HSVA (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_sephsva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -107,7 +108,8 @@ void register_node_type_cmp_combhsva()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA_LEGACY, "Combine HSVA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, CMP_NODE_COMBHSVA_LEGACY, "Combine HSVA (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combhsva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

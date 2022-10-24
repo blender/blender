@@ -85,9 +85,9 @@ CCL_NAMESPACE_BEGIN
 #  define __VOLUME_RECORD_ALL__
 #endif /* !__KERNEL_GPU__ */
 
-/* MNEE currently causes "Compute function exceeds available temporary registers"
- * on Metal, disabled for now. */
-#ifndef __KERNEL_METAL__
+/* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a bug
+ * in spill buffer allocation sizing. */
+#if !defined(__KERNEL_METAL__) || (__KERNEL_METAL_MACOS__ >= 13)
 #  define __MNEE__
 #endif
 

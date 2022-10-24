@@ -129,7 +129,6 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
   region->flag = RGN_FLAG_HIDDEN;
-  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* Channels. */
   region = MEM_callocN(sizeof(ARegion), "channels for sequencer");
@@ -137,6 +136,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   BLI_addtail(&sseq->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
+  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* Preview region. */
   /* NOTE: if you change values here, also change them in sequencer_init_preview_region. */

@@ -57,7 +57,7 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
 
 /* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
-                            const ModifierEvalContext *UNUSED(ctx),
+                            const ModifierEvalContext * /*ctx*/,
                             Object *ob,
                             Mesh *mesh,
                             float (*cos)[3],
@@ -188,7 +188,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                     &mesh_prior_modifiers->id,
                                     nullptr,
                                     (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_CD_REFERENCE));
-      mesh->runtime.deformed_only = 1;
+      mesh->runtime->deformed_only = 1;
     }
 
     if (em != nullptr) {
@@ -218,7 +218,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
   }
 
-  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  if (mesh && mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh->totvert == verts_num);
   }
 

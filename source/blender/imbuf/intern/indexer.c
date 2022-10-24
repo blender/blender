@@ -426,7 +426,7 @@ static bool get_proxy_filepath(struct anim *anim,
     return false;
   }
 
-  BLI_join_dirfile(filepath, FILE_MAXFILE + FILE_MAXDIR, index_dir, proxy_name);
+  BLI_path_join(filepath, FILE_MAXFILE + FILE_MAXDIR, index_dir, proxy_name);
   return true;
 }
 
@@ -457,7 +457,7 @@ static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc, char *filep
 
   get_index_dir(anim, index_dir, sizeof(index_dir));
 
-  BLI_join_dirfile(filepath, FILE_MAXFILE + FILE_MAXDIR, index_dir, index_name);
+  BLI_path_join(filepath, FILE_MAXFILE + FILE_MAXDIR, index_dir, index_name);
 }
 
 /* ----------------------------------------------------------------------
@@ -498,7 +498,9 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->anim = anim;
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
-  BLI_make_existing_file(filepath);
+  if (!BLI_make_existing_file(filepath)) {
+    return NULL;
+  }
 
   rv->of = avformat_alloc_context();
   rv->of->oformat = av_guess_format("avi", NULL, NULL);
@@ -903,6 +905,14 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
         proxy_sizes_in_use &= ~proxy_sizes[i];
       }
     }
+  }
+
+  if (context->proxy_ctx[0] == NULL && context->proxy_ctx[1] == NULL &&
+      context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL) {
+    avformat_close_input(&context->iFormatCtx);
+    avcodec_free_context(&context->iCodecCtx);
+    MEM_freeN(context);
+    return NULL; /* Nothing to transcode. */
   }
 
   for (i = 0; i < num_indexers; i++) {

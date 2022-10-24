@@ -642,15 +642,26 @@ CustomDataAttributes::CustomDataAttributes(CustomDataAttributes &&other)
   size_ = other.size_;
   data = other.data;
   CustomData_reset(&other.data);
+  other.size_ = 0;
 }
 
 CustomDataAttributes &CustomDataAttributes::operator=(const CustomDataAttributes &other)
 {
-  if (this != &other) {
-    CustomData_copy(&other.data, &data, CD_MASK_ALL, CD_DUPLICATE, other.size_);
-    size_ = other.size_;
+  if (this == &other) {
+    return *this;
   }
+  this->~CustomDataAttributes();
+  new (this) CustomDataAttributes(other);
+  return *this;
+}
 
+CustomDataAttributes &CustomDataAttributes::operator=(CustomDataAttributes &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  this->~CustomDataAttributes();
+  new (this) CustomDataAttributes(std::move(other));
   return *this;
 }
 

@@ -1494,6 +1494,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
    * code is wrong, we need to redo it here after adding them back to main. */
   BKE_main_id_refcount_recompute(bmain, false);
 
+  BKE_layer_collection_resync_forbid();
   /* Note that in reload case, we also want to replace indirect usages. */
   const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
                             (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
@@ -1523,6 +1524,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
       id_us_plus_no_lib(&old_key->id);
     }
   }
+  BKE_layer_collection_resync_allow();
+  BKE_main_collection_sync_remap(bmain);
 
   BKE_main_unlock(bmain);
 
@@ -1613,6 +1616,9 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
         (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
       continue;
+    }
+    if ((id->override_library->reference->tag & LIB_TAG_MISSING) == 0) {
+      id->tag &= ~LIB_TAG_MISSING;
     }
     if ((id->override_library->reference->tag & LIB_TAG_PRE_EXISTING) == 0) {
       BKE_lib_override_library_update(bmain, id);

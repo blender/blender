@@ -158,8 +158,9 @@ class LazyFunctionForMultiInput : public LazyFunction {
     base_type_ = get_socket_cpp_type(socket);
     BLI_assert(base_type_ != nullptr);
     BLI_assert(socket.is_multi_input());
+    const bNodeTree &btree = socket.owner_tree();
     for (const bNodeLink *link : socket.directly_linked_links()) {
-      if (!link->is_muted()) {
+      if (!(link->is_muted() || nodeIsDanglingReroute(&btree, link->fromnode))) {
         inputs_.append({"Input", *base_type_});
       }
     }
@@ -603,6 +604,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
  private:
   const bNode &group_node_;
   bool has_many_nodes_ = false;
+  bool use_fallback_outputs_ = false;
   std::optional<GeometryNodesLazyFunctionLogger> lf_logger_;
   std::optional<GeometryNodesLazyFunctionSideEffectProvider> lf_side_effect_provider_;
   std::optional<lf::GraphExecutor> graph_executor_;
@@ -639,6 +641,9 @@ class LazyFunctionForGroupNode : public LazyFunction {
         }
       }
     }
+    else {
+      use_fallback_outputs_ = true;
+    }
 
     lf_logger_.emplace(lf_graph_info);
     lf_side_effect_provider_.emplace();
@@ -658,6 +663,11 @@ class LazyFunctionForGroupNode : public LazyFunction {
       /* If the called node group has many nodes, it's likely that executing it takes a while even
        * if every individual node is very small. */
       lazy_threading::send_hint();
+    }
+    if (use_fallback_outputs_) {
+      /* The node group itself does not have an output node, so use default values as outputs.
+       * The group should still be executed in case it has side effects. */
+      params.set_default_remaining_outputs();
     }
 
     /* The compute context changes when entering a node group. */
@@ -1073,9 +1083,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void insert_links_from_socket(const bNodeSocket &from_bsocket, lf::OutputSocket &from_lf_socket)
   {
-    const bNode &from_bnode = from_bsocket.owner_node();
-    if (this->is_dangling_reroute_input(from_bnode)) {
-      /* Dangling reroutes should not be used as source of values. */
+    if (nodeIsDanglingReroute(&btree_, &from_bsocket.owner_node())) {
       return;
     }
 
@@ -1145,7 +1153,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
             if (multi_input_link == link) {
               break;
             }
-            if (!multi_input_link->is_muted()) {
+            if (!(multi_input_link->is_muted() ||
+                  nodeIsDanglingReroute(&btree_, multi_input_link->fromnode))) {
               link_index++;
             }
           }
@@ -1170,33 +1179,6 @@ struct GeometryNodesLazyFunctionGraphBuilder {
             make_input_link_or_set_default(*to_lf_socket);
           }
         }
-      }
-    }
-  }
-
-  bool is_dangling_reroute_input(const bNode &node)
-  {
-    if (!node.is_reroute()) {
-      return false;
-    }
-    const bNode *iter_node = &node;
-    /* It is guaranteed at a higher level that there are no link cycles. */
-    while (true) {
-      const Span<const bNodeLink *> links = iter_node->input_socket(0).directly_linked_links();
-      BLI_assert(links.size() <= 1);
-      if (links.is_empty()) {
-        return true;
-      }
-      const bNodeLink &link = *links[0];
-      if (!link.is_available()) {
-        return false;
-      }
-      if (link.is_muted()) {
-        return false;
-      }
-      iter_node = link.fromnode;
-      if (!iter_node->is_reroute()) {
-        return false;
       }
     }
   }

@@ -804,8 +804,8 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   std::map<pxr::SdfPath, int> mat_map;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
   material_indices.finish();
   /* Build material name map if it's not built yet. */
@@ -914,7 +914,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
       material_indices.finish();
     }

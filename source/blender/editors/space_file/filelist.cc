@@ -115,6 +115,9 @@ struct FileListInternEntry {
    * Owning pointer. */
   AssetMetaData *imported_asset_data;
 
+  /* See #FILE_ENTRY_BLENDERLIB_NO_PREVIEW. */
+  bool blenderlib_has_no_preview;
+
   /** Defined in BLI_fileops.h */
   eFileAttributes attributes;
   BLI_stat_t st;
@@ -844,7 +847,7 @@ static bool is_filtered_lib_type(FileListInternEntry *file,
 {
   char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
 
-  BLI_join_dirfile(path, sizeof(path), root, file->relpath);
+  BLI_path_join(path, sizeof(path), root, file->relpath);
 
   if (BLO_library_path_explode(path, dir, &group, &name)) {
     return is_filtered_id_file_type(file, group, name, filter);
@@ -1204,7 +1207,7 @@ static int filelist_geticon_ex(const FileDirEntry *file,
         target = file->redirection_path;
       }
       else if (root) {
-        BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
+        BLI_path_join(fullpath, sizeof(fullpath), root, file->relpath);
         BLI_path_slash_ensure(fullpath);
       }
       for (; tfsm; tfsm = tfsm->next) {
@@ -1575,6 +1578,14 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
+  /* If we know this is an external ID without a preview, skip loading the preview. Can save quite
+   * some time in heavy files, because otherwise for each missing preview and for each preview
+   * reload, we'd reopen the .blend to look for the preview. */
+  if ((entry->typeflag & FILE_TYPE_BLENDERLIB) &&
+      (entry->flags & FILE_ENTRY_BLENDERLIB_NO_PREVIEW)) {
+    return;
+  }
+
   FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
   PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
   if (preview_in_memory && !BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW)) {
@@ -1606,7 +1617,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
     else {
-      BLI_join_dirfile(
+      BLI_path_join(
           preview->filepath, sizeof(preview->filepath), filelist->filelist.root, entry->relpath);
     }
     // printf("%s: %d - %s\n", __func__, preview->index, preview->filepath);
@@ -1894,7 +1905,7 @@ static char *fileentry_uiname(const char *root,
 
   if (typeflag & FILE_TYPE_FTFONT && !(typeflag & FILE_TYPE_BLENDERLIB)) {
     char abspath[FILE_MAX_LIBEXTRA];
-    BLI_join_dirfile(abspath, sizeof(abspath), root, relpath);
+    BLI_path_join(abspath, sizeof(abspath), root, relpath);
     name = BLF_display_name_from_file(abspath);
     if (name) {
       /* Allocated string, so no need to #BLI_strdup. */
@@ -1906,7 +1917,7 @@ static char *fileentry_uiname(const char *root,
     char abspath[FILE_MAX_LIBEXTRA];
     char *group;
 
-    BLI_join_dirfile(abspath, sizeof(abspath), root, relpath);
+    BLI_path_join(abspath, sizeof(abspath), root, relpath);
     BLO_library_path_explode(abspath, buff, &group, &name);
     if (!name) {
       name = group;
@@ -2041,6 +2052,9 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
     if (ibuf) {
       ret->preview_icon_id = BKE_icon_imbuf_create(ibuf);
     }
+  }
+  if (entry->blenderlib_has_no_preview) {
+    ret->flags |= FILE_ENTRY_BLENDERLIB_NO_PREVIEW;
   }
   BLI_addtail(&cache->cached_entries, ret);
   return ret;
@@ -2887,7 +2901,7 @@ static int filelist_readjob_list_dir(const char *root,
       entry->relpath = static_cast<char *>(MEM_dupallocN(files[i].relname));
       entry->st = files[i].s;
 
-      BLI_join_dirfile(full_path, FILE_MAX, root, entry->relpath);
+      BLI_path_join(full_path, FILE_MAX, root, entry->relpath);
       char *target = full_path;
 
       /* Set initial file type and attributes. */
@@ -2995,10 +3009,15 @@ static void filelist_readjob_list_lib_add_datablock(ListBase *entries,
     entry->relpath = BLI_strdup(datablock_info->name);
   }
   entry->typeflag |= FILE_TYPE_BLENDERLIB;
-  if (datablock_info && datablock_info->asset_data) {
-    entry->typeflag |= FILE_TYPE_ASSET;
-    /* Moves ownership! */
-    entry->imported_asset_data = datablock_info->asset_data;
+
+  if (datablock_info) {
+    entry->blenderlib_has_no_preview = datablock_info->no_preview_found;
+
+    if (datablock_info->asset_data) {
+      entry->typeflag |= FILE_TYPE_ASSET;
+      /* Moves ownership! */
+      entry->imported_asset_data = datablock_info->asset_data;
+    }
   }
   entry->blentype = idcode;
   BLI_addtail(entries, entry);
@@ -3525,7 +3544,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
       /* When loading entries recursive, the rel_path should be relative from the root dir.
        * we combine the relative path to the subdir with the relative path of the entry. */
-      BLI_join_dirfile(dir, sizeof(dir), rel_subdir, entry->relpath);
+      BLI_path_join(dir, sizeof(dir), rel_subdir, entry->relpath);
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
@@ -3535,7 +3554,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       if (filelist_readjob_should_recurse_into_entry(
               max_recursion, is_lib, recursion_level, entry)) {
         /* We have a directory we want to list, add it to todo list! */
-        BLI_join_dirfile(dir, sizeof(dir), root, entry->relpath);
+        BLI_path_join(dir, sizeof(dir), root, entry->relpath);
         BLI_path_normalize_dir(job_params->main_name, dir);
         td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
         td_dir->level = recursion_level + 1;

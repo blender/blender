@@ -41,6 +41,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
@@ -1981,7 +1982,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
     int(*orco_tris)[3];
     int orco_tris_num;
 
-    BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords);
+    BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords, NULL);
 
     for (int i = 0; i < orco_tris_num; i++) {
       const float *co_tri[3] = {
@@ -2457,7 +2458,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
-  const MTex *mtex = &br->mtex;
+  const MTex *mtex = BKE_brush_mask_texture_get(br, OB_MODE_SCULPT);
   float avg = 1.0f;
   float rgba[4];
   float point[3];
@@ -2469,7 +2470,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex location directly into a texture. */
-    avg = BKE_brush_sample_tex_3d(scene, br, point, rgba, 0, ss->tex_pool);
+    avg = BKE_brush_sample_tex_3d(scene, br, mtex, point, rgba, 0, ss->tex_pool);
   }
   else {
     float symm_point[3], point_2d[2];
@@ -2498,19 +2499,19 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       x = symm_point[0];
       y = symm_point[1];
 
-      x *= br->mtex.size[0];
-      y *= br->mtex.size[1];
+      x *= mtex->size[0];
+      y *= mtex->size[1];
 
-      x += br->mtex.ofs[0];
-      y += br->mtex.ofs[1];
+      x += mtex->ofs[0];
+      y += mtex->ofs[1];
 
-      avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_id);
+      avg = paint_get_tex_pixel(mtex, x, y, ss->tex_pool, thread_id);
 
       avg += br->texture_sample_bias;
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
-      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
+      avg = BKE_brush_sample_tex_3d(scene, br, mtex, point_3d, rgba, 0, ss->tex_pool);
     }
   }
 
@@ -3265,7 +3266,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
       BKE_pbvh_node_mark_topology_update(nodes[n]);
-      BKE_pbvh_bmesh_node_save_orig(ss->bm, nodes[n]);
+      BKE_pbvh_bmesh_node_save_orig(ss->bm, ss->bm_log, nodes[n], false);
     }
   }
 
@@ -4272,7 +4273,8 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mval[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+  UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
@@ -4405,6 +4407,13 @@ static void sculpt_update_cache_invariants(
         cache->original = false;
       }
     }
+  }
+
+  /* Original coordinates require the sculpt undo system, which isn't used
+   * for image brushes. It's also not necessary, just disable it. */
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    cache->original = false;
   }
 
   cache->first_time = true;
@@ -5658,7 +5667,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   }
   if (SCULPT_tool_is_mask(brush->sculpt_tool)) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
-    BKE_sculpt_mask_layers_ensure(ob, mmd);
+    BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
   }
   if (SCULPT_tool_is_face_sets(brush->sculpt_tool)) {
     Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -5749,15 +5758,14 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     /* Did the stroke never start? If so push a blank sculpt undo
      * step to prevent a global undo step (which is triggered by the
-     * OPTYPE_UNDO flag in SCULPT_OT_brush_stroke).
+     * #OPTYPE_UNDO flag in #SCULPT_OT_brush_stroke).
      *
      * Having blank global undo steps interleaved with sculpt steps
      * corrupts the DynTopo undo stack.
      * See T101430.
      *
-     * Note: simply returning OPERATOR_CANCELLED was not
-     * sufficient to prevent this.
-     */
+     * NOTE: simply returning #OPERATOR_CANCELLED was not
+     * sufficient to prevent this. */
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
 

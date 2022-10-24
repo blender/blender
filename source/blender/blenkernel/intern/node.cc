@@ -516,10 +516,6 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
       write_node_socket(writer, sock);
     }
 
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_write_struct(writer, bNodeLink, link);
-    }
-
     if (node->storage) {
       if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT)) {
@@ -703,13 +699,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     BLO_read_data_address(reader, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
 
-    BLO_read_list(reader, &node->internal_links);
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_read_data_address(reader, &link->fromnode);
-      BLO_read_data_address(reader, &link->fromsock);
-      BLO_read_data_address(reader, &link->tonode);
-      BLO_read_data_address(reader, &link->tosock);
-    }
+    BLI_listbase_clear(&node->internal_links);
 
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
       /* Do nothing, this is runtime cache and hence handled by generic code using
@@ -2154,6 +2144,38 @@ void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userd
       return;
     }
     nodeParentsIter(node->parent, callback, userdata);
+  }
+}
+
+bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node)
+{
+  ntree->ensure_topology_cache();
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*ntree));
+  BLI_assert(!ntree->has_available_link_cycle());
+
+  const bNode *iter_node = node;
+  if (!iter_node->is_reroute()) {
+    return false;
+  }
+
+  while (true) {
+    const blender::Span<const bNodeLink *> links =
+        iter_node->input_socket(0).directly_linked_links();
+    BLI_assert(links.size() <= 1);
+    if (links.is_empty()) {
+      return true;
+    }
+    const bNodeLink &link = *links[0];
+    if (!link.is_available()) {
+      return false;
+    }
+    if (link.is_muted()) {
+      return false;
+    }
+    iter_node = link.fromnode;
+    if (!iter_node->is_reroute()) {
+      return false;
+    }
   }
 }
 

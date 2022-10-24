@@ -3533,7 +3533,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
   }
 
   const bool use_dm_final_indices = (psys->part->use_modifier_stack &&
-                                     !psmd_eval->mesh_final->runtime.deformed_only);
+                                     !BKE_mesh_is_deformed_only(psmd_eval->mesh_final));
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
   BKE_mesh_tessface_ensure(me);
@@ -4353,7 +4353,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
                               0,
                               0,
                               0)) {
-    if (psys->part->use_modifier_stack && !psmd_eval->mesh_final->runtime.deformed_only) {
+    if (psys->part->use_modifier_stack && !BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
     }
@@ -4430,7 +4430,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   timestep = psys_get_timestep(&sim);
 
-  if (psys->part->use_modifier_stack || psmd_eval->mesh_final->runtime.deformed_only) {
+  if (psys->part->use_modifier_stack || BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
     mesh = psmd_eval->mesh_final;
   }
   else {

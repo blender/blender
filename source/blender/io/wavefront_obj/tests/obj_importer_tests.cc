@@ -8,6 +8,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -22,6 +23,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -41,6 +43,7 @@ struct Expectation {
   float3 normal_first;
   float2 uv_first;
   float4 color_first = {-1, -1, -1, -1};
+  std::string first_mat;
 };
 
 class obj_importer_test : public BlendfileLoadingBaseTest {
@@ -57,6 +60,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     }
 
     OBJImportParams params;
+    params.global_scale = 1.0f;
     params.clamp_size = 0;
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
@@ -131,6 +135,10 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         /* Cyclic flag is not set by the importer yet. */
         // int cyclic = (nurb->flagu & CU_NURB_CYCLIC) ? 1 : 0;
         // EXPECT_EQ(cyclic, exp.mesh_totloop_or_curve_cyclic);
+      }
+      if (!exp.first_mat.empty()) {
+        Material *mat = BKE_object_material_get(object, 1);
+        ASSERT_STREQ(mat ? mat->id.name : "<null>", exp.first_mat.c_str());
       }
       ++object_index;
     }
@@ -309,7 +317,42 @@ TEST_F(obj_importer_test, import_materials)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBmaterials", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
+      {"OBmaterials",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(-1, -1, 1),
+       float3(1, -1, -1),
+       float3(0),
+       float2(0),
+       float4(-1),
+       "MAno_textures_red"},
+      {"OBObjMtlAfter",
+       OB_MESH,
+       3,
+       3,
+       1,
+       3,
+       float3(3, 0, 0),
+       float3(5, 0, 0),
+       float3(0),
+       float2(0),
+       float4(-1),
+       "MAno_textures_red"},
+      {"OBObjMtlBefore",
+       OB_MESH,
+       3,
+       3,
+       1,
+       3,
+       float3(6, 0, 0),
+       float3(8, 0, 0),
+       float3(0),
+       float2(0),
+       float4(-1),
+       "MAClay"},
   };
   import_and_check("materials.obj", expect, std::size(expect), 4, 8);
 }
@@ -327,7 +370,9 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(1, 1, -1),
        float3(-1, -1, 1),
        float3(0, 1, 0),
-       float2(0.9935f, 0.0020f)},
+       float2(0.9935f, 0.0020f),
+       float4(-1),
+       "MAMat_BaseRoughEmissNormal10"},
       {"OBCubeTexMul",
        OB_MESH,
        8,
@@ -337,7 +382,9 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(4, -2, -1),
        float3(2, -4, 1),
        float3(0, 1, 0),
-       float2(0.9935f, 0.0020f)},
+       float2(0.9935f, 0.0020f),
+       float4(-1),
+       "MAMat_BaseMul"},
       {"OBCubeTiledTex",
        OB_MESH,
        8,
@@ -347,7 +394,9 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(4, 1, -1),
        float3(2, -1, 1),
        float3(0, 1, 0),
-       float2(0.9935f, 0.0020f)},
+       float2(0.9935f, 0.0020f),
+       float4(-1),
+       "MAMat_BaseTiled"},
       {"OBCubeTiledTexFromAnotherFolder",
        OB_MESH,
        8,
@@ -357,7 +406,9 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(7, 1, -1),
        float3(5, -1, 1),
        float3(0, 1, 0),
-       float2(0.9935f, 0.0020f)},
+       float2(0.9935f, 0.0020f),
+       float4(-1),
+       "MAMat_EmissTiledAnotherFolder"},
   };
   import_and_check("cubes_with_textures_rel.obj", expect, std::size(expect), 4, 4);
 }
@@ -455,7 +506,10 @@ TEST_F(obj_importer_test, import_all_objects)
        26,
        float3(28, 1, -1),
        float3(26, 1, 1),
-       float3(-1, 0, 0)},
+       float3(-1, 0, 0),
+       float2(0),
+       float4(-1),
+       "MARed"},
       {"OBNurbsCircle",
        OB_MESH,
        96,
@@ -491,7 +545,10 @@ TEST_F(obj_importer_test, import_all_objects)
        26,
        float3(4, 1, -1),
        float3(2, 1, 1),
-       float3(0.5774f, 0.5773f, 0.5774f)},
+       float3(0.5774f, 0.5773f, 0.5774f),
+       float2(0),
+       float4(-1),
+       "MAMaterial"},
       {"OBSurface",
        OB_MESH,
        256,

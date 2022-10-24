@@ -40,7 +40,7 @@ set(SRC
   transform_convert_mesh_uv.c
   transform_convert_mesh_vert_cdata.c
   transform_convert_nla.c
-  transform_convert_node.c
+  transform_convert_node.cc
   transform_convert_object.c
   transform_convert_object_texspace.c
   transform_convert_paintcurve.c

@@ -95,72 +95,72 @@ static void add_v3_v3_atomic(float r[3], const float a[3])
 
 void BKE_mesh_normals_tag_dirty(Mesh *mesh)
 {
-  mesh->runtime.vert_normals_dirty = true;
-  mesh->runtime.poly_normals_dirty = true;
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
 }
 
 float (*BKE_mesh_vertex_normals_for_write(Mesh *mesh))[3]
 {
-  if (mesh->runtime.vert_normals == nullptr) {
-    mesh->runtime.vert_normals = (float(*)[3])MEM_malloc_arrayN(
+  if (mesh->runtime->vert_normals == nullptr) {
+    mesh->runtime->vert_normals = (float(*)[3])MEM_malloc_arrayN(
         mesh->totvert, sizeof(float[3]), __func__);
   }
 
-  BLI_assert(MEM_allocN_len(mesh->runtime.vert_normals) >= sizeof(float[3]) * mesh->totvert);
+  BLI_assert(MEM_allocN_len(mesh->runtime->vert_normals) >= sizeof(float[3]) * mesh->totvert);
 
-  return mesh->runtime.vert_normals;
+  return mesh->runtime->vert_normals;
 }
 
 float (*BKE_mesh_poly_normals_for_write(Mesh *mesh))[3]
 {
-  if (mesh->runtime.poly_normals == nullptr) {
-    mesh->runtime.poly_normals = (float(*)[3])MEM_malloc_arrayN(
+  if (mesh->runtime->poly_normals == nullptr) {
+    mesh->runtime->poly_normals = (float(*)[3])MEM_malloc_arrayN(
         mesh->totpoly, sizeof(float[3]), __func__);
   }
 
-  BLI_assert(MEM_allocN_len(mesh->runtime.poly_normals) >= sizeof(float[3]) * mesh->totpoly);
+  BLI_assert(MEM_allocN_len(mesh->runtime->poly_normals) >= sizeof(float[3]) * mesh->totpoly);
 
-  return mesh->runtime.poly_normals;
+  return mesh->runtime->poly_normals;
 }
 
 void BKE_mesh_vertex_normals_clear_dirty(Mesh *mesh)
 {
-  mesh->runtime.vert_normals_dirty = false;
+  mesh->runtime->vert_normals_dirty = false;
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 void BKE_mesh_poly_normals_clear_dirty(Mesh *mesh)
 {
-  mesh->runtime.poly_normals_dirty = false;
+  mesh->runtime->poly_normals_dirty = false;
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 bool BKE_mesh_vertex_normals_are_dirty(const Mesh *mesh)
 {
-  return mesh->runtime.vert_normals_dirty;
+  return mesh->runtime->vert_normals_dirty;
 }
 
 bool BKE_mesh_poly_normals_are_dirty(const Mesh *mesh)
 {
-  return mesh->runtime.poly_normals_dirty;
+  return mesh->runtime->poly_normals_dirty;
 }
 
 void BKE_mesh_clear_derived_normals(Mesh *mesh)
 {
-  MEM_SAFE_FREE(mesh->runtime.vert_normals);
-  MEM_SAFE_FREE(mesh->runtime.poly_normals);
+  MEM_SAFE_FREE(mesh->runtime->vert_normals);
+  MEM_SAFE_FREE(mesh->runtime->poly_normals);
 
-  mesh->runtime.vert_normals_dirty = true;
-  mesh->runtime.poly_normals_dirty = true;
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
 }
 
 void BKE_mesh_assert_normals_dirty_or_calculated(const Mesh *mesh)
 {
-  if (!mesh->runtime.vert_normals_dirty) {
-    BLI_assert(mesh->runtime.vert_normals || mesh->totvert == 0);
+  if (!mesh->runtime->vert_normals_dirty) {
+    BLI_assert(mesh->runtime->vert_normals || mesh->totvert == 0);
   }
-  if (!mesh->runtime.poly_normals_dirty) {
-    BLI_assert(mesh->runtime.poly_normals || mesh->totpoly == 0);
+  if (!mesh->runtime->poly_normals_dirty) {
+    BLI_assert(mesh->runtime->poly_normals || mesh->totpoly == 0);
   }
 }
 
@@ -348,20 +348,18 @@ void BKE_mesh_calc_normals_poly_and_vertex(const MVert *mvert,
 const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
 {
   if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime.vert_normals != nullptr || mesh->totvert == 0);
-    return mesh->runtime.vert_normals;
+    BLI_assert(mesh->runtime->vert_normals != nullptr || mesh->totvert == 0);
+    return mesh->runtime->vert_normals;
   }
 
   if (mesh->totvert == 0) {
     return nullptr;
   }
 
-  ThreadMutex *normals_mutex = (ThreadMutex *)mesh->runtime.normals_mutex;
-  BLI_mutex_lock(normals_mutex);
+  std::lock_guard lock{mesh->runtime->normals_mutex};
   if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime.vert_normals != nullptr);
-    BLI_mutex_unlock(normals_mutex);
-    return mesh->runtime.vert_normals;
+    BLI_assert(mesh->runtime->vert_normals != nullptr);
+    return mesh->runtime->vert_normals;
   }
 
   float(*vert_normals)[3];
@@ -390,27 +388,24 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
 
-  BLI_mutex_unlock(normals_mutex);
   return vert_normals;
 }
 
 const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 {
   if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime.poly_normals != nullptr || mesh->totpoly == 0);
-    return mesh->runtime.poly_normals;
+    BLI_assert(mesh->runtime->poly_normals != nullptr || mesh->totpoly == 0);
+    return mesh->runtime->poly_normals;
   }
 
   if (mesh->totpoly == 0) {
     return nullptr;
   }
 
-  ThreadMutex *normals_mutex = (ThreadMutex *)mesh->runtime.normals_mutex;
-  BLI_mutex_lock(normals_mutex);
+  std::lock_guard lock{mesh->runtime->normals_mutex};
   if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime.poly_normals != nullptr);
-    BLI_mutex_unlock(normals_mutex);
-    return mesh->runtime.poly_normals;
+    BLI_assert(mesh->runtime->poly_normals != nullptr);
+    return mesh->runtime->poly_normals;
   }
 
   float(*poly_normals)[3];
@@ -435,13 +430,12 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
 
-  BLI_mutex_unlock(normals_mutex);
   return poly_normals;
 }
 
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
 {
-  switch ((eMeshWrapperType)mesh->runtime.wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       BKE_mesh_vertex_normals_ensure(mesh);
@@ -449,7 +443,7 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
       break;
     case ME_WRAPPER_TYPE_BMESH: {
       struct BMEditMesh *em = mesh->edit_mesh;
-      EditMeshData *emd = mesh->runtime.edit_data;
+      EditMeshData *emd = mesh->runtime->edit_data;
       if (emd->vertexCos) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
         BKE_editmesh_cache_ensure_poly_normals(em, emd);
@@ -470,7 +464,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #endif
 }
 
-void BKE_mesh_calc_normals_looptri(MVert *mverts,
+void BKE_mesh_calc_normals_looptri(const MVert *mverts,
                                    int numVerts,
                                    const MLoop *mloop,
                                    const MLoopTri *looptri,
@@ -508,7 +502,7 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
 
   /* Following Mesh convention; we use vertex coordinate itself for normal in this case. */
   for (int i = 0; i < numVerts; i++) {
-    MVert *mv = &mverts[i];
+    const MVert *mv = &mverts[i];
     float *no = tnorms[i];
 
     if (UNLIKELY(normalize_v3(no) == 0.0f)) {

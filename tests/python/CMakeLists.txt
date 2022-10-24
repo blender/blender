@@ -630,6 +630,24 @@ add_blender_test(
 )
 endif()
 
+# SVG Import
+if(True)
+  set(_svg_render_tests path)
+
+  foreach(render_test ${_svg_render_tests})
+    add_python_test(
+      io_curve_svg_${render_test}
+      ${CMAKE_CURRENT_LIST_DIR}/bl_io_curve_svg_test.py
+      -blender "${TEST_BLENDER_EXE}"
+      -testdir "${TEST_SRC_DIR}/io_tests/svg/${render_test}"
+      -idiff "${OPENIMAGEIO_IDIFF}"
+      -outdir "${TEST_OUT_DIR}/io_curve_svg"
+    )
+  endforeach()
+
+  unset(_svg_render_tests)
+endif()
+
 if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   if(NOT OPENIMAGEIO_IDIFF)
     message(WARNING "Disabling render tests because OIIO idiff does not exist")

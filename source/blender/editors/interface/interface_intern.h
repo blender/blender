@@ -23,6 +23,7 @@ struct ARegion;
 struct AnimationEvalContext;
 struct CurveMapping;
 struct CurveProfile;
+struct IconTextOverlay;
 struct ID;
 struct ImBuf;
 struct Main;
@@ -274,6 +275,9 @@ struct uiBut {
 
   uiButPushedStateFunc pushed_state_func;
   const void *pushed_state_arg;
+
+  /** Little indicator (e.g., counter) displayed on top of some icons. */
+  struct IconTextOverlay icon_overlay_text;
 
   /* pointer back */
   uiBlock *block;

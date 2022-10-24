@@ -19,6 +19,10 @@
 
 #include "transform_data.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* use node center for transform instead of upper-left corner.
  * disabled since it makes absolute snapping not work so nicely
  */
@@ -141,6 +145,7 @@ typedef enum {
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
 } eTFlag;
+ENUM_OPERATORS(eTFlag, T_NO_CURSOR_WRAP);
 
 #define T_ALL_RESTRICTIONS (T_NO_CONSTRAINT | T_NULL_ONE)
 #define T_PROP_EDIT_ALL (T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
@@ -550,7 +555,12 @@ typedef struct TransInfo {
   /** Snapping Gears. */
   float snap[2];
   /** Spatial snapping gears(even when rotating, scaling... etc). */
-  float snap_spatial[2];
+  float snap_spatial[3];
+  /**
+   * Precision factor that is multiplied to snap_spatial when precision
+   * modifier is enabled for snap to grid or incremental snap.
+   */
+  float snap_spatial_precision;
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 
@@ -864,3 +874,7 @@ bool checkUseAxisMatrix(TransInfo *t);
        th++, i++)
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

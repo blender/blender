@@ -114,11 +114,11 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     // .image_out(5, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_emission")
     /* Render-passes. */
     // .image_out(6, Qualifier::READ_WRITE, GPU_RGBA16F, "rpass_volume_light")
-    /* TODO: AOVs maybe? */
     .fragment_source("eevee_surf_deferred_frag.glsl")
-    // .additional_info("eevee_aov_out", "eevee_sampling_data", "eevee_camera",
-    // "eevee_utility_texture")
-    ;
+    .additional_info("eevee_camera",
+                     "eevee_utility_texture",
+                     "eevee_sampling_data",
+                     "eevee_aov_out");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .vertex_out(eevee_surf_iface)

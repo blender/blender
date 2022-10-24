@@ -407,17 +407,12 @@ Application::Application(GHOST_ISystem *system)
       stereo(false)
 {
   GHOST_GLSettings glSettings = {0};
+  glSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
   fApp = this;
 
   // Create the main window
-  m_mainWindow = system->createWindow("gears - main window",
-                                      10,
-                                      64,
-                                      320,
-                                      200,
-                                      GHOST_kWindowStateNormal,
-                                      GHOST_kDrawingContextTypeOpenGL,
-                                      glSettings);
+  m_mainWindow = system->createWindow(
+      "gears - main window", 10, 64, 320, 200, GHOST_kWindowStateNormal, glSettings);
 
   if (!m_mainWindow) {
     std::cout << "could not create main window\n";
@@ -425,14 +420,8 @@ Application::Application(GHOST_ISystem *system)
   }
 
   // Create a secondary window
-  m_secondaryWindow = system->createWindow("gears - secondary window",
-                                           340,
-                                           64,
-                                           320,
-                                           200,
-                                           GHOST_kWindowStateNormal,
-                                           GHOST_kDrawingContextTypeOpenGL,
-                                           glSettings);
+  m_secondaryWindow = system->createWindow(
+      "gears - secondary window", 340, 64, 320, 200, GHOST_kWindowStateNormal, glSettings);
   if (!m_secondaryWindow) {
     std::cout << "could not create secondary window\n";
     exit(-1);

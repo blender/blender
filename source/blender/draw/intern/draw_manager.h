@@ -697,7 +697,7 @@ void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct Object *dupli_parent,
                                    struct DupliObject *dupli_source);
 
-GPUUniformBuf *drw_ensure_layer_attribute_buffer();
+GPUUniformBuf *drw_ensure_layer_attribute_buffer(void);
 
 double *drw_engine_data_cache_time_get(GPUViewport *viewport);
 void *drw_engine_data_engine_data_create(GPUViewport *viewport, void *engine_type);

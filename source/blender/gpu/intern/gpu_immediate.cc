@@ -45,7 +45,7 @@ void immBindShader(GPUShader *shader)
   BLI_assert(imm->shader == nullptr);
 
   imm->shader = shader;
-  imm->builtin_shader_bound = GPU_SHADER_TEXT; /* Default value. */
+  imm->builtin_shader_bound = std::nullopt;
 
   if (!imm->vertex_format.packed) {
     VertexFormat_pack(&imm->vertex_format);
@@ -125,9 +125,12 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
     /* No need to change the shader. */
     return;
   }
+  if (!imm->builtin_shader_bound) {
+    return;
+  }
 
   eGPUBuiltinShader polyline_sh;
-  switch (imm->builtin_shader_bound) {
+  switch (*imm->builtin_shader_bound) {
     case GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR;
       break;
@@ -180,8 +183,8 @@ static void wide_line_workaround_end()
     }
     immUnbindProgram();
 
-    immBindBuiltinProgram(imm->prev_builtin_shader);
-    imm->prev_builtin_shader = GPU_SHADER_TEXT;
+    immBindBuiltinProgram(*imm->prev_builtin_shader);
+    imm->prev_builtin_shader = std::nullopt;
   }
 }
 

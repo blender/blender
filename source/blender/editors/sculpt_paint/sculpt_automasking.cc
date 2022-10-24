@@ -503,7 +503,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     PBVHVertRef vert,
                                     AutomaskingNodeData *automask_data)
 {
-  if (!automasking) {
+  if (!automasking || vert.i == PBVH_REF_NONE) {
     return 1.0f;
   }
 

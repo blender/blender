@@ -174,6 +174,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       /* Other colorspace, store as float texture to avoid precision loss. */
       data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
       *r_freedata = freedata = true;
+      is_float_rect = true;
 
       if (data_rect == NULL) {
         return NULL;
@@ -300,6 +301,16 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
+  /* Correct the smaller size to maintain the original aspect ratio of the image. */
+  if (do_rescale && ibuf->x != ibuf->y) {
+    if (size[0] > size[1]) {
+      size[1] = (int)(ibuf->y * ((float)size[0] / ibuf->x));
+    }
+    else {
+      size[0] = (int)(ibuf->x * ((float)size[1] / ibuf->y));
+    }
+  }
+
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     eGPUTextureFormat compressed_format;
@@ -369,4 +380,20 @@ eGPUTextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
   imb_gpu_get_format(ibuf, high_bitdepth, use_grayscale, &gpu_data_format, &gpu_texture_format);
 
   return gpu_texture_format;
+}
+
+void IMB_gpu_clamp_half_float(ImBuf *image_buffer)
+{
+  const float half_min = -65504;
+  const float half_max = 65504;
+  if (!image_buffer->rect_float) {
+    return;
+  }
+
+  int rect_float_len = image_buffer->x * image_buffer->y *
+                       (image_buffer->channels == 0 ? 4 : image_buffer->channels);
+
+  for (int i = 0; i < rect_float_len; i++) {
+    image_buffer->rect_float[i] = clamp_f(image_buffer->rect_float[i], half_min, half_max);
+  }
 }

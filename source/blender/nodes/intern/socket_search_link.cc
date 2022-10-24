@@ -125,64 +125,23 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
   }
 }
 
-static void search_link_ops_for_socket_templates(GatherLinkSearchOpParams &params,
-                                                 const bNodeSocketTemplate *templates,
-                                                 const eNodeSocketInOut in_out)
-{
-  const bNodeType &node_type = params.node_type();
-  const bNodeTreeType &node_tree_type = *params.node_tree().typeinfo;
-
-  Set<StringRef> socket_names;
-  for (const bNodeSocketTemplate *socket_template = templates; socket_template->type != -1;
-       socket_template++) {
-    eNodeSocketDatatype from = (eNodeSocketDatatype)socket_template->type;
-    eNodeSocketDatatype to = (eNodeSocketDatatype)params.other_socket().type;
-    if (in_out == SOCK_IN) {
-      std::swap(from, to);
-    }
-    if (node_tree_type.validate_link && !node_tree_type.validate_link(from, to)) {
-      continue;
-    }
-    if (!socket_names.add(socket_template->name)) {
-      /* See comment in #search_link_ops_for_declarations. */
-      continue;
-    }
-
-    params.add_item(
-        socket_template->name, [socket_template, node_type, in_out](LinkSearchOpParams &params) {
-          bNode &node = params.add_node(node_type);
-          bNodeSocket *new_node_socket = bke::node_find_enabled_socket(
-              node, in_out, socket_template->name);
-          if (new_node_socket != nullptr) {
-            /* Rely on the way #nodeAddLink switches in/out if necessary. */
-            nodeAddLink(&params.node_tree, &params.node, &params.socket, &node, new_node_socket);
-          }
-        });
-  }
-}
-
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
-
-  if (node_type.declare) {
-    if (node_type.declaration_is_dynamic) {
-      /* Dynamic declarations (whatever they end up being) aren't supported
-       * by this function, but still avoid a crash in release builds. */
-      BLI_assert_unreachable();
-      return;
-    }
-
-    const NodeDeclaration &declaration = *node_type.fixed_declaration;
-
-    search_link_ops_for_declarations(params, declaration.sockets(params.in_out()));
+  if (!node_type.declare) {
+    return;
   }
-  else if (node_type.inputs && params.in_out() == SOCK_IN) {
-    search_link_ops_for_socket_templates(params, node_type.inputs, SOCK_IN);
+
+  if (node_type.declaration_is_dynamic) {
+    /* Dynamic declarations (whatever they end up being) aren't supported
+     * by this function, but still avoid a crash in release builds. */
+    BLI_assert_unreachable();
+    return;
   }
-  else if (node_type.outputs && params.in_out() == SOCK_OUT) {
-    search_link_ops_for_socket_templates(params, node_type.outputs, SOCK_OUT);
-  }
+
+  const NodeDeclaration &declaration = *node_type.fixed_declaration;
+
+  search_link_ops_for_declarations(params, declaration.sockets(params.in_out()));
 }
 
 }  // namespace blender::nodes

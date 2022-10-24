@@ -174,9 +174,15 @@ class PassBase {
 
   /**
    * Reminders:
-   * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
+   * - `compare_mask & reference` is what is tested against `compare_mask & stencil_value`
    *   stencil_value being the value stored in the stencil buffer.
-   * - (write-mask & reference) is what gets written if the test condition is fulfilled.
+   * - `write-mask & reference` is what gets written if the test condition is fulfilled.
+   *
+   * This will modify the stencil state until another call to this function.
+   * If not specified before any draw-call, these states will be undefined.
+   *
+   * For more information see:
+   * https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkStencilOpState.html
    */
   void state_stencil(uint8_t write_mask, uint8_t reference, uint8_t compare_mask);
 
@@ -728,7 +734,7 @@ template<class T> inline void PassBase<T>::state_set(DRWState state)
 template<class T>
 inline void PassBase<T>::state_stencil(uint8_t write_mask, uint8_t reference, uint8_t compare_mask)
 {
-  create_command(Type::StencilSet).stencil_set = {write_mask, reference, compare_mask};
+  create_command(Type::StencilSet).stencil_set = {write_mask, compare_mask, reference};
 }
 
 template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)

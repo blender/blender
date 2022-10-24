@@ -17,6 +17,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.h"
 
+#include "RNA_prototypes.h"
+
 #include "WM_api.h"
 
 namespace blender::ui {
@@ -41,7 +43,13 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
                              static_cast<BIFIconID>(RNA_struct_ui_icon(rna_ptr.type)) :
                              icon_override;
 
-  path.append({name, int(icon)});
+  if (&rna_type == &RNA_NodeTree) {
+    ID *id = (ID *)ptr;
+    path.append({name, int(icon), id->us});
+  }
+  else {
+    path.append({name, int(icon), 1});
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -60,7 +68,9 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
     if (i > 0) {
       uiItemL(sub_row, "", ICON_RIGHTARROW_THIN);
     }
-    uiItemL(sub_row, context_path[i].name.c_str(), context_path[i].icon);
+    uiBut *but = uiItemL_ex(
+        sub_row, context_path[i].name.c_str(), context_path[i].icon, false, false);
+    UI_but_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
   }
 }
 

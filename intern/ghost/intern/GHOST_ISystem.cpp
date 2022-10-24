@@ -30,10 +30,11 @@
 #endif
 
 GHOST_ISystem *GHOST_ISystem::m_system = nullptr;
+const char *GHOST_ISystem::m_system_backend_id = nullptr;
 
 GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
 
-GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
+GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
 {
   /* When GHOST fails to start, report the back-ends that were attempted.
    * A Verbose argument could be supported in printing isn't always desired. */
@@ -47,7 +48,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     /* Pass. */
 #elif defined(WITH_GHOST_WAYLAND)
 #  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
-    const bool has_wayland_libraries = ghost_wl_dynload_libraries();
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init();
 #  else
     const bool has_wayland_libraries = true;
 #  endif
@@ -60,11 +61,14 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     if (has_wayland_libraries) {
       backends_attempted[backends_attempted_num++] = "WAYLAND";
       try {
-        m_system = new GHOST_SystemWayland();
+        m_system = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &) {
         delete m_system;
         m_system = nullptr;
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+        ghost_wl_dynload_libraries_exit();
+#  endif
       }
     }
     else {
@@ -95,11 +99,14 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     if (has_wayland_libraries) {
       backends_attempted[backends_attempted_num++] = "WAYLAND";
       try {
-        m_system = new GHOST_SystemWayland();
+        m_system = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &) {
         delete m_system;
         m_system = nullptr;
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+        ghost_wl_dynload_libraries_exit();
+#  endif
       }
     }
     else {
@@ -122,7 +129,10 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
     m_system = new GHOST_SystemCocoa();
 #endif
 
-    if ((m_system == nullptr) && verbose) {
+    if (m_system) {
+      m_system_backend_id = backends_attempted[backends_attempted_num - 1];
+    }
+    else if (verbose) {
       fprintf(stderr, "GHOST: failed to initialize display for back-end(s): [");
       for (int i = 0; i < backends_attempted_num; i++) {
         if (i != 0) {
@@ -150,7 +160,7 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
   if (!m_system) {
 #if !defined(WITH_HEADLESS)
     /* Try to create a off-screen render surface with the graphical systems. */
-    success = createSystem(false);
+    success = createSystem(false, true);
     if (success) {
       return success;
     }
@@ -184,6 +194,11 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 GHOST_ISystem *GHOST_ISystem::getSystem()
 {
   return m_system;
+}
+
+const char *GHOST_ISystem::getSystemBackend()
+{
+  return m_system_backend_id;
 }
 
 GHOST_TBacktraceFn GHOST_ISystem::getBacktraceFn()

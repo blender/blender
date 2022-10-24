@@ -96,7 +96,7 @@ vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
     /* Mix all colors to get the corner color. */
     vec4 col3 = (col + col1 + col2) / 3.0;
 
-    vec2 mix_fac = uv_border * 0.5;
+    vec2 mix_fac = saturate(uv_border * 0.5);
     return mix(mix(col, col2, mix_fac.x), mix(col1, col3, mix_fac.x), mix_fac.y);
   }
   else if (any(border)) {
@@ -108,7 +108,7 @@ vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
     uv = cubemap_face_coord(cubevec.xyz, face);
     coord = vec3(uv, cubevec.w * 6.0 + face);
 
-    float mix_fac = max(uv_border.x, uv_border.y) * 0.5;
+    float mix_fac = saturate(max(uv_border.x, uv_border.y) * 0.5);
     return mix(col, textureLod(tex, coord, lod), mix_fac);
   }
   else {

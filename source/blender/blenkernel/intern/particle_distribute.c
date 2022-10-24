@@ -29,6 +29,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
@@ -899,7 +900,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     return 0;
   }
 
-  if (!final_mesh->runtime.deformed_only &&
+  if (!BKE_mesh_is_deformed_only(final_mesh) &&
       !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX)) {
     printf(
         "Can't create particles with the current modifier stack, disable destructive modifiers\n");

@@ -53,6 +53,13 @@ def write_sysinfo(filepath):
             output.write("build linkflags: %s\n" % prepr(bpy.app.build_linkflags))
             output.write("build system: %s\n" % prepr(bpy.app.build_system))
 
+            # Windowing Environment (include when dynamically selectable).
+            from _bpy import _ghost_backend
+            ghost_backend = _ghost_backend()
+            if ghost_backend not in {'NONE', 'DEFAULT'}:
+                output.write("windowing environment: %s\n" % prepr(ghost_backend))
+            del _ghost_backend, ghost_backend
+
             # Python info.
             output.write(title("Python"))
             output.write("version: %s\n" % (sys.version.replace("\n", " ")))
@@ -177,6 +184,7 @@ def write_sysinfo(filepath):
                 output.write("vendor:\t\t%r\n" % gpu.platform.vendor_get())
                 output.write("version:\t%r\n" % gpu.platform.version_get())
                 output.write("device type:\t%r\n" % gpu.platform.device_type_get())
+                output.write("backend type:\t%r\n" % gpu.platform.backend_type_get())
                 output.write("extensions:\n")
 
                 glext = sorted(gpu.capabilities.extensions_get())

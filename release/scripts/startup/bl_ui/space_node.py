@@ -318,6 +318,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.clipboard_copy", text="Copy")
         layout.operator("node.clipboard_paste", text="Paste")
         layout.operator("node.duplicate_move")
+        layout.operator("node.duplicate_move_linked")
         layout.operator("node.delete")
         layout.operator("node.delete_reconnect")
 

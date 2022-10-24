@@ -535,18 +535,6 @@ ccl_device_inline float3 pow(float3 v, float e)
   return make_float3(powf(v.x, e), powf(v.y, e), powf(v.z, e));
 }
 
-ccl_device_inline int3 quick_floor_to_int3(const float3 a)
-{
-#ifdef __KERNEL_SSE__
-  int3 b = int3(_mm_cvttps_epi32(a.m128));
-  int3 isneg = int3(_mm_castps_si128(_mm_cmplt_ps(a.m128, _mm_set_ps1(0.0f))));
-  /* Unsaturated add 0xffffffff is the same as subtract -1. */
-  return b + isneg;
-#else
-  return make_int3(quick_floor_to_int(a.x), quick_floor_to_int(a.y), quick_floor_to_int(a.z));
-#endif
-}
-
 ccl_device_inline bool isfinite_safe(float3 v)
 {
   return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z);

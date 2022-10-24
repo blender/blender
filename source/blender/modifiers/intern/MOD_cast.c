@@ -23,6 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -494,7 +495,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  if (mesh && BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh->totvert == verts_num);
   }
 

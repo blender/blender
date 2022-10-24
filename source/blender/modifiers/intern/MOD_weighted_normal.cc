@@ -676,7 +676,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_SAFE_FREE(wn_data.mode_pair);
   MEM_SAFE_FREE(wn_data.items_data);
 
-  result->runtime.is_original_bmesh = false;
+  result->runtime->is_original_bmesh = false;
 
   return result;
 }
@@ -705,12 +705,12 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *UNUSED(md))
+static bool dependsOnNormals(ModifierData * /*md*/)
 {
   return true;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;

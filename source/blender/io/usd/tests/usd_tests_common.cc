@@ -29,7 +29,7 @@ std::string register_usd_plugins_for_tests()
   }
 
   const size_t path_len = BLI_path_join(
-      usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
+      usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd");
 
   /* #BLI_path_join removes trailing slashes, but the USD library requires one in order to
    * recognize the path as directory. */

@@ -6,6 +6,7 @@
 #include "BKE_curve.h"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
+#include "BKE_instances.hh"
 #include "BKE_vfont.h"
 
 #include "BLI_hash.h"
@@ -270,7 +271,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
 /* Returns a mapping of UTF-32 character code to instance handle. */
 static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             TextLayout &layout,
-                                            InstancesComponent &instances)
+                                            bke::Instances &instances)
 {
   VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
   Map<int, int> handles;
@@ -315,13 +316,13 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
   return handles;
 }
 
-static void add_instances_from_handles(InstancesComponent &instances,
+static void add_instances_from_handles(bke::Instances &instances,
                                        const Map<int, int> &char_handles,
                                        const TextLayout &layout)
 {
   instances.resize(layout.positions.size());
-  MutableSpan<int> handles = instances.instance_reference_handles();
-  MutableSpan<float4x4> transforms = instances.instance_transforms();
+  MutableSpan<int> handles = instances.reference_handles();
+  MutableSpan<float4x4> transforms = instances.transforms();
 
   threading::parallel_for(IndexRange(layout.positions.size()), 256, [&](IndexRange range) {
     for (const int i : range) {
@@ -333,9 +334,9 @@ static void add_instances_from_handles(InstancesComponent &instances,
 
 static void create_attributes(GeoNodeExecParams &params,
                               const TextLayout &layout,
-                              InstancesComponent &instances)
+                              bke::Instances &instances)
 {
-  MutableAttributeAccessor attributes = *instances.attributes_for_write();
+  MutableAttributeAccessor attributes = instances.attributes_for_write();
 
   if (params.output_is_required("Line")) {
     StrongAnonymousAttributeID line_id = StrongAnonymousAttributeID("Line");
@@ -385,13 +386,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   /* Create and add instances. */
-  GeometrySet geometry_set_out;
-  InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
-  Map<int, int> char_handles = create_curve_instances(params, *layout, instances);
-  add_instances_from_handles(instances, char_handles, *layout);
-  create_attributes(params, *layout, instances);
+  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  Map<int, int> char_handles = create_curve_instances(params, *layout, *instances);
+  add_instances_from_handles(*instances, char_handles, *layout);
+  create_attributes(params, *layout, *instances);
 
-  params.set_output("Curve Instances", std::move(geometry_set_out));
+  params.set_output("Curve Instances", GeometrySet::create_with_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_string_to_curves_cc

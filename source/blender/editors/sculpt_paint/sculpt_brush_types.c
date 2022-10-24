@@ -2149,6 +2149,8 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float final_disp[3];
     switch (brush->elastic_deform_type) {
       case BRUSH_ELASTIC_DEFORM_GRAB:

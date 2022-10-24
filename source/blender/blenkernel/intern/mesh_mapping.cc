@@ -553,7 +553,7 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
   *r_mem = indices;
 }
 
-namespace blender::mesh_topology {
+namespace blender::bke::mesh_topology {
 
 Array<int> build_loop_to_poly_map(const Span<MPoly> polys, const int loops_num)
 {
@@ -586,7 +586,7 @@ Array<Vector<int>> build_vert_to_loop_map(const Span<MLoop> loops, const int ver
   return map;
 }
 
-}  // namespace blender::mesh_topology
+}  // namespace blender::bke::mesh_topology
 
 /** \} */
 

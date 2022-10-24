@@ -252,8 +252,6 @@ enum {
 #define _NDOF_MIN NDOF_MOTION
 #define _NDOF_BUTTON_MIN NDOF_BUTTON_MENU
 
-  /* used internally, never sent */
-  NDOF_BUTTON_NONE = NDOF_MOTION,
   /* these two are available from any 3Dconnexion device */
 
   NDOF_BUTTON_MENU = 0x0191, /* 401 */
@@ -281,35 +279,42 @@ enum {
   NDOF_BUTTON_DOMINANT = 0x01a3, /* 419 */
   NDOF_BUTTON_PLUS = 0x01a4,     /* 420 */
   NDOF_BUTTON_MINUS = 0x01a5,    /* 421 */
+  /* General-purpose buttons. */
+  NDOF_BUTTON_1 = 0x01a6,  /* 422 */
+  NDOF_BUTTON_2 = 0x01a7,  /* 423 */
+  NDOF_BUTTON_3 = 0x01a8,  /* 424 */
+  NDOF_BUTTON_4 = 0x01a9,  /* 425 */
+  NDOF_BUTTON_5 = 0x01aa,  /* 426 */
+  NDOF_BUTTON_6 = 0x01ab,  /* 427 */
+  NDOF_BUTTON_7 = 0x01ac,  /* 428 */
+  NDOF_BUTTON_8 = 0x01ad,  /* 429 */
+  NDOF_BUTTON_9 = 0x01ae,  /* 430 */
+  NDOF_BUTTON_10 = 0x01af, /* 431 */
+  /* more general-purpose buttons */
+  NDOF_BUTTON_A = 0x01b0, /* 432 */
+  NDOF_BUTTON_B = 0x01b1, /* 433 */
+  NDOF_BUTTON_C = 0x01b2, /* 434 */
+  /* Store/restore views. */
+  NDOF_BUTTON_V1 = 0x01b3, /* 435 */
+  NDOF_BUTTON_V2 = 0x01b4, /* 436 */
+  NDOF_BUTTON_V3 = 0x01b5, /* 437 */
 
 /* Disabled as GHOST converts these to keyboard events
  * which use regular keyboard event handling logic. */
 #if 0
   /* keyboard emulation */
-  NDOF_BUTTON_ESC = 0x01a6,   /* 422 */
-  NDOF_BUTTON_ALT = 0x01a7,   /* 423 */
-  NDOF_BUTTON_SHIFT = 0x01a8, /* 424 */
-  NDOF_BUTTON_CTRL = 0x01a9,  /* 425 */
+  NDOF_BUTTON_ESC = 0x01b6,    /* 438 */
+  NDOF_BUTTON_ENTER = 0x01b7,  /* 439 */
+  NDOF_BUTTON_DELETE = 0x01b8, /* 440 */
+  NDOF_BUTTON_TAB = 0x01b9,    /* 441 */
+  NDOF_BUTTON_SPACE = 0x01ba,  /* 442 */
+  NDOF_BUTTON_ALT = 0x01bb,    /* 443 */
+  NDOF_BUTTON_SHIFT = 0x01bc,  /* 444 */
+  NDOF_BUTTON_CTRL = 0x01bd,   /* 445 */
 #endif
 
-  /* general-purpose buttons */
-  NDOF_BUTTON_1 = 0x01aa,  /* 426 */
-  NDOF_BUTTON_2 = 0x01ab,  /* 427 */
-  NDOF_BUTTON_3 = 0x01ac,  /* 428 */
-  NDOF_BUTTON_4 = 0x01ad,  /* 429 */
-  NDOF_BUTTON_5 = 0x01ae,  /* 430 */
-  NDOF_BUTTON_6 = 0x01af,  /* 431 */
-  NDOF_BUTTON_7 = 0x01b0,  /* 432 */
-  NDOF_BUTTON_8 = 0x01b1,  /* 433 */
-  NDOF_BUTTON_9 = 0x01b2,  /* 434 */
-  NDOF_BUTTON_10 = 0x01b3, /* 435 */
-  /* more general-purpose buttons */
-  NDOF_BUTTON_A = 0x01b4, /* 436 */
-  NDOF_BUTTON_B = 0x01b5, /* 437 */
-  NDOF_BUTTON_C = 0x01b6, /* 438 */
-
-#define _NDOF_MAX NDOF_BUTTON_C
-#define _NDOF_BUTTON_MAX NDOF_BUTTON_C
+#define _NDOF_MAX NDOF_BUTTON_V3
+#define _NDOF_BUTTON_MAX NDOF_BUTTON_V3
 
   /* ********** End of Input devices. ********** */
 
@@ -448,6 +453,8 @@ enum eEventType_Mask {
 #define EVT_TYPE_MASK_HOTKEY_INCLUDE \
   (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF)
 #define EVT_TYPE_MASK_HOTKEY_EXCLUDE EVT_TYPE_MASK_KEYBOARD_MODIFIER
+
+#define NDOF_BUTTON_INDEX_AS_EVENT(i) (_NDOF_BUTTON_MIN + (i))
 
 bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
 

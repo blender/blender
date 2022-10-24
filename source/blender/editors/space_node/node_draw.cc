@@ -2145,6 +2145,9 @@ static void node_draw_basis(const bContext &C,
                               0,
                               "");
     UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_group_edit");
+    if (node.id) {
+      UI_but_icon_indicator_number_set(but, node.id->us);
+    }
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
   if (node.type == NODE_CUSTOM && node.typeinfo->ui_icon != ICON_NONE) {
@@ -3011,7 +3014,7 @@ static void node_draw_nodetree(const bContext &C,
   }
 }
 
-/* Draw the breadcrumb on the bottom of the editor. */
+/* Draw the breadcrumb on the top of the editor. */
 static void draw_tree_path(const bContext &C, ARegion &region)
 {
   using namespace blender;

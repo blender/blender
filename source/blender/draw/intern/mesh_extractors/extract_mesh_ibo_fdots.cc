@@ -46,7 +46,7 @@ static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   if (mr->use_subsurf_fdots) {
-    const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
+    const BLI_bitmap *facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
     const MLoop *mloop = mr->mloop;
     const int ml_index_end = mp->loopstart + mp->totloop;

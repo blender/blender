@@ -5928,6 +5928,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {FFMPEG_MKV, "MKV", 0, "Matroska", ""},
       {FFMPEG_FLV, "FLASH", 0, "Flash", ""},
       {FFMPEG_WEBM, "WEBM", 0, "WebM", ""},
+      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5945,7 +5946,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
       {AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
       {AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-      {AV_CODEC_ID_VP9, "WEBM", 0, "WEBM / VP9", ""},
+      {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -7861,6 +7862,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WORLD);
   RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_world_update");
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);

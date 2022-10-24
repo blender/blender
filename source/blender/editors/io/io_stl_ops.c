@@ -49,7 +49,7 @@ static int wm_stl_import_execute(bContext *C, wmOperator *op)
     for (int i = 0; i < files_len; i++) {
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
-      BLI_join_dirfile(params.filepath, sizeof(params.filepath), dir_only, file_only);
+      BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
       STL_import(C, &params);
     }
   }
@@ -95,7 +95,7 @@ void WM_OT_stl_import(struct wmOperatorType *ot)
   ot->exec = wm_stl_import_execute;
   ot->poll = WM_operator_winactive;
   ot->check = wm_stl_import_check;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,

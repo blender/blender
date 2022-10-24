@@ -2,6 +2,8 @@
 
 #include "GEO_realize_instances.hh"
 
+#include "BKE_instances.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_join_geometry_cc {
@@ -27,6 +29,9 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
     component->attributes()->for_all(
         [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
           if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
+            return true;
+          }
+          if (meta_data.data_type == CD_PROP_STRING) {
             return true;
           }
           info.add_or_modify(
@@ -97,31 +102,36 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
 
 static void join_components(Span<const InstancesComponent *> src_components, GeometrySet &result)
 {
-  InstancesComponent &dst_component = result.get_component_for_write<InstancesComponent>();
+  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
 
   int tot_instances = 0;
   for (const InstancesComponent *src_component : src_components) {
-    tot_instances += src_component->instances_num();
+    tot_instances += src_component->get_for_read()->instances_num();
   }
-  dst_component.reserve(tot_instances);
+  dst_instances->reserve(tot_instances);
 
   for (const InstancesComponent *src_component : src_components) {
-    Span<InstanceReference> src_references = src_component->references();
+    const bke::Instances &src_instances = *src_component->get_for_read();
+
+    Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
     for (const int src_handle : src_references.index_range()) {
-      handle_map[src_handle] = dst_component.add_reference(src_references[src_handle]);
+      handle_map[src_handle] = dst_instances->add_reference(src_references[src_handle]);
     }
 
-    Span<float4x4> src_transforms = src_component->instance_transforms();
-    Span<int> src_reference_handles = src_component->instance_reference_handles();
+    Span<float4x4> src_transforms = src_instances.transforms();
+    Span<int> src_reference_handles = src_instances.reference_handles();
 
     for (const int i : src_transforms.index_range()) {
       const int src_handle = src_reference_handles[i];
       const int dst_handle = handle_map[src_handle];
       const float4x4 &transform = src_transforms[i];
-      dst_component.add_instance(dst_handle, transform);
+      dst_instances->add_instance(dst_handle, transform);
     }
   }
+
+  result.replace_instances(dst_instances.release());
+  InstancesComponent &dst_component = result.get_component_for_write<InstancesComponent>();
   join_attributes(to_base_components(src_components), dst_component, {"position"});
 }
 
@@ -151,25 +161,23 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
     return;
   }
 
-  GeometrySet instances_geometry_set;
-  InstancesComponent &instances =
-      instances_geometry_set.get_component_for_write<InstancesComponent>();
-
   if constexpr (is_same_any_v<Component, InstancesComponent, VolumeComponent>) {
     join_components(components, result);
   }
   else {
+    std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
     for (const Component *component : components) {
       GeometrySet tmp_geo;
       tmp_geo.add(*component);
-      const int handle = instances.add_reference(InstanceReference{tmp_geo});
-      instances.add_instance(handle, float4x4::identity());
+      const int handle = instances->add_reference(bke::InstanceReference{tmp_geo});
+      instances->add_instance(handle, float4x4::identity());
     }
 
     geometry::RealizeInstancesOptions options;
     options.keep_original_ids = true;
     options.realize_instance_attributes = false;
-    GeometrySet joined_components = geometry::realize_instances(instances_geometry_set, options);
+    GeometrySet joined_components = geometry::realize_instances(
+        GeometrySet::create_with_instances(instances.release()), options);
     result.add(joined_components.get_component_for_write<Component>());
   }
 }

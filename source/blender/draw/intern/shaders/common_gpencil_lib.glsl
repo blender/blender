@@ -90,10 +90,15 @@ float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
 
 #ifdef GPU_VERTEX_SHADER
 
-/* Trick to detect if a drawcall is stroke or fill.
- * This does mean that we need to draw an empty stroke segment before starting
- * to draw the real stroke segments. */
-#  define GPENCIL_IS_STROKE_VERTEX (gl_InstanceID != 0)
+int gpencil_stroke_point_id()
+{
+  return (gl_VertexID & ~GP_IS_STROKE_VERTEX_BIT) >> GP_VERTEX_ID_SHIFT;
+}
+
+bool gpencil_is_stroke_vertex()
+{
+  return flag_test(gl_VertexID, GP_IS_STROKE_VERTEX_BIT);
+}
 
 /**
  * Returns value of gl_Position.
@@ -120,20 +125,7 @@ float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
  * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536)
  */
-vec4 gpencil_vertex(ivec4 ma,
-                    ivec4 ma1,
-                    ivec4 ma2,
-                    ivec4 ma3,
-                    vec4 pos,
-                    vec4 pos1,
-                    vec4 pos2,
-                    vec4 pos3,
-                    vec4 uv1,
-                    vec4 uv2,
-                    vec4 col1,
-                    vec4 col2,
-                    vec4 fcol1,
-                    vec4 viewport_size,
+vec4 gpencil_vertex(vec4 viewport_size,
                     gpMaterialFlag material_flags,
                     vec2 alignment_rot,
                     /* World Position. */
@@ -155,6 +147,24 @@ vec4 gpencil_vertex(ivec4 ma,
                     /* Stroke hardness. */
                     out float out_hardness)
 {
+  int stroke_point_id = (gl_VertexID & ~GP_IS_STROKE_VERTEX_BIT) >> GP_VERTEX_ID_SHIFT;
+
+  /* Attribute Loading. */
+  vec4 pos = texelFetch(gp_pos_tx, (stroke_point_id - 1) * 3 + 0);
+  vec4 pos1 = texelFetch(gp_pos_tx, (stroke_point_id + 0) * 3 + 0);
+  vec4 pos2 = texelFetch(gp_pos_tx, (stroke_point_id + 1) * 3 + 0);
+  vec4 pos3 = texelFetch(gp_pos_tx, (stroke_point_id + 2) * 3 + 0);
+  ivec4 ma = floatBitsToInt(texelFetch(gp_pos_tx, (stroke_point_id - 1) * 3 + 1));
+  ivec4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, (stroke_point_id + 0) * 3 + 1));
+  ivec4 ma2 = floatBitsToInt(texelFetch(gp_pos_tx, (stroke_point_id + 1) * 3 + 1));
+  ivec4 ma3 = floatBitsToInt(texelFetch(gp_pos_tx, (stroke_point_id + 2) * 3 + 1));
+  vec4 uv1 = texelFetch(gp_pos_tx, (stroke_point_id + 0) * 3 + 2);
+  vec4 uv2 = texelFetch(gp_pos_tx, (stroke_point_id + 1) * 3 + 2);
+
+  vec4 col1 = texelFetch(gp_col_tx, (stroke_point_id + 0) * 2 + 0);
+  vec4 col2 = texelFetch(gp_col_tx, (stroke_point_id + 1) * 2 + 0);
+  vec4 fcol1 = texelFetch(gp_col_tx, (stroke_point_id + 0) * 2 + 1);
+
 #  define thickness1 pos1.w
 #  define thickness2 pos2.w
 #  define strength1 uv1.w
@@ -167,7 +177,7 @@ vec4 gpencil_vertex(ivec4 ma,
 
   vec4 out_ndc;
 
-  if (GPENCIL_IS_STROKE_VERTEX) {
+  if (gpencil_is_stroke_vertex()) {
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
     bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
@@ -175,13 +185,6 @@ vec4 gpencil_vertex(ivec4 ma,
     if (!is_dot && ma.x == -1 && ma2.x == -1) {
       is_dot = true;
       is_squares = false;
-    }
-
-    /* Endpoints, we discard the vertices. */
-    if (ma1.x == -1 || (!is_dot && ma2.x == -1)) {
-      /* We set the vertex at the camera origin to generate 0 fragments. */
-      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
-      return out_ndc;
     }
 
     /* Avoid using a vertex attribute for quad positioning. */
@@ -336,8 +339,7 @@ vec4 gpencil_vertex(ivec4 ma,
     out_N = safe_normalize(N);
 
     /* Decode fill opacity. */
-    out_color = vec4(fcol1.rgb, floor(fcol1.a / 10.0));
-    out_color.a /= 10000.0;
+    out_color = vec4(fcol1.rgb, floor(fcol1.a / 10.0) / 10000.0);
 
     /* We still offset the fills a little to avoid overlaps */
     out_ndc.z += 0.000002;
@@ -355,20 +357,7 @@ vec4 gpencil_vertex(ivec4 ma,
   return out_ndc;
 }
 
-vec4 gpencil_vertex(ivec4 ma,
-                    ivec4 ma1,
-                    ivec4 ma2,
-                    ivec4 ma3,
-                    vec4 pos,
-                    vec4 pos1,
-                    vec4 pos2,
-                    vec4 pos3,
-                    vec4 uv1,
-                    vec4 uv2,
-                    vec4 col1,
-                    vec4 col2,
-                    vec4 fcol1,
-                    vec4 viewport_size,
+vec4 gpencil_vertex(vec4 viewport_size,
                     out vec3 out_P,
                     out vec3 out_N,
                     out vec4 out_color,
@@ -379,20 +368,7 @@ vec4 gpencil_vertex(ivec4 ma,
                     out vec2 out_thickness,
                     out float out_hardness)
 {
-  return gpencil_vertex(ma,
-                        ma1,
-                        ma2,
-                        ma3,
-                        pos,
-                        pos1,
-                        pos2,
-                        pos3,
-                        uv1,
-                        uv2,
-                        col1,
-                        col2,
-                        fcol1,
-                        viewport_size,
+  return gpencil_vertex(viewport_size,
                         0u,
                         vec2(1.0, 0.0),
                         out_P,

@@ -306,7 +306,7 @@ GHOST_TSuccess GHOST_ContextGLX::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 {
-  if (!epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
+  if (epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
     ::glXSwapIntervalEXT(m_display, m_window, interval);
     return GHOST_kSuccess;
   }

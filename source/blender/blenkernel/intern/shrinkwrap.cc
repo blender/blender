@@ -140,7 +140,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-    data->boundary = mesh->runtime.shrinkwrap_data;
+    data->boundary = mesh->runtime->shrinkwrap_data;
   }
 
   return true;
@@ -153,7 +153,7 @@ void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data)
 
 void BKE_shrinkwrap_discard_boundary_data(Mesh *mesh)
 {
-  ShrinkwrapBoundaryData *data = mesh->runtime.shrinkwrap_data;
+  ShrinkwrapBoundaryData *data = mesh->runtime->shrinkwrap_data;
 
   if (data != nullptr) {
     MEM_freeN((void *)data->edge_is_boundary);
@@ -164,7 +164,7 @@ void BKE_shrinkwrap_discard_boundary_data(Mesh *mesh)
     MEM_freeN(data);
   }
 
-  mesh->runtime.shrinkwrap_data = nullptr;
+  mesh->runtime->shrinkwrap_data = nullptr;
 }
 
 /* Accumulate edge for average boundary edge direction. */
@@ -327,7 +327,7 @@ void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh)
 {
   BKE_shrinkwrap_discard_boundary_data(mesh);
 
-  mesh->runtime.shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
+  mesh->runtime->shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
 }
 
 /**

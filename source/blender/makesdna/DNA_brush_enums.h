@@ -330,9 +330,8 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
   BRUSH_AUTOMASKING_CAVITY_NORMAL = (1 << 4),
 
-  /* Note: normal and inverted are mutually exclusive,
-   * inverted has priority if both bits are set.
-   */
+  /* NOTE: normal and inverted are mutually exclusive,
+   * inverted has priority if both bits are set. */
   BRUSH_AUTOMASKING_CAVITY_INVERTED = (1 << 5),
   BRUSH_AUTOMASKING_CAVITY_ALL = (1 << 4) | (1 << 5),
   BRUSH_AUTOMASKING_CAVITY_USE_CURVE = (1 << 6),

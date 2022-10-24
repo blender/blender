@@ -48,6 +48,8 @@ CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
                                                        int kernel,
                                                        size_t global_size,
                                                        void **args);
+CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_load_kernels(SyclQueue *queue,
+                                                     const unsigned int requested_features);
 #  ifdef __cplusplus
 }
 #  endif

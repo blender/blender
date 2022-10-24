@@ -215,7 +215,9 @@ static void set_default_value(ShaderInput *input,
     }
     case SocketType::INT: {
       if (b_sock.type() == BL::NodeSocket::type_BOOLEAN) {
-        node->set(socket, get_boolean(b_sock.ptr, "default_value"));
+        /* Make sure to call the int overload of set() since this is an integer socket as far as
+         * Cycles is concerned. */
+        node->set(socket, get_boolean(b_sock.ptr, "default_value") ? 1 : 0);
       }
       else {
         node->set(socket, get_int(b_sock.ptr, "default_value"));

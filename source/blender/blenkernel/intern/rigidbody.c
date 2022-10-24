@@ -404,7 +404,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
     const MVert *mvert = BKE_mesh_verts(mesh);
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-    tottri = mesh->runtime.looptris.len;
+    tottri = BKE_mesh_runtime_looptri_len(mesh);
     const MLoop *mloop = BKE_mesh_loops(mesh);
 
     /* sanity checking - potential case when no data will be present */
@@ -679,7 +679,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = mesh->runtime.looptris.len;
+        tottri = BKE_mesh_runtime_looptri_len(mesh);
         const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
@@ -753,7 +753,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
         const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = mesh->runtime.looptris.len;
+        tottri = BKE_mesh_runtime_looptri_len(mesh);
         const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {

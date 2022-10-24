@@ -207,7 +207,7 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
     char result[(out_size) + 1024]; \
     /* check we don't write past the last byte */ \
     result[out_size] = '\0'; \
-    BLI_path_join(result, out_size, __VA_ARGS__, NULL); \
+    BLI_path_join(result, out_size, __VA_ARGS__); \
     /* simplify expected string */ \
     BLI_str_replace_char(result, '\\', '/'); \
     EXPECT_STREQ(result, expect); \

@@ -262,7 +262,7 @@ struct foreachScreenFace_userData {
 static void meshobject_foreachScreenVert__mapFunc(void *userData,
                                                   int index,
                                                   const float co[3],
-                                                  const float UNUSED(no[3]))
+                                                  const float /*no*/[3])
 {
   foreachScreenObjectVert_userData *data = static_cast<foreachScreenObjectVert_userData *>(
       userData);
@@ -316,7 +316,7 @@ void meshobject_foreachScreenVert(
 static void mesh_foreachScreenVert__mapFunc(void *userData,
                                             int index,
                                             const float co[3],
-                                            const float UNUSED(no[3]))
+                                            const float /*no*/[3])
 {
   foreachScreenVert_userData *data = static_cast<foreachScreenVert_userData *>(userData);
   BMVert *eve = BM_vert_at_index(data->vc.em->bm, index);
@@ -538,7 +538,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
 static void mesh_foreachScreenFace__mapFunc(void *userData,
                                             int index,
                                             const float cent[3],
-                                            const float UNUSED(no[3]))
+                                            const float /*no*/[3])
 {
   foreachScreenFace_userData *data = static_cast<foreachScreenFace_userData *>(userData);
   BMFace *efa = BM_face_at_index(data->vc.em->bm, index);
@@ -576,7 +576,7 @@ void mesh_foreachScreenFace(
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_FACE);
 
-  if (me->runtime.subsurf_face_dot_tags != nullptr) {
+  if (me->runtime->subsurf_face_dot_tags != nullptr) {
     BKE_mesh_foreach_mapped_subdiv_face_center(
         me, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
   }

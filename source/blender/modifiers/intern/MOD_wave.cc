@@ -21,6 +21,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
@@ -337,7 +338,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (!ELEM(mesh_src, nullptr, mesh)) {
     /* Important not to free `vertexCos` owned by the caller. */
-    EditMeshData *edit_data = mesh_src->runtime.edit_data;
+    EditMeshData *edit_data = mesh_src->runtime->edit_data;
     if (edit_data->vertexCos == vertexCos) {
       edit_data->vertexCos = nullptr;
     }

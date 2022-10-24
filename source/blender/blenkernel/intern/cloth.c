@@ -826,7 +826,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   const MLoop *mloop = BKE_mesh_loops(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
   const uint mvert_num = mesh->totvert;
-  const uint looptri_num = mesh->runtime.looptris.len;
+  const uint looptri_num = BKE_mesh_runtime_looptri_len(mesh);
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
@@ -1167,7 +1167,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
   MVert *mvert = BKE_mesh_verts_for_write(mesh);
 
   /* vertex count is already ensured to match */
-  for (unsigned i = 0; i < mesh->totvert; i++, verts++) {
+  for (uint i = 0; i < mesh->totvert; i++, verts++) {
     copy_v3_v3(mvert[i].co, verts->xrest);
   }
   BKE_mesh_tag_coords_changed(new_mesh);

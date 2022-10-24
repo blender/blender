@@ -422,7 +422,8 @@ static void draw_prune_vlattrs(DRWData *drw_data)
   /* Forget known attributes after they are unused for a few frames. */
   LISTBASE_FOREACH_MUTABLE (GPULayerAttr *, attr, &drw_data->vlattrs_name_list) {
     if (++attr->users > 10) {
-      BLI_ghash_remove(drw_data->vlattrs_name_cache, (void *)attr->hash_code, NULL, NULL);
+      BLI_ghash_remove(
+          drw_data->vlattrs_name_cache, POINTER_FROM_UINT(attr->hash_code), NULL, NULL);
       BLI_freelinkN(&drw_data->vlattrs_name_list, attr);
     }
   }
@@ -1958,20 +1959,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   DST.buffer_finish_called = false;
 }
 
-/* Callback function for RE_engine_update_render_passes to ensure all
- * render passes are registered. */
-static void draw_render_result_ensure_pass_cb(void *user_data,
-                                              struct Scene *UNUSED(scene),
-                                              struct ViewLayer *view_layer,
-                                              const char *name,
-                                              int channels,
-                                              const char *chanid,
-                                              eNodeSocketDatatype UNUSED(type))
-{
-  RenderEngine *engine = user_data;
-  RE_engine_add_pass(engine, name, channels, chanid, view_layer->name);
-}
-
 void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -2021,10 +2008,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   /* set default viewport */
   GPU_viewport(0, 0, size[0], size[1]);
-
-  /* Update the render passes. This needs to be done before acquiring the render result. */
-  RE_engine_update_render_passes(
-      engine, scene, view_layer, draw_render_result_ensure_pass_cb, engine);
 
   /* Init render result. */
   RenderResult *render_result = RE_engine_begin_result(engine,

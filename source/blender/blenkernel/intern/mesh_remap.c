@@ -1529,7 +1529,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         BLI_bitmap *looptri_active;
 
         looptri_src = BKE_mesh_runtime_looptri_ensure(me_src);
-        num_looptri_src = me_src->runtime.looptris.len;
+        num_looptri_src = BKE_mesh_runtime_looptri_len(me_src);
         looptri_active = BLI_BITMAP_NEW((size_t)num_looptri_src, __func__);
 
         for (tindex = 0; tindex < num_trees; tindex++) {

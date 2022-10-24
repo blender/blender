@@ -252,7 +252,7 @@ static void drw_register_shader_vlattrs(GPUMaterial *mat)
     GPULayerAttr **p_val;
 
     /* Add to the table and list if newly seen. */
-    if (!BLI_ghash_ensure_p(hash, (void *)attr->hash_code, (void ***)&p_val)) {
+    if (!BLI_ghash_ensure_p(hash, POINTER_FROM_UINT(attr->hash_code), (void ***)&p_val)) {
       DST.vmempool->vlattrs_ubo_ready = false;
 
       GPULayerAttr *new_link = *p_val = MEM_dupallocN(attr);

@@ -122,7 +122,8 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
            R_IMF_IMTYPE_FFMPEG,
            R_IMF_IMTYPE_H264,
            R_IMF_IMTYPE_XVID,
-           R_IMF_IMTYPE_THEORA)) {
+           R_IMF_IMTYPE_THEORA,
+           R_IMF_IMTYPE_AV1)) {
     mh.start_movie = BKE_ffmpeg_start;
     mh.append_movie = BKE_ffmpeg_append;
     mh.end_movie = BKE_ffmpeg_end;

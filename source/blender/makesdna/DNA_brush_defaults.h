@@ -92,7 +92,7 @@
     .hardness = 0.0f, \
     .automasking_boundary_edges_propagation_steps = 1, \
     .automasking_cavity_blur_steps = 0,\
-    .automasking_cavity_factor = 0.5f,\
+    .automasking_cavity_factor = 1.0f,\
  \
     /* A kernel radius of 1 has almost no effect (T63233). */ \
     .blur_kernel_radius = 2, \

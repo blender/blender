@@ -22,7 +22,7 @@ bool wayland_dynload_egl_init(const bool verbose)
 {
   /* Library paths. */
   const char *paths[] = {
-      "libwayland-egl.so.0",
+      "libwayland-egl.so.1",
       "libwayland-egl.so",
   };
   const int paths_num = sizeof(paths) / sizeof(*paths);

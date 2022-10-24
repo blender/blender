@@ -8,6 +8,7 @@
 #include "UI_resources.h"
 
 #include "BKE_collection.h"
+#include "BKE_instances.hh"
 
 #include "node_geometry_util.hh"
 
@@ -69,8 +70,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool use_relative_transform = (storage.transform_space ==
                                        GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  GeometrySet geometry_set_out;
-  InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
+  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
 
   const bool separate_children = params.get_input<bool>("Separate Children");
   if (separate_children) {
@@ -84,7 +84,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       children_objects.append(collection_object->ob);
     }
 
-    instances.reserve(children_collections.size() + children_objects.size());
+    instances->reserve(children_collections.size() + children_objects.size());
     Vector<InstanceListEntry> entries;
     entries.reserve(children_collections.size() + children_objects.size());
 
@@ -99,11 +99,11 @@ static void node_geo_exec(GeoNodeExecParams params)
           sub_v3_v3(transform.values[3], collection->instance_offset);
         }
       }
-      const int handle = instances.add_reference(*child_collection);
+      const int handle = instances->add_reference(*child_collection);
       entries.append({handle, &(child_collection->id.name[2]), transform});
     }
     for (Object *child_object : children_objects) {
-      const int handle = instances.add_reference(*child_object);
+      const int handle = instances->add_reference(*child_object);
       float4x4 transform = float4x4::identity();
       if (!reset_children) {
         if (use_relative_transform) {
@@ -123,7 +123,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                 return BLI_strcasecmp_natural(a.name, b.name) < 0;
               });
     for (const InstanceListEntry &entry : entries) {
-      instances.add_instance(entry.handle, entry.transform);
+      instances->add_instance(entry.handle, entry.transform);
     }
   }
   else {
@@ -133,11 +133,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       mul_m4_m4_pre(transform.values, self_object->imat);
     }
 
-    const int handle = instances.add_reference(*collection);
-    instances.add_instance(handle, transform);
+    const int handle = instances->add_reference(*collection);
+    instances->add_instance(handle, transform);
   }
 
-  params.set_output("Geometry", geometry_set_out);
+  params.set_output("Geometry", GeometrySet::create_with_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_collection_info_cc

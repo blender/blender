@@ -1272,6 +1272,34 @@ float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
   return limit_next;
 }
 
+NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitions)
+{
+  NlaStrip *next = strip->next;
+  while (next != NULL) {
+    if (skip_transitions && (next->type & NLASTRIP_TYPE_TRANSITION)) {
+      next = next->next;
+    }
+    else {
+      return next;
+    }
+  }
+  return NULL;
+}
+
+NlaStrip *BKE_nlastrip_prev_in_track(struct NlaStrip *strip, bool skip_transitions)
+{
+  NlaStrip *prev = strip->prev;
+  while (prev != NULL) {
+    if (skip_transitions && (prev->type & NLASTRIP_TYPE_TRANSITION)) {
+      prev = prev->prev;
+    }
+    else {
+      return prev;
+    }
+  }
+  return NULL;
+}
+
 NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
 {
   if (nlt == NULL) {
@@ -1890,7 +1918,7 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
    * NOTE: this must be done *after* adding the strip to the track, or else
    *       the strip locking will prevent the strip from getting added
    */
-  nlt->flag = (NLATRACK_MUTED | NLATRACK_PROTECTED);
+  nlt->flag |= (NLATRACK_MUTED | NLATRACK_PROTECTED);
   strip->flag &= ~(NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
 
   /* also mark the strip for auto syncing the length, so that the strips accurately

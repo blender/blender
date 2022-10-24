@@ -5,6 +5,7 @@ set(SSL_PATCH_CMD echo .)
 
 if(APPLE)
   set(SSL_OS_COMPILER "blender-darwin-${CMAKE_OSX_ARCHITECTURES}")
+  set(SSL_PATCH_CMD ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/ssl/src/external_ssl < ${PATCH_DIR}/ssl.diff)
 else()
   if(BLENDER_PLATFORM_ARM)
     set(SSL_OS_COMPILER "blender-linux-aarch64")

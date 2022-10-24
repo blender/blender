@@ -1335,7 +1335,7 @@ struct VertPickData {
 static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no[3]))
+                                       const float /*no*/[3])
 {
   VertPickData *data = static_cast<VertPickData *>(userData);
   if (data->hide_vert && data->hide_vert[index]) {

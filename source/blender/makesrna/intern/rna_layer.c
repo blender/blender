@@ -369,6 +369,16 @@ static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc,
   return false;
 }
 
+void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  LayerCollection *lc = (LayerCollection *)ptr->data;
+  ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+
+  rna_iterator_listbase_begin(iter, &lc->layer_collections, NULL);
+}
+
 static bool rna_LayerCollection_children_lookupint(struct PointerRNA *ptr,
                                                    int key,
                                                    struct PointerRNA *r_ptr)
@@ -435,7 +445,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "LayerCollection");
   RNA_def_property_ui_text(prop, "Children", "Child layer collections");
   RNA_def_property_collection_funcs(prop,
-                                    NULL,
+                                    "rna_LayerCollection_children_begin",
                                     NULL,
                                     NULL,
                                     NULL,

@@ -79,6 +79,26 @@ class View {
     return -(data_.winmat[3][2] + 1.0f) / data_.winmat[2][2];
   }
 
+  const float4x4 &viewmat() const
+  {
+    return data_.viewmat;
+  }
+
+  const float4x4 &viewinv() const
+  {
+    return data_.viewinv;
+  }
+
+  const float4x4 &winmat() const
+  {
+    return data_.winmat;
+  }
+
+  const float4x4 &wininv() const
+  {
+    return data_.wininv;
+  }
+
  private:
   /** Called from draw manager. */
   void bind();

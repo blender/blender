@@ -52,6 +52,8 @@ class VIEW3D_MT_brush_context_menu(Menu):
         elif context.sculpt_object:
             layout.prop_menu_enum(brush, "sculpt_tool")
             layout.operator("brush.reset")
+        elif context.tool_settings.curves_sculpt:
+            layout.prop_menu_enum(brush, "curves_sculpt_tool")
 
 
 class VIEW3D_MT_brush_gpencil_context_menu(Menu):
@@ -79,22 +81,6 @@ class VIEW3D_MT_brush_gpencil_context_menu(Menu):
 
         layout.operator("gpencil.brush_reset")
         layout.operator("gpencil.brush_reset_all")
-
-
-class VIEW3D_MT_brush_context_menu_paint_modes(Menu):
-    bl_label = "Enabled Modes"
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
-
-        layout.prop(brush, "use_paint_sculpt", text="Sculpt")
-        layout.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
-        layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
-        layout.prop(brush, "use_paint_weight", text="Weight Paint")
-        layout.prop(brush, "use_paint_image", text="Texture Paint")
 
 
 class View3DPanel:
@@ -963,52 +949,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "use_sculpt_delay_updates")
         col.prop(sculpt, "use_deform_only")
-
-        col.separator()
-
-        col = layout.column(heading="Auto-Masking", align=True)
-
-        col.prop(sculpt, "use_automasking_topology", text="Topology")
-        col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
-        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
-        col.prop(sculpt, "use_automasking_cavity", text="Cavity")
-        col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
-        col.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
-        col.prop(sculpt, "use_automasking_view_normal", text="View Normal")
-
-        if sculpt.use_automasking_start_normal:
-            col.separator()
-
-            col.prop(sculpt, "automasking_start_normal_limit")
-            col.prop(sculpt, "automasking_start_normal_falloff")
-
-        if sculpt.use_automasking_view_normal:
-            col.separator()
-
-            col.prop(sculpt, "use_automasking_view_occlusion", text="Occlusion")
-            col.prop(sculpt, "automasking_view_normal_limit")
-            col.prop(sculpt, "automasking_view_normal_falloff")
-
-        col.separator()
-        col.prop(sculpt.brush, "automasking_boundary_edges_propagation_steps")
-
-        if sculpt.use_automasking_cavity or sculpt.use_automasking_cavity_inverted:
-            col.separator()
-
-            col2 = col.column()
-            props = col2.operator("sculpt.mask_from_cavity", text="Mask From Cavity")
-            props.use_automask_settings = True
-
-            col2 = col.column()
-
-            col2.prop(sculpt, "automasking_cavity_factor", text="Cavity Factor")
-            col2.prop(sculpt, "automasking_cavity_blur_steps", text="Cavity Blur")
-
-            col2.prop(sculpt, "use_automasking_custom_cavity_curve", text="Use Curve")
-
-            if sculpt.use_automasking_custom_cavity_curve:
-                col2.template_curve_mapping(sculpt, "automasking_cavity_curve")
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
@@ -2419,7 +2359,6 @@ class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
 classes = (
     VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_gpencil_context_menu,
-    VIEW3D_MT_brush_context_menu_paint_modes,
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,

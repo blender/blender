@@ -43,6 +43,7 @@ enum class GeometryOwnershipType {
 namespace blender::bke {
 class ComponentAttributeProviders;
 class CurvesEditHints;
+class Instances;
 }  // namespace blender::bke
 
 class GeometryComponent;
@@ -246,6 +247,12 @@ struct GeometrySet {
    */
   static GeometrySet create_with_curves(
       Curves *curves, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Create a new geometry set that only contains the given instances.
+   */
+  static GeometrySet create_with_instances(
+      blender::bke::Instances *instances,
+      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   /* Utility methods for access. */
   /**
@@ -294,6 +301,10 @@ struct GeometrySet {
    */
   const Curves *get_curves_for_read() const;
   /**
+   * Returns read-only instances or null.
+   */
+  const blender::bke::Instances *get_instances_for_read() const;
+  /**
    * Returns read-only curve edit hints or null.
    */
   const blender::bke::CurvesEditHints *get_curve_edit_hints_for_read() const;
@@ -314,6 +325,10 @@ struct GeometrySet {
    * Returns a mutable curves data-block or null. No ownership is transferred.
    */
   Curves *get_curves_for_write();
+  /**
+   * Returns mutable instances or null. No ownership is transferred.
+   */
+  blender::bke::Instances *get_instances_for_write();
   /**
    * Returns mutable curve edit hints or null.
    */
@@ -339,6 +354,11 @@ struct GeometrySet {
    */
   void replace_curves(Curves *curves,
                       GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Clear the existing instances and replace them with the given one.
+   */
+  void replace_instances(blender::bke::Instances *instances,
+                         GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
   /**
@@ -515,244 +535,35 @@ class CurveComponent : public GeometryComponent {
 };
 
 /**
- * Holds a reference to conceptually unique geometry or a pointer to object/collection data
- * that is instanced with a transform in #InstancesComponent.
- */
-class InstanceReference {
- public:
-  enum class Type {
-    /**
-     * An empty instance. This allows an `InstanceReference` to be default constructed without
-     * being in an invalid state. There might also be other use cases that we haven't explored much
-     * yet (such as changing the instance later on, and "disabling" some instances).
-     */
-    None,
-    Object,
-    Collection,
-    GeometrySet,
-  };
-
- private:
-  Type type_ = Type::None;
-  /** Depending on the type this is either null, an Object or Collection pointer. */
-  void *data_ = nullptr;
-  std::unique_ptr<GeometrySet> geometry_set_;
-
- public:
-  InstanceReference() = default;
-
-  InstanceReference(Object &object) : type_(Type::Object), data_(&object)
-  {
-  }
-
-  InstanceReference(Collection &collection) : type_(Type::Collection), data_(&collection)
-  {
-  }
-
-  InstanceReference(GeometrySet geometry_set)
-      : type_(Type::GeometrySet),
-        geometry_set_(std::make_unique<GeometrySet>(std::move(geometry_set)))
-  {
-  }
-
-  InstanceReference(const InstanceReference &other) : type_(other.type_), data_(other.data_)
-  {
-    if (other.geometry_set_) {
-      geometry_set_ = std::make_unique<GeometrySet>(*other.geometry_set_);
-    }
-  }
-
-  InstanceReference(InstanceReference &&other)
-      : type_(other.type_), data_(other.data_), geometry_set_(std::move(other.geometry_set_))
-  {
-    other.type_ = Type::None;
-    other.data_ = nullptr;
-  }
-
-  InstanceReference &operator=(const InstanceReference &other)
-  {
-    if (this == &other) {
-      return *this;
-    }
-    this->~InstanceReference();
-    new (this) InstanceReference(other);
-    return *this;
-  }
-
-  InstanceReference &operator=(InstanceReference &&other)
-  {
-    if (this == &other) {
-      return *this;
-    }
-    this->~InstanceReference();
-    new (this) InstanceReference(std::move(other));
-    return *this;
-  }
-
-  Type type() const
-  {
-    return type_;
-  }
-
-  Object &object() const
-  {
-    BLI_assert(type_ == Type::Object);
-    return *(Object *)data_;
-  }
-
-  Collection &collection() const
-  {
-    BLI_assert(type_ == Type::Collection);
-    return *(Collection *)data_;
-  }
-
-  const GeometrySet &geometry_set() const
-  {
-    BLI_assert(type_ == Type::GeometrySet);
-    return *geometry_set_;
-  }
-
-  bool owns_direct_data() const
-  {
-    if (type_ != Type::GeometrySet) {
-      /* The object and collection instances are not direct data. */
-      return true;
-    }
-    return geometry_set_->owns_direct_data();
-  }
-
-  void ensure_owns_direct_data()
-  {
-    if (type_ != Type::GeometrySet) {
-      return;
-    }
-    geometry_set_->ensure_owns_direct_data();
-  }
-
-  uint64_t hash() const
-  {
-    return blender::get_default_hash_2(data_, geometry_set_.get());
-  }
-
-  friend bool operator==(const InstanceReference &a, const InstanceReference &b)
-  {
-    return a.data_ == b.data_ && a.geometry_set_.get() == b.geometry_set_.get();
-  }
-};
-
-/**
- * A geometry component that stores instances. The instance data can be any type described by
- * #InstanceReference. Geometry instances can even contain instances themselves, for nested
- * instancing. Each instance has an index into an array of unique instance data, and a transform.
- * The component can also store generic attributes for each instance.
- *
- * The component works differently from other geometry components in that it stores
- * data about instancing directly, rather than owning a pointer to a separate data structure.
- *
- * This component is not responsible for handling the interface to a render engine, or other
- * areas that work with all visible geometry, that is handled by the dependency graph iterator
- * (see `DEG_depsgraph_query.h`).
+ * A geometry component that stores #Instances.
  */
 class InstancesComponent : public GeometryComponent {
  private:
-  /**
-   * Indexed set containing information about the data that is instanced.
-   * Actual instances store an index ("handle") into this set.
-   */
-  blender::VectorSet<InstanceReference> references_;
-
-  /** Index into `references_`. Determines what data is instanced. */
-  blender::Vector<int> instance_reference_handles_;
-  /** Transformation of the instances. */
-  blender::Vector<blender::float4x4> instance_transforms_;
-
-  /* These almost unique ids are generated based on the `id` attribute, which might not contain
-   * unique ids at all. They are *almost* unique, because under certain very unlikely
-   * circumstances, they are not unique. Code using these ids should not crash when they are not
-   * unique but can generally expect them to be unique. */
-  mutable std::mutex almost_unique_ids_mutex_;
-  mutable blender::Array<int> almost_unique_ids_;
-
-  blender::bke::CustomDataAttributes attributes_;
+  blender::bke::Instances *instances_ = nullptr;
+  GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
 
  public:
   InstancesComponent();
-  ~InstancesComponent() = default;
+  ~InstancesComponent();
   GeometryComponent *copy() const override;
 
   void clear();
 
-  void reserve(int min_capacity);
-  /**
-   * Resize the transform, handles, and attributes to the specified capacity.
-   *
-   * \note This function should be used carefully, only when it's guaranteed
-   * that the data will be filled.
-   */
-  void resize(int capacity);
+  const blender::bke::Instances *get_for_read() const;
+  blender::bke::Instances *get_for_write();
 
-  /**
-   * Returns a handle for the given reference.
-   * If the reference exists already, the handle of the existing reference is returned.
-   * Otherwise a new handle is added.
-   */
-  int add_reference(const InstanceReference &reference);
-  /**
-   * Add a reference to the instance reference with an index specified by the #instance_handle
-   * argument. For adding many instances, using #resize and accessing the transform array directly
-   * is preferred.
-   */
-  void add_instance(int instance_handle, const blender::float4x4 &transform);
-
-  blender::Span<InstanceReference> references() const;
-  void remove_unused_references();
-
-  /**
-   * If references have a collection or object type, convert them into geometry instances
-   * recursively. After that, the geometry sets can be edited. There may still be instances of
-   * other types of they can't be converted to geometry sets.
-   */
-  void ensure_geometry_instances();
-  /**
-   * With write access to the instances component, the data in the instanced geometry sets can be
-   * changed. This is a function on the component rather than each reference to ensure `const`
-   * correctness for that reason.
-   */
-  GeometrySet &geometry_set_from_reference(int reference_index);
-
-  blender::Span<int> instance_reference_handles() const;
-  blender::MutableSpan<int> instance_reference_handles();
-  blender::MutableSpan<blender::float4x4> instance_transforms();
-  blender::Span<blender::float4x4> instance_transforms() const;
-
-  int instances_num() const;
-  int references_num() const;
-
-  /**
-   * Remove the indices that are not contained in the mask input, and remove unused instance
-   * references afterwards.
-   */
-  void remove_instances(const blender::IndexMask mask);
-
-  blender::Span<int> almost_unique_ids() const;
-
-  blender::bke::CustomDataAttributes &instance_attributes();
-  const blender::bke::CustomDataAttributes &instance_attributes() const;
-
-  std::optional<blender::bke::AttributeAccessor> attributes() const final;
-  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
-
-  void foreach_referenced_geometry(
-      blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const;
+  void replace(blender::bke::Instances *instances,
+               GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
 
-  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_INSTANCES;
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
 
- private:
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_INSTANCES;
 };
 
 /**

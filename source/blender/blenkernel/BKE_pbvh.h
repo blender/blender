@@ -125,6 +125,7 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
+  PBVH_TopologyUpdated = 1 << 16, /* Used internally by pbvh_bmesh.c */
 
 } PBVHNodeFlags;
 
@@ -266,7 +267,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden,
-                          struct Mesh *me);
+                          struct Mesh *me,
+                          struct SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -485,7 +487,10 @@ struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
  *
  * Skips triangles that are hidden.
  */
-void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm, PBVHNode *node);
+void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm,
+                                   struct BMLog *log,
+                                   PBVHNode *node,
+                                   bool use_original);
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
 /* Update Bounding Box/Redraw and clear flags. */
@@ -500,7 +505,8 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            struct CCGElem **grids,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
-                           unsigned int **grid_hidden);
+                           unsigned int **grid_hidden,
+                           struct CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
@@ -664,7 +670,8 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
 void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3]);
+                                    float (**r_orco_coords)[3],
+                                    struct BMVert ***r_orco_verts);
 
 /**
  * \note doing a full search on all vertices here seems expensive,

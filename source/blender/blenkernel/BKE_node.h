@@ -792,6 +792,12 @@ void nodeChainIterBackwards(const bNodeTree *ntree,
  */
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata);
 
+/**
+ * A dangling reroute node is a reroute node that does *not* have a "data source", i.e. no
+ * non-reroute node is connected to its input.
+ */
+bool nodeIsDanglingReroute(const struct bNodeTree *ntree, const struct bNode *node);
+
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,
                                const struct bNodeSocket *from,
                                const struct bNodeSocket *to);

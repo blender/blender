@@ -2,7 +2,10 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu, UIList
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 from bl_ui.utils import PresetPanel
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
@@ -1751,6 +1754,7 @@ class CLIP_MT_marker_pie(Menu):
 class CLIP_MT_tracking_pie(Menu):
     # Tracking Operators
     bl_label = "Tracking"
+    bl_translation_context = i18n_contexts.id_movieclip
 
     @classmethod
     def poll(cls, context):

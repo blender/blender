@@ -42,6 +42,11 @@ void gather(const GVArray &src, IndexMask indices, GMutableSpan dst, int64_t gra
 /**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
+void gather(GSpan src, IndexMask indices, GMutableSpan dst, int64_t grain_size = 4096);
+
+/**
+ * Fill the destination span by gathering indexed values from the `src` array.
+ */
 template<typename T>
 inline void gather(const VArray<T> &src,
                    const IndexMask indices,

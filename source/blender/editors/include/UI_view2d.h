@@ -103,7 +103,7 @@ enum eView2D_CommonViewTypes {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Foeard Declarations
+/** \name Forward Declarations
  * \{ */
 
 struct View2D;

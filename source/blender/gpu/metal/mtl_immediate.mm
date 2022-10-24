@@ -99,6 +99,9 @@ void MTLImmediate::end()
     MTLRenderPipelineStateDescriptor &desc = state_manager->get_pipeline_descriptor();
     const MTLShaderInterface *interface = active_mtl_shader->get_interface();
 
+    /* Reset vertex descriptor to default state. */
+    desc.reset_vertex_descriptor();
+
     desc.vertex_descriptor.num_attributes = interface->get_total_attributes();
     desc.vertex_descriptor.num_vert_buffers = 1;
 
@@ -125,7 +128,7 @@ void MTLImmediate::end()
      * TODO(Metal): Cache this vertex state based on Vertex format and shaders. */
     for (int i = 0; i < interface->get_total_attributes(); i++) {
 
-      /* Note: Attribute in VERTEX FORMAT does not necessarily share the same array index as
+      /* NOTE: Attribute in VERTEX FORMAT does not necessarily share the same array index as
        * attributes in shader interface. */
       GPUVertAttr *attr = nullptr;
       const MTLShaderInputAttribute &mtl_shader_attribute = interface->get_attribute(i);

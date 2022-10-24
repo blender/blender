@@ -345,7 +345,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 
@@ -403,7 +403,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
   /* If no vertex group, bypass. */
@@ -639,13 +639,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   TIMEIT_END(perf);
 #endif
 
-  mesh->runtime.is_original_bmesh = false;
+  mesh->runtime->is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -673,7 +673,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "normalize", 0, nullptr, ICON_NONE);
 }
 
-static void falloff_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
@@ -714,7 +714,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "influence", "Influence", nullptr, influence_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
 

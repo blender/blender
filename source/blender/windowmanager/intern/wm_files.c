@@ -1166,12 +1166,10 @@ void wm_homefile_read_ex(bContext *C,
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
   if (!use_factory_settings) {
     if (cfgdir) {
-      BLI_path_join(
-          filepath_startup, sizeof(filepath_startup), cfgdir, BLENDER_STARTUP_FILE, NULL);
+      BLI_path_join(filepath_startup, sizeof(filepath_startup), cfgdir, BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
       if (use_userdef) {
-        BLI_path_join(
-            filepath_userdef, sizeof(filepath_startup), cfgdir, BLENDER_USERPREF_FILE, NULL);
+        BLI_path_join(filepath_userdef, sizeof(filepath_startup), cfgdir, BLENDER_USERPREF_FILE);
       }
     }
     else {
@@ -1214,12 +1212,9 @@ void wm_homefile_read_ex(bContext *C,
     /* note that the path is being set even when 'use_factory_settings == true'
      * this is done so we can load a templates factory-settings */
     if (!use_factory_settings) {
-      BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template, NULL);
-      BLI_path_join(filepath_startup,
-                    sizeof(filepath_startup),
-                    app_template_config,
-                    BLENDER_STARTUP_FILE,
-                    NULL);
+      BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template);
+      BLI_path_join(
+          filepath_startup, sizeof(filepath_startup), app_template_config, BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
       if (BLI_access(filepath_startup, R_OK) != 0) {
         filepath_startup[0] = '\0';
@@ -1230,11 +1225,8 @@ void wm_homefile_read_ex(bContext *C,
     }
 
     if (filepath_startup[0] == '\0') {
-      BLI_path_join(filepath_startup,
-                    sizeof(filepath_startup),
-                    app_template_system,
-                    BLENDER_STARTUP_FILE,
-                    NULL);
+      BLI_path_join(
+          filepath_startup, sizeof(filepath_startup), app_template_system, BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = true;
 
       /* Update defaults only for system templates. */
@@ -1303,16 +1295,14 @@ void wm_homefile_read_ex(bContext *C,
     char temp_path[FILE_MAX];
     temp_path[0] = '\0';
     if (!use_factory_settings) {
-      BLI_path_join(
-          temp_path, sizeof(temp_path), app_template_config, BLENDER_USERPREF_FILE, NULL);
+      BLI_path_join(temp_path, sizeof(temp_path), app_template_config, BLENDER_USERPREF_FILE);
       if (BLI_access(temp_path, R_OK) != 0) {
         temp_path[0] = '\0';
       }
     }
 
     if (temp_path[0] == '\0') {
-      BLI_path_join(
-          temp_path, sizeof(temp_path), app_template_system, BLENDER_USERPREF_FILE, NULL);
+      BLI_path_join(temp_path, sizeof(temp_path), app_template_system, BLENDER_USERPREF_FILE);
     }
 
     if (use_userdef) {
@@ -1416,7 +1406,7 @@ void wm_history_file_read(void)
   LinkNode *l;
   int num;
 
-  BLI_join_dirfile(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
 
   LinkNode *lines = BLI_file_read_as_lines(name);
 
@@ -1479,7 +1469,7 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_join_dirfile(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
 
   fp = BLI_fopen(name, "w");
   if (fp) {
@@ -1940,7 +1930,7 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 #endif
 
-  BLI_join_dirfile(filepath, FILE_MAX, tempdir_base, path);
+  BLI_path_join(filepath, FILE_MAX, tempdir_base, path);
 }
 
 static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
@@ -2030,7 +2020,7 @@ void wm_autosave_delete(void)
 
   if (BLI_exists(filepath)) {
     char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+    BLI_path_join(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
     /* if global undo; remove tempsave, otherwise rename */
     if (U.uiflag & USER_GLOBALUNDO) {
@@ -2132,7 +2122,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /* update keymaps in user preferences */
   WM_keyconfig_update(wm);
 
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE, NULL);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE);
 
   printf("Writing homefile: '%s' ", filepath);
 
@@ -2925,7 +2915,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 bool WM_file_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
-  BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
   G.fileflags |= G_FILE_RECOVER_READ;
   const bool success = wm_file_read_opwrap(C, filepath, reports);
   G.fileflags &= ~G_FILE_RECOVER_READ;

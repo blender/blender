@@ -43,8 +43,11 @@ PathTrace::PathTrace(Device *device,
   /* Create path tracing work in advance, so that it can be reused by incremental sampling as much
    * as possible. */
   device_->foreach_device([&](Device *path_trace_device) {
-    path_trace_works_.emplace_back(PathTraceWork::create(
-        path_trace_device, film, device_scene, &render_cancel_.is_requested));
+    unique_ptr<PathTraceWork> work = PathTraceWork::create(
+        path_trace_device, film, device_scene, &render_cancel_.is_requested);
+    if (work) {
+      path_trace_works_.emplace_back(std::move(work));
+    }
   });
 
   work_balance_infos_.resize(path_trace_works_.size());
@@ -1293,6 +1296,7 @@ void PathTrace::set_guiding_params(const GuidingParams &guiding_params, const bo
 #  if OPENPGL_VERSION_MINOR >= 4
       field_args.deterministic = guiding_params.deterministic;
 #  endif
+      reinterpret_cast<PGLKDTreeArguments *>(field_args.spatialSturctureArguments)->maxDepth = 16;
       openpgl::cpp::Device *guiding_device = static_cast<openpgl::cpp::Device *>(
           device_->get_guiding_device());
       if (guiding_device) {

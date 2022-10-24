@@ -36,6 +36,10 @@ extern GHOST_SystemHandle GHOST_CreateSystemBackground(void);
  */
 extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug);
 
+#if !(defined(WIN32) || defined(__APPLE__))
+extern const char *GHOST_SystemBackend(void);
+#endif
+
 /**
  * Disposes the one and only system.
  * \param systemhandle: The handle to the system.
@@ -158,7 +162,6 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
@@ -171,7 +174,6 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
 
 /**

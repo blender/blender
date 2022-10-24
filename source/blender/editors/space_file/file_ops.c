@@ -386,7 +386,7 @@ static bool fsmenu_write_file_and_refresh_or_report_error(struct FSMenu *fsmenu,
   }
 
   char filepath[FILE_MAX];
-  BLI_join_dirfile(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
   if (UNLIKELY(!fsmenu_write_file(fsmenu, filepath))) {
     BKE_reportf(reports, RPT_ERROR, "Unable to open or write bookmark file \"%s\"", filepath);
     return false;
@@ -1564,7 +1564,7 @@ void file_sfile_to_operator_ex(
   PropertyRNA *prop;
 
   /* XXX, not real length */
-  BLI_join_dirfile(filepath, FILE_MAX, params->dir, params->file);
+  BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
 
   if ((prop = RNA_struct_find_property(op->ptr, "relative_path"))) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
@@ -1741,7 +1741,7 @@ bool file_draw_check_exists(SpaceFile *sfile)
     const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     if (params && (params->flag & FILE_CHECK_EXISTING)) {
       char filepath[FILE_MAX];
-      BLI_join_dirfile(filepath, sizeof(filepath), params->dir, params->file);
+      BLI_path_join(filepath, sizeof(filepath), params->dir, params->file);
       if (BLI_is_file(filepath)) {
         return true;
       }
@@ -2311,13 +2311,13 @@ static bool new_folder_path(const char *parent, char folder[FILE_MAX], char name
   int len = 0;
 
   BLI_strncpy(name, "New Folder", FILE_MAXFILE);
-  BLI_join_dirfile(folder, FILE_MAX, parent, name);
+  BLI_path_join(folder, FILE_MAX, parent, name);
   /* check whether folder with the name already exists, in this case
    * add number to the name. Check length of generated name to avoid
    * crazy case of huge number of folders each named 'New Folder (x)' */
   while (BLI_exists(folder) && (len < FILE_MAXFILE)) {
     len = BLI_snprintf(name, FILE_MAXFILE, "New Folder(%d)", i);
-    BLI_join_dirfile(folder, FILE_MAX, parent, name);
+    BLI_path_join(folder, FILE_MAX, parent, name);
     i++;
   }
 
@@ -2457,8 +2457,7 @@ static void file_expand_directory(bContext *C)
     else if (params->dir[0] == '~') {
       char tmpstr[sizeof(params->dir) - 1];
       BLI_strncpy(tmpstr, params->dir + 1, sizeof(tmpstr));
-      BLI_path_join(
-          params->dir, sizeof(params->dir), BKE_appdir_folder_default_or_root(), tmpstr, NULL);
+      BLI_path_join(params->dir, sizeof(params->dir), BKE_appdir_folder_default_or_root(), tmpstr);
     }
 
     else if (params->dir[0] == '\0')
@@ -2622,7 +2621,7 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
     }
 
     if (matches == 1) {
-      BLI_join_dirfile(filepath, sizeof(params->dir), params->dir, params->file);
+      BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
 
       /* if directory, open it and empty filename field */
       if (filelist_is_dir(sfile->files, filepath)) {
@@ -2850,7 +2849,7 @@ static bool file_delete_single(const FileSelectParams *params,
                                const char **r_error_message)
 {
   char str[FILE_MAX];
-  BLI_join_dirfile(str, sizeof(str), params->dir, file->relpath);
+  BLI_path_join(str, sizeof(str), params->dir, file->relpath);
   if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
     return false;
   }

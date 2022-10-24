@@ -72,7 +72,7 @@ static void fill_locales(void)
 
   free_locales();
 
-  BLI_join_dirfile(languages, FILE_MAX, languages_path, "languages");
+  BLI_path_join(languages, FILE_MAX, languages_path, "languages");
   line = lines = BLI_file_read_as_lines(languages);
 
   /* This whole "parsing" code is a bit weak, in that it expects strictly formatted input file...

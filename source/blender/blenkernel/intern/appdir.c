@@ -191,7 +191,7 @@ bool BKE_appdir_folder_documents(char *dir)
 
   char try_documents_path[FILE_MAXDIR];
   /* Own attempt at getting a valid Documents path. */
-  BLI_path_join(try_documents_path, sizeof(try_documents_path), home_path, N_("Documents"), NULL);
+  BLI_path_join(try_documents_path, sizeof(try_documents_path), home_path, N_("Documents"));
   if (!BLI_is_dir(try_documents_path)) {
     return false;
   }
@@ -214,11 +214,11 @@ bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
 
 #ifdef WIN32
   BLI_path_join(
-      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR, NULL);
+      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR);
 #elif defined(__APPLE__)
-  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR, NULL);
+  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR);
 #else /* __linux__ */
-  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR, NULL);
+  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR);
 #endif
 
   return true;
@@ -281,7 +281,9 @@ static bool test_path(char *targetpath,
 
   /* Only the last argument should be NULL. */
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
-  BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
+  const char *path_array[] = {path_base, folder_name, subfolder_name};
+  const int path_array_num = (folder_name ? (subfolder_name ? 3 : 2) : 1);
+  BLI_path_join_array(targetpath, targetpath_len, path_array, path_array_num);
   if (check_is_dir == false) {
     CLOG_INFO(&LOG, 3, "using without test: '%s'", targetpath);
     return true;
@@ -365,7 +367,9 @@ static bool get_path_local_ex(char *targetpath,
             STR_OR_FALLBACK(subfolder_name));
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
-    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
+    const char *path_array[] = {folder_name, subfolder_name};
+    const int path_array_num = subfolder_name ? 2 : 1;
+    BLI_path_join_array(relfolder, sizeof(relfolder), path_array, path_array_num);
   }
   else {
     relfolder[0] = '\0';
@@ -379,8 +383,7 @@ static bool get_path_local_ex(char *targetpath,
    * we must move the blender_version dir with contents to Resources.
    * Add 4 + 9 for the temporary `/../` path & `Resources`. */
   char osx_resourses[FILE_MAX + 4 + 9];
-  BLI_path_join(
-      osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources", NULL);
+  BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources");
   /* Remove the '/../' added above. */
   BLI_path_normalize(NULL, osx_resourses);
   path_base = osx_resourses;
@@ -525,7 +528,9 @@ static bool get_path_system_ex(char *targetpath,
   char relfolder[FILE_MAX];
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
-    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
+    const char *path_array[] = {folder_name, subfolder_name};
+    const int path_array_num = subfolder_name ? 2 : 1;
+    BLI_path_join_array(relfolder, sizeof(relfolder), path_array, path_array_num);
   }
   else {
     relfolder[0] = '\0';
@@ -949,7 +954,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
     if (python_bin_dir) {
 
       for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-        BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+        BLI_path_join(fullpath, fullpath_len, python_bin_dir, python_names[i]);
 
         if (
 #ifdef _WIN32
@@ -1018,7 +1023,7 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 {
   for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
-    BLI_join_dirfile(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
+    BLI_path_join(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_len)) {
       return true;
     }
@@ -1041,8 +1046,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
   }
 
   char userpref_path[FILE_MAX];
-  BLI_path_join(
-      userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE, NULL);
+  BLI_path_join(userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE);
   return BLI_exists(userpref_path);
 }
 

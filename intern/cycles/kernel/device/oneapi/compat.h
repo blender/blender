@@ -55,18 +55,6 @@
 #define ccl_gpu_kernel(block_num_threads, thread_num_registers)
 #define ccl_gpu_kernel_threads(block_num_threads)
 
-#ifdef WITH_ONEAPI_SYCL_HOST_ENABLED
-#  define KG_ND_ITEMS \
-  kg->nd_item_local_id_0 = item.get_local_id(0); \
-  kg->nd_item_local_range_0 = item.get_local_range(0); \
-  kg->nd_item_group_0 = item.get_group(0); \
-  kg->nd_item_group_range_0 = item.get_group_range(0); \
-  kg->nd_item_global_id_0 = item.get_global_id(0); \
-  kg->nd_item_global_range_0 = item.get_global_range(0);
-#else
-# define KG_ND_ITEMS
-#endif
-
 #define ccl_gpu_kernel_signature(name, ...) \
 void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
                           size_t kernel_global_size, \
@@ -76,8 +64,7 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
       (kg); \
       cgh.parallel_for<class kernel_##name>( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
-          [=](sycl::nd_item<1> item) { \
-            KG_ND_ITEMS
+          [=](sycl::nd_item<1> item) {
 
 #define ccl_gpu_kernel_postfix \
           }); \
@@ -95,31 +82,17 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
   } ccl_gpu_kernel_lambda_pass((ONEAPIKernelContext *)kg)
 
 /* GPU thread, block, grid size and index */
-#ifndef WITH_ONEAPI_SYCL_HOST_ENABLED
-#  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_id(0))
-#  define ccl_gpu_block_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_range(0))
-#  define ccl_gpu_block_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group(0))
-#  define ccl_gpu_grid_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group_range(0))
-#  define ccl_gpu_warp_size (sycl::ext::oneapi::experimental::this_sub_group().get_local_range()[0])
-#  define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
+#define ccl_gpu_thread_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_id(0))
+#define ccl_gpu_block_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_local_range(0))
+#define ccl_gpu_block_idx_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group(0))
+#define ccl_gpu_grid_dim_x (sycl::ext::oneapi::experimental::this_nd_item<1>().get_group_range(0))
+#define ccl_gpu_warp_size (sycl::ext::oneapi::experimental::this_sub_group().get_local_range()[0])
+#define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
 
-#  define ccl_gpu_global_id_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_id(0))
-#  define ccl_gpu_global_size_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_range(0))
-#else
-#  define ccl_gpu_thread_idx_x (kg->nd_item_local_id_0)
-#  define ccl_gpu_block_dim_x (kg->nd_item_local_range_0)
-#  define ccl_gpu_block_idx_x (kg->nd_item_group_0)
-#  define ccl_gpu_grid_dim_x (kg->nd_item_group_range_0)
-#  define ccl_gpu_warp_size (sycl::ext::oneapi::experimental::this_sub_group().get_local_range()[0])
-#  define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
-
-#  define ccl_gpu_global_id_x() (kg->nd_item_global_id_0)
-#  define ccl_gpu_global_size_x() (kg->nd_item_global_range_0)
-#endif
-
+#define ccl_gpu_global_id_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_id(0))
+#define ccl_gpu_global_size_x() (sycl::ext::oneapi::experimental::this_nd_item<1>().get_global_range(0))
 
 /* GPU warp synchronization */
-
 #define ccl_gpu_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier()
 #define ccl_gpu_local_syncthreads() sycl::ext::oneapi::experimental::this_nd_item<1>().barrier(sycl::access::fence_space::local_space)
 #ifdef __SYCL_DEVICE_ONLY__

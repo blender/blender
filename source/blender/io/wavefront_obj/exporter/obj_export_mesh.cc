@@ -265,13 +265,13 @@ const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
   return mat->id.name + 2;
 }
 
-float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_factor) const
+float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scale) const
 {
   float3 r_coords;
   const Span<MVert> verts = export_mesh_eval_->verts();
   copy_v3_v3(r_coords, verts[vert_index].co);
   mul_m4_v3(world_and_axes_transform_, r_coords);
-  mul_v3_fl(r_coords, scaling_factor);
+  mul_v3_fl(r_coords, global_scale);
   return r_coords;
 }
 

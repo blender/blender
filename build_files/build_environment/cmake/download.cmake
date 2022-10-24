@@ -62,7 +62,7 @@ function(download_source dep)
     # since the actual build of the dep will notify the
     # platform maintainer if there is a problem with the
     # source package and refuse to build.
-    if(NOT PACKAGE_USE_UPSTREAM_SOURCES)
+    if(NOT PACKAGE_USE_UPSTREAM_SOURCES OR FORCE_CHECK_HASH)
       file(${TARGET_HASH_TYPE} ${TARGET_FILE} LOCAL_HASH)
       if(NOT ${TARGET_HASH} STREQUAL ${LOCAL_HASH})
         message(FATAL_ERROR "${TARGET_FILE} ${TARGET_HASH_TYPE} mismatch\nExpected\t: ${TARGET_HASH}\nActual\t: ${LOCAL_HASH}")
@@ -114,7 +114,6 @@ download_source(WEBP)
 download_source(SPNAV)
 download_source(JEMALLOC)
 download_source(XML2)
-download_source(TINYXML)
 download_source(YAMLCPP)
 download_source(EXPAT)
 download_source(PUGIXML)

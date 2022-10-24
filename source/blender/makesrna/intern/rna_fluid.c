@@ -785,29 +785,29 @@ static const EnumPropertyItem *rna_Fluid_cobafield_itemf(bContext *UNUSED(C),
     tmp.value = FLUID_DOMAIN_FIELD_PHI;
     tmp.identifier = "PHI";
     tmp.icon = 0;
-    tmp.name = N_("Fluid Levelset");
-    tmp.description = N_("Levelset representation of the fluid");
+    tmp.name = N_("Fluid Level Set");
+    tmp.description = N_("Level set representation of the fluid");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_IN;
     tmp.identifier = "PHI_IN";
     tmp.icon = 0;
-    tmp.name = N_("Inflow Levelset");
-    tmp.description = N_("Levelset representation of the inflow");
+    tmp.name = N_("Inflow Level Set");
+    tmp.description = N_("Level set representation of the inflow");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_OUT;
     tmp.identifier = "PHI_OUT";
     tmp.icon = 0;
-    tmp.name = N_("Outflow Levelset");
-    tmp.description = N_("Levelset representation of the outflow");
+    tmp.name = N_("Outflow Level Set");
+    tmp.description = N_("Level set representation of the outflow");
     RNA_enum_item_add(&item, &totitem, &tmp);
 
     tmp.value = FLUID_DOMAIN_FIELD_PHI_OBSTACLE;
     tmp.identifier = "PHI_OBSTACLE";
     tmp.icon = 0;
-    tmp.name = N_("Obstacle Levelset");
-    tmp.description = N_("Levelset representation of the obstacles");
+    tmp.name = N_("Obstacle Level Set");
+    tmp.description = N_("Level set representation of the obstacles");
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
 

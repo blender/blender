@@ -50,7 +50,7 @@ set(SRC
   intern/node_multi_function.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
-  intern/node_util.c
+  intern/node_util.cc
   intern/socket_search_link.cc
 
   NOD_common.h
