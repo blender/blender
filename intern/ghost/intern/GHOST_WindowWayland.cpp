@@ -53,7 +53,7 @@ struct WGL_LibDecor_Window {
   bool configured = false;
 };
 
-static void wgl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
+static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
 {
   libdecor_frame_unref(decor->frame);
   delete decor;
@@ -67,7 +67,7 @@ struct WGL_XDG_Decor_Window {
   enum zxdg_toplevel_decoration_v1_mode mode = (enum zxdg_toplevel_decoration_v1_mode)0;
 };
 
-static void wgl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
+static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 {
   if (decor->toplevel_decor) {
     zxdg_toplevel_decoration_v1_destroy(decor->toplevel_decor);
@@ -727,12 +727,12 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    wgl_libdecor_window_destroy(window_->libdecor);
+    gwl_libdecor_window_destroy(window_->libdecor);
   }
   else
 #endif
   {
-    wgl_xdg_decor_window_destroy(window_->xdg_decor);
+    gwl_xdg_decor_window_destroy(window_->xdg_decor);
   }
 
   /* Clear any pointers to this window. This is needed because there are no guarantees

@@ -92,6 +92,7 @@ static void gwl_seat_capability_touch_disable(GWL_Seat *seat);
 static bool gwl_registry_entry_remove_by_name(GWL_Display *display,
                                               uint32_t name,
                                               int *r_interface_slot);
+static void gwl_registry_entry_remove_all(GWL_Display *display);
 
 struct GWL_RegistryHandler;
 static int gwl_registry_handler_interface_slot_max();
@@ -718,6 +719,30 @@ struct GWL_Seat {
   uint32_t data_source_serial = 0;
 };
 
+static GWL_SeatStatePointer *gwl_seat_state_pointer_active(GWL_Seat *seat)
+{
+  if (seat->pointer.serial == seat->cursor_source_serial) {
+    return &seat->pointer;
+  }
+  if (seat->tablet.serial == seat->cursor_source_serial) {
+    return &seat->tablet;
+  }
+  return nullptr;
+}
+
+static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
+    GWL_Seat *seat, const wl_surface *wl_surface)
+{
+  if (ghost_wl_surface_own_cursor_pointer(wl_surface)) {
+    return &seat->pointer;
+  }
+  if (ghost_wl_surface_own_cursor_tablet(wl_surface)) {
+    return &seat->tablet;
+  }
+  GHOST_ASSERT(0, "Surface found without pointer/tablet tag");
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -725,6 +750,9 @@ struct GWL_Seat {
  * \{ */
 
 struct GWL_RegistryEntry;
+
+/** Check this lock before accessing #GHOST_SystemWayland::clipboard_ from a thread. */
+static std::mutex system_clipboard_mutex;
 
 struct GWL_Display {
   GHOST_SystemWayland *system = nullptr;
@@ -756,6 +784,44 @@ struct GWL_Display {
   GWL_SimpleBuffer clipboard;
   GWL_SimpleBuffer clipboard_primary;
 };
+
+static void gwl_display_destroy(GWL_Display *display)
+{
+  /* Unregister items in reverse order. */
+  gwl_registry_entry_remove_all(display);
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    if (display->libdecor) {
+      gwl_libdecor_system_destroy(display->libdecor);
+      display->libdecor = nullptr;
+    }
+  }
+  else
+#endif
+  {
+    if (display->xdg_decor) {
+      gwl_xdg_decor_system_destroy(display, display->xdg_decor);
+      display->xdg_decor = nullptr;
+    }
+  }
+
+  if (eglGetDisplay) {
+    ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl_display)));
+  }
+
+  if (display->wl_display) {
+    wl_display_disconnect(display->wl_display);
+  }
+
+  {
+    std::lock_guard lock{system_clipboard_mutex};
+    gwl_simple_buffer_free_data(&display->clipboard);
+    gwl_simple_buffer_free_data(&display->clipboard_primary);
+  }
+
+  delete display;
+}
 
 /** \} */
 
@@ -937,9 +1003,6 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
 
 static GHOST_WindowManager *window_manager = nullptr;
 
-/** Check this lock before accessing #GHOST_SystemWayland::clipboard_ from a thread. */
-static std::mutex system_clipboard_mutex;
-
 /**
  * Callback for WAYLAND to run when there is an error.
  *
@@ -955,68 +1018,6 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
   if (backtrace_fn) {
     backtrace_fn(stderr); /* Includes newline. */
   }
-}
-
-static GWL_SeatStatePointer *seat_state_pointer_active(GWL_Seat *seat)
-{
-  if (seat->pointer.serial == seat->cursor_source_serial) {
-    return &seat->pointer;
-  }
-  if (seat->tablet.serial == seat->cursor_source_serial) {
-    return &seat->tablet;
-  }
-  return nullptr;
-}
-
-static GWL_SeatStatePointer *seat_state_pointer_from_cursor_surface(GWL_Seat *seat,
-                                                                    const wl_surface *wl_surface)
-{
-  if (ghost_wl_surface_own_cursor_pointer(wl_surface)) {
-    return &seat->pointer;
-  }
-  if (ghost_wl_surface_own_cursor_tablet(wl_surface)) {
-    return &seat->tablet;
-  }
-  GHOST_ASSERT(0, "Surface found without pointer/tablet tag");
-  return nullptr;
-}
-
-static void display_destroy(GWL_Display *display)
-{
-  /* Unregister items in reverse order. */
-  gwl_registry_entry_remove_all(display);
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    if (display->libdecor) {
-      gwl_libdecor_system_destroy(display->libdecor);
-      display->libdecor = nullptr;
-    }
-  }
-  else
-#endif
-  {
-    if (display->xdg_decor) {
-      gwl_xdg_decor_system_destroy(display, display->xdg_decor);
-      display->xdg_decor = nullptr;
-    }
-  }
-
-  if (eglGetDisplay) {
-    ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl_display)));
-  }
-
-  if (display->wl_display) {
-    wl_display_disconnect(display->wl_display);
-  }
-
-  {
-    std::lock_guard lock{system_clipboard_mutex};
-    gwl_simple_buffer_free_data(&display->clipboard);
-    gwl_simple_buffer_free_data(&display->clipboard_primary);
-  }
-
-  delete display;
 }
 
 static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
@@ -2097,8 +2098,8 @@ static void cursor_surface_handle_enter(void *data,
   CLOG_INFO(LOG, 2, "handle_enter");
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_from_cursor_surface(seat,
-                                                                                    wl_surface);
+  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_from_cursor_surface(
+      seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.insert(reg_output);
   update_cursor_scale(seat->cursor, seat->system->wl_shm(), seat_state_pointer, wl_surface);
@@ -2115,8 +2116,8 @@ static void cursor_surface_handle_leave(void *data,
   CLOG_INFO(LOG, 2, "handle_leave");
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_from_cursor_surface(seat,
-                                                                                    wl_surface);
+  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_from_cursor_surface(
+      seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.erase(reg_output);
   update_cursor_scale(seat->cursor, seat->system->wl_shm(), seat_state_pointer, wl_surface);
@@ -4701,7 +4702,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   /* Connect to the Wayland server. */
   display_->wl_display = wl_display_connect(nullptr);
   if (!display_->wl_display) {
-    display_destroy(display_);
+    gwl_display_destroy(display_);
     throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
@@ -4737,7 +4738,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
               "WAYLAND found but libdecor was not, install libdecor for Wayland support, "
               "falling back to X11\n");
 #  endif
-      display_destroy(display_);
+      gwl_display_destroy(display_);
       throw std::runtime_error("Wayland: unable to find libdecor!");
 
       use_libdecor = true;
@@ -4754,7 +4755,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     GWL_LibDecor_System &decor = *display_->libdecor;
     decor.context = libdecor_new(display_->wl_display, &libdecor_interface);
     if (!decor.context) {
-      display_destroy(display_);
+      gwl_display_destroy(display_);
       throw std::runtime_error("Wayland: unable to create window decorations!");
     }
   }
@@ -4763,7 +4764,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   {
     GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
-      display_destroy(display_);
+      gwl_display_destroy(display_);
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
     }
   }
@@ -4788,7 +4789,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 
 GHOST_SystemWayland::~GHOST_SystemWayland()
 {
-  display_destroy(display_);
+  gwl_display_destroy(display_);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::init()
@@ -4909,7 +4910,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
     return GHOST_kFailure;
   }
   GWL_Seat *seat = display_->seats[0];
-  GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
+  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
   }
@@ -5049,7 +5050,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_
     return GHOST_kFailure;
   }
   GWL_Seat *seat = display_->seats[0];
-  GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
+  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer || !seat_state_pointer->wl_surface) {
     return GHOST_kFailure;
   }
@@ -5075,7 +5076,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
     return GHOST_kFailure;
   }
   GWL_Seat *seat = display_->seats[0];
-  GWL_SeatStatePointer *seat_state_pointer = seat_state_pointer_active(seat);
+  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
   }
