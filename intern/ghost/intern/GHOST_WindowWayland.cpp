@@ -1041,12 +1041,23 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
   bool changed = false;
 
   if (scale_next != scale_curr) {
-    /* Unlikely but possible there is a pending size change is set. */
-    window_->size_pending[0] = (window_->size_pending[0] / scale_curr) * scale_next;
-    window_->size_pending[1] = (window_->size_pending[1] / scale_curr) * scale_next;
-
     window_->scale = scale_next;
     wl_surface_set_buffer_scale(window_->wl_surface, scale_next);
+
+    /* It's important to resize the window immediately, to avoid the window changing size
+     * and flickering in a constant feedback loop (in some bases). */
+    if ((window_->size_pending[0] != 0) && (window_->size_pending[1] != 0)) {
+      /* Unlikely but possible there is a pending size change is set. */
+      window_->size[0] = window_->size_pending[0];
+      window_->size[1] = window_->size_pending[1];
+      window_->size_pending[0] = 0;
+      window_->size_pending[1] = 0;
+    }
+    window_->size[0] = (window_->size[0] / scale_curr) * scale_next;
+    window_->size[1] = (window_->size[1] / scale_curr) * scale_next;
+    wl_egl_window_resize(window_->egl_window, UNPACK2(window_->size), 0, 0);
+    window_->ghost_window->notify_size();
+
     changed = true;
   }
 
