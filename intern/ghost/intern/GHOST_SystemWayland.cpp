@@ -174,9 +174,14 @@ static bool use_gnome_confine_hack = false;
 
 /**
  * Tablet events.
+ *
+ * \note Gnome/GTK swap middle/right, where the same application in X11 will swap the middle/right
+ * mouse button when running under WAYLAND. KDE doesn't do this, and according to artists
+ * at the Blender studio, having the button closest to the nib be MMB is preferable,
+ * so use this as a default. If needs be - swapping these could be a preference.
  */
-#define BTN_STYLUS 0x14b  /* Use as right-mouse. */
-#define BTN_STYLUS2 0x14c /* Use as middle-mouse. */
+#define BTN_STYLUS 0x14b  /* Use as middle-mouse. */
+#define BTN_STYLUS2 0x14c /* Use as right-mouse. */
 /* NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
 #define BTN_STYLUS3 0x149
 
@@ -2969,10 +2974,10 @@ static void tablet_tool_handle_button(void *data,
   GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
   switch (button) {
     case BTN_STYLUS:
-      ebutton = GHOST_kButtonMaskRight;
+      ebutton = GHOST_kButtonMaskMiddle;
       break;
     case BTN_STYLUS2:
-      ebutton = GHOST_kButtonMaskMiddle;
+      ebutton = GHOST_kButtonMaskRight;
       break;
     case BTN_STYLUS3:
       ebutton = GHOST_kButtonMaskButton4;
