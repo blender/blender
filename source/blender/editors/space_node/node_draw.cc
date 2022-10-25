@@ -2146,7 +2146,7 @@ static void node_draw_basis(const bContext &C,
                               "");
     UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_group_edit");
     if (node.id) {
-      UI_but_icon_indicator_number_set(but, node.id->us);
+      UI_but_icon_indicator_number_set(but, ID_REAL_USERS(node.id));
     }
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
