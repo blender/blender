@@ -586,7 +586,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
     def draw_attribute_warnings(self, context, layout):
         ob = context.object
-        mesh = ob.data
+        mesh = context.mesh
 
         unique_names = set()
         colliding_names = []
@@ -595,8 +595,11 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
                 {"position": None, "shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
                 mesh.uv_layers,
-                ob.vertex_groups,
+                None if ob is None else ob.vertex_groups,
         ):
+            if collection is None:
+                colliding_names.append("Cannot check for object vertex groups when pinning mesh")
+                continue
             for name in collection.keys():
                 unique_names_len = len(unique_names)
                 unique_names.add(name)
