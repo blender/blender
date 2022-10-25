@@ -138,6 +138,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     GPUShader *sh_curves = OVERLAY_shader_outline_prepass_curves();
+
     pd->outlines_curves_grp = grp = DRW_shgroup_create(sh_curves, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -282,6 +283,18 @@ static void OVERLAY_outline_curves(OVERLAY_PrivateData *pd, Object *ob)
   DRW_shgroup_curves_create_sub(ob, shgroup, nullptr);
 }
 
+static void OVERLAY_outline_pointcloud(OVERLAY_PrivateData *pd, Object *ob)
+{
+  if (pd->wireframe_mode) {
+    /* Looks bad in this case. Could be relaxed if we draw a
+     * wireframe of some sort in the future. */
+    return;
+  }
+
+  DRWShadingGroup *shgroup = pd->outlines_ptcloud_grp;
+  DRW_shgroup_pointcloud_create_sub(ob, shgroup, nullptr);
+}
+
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                     Object *ob,
                                     OVERLAY_DupliData *dupli,
@@ -313,9 +326,8 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     return;
   }
 
-  if (ob->type == OB_POINTCLOUD && pd->wireframe_mode) {
-    /* Looks bad in this case. Could be relaxed if we draw a
-     * wireframe of some sort in the future. */
+  if (ob->type == OB_POINTCLOUD) {
+    OVERLAY_outline_pointcloud(pd, ob);
     return;
   }
 
@@ -338,18 +350,12 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     }
 
     if (geom) {
-      shgroup = (ob->type == OB_POINTCLOUD) ? pd->outlines_ptcloud_grp : pd->outlines_grp;
+      shgroup = pd->outlines_grp;
     }
   }
 
   if (shgroup && geom) {
-    if (ob->type == OB_POINTCLOUD) {
-      /* Draw range to avoid drawcall batching messing up the instance attribute. */
-      DRW_shgroup_call_instance_range(shgroup, ob, geom, 0, 0);
-    }
-    else {
-      DRW_shgroup_call(shgroup, geom, ob);
-    }
+    DRW_shgroup_call(shgroup, geom, ob);
   }
 
   if (init_dupli) {

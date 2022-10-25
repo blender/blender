@@ -225,12 +225,6 @@ struct GPUBatch **DRW_cache_curves_surface_shaded_get(struct Object *ob,
 struct GPUBatch *DRW_cache_curves_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curves_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
-/* PointCloud */
-
-struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
-struct GPUBatch *DRW_cache_pointcloud_surface_get(struct Object *obj);
-struct GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(struct Object *obj);
-
 /* Volume */
 
 typedef struct DRWVolumeGrid {

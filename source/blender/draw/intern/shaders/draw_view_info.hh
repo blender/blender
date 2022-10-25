@@ -112,9 +112,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
-    .vertex_in(0, Type::VEC4, "pos")
-    .vertex_in(1, Type::VEC3, "pos_inst")
-    .vertex_in(2, Type::VEC3, "nor")
+    .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
     .additional_info("draw_modelmat_instanced_attr", "draw_resource_id_uniform");
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");

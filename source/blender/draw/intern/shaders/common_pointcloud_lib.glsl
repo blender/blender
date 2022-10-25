@@ -2,16 +2,10 @@
 /* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#ifndef DRW_SHADER_SHARED_H
-
-in vec4 pos; /* Position and radius. */
-
-/* ---- Instanced attribs ---- */
-
-in vec3 pos_inst;
-in vec3 nor;
-
-#endif
+int pointcloud_get_point_id()
+{
+  return gl_VertexID / 32;
+}
 
 mat3 pointcloud_get_facing_matrix(vec3 p)
 {
@@ -25,8 +19,10 @@ mat3 pointcloud_get_facing_matrix(vec3 p)
 /* Returns world center position and radius. */
 void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
 {
-  outpos = point_object_to_world(pos.xyz);
-  outradius = dot(abs(mat3(ModelMatrix) * pos.www), vec3(1.0 / 3.0));
+  int id = pointcloud_get_point_id();
+  vec4 pos_rad = texelFetch(ptcloud_pos_rad_tx, id);
+  outpos = point_object_to_world(pos_rad.xyz);
+  outradius = dot(abs(mat3(ModelMatrix) * pos_rad.www), vec3(1.0 / 3.0));
 }
 
 /* Return world position and normal. */
@@ -38,15 +34,67 @@ void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
 
   mat3 facing_mat = pointcloud_get_facing_matrix(p);
 
+  /** \note: Avoid modulo by non-power-of-two in shader. See Index buffer setup. */
+  int vert_id = gl_VertexID % 32;
+  vec3 pos_inst = vec3(0.0);
+
+  switch (vert_id) {
+    case 0:
+      pos_inst.z = 1.0;
+      break;
+    case 1:
+      pos_inst.x = 1.0;
+      break;
+    case 2:
+      pos_inst.y = 1.0;
+      break;
+    case 3:
+      pos_inst.x = -1.0;
+      break;
+    case 4:
+      pos_inst.y = -1.0;
+      break;
+  }
+
   /* TODO(fclem): remove multiplication here. Here only for keeping the size correct for now. */
   radius *= 0.01;
-  outpos = p + (facing_mat * pos_inst) * radius;
-  outnor = facing_mat * nor;
+  outnor = facing_mat * pos_inst;
+  outpos = p + outnor * radius;
 }
 
-vec3 pointcloud_get_pos(void)
+vec3 pointcloud_get_pos()
 {
   vec3 outpos, outnor;
   pointcloud_get_pos_and_nor(outpos, outnor);
   return outpos;
+}
+
+float pointcloud_get_customdata_float(const samplerBuffer cd_buf)
+{
+  int id = pointcloud_get_point_id();
+  return texelFetch(cd_buf, id).r;
+}
+
+vec2 pointcloud_get_customdata_vec2(const samplerBuffer cd_buf)
+{
+  int id = pointcloud_get_point_id();
+  return texelFetch(cd_buf, id).rg;
+}
+
+vec3 pointcloud_get_customdata_vec3(const samplerBuffer cd_buf)
+{
+  int id = pointcloud_get_point_id();
+  return texelFetch(cd_buf, id).rgb;
+}
+
+vec4 pointcloud_get_customdata_vec4(const samplerBuffer cd_buf)
+{
+  int id = pointcloud_get_point_id();
+  return texelFetch(cd_buf, id).rgba;
+}
+
+vec2 pointcloud_get_barycentric(void)
+{
+  /* TODO: To be implemented. */
+  return vec2(0.0);
 }
