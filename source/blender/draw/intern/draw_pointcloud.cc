@@ -80,7 +80,7 @@ DRWShadingGroup *DRW_shgroup_pointcloud_create_sub(Object *object,
     //   drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
     //   GPUTexture *attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud);
-    //   if (!cache->attributes_tex[i]) {
+    //   if (!cache->attributes_buf[i]) {
     //     continue;
     //   }
     //   DRW_shgroup_buffer_texture_ref(shgrp, sampler_name, attribute_buf);

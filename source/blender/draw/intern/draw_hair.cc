@@ -105,9 +105,9 @@ static void drw_hair_particle_cache_shgrp_attach_resources(DRWShadingGroup *shgr
                                                            ParticleHairCache *cache,
                                                            const int subdiv)
 {
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", cache->point_tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandBuffer", cache->strand_tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandSegBuffer", cache->strand_seg_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", cache->proc_point_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandSegBuffer", cache->proc_strand_seg_buf);
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
 }
 
@@ -280,9 +280,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   float hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
   bool hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
 
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
-  if (hair_cache->length_tex) {
-    DRW_shgroup_uniform_texture(shgrp, "l", hair_cache->length_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_buf);
+  if (hair_cache->proc_length_buf) {
+    DRW_shgroup_buffer_texture(shgrp, "l", hair_cache->proc_length_buf);
   }
 
   DRW_shgroup_uniform_block(shgrp, "drw_curves", *g_dummy_curves_info);

@@ -144,13 +144,13 @@ static void populate_cache_for_geometry(Object &object,
       const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
       if (curves.attributes().contains(".viewer")) {
         bool is_point_domain;
-        GPUTexture **texture = DRW_curves_texture_for_evaluated_attribute(
+        GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
             curves_id, ".viewer", &is_point_domain);
         DRWShadingGroup *grp = DRW_shgroup_curves_create_sub(
             &object, pd.viewer_attribute_curves_grp, nullptr);
         DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curves_grp, "opacity", opacity);
         DRW_shgroup_uniform_bool_copy(grp, "is_point_domain", is_point_domain);
-        DRW_shgroup_uniform_texture(grp, "color_tx", *texture);
+        DRW_shgroup_buffer_texture(grp, "color_tx", *texture);
       }
       break;
     }

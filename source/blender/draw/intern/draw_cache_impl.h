@@ -132,7 +132,7 @@ int DRW_curves_material_count_get(struct Curves *curves);
  * \return A pointer to location where the texture will be
  * stored, which will be filled by #DRW_shgroup_curves_create_sub.
  */
-struct GPUTexture **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
+struct GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
                                                                const char *name,
                                                                bool *r_is_point_domain);
 

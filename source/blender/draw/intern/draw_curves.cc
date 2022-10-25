@@ -129,25 +129,25 @@ void DRW_curves_ubos_pool_free(CurvesUniformBufPool *pool)
 
 static void drw_curves_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
                                                     CurvesEvalCache *cache,
-                                                    GPUTexture *tex,
+                                                    GPUVertBuf *point_buf,
                                                     const int subdiv)
 {
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandBuffer", cache->strand_tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandSegBuffer", cache->strand_seg_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", point_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandSegBuffer", cache->proc_strand_seg_buf);
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
 }
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
                                             const int subdiv,
                                             const int strands_len,
-                                            GPUVertBuf *buffer,
-                                            GPUTexture *tex)
+                                            GPUVertBuf *output_buf,
+                                            GPUVertBuf *input_buf)
 {
   GPUShader *shader = curves_eval_shader_get(CURVES_EVAL_CATMULL_ROM);
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
-  drw_curves_cache_shgrp_attach_resources(shgrp, cache, tex, subdiv);
-  DRW_shgroup_vertex_buffer(shgrp, "posTime", buffer);
+  drw_curves_cache_shgrp_attach_resources(shgrp, cache, input_buf, subdiv);
+  DRW_shgroup_vertex_buffer(shgrp, "posTime", output_buf);
 
   const int max_strands_per_call = GPU_max_work_group_count(0);
   int strands_start = 0;
@@ -169,7 +169,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int su
   }
 
   drw_curves_cache_update_compute(
-      cache, subdiv, strands_len, cache->final[subdiv].proc_buf, cache->point_tex);
+      cache, subdiv, strands_len, cache->final[subdiv].proc_buf, cache->proc_point_buf);
 
   const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
@@ -182,13 +182,13 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int su
                                     subdiv,
                                     strands_len,
                                     cache->final[subdiv].attributes_buf[i],
-                                    cache->proc_attributes_tex[i]);
+                                    cache->proc_attributes_buf[i]);
   }
 }
 
 static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache,
-                                                       GPUVertBuf *vbo,
-                                                       GPUTexture *tex,
+                                                       GPUVertBuf *output_buf,
+                                                       GPUVertBuf *input_buf,
                                                        const int subdiv,
                                                        const int final_points_len)
 {
@@ -196,14 +196,14 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache,
 
   DRWShadingGroup *tf_shgrp = nullptr;
   if (GPU_transform_feedback_support()) {
-    tf_shgrp = DRW_shgroup_transform_feedback_create(tf_shader, g_tf_pass, vbo);
+    tf_shgrp = DRW_shgroup_transform_feedback_create(tf_shader, g_tf_pass, output_buf);
   }
   else {
     tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
 
     CurvesEvalCall *pr_call = MEM_new<CurvesEvalCall>(__func__);
     pr_call->next = g_tf_calls;
-    pr_call->vbo = vbo;
+    pr_call->vbo = output_buf;
     pr_call->shgrp = tf_shgrp;
     pr_call->vert_len = final_points_len;
     g_tf_calls = pr_call;
@@ -213,7 +213,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache,
   }
   BLI_assert(tf_shgrp != nullptr);
 
-  drw_curves_cache_shgrp_attach_resources(tf_shgrp, cache, tex, subdiv);
+  drw_curves_cache_shgrp_attach_resources(tf_shgrp, cache, input_buf, subdiv);
   DRW_shgroup_call_procedural_points(tf_shgrp, nullptr, final_points_len);
 }
 
@@ -225,7 +225,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, c
   }
 
   drw_curves_cache_update_transform_feedback(
-      cache, cache->final[subdiv].proc_buf, cache->point_tex, subdiv, final_points_len);
+      cache, cache->final[subdiv].proc_buf, cache->proc_point_buf, subdiv, final_points_len);
 
   const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
@@ -236,7 +236,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, c
 
     drw_curves_cache_update_transform_feedback(cache,
                                                cache->final[subdiv].attributes_buf[i],
-                                               cache->proc_attributes_tex[i],
+                                               cache->proc_attributes_buf[i],
                                                subdiv,
                                                final_points_len);
   }
@@ -346,9 +346,9 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
         1.0f);
   }
 
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", curves_cache->final[subdiv].proc_tex);
-  if (curves_cache->length_tex) {
-    DRW_shgroup_uniform_texture(shgrp, "hairLen", curves_cache->length_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", curves_cache->final[subdiv].proc_buf);
+  if (curves_cache->proc_length_buf) {
+    DRW_shgroup_buffer_texture(shgrp, "hairLen", curves_cache->proc_length_buf);
   }
 
   const DRW_Attributes &attrs = curves_cache->final[subdiv].attr_used;
@@ -359,18 +359,18 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
     drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
     if (request.domain == ATTR_DOMAIN_CURVE) {
-      if (!curves_cache->proc_attributes_tex[i]) {
+      if (!curves_cache->proc_attributes_buf[i]) {
         continue;
       }
 
-      DRW_shgroup_uniform_texture(shgrp, sampler_name, curves_cache->proc_attributes_tex[i]);
+      DRW_shgroup_buffer_texture(shgrp, sampler_name, curves_cache->proc_attributes_buf[i]);
     }
     else {
-      if (!curves_cache->final[subdiv].attributes_tex[i]) {
+      if (!curves_cache->final[subdiv].attributes_buf[i]) {
         continue;
       }
-      DRW_shgroup_uniform_texture(
-          shgrp, sampler_name, curves_cache->final[subdiv].attributes_tex[i]);
+      DRW_shgroup_buffer_texture(
+          shgrp, sampler_name, curves_cache->final[subdiv].attributes_buf[i]);
     }
 
     /* Some attributes may not be used in the shader anymore and were not garbage collected yet, so
