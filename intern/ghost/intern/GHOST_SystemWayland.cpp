@@ -140,6 +140,13 @@ static bool use_gnome_confine_hack = false;
 #define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
 
 /**
+ * KDE (plasma 5.26.1) has a bug where the cursor surface needs to be committed
+ * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: T102048.
+ * TODO: report this bug up-stream.
+ */
+#define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+
+/**
  * When GNOME is found, require `libdecor`.
  * This is a hack because it seems there is no way to check if the compositor supports
  * server side decorations when initializing WAYLAND.
@@ -5297,6 +5304,9 @@ static void cursor_buffer_show(const GWL_Seat *seat)
                                     tablet_tool->wl_surface_cursor,
                                     hotspot_x,
                                     hotspot_y);
+#ifdef USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+      wl_surface_commit(tablet_tool->wl_surface_cursor);
+#endif
     }
   }
 }
