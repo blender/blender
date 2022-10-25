@@ -23,6 +23,7 @@
 #  include <libdecor.h>
 #endif
 
+#include <mutex>
 #include <string>
 
 class GHOST_WindowWayland;
@@ -51,6 +52,8 @@ void ghost_wl_dynload_libraries_exit();
 #endif
 
 struct GWL_Output {
+  GHOST_SystemWayland *system = nullptr;
+
   struct wl_output *wl_output = nullptr;
   struct zxdg_output_v1 *xdg_output = nullptr;
   /** Dimensions in pixels. */
@@ -187,6 +190,7 @@ class GHOST_SystemWayland : public GHOST_System {
                               int scale);
 
   struct GWL_SimpleBuffer *clipboard_data(bool selection) const;
+  struct std::mutex &clipboard_mutex() const;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   static bool use_libdecor_runtime();

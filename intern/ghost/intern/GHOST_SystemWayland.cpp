@@ -751,9 +751,6 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
 
 struct GWL_RegistryEntry;
 
-/** Check this lock before accessing #GHOST_SystemWayland::clipboard_ from a thread. */
-static std::mutex system_clipboard_mutex;
-
 struct GWL_Display {
   GHOST_SystemWayland *system = nullptr;
 
@@ -783,6 +780,7 @@ struct GWL_Display {
 
   GWL_SimpleBuffer clipboard;
   GWL_SimpleBuffer clipboard_primary;
+  std::mutex clipboard_mutex;
 };
 
 static void gwl_display_destroy(GWL_Display *display)
@@ -815,7 +813,7 @@ static void gwl_display_destroy(GWL_Display *display)
   }
 
   {
-    std::lock_guard lock{system_clipboard_mutex};
+    std::lock_guard lock{display->clipboard_mutex};
     gwl_simple_buffer_free_data(&display->clipboard);
     gwl_simple_buffer_free_data(&display->clipboard_primary);
   }
@@ -1000,8 +998,6 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
  * \{ */
-
-static GHOST_WindowManager *window_manager = nullptr;
 
 /**
  * Callback for WAYLAND to run when there is an error.
@@ -2004,7 +2000,8 @@ static void data_device_handle_selection(void *data,
         data_offer, mime_receive.c_str(), &seat->data_offer_copy_paste_mutex, &data_len);
 
     {
-      std::lock_guard lock{system_clipboard_mutex};
+      std::mutex &clipboard_mutex = system->clipboard_mutex();
+      std::lock_guard lock{clipboard_mutex};
       GWL_SimpleBuffer *buf = system->clipboard_data(false);
       gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
     }
@@ -3581,7 +3578,8 @@ static void primary_selection_device_handle_selection(
         data_offer, mime_receive.c_str(), &primary->data_offer_mutex, &data_len);
 
     {
-      std::lock_guard lock{system_clipboard_mutex};
+      std::mutex &clipboard_mutex = system->clipboard_mutex();
+      std::lock_guard lock{clipboard_mutex};
       GWL_SimpleBuffer *buf = system->clipboard_data(true);
       gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
     }
@@ -4052,11 +4050,17 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
 static void output_handle_scale(void *data, struct wl_output * /*wl_output*/, const int32_t factor)
 {
   CLOG_INFO(LOG, 2, "scale");
-  static_cast<GWL_Output *>(data)->scale = factor;
+  GWL_Output *output = static_cast<GWL_Output *>(data);
+  output->scale = factor;
 
+  GHOST_WindowManager *window_manager = output->system->getWindowManager();
   if (window_manager) {
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
+      const std::vector<GWL_Output *> &outputs = win->outputs();
+      if (std::find(outputs.begin(), outputs.end(), output) == outputs.cend()) {
+        continue;
+      }
       win->outputs_changed_update_scale();
     }
   }
@@ -4235,6 +4239,7 @@ static void gwl_registry_xdg_output_manager_remove(GWL_Display *display,
 static void gwl_registry_wl_output_add(GWL_Display *display, const GWL_RegisteryAdd_Params *params)
 {
   GWL_Output *output = new GWL_Output;
+  output->system = display->system;
   output->wl_output = static_cast<wl_output *>(
       wl_registry_bind(params->wl_registry, params->name, &wl_output_interface, 2));
   ghost_wl_output_tag(output->wl_output);
@@ -5226,10 +5231,6 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
                                                  const GHOST_IWindow *parentWindow)
 {
   /* Globally store pointer to window manager. */
-  if (!window_manager) {
-    window_manager = getWindowManager();
-  }
-
   GHOST_WindowWayland *window = new GHOST_WindowWayland(
       this,
       title,
@@ -6018,6 +6019,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 struct GWL_SimpleBuffer *GHOST_SystemWayland::clipboard_data(bool selection) const
 {
   return selection ? &display_->clipboard_primary : &display_->clipboard;
+}
+
+struct std::mutex &GHOST_SystemWayland::clipboard_mutex() const
+{
+  return display_->clipboard_mutex;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
