@@ -479,7 +479,7 @@ void MeshDelta::delete_face(int f)
   }
 }
 
-#if 0
+#if 1
 /* For debugging. */
 static std::ostream &operator<<(std::ostream &os, const Mesh *mesh)
 {
@@ -739,6 +739,11 @@ static void copy_attributes_based_on_fn(Map<AttributeIDRef, AttributeKind> &attr
 
 Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component)
 {
+  constexpr int dbglevel = 0;
+  if (dbglevel > 0) {
+    std::cout << "\nApply delta to mesh\n";
+    this->print("final delta");
+  }
   /* The keep_... vectors hold the indices of elements in the original mesh to keep. */
   Vector<int> keep_vertices;
   Vector<int> keep_edges;
@@ -883,6 +888,9 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
   }
 
   BKE_mesh_calc_edges_loose(mesh_out);
+  if (dbglevel > 0) {
+    std::cout << "\nFinal Mesh\n" << mesh_out;
+  }
   return mesh_out;
 }
 
@@ -1787,6 +1795,10 @@ void BevelData::calculate_vertex_bevel()
         lfirst = lnew;
       }
       num_loops++;
+      /* IF we are back tot he beginning, the following was already done. */
+      if (l == mpoly.loopstart + mpoly.totloop - 1) {
+        break;
+      }
       std::pair<int, int> lnew_and_cnt = new_loops_for_beveled_vert(bvd2, v2i, v2o);
       num_loops += lnew_and_cnt.second;
     }
