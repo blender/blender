@@ -790,14 +790,14 @@ using GWL_RegistryHandler_AddFn = void (*)(GWL_Display *display,
  * Otherwise it can be assumed that all objects will be freed and none will be used again,
  * so there is no need to ensure a valid state.
  */
-using GWL_RegistryEntry_FreeFn = void (*)(GWL_Display *display, void *user_data, bool on_exit);
+using GWL_RegistryEntry_RemoveFn = void (*)(GWL_Display *display, void *user_data, bool on_exit);
 
 struct GWL_RegistryHandler {
   /** Pointer to the name (not the name it's self), needed as the values aren't set on startup. */
   const char *const *interface_p = nullptr;
 
   GWL_RegistryHandler_AddFn add_fn = nullptr;
-  GWL_RegistryEntry_FreeFn remove_fn = nullptr;
+  GWL_RegistryEntry_RemoveFn remove_fn = nullptr;
 };
 
 /** \} */
