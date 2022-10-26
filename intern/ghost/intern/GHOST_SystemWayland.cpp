@@ -280,9 +280,9 @@ static void gwl_simple_buffer_free_data(GWL_SimpleBuffer *buffer)
   buffer->data_size = 0;
 }
 
-[[maybe_unused]] static void gwl_simple_buffer_set_and_take_ownership(GWL_SimpleBuffer *buffer,
-                                                                      const char *data,
-                                                                      size_t data_size)
+static void gwl_simple_buffer_set_and_take_ownership(GWL_SimpleBuffer *buffer,
+                                                     const char *data,
+                                                     size_t data_size)
 {
   free(const_cast<char *>(buffer->data));
   buffer->data = data;
@@ -298,7 +298,7 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
   buffer->data = data;
 }
 
-[[maybe_unused]] static char *gwl_simple_buffer_as_string(const GWL_SimpleBuffer *buffer)
+static char *gwl_simple_buffer_as_string(const GWL_SimpleBuffer *buffer)
 {
   char *buffer_str = static_cast<char *>(malloc(buffer->data_size + 1));
   memcpy(buffer_str, buffer->data, buffer->data_size);
@@ -798,6 +798,10 @@ struct GWL_Display {
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures = nullptr;
 
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
+
+  GWL_SimpleBuffer clipboard;
+  GWL_SimpleBuffer clipboard_primary;
+  std::mutex clipboard_mutex;
 };
 
 static void gwl_display_destroy(GWL_Display *display)
@@ -830,6 +834,12 @@ static void gwl_display_destroy(GWL_Display *display)
 
   if (display->wl_display) {
     wl_display_disconnect(display->wl_display);
+  }
+
+  {
+    std::lock_guard lock{display->clipboard_mutex};
+    gwl_simple_buffer_free_data(&display->clipboard);
+    gwl_simple_buffer_free_data(&display->clipboard_primary);
   }
 
   delete display;
@@ -1529,7 +1539,7 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
  * Read from `fd` into a buffer which is returned.
  * \return the buffer or null on failure.
  */
-static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t *r_len)
+static const char *read_file_as_buffer(const int fd, size_t *r_len)
 {
   struct ByteChunk {
     ByteChunk *next;
@@ -1565,23 +1575,14 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
 
   char *buf = nullptr;
   if (ok) {
-    buf = static_cast<char *>(malloc(len + (nil_terminate ? 1 : 0)));
+    buf = static_cast<char *>(malloc(len));
     if (UNLIKELY(buf == nullptr)) {
       CLOG_WARN(LOG, "unable to allocate file buffer: %zu bytes", len);
       ok = false;
     }
   }
 
-  if (ok) {
-    *r_len = len;
-    if (nil_terminate) {
-      buf[len] = '\0';
-    }
-  }
-  else {
-    *r_len = 0;
-  }
-
+  *r_len = ok ? len : 0;
   char *buf_stride = buf;
   while (chunk_first) {
     if (ok) {
@@ -1598,23 +1599,17 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
   return buf;
 }
 
-static char *read_buffer_from_data_offer(struct wl_display *wl_display,
-                                         GWL_DataOffer *data_offer,
-                                         const char *mime_receive,
-                                         std::mutex *mutex,
-                                         const bool nil_terminate,
-                                         size_t *r_len)
+static const char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
+                                               const char *mime_receive,
+                                               std::mutex *mutex,
+                                               size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
     CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
-    if (mutex) {
-      mutex->unlock();
-    }
     return nullptr;
   }
   wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
-  wl_display_flush(wl_display);
   close(pipefd[1]);
 
   data_offer->in_use.store(false);
@@ -1624,28 +1619,23 @@ static char *read_buffer_from_data_offer(struct wl_display *wl_display,
   }
   /* WARNING: `data_offer` may be freed from now on. */
 
-  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+  const char *buf = read_file_as_buffer(pipefd[0], r_len);
   close(pipefd[0]);
   return buf;
 }
 
-static char *read_buffer_from_primary_selection_offer(struct wl_display *wl_display,
-                                                      GWL_PrimarySelection_DataOffer *data_offer,
-                                                      const char *mime_receive,
-                                                      std::mutex *mutex,
-                                                      const bool nil_terminate,
-                                                      size_t *r_len)
+static const char *read_buffer_from_primary_selection_offer(
+    GWL_PrimarySelection_DataOffer *data_offer,
+    const char *mime_receive,
+    std::mutex *mutex,
+    size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
     CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
-    if (mutex) {
-      mutex->unlock();
-    }
     return nullptr;
   }
   zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
-  wl_display_flush(wl_display);
   close(pipefd[1]);
 
   data_offer->in_use.store(false);
@@ -1654,7 +1644,7 @@ static char *read_buffer_from_primary_selection_offer(struct wl_display *wl_disp
     mutex->unlock();
   }
   /* WARNING: `data_offer` may be freed from now on. */
-  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+  const char *buf = read_file_as_buffer(pipefd[0], r_len);
   close(pipefd[0]);
   return buf;
 }
@@ -1909,12 +1899,8 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     size_t data_buf_len = 0;
-    const char *data_buf = read_buffer_from_data_offer(seat->system->wl_display(),
-                                                       data_offer,
-                                                       mime_receive.c_str(),
-                                                       nullptr,
-                                                       false,
-                                                       &data_buf_len);
+    const char *data_buf = read_buffer_from_data_offer(
+        data_offer, mime_receive.c_str(), nullptr, &data_buf_len);
     std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
     free(const_cast<char *>(data_buf));
 
@@ -2018,6 +2004,34 @@ static void data_device_handle_selection(void *data,
   /* Get new data offer. */
   data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   seat->data_offer_copy_paste = data_offer;
+
+  auto read_selection_fn = [](GWL_Seat *seat) {
+    GHOST_SystemWayland *const system = seat->system;
+    seat->data_offer_copy_paste_mutex.lock();
+
+    GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
+    std::string mime_receive;
+    for (const std::string type : {mime_text_utf8, mime_text_plain}) {
+      if (data_offer->types.count(type)) {
+        mime_receive = type;
+        break;
+      }
+    }
+
+    size_t data_len = 0;
+    const char *data = read_buffer_from_data_offer(
+        data_offer, mime_receive.c_str(), &seat->data_offer_copy_paste_mutex, &data_len);
+
+    {
+      std::mutex &clipboard_mutex = system->clipboard_mutex();
+      std::lock_guard lock{clipboard_mutex};
+      GWL_SimpleBuffer *buf = system->clipboard_data(false);
+      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
+    }
+  };
+
+  std::thread read_thread(read_selection_fn, seat);
+  read_thread.detach();
 }
 
 static const struct wl_data_device_listener data_device_listener = {
@@ -3570,6 +3584,33 @@ static void primary_selection_device_handle_selection(
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(
       zwp_primary_selection_offer_v1_get_user_data(id));
   primary->data_offer = data_offer;
+
+  auto read_selection_fn = [](GWL_PrimarySelection *primary) {
+    GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
+    primary->data_offer_mutex.lock();
+
+    GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
+    std::string mime_receive;
+    for (const std::string type : {mime_text_utf8, mime_text_plain}) {
+      if (data_offer->types.count(type)) {
+        mime_receive = type;
+        break;
+      }
+    }
+    size_t data_len = 0;
+    const char *data = read_buffer_from_primary_selection_offer(
+        data_offer, mime_receive.c_str(), &primary->data_offer_mutex, &data_len);
+
+    {
+      std::mutex &clipboard_mutex = system->clipboard_mutex();
+      std::lock_guard lock{clipboard_mutex};
+      GWL_SimpleBuffer *buf = system->clipboard_data(true);
+      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
+    }
+  };
+
+  std::thread read_thread(read_selection_fn, primary);
+  read_thread.detach();
 }
 
 static const struct zwp_primary_selection_device_v1_listener primary_selection_device_listener = {
@@ -4971,90 +5012,13 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
-/**
- * Return a mime type which is supported by GHOST and exists in `types`
- * (defined by the data offer).
- */
-static const char *system_clipboard_text_mime_type(
-    const std::unordered_set<std::string> &data_offer_types)
-{
-  const char *ghost_supported_types[] = {mime_text_utf8, mime_text_plain};
-  for (size_t i = 0; i < ARRAY_SIZE(ghost_supported_types); i++) {
-    if (data_offer_types.count(ghost_supported_types[i])) {
-      return ghost_supported_types[i];
-    }
-  }
-  return nullptr;
-}
-
-static char *system_clipboard_get_primary_selection(GWL_Display *display)
-{
-  GWL_Seat *seat = display->seats[0];
-
-  GWL_PrimarySelection *primary = &seat->primary_selection;
-  std::mutex &mutex = primary->data_offer_mutex;
-
-  mutex.lock();
-  bool mutex_locked = true;
-  char *data = nullptr;
-
-  GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
-  if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
-    if (mime_receive) {
-      size_t data_len = 0;
-      data = read_buffer_from_primary_selection_offer(
-          display->wl_display, data_offer, mime_receive, &mutex, true, &data_len);
-      /* Reading the data offer unlocks the mutex. */
-      mutex_locked = false;
-    }
-  }
-  if (mutex_locked) {
-    mutex.unlock();
-  }
-  return data;
-}
-
-static char *system_clipboard_get(GWL_Display *display)
-{
-  GWL_Seat *seat = display->seats[0];
-  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
-
-  mutex.lock();
-  bool mutex_locked = true;
-  char *data = nullptr;
-
-  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-  if (data_offer != nullptr) {
-    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
-    if (mime_receive) {
-      size_t data_len = 0;
-      data = read_buffer_from_data_offer(
-          display->wl_display, data_offer, mime_receive, &mutex, true, &data_len);
-      /* Reading the data offer unlocks the mutex. */
-      mutex_locked = false;
-    }
-  }
-  if (mutex_locked) {
-    mutex.unlock();
-  }
-  return data;
-}
-
 char *GHOST_SystemWayland::getClipboard(bool selection) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  const GWL_SimpleBuffer *buf = clipboard_data(selection);
+  if (buf->data == nullptr) {
     return nullptr;
   }
-
-  char *data = nullptr;
-  if (selection) {
-    data = system_clipboard_get_primary_selection(display_);
-  }
-  else {
-    data = system_clipboard_get(display_);
-  }
-  return data;
+  return gwl_simple_buffer_as_string(buf);
 }
 
 static void system_clipboard_put_primary_selection(GWL_Display *display, const char *buffer)
@@ -5093,9 +5057,6 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
 
 static void system_clipboard_put(GWL_Display *display, const char *buffer)
 {
-  if (!display->wl_data_device_manager) {
-    return;
-  }
   GWL_Seat *seat = display->seats[0];
 
   std::lock_guard lock{seat->data_source_mutex};
@@ -5122,7 +5083,7 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  if (UNLIKELY(!display_->wl_data_device_manager || display_->seats.empty())) {
     return;
   }
 
@@ -6144,6 +6105,16 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #endif
 
   return GHOST_kSuccess;
+}
+
+struct GWL_SimpleBuffer *GHOST_SystemWayland::clipboard_data(bool selection) const
+{
+  return selection ? &display_->clipboard_primary : &display_->clipboard;
+}
+
+struct std::mutex &GHOST_SystemWayland::clipboard_mutex() const
+{
+  return display_->clipboard_mutex;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR

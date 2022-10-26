@@ -189,6 +189,9 @@ class GHOST_SystemWayland : public GHOST_System {
                               wl_surface *wl_surface,
                               int scale);
 
+  struct GWL_SimpleBuffer *clipboard_data(bool selection) const;
+  struct std::mutex &clipboard_mutex() const;
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   static bool use_libdecor_runtime();
 #endif
