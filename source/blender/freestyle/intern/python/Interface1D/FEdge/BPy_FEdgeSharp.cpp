@@ -9,6 +9,8 @@
 #include "../../BPy_Convert.h"
 #include "../../Interface0D/BPy_SVertex.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -16,6 +16,8 @@
 #include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVoid.h"
 
+#include "BLI_sys_types.h"
+
 #include <sstream>
 
 #ifdef __cplusplus

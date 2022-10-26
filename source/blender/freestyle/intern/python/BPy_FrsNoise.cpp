@@ -9,6 +9,8 @@
 
 #include "../system/RandGen.h"
 
+#include "BLI_sys_types.h"
+
 #include <sstream>
 
 #ifdef __cplusplus

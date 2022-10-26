@@ -12,6 +12,8 @@
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

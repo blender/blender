@@ -9,6 +9,8 @@
 
 #include "../stroke/ContextFunctions.h"
 
+#include "BLI_sys_types.h"
+
 using namespace Freestyle;
 
 #ifdef __cplusplus

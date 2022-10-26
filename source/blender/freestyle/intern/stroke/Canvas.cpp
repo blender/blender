@@ -22,6 +22,8 @@
 
 #include "../view_map/SteerableViewMap.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 // soc #include <qimage.h>
