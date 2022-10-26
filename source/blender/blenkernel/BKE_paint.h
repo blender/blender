@@ -886,7 +886,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(struct Mesh *mesh, struct SubdivCC
  * Test if PBVH can be used directly for drawing, which is faster than
  * drawing the mesh and all updates that come with it.
  */
-bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
+bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct RegionView3D *rv3d);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),

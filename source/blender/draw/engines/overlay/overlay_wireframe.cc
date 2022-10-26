@@ -276,7 +276,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {
     const bool is_sculpt_mode = ((ob->mode & OB_MODE_SCULPT) != 0) && (ob->sculpt != nullptr);
-    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                                  !DRW_state_is_image_render();
     const bool is_instance = (ob->base_flag & BASE_FROM_DUPLI);
     const bool instance_parent_in_edit_mode = is_instance ? DRW_object_is_in_edit_mode(
