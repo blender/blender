@@ -1512,58 +1512,65 @@ static ePaintSlotFilter material_paint_slot_filter(const struct Object *ob)
 
 void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Object *ob)
 {
-  int count = 0;
-
   if (!ma) {
     return;
   }
 
   const ePaintSlotFilter slot_filter = material_paint_slot_filter(ob);
 
-  /* COW needed when adding texture slot on an object with no materials. */
-  DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
+  const TexPaintSlot *prev_texpaintslot = ma->texpaintslot;
+  const int prev_paint_active_slot = ma->paint_active_slot;
+  const int prev_paint_clone_slot = ma->paint_clone_slot;
+  const int prev_tot_slots = ma->tot_slots;
 
-  if (ma->texpaintslot) {
-    MEM_freeN(ma->texpaintslot);
-    ma->tot_slots = 0;
-    ma->texpaintslot = NULL;
-  }
+  ma->texpaintslot = NULL;
+  ma->tot_slots = 0;
 
   if (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_IMAGE) {
     ma->paint_active_slot = 0;
     ma->paint_clone_slot = 0;
-    return;
   }
-
-  if (!(ma->nodetree)) {
+  else if (!(ma->nodetree)) {
     ma->paint_active_slot = 0;
     ma->paint_clone_slot = 0;
-    return;
+  }
+  else {
+    int count = count_texture_nodes_recursive(ma->nodetree, slot_filter);
+
+    if (count == 0) {
+      ma->paint_active_slot = 0;
+      ma->paint_clone_slot = 0;
+    }
+    else {
+      ma->texpaintslot = MEM_callocN(sizeof(*ma->texpaintslot) * count, "texpaint_slots");
+
+      bNode *active_node = nodeGetActivePaintCanvas(ma->nodetree);
+
+      fill_texpaint_slots_recursive(ma->nodetree, active_node, ob, ma, count, slot_filter);
+
+      ma->tot_slots = count;
+
+      if (ma->paint_active_slot >= count) {
+        ma->paint_active_slot = count - 1;
+      }
+
+      if (ma->paint_clone_slot >= count) {
+        ma->paint_clone_slot = count - 1;
+      }
+    }
   }
 
-  count = count_texture_nodes_recursive(ma->nodetree, slot_filter);
-
-  if (count == 0) {
-    ma->paint_active_slot = 0;
-    ma->paint_clone_slot = 0;
-    return;
+  /* COW needed when adding texture slot on an object with no materials.
+   * But do it only when slots actually change to avoid continuous depsgrap updates. */
+  if (ma->tot_slots != prev_tot_slots || ma->paint_active_slot != prev_paint_active_slot ||
+      ma->paint_clone_slot != prev_paint_clone_slot ||
+      (ma->texpaintslot && prev_texpaintslot &&
+       memcmp(ma->texpaintslot, prev_texpaintslot, sizeof(*ma->texpaintslot) * ma->tot_slots) !=
+           0)) {
+    DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
   }
 
-  ma->texpaintslot = MEM_callocN(sizeof(*ma->texpaintslot) * count, "texpaint_slots");
-
-  bNode *active_node = nodeGetActivePaintCanvas(ma->nodetree);
-
-  fill_texpaint_slots_recursive(ma->nodetree, active_node, ob, ma, count, slot_filter);
-
-  ma->tot_slots = count;
-
-  if (ma->paint_active_slot >= count) {
-    ma->paint_active_slot = count - 1;
-  }
-
-  if (ma->paint_clone_slot >= count) {
-    ma->paint_clone_slot = count - 1;
-  }
+  MEM_SAFE_FREE(prev_texpaintslot);
 }
 
 void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
