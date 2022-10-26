@@ -2313,7 +2313,7 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         subdiv_ccg->grid_hidden);
 }
 
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *UNUSED(v3d))
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 {
   SculptSession *ss = ob->sculpt;
   if (ss == NULL || ss->pbvh == NULL || ss->mode_type != OB_MODE_SCULPT) {
@@ -2321,9 +2321,10 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *UNUSED(v3d)
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    /* Regular mesh only draws from PBVH without modifiers and shape keys. */
-
-    return !(ss->shapekey_active || ss->deform_modifiers_active);
+    /* Regular mesh only draws from PBVH without modifiers and shape keys, or for
+     * external engines that do not have access to the PBVH like Eevee does. */
+    const bool external_engine = rv3d && rv3d->render_engine != NULL;
+    return !(ss->shapekey_active || ss->deform_modifiers_active || external_engine);
   }
 
   /* Multires and dyntopo always draw directly from the PBVH. */
