@@ -473,10 +473,8 @@ class DrawMultiBuf {
                    uint vertex_first,
                    ResourceHandle handle)
   {
-    /* Unsupported for now. Use PassSimple. */
-    BLI_assert(vertex_first == 0 || vertex_first == -1);
-    BLI_assert(vertex_len == -1);
-    UNUSED_VARS_NDEBUG(vertex_len, vertex_first);
+    /* Custom draw-calls cannot be batched and will produce one group per draw. */
+    const bool custom_group = (vertex_first != 0 || vertex_first != -1 || vertex_len != -1);
 
     instance_len = instance_len != -1 ? instance_len : 1;
 
@@ -493,8 +491,14 @@ class DrawMultiBuf {
 
     bool inverted = handle.has_inverted_handedness();
 
-    if (group_id == uint(-1)) {
+    DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
+    draw.resource_handle = handle.raw;
+    draw.instance_len = instance_len;
+    draw.group_id = group_id;
+
+    if (group_id == uint(-1) || custom_group) {
       uint new_group_id = group_count_++;
+      draw.group_id = new_group_id;
 
       DrawGroup &group = group_buf_.get_or_resize(new_group_id);
       group.next = cmd.group_first;
@@ -503,11 +507,16 @@ class DrawMultiBuf {
       group.gpu_batch = batch;
       group.front_proto_len = 0;
       group.back_proto_len = 0;
+      group.vertex_len = vertex_len;
+      group.vertex_first = vertex_first;
+      /* Custom group are not to be registered in the group_ids_. */
+      if (!custom_group) {
+        group_id = new_group_id;
+      }
       /* For serialization only. */
       (inverted ? group.back_proto_len : group.front_proto_len)++;
       /* Append to list. */
       cmd.group_first = new_group_id;
-      group_id = new_group_id;
     }
     else {
       DrawGroup &group = group_buf_[group_id];
@@ -516,11 +525,6 @@ class DrawMultiBuf {
       /* For serialization only. */
       (inverted ? group.back_proto_len : group.front_proto_len)++;
     }
-
-    DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
-    draw.group_id = group_id;
-    draw.resource_handle = handle.raw;
-    draw.instance_len = instance_len;
   }
 
   void bind(RecordingState &state,
