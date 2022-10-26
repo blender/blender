@@ -318,7 +318,7 @@ GHOST_TSuccess GHOST_ContextGLX::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 {
-  if (!GLXEW_EXT_swap_control) {
+  if (GLXEW_EXT_swap_control) {
     ::glXSwapIntervalEXT(m_display, m_window, interval);
     return GHOST_kSuccess;
   }
