@@ -19,6 +19,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -26,7 +27,6 @@
 #include "bmesh_tools.h"
 
 #include "DEG_depsgraph.h"
-
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -504,6 +504,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   write_visibility(context, timecode, usd_mesh);
 
   USDMeshData usd_mesh_data;
+  /* ensure data exists if currently in edit mode */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
   get_geometry_data(mesh, usd_mesh_data);
 
   if (usd_export_context_.export_params.export_vertices) {
