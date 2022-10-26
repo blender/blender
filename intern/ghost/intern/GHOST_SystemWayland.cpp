@@ -776,6 +776,7 @@ struct GWL_Display {
   /** Registry entries, kept to allow removal at run-time. */
   struct GWL_RegistryEntry *registry_entry = nullptr;
 
+  struct wl_registry *wl_registry = nullptr;
   struct wl_display *wl_display = nullptr;
   struct wl_compositor *wl_compositor = nullptr;
 
@@ -805,6 +806,9 @@ struct GWL_Display {
 
 static void gwl_display_destroy(GWL_Display *display)
 {
+  wl_registry_destroy(display->wl_registry);
+  display->wl_registry = nullptr;
+
   /* Unregister items in reverse order. */
   gwl_registry_entry_remove_all(display);
 
@@ -4803,6 +4807,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     display_->registry_add_deferred = registry_add_table;
 
     struct wl_registry *registry = wl_display_get_registry(display_->wl_display);
+    display_->wl_registry = registry;
     wl_registry_add_listener(registry, &registry_listener, display_);
     /* Call callback for registry listener. */
     wl_display_roundtrip(display_->wl_display);
@@ -4821,8 +4826,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
         delete reg_add;
       }
     }
-
-    wl_registry_destroy(registry);
   }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
