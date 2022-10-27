@@ -806,8 +806,10 @@ struct GWL_Display {
 
 static void gwl_display_destroy(GWL_Display *display)
 {
-  wl_registry_destroy(display->wl_registry);
-  display->wl_registry = nullptr;
+  if (display->wl_registry) {
+    wl_registry_destroy(display->wl_registry);
+    display->wl_registry = nullptr;
+  }
 
   /* Unregister items in reverse order. */
   gwl_registry_entry_remove_all(display);
