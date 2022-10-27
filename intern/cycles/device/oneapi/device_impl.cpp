@@ -668,8 +668,9 @@ int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 std::vector<sycl::device> OneapiDevice::available_devices()
 {
   bool allow_all_devices = false;
-  if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr)
+  if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr) {
     allow_all_devices = true;
+  }
 
   const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
 
@@ -686,15 +687,16 @@ std::vector<sycl::device> OneapiDevice::available_devices()
                               platform.get_devices(sycl::info::device_type::gpu);
 
     for (const sycl::device &device : oneapi_devices) {
+      bool filter_out = false;
       if (!allow_all_devices) {
-        bool filter_out = false;
-
         /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
          * assuming they have either more than 96 Execution Units or not 7 threads per EU.
          * Official support can be broaden to older and smaller GPUs once ready. */
-        if (device.is_gpu() && platform.get_backend() == sycl::backend::ext_oneapi_level_zero) {
-          /* Filtered-out defaults in-case these values aren't available through too old L0
-           * runtime. */
+        if (!device.is_gpu() || platform.get_backend() != sycl::backend::ext_oneapi_level_zero) {
+          filter_out = true;
+        }
+        else {
+          /* Filtered-out defaults in-case these values aren't available. */
           int number_of_eus = 96;
           int threads_per_eu = 7;
           if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
@@ -718,13 +720,9 @@ std::vector<sycl::device> OneapiDevice::available_devices()
             }
           }
         }
-        else if (!allow_all_devices) {
-          filter_out = true;
-        }
-
-        if (!filter_out) {
-          available_devices.push_back(device);
-        }
+      }
+      if (!filter_out) {
+        available_devices.push_back(device);
       }
     }
   }
