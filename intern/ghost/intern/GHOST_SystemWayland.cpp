@@ -360,9 +360,13 @@ struct GWL_TabletTool {
 struct GWL_DataOffer {
   struct wl_data_offer *id = nullptr;
   std::unordered_set<std::string> types;
-  std::atomic<bool> in_use = false;
 
   struct {
+    /**
+     * Prevents freeing after #wl_data_device_listener.leave,
+     * before #wl_data_device_listener.drop.
+     */
+    bool in_use = false;
     /**
      * Bit-mask with available drop options.
      * #WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY, #WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE.. etc.
@@ -564,7 +568,6 @@ static void gwl_xdg_decor_system_destroy(struct GWL_Display *display, GWL_XDG_De
 
 struct GWL_PrimarySelection_DataOffer {
   struct zwp_primary_selection_offer_v1 *id = nullptr;
-  std::atomic<bool> in_use = false;
 
   std::unordered_set<std::string> types;
 };
@@ -1672,7 +1675,8 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
   wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
   close(pipefd[1]);
 
-  data_offer->in_use.store(false);
+  /* Only for DND (A no-op to disable for clipboard data-offer). */
+  data_offer->dnd.in_use = false;
 
   if (mutex) {
     mutex->unlock();
@@ -1700,8 +1704,6 @@ static char *read_buffer_from_primary_selection_offer(GWL_PrimarySelection_DataO
   }
   zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
   close(pipefd[1]);
-
-  data_offer->in_use.store(false);
 
   if (mutex) {
     mutex->unlock();
@@ -1897,7 +1899,7 @@ static void data_device_handle_enter(void *data,
   seat->data_offer_dnd = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   GWL_DataOffer *data_offer = seat->data_offer_dnd;
 
-  data_offer->in_use.store(true);
+  data_offer->dnd.in_use = true;
   data_offer->dnd.xy[0] = x;
   data_offer->dnd.xy[1] = y;
 
@@ -1924,7 +1926,7 @@ static void data_device_handle_leave(void *data, struct wl_data_device * /*wl_da
   dnd_events(seat, GHOST_kEventDraggingExited);
   seat->wl_surface_focus_dnd = nullptr;
 
-  if (seat->data_offer_dnd && !seat->data_offer_dnd->in_use.load()) {
+  if (seat->data_offer_dnd && !seat->data_offer_dnd->dnd.in_use) {
     wl_data_offer_destroy(seat->data_offer_dnd->id);
     delete seat->data_offer_dnd;
     seat->data_offer_dnd = nullptr;
