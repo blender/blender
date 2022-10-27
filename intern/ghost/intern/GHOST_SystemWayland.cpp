@@ -1681,6 +1681,9 @@ static const char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
     CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+    if (mutex) {
+      mutex->unlock();
+    }
     return nullptr;
   }
   wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
@@ -1707,6 +1710,9 @@ static const char *read_buffer_from_primary_selection_offer(
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
     CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+    if (mutex) {
+      mutex->unlock();
+    }
     return nullptr;
   }
   zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
@@ -5114,6 +5120,9 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
 
 static void system_clipboard_put(GWL_Display *display, const char *buffer)
 {
+  if (!display->wl_data_device_manager) {
+    return;
+  }
   GWL_Seat *seat = display->seats[0];
 
   std::lock_guard lock{seat->data_source_mutex};
@@ -5140,7 +5149,7 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 {
-  if (UNLIKELY(!display_->wl_data_device_manager || display_->seats.empty())) {
+  if (UNLIKELY(display_->seats.empty())) {
     return;
   }
 
