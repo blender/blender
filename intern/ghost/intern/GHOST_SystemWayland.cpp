@@ -280,15 +280,6 @@ static void gwl_simple_buffer_free_data(GWL_SimpleBuffer *buffer)
   buffer->data_size = 0;
 }
 
-static void gwl_simple_buffer_set_and_take_ownership(GWL_SimpleBuffer *buffer,
-                                                     const char *data,
-                                                     size_t data_size)
-{
-  free(const_cast<char *>(buffer->data));
-  buffer->data = data;
-  buffer->data_size = data_size;
-}
-
 static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const char *str)
 {
   free(const_cast<char *>(buffer->data));
@@ -296,14 +287,6 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
   char *data = static_cast<char *>(malloc(buffer->data_size));
   std::memcpy(data, str, buffer->data_size);
   buffer->data = data;
-}
-
-static char *gwl_simple_buffer_as_string(const GWL_SimpleBuffer *buffer)
-{
-  char *buffer_str = static_cast<char *>(malloc(buffer->data_size + 1));
-  memcpy(buffer_str, buffer->data, buffer->data_size);
-  buffer_str[buffer->data_size] = '\0';
-  return buffer_str;
 }
 
 /** \} */
@@ -798,10 +781,6 @@ struct GWL_Display {
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures = nullptr;
 
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
-
-  GWL_SimpleBuffer clipboard;
-  GWL_SimpleBuffer clipboard_primary;
-  std::mutex clipboard_mutex;
 };
 
 static void gwl_display_destroy(GWL_Display *display)
@@ -836,12 +815,6 @@ static void gwl_display_destroy(GWL_Display *display)
 
   if (display->wl_display) {
     wl_display_disconnect(display->wl_display);
-  }
-
-  {
-    std::lock_guard lock{display->clipboard_mutex};
-    gwl_simple_buffer_free_data(&display->clipboard);
-    gwl_simple_buffer_free_data(&display->clipboard_primary);
   }
 
   delete display;
@@ -1613,7 +1586,7 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
  * Read from `fd` into a buffer which is returned.
  * \return the buffer or null on failure.
  */
-static const char *read_file_as_buffer(const int fd, size_t *r_len)
+static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t *r_len)
 {
   struct ByteChunk {
     ByteChunk *next;
@@ -1649,14 +1622,23 @@ static const char *read_file_as_buffer(const int fd, size_t *r_len)
 
   char *buf = nullptr;
   if (ok) {
-    buf = static_cast<char *>(malloc(len));
+    buf = static_cast<char *>(malloc(len + (nil_terminate ? 1 : 0)));
     if (UNLIKELY(buf == nullptr)) {
       CLOG_WARN(LOG, "unable to allocate file buffer: %zu bytes", len);
       ok = false;
     }
   }
 
-  *r_len = ok ? len : 0;
+  if (ok) {
+    *r_len = len;
+    if (nil_terminate) {
+      buf[len] = '\0';
+    }
+  }
+  else {
+    *r_len = 0;
+  }
+
   char *buf_stride = buf;
   while (chunk_first) {
     if (ok) {
@@ -1673,10 +1655,11 @@ static const char *read_file_as_buffer(const int fd, size_t *r_len)
   return buf;
 }
 
-static const char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
-                                               const char *mime_receive,
-                                               std::mutex *mutex,
-                                               size_t *r_len)
+static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
+                                         const char *mime_receive,
+                                         std::mutex *mutex,
+                                         const bool nil_terminate,
+                                         size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
@@ -1696,16 +1679,16 @@ static const char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
   }
   /* WARNING: `data_offer` may be freed from now on. */
 
-  const char *buf = read_file_as_buffer(pipefd[0], r_len);
+  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
   close(pipefd[0]);
   return buf;
 }
 
-static const char *read_buffer_from_primary_selection_offer(
-    GWL_PrimarySelection_DataOffer *data_offer,
-    const char *mime_receive,
-    std::mutex *mutex,
-    size_t *r_len)
+static char *read_buffer_from_primary_selection_offer(GWL_PrimarySelection_DataOffer *data_offer,
+                                                      const char *mime_receive,
+                                                      std::mutex *mutex,
+                                                      const bool nil_terminate,
+                                                      size_t *r_len)
 {
   int pipefd[2];
   if (UNLIKELY(pipe(pipefd) != 0)) {
@@ -1724,7 +1707,7 @@ static const char *read_buffer_from_primary_selection_offer(
     mutex->unlock();
   }
   /* WARNING: `data_offer` may be freed from now on. */
-  const char *buf = read_file_as_buffer(pipefd[0], r_len);
+  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
   close(pipefd[0]);
   return buf;
 }
@@ -1748,15 +1731,22 @@ static void data_source_handle_send(void *data,
                                     const int32_t fd)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  std::lock_guard lock{seat->data_source_mutex};
 
   CLOG_INFO(LOG, 2, "send");
 
-  const char *const buffer = seat->data_source->buffer_out.data;
-  if (UNLIKELY(write(fd, buffer, seat->data_source->buffer_out.data_size) < 0)) {
-    CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
-  }
-  close(fd);
+  auto write_file_fn = [](GWL_Seat *seat, const int fd) {
+    if (UNLIKELY(write(fd,
+                       seat->data_source->buffer_out.data,
+                       seat->data_source->buffer_out.data_size) < 0)) {
+      CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
+    }
+    close(fd);
+    seat->data_source_mutex.unlock();
+  };
+
+  seat->data_source_mutex.lock();
+  std::thread write_thread(write_file_fn, seat, fd);
+  write_thread.detach();
 }
 
 static void data_source_handle_cancelled(void *data, struct wl_data_source *wl_data_source)
@@ -1980,7 +1970,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
-        data_offer, mime_receive.c_str(), nullptr, &data_buf_len);
+        data_offer, mime_receive.c_str(), nullptr, false, &data_buf_len);
     std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
     free(const_cast<char *>(data_buf));
 
@@ -2084,34 +2074,6 @@ static void data_device_handle_selection(void *data,
   /* Get new data offer. */
   data_offer = static_cast<GWL_DataOffer *>(wl_data_offer_get_user_data(id));
   seat->data_offer_copy_paste = data_offer;
-
-  auto read_selection_fn = [](GWL_Seat *seat) {
-    GHOST_SystemWayland *const system = seat->system;
-    seat->data_offer_copy_paste_mutex.lock();
-
-    GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-    std::string mime_receive;
-    for (const std::string type : {mime_text_utf8, mime_text_plain}) {
-      if (data_offer->types.count(type)) {
-        mime_receive = type;
-        break;
-      }
-    }
-
-    size_t data_len = 0;
-    const char *data = read_buffer_from_data_offer(
-        data_offer, mime_receive.c_str(), &seat->data_offer_copy_paste_mutex, &data_len);
-
-    {
-      std::mutex &clipboard_mutex = system->clipboard_mutex();
-      std::lock_guard lock{clipboard_mutex};
-      GWL_SimpleBuffer *buf = system->clipboard_data(false);
-      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
-    }
-  };
-
-  std::thread read_thread(read_selection_fn, seat);
-  read_thread.detach();
 }
 
 static const struct wl_data_device_listener data_device_listener = {
@@ -3664,33 +3626,6 @@ static void primary_selection_device_handle_selection(
   GWL_PrimarySelection_DataOffer *data_offer = static_cast<GWL_PrimarySelection_DataOffer *>(
       zwp_primary_selection_offer_v1_get_user_data(id));
   primary->data_offer = data_offer;
-
-  auto read_selection_fn = [](GWL_PrimarySelection *primary) {
-    GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
-    primary->data_offer_mutex.lock();
-
-    GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
-    std::string mime_receive;
-    for (const std::string type : {mime_text_utf8, mime_text_plain}) {
-      if (data_offer->types.count(type)) {
-        mime_receive = type;
-        break;
-      }
-    }
-    size_t data_len = 0;
-    const char *data = read_buffer_from_primary_selection_offer(
-        data_offer, mime_receive.c_str(), &primary->data_offer_mutex, &data_len);
-
-    {
-      std::mutex &clipboard_mutex = system->clipboard_mutex();
-      std::lock_guard lock{clipboard_mutex};
-      GWL_SimpleBuffer *buf = system->clipboard_data(true);
-      gwl_simple_buffer_set_and_take_ownership(buf, data, data_len);
-    }
-  };
-
-  std::thread read_thread(read_selection_fn, primary);
-  read_thread.detach();
 }
 
 static const struct zwp_primary_selection_device_v1_listener primary_selection_device_listener = {
@@ -3718,14 +3653,19 @@ static void primary_selection_source_send(void *data,
 
   GWL_PrimarySelection *primary = static_cast<GWL_PrimarySelection *>(data);
 
-  std::lock_guard lock{primary->data_source_mutex};
-  GWL_PrimarySelection_DataSource *data_source = primary->data_source;
+  auto write_file_fn = [](GWL_PrimarySelection *primary, const int fd) {
+    if (UNLIKELY(write(fd,
+                       primary->data_source->buffer_out.data,
+                       primary->data_source->buffer_out.data_size) < 0)) {
+      CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
+    }
+    close(fd);
+    primary->data_source_mutex.unlock();
+  };
 
-  const char *const buffer = data_source->buffer_out.data;
-  if (UNLIKELY(write(fd, buffer, data_source->buffer_out.data_size) < 0)) {
-    CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
-  }
-  close(fd);
+  primary->data_source_mutex.lock();
+  std::thread write_thread(write_file_fn, primary, fd);
+  write_thread.detach();
 }
 
 static void primary_selection_source_cancelled(void *data,
@@ -5075,13 +5015,129 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
+/**
+ * Return a mime type which is supported by GHOST and exists in `types`
+ * (defined by the data offer).
+ */
+static const char *system_clipboard_text_mime_type(
+    const std::unordered_set<std::string> &data_offer_types)
+{
+  const char *ghost_supported_types[] = {mime_text_utf8, mime_text_plain};
+  for (size_t i = 0; i < ARRAY_SIZE(ghost_supported_types); i++) {
+    if (data_offer_types.count(ghost_supported_types[i])) {
+      return ghost_supported_types[i];
+    }
+  }
+  return nullptr;
+}
+
+static char *system_clipboard_get_primary_selection(GWL_Display *display)
+{
+  GWL_Seat *seat = display->seats[0];
+  GWL_PrimarySelection *primary = &seat->primary_selection;
+  std::mutex &mutex = primary->data_offer_mutex;
+
+  mutex.lock();
+  bool mutex_locked = true;
+  char *data = nullptr;
+
+  GWL_PrimarySelection_DataOffer *data_offer = primary->data_offer;
+  if (data_offer != nullptr) {
+    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    if (mime_receive) {
+      /* Receive the clipboard in a thread, performing round-trips while waiting.
+       * This is needed so pasting contents from our own `primary->data_source` doesn't hang. */
+      struct ThreadResult {
+        char *data = nullptr;
+        std::atomic<bool> done = false;
+      } thread_result;
+      auto read_clipboard_fn = [](GWL_PrimarySelection_DataOffer *data_offer,
+                                  const char *mime_receive,
+                                  std::mutex *mutex,
+                                  struct ThreadResult *thread_result) {
+        size_t data_len = 0;
+        thread_result->data = read_buffer_from_primary_selection_offer(
+            data_offer, mime_receive, mutex, true, &data_len);
+        thread_result->done = true;
+      };
+      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      read_thread.detach();
+
+      while (!thread_result.done) {
+        wl_display_roundtrip(display->wl_display);
+      }
+      data = thread_result.data;
+
+      /* Reading the data offer unlocks the mutex. */
+      mutex_locked = false;
+    }
+  }
+  if (mutex_locked) {
+    mutex.unlock();
+  }
+  return data;
+}
+
+static char *system_clipboard_get(GWL_Display *display)
+{
+  GWL_Seat *seat = display->seats[0];
+  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
+
+  mutex.lock();
+  bool mutex_locked = true;
+  char *data = nullptr;
+
+  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
+  if (data_offer != nullptr) {
+    const char *mime_receive = system_clipboard_text_mime_type(data_offer->types);
+    if (mime_receive) {
+      /* Receive the clipboard in a thread, performing round-trips while waiting.
+       * This is needed so pasting contents from our own `seat->data_source` doesn't hang. */
+      struct ThreadResult {
+        char *data = nullptr;
+        std::atomic<bool> done = false;
+      } thread_result;
+      auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
+                                  const char *mime_receive,
+                                  std::mutex *mutex,
+                                  struct ThreadResult *thread_result) {
+        size_t data_len = 0;
+        thread_result->data = read_buffer_from_data_offer(
+            data_offer, mime_receive, mutex, true, &data_len);
+        thread_result->done = true;
+      };
+      std::thread read_thread(read_clipboard_fn, data_offer, mime_receive, &mutex, &thread_result);
+      read_thread.detach();
+
+      while (!thread_result.done) {
+        wl_display_roundtrip(display->wl_display);
+      }
+      data = thread_result.data;
+
+      /* Reading the data offer unlocks the mutex. */
+      mutex_locked = false;
+    }
+  }
+  if (mutex_locked) {
+    mutex.unlock();
+  }
+  return data;
+}
+
 char *GHOST_SystemWayland::getClipboard(bool selection) const
 {
-  const GWL_SimpleBuffer *buf = clipboard_data(selection);
-  if (buf->data == nullptr) {
+  if (UNLIKELY(display_->seats.empty())) {
     return nullptr;
   }
-  return gwl_simple_buffer_as_string(buf);
+
+  char *data = nullptr;
+  if (selection) {
+    data = system_clipboard_get_primary_selection(display_);
+  }
+  else {
+    data = system_clipboard_get(display_);
+  }
+  return data;
 }
 
 static void system_clipboard_put_primary_selection(GWL_Display *display, const char *buffer)
@@ -6171,16 +6227,6 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #endif
 
   return GHOST_kSuccess;
-}
-
-struct GWL_SimpleBuffer *GHOST_SystemWayland::clipboard_data(bool selection) const
-{
-  return selection ? &display_->clipboard_primary : &display_->clipboard;
-}
-
-struct std::mutex &GHOST_SystemWayland::clipboard_mutex() const
-{
-  return display_->clipboard_mutex;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
