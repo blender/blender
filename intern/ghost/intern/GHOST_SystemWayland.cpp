@@ -786,8 +786,14 @@ struct GWL_Display {
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
 };
 
+/**
+ * Free the #GWL_Display and it's related members.
+ * \note This may run on a partially initialized struct, so it can't be assumed all mebers are set.
+ */
 static void gwl_display_destroy(GWL_Display *display)
 {
+  /* For typical WAYLAND use this will always be set.
+   * However when WAYLAND isn't running, this will early-exit and be null. */
   if (display->wl_registry) {
     wl_registry_destroy(display->wl_registry);
     display->wl_registry = nullptr;
@@ -1037,7 +1043,7 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
  * In practice this isn't a problem as so there are so few elements in `display->registry_entry`,
  * so few use update functions and adding/removal at runtime is rarely called (plugging/unplugging)
  * hardware for e.g. So while it's possible to store dependency links to avoid unnecessary
- * looping over data - so it ends up being a non issue.
+ * looping over data - it ends up being a non issue.
  */
 static void gwl_registry_entry_update_all(GWL_Display *display, const int interface_slot_exclude)
 {
