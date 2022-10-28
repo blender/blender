@@ -149,6 +149,7 @@ def get_effective_preview_denoiser(context):
 
     return 'OIDN'
 
+
 def use_mnee(context):
     # The MNEE kernel doesn't compile on macOS < 13.
     if use_metal(context):
@@ -157,6 +158,7 @@ def use_mnee(context):
         if float(v) < 13.0:
             return False
     return True
+
 
 class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_label = "Sampling"
