@@ -1672,15 +1672,14 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
                                          size_t *r_len)
 {
   int pipefd[2];
-  if (UNLIKELY(pipe(pipefd) != 0)) {
-    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
-    if (mutex) {
-      mutex->unlock();
-    }
-    return nullptr;
+  const bool pipefd_ok = pipe(pipefd) == 0;
+  if (pipefd_ok) {
+    wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
+    close(pipefd[1]);
   }
-  wl_data_offer_receive(data_offer->id, mime_receive, pipefd[1]);
-  close(pipefd[1]);
+  else {
+    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+  }
 
   /* Only for DND (A no-op to disable for clipboard data-offer). */
   data_offer->dnd.in_use = false;
@@ -1689,9 +1688,11 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
     mutex->unlock();
   }
   /* WARNING: `data_offer` may be freed from now on. */
-
-  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
-  close(pipefd[0]);
+  char *buf = nullptr;
+  if (pipefd_ok) {
+    buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+    close(pipefd[0]);
+  }
   return buf;
 }
 
@@ -1702,22 +1703,24 @@ static char *read_buffer_from_primary_selection_offer(GWL_PrimarySelection_DataO
                                                       size_t *r_len)
 {
   int pipefd[2];
-  if (UNLIKELY(pipe(pipefd) != 0)) {
-    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
-    if (mutex) {
-      mutex->unlock();
-    }
-    return nullptr;
+  const bool pipefd_ok = pipe(pipefd) == 0;
+  if (pipefd_ok) {
+    zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
+    close(pipefd[1]);
   }
-  zwp_primary_selection_offer_v1_receive(data_offer->id, mime_receive, pipefd[1]);
-  close(pipefd[1]);
+  else {
+    CLOG_WARN(LOG, "error creating pipe: %s", std::strerror(errno));
+  }
 
   if (mutex) {
     mutex->unlock();
   }
   /* WARNING: `data_offer` may be freed from now on. */
-  char *buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
-  close(pipefd[0]);
+  char *buf = nullptr;
+  if (pipefd_ok) {
+    buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+    close(pipefd[0]);
+  }
   return buf;
 }
 
