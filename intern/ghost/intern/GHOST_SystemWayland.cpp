@@ -1268,7 +1268,7 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
 
 static const int default_cursor_size = 24;
 
-static const std::unordered_map<GHOST_TStandardCursor, const char *> cursors = {
+static const std::unordered_map<GHOST_TStandardCursor, const char *> ghost_wl_cursors = {
     {GHOST_kStandardCursorDefault, "left_ptr"},
     {GHOST_kStandardCursorRightArrow, "right_ptr"},
     {GHOST_kStandardCursorLeftArrow, "left_ptr"},
@@ -1309,23 +1309,23 @@ static const std::unordered_map<GHOST_TStandardCursor, const char *> cursors = {
     {GHOST_kStandardCursorCopy, "copy"},
 };
 
-static constexpr const char *mime_text_plain = "text/plain";
-static constexpr const char *mime_text_utf8 = "text/plain;charset=utf-8";
-static constexpr const char *mime_text_uri = "text/uri-list";
+static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
+static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
+static constexpr const char *ghost_wl_mime_text_uri = "text/uri-list";
 
-static const char *mime_preference_order[] = {
-    mime_text_uri,
-    mime_text_utf8,
-    mime_text_plain,
+static const char *ghost_wl_mime_preference_order[] = {
+    ghost_wl_mime_text_uri,
+    ghost_wl_mime_text_utf8,
+    ghost_wl_mime_text_plain,
 };
-/* Aligned to `mime_preference_order`. */
-static const GHOST_TDragnDropTypes mime_preference_order_ghost[] = {
+/* Aligned to `ghost_wl_mime_preference_order`. */
+static const GHOST_TDragnDropTypes ghost_wl_mime_preference_order_type[] = {
     GHOST_kDragnDropTypeString,
     GHOST_kDragnDropTypeString,
     GHOST_kDragnDropTypeFilenames,
 };
 
-static const char *mime_send[] = {
+static const char *ghost_wl_mime_send[] = {
     "UTF8_STRING",
     "COMPOUND_TEXT",
     "TEXT",
@@ -1584,8 +1584,8 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
     };
 
     const uint64_t time = seat->system->getMilliSeconds();
-    for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order_ghost); i++) {
-      const GHOST_TDragnDropTypes type = mime_preference_order_ghost[i];
+    for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order_type); i++) {
+      const GHOST_TDragnDropTypes type = ghost_wl_mime_preference_order_type[i];
       seat->system->pushEvent(
           new GHOST_EventDragnDrop(time, event, type, win, UNPACK2(event_xy), nullptr));
     }
@@ -1915,8 +1915,8 @@ static void data_device_handle_enter(void *data,
                                 WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE,
                             WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
 
-  for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order); i++) {
-    const char *type = mime_preference_order[i];
+  for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order); i++) {
+    const char *type = ghost_wl_mime_preference_order[i];
     wl_data_offer_accept(id, serial, type);
   }
 
@@ -1971,8 +1971,8 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
    * NOTE: this string can be compared with `mime_text_plain`, `mime_text_uri` etc...
    * as the this always points to the same values. */
   const char *mime_receive = "";
-  for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order); i++) {
-    const char *type = mime_preference_order[i];
+  for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order); i++) {
+    const char *type = ghost_wl_mime_preference_order[i];
     if (data_offer->types.count(type)) {
       mime_receive = type;
       break;
@@ -2006,7 +2006,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
     GHOST_SystemWayland *const system = seat->system;
 
-    if (mime_receive == mime_text_uri) {
+    if (mime_receive == ghost_wl_mime_text_uri) {
       static constexpr const char *file_proto = "file://";
       /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
        * So support both, once `\n` is found, strip the preceding `\r` if found. */
@@ -2051,7 +2051,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
                                                  wl_fixed_to_int(scale * xy[1]),
                                                  flist));
     }
-    else if (ELEM(mime_receive, mime_text_plain, mime_text_utf8)) {
+    else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
       /* TODO: enable use of internal functions 'txt_insert_buf' and
        * 'text_update_edited' to behave like dropped text was pasted. */
       CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
@@ -5040,7 +5040,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 static const char *system_clipboard_text_mime_type(
     const std::unordered_set<std::string> &data_offer_types)
 {
-  const char *ghost_supported_types[] = {mime_text_utf8, mime_text_plain};
+  const char *ghost_supported_types[] = {ghost_wl_mime_text_utf8, ghost_wl_mime_text_plain};
   for (size_t i = 0; i < ARRAY_SIZE(ghost_supported_types); i++) {
     if (data_offer_types.count(ghost_supported_types[i])) {
       return ghost_supported_types[i];
@@ -5182,8 +5182,8 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
   zwp_primary_selection_source_v1_add_listener(
       data_source->wp_source, &primary_selection_source_listener, primary);
 
-  for (size_t i = 0; i < ARRAY_SIZE(mime_send); i++) {
-    zwp_primary_selection_source_v1_offer(data_source->wp_source, mime_send[i]);
+  for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_send); i++) {
+    zwp_primary_selection_source_v1_offer(data_source->wp_source, ghost_wl_mime_send[i]);
   }
 
   if (seat->wp_primary_selection_device) {
@@ -5211,8 +5211,8 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
 
   wl_data_source_add_listener(data_source->wl_source, &data_source_listener, seat);
 
-  for (size_t i = 0; i < ARRAY_SIZE(mime_send); i++) {
-    wl_data_source_offer(data_source->wl_source, mime_send[i]);
+  for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_send); i++) {
+    wl_data_source_offer(data_source->wl_source, ghost_wl_mime_send[i]);
   }
 
   if (seat->wl_data_device) {
@@ -5680,9 +5680,9 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
   if (UNLIKELY(display_->seats.empty())) {
     return GHOST_kFailure;
   }
-  auto cursor_find = cursors.find(shape);
-  const char *cursor_name = (cursor_find == cursors.end()) ?
-                                cursors.at(GHOST_kStandardCursorDefault) :
+  auto cursor_find = ghost_wl_cursors.find(shape);
+  const char *cursor_name = (cursor_find == ghost_wl_cursors.end()) ?
+                                ghost_wl_cursors.at(GHOST_kStandardCursorDefault) :
                                 (*cursor_find).second;
 
   GWL_Seat *seat = display_->seats[0];
@@ -5719,8 +5719,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
 
 GHOST_TSuccess GHOST_SystemWayland::hasCursorShape(const GHOST_TStandardCursor cursorShape)
 {
-  auto cursor_find = cursors.find(cursorShape);
-  if (cursor_find == cursors.end()) {
+  auto cursor_find = ghost_wl_cursors.find(cursorShape);
+  if (cursor_find == ghost_wl_cursors.end()) {
     return GHOST_kFailure;
   }
   const char *value = (*cursor_find).second;
