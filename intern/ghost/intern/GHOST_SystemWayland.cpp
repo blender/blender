@@ -2429,10 +2429,11 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
           wl_fixed_to_int(scale * seat->pointer.xy[0]),
           wl_fixed_to_int(scale * seat->pointer.xy[1]),
           /* NOTE: scaling the delta doesn't seem necessary.
-           * NOTE: inverting delta gives correct results, see: QTBUG-85767. */
+           * NOTE: inverting delta gives correct results, see: QTBUG-85767.
+           * NOTE: the preference to invert scrolling (in GNOME at least)
+           * has already been applied so there is no need to read this preference. */
           -wl_fixed_to_int(seat->pointer_scroll.smooth_xy[0]),
           -wl_fixed_to_int(seat->pointer_scroll.smooth_xy[1]),
-          /* TODO: investigate a way to request this configuration from the system. */
           false));
     }
 
@@ -2552,6 +2553,18 @@ static void gesture_pinch_handle_begin(void *data,
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
+  /* NOTE(@campbellbarton): Blender's use of track-pad coordinates is inconsistent and needs work.
+   * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
+   * Some operators scale by the UI scale, some don't.
+   * Even this window scale is not correct because it doesn't account for:
+   * 1) Fractional window scale.
+   * 2) Blender's UI scale preference (which GHOST doesn't know about).
+   *
+   * If support for this were all that was needed it could be handled in GHOST,
+   * however as the operators are not even using coordinates compatible with each other,
+   * it would be better to resolve this by passing rotation & zoom levels directly,
+   * instead of attempting to handle them as cursor coordinates.
+   */
   const wl_fixed_t win_scale = win ? win->scale() : 1;
 
   /* NOTE(@campbellbarton): Scale factors match Blender's operators & default preferences.
@@ -4304,6 +4317,8 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
                                           void *user_data,
                                           const bool /*on_exit*/)
 {
+  /* While windows & cursors hold references to outputs, there is no need to manually remove
+   * these references as the compositor will remove references via #wl_surface_listener.leave. */
   GWL_Output *output = static_cast<GWL_Output *>(user_data);
   wl_output_destroy(output->wl_output);
   std::vector<GWL_Output *>::iterator iter = std::find(
@@ -4841,9 +4856,9 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     struct wl_registry *registry = wl_display_get_registry(display_->wl_display);
     display_->wl_registry = registry;
     wl_registry_add_listener(registry, &registry_listener, display_);
-    /* Call callback for registry listener. */
+    /* First round-trip to receive all registry objects. */
     wl_display_roundtrip(display_->wl_display);
-    /* Call callbacks for registered listeners. */
+    /* Second round-trip to receive all output events. */
     wl_display_roundtrip(display_->wl_display);
 
     /* Account for dependencies between interfaces. */
