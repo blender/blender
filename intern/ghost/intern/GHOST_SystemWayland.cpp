@@ -4370,6 +4370,9 @@ static void gwl_registry_wl_seat_update(GWL_Display *display,
       zwp_tablet_seat_v2_add_listener(seat->wp_tablet_seat, &tablet_seat_listener, seat);
     }
   }
+  else {
+    seat->wp_tablet_seat = nullptr;
+  }
 
   if (display->wp_primary_selection_device_manager) {
     if (seat->wp_primary_selection_device == nullptr) {
