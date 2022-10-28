@@ -1307,19 +1307,19 @@ static constexpr const char *mime_text_plain = "text/plain";
 static constexpr const char *mime_text_utf8 = "text/plain;charset=utf-8";
 static constexpr const char *mime_text_uri = "text/uri-list";
 
-static const std::unordered_map<std::string, GHOST_TDragnDropTypes> mime_dnd = {
-    {mime_text_plain, GHOST_kDragnDropTypeString},
-    {mime_text_utf8, GHOST_kDragnDropTypeString},
-    {mime_text_uri, GHOST_kDragnDropTypeFilenames},
-};
-
-static const std::vector<std::string> mime_preference_order = {
+static const char *mime_preference_order[] = {
     mime_text_uri,
     mime_text_utf8,
     mime_text_plain,
 };
+/* Aligned to `mime_preference_order`. */
+static const GHOST_TDragnDropTypes mime_preference_order_ghost[] = {
+    GHOST_kDragnDropTypeString,
+    GHOST_kDragnDropTypeString,
+    GHOST_kDragnDropTypeFilenames,
+};
 
-static const std::vector<std::string> mime_send = {
+static const char *mime_send[] = {
     "UTF8_STRING",
     "COMPOUND_TEXT",
     "TEXT",
@@ -1578,9 +1578,10 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
     };
 
     const uint64_t time = seat->system->getMilliSeconds();
-    for (const std::string &type : mime_preference_order) {
-      seat->system->pushEvent(new GHOST_EventDragnDrop(
-          time, event, mime_dnd.at(type), win, UNPACK2(event_xy), nullptr));
+    for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order_ghost); i++) {
+      const GHOST_TDragnDropTypes type = mime_preference_order_ghost[i];
+      seat->system->pushEvent(
+          new GHOST_EventDragnDrop(time, event, type, win, UNPACK2(event_xy), nullptr));
     }
   }
 }
@@ -1908,8 +1909,9 @@ static void data_device_handle_enter(void *data,
                                 WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE,
                             WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
 
-  for (const std::string &type : mime_preference_order) {
-    wl_data_offer_accept(id, serial, type.c_str());
+  for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order); i++) {
+    const char *type = mime_preference_order[i];
+    wl_data_offer_accept(id, serial, type);
   }
 
   seat->wl_surface_focus_dnd = wl_surface;
@@ -1957,27 +1959,35 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
   GWL_DataOffer *data_offer = seat->data_offer_dnd;
 
-  const std::string mime_receive = *std::find_first_of(mime_preference_order.begin(),
-                                                       mime_preference_order.end(),
-                                                       data_offer->types.begin(),
-                                                       data_offer->types.end());
+  /* Use a blank string for  `mime_receive` to prevent crashes, although could also be `nullptr`.
+   * Failure to set this to a known type just means the file won't have any special handling.
+   * GHOST still generates a dropped file event.
+   * NOTE: this string can be compared with `mime_text_plain`, `mime_text_uri` etc...
+   * as the this always points to the same values. */
+  const char *mime_receive = "";
+  for (size_t i = 0; i < ARRAY_SIZE(mime_preference_order); i++) {
+    const char *type = mime_preference_order[i];
+    if (data_offer->types.count(type)) {
+      mime_receive = type;
+      break;
+    }
+  }
 
-  CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive.c_str());
+  CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive);
 
   auto read_uris_fn = [](GWL_Seat *const seat,
                          GWL_DataOffer *data_offer,
                          wl_surface *wl_surface,
-                         const std::string mime_receive) {
+                         const char *mime_receive) {
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
-        data_offer, mime_receive.c_str(), nullptr, false, &data_buf_len);
+        data_offer, mime_receive, nullptr, false, &data_buf_len);
     std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
     free(const_cast<char *>(data_buf));
 
-    CLOG_INFO(
-        LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive.c_str(), data.c_str());
+    CLOG_INFO(LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive, data.c_str());
 
     wl_data_offer_finish(data_offer->id);
     wl_data_offer_destroy(data_offer->id);
@@ -5166,8 +5176,8 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
   zwp_primary_selection_source_v1_add_listener(
       data_source->wp_source, &primary_selection_source_listener, primary);
 
-  for (const std::string &type : mime_send) {
-    zwp_primary_selection_source_v1_offer(data_source->wp_source, type.c_str());
+  for (size_t i = 0; i < ARRAY_SIZE(mime_send); i++) {
+    zwp_primary_selection_source_v1_offer(data_source->wp_source, mime_send[i]);
   }
 
   if (seat->wp_primary_selection_device) {
@@ -5195,8 +5205,8 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
 
   wl_data_source_add_listener(data_source->wl_source, &data_source_listener, seat);
 
-  for (const std::string &type : mime_send) {
-    wl_data_source_offer(data_source->wl_source, type.c_str());
+  for (size_t i = 0; i < ARRAY_SIZE(mime_send); i++) {
+    wl_data_source_offer(data_source->wl_source, mime_send[i]);
   }
 
   if (seat->wl_data_device) {
