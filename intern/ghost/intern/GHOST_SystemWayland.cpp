@@ -777,13 +777,14 @@ struct GWL_Display {
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
 
+  /* Managers. */
   struct wl_data_device_manager *wl_data_device_manager = nullptr;
   struct zwp_tablet_manager_v2 *wp_tablet_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *wp_relative_pointer_manager = nullptr;
+  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
+
   struct zwp_pointer_constraints_v1 *wp_pointer_constraints = nullptr;
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures = nullptr;
-
-  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
 };
 
 /**

@@ -385,9 +385,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       "${WAYLAND_PROTOCOLS_DIR}/unstable/primary-selection/primary-selection-unstable-v1.xml"
     )
 
-    add_definitions(-DWITH_GHOST_WAYLAND)
-
     unset(INC_DST)
+
+    add_definitions(-DWITH_GHOST_WAYLAND)
   endif()
 
   if(WITH_INPUT_NDOF)
