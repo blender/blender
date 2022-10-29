@@ -464,6 +464,7 @@ NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, const bool is_libo
      */
     nlt = BKE_nlatrack_add(adt, NULL, is_liboverride);
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
+    BLI_strncpy(nlt->name, act->id.name + 2, sizeof(nlt->name));
   }
 
   /* automatically name it too */
