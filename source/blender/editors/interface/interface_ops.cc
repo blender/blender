@@ -1859,8 +1859,7 @@ static void edittranslation_find_po_file(const char *root,
 
   /* First, full lang code. */
   BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
-  BLI_path_join(path, maxlen, root, uilng);
-  BLI_path_append(path, maxlen, tstr);
+  BLI_path_join(path, maxlen, root, uilng, tstr);
   if (BLI_is_file(path)) {
     return;
   }

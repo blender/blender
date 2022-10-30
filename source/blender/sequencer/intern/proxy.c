@@ -585,8 +585,7 @@ void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir)
   char fname[FILE_MAXFILE];
 
   IMB_anim_get_fname(anim, fname, FILE_MAXFILE);
-  BLI_strncpy(dir, base_dir, sizeof(dir));
-  BLI_path_append(dir, sizeof(dir), fname);
+  BLI_path_join(dir, sizeof(dir), base_dir, fname);
   IMB_anim_set_index_dir(anim, dir);
 }
 
