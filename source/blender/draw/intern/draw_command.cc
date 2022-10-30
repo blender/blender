@@ -30,6 +30,11 @@ void ShaderBind::execute(RecordingState &state) const
   }
 }
 
+void FramebufferBind::execute() const
+{
+  GPU_framebuffer_bind(framebuffer);
+}
+
 void ResourceBind::execute() const
 {
   if (slot == -1) {
@@ -227,6 +232,11 @@ void StencilSet::execute() const
 std::string ShaderBind::serialize() const
 {
   return std::string(".shader_bind(") + GPU_shader_get_name(shader) + ")";
+}
+
+std::string FramebufferBind::serialize() const
+{
+  return std::string(".framebuffer_bind(") + GPU_framebuffer_get_name(framebuffer) + ")";
 }
 
 std::string ResourceBind::serialize() const

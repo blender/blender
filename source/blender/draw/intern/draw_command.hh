@@ -88,6 +88,7 @@ enum class Type : uint8_t {
   DispatchIndirect,
   Draw,
   DrawIndirect,
+  FramebufferBind,
   PushConstant,
   ResourceBind,
   ShaderBind,
@@ -115,6 +116,13 @@ struct ShaderBind {
   GPUShader *shader;
 
   void execute(RecordingState &state) const;
+  std::string serialize() const;
+};
+
+struct FramebufferBind {
+  GPUFrameBuffer *framebuffer;
+
+  void execute() const;
   std::string serialize() const;
 };
 

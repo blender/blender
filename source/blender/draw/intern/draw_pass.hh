@@ -14,8 +14,7 @@
  * #Pass. Use many #PassSub along with a main #Pass to reduce the overhead and allow groupings of
  * commands. \note The draw call order inside a batch of multiple draw with the exact same state is
  * not guaranteed and is not even deterministic. Use a #PassSimple or #PassSortable if ordering is
- * needed. \note As of now, it is also quite limited in the type of draw command it can record
- * (no custom vertex count, no custom first vertex).
+ * needed. Custom vertex count and custom first vertex will effectively disable batching.
  *
  * `PassSimple`:
  * Does not have the overhead of #PassMain but does not have the culling and batching optimization.
@@ -190,6 +189,12 @@ class PassBase {
    * Bind a shader. Any following bind() or push_constant() call will use its interface.
    */
   void shader_set(GPUShader *shader);
+
+  /**
+   * Bind a framebuffer. This is equivalent to a deferred GPU_framebuffer_bind() call.
+   * \note Changes the global GPU state (outside of DRW).
+   */
+  void framebuffer_set(GPUFrameBuffer *framebuffer);
 
   /**
    * Bind a material shader along with its associated resources. Any following bind() or
@@ -741,6 +746,11 @@ template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)
 {
   shader_ = shader;
   create_command(Type::ShaderBind).shader_bind = {shader};
+}
+
+template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer *framebuffer)
+{
+  create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
 }
 
 template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMaterial *material)

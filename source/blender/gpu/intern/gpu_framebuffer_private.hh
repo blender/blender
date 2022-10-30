@@ -204,6 +204,11 @@ class FrameBuffer {
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
   };
+
+  inline const char *const name_get() const
+  {
+    return name_;
+  };
 };
 
 /* Syntactic sugar. */
