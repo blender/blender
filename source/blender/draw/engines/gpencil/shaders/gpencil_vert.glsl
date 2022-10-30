@@ -85,7 +85,7 @@ void main()
   }
   else {
     int stroke_point_id = gpencil_stroke_point_id();
-    vec4 uv1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 2);
+    vec4 uv1 = texelFetch(gp_pos_tx, stroke_point_id * 3 + 2);
     vec4 fcol1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 1);
     vec4 fill_col = gp_mat.fill_color;
 
