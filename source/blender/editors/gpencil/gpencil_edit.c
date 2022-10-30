@@ -3848,7 +3848,12 @@ static int gpencil_stroke_start_set_exec(bContext *C, wmOperator *op)
             for (int i = 0; i < gps->totpoints; i++) {
               pt = &gps->points[i];
               if (pt->flag & GP_SPOINT_SELECT) {
-                BKE_gpencil_stroke_start_set(gps, i);
+                if (i == gps->totpoints - 1) {
+                  BKE_gpencil_stroke_flip(gps);
+                }
+                else {
+                  BKE_gpencil_stroke_start_set(gps, i);
+                }
                 BKE_gpencil_stroke_geometry_update(gpd, gps);
                 changed = true;
                 break;
