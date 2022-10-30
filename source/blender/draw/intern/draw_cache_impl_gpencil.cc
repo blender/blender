@@ -319,7 +319,7 @@ static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
 
   vert->strength = (round_cap0) ? pt->strength : -pt->strength;
   vert->u_stroke = pt->uv_fac;
-  vert->stroke_id = gps->runtime.stroke_start;
+  vert->stroke_id = gps->runtime.vertex_start;
   vert->point_id = v;
   vert->thickness = max_ff(0.0f, gps->thickness * pt->pressure) * (round_cap1 ? 1.0f : -1.0f);
   /* Tag endpoint material to -1 so they get discarded by vertex shader. */
