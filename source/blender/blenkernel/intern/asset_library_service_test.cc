@@ -118,7 +118,7 @@ TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
     asset_lib_no_slash[strlen(asset_lib_no_slash) - 1] = '\0';
   }
 
-  BLI_path_slash_ensure(asset_lib_with_slash);
+  BLI_path_slash_ensure(asset_lib_with_slash, PATH_MAX);
 
   AssetLibrary *const lib_no_slash = service->get_asset_library_on_disk(asset_lib_no_slash);
 

@@ -1317,7 +1317,7 @@ static int ptcache_path(PTCacheID *pid, char *dirname)
       BLI_path_abs(dirname, blendfilename);
     }
 
-    return BLI_path_slash_ensure(dirname); /* new strlen() */
+    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
   }
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
@@ -1334,14 +1334,14 @@ static int ptcache_path(PTCacheID *pid, char *dirname)
     BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
 
     BLI_path_abs(dirname, blendfilename);
-    return BLI_path_slash_ensure(dirname); /* new strlen() */
+    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
   }
 
   /* use the temp path. this is weak but better than not using point cache at all */
   /* temporary directory is assumed to exist and ALWAYS has a trailing slash */
   BLI_snprintf(dirname, MAX_PTCACHE_PATH, "%s" PTCACHE_PATH, BKE_tempdir_session());
 
-  return BLI_path_slash_ensure(dirname); /* new strlen() */
+  return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
 }
 
 static size_t ptcache_filepath_ext_append(PTCacheID *pid,

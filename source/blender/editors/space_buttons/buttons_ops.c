@@ -205,7 +205,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
     if (BLI_is_dir(path)) {
       /* Do this first so '//' isn't converted to '//\' on windows. */
-      BLI_path_slash_ensure(path);
+      BLI_path_slash_ensure(path, sizeof(path));
       if (is_relative) {
         BLI_path_rel(path, BKE_main_blendfile_path(bmain));
         str_len = strlen(path);

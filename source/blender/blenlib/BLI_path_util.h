@@ -218,7 +218,7 @@ const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UN
  * Appends a slash to string if there isn't one there already.
  * Returns the new length of the string.
  */
-int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
+int BLI_path_slash_ensure(char *string, size_t string_maxlen) ATTR_NONNULL(1);
 /**
  * Removes the last slash and everything after it to the end of string, if there is one.
  */
@@ -314,7 +314,7 @@ void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
 
 /**
  * Make given name safe to be used in paths.

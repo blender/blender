@@ -44,7 +44,7 @@ std::string normalize_directory_path(StringRefNull directory)
 
   char dir_normalized[PATH_MAX];
   STRNCPY(dir_normalized, directory.c_str());
-  BLI_path_normalize_dir(nullptr, dir_normalized);
+  BLI_path_normalize_dir(nullptr, dir_normalized, sizeof(dir_normalized));
   return std::string(dir_normalized);
 }
 }  // namespace

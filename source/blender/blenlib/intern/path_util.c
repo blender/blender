@@ -218,7 +218,7 @@ void BLI_path_normalize(const char *relabase, char *path)
 #endif
 }
 
-void BLI_path_normalize_dir(const char *relabase, char *dir)
+void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen)
 {
   /* Would just create an unexpected "/" path, just early exit entirely. */
   if (dir[0] == '\0') {
@@ -226,7 +226,7 @@ void BLI_path_normalize_dir(const char *relabase, char *dir)
   }
 
   BLI_path_normalize(relabase, dir);
-  BLI_path_slash_ensure(dir);
+  BLI_path_slash_ensure(dir, dir_maxlen);
 }
 
 bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens)
@@ -1624,7 +1624,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
 
   /* Add a trailing slash to prevent same-prefix directories from matching.
    * e.g. "/some/path" doesn't contain "/some/path_lib". */
-  BLI_path_slash_ensure(container_native);
+  BLI_path_slash_ensure(container_native, sizeof(container_native));
 
   return BLI_str_startswith(containee_native, container_native);
 }
@@ -1659,13 +1659,17 @@ const char *BLI_path_slash_rfind(const char *string)
   return (lfslash > lbslash) ? lfslash : lbslash;
 }
 
-int BLI_path_slash_ensure(char *string)
+int BLI_path_slash_ensure(char *string, size_t string_maxlen)
 {
   int len = strlen(string);
+  BLI_assert(len < string_maxlen);
   if (len == 0 || string[len - 1] != SEP) {
-    string[len] = SEP;
-    string[len + 1] = '\0';
-    return len + 1;
+    /* Avoid unlikely buffer overflow. */
+    if (len + 1 < string_maxlen) {
+      string[len] = SEP;
+      string[len + 1] = '\0';
+      return len + 1;
+    }
   }
   return len;
 }
