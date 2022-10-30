@@ -202,8 +202,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
         }
         else {
           BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
-          strcat(params->dir, file->relpath);
-          BLI_path_slash_ensure(params->dir, sizeof(params->dir));
+          BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
         }
 
         ED_file_change_dir(C);
@@ -1797,8 +1796,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     }
     else {
       BLI_path_normalize(BKE_main_blendfile_path(bmain), params->dir);
-      BLI_path_append(params->dir, sizeof(params->dir), file->relpath);
-      BLI_path_slash_ensure(params->dir, sizeof(params->dir));
+      BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
     }
     ED_file_change_dir(C);
   }

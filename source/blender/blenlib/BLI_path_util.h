@@ -68,8 +68,15 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
 
 /**
  * Append a filename to a dir, ensuring slash separates.
+ * \return The new length of `dst`.
  */
-void BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
+size_t BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
+    ATTR_NONNULL();
+/**
+ * A version of #BLI_path_append that ensures a trailing slash if there is space in `dst`.
+ * \return The new length of `dst`.
+ */
+size_t BLI_path_append_dir(char *__restrict dst, size_t maxlen, const char *__restrict dir)
     ATTR_NONNULL();
 
 /**

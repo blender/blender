@@ -1431,21 +1431,34 @@ const char *BLI_path_extension(const char *filepath)
   return extension;
 }
 
-void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
+size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
 {
   size_t dirlen = BLI_strnlen(dst, maxlen);
 
-  /* inline BLI_path_slash_ensure */
+  /* Inline #BLI_path_slash_ensure. */
   if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }
 
   if (dirlen >= maxlen) {
-    return; /* fills the path */
+    return dirlen; /* fills the path */
   }
 
-  BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
+  return dirlen + BLI_strncpy_rlen(dst + dirlen, file, maxlen - dirlen);
+}
+
+size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char *__restrict dir)
+{
+  size_t dirlen = BLI_path_append(dst, maxlen, dir);
+  if (dirlen + 1 < maxlen) {
+    /* Inline #BLI_path_slash_ensure. */
+    if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+      dst[dirlen++] = SEP;
+      dst[dirlen] = '\0';
+    }
+  }
+  return dirlen;
 }
 
 size_t BLI_path_join_array(char *__restrict dst,
