@@ -1564,7 +1564,13 @@ void file_sfile_to_operator_ex(
   PropertyRNA *prop;
 
   /* XXX, not real length */
-  BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
+  if (params->file[0]) {
+    BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
+  }
+  else {
+    BLI_strncpy(filepath, params->dir, FILE_MAX - 1);
+    BLI_path_slash_ensure(filepath);
+  }
 
   if ((prop = RNA_struct_find_property(op->ptr, "relative_path"))) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
