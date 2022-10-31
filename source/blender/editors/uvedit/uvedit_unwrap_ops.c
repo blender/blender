@@ -1774,8 +1774,8 @@ static void uv_map_clip_correct(const Scene *scene,
       dy = 1.0f / dy;
     }
 
-    if (dx == 1.0f && dy == 1.0f) {
-      /* Scaling by 1.0 has no effect. */
+    if (dx == 1.0f && dy == 1.0f && min[0] == 0.0f && min[1] == 0.0f) {
+      /* Scaling by 1.0, without translating, has no effect. */
       return;
     }
 
