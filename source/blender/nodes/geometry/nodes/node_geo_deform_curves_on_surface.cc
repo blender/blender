@@ -310,7 +310,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                                              ATTR_DOMAIN_CORNER);
   const VArraySpan<float3> rest_positions = mesh_attributes_eval.lookup<float3>(rest_position_name,
                                                                                 ATTR_DOMAIN_POINT);
-  const Span<float2> surface_uv_coords = curves.surface_uv_coords();
+  const VArraySpan<float2> surface_uv_coords = curves.attributes().lookup_or_default(
+      "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
 
   const Span<MLoopTri> looptris_orig = surface_mesh_orig->looptris();
   const Span<MLoopTri> looptris_eval = surface_mesh_eval->looptris();
@@ -379,7 +380,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                   invalid_uv_count);
     /* Then also deform edit curve information for use in sculpt mode. */
     const CurvesGeometry &curves_orig = CurvesGeometry::wrap(edit_hints->curves_id_orig.geometry);
-    const Span<float2> surface_uv_coords_orig = curves_orig.surface_uv_coords();
+    const VArraySpan<float2> surface_uv_coords_orig = curves_orig.attributes().lookup_or_default(
+        "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {
       deform_curves(curves_orig,
                     *surface_mesh_orig,
