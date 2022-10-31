@@ -776,6 +776,18 @@ struct GWL_Display {
   struct wl_shm *wl_shm = nullptr;
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
+  /**
+   * Support a single active seat at once, this isn't an exact or correct mapping from WAYLAND.
+   * Only allow input from different seats, not full concurrent multi-seat support.
+   *
+   * The main purpose of having an active seat is an alternative from always using the first
+   * seat which prevents events from any other seat.
+   *
+   * NOTE(@campbellbarton): This could be extended and developed further extended to support
+   * an active seat per window (for e.g.), basic support is sufficient for now as currently isn't
+   * a widely used feature.
+   */
+  int seats_active_index = 0;
 
   /* Managers. */
   struct wl_data_device_manager *wl_data_device_manager = nullptr;
@@ -828,6 +840,37 @@ static void gwl_display_destroy(GWL_Display *display)
   }
 
   delete display;
+}
+
+static int gwl_display_seat_index(GWL_Display *display, const GWL_Seat *seat)
+{
+  std::vector<GWL_Seat *>::iterator iter = std::find(
+      display->seats.begin(), display->seats.end(), seat);
+  const int index = (iter != display->seats.cend()) ? std::distance(display->seats.begin(), iter) :
+                                                      -1;
+  GHOST_ASSERT(index != -1, "invalid internal state");
+  return index;
+}
+
+static GWL_Seat *gwl_display_seat_active_get(const GWL_Display *display)
+{
+  if (UNLIKELY(display->seats.empty())) {
+    return nullptr;
+  }
+  return display->seats[display->seats_active_index];
+}
+
+static bool gwl_display_seat_active_set(GWL_Display *display, const GWL_Seat *seat)
+{
+  if (UNLIKELY(display->seats.empty())) {
+    return false;
+  }
+  const int index = gwl_display_seat_index(display, seat);
+  if (index == display->seats_active_index) {
+    return false;
+  }
+  display->seats_active_index = index;
+  return true;
 }
 
 /** \} */
@@ -1925,6 +1968,9 @@ static void data_device_handle_enter(void *data,
   }
 
   seat->wl_surface_focus_dnd = wl_surface;
+
+  seat->system->seat_active_set(seat);
+
   dnd_events(seat, GHOST_kEventDraggingEntered);
 }
 
@@ -2255,6 +2301,8 @@ static void pointer_handle_enter(void *data,
   seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 
   seat->pointer.wl_surface = wl_surface;
+
+  seat->system->seat_active_set(seat);
 
   win->setCursorShape(win->getCursorShape());
 
@@ -2900,6 +2948,8 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   seat->data_source_serial = serial;
 
+  seat->system->seat_active_set(seat);
+
   /* Update #GHOST_TabletData. */
   GHOST_TabletData &td = tablet_tool->data;
   /* Reset, to avoid using stale tilt/pressure. */
@@ -3285,6 +3335,8 @@ static void keyboard_handle_enter(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->keyboard.serial = serial;
   seat->keyboard.wl_surface = wl_surface;
+
+  seat->system->seat_active_set(seat);
 
   /* If there are any keys held when activating the window,
    * modifiers will be compared against the seat state,
@@ -4472,6 +4524,9 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   GHOST_ASSERT(index != -1, "invalid internal state");
 
   if (!on_exit) {
+    if (display->seats_active_index >= index) {
+      display->seats_active_index -= 1;
+    }
     display->seats.erase(display->seats.begin() + index);
   }
   delete seat;
@@ -4980,11 +5035,10 @@ bool GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*acti
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-
-  GWL_Seat *seat = display_->seats[0];
 
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
@@ -5042,10 +5096,10 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
@@ -5073,7 +5127,10 @@ static const char *system_clipboard_text_mime_type(
 
 static char *system_clipboard_get_primary_selection(GWL_Display *display)
 {
-  GWL_Seat *seat = display->seats[0];
+  GWL_Seat *seat = gwl_display_seat_active_get(display);
+  if (UNLIKELY(!seat)) {
+    return nullptr;
+  }
   GWL_PrimarySelection *primary = &seat->primary_selection;
   std::mutex &mutex = primary->data_offer_mutex;
 
@@ -5120,7 +5177,10 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display)
 
 static char *system_clipboard_get(GWL_Display *display)
 {
-  GWL_Seat *seat = display->seats[0];
+  GWL_Seat *seat = gwl_display_seat_active_get(display);
+  if (UNLIKELY(!seat)) {
+    return nullptr;
+  }
   std::mutex &mutex = seat->data_offer_copy_paste_mutex;
 
   mutex.lock();
@@ -5166,10 +5226,6 @@ static char *system_clipboard_get(GWL_Display *display)
 
 char *GHOST_SystemWayland::getClipboard(bool selection) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
-    return nullptr;
-  }
-
   char *data = nullptr;
   if (selection) {
     data = system_clipboard_get_primary_selection(display_);
@@ -5185,7 +5241,10 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
   if (!display->wp_primary_selection_device_manager) {
     return;
   }
-  GWL_Seat *seat = display->seats[0];
+  GWL_Seat *seat = gwl_display_seat_active_get(display);
+  if (UNLIKELY(!seat)) {
+    return;
+  }
   GWL_PrimarySelection *primary = &seat->primary_selection;
 
   std::lock_guard lock{primary->data_source_mutex};
@@ -5219,8 +5278,10 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
   if (!display->wl_data_device_manager) {
     return;
   }
-  GWL_Seat *seat = display->seats[0];
-
+  GWL_Seat *seat = gwl_display_seat_active_get(display);
+  if (UNLIKELY(!seat)) {
+    return;
+  }
   std::lock_guard lock{seat->data_source_mutex};
 
   GWL_DataSource *data_source = seat->data_source;
@@ -5245,10 +5306,6 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
-    return;
-  }
-
   if (selection) {
     system_clipboard_put_primary_selection(display_, buffer);
   }
@@ -5301,10 +5358,10 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_
                                                                     int32_t &x,
                                                                     int32_t &y) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer || !seat_state_pointer->wl_surface) {
     return GHOST_kFailure;
@@ -5317,20 +5374,20 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindo
                                                                     const int32_t x,
                                                                     const int32_t y)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = display_->seats[0];
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(window);
   return setCursorPositionClientRelative_impl(seat, win, x, y);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = display_->seats[0];
   GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
@@ -5345,10 +5402,10 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_Seat *seat = display_->seats[0];
 
   /* Intentionally different from `getCursorPosition` which supports both tablet & pointer.
    * In the case of setting the cursor location, tablets don't support this. */
@@ -5699,7 +5756,8 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor shape)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
   auto cursor_find = ghost_wl_cursors.find(shape);
@@ -5707,7 +5765,6 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
                                 ghost_wl_cursors.at(GHOST_kStandardCursorDefault) :
                                 (*cursor_find).second;
 
-  GWL_Seat *seat = display_->seats[0];
   GWL_Cursor *cursor = &seat->cursor;
 
   if (!cursor->wl_theme) {
@@ -5760,12 +5817,12 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
                                                          const int hotY,
                                                          const bool /*canInvertColor*/)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
 
-  GWL_Cursor *cursor = &display_->seats[0]->cursor;
-
+  GWL_Cursor *cursor = &seat->cursor;
   if (cursor->custom_data) {
     munmap(cursor->custom_data, cursor->custom_data_size);
     cursor->custom_data = nullptr;
@@ -5823,14 +5880,19 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   cursor->wl_image.hotspot_x = uint32_t(hotX);
   cursor->wl_image.hotspot_y = uint32_t(hotY);
 
-  cursor_buffer_set(display_->seats[0], buffer);
+  cursor_buffer_set(seat, buffer);
 
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
 {
-  GWL_Cursor *cursor = &display_->seats[0]->cursor;
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
+    return GHOST_kFailure;
+  }
+
+  GWL_Cursor *cursor = &seat->cursor;
   if (cursor->custom_data == nullptr) {
     return GHOST_kFailure;
   }
@@ -5851,11 +5913,11 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(const bool visible)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
 
-  GWL_Seat *seat = display_->seats[0];
   cursor_visible_set(seat, visible, seat->cursor.is_hardware, CURSOR_VISIBLE_ALWAYS_SET);
   return GHOST_kSuccess;
 }
@@ -5875,12 +5937,12 @@ bool GHOST_SystemWayland::supportsWindowPosition()
 
 bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode)
 {
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return false;
   }
 
 #ifdef USE_GNOME_CONFINE_HACK
-  GWL_Seat *seat = display_->seats[0];
   const bool use_software_confine = seat->use_pointer_software_confine;
 #else
   const bool use_software_confine = false;
@@ -6068,6 +6130,11 @@ GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface)
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
+void GHOST_SystemWayland::seat_active_set(const struct GWL_Seat *seat)
+{
+  gwl_display_seat_active_set(display_, seat);
+}
+
 void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
 {
 #define SURFACE_CLEAR_PTR(surface_test) \
@@ -6099,15 +6166,14 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
     return GHOST_kFailure;
   }
 
-  if (UNLIKELY(display_->seats.empty())) {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
   /* No change, success. */
   if (mode == mode_current) {
     return GHOST_kSuccess;
   }
-
-  GWL_Seat *seat = display_->seats[0];
 
 #ifdef USE_GNOME_CONFINE_HACK
   const bool was_software_confine = seat->use_pointer_software_confine;
