@@ -1563,7 +1563,7 @@ bool BLI_path_name_at_index(const char *__restrict path,
     int i = 0;
     while (true) {
       const char c = path[i];
-      if (ELEM(c, SEP, ALTSEP, '\0')) {
+      if (ELEM(c, SEP, '\0')) {
         if (prev + 1 != i) {
           prev += 1;
           if (index_step == index) {
@@ -1590,7 +1590,7 @@ bool BLI_path_name_at_index(const char *__restrict path,
   int i = prev - 1;
   while (true) {
     const char c = i >= 0 ? path[i] : '\0';
-    if (ELEM(c, SEP, ALTSEP, '\0')) {
+    if (ELEM(c, SEP, '\0')) {
       if (prev - 1 != i) {
         i += 1;
         if (index_step == index) {

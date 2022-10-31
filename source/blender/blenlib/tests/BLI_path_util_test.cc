@@ -72,6 +72,10 @@ TEST(path_util, Clean)
 #define AT_INDEX(str_input, index_input, str_expect) \
   { \
     char path[] = str_input; \
+    /* Test input assumes forward slash, support back-slash on WIN32. */ \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '/', '\\'); \
+    } \
     const char *expect = str_expect; \
     int index_output, len_output; \
     const bool ret = BLI_path_name_at_index(path, index_input, &index_output, &len_output); \
@@ -166,21 +170,21 @@ TEST(path_util, NameAtIndex_MiscNeg)
 TEST(path_util, NameAtIndex_MiscComplex)
 {
   AT_INDEX("how//now/brown/cow", 0, "how");
-  AT_INDEX("//how///now\\/brown/cow", 1, "now");
-  AT_INDEX("/how/now\\//brown\\/cow", 2, "brown");
-  AT_INDEX("/how/now/brown/cow//\\", 3, "cow");
-  AT_INDEX("/how/now/brown/\\cow", 4, nullptr);
-  AT_INDEX("how/now/brown/\\cow\\", 4, nullptr);
+  AT_INDEX("//how///now//brown/cow", 1, "now");
+  AT_INDEX("/how/now///brown//cow", 2, "brown");
+  AT_INDEX("/how/now/brown/cow///", 3, "cow");
+  AT_INDEX("/how/now/brown//cow", 4, nullptr);
+  AT_INDEX("how/now/brown//cow/", 4, nullptr);
 }
 
 TEST(path_util, NameAtIndex_MiscComplexNeg)
 {
   AT_INDEX("how//now/brown/cow", -4, "how");
-  AT_INDEX("//how///now\\/brown/cow", -3, "now");
-  AT_INDEX("/how/now\\//brown\\/cow", -2, "brown");
-  AT_INDEX("/how/now/brown/cow//\\", -1, "cow");
-  AT_INDEX("/how/now/brown/\\cow", -5, nullptr);
-  AT_INDEX("how/now/brown/\\cow\\", -5, nullptr);
+  AT_INDEX("//how///now//brown/cow", -3, "now");
+  AT_INDEX("/how/now///brown//cow", -2, "brown");
+  AT_INDEX("/how/now/brown/cow///", -1, "cow");
+  AT_INDEX("/how/now/brown//cow", -5, nullptr);
+  AT_INDEX("how/now/brown//cow/", -5, nullptr);
 }
 
 TEST(path_util, NameAtIndex_NoneComplex)
