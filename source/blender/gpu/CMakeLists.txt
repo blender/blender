@@ -12,6 +12,7 @@ endif()
 set(INC
   .
   intern
+  vulkan
   metal
   opengl
   ../blenkernel
@@ -184,6 +185,34 @@ set(OPENGL_SRC
   opengl/gl_vertex_buffer.hh
 )
 
+set(VULKAN_SRC
+  vulkan/vk_backend.cc
+  vulkan/vk_batch.cc
+  vulkan/vk_context.cc
+  vulkan/vk_drawlist.cc
+  vulkan/vk_framebuffer.cc
+  vulkan/vk_index_buffer.cc
+  vulkan/vk_query.cc
+  vulkan/vk_shader.cc
+  vulkan/vk_storage_buffer.cc
+  vulkan/vk_texture.cc
+  vulkan/vk_uniform_buffer.cc
+  vulkan/vk_vertex_buffer.cc
+
+  vulkan/vk_backend.hh
+  vulkan/vk_batch.hh
+  vulkan/vk_context.hh
+  vulkan/vk_drawlist.hh
+  vulkan/vk_framebuffer.hh
+  vulkan/vk_index_buffer.hh
+  vulkan/vk_query.hh
+  vulkan/vk_shader.hh
+  vulkan/vk_storage_buffer.hh
+  vulkan/vk_texture.hh
+  vulkan/vk_uniform_buffer.hh
+  vulkan/vk_vertex_buffer.hh
+)
+
 set(METAL_SRC
   metal/mtl_backend.mm
   metal/mtl_batch.mm
@@ -233,6 +262,10 @@ set(METAL_SRC
 # Select Backend source based on availability
 if(WITH_OPENGL)
   list(APPEND SRC ${OPENGL_SRC})
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC ${VULKAN_SRC})
 endif()
 
 if(WITH_METAL_BACKEND)

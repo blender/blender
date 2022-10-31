@@ -1116,6 +1116,9 @@ static int arg_handle_debug_gpu_set(int UNUSED(argc),
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
+#  ifdef WITH_VULKAN_BACKEND
+    "'vulkan',  "
+#  endif
 #  ifdef WITH_METAL_BACKEND
     "'metal',  "
 #  endif
@@ -1132,6 +1135,11 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void *UNUSED(
   if (STREQ(argv[1], "opengl")) {
     gpu_backend = GPU_BACKEND_OPENGL;
   }
+#  ifdef WITH_VULKAN_BACKEND
+  else if (STREQ(argv[1], "vulkan")) {
+    gpu_backend = GPU_BACKEND_VULKAN;
+  }
+#  endif
 #  ifdef WITH_METAL_BACKEND
   else if (STREQ(argv[1], "metal")) {
     gpu_backend = GPU_BACKEND_METAL;

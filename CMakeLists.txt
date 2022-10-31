@@ -569,6 +569,12 @@ mark_as_advanced(
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
 
+# Vulkan
+option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
+mark_as_advanced(
+  WITH_VULKAN_BACKEND
+)
+
 # Metal
 
 if(APPLE)
@@ -1221,6 +1227,13 @@ if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
 endif()
 
+
+# -----------------------------------------------------------------------------
+# Configure Vulkan.
+
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
 
 # -----------------------------------------------------------------------------
 # Configure Metal

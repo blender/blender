@@ -89,11 +89,13 @@ PyDoc_STRVAR(pygpu_platform_backend_type_get_doc,
              "\n"
              "   Get actuve GPU backend.\n"
              "\n"
-             "   :return: Backend type ('OPENGL', 'METAL', 'NONE', 'UNKNOWN').\n"
+             "   :return: Backend type ('OPENGL', 'VULKAN', 'METAL', 'NONE', 'UNKNOWN').\n"
              "   :rtype: str\n");
 static PyObject *pygpu_platform_backend_type_get(PyObject *UNUSED(self))
 {
   switch (GPU_backend_get_type()) {
+    case GPU_BACKEND_VULKAN:
+      return PyUnicode_FromString("VULKAN");
     case GPU_BACKEND_METAL:
       return PyUnicode_FromString("METAL");
     case GPU_BACKEND_NONE:

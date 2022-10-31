@@ -33,6 +33,9 @@
 #  include "gl_backend.hh"
 #  include "gl_context.hh"
 #endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backend.hh"
+#endif
 #ifdef WITH_METAL_BACKEND
 #  include "mtl_backend.hh"
 #endif
@@ -245,6 +248,12 @@ bool GPU_backend_supported(void)
 #else
       return false;
 #endif
+    case GPU_BACKEND_VULKAN:
+#ifdef WITH_VULKAN_BACKEND
+      return true;
+#else
+      return false;
+#endif
     case GPU_BACKEND_METAL:
 #ifdef WITH_METAL_BACKEND
       return MTLBackend::metal_is_supported();
@@ -266,6 +275,11 @@ static void gpu_backend_create()
 #ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       g_backend = new GLBackend;
+      break;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    case GPU_BACKEND_VULKAN:
+      g_backend = new VKBackend;
       break;
 #endif
 #ifdef WITH_METAL_BACKEND
