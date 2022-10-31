@@ -1725,7 +1725,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3], float *r_snap_precisi
 {
   /* Default values. */
   r_snap[0] = r_snap[1] = 1.0f;
-  r_snap[1] = 0.0f;
+  r_snap[2] = 0.0f;
   *r_snap_precision = 0.1f;
 
   if (t->spacetype == SPACE_VIEW3D) {
