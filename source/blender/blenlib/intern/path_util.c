@@ -1487,9 +1487,10 @@ size_t BLI_path_join_array(char *__restrict dst,
   bool has_trailing_slash = false;
   if (ofs != 0) {
     size_t len = ofs;
-    while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+    while ((len != 0) && (path[len - 1] == SEP)) {
       len -= 1;
     }
+
     if (len != 0) {
       ofs = len;
     }
@@ -1500,18 +1501,18 @@ size_t BLI_path_join_array(char *__restrict dst,
     path = path_array[path_index];
     has_trailing_slash = false;
     const char *path_init = path;
-    while (ELEM(path[0], SEP, ALTSEP)) {
+    while (path[0] == SEP) {
       path++;
     }
     size_t len = strlen(path);
     if (len != 0) {
-      while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+      while ((len != 0) && (path[len - 1] == SEP)) {
         len -= 1;
       }
 
       if (len != 0) {
         /* the very first path may have a slash at the end */
-        if (ofs && !ELEM(dst[ofs - 1], SEP, ALTSEP)) {
+        if (ofs && (dst[ofs - 1] != SEP)) {
           dst[ofs++] = SEP;
           if (ofs == dst_last) {
             break;
@@ -1534,7 +1535,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   }
 
   if (has_trailing_slash) {
-    if ((ofs != dst_last) && (ofs != 0) && (ELEM(dst[ofs - 1], SEP, ALTSEP) == 0)) {
+    if ((ofs != dst_last) && (ofs != 0) && (dst[ofs - 1] != SEP)) {
       dst[ofs++] = SEP;
     }
   }

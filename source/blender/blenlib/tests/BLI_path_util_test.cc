@@ -201,19 +201,52 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
 
 #undef AT_INDEX
 
-#define JOIN(str_expect, out_size, ...) \
+/* For systems with `/` path separator (non WIN32). */
+#define JOIN_FORWARD_SLASH(str_expect, out_size, ...) \
   { \
     const char *expect = str_expect; \
     char result[(out_size) + 1024]; \
-    /* check we don't write past the last byte */ \
+    /* Check we don't write past the last byte. */ \
     result[out_size] = '\0'; \
     BLI_path_join(result, out_size, __VA_ARGS__); \
-    /* simplify expected string */ \
-    BLI_str_replace_char(result, '\\', '/'); \
     EXPECT_STREQ(result, expect); \
     EXPECT_EQ(result[out_size], '\0'); \
   } \
   ((void)0)
+
+/* For systems with `\` path separator (WIN32).
+ * Perform additional manipulation to behave as if input arguments used `\` separators.
+ * Needed since #BLI_path_join uses native slashes. */
+#define JOIN_BACK_SLASH(str_expect, out_size, ...) \
+  { \
+    const char *expect = str_expect; \
+    char result[(out_size) + 1024]; \
+    const char *input_forward_slash[] = {__VA_ARGS__}; \
+    char *input_back_slash[ARRAY_SIZE(input_forward_slash)] = {nullptr}; \
+    for (int i = 0; i < ARRAY_SIZE(input_forward_slash); i++) { \
+      input_back_slash[i] = strdup(input_forward_slash[i]); \
+      BLI_str_replace_char(input_back_slash[i], '/', '\\'); \
+    } \
+    /* Check we don't write past the last byte. */ \
+    result[out_size] = '\0'; \
+    BLI_path_join_array(result, \
+                        out_size, \
+                        const_cast<const char **>(input_back_slash), \
+                        ARRAY_SIZE(input_back_slash)); \
+    BLI_str_replace_char(result, '\\', '/'); \
+    EXPECT_STREQ(result, expect); \
+    EXPECT_EQ(result[out_size], '\0'); \
+    for (int i = 0; i < ARRAY_SIZE(input_forward_slash); i++) { \
+      free(input_back_slash[i]); \
+    } \
+  } \
+  ((void)0)
+
+#ifdef WIN32
+#  define JOIN JOIN_BACK_SLASH
+#else
+#  define JOIN JOIN_FORWARD_SLASH
+#endif
 
 /* BLI_path_join */
 TEST(path_util, JoinNop)
@@ -293,9 +326,9 @@ TEST(path_util, JoinTruncateLong)
 
 TEST(path_util, JoinComplex)
 {
-  JOIN("/a/b/c/d/e/f/g/", 100, "/", "\\a/b", "//////c/d", "", "e\\\\", "f", "g//");
-  JOIN("/aa/bb/cc/dd/ee/ff/gg/", 100, "/", "\\aa/bb", "//////cc/dd", "", "ee\\\\", "ff", "gg//");
-  JOIN("1/2/3/", 100, "1", "////////", "", "2", "3\\");
+  JOIN("/a/b/c/d/e/f/g/", 100, "/", "a/b", "//////c/d", "", "e", "f", "g//");
+  JOIN("/aa/bb/cc/dd/ee/ff/gg/", 100, "/", "aa/bb", "//////cc/dd", "", "ee", "ff", "gg//");
+  JOIN("1/2/3/", 100, "1", "////////", "", "2", "3///");
 }
 
 TEST(path_util, JoinRelativePrefix)
@@ -306,6 +339,8 @@ TEST(path_util, JoinRelativePrefix)
 }
 
 #undef JOIN
+#undef JOIN_BACK_SLASH
+#undef JOIN_FORWARD_SLASH
 
 /* BLI_path_frame */
 TEST(path_util, Frame)
