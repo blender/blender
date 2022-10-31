@@ -104,37 +104,37 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
             call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
 
     # Update precompiled libraries and tests
-    print_stage("Updating Precompiled Libraries and Tests")
 
-    if os.path.isdir(lib_dirpath):
-        for dirname in os.listdir(lib_dirpath):
-            dirpath = os.path.join(lib_dirpath, dirname)
+    if not os.path.isdir(lib_dirpath):
+        print("Library path: %r, not found, skipping" % lib_dirpath)
+    else:
+        paths_local_and_remote = []
+        if os.path.exists(os.path.join(lib_dirpath, ".svn")):
+            print_stage("Updating Precompiled Libraries and Tests (one repository)")
+            paths_local_and_remote.append((lib_dirpath, svn_url))
+        else:
+            print_stage("Updating Precompiled Libraries and Tests (multiple repositories)")
+            # Separate paths checked out.
+            for dirname in os.listdir(lib_dirpath):
+                if dirname.startswith("."):
+                    # Temporary paths such as ".mypy_cache" will report a warning, skip hidden directories.
+                    continue
 
-            if dirname == ".svn":
-                # Cleanup must be run from svn root directory if it exists.
-                if not make_utils.command_missing(args.svn_command):
-                    call(svn_non_interactive + ["cleanup", lib_dirpath])
-                continue
-            elif dirname.startswith("."):
-                # Temporary paths such as ".mypy_cache" will report a warning, skip hidden directories.
-                continue
+                dirpath = os.path.join(lib_dirpath, dirname)
+                if not (os.path.isdir(dirpath) and os.path.exists(os.path.join(dirpath, ".svn"))):
+                    continue
 
-            svn_dirpath = os.path.join(dirpath, ".svn")
-            svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
+                paths_local_and_remote.append((dirpath, svn_url + dirname))
 
-            if (
-                    os.path.isdir(dirpath) and
-                    (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath))
-            ):
-                if make_utils.command_missing(args.svn_command):
-                    sys.stderr.write("svn not found, can't update libraries\n")
-                    sys.exit(1)
+        if paths_local_and_remote:
+            if make_utils.command_missing(args.svn_command):
+                sys.stderr.write("svn not found, can't update libraries\n")
+                sys.exit(1)
 
-                # Cleanup to continue with interrupted downloads.
-                if os.path.exists(svn_dirpath):
-                    call(svn_non_interactive + ["cleanup", dirpath])
+            for dirpath, svn_url_full in paths_local_and_remote:
+                call(svn_non_interactive + ["cleanup", dirpath])
                 # Switch to appropriate branch and update.
-                call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
+                call(svn_non_interactive + ["switch", svn_url_full, dirpath], exit_on_error=False)
                 call(svn_non_interactive + ["update", dirpath])
 
 
