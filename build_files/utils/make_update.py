@@ -18,8 +18,13 @@ import sys
 import make_utils
 from make_utils import call, check_output
 
+from typing import (
+    List,
+    Optional,
+)
 
-def print_stage(text):
+
+def print_stage(text: str) -> None:
     print("")
     print(text)
     print("")
@@ -27,7 +32,7 @@ def print_stage(text):
 # Parse arguments
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-libraries", action="store_true")
     parser.add_argument("--no-blender", action="store_true")
@@ -40,13 +45,13 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_blender_git_root():
+def get_blender_git_root() -> str:
     return check_output([args.git_command, "rev-parse", "--show-toplevel"])
 
 # Setup for precompiled libraries and tests from svn.
 
 
-def svn_update(args, release_version):
+def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None:
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
     lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
@@ -134,7 +139,7 @@ def svn_update(args, release_version):
 
 
 # Test if git repo can be updated.
-def git_update_skip(args, check_remote_exists=True):
+def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) -> str:
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
@@ -166,13 +171,17 @@ def git_update_skip(args, check_remote_exists=True):
 
 
 # Update blender repository.
-def blender_update(args):
+def blender_update(args: argparse.Namespace) -> None:
     print_stage("Updating Blender Git Repository")
     call([args.git_command, "pull", "--rebase"])
 
 
 # Update submodules.
-def submodules_update(args, release_version, branch):
+def submodules_update(
+        args: argparse.Namespace,
+        release_version: Optional[str],
+        branch: Optional[str],
+) -> str:
     print_stage("Updating Submodules")
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
@@ -214,7 +223,8 @@ def submodules_update(args, release_version, branch):
                 elif make_utils.git_branch_exists(args.git_command, submodule_branch_fallback):
                     submodule_branch = submodule_branch_fallback
                 else:
-                    submodule_branch = None
+                    # Skip.
+                    submodule_branch = ""
 
                 # Switch to branch and pull.
                 if submodule_branch:
