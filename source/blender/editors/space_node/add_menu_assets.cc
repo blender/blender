@@ -17,6 +17,7 @@
 #include "RNA_prototypes.h"
 
 #include "ED_asset.h"
+#include "ED_screen.h"
 
 #include "node_intern.hh"
 
@@ -25,6 +26,20 @@ namespace blender::ed::space_node {
 static bool node_add_menu_poll(const bContext *C, MenuType * /*mt*/)
 {
   return CTX_wm_space_node(C);
+}
+
+static void node_add_menu_assets_listen_fn(const wmRegionListenerParams *params)
+{
+  const wmNotifier *wmn = params->notifier;
+  ARegion *region = params->region;
+
+  switch (wmn->category) {
+    case NC_ASSET:
+      if (wmn->data == ND_ASSET_LIST_READING) {
+        ED_region_tag_refresh_ui(region);
+      }
+      break;
+  }
 }
 
 struct LibraryAsset {
@@ -261,6 +276,7 @@ MenuType add_catalog_assets_menu_type()
   BLI_strncpy(type.idname, "NODE_MT_node_add_catalog_assets", sizeof(type.idname));
   type.poll = node_add_menu_poll;
   type.draw = node_add_catalog_assets_draw;
+  type.listener = node_add_menu_assets_listen_fn;
   return type;
 }
 
@@ -270,6 +286,7 @@ MenuType add_root_catalogs_menu_type()
   BLI_strncpy(type.idname, "NODE_MT_node_add_root_catalogs", sizeof(type.idname));
   type.poll = node_add_menu_poll;
   type.draw = add_root_catalogs_draw;
+  type.listener = node_add_menu_assets_listen_fn;
   return type;
 }
 
