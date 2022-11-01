@@ -364,6 +364,8 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
  *
  * Replaces path with the path of its parent directory, returning true if
  * it was able to find a parent directory within the path.
+ *
+ * On success, the resulting path will always have a trailing slash.
  */
 bool BLI_path_parent_dir(char *path) ATTR_NONNULL();
 /**

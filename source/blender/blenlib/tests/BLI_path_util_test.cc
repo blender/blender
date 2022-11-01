@@ -75,6 +75,17 @@ TEST(path_util, ParentDir)
   PARENT_DIR("/a/b", "/a/");
   PARENT_DIR("/a", "/");
   PARENT_DIR("/", "/");
+  PARENT_DIR("", "");
+
+  /* Ensure trailing dots aren't confused with parent path. */
+  PARENT_DIR("/.../.../.../", "/.../.../");
+  PARENT_DIR("/.../.../...", "/.../.../");
+
+  PARENT_DIR("/a../b../c../", "/a../b../");
+  PARENT_DIR("/a../b../c..", "/a../b../");
+
+  PARENT_DIR("/a./b./c./", "/a./b./");
+  PARENT_DIR("/a./b./c.", "/a./b./");
 
 #  undef PARENT_DIR
 }
