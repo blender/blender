@@ -222,7 +222,7 @@ ccl_device_inline float3 hash_float4_to_float3(float4 k)
 
 /* SSE Versions Of Jenkins Lookup3 Hash Functions */
 
-#ifdef __KERNEL_SSE2__
+#ifdef __KERNEL_SSE__
 #  define rot(x, k) (((x) << (k)) | (srl(x, 32 - (k))))
 
 #  define mix(a, b, c) \
@@ -265,10 +265,10 @@ ccl_device_inline float3 hash_float4_to_float3(float4 k)
       c -= rot(b, 24); \
     }
 
-ccl_device_inline ssei hash_ssei(ssei kx)
+ccl_device_inline int4 hash_int4(int4 kx)
 {
-  ssei a, b, c;
-  a = b = c = ssei(0xdeadbeef + (1 << 2) + 13);
+  int4 a, b, c;
+  a = b = c = make_int4(0xdeadbeef + (1 << 2) + 13);
 
   a += kx;
   final(a, b, c);
@@ -276,10 +276,10 @@ ccl_device_inline ssei hash_ssei(ssei kx)
   return c;
 }
 
-ccl_device_inline ssei hash_ssei2(ssei kx, ssei ky)
+ccl_device_inline int4 hash_int4_2(int4 kx, int4 ky)
 {
-  ssei a, b, c;
-  a = b = c = ssei(0xdeadbeef + (2 << 2) + 13);
+  int4 a, b, c;
+  a = b = c = make_int4(0xdeadbeef + (2 << 2) + 13);
 
   b += ky;
   a += kx;
@@ -288,10 +288,10 @@ ccl_device_inline ssei hash_ssei2(ssei kx, ssei ky)
   return c;
 }
 
-ccl_device_inline ssei hash_ssei3(ssei kx, ssei ky, ssei kz)
+ccl_device_inline int4 hash_int4_3(int4 kx, int4 ky, int4 kz)
 {
-  ssei a, b, c;
-  a = b = c = ssei(0xdeadbeef + (3 << 2) + 13);
+  int4 a, b, c;
+  a = b = c = make_int4(0xdeadbeef + (3 << 2) + 13);
 
   c += kz;
   b += ky;
@@ -301,10 +301,10 @@ ccl_device_inline ssei hash_ssei3(ssei kx, ssei ky, ssei kz)
   return c;
 }
 
-ccl_device_inline ssei hash_ssei4(ssei kx, ssei ky, ssei kz, ssei kw)
+ccl_device_inline int4 hash_int4_4(int4 kx, int4 ky, int4 kz, int4 kw)
 {
-  ssei a, b, c;
-  a = b = c = ssei(0xdeadbeef + (4 << 2) + 13);
+  int4 a, b, c;
+  a = b = c = make_int4(0xdeadbeef + (4 << 2) + 13);
 
   a += kx;
   b += ky;
@@ -317,11 +317,11 @@ ccl_device_inline ssei hash_ssei4(ssei kx, ssei ky, ssei kz, ssei kw)
   return c;
 }
 
-#  if defined(__KERNEL_AVX__)
-ccl_device_inline avxi hash_avxi(avxi kx)
+#  if defined(__KERNEL_AVX2__)
+ccl_device_inline vint8 hash_int8(vint8 kx)
 {
-  avxi a, b, c;
-  a = b = c = avxi(0xdeadbeef + (1 << 2) + 13);
+  vint8 a, b, c;
+  a = b = c = make_vint8(0xdeadbeef + (1 << 2) + 13);
 
   a += kx;
   final(a, b, c);
@@ -329,10 +329,10 @@ ccl_device_inline avxi hash_avxi(avxi kx)
   return c;
 }
 
-ccl_device_inline avxi hash_avxi2(avxi kx, avxi ky)
+ccl_device_inline vint8 hash_int8_2(vint8 kx, vint8 ky)
 {
-  avxi a, b, c;
-  a = b = c = avxi(0xdeadbeef + (2 << 2) + 13);
+  vint8 a, b, c;
+  a = b = c = make_vint8(0xdeadbeef + (2 << 2) + 13);
 
   b += ky;
   a += kx;
@@ -341,10 +341,10 @@ ccl_device_inline avxi hash_avxi2(avxi kx, avxi ky)
   return c;
 }
 
-ccl_device_inline avxi hash_avxi3(avxi kx, avxi ky, avxi kz)
+ccl_device_inline vint8 hash_int8_3(vint8 kx, vint8 ky, vint8 kz)
 {
-  avxi a, b, c;
-  a = b = c = avxi(0xdeadbeef + (3 << 2) + 13);
+  vint8 a, b, c;
+  a = b = c = make_vint8(0xdeadbeef + (3 << 2) + 13);
 
   c += kz;
   b += ky;
@@ -354,10 +354,10 @@ ccl_device_inline avxi hash_avxi3(avxi kx, avxi ky, avxi kz)
   return c;
 }
 
-ccl_device_inline avxi hash_avxi4(avxi kx, avxi ky, avxi kz, avxi kw)
+ccl_device_inline vint8 hash_int8_4(vint8 kx, vint8 ky, vint8 kz, vint8 kw)
 {
-  avxi a, b, c;
-  a = b = c = avxi(0xdeadbeef + (4 << 2) + 13);
+  vint8 a, b, c;
+  a = b = c = make_vint8(0xdeadbeef + (4 << 2) + 13);
 
   a += kx;
   b += ky;

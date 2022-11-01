@@ -63,17 +63,16 @@ ccl_device_inline float3 transform_point(ccl_private const Transform *t, const f
 {
   /* TODO(sergey): Disabled for now, causes crashes in certain cases. */
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
-  ssef x, y, z, w, aa;
-  aa = a.m128;
+  const float4 aa(a.m128);
 
-  x = _mm_loadu_ps(&t->x.x);
-  y = _mm_loadu_ps(&t->y.x);
-  z = _mm_loadu_ps(&t->z.x);
-  w = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
+  float4 x(_mm_loadu_ps(&t->x.x));
+  float4 y(_mm_loadu_ps(&t->y.x));
+  float4 z(_mm_loadu_ps(&t->z.x));
+  float4 w(_mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f));
 
-  _MM_TRANSPOSE4_PS(x, y, z, w);
+  _MM_TRANSPOSE4_PS(x.m128, y.m128, z.m128, w.m128);
 
-  ssef tmp = w;
+  float4 tmp = w;
   tmp = madd(shuffle<2>(aa), z, tmp);
   tmp = madd(shuffle<1>(aa), y, tmp);
   tmp = madd(shuffle<0>(aa), x, tmp);
@@ -94,16 +93,16 @@ ccl_device_inline float3 transform_point(ccl_private const Transform *t, const f
 ccl_device_inline float3 transform_direction(ccl_private const Transform *t, const float3 a)
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
-  ssef x, y, z, w, aa;
-  aa = a.m128;
-  x = _mm_loadu_ps(&t->x.x);
-  y = _mm_loadu_ps(&t->y.x);
-  z = _mm_loadu_ps(&t->z.x);
-  w = _mm_setzero_ps();
+  const float4 aa(a.m128);
 
-  _MM_TRANSPOSE4_PS(x, y, z, w);
+  float4 x(_mm_loadu_ps(&t->x.x));
+  float4 y(_mm_loadu_ps(&t->y.x));
+  float4 z(_mm_loadu_ps(&t->z.x));
+  float4 w(_mm_setzero_ps());
 
-  ssef tmp = shuffle<2>(aa) * z;
+  _MM_TRANSPOSE4_PS(x.m128, y.m128, z.m128, w.m128);
+
+  float4 tmp = shuffle<2>(aa) * z;
   tmp = madd(shuffle<1>(aa), y, tmp);
   tmp = madd(shuffle<0>(aa), x, tmp);
 

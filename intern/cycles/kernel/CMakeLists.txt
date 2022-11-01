@@ -328,6 +328,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_int2.h
   ../util/math_int3.h
   ../util/math_int4.h
+  ../util/math_int8.h
   ../util/math_matrix.h
   ../util/projection.h
   ../util/rect.h
@@ -350,6 +351,8 @@ set(SRC_UTIL_HEADERS
   ../util/types_int3_impl.h
   ../util/types_int4.h
   ../util/types_int4_impl.h
+  ../util/types_int8.h
+  ../util/types_int8_impl.h
   ../util/types_spectrum.h
   ../util/types_uchar2.h
   ../util/types_uchar2_impl.h
