@@ -13,59 +13,64 @@
 
 /* BLI_path_normalize */
 #ifndef _WIN32
-TEST(path_util, Clean)
+
+#  define NORMALIZE_WITH_BASEDIR(input, input_base, output) \
+    { \
+      char path[FILE_MAX] = input; \
+      BLI_path_normalize(input_base, path); \
+      EXPECT_STREQ(output, path); \
+    } \
+    ((void)0)
+
+#  define NORMALIZE(input, output) NORMALIZE_WITH_BASEDIR(input, nullptr, output)
+
+/* #BLI_path_normalize: "/./" -> "/" */
+TEST(path_util, Clean_Dot)
 {
-  /* "/./" -> "/" */
-  {
-    char path[FILE_MAX] = "/a/./b/./c/./";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("/a/b/c/", path);
-  }
+  NORMALIZE("/./", "/");
+  NORMALIZE("/a/./b/./c/./", "/a/b/c/");
+  NORMALIZE("/./././", "/");
+  NORMALIZE("/a/./././b/", "/a/b/");
+}
+/* #BLI_path_normalize: "//" -> "/" */
+TEST(path_util, Clean_DoubleSlash)
+{
+  NORMALIZE("//", "//"); /* Exception, double forward slash. */
+  NORMALIZE(".//", "./");
+  NORMALIZE("a////", "a/");
+  NORMALIZE("./a////", "./a/");
+}
+/* #BLI_path_normalize: "foo/bar/../" -> "foo/" */
+TEST(path_util, Clean_Parent)
+{
+  NORMALIZE("/a/b/c/../../../", "/");
+  NORMALIZE("/a/../a/b/../b/c/../c/", "/a/b/c/");
+  NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
+}
 
-  {
-    char path[FILE_MAX] = "/./././";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("/", path);
-  }
+#  undef NORMALIZE_WITH_BASEDIR
+#  undef NORMALIZE
 
-  {
-    char path[FILE_MAX] = "/a/./././b/";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("/a/b/", path);
-  }
+#endif /* _WIN32 */
 
-  /* "//" -> "/" */
-  {
-    char path[FILE_MAX] = "a////";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("a/", path);
-  }
+/* #BLI_path_parent_dir */
+#ifndef _WIN32
+TEST(path_util, ParentDir)
+{
+#  define PARENT_DIR(input, output) \
+    { \
+      char path[FILE_MAX] = input; \
+      BLI_path_parent_dir(path); \
+      EXPECT_STREQ(output, path); \
+    } \
+    ((void)0)
 
-  if (false) /* FIXME */
-  {
-    char path[FILE_MAX] = "./a////";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("./a/", path);
-  }
+  PARENT_DIR("/a/b/", "/a/");
+  PARENT_DIR("/a/b", "/a/");
+  PARENT_DIR("/a", "/");
+  PARENT_DIR("/", "/");
 
-  /* "foo/bar/../" -> "foo/" */
-  {
-    char path[FILE_MAX] = "/a/b/c/../../../";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("/", path);
-  }
-
-  {
-    char path[FILE_MAX] = "/a/../a/b/../b/c/../c/";
-    BLI_path_normalize(nullptr, path);
-    EXPECT_STREQ("/a/b/c/", path);
-  }
-
-  {
-    char path[FILE_MAX] = "//../";
-    BLI_path_normalize("/a/b/c/", path);
-    EXPECT_STREQ("/a/b/", path);
-  }
+#  undef PARENT_DIR
 }
 #endif
 
