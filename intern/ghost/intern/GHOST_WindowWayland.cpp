@@ -90,7 +90,10 @@ struct GWL_Window {
 
   /** The scale value written to #wl_surface_set_buffer_scale. */
   int scale = 0;
-  /** The fractional scale used to calculate the DPI. */
+  /**
+   * The fractional scale used to calculate the DPI.
+   * (always set, even when scaling is rounded to whole units).
+   */
   wl_fixed_t scale_fractional = 0;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
