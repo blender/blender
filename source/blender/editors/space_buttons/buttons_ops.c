@@ -41,7 +41,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Start / Clear Search Filter Operators
  *
- *  \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
+ * \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
  * \{ */
 
 static int buttons_start_filter_exec(bContext *C, wmOperator *UNUSED(op))

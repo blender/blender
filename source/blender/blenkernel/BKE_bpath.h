@@ -55,15 +55,18 @@ typedef enum eBPathForeachFlag {
    * This is needed for directory manipulation callbacks which might otherwise modify the same
    * directory multiple times. */
   BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE = (1 << 8),
-  /** Reload data (when the path is edited).
-   *  \note Only used by Image IDType currently. */
+  /**
+   * Reload data (when the path is edited).
+   * \note Only used by Image #IDType currently.
+   */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
 } eBPathForeachFlag;
 ENUM_OPERATORS(eBPathForeachFlag, BKE_BPATH_FOREACH_PATH_RELOAD_EDITED)
 
 struct BPathForeachPathData;
 
-/** Callback used to iterate over an ID's file paths.
+/**
+ * Callback used to iterate over an ID's file paths.
  *
  * \note `path`s parameters should be considered as having a maximal `FILE_MAX` string length.
  *
@@ -145,8 +148,9 @@ bool BKE_bpath_foreach_path_allocated_process(struct BPathForeachPathData *bpath
 /** Check for missing files. */
 void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
 
-/** Recursively search into given search directory, for all file paths of all IDs in given \a
- * bmain, and replace existing paths as needed.
+/**
+ * Recursively search into given search directory, for all file paths of all IDs in given
+ * \a bmain, and replace existing paths as needed.
  *
  * \note The search will happen into the whole search directory tree recursively (with a limit of
  * MAX_DIR_RECURSE), if several files are found matching a searched filename, the biggest one will
@@ -156,7 +160,7 @@ void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *report
  * \param searchpath: The root directory in which the new filepaths should be searched for.
  * \param find_all: If `true`, also search for files which current path is still valid, if `false`
  *                  skip those still valid paths.
- * */
+ */
 void BKE_bpath_missing_files_find(struct Main *bmain,
                                   const char *searchpath,
                                   struct ReportList *reports,
@@ -178,23 +182,28 @@ void BKE_bpath_absolute_convert(struct Main *bmain,
                                 const char *basedir,
                                 struct ReportList *reports);
 
-/** Temp backup of paths from all IDs in given \a bmain.
+/**
+ * Temp backup of paths from all IDs in given \a bmain.
  *
- *  \return An opaque handle to pass to #BKE_bpath_list_restore and #BKE_bpath_list_free.
+ * \return An opaque handle to pass to #BKE_bpath_list_restore and #BKE_bpath_list_free.
  */
 void *BKE_bpath_list_backup(struct Main *bmain, eBPathForeachFlag flag);
 
-/** Restore the temp backup of paths from \a path_list_handle into all IDs in given \a bmain.
+/**
+ * Restore the temp backup of paths from \a path_list_handle into all IDs in given \a bmain.
  *
  * \note This function assumes that the data in given Main did not change (no
  * addition/deletion/re-ordering of IDs, or their file paths) since the call to
- * #BKE_bpath_list_backup that generated the given \a path_list_handle. */
+ * #BKE_bpath_list_backup that generated the given \a path_list_handle.
+ */
 void BKE_bpath_list_restore(struct Main *bmain, eBPathForeachFlag flag, void *path_list_handle);
 
-/** Free the temp backup of paths in \a path_list_handle.
+/**
+ * Free the temp backup of paths in \a path_list_handle.
  *
  * \note This function assumes that the path list has already been restored with a call to
- * #BKE_bpath_list_restore, and is therefore empty. */
+ * #BKE_bpath_list_restore, and is therefore empty.
+ */
 void BKE_bpath_list_free(void *path_list_handle);
 
 /** \} */
