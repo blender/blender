@@ -264,13 +264,13 @@ static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int UNUSE
   RigidBodyCon *rbcN = NULL;
 
   if (ob->rigidbody_constraint) {
-    /* just duplicate the whole struct first (to catch all the settings) */
+    /* Just duplicate the whole struct first (to catch all the settings). */
     rbcN = MEM_dupallocN(ob->rigidbody_constraint);
 
-    /* tag object as needing to be verified */
+    /* Tag object as needing to be verified. */
     rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
-    /* clear out all the fields which need to be revalidated later */
+    /* Clear out all the fields which need to be re-validated later. */
     rbcN->physics_constraint = NULL;
   }
 

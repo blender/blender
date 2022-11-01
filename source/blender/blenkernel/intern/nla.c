@@ -2055,7 +2055,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   }
 
   /* If block is already in tweak-mode, just leave, but we should report
-   * that this block is in tweak-mode (as our returncode). */
+   * that this block is in tweak-mode (as our return-code). */
   if (adt->flag & ADT_NLA_EDIT_ON) {
     return true;
   }

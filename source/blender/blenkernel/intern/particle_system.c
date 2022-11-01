@@ -1639,7 +1639,7 @@ static void sph_springs_modify(ParticleSystem *psys, float dtime)
     }
   }
 
-  /* Loop through springs backwaqrds - for efficient delete function */
+  /* Loop through springs backwards - for efficient delete function. */
   for (i = psys->tot_fluidsprings - 1; i >= 0; i--) {
     if (psys->fluid_springs[i].delete_flag) {
       sph_spring_delete(psys, i);
@@ -4764,7 +4764,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
   float cfra;
   ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 
-  /* drawdata is outdated after ANY change */
+  /* Draw data is outdated after ANY change. */
   if (psys->pdd) {
     psys->pdd->flag &= ~PARTICLE_DRAW_DATA_UPDATED;
   }

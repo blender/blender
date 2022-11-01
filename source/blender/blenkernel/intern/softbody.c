@@ -318,7 +318,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   /* OBBs for idea1 */
   pccd_M->mima = MEM_mallocN(sizeof(ccdf_minmax) * pccd_M->tri_num, "ccd_Mesh_Faces_mima");
 
-  /* anyhoo we need to walk the list of faces and find OBB they live in */
+  /* Anyhow we need to walk the list of faces and find OBB they live in. */
   for (i = 0, mima = pccd_M->mima, vt = pccd_M->tri; i < pccd_M->tri_num; i++, mima++, vt++) {
     const float *v;
 
@@ -413,7 +413,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
   }
 
-  /* anyhoo we need to walk the list of faces and find OBB they live in */
+  /* Anyhow we need to walk the list of faces and find OBB they live in. */
   for (i = 0, mima = pccd_M->mima, vt = pccd_M->tri; i < pccd_M->tri_num; i++, mima++, vt++) {
     const float *v;
 

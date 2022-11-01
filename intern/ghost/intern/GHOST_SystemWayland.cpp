@@ -101,7 +101,7 @@ static const struct GWL_RegistryHandler *gwl_registry_handler_from_interface_slo
     int interface_slot);
 
 /* -------------------------------------------------------------------- */
-/** \name Workaround Compositor Sprsific Bugs
+/** \name Workaround Compositor Specific Bugs
  * \{ */
 
 /**

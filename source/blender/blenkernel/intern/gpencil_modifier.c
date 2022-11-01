@@ -942,7 +942,7 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
-        /* initialize the curve. Maybe this could be moved to modififer logic */
+        /* Initialize the curve. Maybe this could be moved to modifier logic. */
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
