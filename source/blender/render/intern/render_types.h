@@ -76,8 +76,7 @@ struct Render {
   struct Main *main;
   Scene *scene;
   RenderData r;
-  ListBase view_layers;
-  int active_view_layer;
+  char single_view_layer[MAX_NAME];
   struct Object *camera_override;
 
   ThreadMutex highlighted_tiles_mutex;

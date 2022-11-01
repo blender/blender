@@ -136,10 +136,11 @@ void render_result_views_shallowdelete(struct RenderResult *rr);
   { \
     int nr_; \
     ViewLayer *iter_; \
-    for (nr_ = 0, iter_ = static_cast<ViewLayer *>((re_)->view_layers.first); iter_ != NULL; \
+    for (nr_ = 0, iter_ = static_cast<ViewLayer *>((re_)->scene->view_layers.first); \
+         iter_ != NULL; \
          iter_ = iter_->next, nr_++) { \
       if (!G.background && (re_)->r.scemode & R_SINGLE_LAYER) { \
-        if (nr_ != re->active_view_layer) { \
+        if (!STREQ(iter_->name, re->single_view_layer)) { \
           continue; \
         } \
       } \

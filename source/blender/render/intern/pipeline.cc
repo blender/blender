@@ -261,13 +261,10 @@ RenderResult *RE_MultilayerConvert(
   return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
 
-RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
+RenderLayer *render_get_single_layer(Render *re, RenderResult *rr)
 {
-  ViewLayer *view_layer = static_cast<ViewLayer *>(
-      BLI_findlink(&re->view_layers, re->active_view_layer));
-
-  if (view_layer) {
-    RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
+  if (re->single_view_layer[0]) {
+    RenderLayer *rl = RE_GetRenderLayer(rr, re->single_view_layer);
 
     if (rl) {
       return rl;
@@ -385,8 +382,8 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       RenderView *rv = static_cast<RenderView *>(rr->views.first);
       rr->have_combined = (rv->rectf != nullptr);
 
-      /* active layer */
-      RenderLayer *rl = render_get_active_layer(re, re->result);
+      /* single layer */
+      RenderLayer *rl = render_get_single_layer(re, re->result);
 
       if (rl) {
         if (rv->rectf == nullptr) {
@@ -443,7 +440,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       rr->rect32 = rv->rect32;
 
       /* active layer */
-      rl = render_get_active_layer(re, re->result);
+      rl = render_get_single_layer(re, re->result);
 
       if (rl) {
         if (rv->rectf == nullptr) {
@@ -583,9 +580,6 @@ void RE_FreeRender(Render *re)
   BLI_mutex_end(&re->engine_draw_mutex);
   BLI_mutex_end(&re->highlighted_tiles_mutex);
 
-  BLI_freelistN(&re->view_layers);
-  BLI_freelistN(&re->r.views);
-
   BKE_curvemapping_free_data(&re->r.mblur_shutter_curve);
 
   if (re->highlighted_tiles != nullptr) {
@@ -705,12 +699,11 @@ static void re_init_resolution(Render *re, Render *source, int winx, int winy, r
 
 void render_copy_renderdata(RenderData *to, RenderData *from)
 {
-  BLI_freelistN(&to->views);
+  /* Mostly shallow copy referencing pointers in scene renderdata. */
   BKE_curvemapping_free_data(&to->mblur_shutter_curve);
 
   memcpy(to, from, sizeof(*to));
 
-  BLI_duplicatelist(&to->views, &from->views);
   BKE_curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
 
@@ -731,9 +724,7 @@ void RE_InitState(Render *re,
 
   /* copy render data and render layers for thread safety */
   render_copy_renderdata(&re->r, rd);
-  BLI_freelistN(&re->view_layers);
-  BLI_duplicatelist(&re->view_layers, render_layers);
-  re->active_view_layer = 0;
+  re->single_view_layer[0] = '\0';
 
   if (source) {
     /* reuse border flags from source renderer */
@@ -762,11 +753,8 @@ void RE_InitState(Render *re,
   }
 
   if (single_layer) {
-    int index = BLI_findindex(render_layers, single_layer);
-    if (index != -1) {
-      re->active_view_layer = index;
-      re->r.scemode |= R_SINGLE_LAYER;
-    }
+    STRNCPY(re->single_view_layer, single_layer->name);
+    re->r.scemode |= R_SINGLE_LAYER;
   }
 
   /* if preview render, we try to keep old result */
@@ -779,13 +767,16 @@ void RE_InitState(Render *re,
       re->result = nullptr;
     }
     else if (re->result) {
-      ViewLayer *active_render_layer = static_cast<ViewLayer *>(
-          BLI_findlink(&re->view_layers, re->active_view_layer));
       bool have_layer = false;
 
-      LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
-        if (STREQ(rl->name, active_render_layer->name)) {
-          have_layer = true;
+      if (re->single_view_layer[0] == '\0' && re->result->layers.first) {
+        have_layer = true;
+      }
+      else {
+        LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
+          if (STREQ(rl->name, re->single_view_layer)) {
+            have_layer = true;
+          }
         }
       }
 
@@ -815,27 +806,6 @@ void RE_InitState(Render *re,
   RE_init_threadcount(re);
 
   RE_point_density_fix_linking();
-}
-
-void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_layers)
-{
-  /* filter */
-  re->r.gauss = rd->gauss;
-
-  /* motion blur */
-  re->r.blurfac = rd->blurfac;
-
-  /* freestyle */
-  re->r.line_thickness_mode = rd->line_thickness_mode;
-  re->r.unit_line_thickness = rd->unit_line_thickness;
-
-  /* render layers */
-  BLI_freelistN(&re->view_layers);
-  BLI_duplicatelist(&re->view_layers, render_layers);
-
-  /* render views */
-  BLI_freelistN(&re->r.views);
-  BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
@@ -979,7 +949,7 @@ static void render_result_uncrop(Render *re)
       re->result = rres;
 
       /* Weak, the display callback wants an active render-layer pointer. */
-      re->result->renlay = render_get_active_layer(re, re->result);
+      re->result->renlay = render_get_single_layer(re, re->result);
 
       BLI_rw_mutex_unlock(&re->resultmutex);
 
@@ -1217,7 +1187,7 @@ static void do_render_compositor(Render *re)
 
   /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != nullptr) {
-    re->result->renlay = render_get_active_layer(re, re->result);
+    re->result->renlay = render_get_single_layer(re, re->result);
     re->display_update(re->duh, re->result, nullptr);
   }
 }
@@ -1676,7 +1646,6 @@ static int render_init_from_main(Render *re,
 
   /* not too nice, but it survives anim-border render */
   if (anim) {
-    render_update_anim_renderdata(re, &scene->r, &scene->view_layers);
     re->disprect = disprect;
     return 1;
   }
@@ -1890,12 +1859,10 @@ void RE_RenderFreestyleExternal(Render *re)
   LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
     RE_SetActiveRenderView(re, rv->name);
 
-    ViewLayer *active_view_layer = static_cast<ViewLayer *>(
-        BLI_findlink(&re->view_layers, re->active_view_layer));
     FRS_begin_stroke_rendering(re);
 
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->view_layers) {
-      if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
+      if ((re->r.scemode & R_SINGLE_LAYER) && !STREQ(view_layer->name, re->single_view_layer)) {
         continue;
       }
 
