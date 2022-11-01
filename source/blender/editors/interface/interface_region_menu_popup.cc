@@ -10,6 +10,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 
 #include "MEM_guardedalloc.h"
 
@@ -166,28 +167,80 @@ struct uiPopupMenu {
   uiBut *but;
   ARegion *butregion;
 
+  /* Menu hash is created from this, to keep a memory of recently opened menus. */
+  const char *title;
+
   int mx, my;
   bool popup, slideout;
 
-  uiMenuCreateFunc menu_func;
-  void *menu_arg;
+  std::function<void(bContext *C, uiLayout *layout)> menu_func;
 };
+
+/**
+ * \param title: Optional. If set, it will be used to store recently opened menus so they can be
+ *               opened with the mouse over the last chosen entry again.
+ */
+static void ui_popup_menu_create_block(bContext *C,
+                                       uiPopupMenu *pup,
+                                       const char *title,
+                                       const char *block_name)
+{
+  const uiStyle *style = UI_style_get_dpi();
+
+  pup->block = UI_block_begin(C, nullptr, block_name, UI_EMBOSS_PULLDOWN);
+  if (!pup->but) {
+    pup->block->flag |= UI_BLOCK_IS_FLIP | UI_BLOCK_NO_FLIP;
+  }
+  if (title && title[0]) {
+    pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
+    pup->block->puphash = ui_popup_menu_hash(title);
+  }
+  pup->layout = UI_block_layout(
+      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+
+  /* NOTE: this intentionally differs from the menu & sub-menu default because many operators
+   * use popups like this to select one of their options -
+   * where having invoke doesn't make sense.
+   * When the menu was opened from a button, use invoke still for compatibility. This used to be
+   * the default and changing now could cause issues. */
+  const wmOperatorCallContext opcontext = pup->but ? WM_OP_INVOKE_REGION_WIN :
+                                                     WM_OP_EXEC_REGION_WIN;
+
+  uiLayoutSetOperatorContext(pup->layout, opcontext);
+
+  if (pup->but) {
+    if (pup->but->context) {
+      uiLayoutContextCopy(pup->layout, pup->but->context);
+    }
+  }
+}
 
 static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
   uiPopupMenu *pup = static_cast<uiPopupMenu *>(arg_pup);
 
-  if (pup->menu_func) {
-    pup->block->handle = handle;
-    pup->menu_func(C, pup->layout, pup->menu_arg);
-    pup->block->handle = nullptr;
+  int minwidth = 0;
+
+  if (!pup->layout) {
+    ui_popup_menu_create_block(C, pup, pup->title, __func__);
+
+    if (pup->menu_func) {
+      pup->block->handle = handle;
+      pup->menu_func(C, pup->layout);
+      pup->block->handle = nullptr;
+    }
+
+    if (uiLayoutGetUnitsX(pup->layout) != 0.0f) {
+      /* Use the minimum width from the layout if it's set. */
+      minwidth = uiLayoutGetUnitsX(pup->layout) * UI_UNIT_X;
+    }
+
+    pup->layout = nullptr;
   }
 
   /* Find block minimum width. */
-  int minwidth;
-  if (uiLayoutGetUnitsX(pup->layout) != 0.0f) {
-    /* Use the minimum width from the layout if it's set. */
-    minwidth = uiLayoutGetUnitsX(pup->layout) * UI_UNIT_X;
+  if (minwidth) {
+    /* Skip. */
   }
   else if (pup->but) {
     /* Minimum width to enforce. */
@@ -236,7 +289,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
   if (pup->popup) {
-    int offset[2];
+    int offset[2] = {0, 0};
 
     uiBut *but_activate = nullptr;
     UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
@@ -244,36 +297,42 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
     UI_block_direction_set(block, direction);
 
     /* offset the mouse position, possibly based on earlier selection */
-    uiBut *bt;
-    if ((block->flag & UI_BLOCK_POPUP_MEMORY) && (bt = ui_popup_menu_memory_get(block))) {
-      /* position mouse on last clicked item, at 0.8*width of the
-       * button, so it doesn't overlap the text too much, also note
-       * the offset is negative because we are inverse moving the
-       * block to be under the mouse */
-      offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
-      offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
+    if (!handle->refresh) {
+      uiBut *bt;
+      if ((block->flag & UI_BLOCK_POPUP_MEMORY) && (bt = ui_popup_menu_memory_get(block))) {
+        /* position mouse on last clicked item, at 0.8*width of the
+         * button, so it doesn't overlap the text too much, also note
+         * the offset is negative because we are inverse moving the
+         * block to be under the mouse */
+        offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
+        offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
 
-      if (ui_but_is_editable(bt)) {
-        but_activate = bt;
-      }
-    }
-    else {
-      /* position mouse at 0.8*width of the button and below the tile
-       * on the first item */
-      offset[0] = 0;
-      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
-        offset[0] = min_ii(offset[0],
-                           -(but_iter->rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter->rect)));
-      }
-
-      offset[1] = 2.1 * UI_UNIT_Y;
-
-      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
-        if (ui_but_is_editable(but_iter)) {
-          but_activate = but_iter;
-          break;
+        if (ui_but_is_editable(bt)) {
+          but_activate = bt;
         }
       }
+      else {
+        /* position mouse at 0.8*width of the button and below the tile
+         * on the first item */
+        offset[0] = 0;
+        LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+          offset[0] = min_ii(offset[0],
+                             -(but_iter->rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter->rect)));
+        }
+
+        offset[1] = 2.1 * UI_UNIT_Y;
+
+        LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+          if (ui_but_is_editable(but_iter)) {
+            but_activate = but_iter;
+            break;
+          }
+        }
+      }
+      copy_v2_v2_int(handle->prev_bounds_offset, offset);
+    }
+    else {
+      copy_v2_v2_int(offset, handle->prev_bounds_offset);
     }
 
     /* in rare cases this is needed since moving the popup
@@ -312,27 +371,35 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   return pup->block;
 }
 
-uiPopupBlockHandle *ui_popup_menu_create(
-    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
+static void ui_block_free_func_POPUP(void *arg_pup)
+{
+  uiPopupMenu *pup = static_cast<uiPopupMenu *>(arg_pup);
+  MEM_delete(pup);
+}
+
+static uiPopupBlockHandle *ui_popup_menu_create(
+    bContext *C,
+    ARegion *butregion,
+    uiBut *but,
+    const char *title,
+    std::function<void(bContext *, uiLayout *)> menu_func)
 {
   wmWindow *window = CTX_wm_window(C);
-  const uiStyle *style = UI_style_get_dpi();
 
-  uiPopupMenu *pup = MEM_cnew<uiPopupMenu>(__func__);
-  pup->block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS_PULLDOWN);
-  pup->block->flag |= UI_BLOCK_NUMSELECT; /* Default menus to numeric-selection. */
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
-  pup->slideout = but ? ui_block_is_menu(but->block) : false;
-  pup->but = but;
-  uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
+  uiPopupMenu *pup = MEM_new<uiPopupMenu>(__func__);
+  pup->title = title;
+  /* menu is created from a callback */
+  pup->menu_func = menu_func;
+  if (but) {
+    pup->slideout = ui_block_is_menu(but->block);
+    pup->but = but;
+  }
 
   if (!but) {
     /* no button to start from, means we are a popup */
     pup->mx = window->eventstate->xy[0];
     pup->my = window->eventstate->xy[1];
     pup->popup = true;
-    pup->block->flag |= UI_BLOCK_NO_FLIP;
   }
   /* some enums reversing is strange, currently we have no good way to
    * reverse some enum's but not others, so reverse all so the first menu
@@ -346,17 +413,10 @@ uiPopupBlockHandle *ui_popup_menu_create(
       pup->block->flag |= UI_BLOCK_NO_FLIP;
     }
 #endif
-    if (but->context) {
-      uiLayoutContextCopy(pup->layout, but->context);
-    }
   }
 
-  /* menu is created from a callback */
-  pup->menu_func = menu_func;
-  pup->menu_arg = arg;
-
   uiPopupBlockHandle *handle = ui_popup_block_create(
-      C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr);
+      C, butregion, but, nullptr, ui_block_func_POPUP, pup, ui_block_free_func_POPUP);
 
   if (!but) {
     handle->popup = true;
@@ -365,9 +425,16 @@ uiPopupBlockHandle *ui_popup_menu_create(
     WM_event_add_mousemove(window);
   }
 
-  MEM_freeN(pup);
-
   return handle;
+}
+
+uiPopupBlockHandle *ui_popup_menu_create(
+    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
+{
+  return ui_popup_menu_create(
+      C, butregion, but, nullptr, [menu_func, arg](bContext *C, uiLayout *layout) {
+        menu_func(C, layout, arg);
+      });
 }
 
 /** \} */
@@ -376,57 +443,55 @@ uiPopupBlockHandle *ui_popup_menu_create(
 /** \name Popup Menu API with begin & end
  * \{ */
 
+static void create_title_button(uiLayout *layout, const char *title, int icon)
+{
+  uiBlock *block = uiLayoutGetBlock(layout);
+  char titlestr[256];
+
+  if (icon) {
+    BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
+    uiDefIconTextBut(block,
+                     UI_BTYPE_LABEL,
+                     0,
+                     icon,
+                     titlestr,
+                     0,
+                     0,
+                     200,
+                     UI_UNIT_Y,
+                     nullptr,
+                     0.0,
+                     0.0,
+                     0,
+                     0,
+                     "");
+  }
+  else {
+    uiBut *but = uiDefBut(
+        block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, 0, 0, "");
+    but->drawflag = UI_BUT_TEXT_LEFT;
+  }
+
+  uiItemS(layout);
+}
+
+/* Used to directly create a popup menu that is not refreshed on redraw. */
 uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     const char *title,
                                     const char *block_name,
                                     int icon)
 {
-  const uiStyle *style = UI_style_get_dpi();
-  uiPopupMenu *pup = MEM_cnew<uiPopupMenu>(__func__);
+  uiPopupMenu *pup = MEM_new<uiPopupMenu>(__func__);
 
-  pup->block = UI_block_begin(C, nullptr, block_name, UI_EMBOSS_PULLDOWN);
-  pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
-  pup->block->puphash = ui_popup_menu_hash(title);
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+  pup->title = title;
 
-  /* NOTE: this intentionally differs from the menu & sub-menu default because many operators
-   * use popups like this to select one of their options -
-   * where having invoke doesn't make sense */
-  uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
+  ui_popup_menu_create_block(C, pup, title, block_name);
 
   /* create in advance so we can let buttons point to retval already */
   pup->block->handle = MEM_cnew<uiPopupBlockHandle>(__func__);
 
-  /* create title button */
   if (title[0]) {
-    char titlestr[256];
-
-    if (icon) {
-      BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
-      uiDefIconTextBut(pup->block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       icon,
-                       titlestr,
-                       0,
-                       0,
-                       200,
-                       UI_UNIT_Y,
-                       nullptr,
-                       0.0,
-                       0.0,
-                       0,
-                       0,
-                       "");
-    }
-    else {
-      uiBut *but = uiDefBut(
-          pup->block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, 0, 0, "");
-      but->drawflag = UI_BUT_TEXT_LEFT;
-    }
-
-    uiItemS(pup->layout);
+    create_title_button(pup->layout, title, icon);
   }
 
   return pup;
@@ -465,7 +530,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
   UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
   WM_event_add_mousemove(window);
 
-  MEM_freeN(pup);
+  MEM_delete(pup);
 }
 
 bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
@@ -477,7 +542,7 @@ bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
   UI_block_layout_resolve(pup->block, nullptr, nullptr);
   MEM_freeN(pup->block->handle);
   UI_block_free(C, pup->block);
-  MEM_freeN(pup);
+  MEM_delete(pup);
   return false;
 }
 
@@ -541,6 +606,20 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
   }
 }
 
+static void ui_popup_menu_create_from_menutype(bContext *C,
+                                               MenuType *mt,
+                                               const char *title,
+                                               const int icon)
+{
+  uiPopupBlockHandle *handle = ui_popup_menu_create(
+      C, nullptr, nullptr, title, [mt, title, icon](bContext *C, uiLayout *layout) -> void {
+        create_title_button(layout, title, icon);
+        ui_item_menutype_func(C, layout, mt);
+      });
+
+  handle->can_refresh = true;
+}
+
 int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 {
   MenuType *mt = WM_menutype_find(idname, true);
@@ -554,14 +633,21 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
     /* cancel but allow event to pass through, just like operators do */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
+  /* For now always recreate menus on redraw that were invoked with this function. Maybe we want to
+   * make that optional somehow. */
+  const bool allow_refresh = true;
 
-  uiPopupMenu *pup = UI_popup_menu_begin(
-      C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-
-  UI_menutype_draw(C, mt, layout);
-
-  UI_popup_menu_end(C, pup);
+  const char *title = CTX_IFACE_(mt->translation_context, mt->label);
+  if (allow_refresh) {
+    ui_popup_menu_create_from_menutype(C, mt, title, ICON_NONE);
+  }
+  else {
+    /* If no refresh is needed, create the block directly. */
+    uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_NONE);
+    uiLayout *layout = UI_popup_menu_layout(pup);
+    UI_menutype_draw(C, mt, layout);
+    UI_popup_menu_end(C, pup);
+  }
 
   return OPERATOR_INTERFACE;
 }
