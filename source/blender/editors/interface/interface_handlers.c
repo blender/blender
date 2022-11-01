@@ -3519,7 +3519,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
 {
-  /* label and roundbox can overlap real buttons (backdrops...) */
+  /* Label and round-box can overlap real buttons (backdrops...). */
   if (ELEM(actbut->type,
            UI_BTYPE_LABEL,
            UI_BTYPE_SEPR,
@@ -3551,7 +3551,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
 {
-  /* label and roundbox can overlap real buttons (backdrops...) */
+  /* Label and round-box can overlap real buttons (backdrops...). */
   if (ELEM(actbut->type,
            UI_BTYPE_LABEL,
            UI_BTYPE_SEPR,

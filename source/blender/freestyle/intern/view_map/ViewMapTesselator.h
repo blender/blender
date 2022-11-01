@@ -89,7 +89,7 @@ class ViewMapTesselator {
 #endif
 };
 
-/** Class to tesselate the 2D projected silhouette */
+/** Class to tessellate the 2D projected silhouette */
 class ViewMapTesselator2D : public ViewMapTesselator {
  public:
   inline ViewMapTesselator2D() : ViewMapTesselator()
@@ -110,7 +110,7 @@ class ViewMapTesselator2D : public ViewMapTesselator {
 #endif
 };
 
-/** Class to tesselate the 3D silhouette */
+/** Class to tessellate the 3D silhouette */
 class ViewMapTesselator3D : public ViewMapTesselator {
  public:
   inline ViewMapTesselator3D() : ViewMapTesselator()

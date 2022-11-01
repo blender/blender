@@ -133,9 +133,9 @@ typedef struct SB_thread_context {
 
 #define BSF_INTERSECT 1 /* edge intersects collider face */
 
-/* private definitions for bodypoint states */
-#define SBF_DOFUZZY 1        /* Bodypoint do fuzzy. */
-#define SBF_OUTOFCOLLISION 2 /* Bodypoint does not collide. */
+/* private definitions for body-point states */
+#define SBF_DOFUZZY 1        /* Body-point do fuzzy. */
+#define SBF_OUTOFCOLLISION 2 /* Body-point does not collide. */
 
 #define BFF_INTERSECT 1 /* collider edge   intrudes face. */
 #define BFF_CLOSEVERT 2 /* collider vertex repulses face. */

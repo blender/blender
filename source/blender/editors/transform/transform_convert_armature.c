@@ -306,8 +306,9 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
            * just make things obey standard rotation locks too */
           if (data->rootbone == 0) {
             for (bPoseChannel *pchan_iter = pchan; pchan_iter; pchan_iter = pchan_iter->parent) {
-              /* here, we set ik-settings for bone from pchan->protectflag */
-              /* XXX: careful with quats/axis-angle rotations where we're locking 4d components. */
+              /* Here, we set IK-settings for bone from `pchan->protectflag`. */
+              /* XXX: careful with quaternion/axis-angle rotations
+               * where we're locking 4d components. */
               if (pchan_iter->protectflag & OB_LOCK_ROTX) {
                 pchan_iter->ikflag |= BONE_IK_NO_XDOF_TEMP;
               }

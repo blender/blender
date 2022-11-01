@@ -407,7 +407,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
   Object *ob = (Object *)ptr->owner_id;
   float local_mat[4][4];
 
-  /* Localspace matrix is truly relative to the parent,
+  /* Local-space matrix is truly relative to the parent,
    * but parameters stored in object are relative to parentinv matrix.
    * Undo the parent inverse part before applying it as local matrix. */
   if (ob->parent) {

@@ -2611,7 +2611,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
   }
 #endif
 
-  /* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
+  /* Clear all files in the temp dir with the prefix of the ID and the `.bphys` suffix. */
   switch (mode) {
     case PTCACHE_CLEAR_ALL:
     case PTCACHE_CLEAR_BEFORE:
@@ -2775,7 +2775,7 @@ void BKE_ptcache_id_time(
   /* time handling for point cache:
    * - simulation time is scaled by result of bsystem_time
    * - for offsetting time only time offset is taken into account, since
-   *   that's always the same and can't be animated. a timeoffset which
+   *   that's always the same and can't be animated. a time-offset which
    *   varies over time is not simple to support.
    * - field and motion blur offsets are currently ignored, proper solution
    *   is probably to interpolate results from two frames for that ..

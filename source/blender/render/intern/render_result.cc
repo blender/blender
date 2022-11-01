@@ -262,7 +262,7 @@ RenderResult *render_result_new(Render *re,
 
   render_result_views_new(rr, &re->r);
 
-  /* check renderdata for amount of layers */
+  /* Check render-data for amount of layers. */
   FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer) {
     if (layername && layername[0]) {
       if (!STREQ(view_layer->name, layername)) {

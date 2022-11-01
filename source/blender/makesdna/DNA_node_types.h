@@ -931,7 +931,7 @@ typedef struct NodeImageMultiFileSocket {
   char path[1024];
   ImageFormatData format;
 
-  /* multilayer output */
+  /* Multi-layer output. */
   /** EXR_TOT_MAXNAME-2 ('.' and channel char are appended). */
   char layer[30];
   char _pad2[2];
@@ -1273,7 +1273,7 @@ typedef struct CryptomatteLayer {
 typedef struct NodeCryptomatte_Runtime {
   /* Contains `CryptomatteLayer`. */
   ListBase layers;
-  /* Temp storage for the cryptomatte picker. */
+  /* Temp storage for the crypto-matte picker. */
   float add[3];
   float remove[3];
 } NodeCryptomatte_Runtime;

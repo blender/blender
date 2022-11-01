@@ -1017,7 +1017,7 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
     return NULL;
   }
 
-  /* need to prevent floating point exception when using vorbis audio codec,
+  /* Need to prevent floating point exception when using VORBIS audio codec,
    * initialize this value in the same way as it's done in FFmpeg itself (sergey) */
   c->time_base.num = 1;
   c->time_base.den = c->sample_rate;

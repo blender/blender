@@ -614,7 +614,7 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
     return true;
   }
 
-  /* Check visiblilty restriction flags */
+  /* Check visibility restriction flags */
   if (lc->flag & LAYER_COLLECTION_HIDE || lc->collection->flag & COLLECTION_HIDE_VIEWPORT) {
     return true;
   }

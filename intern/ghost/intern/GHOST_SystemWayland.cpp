@@ -801,7 +801,9 @@ struct GWL_Display {
 
 /**
  * Free the #GWL_Display and it's related members.
- * \note This may run on a partially initialized struct, so it can't be assumed all mebers are set.
+ *
+ * \note This may run on a partially initialized struct,
+ * so it can't be assumed all members are set.
  */
 static void gwl_display_destroy(GWL_Display *display)
 {

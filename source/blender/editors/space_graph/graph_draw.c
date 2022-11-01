@@ -1446,7 +1446,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
     GPU_blend(GPU_BLEND_NONE);
   }
 
-  /* free tempolary channels */
+  /* Free temporary channels. */
   ANIM_animdata_freelist(&anim_data);
 }
 

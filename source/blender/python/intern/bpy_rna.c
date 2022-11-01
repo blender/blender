@@ -380,10 +380,10 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr,
                                             const short order_fallback,
                                             PropertyRNA **r_prop_eul_order);
 
-/* bpyrna vector/euler/quat callbacks. */
+/* `bpyrna` vector/euler/quaternion callbacks. */
 static uchar mathutils_rna_array_cb_index = -1; /* Index for our callbacks. */
 
-/* Subtype not used much yet. */
+/* Sub-type not used much yet. */
 #  define MATHUTILS_CB_SUBTYPE_EUL 0
 #  define MATHUTILS_CB_SUBTYPE_VEC 1
 #  define MATHUTILS_CB_SUBTYPE_QUAT 2

@@ -361,7 +361,7 @@ static void applyarmature_reset_constraints(bPose *pose, const bool use_selected
   }
 }
 
-/* set the current pose as the restpose */
+/* Set the current pose as the rest-pose. */
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -404,10 +404,10 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Get editbones of active armature to alter */
+  /* Get edit-bones of active armature to alter. */
   ED_armature_to_edit(arm);
 
-  /* get pose of active object and move it out of posemode */
+  /* Get pose of active object and move it out of pose-mode. */
   pose = ob->pose;
 
   if (use_selected) {
@@ -429,11 +429,11 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* convert editbones back to bones, and then free the edit-data */
+  /* Convert edit-bones back to bones, and then free the edit-data. */
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
 
-  /* flush positions of posebones */
+  /* Flush positions of pose-bones. */
   BKE_pose_where_is(depsgraph, scene, ob);
 
   /* fix parenting of objects which are bone-parented */

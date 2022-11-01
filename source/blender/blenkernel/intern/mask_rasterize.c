@@ -521,7 +521,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
     }
 
     if (1) {
-      /* now convert linknodes into arrays for faster per pixel access */
+      /* Now convert link-nodes into arrays for faster per pixel access. */
       uint **buckets_face = MEM_mallocN(bucket_tot * sizeof(*buckets_face), __func__);
       uint bucket_index;
 
@@ -1186,7 +1186,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       // printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads);
     }
 
-    /* add trianges */
+    /* Add triangles. */
     BLI_scanfill_end_arena(&sf_ctx, sf_arena);
   }
 

@@ -1450,7 +1450,7 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
       NodeTexImage *storage = (NodeTexImage *)node->storage;
       slot->interp = storage->interpolation;
       slot->image_user = &storage->iuser;
-      /* for new renderer, we need to traverse the treeback in search of a UV node */
+      /* For new renderer, we need to traverse the tree back in search of a UV node. */
       bNode *uvnode = nodetree_uv_node_recursive(node);
 
       if (uvnode) {
@@ -1561,7 +1561,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
   }
 
   /* COW needed when adding texture slot on an object with no materials.
-   * But do it only when slots actually change to avoid continuous depsgrap updates. */
+   * But do it only when slots actually change to avoid continuous depsgraph updates. */
   if (ma->tot_slots != prev_tot_slots || ma->paint_active_slot != prev_paint_active_slot ||
       ma->paint_clone_slot != prev_paint_clone_slot ||
       (ma->texpaintslot && prev_texpaintslot &&
