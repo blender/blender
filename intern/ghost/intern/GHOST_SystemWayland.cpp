@@ -101,9 +101,7 @@ static const struct GWL_RegistryHandler *gwl_registry_handler_from_interface_slo
     int interface_slot);
 
 /* -------------------------------------------------------------------- */
-/** \name Local Defines
- *
- * Control local functionality, compositors specific workarounds.
+/** \name Workaround Compositor Sprsific Bugs
  * \{ */
 
 /**
@@ -156,6 +154,18 @@ static bool use_gnome_confine_hack = false;
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Local Defines
+ *
+ * Control local functionality, compositors specific workarounds.
+ * \{ */
+
+/**
+ * Fix short-cut part of keyboard reading code not properly handling some keys, see: T102194.
+ * \note This is similar to X11 workaround by the same name, see: T47228.
+ */
+#define USE_NON_LATIN_KB_WORKAROUND
+
 #define WL_NAME_UNSET uint32_t(-1)
 
 /** \} */
@@ -197,6 +207,19 @@ static bool use_gnome_confine_hack = false;
  * Keyboard scan-codes.
  */
 #define KEY_GRAVE 41
+
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+#  define KEY_1 2
+#  define KEY_2 3
+#  define KEY_3 4
+#  define KEY_4 5
+#  define KEY_5 6
+#  define KEY_6 7
+#  define KEY_7 8
+#  define KEY_8 9
+#  define KEY_9 10
+#  define KEY_0 11
+#endif
 
 /** \} */
 
@@ -665,11 +688,21 @@ struct GWL_Seat {
    * Keep a state with no modifiers active, use for symbol lookups.
    */
   struct xkb_state *xkb_state_empty = nullptr;
+
+  /**
+   * Keep a state with shift enabled, use to access predictable number access for AZERTY keymaps.
+   * If shift is not supported by the key-map, this is set to NULL.
+   */
+  struct xkb_state *xkb_state_empty_with_shift = nullptr;
   /**
    * Keep a state with number-lock enabled, use to access predictable key-pad symbols.
    * If number-lock is not supported by the key-map, this is set to NULL.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
+
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+  bool xkb_use_non_latin_workaround = false;
+#endif
 
   /** Keys held matching `xkb_state`. */
   struct GWL_KeyboardDepressedState key_depressed;
@@ -3294,9 +3327,23 @@ static void keyboard_handle_keymap(void *data,
   xkb_state_unref(seat->xkb_state_empty);
   seat->xkb_state_empty = xkb_state_new(keymap);
 
+  for (int i = 0; i < MOD_INDEX_NUM; i++) {
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    seat->xkb_keymap_mod_index[i] = xkb_keymap_mod_get_index(keymap, mod_info.xkb_id);
+  }
+
+  xkb_state_unref(seat->xkb_state_empty_with_shift);
+  seat->xkb_state_empty_with_shift = nullptr;
+  {
+    const xkb_mod_index_t mod_shift = seat->xkb_keymap_mod_index[MOD_INDEX_SHIFT];
+    if (mod_shift != XKB_MOD_INVALID) {
+      seat->xkb_state_empty_with_shift = xkb_state_new(keymap);
+      xkb_state_update_mask(seat->xkb_state_empty_with_shift, (1 << mod_shift), 0, 0, 0, 0, 0);
+    }
+  }
+
   xkb_state_unref(seat->xkb_state_empty_with_numlock);
   seat->xkb_state_empty_with_numlock = nullptr;
-
   {
     const xkb_mod_index_t mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
     const xkb_mod_index_t num = xkb_keymap_mod_get_index(keymap, "NumLock");
@@ -3307,10 +3354,21 @@ static void keyboard_handle_keymap(void *data,
     }
   }
 
-  for (int i = 0; i < MOD_INDEX_NUM; i++) {
-    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
-    seat->xkb_keymap_mod_index[i] = xkb_keymap_mod_get_index(keymap, mod_info.xkb_id);
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+  seat->xkb_use_non_latin_workaround = false;
+  if (seat->xkb_state_empty_with_shift) {
+    seat->xkb_use_non_latin_workaround = true;
+    for (xkb_keycode_t key_code = KEY_1 + EVDEV_OFFSET; key_code <= KEY_0 + EVDEV_OFFSET;
+         key_code++) {
+      const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(seat->xkb_state_empty_with_shift,
+                                                              key_code);
+      if (!(sym_test >= XKB_KEY_0 && sym_test <= XKB_KEY_9)) {
+        seat->xkb_use_non_latin_workaround = false;
+        break;
+      }
+    }
   }
+#endif
 
   keyboard_depressed_state_reset(seat);
 
@@ -3401,6 +3459,8 @@ static void keyboard_handle_leave(void *data,
 static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
     struct xkb_state *xkb_state_empty,
     struct xkb_state *xkb_state_empty_with_numlock,
+    struct xkb_state *xkb_state_empty_with_shift,
+    const bool xkb_use_non_latin_workaround,
     const xkb_keycode_t key)
 {
   /* Use an empty keyboard state to access key symbol without modifiers. */
@@ -3414,11 +3474,30 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
 
   /* Accounts for key-pad keys typically swapped for numbers when number-lock is enabled:
    * `Home Left Up Right Down Prior Page_Up Next Page_Dow End Begin Insert Delete`. */
-  if (xkb_state_empty_with_numlock && (sym >= XKB_KEY_KP_Home && sym <= XKB_KEY_KP_Delete)) {
-    const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty_with_numlock, key);
-    if (sym_test != XKB_KEY_NoSymbol) {
-      sym = sym_test;
+  if (sym >= XKB_KEY_KP_Home && sym <= XKB_KEY_KP_Delete) {
+    if (xkb_state_empty_with_numlock) {
+      const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty_with_numlock, key);
+      if (sym_test != XKB_KEY_NoSymbol) {
+        sym = sym_test;
+      }
     }
+  }
+  else {
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+    if (key >= (KEY_1 + EVDEV_OFFSET) && key <= (KEY_0 + EVDEV_OFFSET)) {
+      if (xkb_state_empty_with_shift && xkb_use_non_latin_workaround) {
+        const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty_with_shift, key);
+        if (sym_test != XKB_KEY_NoSymbol) {
+          /* Should never happen as enabling `xkb_use_non_latin_workaround` checks this. */
+          GHOST_ASSERT(sym_test >= XKB_KEY_0 && sym_test <= XKB_KEY_9, "Unexpected key");
+          sym = sym_test;
+        }
+      }
+    }
+#else
+    (void)xkb_state_empty_with_shift;
+    (void)xkb_use_non_latin_workaround;
+#endif
   }
 
   return sym;
@@ -3461,7 +3540,15 @@ static void keyboard_handle_key(void *data,
   const xkb_keycode_t key_code = key + EVDEV_OFFSET;
 
   const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(
-      seat->xkb_state_empty, seat->xkb_state_empty_with_numlock, key_code);
+      seat->xkb_state_empty,
+      seat->xkb_state_empty_with_numlock,
+      seat->xkb_state_empty_with_shift,
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+      seat->xkb_use_non_latin_workaround,
+#else
+      false,
+#endif
+      key_code);
   if (sym == XKB_KEY_NoSymbol) {
     CLOG_INFO(LOG, 2, "key (code=%d, state=%u, no symbol, skipped)", int(key_code), state);
     return;
@@ -4512,6 +4599,7 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   /* Un-referencing checks for NULL case. */
   xkb_state_unref(seat->xkb_state);
   xkb_state_unref(seat->xkb_state_empty);
+  xkb_state_unref(seat->xkb_state_empty_with_shift);
   xkb_state_unref(seat->xkb_state_empty_with_numlock);
 
   xkb_context_unref(seat->xkb_context);
