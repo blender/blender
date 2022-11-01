@@ -5814,6 +5814,14 @@ void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)
     printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
   }
 
+  if (mt->listener) {
+    /* Forward the menu type listener to the block we're drawing in. */
+    uiBlock *block = uiLayoutGetBlock(layout);
+    uiBlockDynamicListener *listener = MEM_mallocN(sizeof(*listener), "uiBlockDynamicListener");
+    listener->listener_func = mt->listener;
+    BLI_addtail(&block->dynamic_listeners, listener);
+  }
+
   if (layout->context) {
     CTX_store_set(C, layout->context);
   }
