@@ -26,6 +26,7 @@ void VKShader::compute_shader_from_glsl(MutableSpan<const char *> /*sources*/)
 
 bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
 {
+  return false;
 }
 
 void VKShader::transform_feedback_names_set(Span<const char *> /*name_list*/,
