@@ -2525,6 +2525,7 @@ void uiTemplateNodeView(uiLayout *layout,
                         struct bNodeTree *ntree,
                         struct bNode *node,
                         struct bNodeSocket *input);
+void uiTemplateNodeAssetMenuItems(uiLayout *layout, struct bContext *C, const char *catalog_path);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
 /**
  * Button to quickly show texture in Properties Editor texture tab.

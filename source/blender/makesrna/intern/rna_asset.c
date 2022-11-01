@@ -472,6 +472,12 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   rna_def_asset_handle_api(srna);
 }
 
+static void rna_def_asset_catalog_path(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "AssetCatalogPath", NULL);
+  RNA_def_struct_ui_text(srna, "Catalog Path", "");
+}
+
 static void rna_def_asset_library_reference(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetLibraryReference", NULL);
@@ -498,6 +504,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
   rna_def_asset_handle(brna);
+  rna_def_asset_catalog_path(brna);
 
   RNA_define_animate_sdna(true);
 }

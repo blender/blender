@@ -7,10 +7,14 @@
 #include "asset_library_service.hh"
 
 #include "BKE_blender.h"
+#include "BKE_preferences.h"
 
 #include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
 #include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
+
+#include "DNA_asset_types.h"
+#include "DNA_userdef_types.h"
 
 #include "CLG_log.h"
 
@@ -36,6 +40,38 @@ void AssetLibraryService::destroy()
   }
   instance_->app_handler_unregister();
   instance_.reset();
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library(
+    const Main *bmain, const AssetLibraryReference &library_reference)
+{
+  if (library_reference.type == ASSET_LIBRARY_LOCAL) {
+    /* For the "Current File" library  we get the asset library root path based on main. */
+    char root_path[FILE_MAX];
+    if (bmain) {
+      BKE_asset_library_find_suitable_root_path_from_main(bmain, root_path);
+    }
+    else {
+      root_path[0] = '\0';
+    }
+
+    if (root_path[0] == '\0') {
+      /* File wasn't saved yet. */
+      return get_asset_library_current_file();
+    }
+
+    return get_asset_library_on_disk(root_path);
+  }
+  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
+    bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+        &U, library_reference.custom_library_index);
+
+    if (user_library) {
+      return get_asset_library_on_disk(user_library->path);
+    }
+  }
+
+  return nullptr;
 }
 
 namespace {
