@@ -32,6 +32,12 @@ TEST(path_util, Clean_Dot)
   NORMALIZE("/./././", "/");
   NORMALIZE("/a/./././b/", "/a/b/");
 }
+/* #BLI_path_normalize: complex "/./" -> "/", "//" -> "/", "./path/../" -> "./". */
+TEST(path_util, Clean_Complex)
+{
+  NORMALIZE("/a/./b/./c/./.././.././", "/a/");
+  NORMALIZE("/a//.//b//.//c//.//..//.//..//.//", "/a/");
+}
 /* #BLI_path_normalize: "//" -> "/" */
 TEST(path_util, Clean_DoubleSlash)
 {

@@ -153,6 +153,19 @@ void BLI_path_normalize(const char *relabase, char *path)
    */
 
 #ifdef WIN32
+
+  while ((start = strstr(path, "\\.\\"))) {
+    eind = start + strlen("\\.\\") - 1;
+    memmove(start, eind, strlen(eind) + 1);
+  }
+
+  /* remove two consecutive backslashes, but skip the UNC prefix,
+   * which needs to be preserved */
+  while ((start = strstr(path + BLI_path_unc_prefix_len(path), "\\\\"))) {
+    eind = start + strlen("\\\\") - 1;
+    memmove(start, eind, strlen(eind) + 1);
+  }
+
   while ((start = strstr(path, "\\..\\"))) {
     eind = start + strlen("\\..\\") - 1;
     a = start - path - 1;
@@ -170,18 +183,18 @@ void BLI_path_normalize(const char *relabase, char *path)
     }
   }
 
-  while ((start = strstr(path, "\\.\\"))) {
-    eind = start + strlen("\\.\\") - 1;
+#else
+
+  while ((start = strstr(path, "/./"))) {
+    eind = start + (3 - 1) /* strlen("/./") - 1 */;
     memmove(start, eind, strlen(eind) + 1);
   }
 
-  /* remove two consecutive backslashes, but skip the UNC prefix,
-   * which needs to be preserved */
-  while ((start = strstr(path + BLI_path_unc_prefix_len(path), "\\\\"))) {
-    eind = start + strlen("\\\\") - 1;
+  while ((start = strstr(path, "//"))) {
+    eind = start + (2 - 1) /* strlen("//") - 1 */;
     memmove(start, eind, strlen(eind) + 1);
   }
-#else
+
   while ((start = strstr(path, "/../"))) {
     a = start - path - 1;
     if (a > 0) {
@@ -206,15 +219,6 @@ void BLI_path_normalize(const char *relabase, char *path)
     }
   }
 
-  while ((start = strstr(path, "/./"))) {
-    eind = start + (3 - 1) /* strlen("/./") - 1 */;
-    memmove(start, eind, strlen(eind) + 1);
-  }
-
-  while ((start = strstr(path, "//"))) {
-    eind = start + (2 - 1) /* strlen("//") - 1 */;
-    memmove(start, eind, strlen(eind) + 1);
-  }
 #endif
 }
 
