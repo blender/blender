@@ -613,11 +613,6 @@ template<typename Float, int axes = 2> class BezierSpline {
       Vector dva = lastdv;
       Vector a = lastp;
 
-      // Vector dva = derivative(s);
-      // Vector dvb = derivative(s + ds);
-      // Vector a = evaluate(s);
-      // Vector b = evaluate(s + ds);
-
       Vector vec1 = a - p;
       Vector vec2 = b - p;
 

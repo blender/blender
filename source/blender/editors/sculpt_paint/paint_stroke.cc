@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arc_spline.hh"
+#include "BLI_even_spline.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -58,7 +58,7 @@ using blender::float3;
 static void paint_stroke_add_sample(
     const Paint *paint, PaintStroke *stroke, float x, float y, float pressure);
 
-//#define DRAW_DEBUG_VIS
+#define DRAW_DEBUG_VIS
 
 static int paint_stroke_max_points(const Paint *paint, PaintStroke *stroke)
 {
