@@ -133,6 +133,8 @@ enum {
 /** #uiBlock.flag (controls) */
 enum {
   UI_BLOCK_LOOP = 1 << 0,
+  /** Indicate that items in a popup are drawn with inverted order. Used for arrow key navigation
+   *  so that it knows to invert the navigation direction to match the drawing order. */
   UI_BLOCK_IS_FLIP = 1 << 1,
   UI_BLOCK_NO_FLIP = 1 << 2,
   UI_BLOCK_NUMSELECT = 1 << 3,
