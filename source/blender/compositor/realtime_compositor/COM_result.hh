@@ -14,7 +14,9 @@
 namespace blender::realtime_compositor {
 
 /* Possible data types that operations can operate on. They either represent the base type of the
- * result texture or a single value result. */
+ * result texture or a single value result. The color type represents an RGBA color. And the vector
+ * type represents a generic 4-component vector, which can encode two 2D vectors, one 3D vector
+ * with the last component ignored, or other dimensional data. */
 enum class ResultType : uint8_t {
   Float,
   Vector,
@@ -85,7 +87,7 @@ class Result {
    * is a texture. */
   union {
     float float_value_;
-    float3 vector_value_;
+    float4 vector_value_;
     float4 color_value_;
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
@@ -157,7 +159,7 @@ class Result {
 
   /* If the result is a single value result of type vector, return its vector value. Otherwise, an
    * uninitialized value is returned. */
-  float3 get_vector_value() const;
+  float4 get_vector_value() const;
 
   /* If the result is a single value result of type color, return its color value. Otherwise, an
    * uninitialized value is returned. */
@@ -167,7 +169,7 @@ class Result {
   float get_float_value_default(float default_value) const;
 
   /* Same as get_vector_value but returns a default value if the result is not a single value. */
-  float3 get_vector_value_default(const float3 &default_value) const;
+  float4 get_vector_value_default(const float4 &default_value) const;
 
   /* Same as get_color_value but returns a default value if the result is not a single value. */
   float4 get_color_value_default(const float4 &default_value) const;
@@ -178,7 +180,7 @@ class Result {
 
   /* If the result is a single value result of type vector, set its vector value and upload it to
    * the texture. Otherwise, an undefined behavior is invoked. */
-  void set_vector_value(const float3 &value);
+  void set_vector_value(const float4 &value);
 
   /* If the result is a single value result of type color, set its color value and upload it to the
    * texture. Otherwise, an undefined behavior is invoked. */

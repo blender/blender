@@ -62,7 +62,7 @@ void Result::allocate_invalid()
       set_float_value(0.0f);
       break;
     case ResultType::Vector:
-      set_vector_value(float3(0.0f));
+      set_vector_value(float4(0.0f));
       break;
     case ResultType::Color:
       set_color_value(float4(0.0f));
@@ -125,7 +125,7 @@ float Result::get_float_value() const
   return float_value_;
 }
 
-float3 Result::get_vector_value() const
+float4 Result::get_vector_value() const
 {
   return vector_value_;
 }
@@ -143,7 +143,7 @@ float Result::get_float_value_default(float default_value) const
   return default_value;
 }
 
-float3 Result::get_vector_value_default(const float3 &default_value) const
+float4 Result::get_vector_value_default(const float4 &default_value) const
 {
   if (is_single_value()) {
     return get_vector_value();
@@ -165,7 +165,7 @@ void Result::set_float_value(float value)
   GPU_texture_update(texture_, GPU_DATA_FLOAT, &float_value_);
 }
 
-void Result::set_vector_value(const float3 &value)
+void Result::set_vector_value(const float4 &value)
 {
   vector_value_ = value;
   GPU_texture_update(texture_, GPU_DATA_FLOAT, vector_value_);
