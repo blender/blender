@@ -102,8 +102,6 @@ TEST(path_util, Clean_Parent)
 /** \name Tests for: #BLI_path_parent_dir
  * \{ */
 
-TEST(path_util, ParentDir)
-{
 #define PARENT_DIR(input, output) \
   { \
     char path[FILE_MAX] = input; \
@@ -118,12 +116,25 @@ TEST(path_util, ParentDir)
   } \
   ((void)0)
 
+TEST(path_util, ParentDir_Simple)
+{
   PARENT_DIR("/a/b/", "/a/");
   PARENT_DIR("/a/b", "/a/");
   PARENT_DIR("/a", "/");
+}
+
+TEST(path_util, ParentDir_NOP)
+{
   PARENT_DIR("/", "/");
   PARENT_DIR("", "");
+  PARENT_DIR(".", ".");
+  PARENT_DIR("./", "./");
+  PARENT_DIR(".//", ".//");
+  PARENT_DIR("./.", "./.");
+}
 
+TEST(path_util, ParentDir_TrailingPeriod)
+{
   /* Ensure trailing dots aren't confused with parent path. */
   PARENT_DIR("/.../.../.../", "/.../.../");
   PARENT_DIR("/.../.../...", "/.../.../");
@@ -133,9 +144,17 @@ TEST(path_util, ParentDir)
 
   PARENT_DIR("/a./b./c./", "/a./b./");
   PARENT_DIR("/a./b./c.", "/a./b./");
+}
+
+TEST(path_util, ParentDir_Complex)
+{
+  PARENT_DIR("./a/", "./");
+  PARENT_DIR("./a", "./");
+  PARENT_DIR("../a/", "../");
+  PARENT_DIR("../a", "../");
+}
 
 #undef PARENT_DIR
-}
 
 /** \} */
 
