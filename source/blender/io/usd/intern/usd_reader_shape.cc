@@ -65,18 +65,29 @@ void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
   USDXformReader::read_object_data(bmain, motionSampleTime);
 }
 
+
 template<typename Adapter>
 void USDShapeReader::read_values(const double motionSampleTime,
                                  pxr::VtVec3fArray &positions,
                                  pxr::VtIntArray &face_indices,
                                  pxr::VtIntArray &face_counts)
 {
-  pxr::VtValue meshPoints = Adapter::GetMeshPoints(prim_, motionSampleTime);
-  positions = meshPoints.template Get<pxr::VtArray<pxr::GfVec3f>>();
-  pxr::HdMeshTopology meshTopologyValue = Adapter::GetMeshTopology().template Get<pxr::HdMeshTopology>();
-  face_counts = meshTopologyValue.GetFaceVertexCounts();
-  face_indices = meshTopologyValue.GetFaceVertexIndices();
+  Adapter adapter;
+  pxr::VtValue points_val = adapter.GetPoints(prim_, motionSampleTime);
+
+  if (points_val.template IsHolding<pxr::VtVec3fArray>()) {
+    positions = points_val.template Get<pxr::VtVec3fArray>();
+  }
+
+  pxr::VtValue topology_val = adapter.GetTopology(prim_, pxr::SdfPath(), motionSampleTime);
+
+  if (topology_val.template IsHolding<pxr::HdMeshTopology>()) {
+    const pxr::HdMeshTopology &topology = topology_val.template Get<pxr::HdMeshTopology>();
+    face_counts = topology.GetFaceVertexCounts();
+    face_indices = topology.GetFaceVertexIndices();
+  }
 }
+
 
 struct Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
                                        double motionSampleTime,
