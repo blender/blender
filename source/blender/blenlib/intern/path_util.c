@@ -1500,6 +1500,27 @@ size_t BLI_path_join_array(char *__restrict dst,
     return ofs;
   }
 
+#ifdef WIN32
+  /* Special case "//" for relative paths, don't use separator #SEP
+   * as this has a special meaning on both WIN32 & UNIX.
+   * Without this check joining `"//", "path"`. results in `"//\path"`. */
+  if (ofs != 0) {
+    size_t i;
+    for (i = 0; i < ofs; i++) {
+      if (dst[i] != '/') {
+        break;
+      }
+    }
+    if (i == ofs) {
+      /* All slashes, keep them as-is, and join the remaining path array. */
+      return path_array_num > 1 ?
+                 BLI_path_join_array(
+                     dst + ofs, dst_len - ofs, &path_array[1], path_array_num - 1) :
+                 ofs;
+    }
+  }
+#endif
+
   /* Remove trailing slashes, unless there are *only* trailing slashes
    * (allow `//` or `//some_path` as the first argument). */
   bool has_trailing_slash = false;
