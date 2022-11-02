@@ -40,7 +40,7 @@ bool test_acodec(const AVCodec *codec, AVSampleFormat fmt)
     if (ctx) {
       ctx->sample_fmt = fmt;
       ctx->sample_rate = 48000;
-      ctx->channel_layout = AV_CH_LAYOUT_MONO;
+      av_channel_layout_from_mask(&ctx->ch_layout, AV_CH_LAYOUT_MONO);
       ctx->bit_rate = 128000;
       int open = avcodec_open2(ctx, codec, NULL);
       if (open >= 0) {

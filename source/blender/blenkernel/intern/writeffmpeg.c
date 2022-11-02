@@ -141,19 +141,18 @@ static int write_audio_frame(FFMpegContext *context)
   frame->pts = context->audio_time / av_q2d(c->time_base);
   frame->nb_samples = context->audio_input_samples;
   frame->format = c->sample_fmt;
-  frame->channels = c->channels;
-  frame->channel_layout = c->channel_layout;
+  av_channel_layout_copy(&frame->ch_layout, &c->ch_layout);
 
   if (context->audio_deinterleave) {
     int channel, i;
     uint8_t *temp;
 
-    for (channel = 0; channel < c->channels; channel++) {
+    for (channel = 0; channel < c->ch_layout.nb_channels; channel++) {
       for (i = 0; i < frame->nb_samples; i++) {
         memcpy(context->audio_deinterleave_buffer +
                    (i + channel * frame->nb_samples) * context->audio_sample_size,
                context->audio_input_buffer +
-                   (c->channels * i + channel) * context->audio_sample_size,
+                   (c->ch_layout.nb_channels * i + channel) * context->audio_sample_size,
                context->audio_sample_size);
       }
     }
@@ -164,10 +163,11 @@ static int write_audio_frame(FFMpegContext *context)
   }
 
   avcodec_fill_audio_frame(frame,
-                           c->channels,
+                           c->ch_layout.nb_channels,
                            c->sample_fmt,
                            context->audio_input_buffer,
-                           context->audio_input_samples * c->channels * context->audio_sample_size,
+                           context->audio_input_samples * c->ch_layout.nb_channels *
+                               context->audio_sample_size,
                            1);
 
   int success = 1;
@@ -944,23 +944,23 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   c->sample_rate = rd->ffcodecdata.audio_mixrate;
   c->bit_rate = context->ffmpeg_audio_bitrate * 1000;
   c->sample_fmt = AV_SAMPLE_FMT_S16;
-  c->channels = rd->ffcodecdata.audio_channels;
+  c->ch_layout.nb_channels = rd->ffcodecdata.audio_channels;
 
   switch (rd->ffcodecdata.audio_channels) {
     case FFM_CHANNELS_MONO:
-      c->channel_layout = AV_CH_LAYOUT_MONO;
+      av_channel_layout_from_mask(&c->ch_layout, AV_CH_LAYOUT_MONO);
       break;
     case FFM_CHANNELS_STEREO:
-      c->channel_layout = AV_CH_LAYOUT_STEREO;
+      av_channel_layout_from_mask(&c->ch_layout, AV_CH_LAYOUT_STEREO);
       break;
     case FFM_CHANNELS_SURROUND4:
-      c->channel_layout = AV_CH_LAYOUT_QUAD;
+      av_channel_layout_from_mask(&c->ch_layout, AV_CH_LAYOUT_QUAD);
       break;
     case FFM_CHANNELS_SURROUND51:
-      c->channel_layout = AV_CH_LAYOUT_5POINT1_BACK;
+      av_channel_layout_from_mask(&c->ch_layout, AV_CH_LAYOUT_5POINT1_BACK);
       break;
     case FFM_CHANNELS_SURROUND71:
-      c->channel_layout = AV_CH_LAYOUT_7POINT1;
+      av_channel_layout_from_mask(&c->ch_layout, AV_CH_LAYOUT_7POINT1);
       break;
   }
 
@@ -1027,7 +1027,7 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
      * not sure if that is needed anymore, so let's try out if there are any
      * complaints regarding some FFmpeg versions users might have. */
     context->audio_input_samples = AV_INPUT_BUFFER_MIN_SIZE * 8 / c->bits_per_coded_sample /
-                                   c->channels;
+                                   c->ch_layout.nb_channels;
   }
   else {
     context->audio_input_samples = c->frame_size;
@@ -1037,11 +1037,11 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
 
   context->audio_sample_size = av_get_bytes_per_sample(c->sample_fmt);
 
-  context->audio_input_buffer = (uint8_t *)av_malloc(context->audio_input_samples * c->channels *
-                                                     context->audio_sample_size);
+  context->audio_input_buffer = (uint8_t *)av_malloc(
+      context->audio_input_samples * c->ch_layout.nb_channels * context->audio_sample_size);
   if (context->audio_deinterleave) {
     context->audio_deinterleave_buffer = (uint8_t *)av_malloc(
-        context->audio_input_samples * c->channels * context->audio_sample_size);
+        context->audio_input_samples * c->ch_layout.nb_channels * context->audio_sample_size);
   }
 
   context->audio_time = 0.0f;
@@ -1432,7 +1432,7 @@ int BKE_ffmpeg_start(void *context_v,
     AVCodecContext *c = context->audio_codec;
 
     AUD_DeviceSpecs specs;
-    specs.channels = c->channels;
+    specs.channels = c->ch_layout.nb_channels;
 
     switch (av_get_packed_sample_fmt(c->sample_fmt)) {
       case AV_SAMPLE_FMT_U8:
