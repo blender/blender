@@ -9,20 +9,59 @@
 #include "BLI_string.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+static void str_replace_char_with_relative_exception(char *str, char src, char dst)
+{
+  /* Always keep "//" or more leading slashes (special meaning). */
+  if (src == '/') {
+    if (str[0] == '/' && str[1] == '/') {
+      str += 2;
+      while (*str == '/') {
+        str++;
+      }
+    }
+  }
+  BLI_str_replace_char(str, src, dst);
+}
+
+static char *str_replace_char_strdup(const char *str, char src, char dst)
+{
+  if (str == nullptr) {
+    return nullptr;
+  }
+  char *str_dupe = strdup(str);
+  BLI_str_replace_char(str_dupe, src, dst);
+  return str_dupe;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_normalize
  * \{ */
 
-#ifndef _WIN32
-
-#  define NORMALIZE_WITH_BASEDIR(input, input_base, output) \
-    { \
-      char path[FILE_MAX] = input; \
-      BLI_path_normalize(input_base, path); \
-      EXPECT_STREQ(output, path); \
+#define NORMALIZE_WITH_BASEDIR(input, input_base, output) \
+  { \
+    char path[FILE_MAX] = input; \
+    const char *input_base_test = input_base; \
+    if (SEP == '\\') { \
+      str_replace_char_with_relative_exception(path, '/', '\\'); \
+      input_base_test = str_replace_char_strdup(input_base_test, '/', '\\'); \
     } \
-    ((void)0)
+    BLI_path_normalize(input_base_test, path); \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '\\', '/'); \
+      if (input_base_test) { \
+        free((void *)input_base_test); \
+      } \
+    } \
+    EXPECT_STREQ(output, path); \
+  } \
+  ((void)0)
 
-#  define NORMALIZE(input, output) NORMALIZE_WITH_BASEDIR(input, nullptr, output)
+#define NORMALIZE(input, output) NORMALIZE_WITH_BASEDIR(input, nullptr, output)
 
 /* #BLI_path_normalize: "/./" -> "/" */
 TEST(path_util, Clean_Dot)
@@ -54,10 +93,8 @@ TEST(path_util, Clean_Parent)
   NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
 }
 
-#  undef NORMALIZE_WITH_BASEDIR
-#  undef NORMALIZE
-
-#endif /* !_WIN32 */
+#undef NORMALIZE_WITH_BASEDIR
+#undef NORMALIZE
 
 /** \} */
 
@@ -65,16 +102,21 @@ TEST(path_util, Clean_Parent)
 /** \name Tests for: #BLI_path_parent_dir
  * \{ */
 
-#ifndef _WIN32
 TEST(path_util, ParentDir)
 {
-#  define PARENT_DIR(input, output) \
-    { \
-      char path[FILE_MAX] = input; \
-      BLI_path_parent_dir(path); \
-      EXPECT_STREQ(output, path); \
+#define PARENT_DIR(input, output) \
+  { \
+    char path[FILE_MAX] = input; \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '/', '\\'); \
     } \
-    ((void)0)
+    BLI_path_parent_dir(path); \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '\\', '/'); \
+    } \
+    EXPECT_STREQ(output, path); \
+  } \
+  ((void)0)
 
   PARENT_DIR("/a/b/", "/a/");
   PARENT_DIR("/a/b", "/a/");
@@ -92,9 +134,8 @@ TEST(path_util, ParentDir)
   PARENT_DIR("/a./b./c./", "/a./b./");
   PARENT_DIR("/a./b./c.", "/a./b./");
 
-#  undef PARENT_DIR
+#undef PARENT_DIR
 }
-#endif /* !_WIN32 */
 
 /** \} */
 
@@ -730,59 +771,75 @@ TEST(path_util, PathExtension)
 /** \name Tests for: #BLI_path_rel
  * \{ */
 
-#ifndef _WIN32
-
-#  define PATH_REL(abs_path, ref_path, rel_path) \
-    { \
-      char path[FILE_MAX]; \
-      BLI_strncpy(path, abs_path, sizeof(path)); \
-      BLI_path_rel(path, ref_path); \
-      EXPECT_STREQ(rel_path, path); \
+#define PATH_REL(abs_path, ref_path, rel_path) \
+  { \
+    char path[FILE_MAX]; \
+    const char *ref_path_test = ref_path; \
+    BLI_strncpy(path, abs_path, sizeof(path)); \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '/', '\\'); \
+      ref_path_test = str_replace_char_strdup(ref_path_test, '/', '\\'); \
     } \
-    void(0)
+    BLI_path_rel(path, ref_path_test); \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(path, '\\', '/'); \
+      free((void *)ref_path_test); \
+    } \
+    EXPECT_STREQ(rel_path, path); \
+  } \
+  void(0)
 
-TEST(path_util, PathRelPath)
+#ifdef WIN32
+#  define ABS_PREFIX "C:"
+#else
+#  define ABS_PREFIX ""
+#endif
+
+TEST(path_util, PathRelPath_Simple)
 {
-  PATH_REL("/foo/bar/blender.blend", "/foo/bar/", "//blender.blend");
-  PATH_REL("/foo/bar/blender.blend", "/foo/bar", "//bar/blender.blend");
-
-  /* Check for potential buffer overflows. */
-  {
-    char abs_path_in[FILE_MAX];
-    abs_path_in[0] = '/';
-    for (int i = 1; i < FILE_MAX - 1; i++) {
-      abs_path_in[i] = 'A';
-    }
-    abs_path_in[FILE_MAX - 1] = '\0';
-    char abs_path_out[FILE_MAX];
-    abs_path_out[0] = '/';
-    abs_path_out[1] = '/';
-    for (int i = 2; i < FILE_MAX - 1; i++) {
-      abs_path_out[i] = 'A';
-    }
-    abs_path_out[FILE_MAX - 1] = '\0';
-    PATH_REL(abs_path_in, "/", abs_path_out);
-
-    const char *ref_path_in = "/foo/bar/";
-    const size_t ref_path_in_len = strlen(ref_path_in);
-    strcpy(abs_path_in, ref_path_in);
-    for (int i = ref_path_in_len; i < FILE_MAX - 1; i++) {
-      abs_path_in[i] = 'A';
-    }
-    abs_path_in[FILE_MAX - 1] = '\0';
-    abs_path_out[0] = '/';
-    abs_path_out[1] = '/';
-    for (int i = 2; i < FILE_MAX - (int(ref_path_in_len) - 1); i++) {
-      abs_path_out[i] = 'A';
-    }
-    abs_path_out[FILE_MAX - (ref_path_in_len - 1)] = '\0';
-    PATH_REL(abs_path_in, ref_path_in, abs_path_out);
-  }
+  PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", "//blender.blend");
 }
 
-#  undef PATH_REL
+TEST(path_util, PathRelPath_SimpleSubdir)
+{
+  PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar", "//bar/blender.blend");
+}
 
-#endif /* !_WIN32 */
+TEST(path_util, PathRelPath_BufferOverflowRoot)
+{
+  char abs_path_in[FILE_MAX];
+  const char *abs_prefix = ABS_PREFIX "/";
+  for (int i = STRNCPY_RLEN(abs_path_in, abs_prefix); i < FILE_MAX - 1; i++) {
+    abs_path_in[i] = 'A';
+  }
+  abs_path_in[FILE_MAX - 1] = '\0';
+  char abs_path_out[FILE_MAX];
+  for (int i = STRNCPY_RLEN(abs_path_out, "//"); i < FILE_MAX - 1; i++) {
+    abs_path_out[i] = 'A';
+  }
+  abs_path_out[FILE_MAX - std::max((strlen(abs_prefix) - 1), size_t(1))] = '\0';
+  PATH_REL(abs_path_in, abs_prefix, abs_path_out);
+}
+
+TEST(path_util, PathRelPath_BufferOverflowSubdir)
+{
+  char abs_path_in[FILE_MAX];
+  const char *ref_path_in = ABS_PREFIX "/foo/bar/";
+  const size_t ref_path_in_len = strlen(ref_path_in);
+  for (int i = STRNCPY_RLEN(abs_path_in, ref_path_in); i < FILE_MAX - 1; i++) {
+    abs_path_in[i] = 'A';
+  }
+  abs_path_in[FILE_MAX - 1] = '\0';
+  char abs_path_out[FILE_MAX];
+  for (int i = STRNCPY_RLEN(abs_path_out, "//"); i < FILE_MAX - (int(ref_path_in_len) - 1); i++) {
+    abs_path_out[i] = 'A';
+  }
+  abs_path_out[FILE_MAX - std::max((ref_path_in_len - 1), size_t(1))] = '\0';
+  PATH_REL(abs_path_in, ref_path_in, abs_path_out);
+}
+
+#undef PATH_REL
+#undef ABS_PREFIX
 
 /** \} */
 
