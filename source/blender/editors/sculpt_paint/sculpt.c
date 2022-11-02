@@ -2773,14 +2773,14 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
   float loc[3];
   const float xy_delta[2] = {0.0f, 1.0f};
 
-  mul_v3_m4v3(loc, ob->imat, center);
+  mul_v3_m4v3(loc, ob->world_to_object, center);
   const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
 
   ED_view3d_win_to_delta(vc->region, xy_delta, zfac, y);
   normalize_v3(y);
 
   add_v3_v3(y, ob->loc);
-  mul_m4_v3(ob->imat, y);
+  mul_m4_v3(ob->world_to_object, y);
 }
 
 static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat[4][4])
@@ -2792,8 +2792,8 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat
   float angle, v[3];
   float up[3];
 
-  /* Ensure `ob->imat` is up to date. */
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  /* Ensure `ob->world_to_object` is up to date. */
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
   /* Initialize last column of matrix. */
   mat[0][3] = 0.0f;
@@ -2839,7 +2839,7 @@ void SCULPT_tilt_apply_to_normal(float r_normal[3], StrokeCache *cache, const fl
   float normal_tilt_xy[3];
   rotate_v3_v3v3fl(
       normal_tilt_xy, normal_tilt_y, cache->vc->rv3d->viewinv[1], cache->x_tilt * rot_max);
-  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->imat, normal_tilt_xy);
+  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->world_to_object, normal_tilt_xy);
   normalize_v3(r_normal);
 }
 
@@ -4354,10 +4354,10 @@ static void sculpt_update_cache_invariants(
   /* Cache projection matrix. */
   ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(cache->true_view_normal, viewDir);
 
@@ -5021,10 +5021,10 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   float radius;
 
   /* Update cursor data in SculptSession. */
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, vc.rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(ss->cursor_view_normal, viewDir);
   copy_v3_v3(ss->cursor_normal, srd.face_normal);

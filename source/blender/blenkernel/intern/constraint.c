@@ -227,7 +227,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
       /* cob->ob or cob->pchan might not exist */
       if (cob->ob && cob->pchan) {
         /* copy new pose-matrix back to owner */
-        mul_m4_m4m4(cob->pchan->pose_mat, cob->ob->imat, cob->matrix);
+        mul_m4_m4m4(cob->pchan->pose_mat, cob->ob->world_to_object, cob->matrix);
 
         /* copy inverse of delta back to owner */
         invert_m4_m4(cob->pchan->constinv, delta);

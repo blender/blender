@@ -589,7 +589,7 @@ static DupliObject *vertex_dupli(const DupliContext *ctx,
 
   /* Space matrix is constructed by removing `obmat` transform,
    * this yields the world-space transform for recursive duplis. */
-  mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
+  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object);
 
   DupliObject *dob = make_dupli(ctx, inst_ob, obmat, index);
 
@@ -609,10 +609,10 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
   const MVert *mvert = vdd->mvert;
   const int totvert = vdd->totvert;
 
-  invert_m4_m4(inst_ob->imat, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
   /* Relative transform from parent to child space. */
   float child_imat[4][4];
-  mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
 
   for (int i = 0; i < totvert; i++) {
     DupliObject *dob = vertex_dupli(
@@ -631,10 +631,10 @@ static void make_child_duplis_verts_from_editmesh(const DupliContext *ctx,
   BMEditMesh *em = vdd->em;
   const bool use_rotation = vdd->params.use_rotation;
 
-  invert_m4_m4(inst_ob->imat, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
   /* Relative transform from parent to child space. */
   float child_imat[4][4];
-  mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
 
   BMVert *v;
   BMIter iter;
@@ -920,7 +920,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         make_dupli(ctx_for_instance, &object, matrix, id, &geometry_set, i);
 
         float space_matrix[4][4];
-        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.imat);
+        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.world_to_object);
         mul_m4_m4_pre(space_matrix, parent_transform);
         make_recursive_duplis(ctx_for_instance, &object, space_matrix, id, &geometry_set, i);
         break;
@@ -1097,7 +1097,7 @@ static DupliObject *face_dupli(const DupliContext *ctx,
 
   /* Space matrix is constructed by removing `obmat` transform,
    * this yields the world-space transform for recursive duplis. */
-  mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
+  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object);
 
   DupliObject *dob = make_dupli(ctx, inst_ob, obmat, index);
 
@@ -1177,9 +1177,9 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 
   float child_imat[4][4];
 
-  invert_m4_m4(inst_ob->imat, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
   /* Relative transform from parent to child space. */
-  mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
   const float scale_fac = ctx->object->instance_faces_scale;
 
   for (a = 0, mp = mpoly; a < totface; a++, mp++) {
@@ -1217,9 +1217,9 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
 
   BLI_assert((vert_coords == nullptr) || (em->bm->elem_index_dirty & BM_VERT) == 0);
 
-  invert_m4_m4(inst_ob->imat, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
   /* Relative transform from parent to child space. */
-  mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
   const float scale_fac = ctx->object->instance_faces_scale;
 
   BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, a) {
@@ -1348,8 +1348,9 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
     sim.ob = par;
     sim.psys = psys;
     sim.psmd = psys_get_modifier(par, psys);
-    /* Make sure emitter `imat` is in global coordinates instead of render view coordinates. */
-    invert_m4_m4(par->imat, par->object_to_world);
+    /* Make sure emitter `world_to_object` is in global coordinates instead of render view
+     * coordinates. */
+    invert_m4_m4(par->world_to_object, par->object_to_world);
 
     /* First check for loops (particle system object used as dupli-object). */
     if (part->ren_as == PART_DRAW_OB) {

@@ -1274,8 +1274,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
       if (centermode == ORIGIN_TO_CURSOR) {
         copy_v3_v3(cent, cursor);
-        invert_m4_m4(obedit->imat, obedit->object_to_world);
-        mul_m4_v3(obedit->imat, cent);
+        invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+        mul_m4_v3(obedit->world_to_object, cent);
       }
       else {
         if (around == V3D_AROUND_CENTER_BOUNDS) {
@@ -1342,8 +1342,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
     if (centermode == ORIGIN_TO_CURSOR) {
       copy_v3_v3(cent, cursor);
-      invert_m4_m4(ob->imat, ob->object_to_world);
-      mul_m4_v3(ob->imat, cent);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_m4_v3(ob->world_to_object, cent);
     }
 
     if (ob->data == nullptr) {
@@ -1363,8 +1363,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
             INIT_MINMAX(min, max);
             BKE_object_minmax_dupli(depsgraph, scene, ob, min, max, true);
             mid_v3_v3v3(cent, min, max);
-            invert_m4_m4(ob->imat, ob->object_to_world);
-            mul_m4_v3(ob->imat, cent);
+            invert_m4_m4(ob->world_to_object, ob->object_to_world);
+            mul_m4_v3(ob->world_to_object, cent);
           }
 
           add_v3_v3(ob->instance_collection->instance_offset, cent);

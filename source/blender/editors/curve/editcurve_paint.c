@@ -245,7 +245,7 @@ static bool stroke_elem_project_fallback(const struct CurveDrawData *cdd,
         cdd->vc.v3d, cdd->vc.region, location_fallback_depth, mval_fl, r_location_world);
     zero_v3(r_normal_local);
   }
-  mul_v3_m4v3(r_location_local, cdd->vc.obedit->imat, r_location_world);
+  mul_v3_m4v3(r_location_local, cdd->vc.obedit->world_to_object, r_location_world);
 
   if (!is_zero_v3(r_normal_world)) {
     copy_v3_v3(r_normal_local, r_normal_world);
@@ -304,7 +304,7 @@ static void curve_draw_stroke_from_operator_elem(wmOperator *op, PointerRNA *ite
 
   RNA_float_get_array(itemptr, "mouse", selem->mval);
   RNA_float_get_array(itemptr, "location", selem->location_world);
-  mul_v3_m4v3(selem->location_local, cdd->vc.obedit->imat, selem->location_world);
+  mul_v3_m4v3(selem->location_local, cdd->vc.obedit->world_to_object, selem->location_world);
   selem->pressure = RNA_float_get(itemptr, "pressure");
 }
 
@@ -445,7 +445,7 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
   struct CurveDrawData *cdd = op->customdata;
   Object *obedit = cdd->vc.obedit;
 
-  invert_m4_m4(obedit->imat, obedit->object_to_world);
+  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
 
   struct StrokeElem *selem = BLI_mempool_calloc(cdd->stroke_elem_pool);
 
@@ -758,7 +758,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
   int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
   const bool is_3d = (cu->flag & CU_3D) != 0;
-  invert_m4_m4(obedit->imat, obedit->object_to_world);
+  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
 
   if (BLI_mempool_len(cdd->stroke_elem_pool) == 0) {
     curve_draw_stroke_from_operator(op);

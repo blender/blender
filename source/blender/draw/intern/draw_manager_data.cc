@@ -678,7 +678,7 @@ BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float
 {
   copy_m4_m4(ob_mats->model, obmat);
   if (ob) {
-    copy_m4_m4(ob_mats->modelinverse, ob->imat);
+    copy_m4_m4(ob_mats->modelinverse, ob->world_to_object);
   }
   else {
     /* WATCH: Can be costly. */

@@ -581,11 +581,11 @@ static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexC
 
   if (clmd->clothObject) {
     /* Inverse matrix is not up to date. */
-    invert_m4_m4(ob->imat, ob->object_to_world);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     for (i = 0; i < cloth->mvert_num; i++) {
       copy_v3_v3(vertexCos[i], cloth->verts[i].x);
-      mul_m4_v3(ob->imat, vertexCos[i]); /* cloth is in global coords */
+      mul_m4_v3(ob->world_to_object, vertexCos[i]); /* cloth is in global coords */
     }
   }
 }

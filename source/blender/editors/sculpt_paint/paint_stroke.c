@@ -681,8 +681,9 @@ static float paint_space_stroke_spacing(bContext *C,
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       float last_object_space_position[3];
-      mul_v3_m4v3(
-          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+      mul_v3_m4v3(last_object_space_position,
+                  stroke->vc.obact->world_to_object,
+                  stroke->last_world_space_position);
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {

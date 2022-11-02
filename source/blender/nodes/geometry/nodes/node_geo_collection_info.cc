@@ -93,7 +93,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (!reset_children) {
         add_v3_v3(transform.values[3], child_collection->instance_offset);
         if (use_relative_transform) {
-          mul_m4_m4_pre(transform.values, self_object->imat);
+          mul_m4_m4_pre(transform.values, self_object->world_to_object);
         }
         else {
           sub_v3_v3(transform.values[3], collection->instance_offset);
@@ -107,7 +107,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       float4x4 transform = float4x4::identity();
       if (!reset_children) {
         if (use_relative_transform) {
-          transform = self_object->imat;
+          transform = self_object->world_to_object;
         }
         else {
           sub_v3_v3(transform.values[3], collection->instance_offset);
@@ -130,7 +130,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     float4x4 transform = float4x4::identity();
     if (use_relative_transform) {
       copy_v3_v3(transform.values[3], collection->instance_offset);
-      mul_m4_m4_pre(transform.values, self_object->imat);
+      mul_m4_m4_pre(transform.values, self_object->world_to_object);
     }
 
     const int handle = instances->add_reference(*collection);

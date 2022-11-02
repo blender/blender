@@ -174,8 +174,8 @@ static void pointdensity_cache_psys(
   sim.psys = psys;
   sim.psmd = psys_get_modifier(ob, psys);
 
-  /* in case ob->imat isn't up-to-date */
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  /* in case ob->world_to_object isn't up-to-date */
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
   total_particles = psys->totpart + psys->totchild;
   psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
@@ -235,7 +235,7 @@ static void pointdensity_cache_psys(
     copy_v3_v3(partco, state.co);
 
     if (pd->psys_cache_space == TEX_PD_OBJECTSPACE) {
-      mul_m4_v3(ob->imat, partco);
+      mul_m4_v3(ob->world_to_object, partco);
     }
     else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
       sub_v3_v3(partco, ob->loc);

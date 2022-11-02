@@ -385,8 +385,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             }
 
             if (do_global) {
-              mul_mat3_m4_v3(ob->imat, no_a);
-              mul_mat3_m4_v3(ob->imat, no_b);
+              mul_mat3_m4_v3(ob->world_to_object, no_a);
+              mul_mat3_m4_v3(ob->world_to_object, no_b);
               normalize_v3(no_a);
               normalize_v3(no_b);
             }

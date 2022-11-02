@@ -4290,7 +4290,7 @@ static void get_cpa_texture(Mesh *mesh,
         case TEXCO_OBJECT:
           copy_v3_v3(texvec, par->state.co);
           if (mtex->object) {
-            mul_m4_v3(mtex->object->imat, texvec);
+            mul_m4_v3(mtex->object->world_to_object, texvec);
           }
           break;
         case TEXCO_UV:
@@ -4378,7 +4378,7 @@ void psys_get_texture(
         case TEXCO_OBJECT:
           copy_v3_v3(texvec, pa->state.co);
           if (mtex->object) {
-            mul_m4_v3(mtex->object->imat, texvec);
+            mul_m4_v3(mtex->object->world_to_object, texvec);
           }
           break;
         case TEXCO_UV:
@@ -5170,7 +5170,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim,
   }
 
   if (psys->part->rotmode == PART_ROT_VEL) {
-    transpose_m3_m4(nmat, ob->imat);
+    transpose_m3_m4(nmat, ob->world_to_object);
     mul_m3_v3(nmat, nor);
     normalize_v3(nor);
 

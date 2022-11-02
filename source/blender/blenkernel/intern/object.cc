@@ -1336,8 +1336,8 @@ void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
       mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
     }
     else {
-      invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
-      mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
+      invert_m4_m4(hmd->object->world_to_object, hmd->object->object_to_world);
+      mul_m4_m4m4(hmd->parentinv, hmd->object->world_to_object, ob->object_to_world);
     }
   }
 }
@@ -1361,8 +1361,8 @@ void BKE_object_modifier_gpencil_hook_reset(Object *ob, HookGpencilModifierData 
     mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
   }
   else {
-    invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
-    mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
+    invert_m4_m4(hmd->object->world_to_object, hmd->object->object_to_world);
+    mul_m4_m4m4(hmd->parentinv, hmd->object->world_to_object, ob->object_to_world);
   }
 }
 
@@ -4241,7 +4241,7 @@ void *BKE_object_tfm_backup(Object *ob)
   copy_m4_m4(obtfm->obmat, ob->object_to_world);
   copy_m4_m4(obtfm->parentinv, ob->parentinv);
   copy_m4_m4(obtfm->constinv, ob->constinv);
-  copy_m4_m4(obtfm->imat, ob->imat);
+  copy_m4_m4(obtfm->imat, ob->world_to_object);
 
   return (void *)obtfm;
 }
@@ -4264,7 +4264,7 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
   copy_m4_m4(ob->object_to_world, obtfm->obmat);
   copy_m4_m4(ob->parentinv, obtfm->parentinv);
   copy_m4_m4(ob->constinv, obtfm->constinv);
-  copy_m4_m4(ob->imat, obtfm->imat);
+  copy_m4_m4(ob->world_to_object, obtfm->imat);
 }
 
 /** \} */

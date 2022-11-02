@@ -2771,12 +2771,12 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
       Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        mul_m4_m4m4(cur_mat, ob->imat, ob_parent->object_to_world);
+        mul_m4_m4m4(cur_mat, ob->world_to_object, ob_parent->object_to_world);
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
         if (pchan != NULL) {
-          mul_m4_series(cur_mat, ob->imat, ob_parent->object_to_world, pchan->pose_mat);
+          mul_m4_series(cur_mat, ob->world_to_object, ob_parent->object_to_world, pchan->pose_mat);
         }
         else {
           unit_m4(cur_mat);

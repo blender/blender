@@ -5095,8 +5095,8 @@ static int spin_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    invert_m4_m4(obedit->imat, obedit->object_to_world);
-    mul_m4_v3(obedit->imat, cent);
+    invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+    mul_m4_v3(obedit->world_to_object, cent);
 
     if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
       count_failed += 1;

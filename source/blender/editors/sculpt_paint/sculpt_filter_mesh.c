@@ -221,10 +221,10 @@ void SCULPT_filter_cache_init(bContext *C,
 
   ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
 
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, vc.rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
 }

@@ -118,7 +118,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       bPoseChannel *pchan_eval;
       bArmature *arm_eval = ob_eval->data;
 
-      invert_m4_m4(ob_eval->imat, ob_eval->object_to_world);
+      invert_m4_m4(ob_eval->world_to_object, ob_eval->object_to_world);
 
       for (pchan_eval = ob_eval->pose->chanbase.first; pchan_eval; pchan_eval = pchan_eval->next) {
         if (pchan_eval->bone->flag & BONE_SELECTED) {
@@ -134,7 +134,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
               vec[1] = gridf * floorf(0.5f + nLoc[1] / gridf);
               vec[2] = gridf * floorf(0.5f + nLoc[2] / gridf);
               /* Back in object space... */
-              mul_m4_v3(ob_eval->imat, vec);
+              mul_m4_v3(ob_eval->world_to_object, vec);
 
               /* Get location of grid point in pose space. */
               BKE_armature_loc_pose_to_bone(pchan_eval, vec, vec);
@@ -387,8 +387,8 @@ static bool snap_selected_to_location(bContext *C,
       bArmature *arm = ob->data;
       float snap_target_local[3];
 
-      invert_m4_m4(ob->imat, ob->object_to_world);
-      mul_v3_m4v3(snap_target_local, ob->imat, snap_target_global);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_v3_m4v3(snap_target_local, ob->world_to_object, snap_target_global);
 
       for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
         if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone) &&
@@ -415,7 +415,7 @@ static bool snap_selected_to_location(bContext *C,
             mul_v3_m4v3(cursor_pose, ob->object_to_world, pchan->pose_mat[3]);
             add_v3_v3(cursor_pose, offset_global);
 
-            mul_m4_v3(ob->imat, cursor_pose);
+            mul_m4_v3(ob->world_to_object, cursor_pose);
             BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
           }
           else {

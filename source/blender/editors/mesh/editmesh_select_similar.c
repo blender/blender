@@ -135,7 +135,7 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
 {
   float normal[3], co[3];
   copy_v3_v3(normal, face->no);
-  mul_transposed_mat3_m4_v3(ob->imat, normal);
+  mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
   normalize_v3(normal);
   mul_v3_m4v3(co, ob->object_to_world, BM_FACE_FIRST_LOOP(face)->v->co);
   plane_from_point_normal_v3(r_plane, co, normal);
@@ -206,7 +206,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     Material ***material_array = NULL;
-    invert_m4_m4(ob->imat, ob->object_to_world);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
     int custom_data_offset = 0;
 
     if (bm->totfacesel == 0) {
@@ -269,7 +269,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, face->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
             BLI_kdtree_3d_insert(tree_3d, tree_index++, normal);
             break;
@@ -414,7 +414,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, face->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             /* We are treating the normals as coordinates, the "nearest" one will
@@ -1028,7 +1028,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
-    invert_m4_m4(ob->imat, ob->object_to_world);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     if (bm->totvertsel == 0) {
       continue;
@@ -1067,7 +1067,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
           case SIMVERT_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, vert->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             BLI_kdtree_3d_insert(tree_3d, normal_tree_index++, normal);
@@ -1217,7 +1217,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
           case SIMVERT_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, vert->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             /* We are treating the normals as coordinates, the "nearest" one will

@@ -875,7 +875,7 @@ static void do_texture_effector(EffectorCache *eff,
   copy_v3_v3(tex_co, point->loc);
 
   if (eff->pd->flag & PFIELD_TEX_OBJECT) {
-    mul_m4_v3(eff->ob->imat, tex_co);
+    mul_m4_v3(eff->ob->world_to_object, tex_co);
 
     if (eff->pd->flag & PFIELD_TEX_2D) {
       tex_co[2] = 0.0f;

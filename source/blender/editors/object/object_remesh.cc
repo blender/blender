@@ -494,10 +494,10 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   float view_normal[3] = {0.0f, 0.0f, 1.0f};
 
   /* Calculate the view normal. */
-  invert_m4_m4(active_object->imat, active_object->object_to_world);
+  invert_m4_m4(active_object->world_to_object, active_object->object_to_world);
   copy_m3_m4(mat, rv3d->viewinv);
   mul_m3_v3(mat, view_normal);
-  copy_m3_m4(mat, active_object->imat);
+  copy_m3_m4(mat, active_object->world_to_object);
   mul_m3_v3(mat, view_normal);
   normalize_v3(view_normal);
 

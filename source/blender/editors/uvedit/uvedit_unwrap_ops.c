@@ -1388,8 +1388,8 @@ static void uv_map_transform_center(const Scene *scene,
     }
     case V3D_AROUND_CURSOR: /* cursor center */
     {
-      invert_m4_m4(ob->imat, ob->object_to_world);
-      mul_v3_m4v3(r_center, ob->imat, scene->cursor.location);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_v3_m4v3(r_center, ob->world_to_object, scene->cursor.location);
       break;
     }
     case V3D_AROUND_ACTIVE: {

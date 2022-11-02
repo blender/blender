@@ -1942,7 +1942,7 @@ void EDBM_project_snap_verts(
                 NULL,
                 co_proj,
                 NULL)) {
-          mul_v3_m4v3(eve->co, obedit->imat, co_proj);
+          mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
       }
     }

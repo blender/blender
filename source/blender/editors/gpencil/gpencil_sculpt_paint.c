@@ -691,7 +691,7 @@ static bool gpencil_brush_pinch_apply(tGP_BrushEditData *gso,
 
   /* 3) Translate back to original space, with the shrinkage applied */
   add_v3_v3v3(fpt, gso->dvec, vec);
-  mul_v3_m4v3(&pt->x, gso->object->imat, fpt);
+  mul_v3_m4v3(&pt->x, gso->object->world_to_object, fpt);
 
   /* compute lock axis */
   gpencil_sculpt_compute_lock_axis(gso, pt, save_pt);
@@ -748,7 +748,7 @@ static bool gpencil_brush_twist_apply(tGP_BrushEditData *gso,
                                        * (center is stored in dvec) */
     mul_m3_v3(rmat, vec);
     add_v3_v3v3(fpt, vec, gso->dvec); /* restore */
-    mul_v3_m4v3(&pt->x, gso->object->imat, fpt);
+    mul_v3_m4v3(&pt->x, gso->object->world_to_object, fpt);
 
     /* compute lock axis */
     gpencil_sculpt_compute_lock_axis(gso, pt, save_pt);
@@ -1041,7 +1041,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 
         /* assume that the delta can just be applied, and then everything works */
         add_v3_v3(&pt->x, delta);
-        mul_m4_v3(gso->object->imat, &pt->x);
+        mul_m4_v3(gso->object->world_to_object, &pt->x);
       }
 
       /* Store ref for later */
