@@ -118,7 +118,7 @@ void USDCurveWriter::do_write(HierarchyContext &context)
       for (int i = 0; i < totpoint; i++, point++) {
         verts.push_back(pxr::GfVec3f(point->vec));
         weights.push_back(point->vec[3]);
-        widths.push_back(point->radius * 2.0f);
+        widths.push_back(point->radius * curve->bevel_radius * 2.0f);
       }
     }
     else if (nurbs->bezt) {
@@ -137,24 +137,24 @@ void USDCurveWriter::do_write(HierarchyContext &context)
 
         if (i > 0) {
           verts.push_back(pxr::GfVec3f(bezier->vec[0]));
-          widths.push_back(bezier->radius * 2.0f);
+          widths.push_back(bezier->radius * curve->bevel_radius * 2.0f);
         }
 
         verts.push_back(pxr::GfVec3f(bezier->vec[1]));
-        widths.push_back(bezier->radius * 2.0f);
+        widths.push_back(bezier->radius * curve->bevel_radius * 2.0f);
 
         if (i < totpoint - 1 || is_cyclic) {
           verts.push_back(pxr::GfVec3f(bezier->vec[2]));
-          widths.push_back(bezier->radius * 2.0f);
+          widths.push_back(bezier->radius * curve->bevel_radius * 2.0f);
         }
       }
 
       if (is_cyclic) {
         verts.push_back(pxr::GfVec3f(nurbs->bezt->vec[0]));
-        widths.push_back(nurbs->bezt->radius * 2.0f);
+        widths.push_back(nurbs->bezt->radius * curve->bevel_radius * 2.0f);
 
         verts.push_back(pxr::GfVec3f(nurbs->bezt->vec[1]));
-        widths.push_back(nurbs->bezt->radius * 2.0f);
+        widths.push_back(nurbs->bezt->radius * curve->bevel_radius * 2.0f);
       }
     }
     // TODO: Implement knots
