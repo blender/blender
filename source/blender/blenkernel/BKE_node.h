@@ -572,6 +572,11 @@ struct bNodeSocket *ntreeInsertSocketInterface(struct bNodeTree *ntree,
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                       struct bNode *from_node,
                                                       struct bNodeSocket *from_sock);
+struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(struct bNodeTree *ntree,
+                                                              struct bNode *from_node,
+                                                              struct bNodeSocket *from_sock,
+                                                              const char *idname,
+                                                              const char *name);
 struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                          struct bNodeSocket *next_sock,
                                                          struct bNode *from_node,
