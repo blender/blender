@@ -615,7 +615,9 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
 {
   uiPopupBlockHandle *handle = ui_popup_menu_create(
       C, nullptr, nullptr, title, [mt, title, icon](bContext *C, uiLayout *layout) -> void {
-        create_title_button(layout, title, icon);
+        if (title && title[0]) {
+          create_title_button(layout, title, icon);
+        }
         ui_item_menutype_func(C, layout, mt);
       });
 
