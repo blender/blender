@@ -747,7 +747,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     MutableAttributeAccessor attributes = mesh_final->attributes_for_write();
     SpanAttributeWriter<float3> rest_positions =
         attributes.lookup_or_add_for_write_only_span<float3>("rest_position", ATTR_DOMAIN_POINT);
-    if (rest_positions) {
+    if (rest_positions && attributes.domain_size(ATTR_DOMAIN_POINT) > 0) {
       attributes.lookup<float3>("position").materialize(rest_positions.span);
       rest_positions.finish();
     }
