@@ -5,6 +5,8 @@
 
 #include "DNA_camera_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 namespace blender::nodes::node_shader_virtual_camera_cc {
 
 static void sh_node_virtual_camera_declare(NodeDeclarationBuilder &b)
@@ -25,21 +27,21 @@ static int node_shader_gpu_virtual_camera(GPUMaterial *mat,
     return GPU_stack_link(mat, node, "node_virtual_camera_empty", in, out);
   }
 
-  Camera *cam = static_cast<Camera *>(object->data);
+  Object *orig_object = DEG_get_original_object(object);
+
+  Camera *cam = static_cast<Camera *>(orig_object->data);
   const bool virtual_camera_stage = cam->runtime.virtual_camera_stage;
-  if (virtual_camera_stage || cam->runtime.virtual_display_texture == nullptr) {
-    return GPU_stack_link(mat, node, "node_virtual_camera_empty", in, out);
-  }
+  const float stage_mix = virtual_camera_stage ? 1.0f : 0.0f;
 
-  GPUNodeLink **texco = &in[0].link;
-  if (!*texco) {
-    *texco = GPU_attribute(mat, CD_AUTO_FROM_NAME, "");
-    node_shader_gpu_bump_tex_coord(mat, node, texco);
-  }
-  node_shader_gpu_tex_mapping(mat, node, in, out);
+  node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
 
-  return GPU_stack_link(
-      mat, node, "node_virtual_camera", in, out, GPU_image_camera(mat, cam, GPU_SAMPLER_DEFAULT));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_virtual_camera",
+                        in,
+                        out,
+                        GPU_image_camera(mat, cam, GPU_SAMPLER_DEFAULT),
+                        GPU_uniform(&stage_mix));
 }
 
 }  // namespace blender::nodes::node_shader_virtual_camera_cc

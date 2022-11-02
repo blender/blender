@@ -7,6 +7,7 @@
 
 #include <cmath>
 
+#include "BLI_float4x4.hh"
 #include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -15,6 +16,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
+#include "BLI_vector.hh"
 
 #include "BKE_armature.h"
 #include "BKE_camera.h"
@@ -26,6 +28,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
@@ -40,6 +43,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
@@ -87,6 +91,9 @@
 #include "view3d_intern.h" /* own include */
 
 using blender::float4;
+using blender::float4x4;
+using blender::int2;
+using blender::Vector;
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
@@ -1535,8 +1542,78 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 /** \name Draw Viewport Contents
  * \{ */
 
+static void view3d_virtual_camera_stage_set(Main *bmain, const bool virtual_stage)
+{
+  LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
+    camera->runtime.virtual_camera_stage = virtual_stage;
+  }
+}
+
+static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Object *object)
+{
+  BLI_assert(object->type == OB_CAMERA);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Scene *scene = CTX_data_scene(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  int2 resolution(1920 / 2, 1080 / 2);
+  Camera *camera = static_cast<Camera *>(object->data);
+  RenderEngineType *engine_type = ED_view3d_engine_type(scene, OB_RENDER);
+
+  if (camera->runtime.virtual_display_texture == nullptr) {
+    camera->runtime.virtual_display_texture = GPU_offscreen_create(
+        UNPACK2(resolution), true, GPU_RGBA16F, nullptr);
+  }
+  GPUOffScreen *offscreen = camera->runtime.virtual_display_texture;
+  GPU_offscreen_bind(offscreen, true);
+  DRW_draw_render_loop_offscreen(
+      depsgraph, engine_type, region, v3d, true, false, false, offscreen, nullptr);
+  GPU_offscreen_unbind(offscreen, true);
+}
+
+static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
+{
+  Main *bmain = CTX_data_main(C);
+
+  // create a custom view3d offscreen rendering.
+  Vector<Object *> virtual_cameras;
+
+  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+    if (!material->nodetree) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
+      if (node->type != SH_NODE_VIRTUAL_CAMERA) {
+        continue;
+      }
+      Object *ob = static_cast<Object *>(static_cast<void *>(node->id));
+      if (ob == nullptr || ob->type != OB_CAMERA) {
+        continue;
+      }
+      virtual_cameras.append(ob);
+    }
+  }
+
+  if (virtual_cameras.is_empty()) {
+    /* No virtual cameras, so skip updating. */
+    return;
+  }
+
+  // go over each camera and set the flag to virtual camera.
+  view3d_virtual_camera_stage_set(bmain, true);
+
+  for (Object *object : virtual_cameras) {
+    view3d_virtual_camera_update(C, region, object);
+  }
+
+  // get reference of the gpu texture and change its ownership
+  // go over eah camera and set the flag back to main camera.
+  view3d_virtual_camera_stage_set(bmain, false);
+}
+
 static void view3d_draw_view(const bContext *C, ARegion *region)
 {
+  view3d_draw_virtual_camera(C, region);
   ED_view3d_draw_setup_view(CTX_wm_manager(C),
                             CTX_wm_window(C),
                             CTX_data_expect_evaluated_depsgraph(C),

@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_format.h"
 
@@ -115,6 +116,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       link->users++;
       break;
     case GPU_NODE_LINK_IMAGE:
+    case GPU_NODE_LINK_IMAGE_CAMERA:
     case GPU_NODE_LINK_IMAGE_TILED:
     case GPU_NODE_LINK_IMAGE_SKY:
     case GPU_NODE_LINK_COLORBAND:
@@ -635,15 +637,12 @@ GPUNodeLink *GPU_image_camera(GPUMaterial *mat, Camera *camera, eGPUSamplerState
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_IMAGE;
-  link->texture = gpu_node_graph_add_texture(graph,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             &camera->runtime.virtual_display_texture,
-                                             link->link_type,
-                                             sampler_state);
+  GPUTexture *texture = camera->runtime.virtual_camera_stage ?
+                            NULL :
+                            GPU_offscreen_color_texture(camera->runtime.virtual_display_texture);
+  link->link_type = GPU_NODE_LINK_IMAGE_CAMERA;
+  link->texture = gpu_node_graph_add_texture(
+      graph, NULL, NULL, NULL, NULL, &texture, link->link_type, sampler_state);
   return link;
 }
 

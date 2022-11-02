@@ -76,7 +76,7 @@ typedef struct Camera_Runtime {
    * when scene camera/main camera is evaluated. */
   int virtual_camera_stage;
   int _pad[1];
-  struct GPUTexture *virtual_display_texture;
+  struct GPUOffScreen *virtual_display_texture;
 } Camera_Runtime;
 
 typedef struct Camera {
