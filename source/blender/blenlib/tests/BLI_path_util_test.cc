@@ -9,9 +9,9 @@
 #include "BLI_string.h"
 
 /* -------------------------------------------------------------------- */
-/* tests */
+/** \name Tests for: #BLI_path_normalize
+ * \{ */
 
-/* BLI_path_normalize */
 #ifndef _WIN32
 
 #  define NORMALIZE_WITH_BASEDIR(input, input_base, output) \
@@ -57,9 +57,14 @@ TEST(path_util, Clean_Parent)
 #  undef NORMALIZE_WITH_BASEDIR
 #  undef NORMALIZE
 
-#endif /* _WIN32 */
+#endif /* !_WIN32 */
 
-/* #BLI_path_parent_dir */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_parent_dir
+ * \{ */
+
 #ifndef _WIN32
 TEST(path_util, ParentDir)
 {
@@ -89,7 +94,13 @@ TEST(path_util, ParentDir)
 
 #  undef PARENT_DIR
 }
-#endif
+#endif /* !_WIN32 */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_name_at_index
+ * \{ */
 
 #define AT_INDEX(str_input, index_input, str_expect) \
   { \
@@ -113,7 +124,6 @@ TEST(path_util, ParentDir)
   } \
   ((void)0)
 
-/* BLI_path_name_at_index */
 TEST(path_util, NameAtIndex_Single)
 {
   AT_INDEX("/a", 0, "a");
@@ -227,6 +237,12 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
 
 #undef AT_INDEX
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_join
+ * \{ */
+
 /* For systems with `/` path separator (non WIN32). */
 #define JOIN_FORWARD_SLASH(str_expect, out_size, ...) \
   { \
@@ -274,7 +290,6 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
 #  define JOIN JOIN_FORWARD_SLASH
 #endif
 
-/* BLI_path_join */
 TEST(path_util, JoinNop)
 {
   JOIN("", 100, "");
@@ -368,7 +383,12 @@ TEST(path_util, JoinRelativePrefix)
 #undef JOIN_BACK_SLASH
 #undef JOIN_FORWARD_SLASH
 
-/* BLI_path_frame */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_frame
+ * \{ */
+
 TEST(path_util, Frame)
 {
   bool ret;
@@ -445,7 +465,12 @@ TEST(path_util, Frame)
   }
 }
 
-/* BLI_split_dirfile */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_split_dirfile
+ * \{ */
+
 TEST(path_util, SplitDirfile)
 {
   {
@@ -501,6 +526,12 @@ TEST(path_util, SplitDirfile)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_frame_strip
+ * \{ */
+
 #define PATH_FRAME_STRIP(input_path, expect_path, expect_ext) \
   { \
     char path[FILE_MAX]; \
@@ -512,7 +543,6 @@ TEST(path_util, SplitDirfile)
   } \
   ((void)0)
 
-/* BLI_path_frame_strip */
 TEST(path_util, PathFrameStrip)
 {
   PATH_FRAME_STRIP("", "", "");
@@ -523,6 +553,12 @@ TEST(path_util, PathFrameStrip)
   PATH_FRAME_STRIP("/ext/shorter/somefile.123001.abc", "/ext/shorter/somefile.######", ".abc");
 }
 #undef PATH_FRAME_STRIP
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_extension_check
+ * \{ */
 
 #define PATH_EXTENSION_CHECK(input_path, input_ext, expect_ext) \
   { \
@@ -536,7 +572,6 @@ TEST(path_util, PathFrameStrip)
   } \
   ((void)0)
 
-/* BLI_path_extension_check */
 TEST(path_util, PathExtensionCheck)
 {
   PATH_EXTENSION_CHECK("a/b/c.exe", ".exe", ".exe");
@@ -562,6 +597,12 @@ TEST(path_util, PathExtensionCheck)
 }
 #undef PATH_EXTENSION_CHECK
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_frame_check_chars
+ * \{ */
+
 #define PATH_FRAME_CHECK_CHARS(input_path, expect_hasChars) \
   { \
     const bool ret = BLI_path_frame_check_chars(input_path); \
@@ -574,7 +615,6 @@ TEST(path_util, PathExtensionCheck)
   } \
   ((void)0)
 
-/* BLI_path_frame_check_chars */
 TEST(path_util, PathFrameCheckChars)
 {
   PATH_FRAME_CHECK_CHARS("a#", true);
@@ -594,6 +634,12 @@ TEST(path_util, PathFrameCheckChars)
 }
 #undef PATH_FRAME_CHECK_CHARS
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_frame_range
+ * \{ */
+
 #define PATH_FRAME_RANGE(input_path, sta, end, digits, expect_outpath) \
   { \
     char path[FILE_MAX]; \
@@ -610,7 +656,6 @@ TEST(path_util, PathFrameCheckChars)
   } \
   ((void)0)
 
-/* BLI_path_frame_range */
 TEST(path_util, PathFrameRange)
 {
   int dummy = -1;
@@ -625,6 +670,12 @@ TEST(path_util, PathFrameRange)
   PATH_FRAME_RANGE("", 1, 0, 20, "00000000000000000001-00000000000000000000");
 }
 #undef PATH_FRAME_RANGE
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_frame_get
+ * \{ */
 
 #define PATH_FRAME_GET(input_path, expect_frame, expect_numdigits, expect_pathisvalid) \
   { \
@@ -643,7 +694,6 @@ TEST(path_util, PathFrameRange)
   } \
   ((void)0)
 
-/* BLI_path_frame_get */
 TEST(path_util, PathFrameGet)
 {
   PATH_FRAME_GET("001.avi", 1, 3, true);
@@ -655,7 +705,12 @@ TEST(path_util, PathFrameGet)
 }
 #undef PATH_FRAME_GET
 
-/* BLI_path_extension */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_extension
+ * \{ */
+
 TEST(path_util, PathExtension)
 {
   EXPECT_EQ(nullptr, BLI_path_extension("some.def/file"));
@@ -669,7 +724,12 @@ TEST(path_util, PathExtension)
   EXPECT_STREQ(".001", BLI_path_extension("Text.001"));
 }
 
-/* BLI_path_rel. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_rel
+ * \{ */
+
 #ifndef _WIN32
 
 #  define PATH_REL(abs_path, ref_path, rel_path) \
@@ -722,9 +782,14 @@ TEST(path_util, PathRelPath)
 
 #  undef PATH_REL
 
-#endif
+#endif /* !_WIN32 */
 
-/* BLI_path_contains */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_contains
+ * \{ */
+
 TEST(path_util, PathContains)
 {
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path")) << "A path contains itself";
@@ -753,4 +818,6 @@ TEST(path_util, PathContains_Windows_case_insensitive)
   EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
       << "On Windows path comparison should ignore case";
 }
-#endif
+#endif /* WIN32 */
+
+/** \} */
