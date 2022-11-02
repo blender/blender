@@ -565,7 +565,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
       free_object_duplilist(lb);
     }
 
-    sob_callback(sctx, params, obj_eval, obj_eval->obmat, is_object_active, data);
+    sob_callback(sctx, params, obj_eval, obj_eval->object_to_world, is_object_active, data);
   }
 }
 
@@ -1145,7 +1145,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
  * \param r_index: Hit index or -1 when no valid index is found.
  * (currently only set to the polygon index when using `snap_to == SCE_SNAP_MODE_FACE_RAYCAST`).
  * \param r_ob: Hit object.
- * \param r_obmat: Object matrix (may not be #Object.obmat with dupli-instances).
+ * \param r_obmat: Object matrix (may not be #Object.object_to_world with dupli-instances).
  * \param r_hit_list: List of #SnapObjectHitDepth (caller must free).
  */
 static bool raycastObjects(SnapObjectContext *sctx,
@@ -1483,7 +1483,7 @@ static void nearest_world_object_fn(SnapObjectContext *sctx,
  * \param r_no: Normal of nearest point on target surface.
  * \param r_index: Index of nearest polygon on target surface.
  * \param r_ob: Nearest target object.
- * \param r_obmat: Nearest target matrix (may not be #Object.obmat with dupli-instances).
+ * \param r_obmat: Nearest target matrix (may not be #Object.object_to_world with dupli-instances).
  */
 static bool nearestWorldObjects(SnapObjectContext *sctx,
                                 const struct SnapObjectParams *params,
@@ -3177,7 +3177,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
  * \param r_index: Hit index or -1 when no valid index is found.
  * (currently only set to the polygon index when using `snap_to == SCE_SNAP_MODE_FACE_RAYCAST`).
  * \param r_ob: Hit object.
- * \param r_obmat: Object matrix (may not be #Object.obmat with dupli-instances).
+ * \param r_obmat: Object matrix (may not be #Object.object_to_world with dupli-instances).
  */
 static eSnapMode snapObjectsRay(SnapObjectContext *sctx,
                                 const SnapObjectParams *params,

@@ -237,7 +237,7 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
 
   /* Combined texture to object, and object to world transform. */
   float texture_to_world[4][4];
-  mul_m4_m4m4(texture_to_world, ob->obmat, grid->texture_to_object);
+  mul_m4_m4m4(texture_to_world, ob->object_to_world, grid->texture_to_object);
 
   if (use_slice) {
     float invviewmat[4][4];
@@ -291,7 +291,7 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
 
   /* Compute density scale. */
   const float density_scale = volume->display.density *
-                              BKE_volume_density_scale(volume, ob->obmat);
+                              BKE_volume_density_scale(volume, ob->object_to_world);
 
   DRW_shgroup_uniform_texture(grp, "densityTexture", grid->texture);
   /* TODO: implement shadow texture, see manta_smoke_calc_transparency. */

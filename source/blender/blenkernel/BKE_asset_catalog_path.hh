@@ -49,7 +49,7 @@ class AssetCatalogPath {
 
   AssetCatalogPath() = default;
   AssetCatalogPath(StringRef path);
-  AssetCatalogPath(const std::string &path);
+  AssetCatalogPath(std::string path);
   AssetCatalogPath(const char *path);
   AssetCatalogPath(const AssetCatalogPath &other_path) = default;
   AssetCatalogPath(AssetCatalogPath &&other_path) noexcept;

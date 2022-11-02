@@ -853,7 +853,8 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     y = xy[1] - 2 * UI_DPI_FAC;
 
     const uchar text_col[] = {255, 255, 255, 255};
-    UI_icon_draw_ex(x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false);
+    UI_icon_draw_ex(
+        x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
 

@@ -472,6 +472,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_THEORA 33
 #define R_IMF_IMTYPE_PSD 34
 #define R_IMF_IMTYPE_WEBP 35
+#define R_IMF_IMTYPE_AV1 36
 
 #define R_IMF_IMTYPE_INVALID 255
 

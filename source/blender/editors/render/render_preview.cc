@@ -785,7 +785,7 @@ static Object *object_preview_camera_create(Main *preview_main,
 
   float rotmat[3][3];
   float dummyscale[3];
-  mat4_to_loc_rot_size(camera->loc, rotmat, dummyscale, preview_object->obmat);
+  mat4_to_loc_rot_size(camera->loc, rotmat, dummyscale, preview_object->object_to_world);
 
   /* Camera is Y up, so needs additional rotations to obliquely face the front. */
   float drotmat[3][3];

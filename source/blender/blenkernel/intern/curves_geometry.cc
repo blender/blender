@@ -9,6 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_length_parameterize.hh"
@@ -1111,21 +1112,11 @@ static void copy_between_buffers(const CPPType &type,
                         src_range.size());
 }
 
-template<typename T>
-static void copy_with_map(const Span<T> src, const Span<int> map, MutableSpan<T> dst)
-{
-  threading::parallel_for(map.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      dst[i] = src[map[i]];
-    }
-  });
-}
-
 static void copy_with_map(const GSpan src, const Span<int> map, GMutableSpan dst)
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    copy_with_map(src.typed<T>(), map, dst.typed<T>());
+    array_utils::gather(src.typed<T>(), map, dst.typed<T>());
   });
 }
 
@@ -1233,6 +1224,10 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
     attribute.dst.finish();
   }
 
+  if (new_curves.curves_num() != curves.curves_num()) {
+    new_curves.remove_attributes_based_on_types();
+  }
+
   return new_curves;
 }
 
@@ -1338,6 +1333,8 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
     attribute.dst.finish();
   }
 
+  new_curves.remove_attributes_based_on_types();
+
   return new_curves;
 }
 
@@ -1400,6 +1397,9 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
 
   attributes.for_all([&](const AttributeIDRef &id, AttributeMetaData meta_data) {
     if (meta_data.domain != ATTR_DOMAIN_POINT) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     if (id.is_named() && bezier_handle_names.contains(id.name())) {

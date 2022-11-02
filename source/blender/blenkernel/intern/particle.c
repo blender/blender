@@ -2370,8 +2370,8 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
                              0,
                              0);
 
-    mul_m4_v3(sim->ob->obmat, state.co);
-    mul_mat3_m4_v3(sim->ob->obmat, state.vel);
+    mul_m4_v3(sim->ob->object_to_world, state.co);
+    mul_mat3_m4_v3(sim->ob->object_to_world, state.vel);
 
     pd_point_from_particle(sim, pa, &state, &point);
 
@@ -2454,8 +2454,8 @@ bool do_guides(Depsgraph *depsgraph,
         }
       }
 
-      mul_m4_v3(eff->ob->obmat, guidevec);
-      mul_mat3_m4_v3(eff->ob->obmat, guidedir);
+      mul_m4_v3(eff->ob->object_to_world, guidevec);
+      mul_mat3_m4_v3(eff->ob->object_to_world, guidedir);
 
       normalize_v3(guidedir);
 
@@ -2956,7 +2956,7 @@ static void psys_thread_create_path(ParticleTask *task,
     psys_particle_on_emitter(
         ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa->fuv, foffset, co, 0, 0, 0, orco);
 
-    mul_m4_v3(ob->obmat, co);
+    mul_m4_v3(ob->object_to_world, co);
 
     for (w = 0; w < 4; w++) {
       sub_v3_v3v3(off1[w], co, key[w]->co);
@@ -3419,7 +3419,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
       /* dynamic hair is in object space */
       /* keyed and baked are already in global space */
       if (hair_mesh) {
-        mul_m4_v3(sim->ob->obmat, ca->co);
+        mul_m4_v3(sim->ob->object_to_world, ca->co);
       }
       else if (!keyed && !baked && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         mul_m4_v3(hairmat, ca->co);
@@ -3929,7 +3929,7 @@ void psys_mat_hair_to_global(
 
   psys_mat_hair_to_object(ob, mesh, from, pa, facemat);
 
-  mul_m4_m4m4(hairmat, ob->obmat, facemat);
+  mul_m4_m4m4(hairmat, ob->object_to_world, facemat);
 }
 
 /************************************************/
@@ -4661,8 +4661,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       do_particle_interpolation(psys, p, pa, t, &pind, state);
 
       if (pind.mesh) {
-        mul_m4_v3(sim->ob->obmat, state->co);
-        mul_mat3_m4_v3(sim->ob->obmat, state->vel);
+        mul_m4_v3(sim->ob->object_to_world, state->co);
+        mul_mat3_m4_v3(sim->ob->object_to_world, state->vel);
       }
       else if (!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         if ((pa->flag & PARS_REKEY) == 0) {
@@ -4685,7 +4685,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
     }
   }
   else if (totchild) {
-    // invert_m4_m4(imat, ob->obmat);
+    // invert_m4_m4(imat, ob->object_to_world);
 
     /* interpolate childcache directly if it exists */
     if (psys->childcache) {
@@ -4733,7 +4733,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
          * positioning it accurately to the surface of the emitter. */
         // copy_v3_v3(cpa_1st, co);
 
-        // mul_m4_v3(ob->obmat, cpa_1st);
+        // mul_m4_v3(ob->object_to_world, cpa_1st);
 
         pa = psys->particles + cpa->parent;
 

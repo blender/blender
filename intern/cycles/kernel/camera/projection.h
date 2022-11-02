@@ -201,11 +201,35 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
   return make_float2(u, v);
 }
 
+/* Single face of a equiangular cube map projection as described in
+   https://blog.google/products/google-ar-vr/bringing-pixels-front-and-center-vr-video/ */
+ccl_device float3 equiangular_cubemap_face_to_direction(float u, float v)
+{
+  u = (1.0f - u);
+
+  u = tanf(u * M_PI_2_F - M_PI_4_F);
+  v = tanf(v * M_PI_2_F - M_PI_4_F);
+
+  return make_float3(1.0f, u, v);
+}
+
+ccl_device float2 direction_to_equiangular_cubemap_face(float3 dir)
+{
+  float u = atan2f(dir.y, dir.x) * 2.0f / M_PI_F + 0.5f;
+  float v = atan2f(dir.z, dir.x) * 2.0f / M_PI_F + 0.5f;
+
+  u = 1.0f - u;
+
+  return make_float2(u, v);
+}
+
 ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, float u, float v)
 {
   switch (cam->panorama_type) {
     case PANORAMA_EQUIRECTANGULAR:
       return equirectangular_range_to_direction(u, v, cam->equirectangular_range);
+    case PANORAMA_EQUIANGULAR_CUBEMAP_FACE:
+      return equiangular_cubemap_face_to_direction(u, v);
     case PANORAMA_MIRRORBALL:
       return mirrorball_to_direction(u, v);
     case PANORAMA_FISHEYE_EQUIDISTANT:
@@ -230,6 +254,8 @@ ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, f
   switch (cam->panorama_type) {
     case PANORAMA_EQUIRECTANGULAR:
       return direction_to_equirectangular_range(dir, cam->equirectangular_range);
+    case PANORAMA_EQUIANGULAR_CUBEMAP_FACE:
+      return direction_to_equiangular_cubemap_face(dir);
     case PANORAMA_MIRRORBALL:
       return direction_to_mirrorball(dir);
     case PANORAMA_FISHEYE_EQUIDISTANT:

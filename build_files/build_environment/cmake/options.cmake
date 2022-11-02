@@ -3,6 +3,7 @@
 if(WIN32)
   option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
 endif()
+option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
 option(WITH_BOOST_PYTHON "Enable building of boost with python support" OFF)
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
@@ -20,8 +21,8 @@ else()
 endif()
 
 set(DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/downloads" CACHE STRING "Path for downloaded files")
-# This path must be hard-coded like this, so that the GNUmakefile knows where it is and can pass it to make_source_archive.py:
-set(PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/packages")
+
+set(PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/packages" CACHE PATH "default path for downloaded packages")
 option(PACKAGE_USE_UPSTREAM_SOURCES "Use sources upstream to download the package sources, when OFF the blender mirror will be used" ON)
 
 file(TO_CMAKE_PATH ${DOWNLOAD_DIR} DOWNLOAD_DIR)

@@ -60,10 +60,6 @@ typedef struct {
   int hot_spot[2];
 } GHOST_CursorBitmapRef;
 
-typedef struct {
-  int flags;
-} GHOST_GLSettings;
-
 typedef enum {
   GHOST_glStereoVisual = (1 << 0),
   GHOST_glDebugContext = (1 << 1),
@@ -156,6 +152,9 @@ typedef enum {
   GHOST_kDrawingContextTypeOpenGL,
 #ifdef WIN32
   GHOST_kDrawingContextTypeD3D,
+#endif
+#ifdef __APPLE__
+  GHOST_kDrawingContextTypeMetal,
 #endif
 } GHOST_TDrawingContextType;
 
@@ -597,6 +596,11 @@ typedef struct {
   /** Refresh rate (in Hertz). */
   uint32_t frequency;
 } GHOST_DisplaySetting;
+
+typedef struct {
+  int flags;
+  GHOST_TDrawingContextType context_type;
+} GHOST_GLSettings;
 
 typedef enum {
   /** Axis that cursor grab will wrap. */

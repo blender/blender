@@ -27,6 +27,7 @@ enum {
   FFMPEG_OGG = 10,
   FFMPEG_INVALID = 11,
   FFMPEG_WEBM = 12,
+  FFMPEG_AV1 = 13,
 };
 
 enum {
@@ -38,6 +39,7 @@ enum {
   FFMPEG_PRESET_H264 = 5,
   FFMPEG_PRESET_THEORA = 6,
   FFMPEG_PRESET_XVID = 7,
+  FFMPEG_PRESET_AV1 = 8,
 };
 
 struct RenderData;

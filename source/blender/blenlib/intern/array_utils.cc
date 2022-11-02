@@ -28,4 +28,9 @@ void gather(const GVArray &src,
   });
 }
 
+void gather(const GSpan src, const IndexMask indices, GMutableSpan dst, const int64_t grain_size)
+{
+  gather(GVArray::ForSpan(src), indices, dst, grain_size);
+}
+
 }  // namespace blender::array_utils

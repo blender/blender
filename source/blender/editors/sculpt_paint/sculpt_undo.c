@@ -857,7 +857,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
@@ -911,7 +911,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-      if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+      if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
 
@@ -1070,7 +1070,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
 
-    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d) ||
+    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, rv3d) ||
                   ss->shapekey_active || ss->deform_modifiers_active;
 
     if (tag_update) {

@@ -3474,11 +3474,26 @@ void UI_block_free(const bContext *C, uiBlock *block)
 
   BLI_freelistN(&block->saferct);
   BLI_freelistN(&block->color_pickers.list);
+  BLI_freelistN(&block->dynamic_listeners);
 
   ui_block_free_button_groups(block);
   ui_block_free_views(block);
 
   MEM_freeN(block);
+}
+
+void UI_block_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
+{
+  /* Don't need to let invisible blocks (old blocks from previous redraw) listen. */
+  if (!block->active) {
+    return;
+  }
+
+  LISTBASE_FOREACH (uiBlockDynamicListener *, listener, &block->dynamic_listeners) {
+    listener->listener_func(listener_params);
+  }
+
+  ui_block_views_listen(block, listener_params);
 }
 
 void UI_blocklist_update_window_matrix(const bContext *C, const ListBase *lb)
@@ -6450,6 +6465,11 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
 void UI_but_hint_drawstr_set(uiBut *but, const char *string)
 {
   ui_but_add_shortcut(but, string, false);
+}
+
+void UI_but_icon_indicator_number_set(uiBut *but, const int indicator_number)
+{
+  UI_icon_text_overlay_init_from_count(&but->icon_overlay_text, indicator_number);
 }
 
 void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_color[4])

@@ -671,7 +671,7 @@ static bool gpencil_brush_pinch_apply(tGP_BrushEditData *gso,
 
   /* 1) Make this point relative to the cursor/midpoint (dvec) */
   float fpt[3];
-  mul_v3_m4v3(fpt, gso->object->obmat, &pt->x);
+  mul_v3_m4v3(fpt, gso->object->object_to_world, &pt->x);
   sub_v3_v3v3(vec, fpt, gso->dvec);
 
   /* 2) Shrink the distance by pulling the point towards the midpoint
@@ -743,7 +743,7 @@ static bool gpencil_brush_twist_apply(tGP_BrushEditData *gso,
 
     /* Rotate point */
     float fpt[3];
-    mul_v3_m4v3(fpt, gso->object->obmat, &pt->x);
+    mul_v3_m4v3(fpt, gso->object->object_to_world, &pt->x);
     sub_v3_v3v3(vec, fpt, gso->dvec); /* make relative to center
                                        * (center is stored in dvec) */
     mul_m3_v3(rmat, vec);
@@ -1037,7 +1037,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
        */
       for (i = 0, pt = new_stroke->points; i < new_stroke->totpoints; i++, pt++) {
         /* Rotate around center new position */
-        mul_mat3_m4_v3(gso->object->obmat, &pt->x); /* only rotation component */
+        mul_mat3_m4_v3(gso->object->object_to_world, &pt->x); /* only rotation component */
 
         /* assume that the delta can just be applied, and then everything works */
         add_v3_v3(&pt->x, delta);
@@ -1172,7 +1172,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->object = ob;
   if (ob) {
     float matrix[4][4];
-    copy_m4_m4(matrix, ob->obmat);
+    copy_m4_m4(matrix, ob->object_to_world);
     zero_axis_bias_m4(matrix);
     invert_m4_m4(gso->inv_mat, matrix);
     gso->vrgroup = gso->gpd->vertex_group_active_index - 1;
@@ -1202,6 +1202,9 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
     gso->automasking_strokes = BLI_ghash_ptr_new(__func__);
   }
   else {
+    if (gso->automasking_strokes != NULL) {
+      BLI_ghash_free(gso->automasking_strokes, NULL, NULL);
+    }
     gso->automasking_strokes = NULL;
   }
   /* save mask */
@@ -1292,6 +1295,10 @@ static void gpencil_sculpt_brush_exit(bContext *C, wmOperator *op)
     }
 
     default:
+      if (gso->stroke_customdata != NULL) {
+        BLI_ghash_free(gso->stroke_customdata, NULL, NULL);
+        gso->stroke_customdata = NULL;
+      }
       break;
   }
 
@@ -2074,6 +2081,20 @@ static void gpencil_sculpt_brush_apply_event(bContext *C, wmOperator *op, const 
     gso->brush = gpencil_sculpt_get_smooth_brush(gso);
     if (gso->brush == NULL) {
       gso->brush = gso->brush_prev;
+    }
+    Brush *brush = gso->brush;
+    if (brush->gpencil_settings->sculpt_mode_flag &
+        (GP_SCULPT_FLAGMODE_AUTOMASK_STROKE | GP_SCULPT_FLAGMODE_AUTOMASK_LAYER |
+         GP_SCULPT_FLAGMODE_AUTOMASK_MATERIAL)) {
+      if (gso->automasking_strokes == NULL) {
+        gso->automasking_strokes = BLI_ghash_ptr_new(__func__);
+      }
+    }
+    else {
+      if (gso->automasking_strokes != NULL) {
+        BLI_ghash_free(gso->automasking_strokes, NULL, NULL);
+      }
+      gso->automasking_strokes = NULL;
     }
   }
   else {

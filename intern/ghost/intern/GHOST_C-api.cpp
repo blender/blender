@@ -24,7 +24,7 @@
 
 GHOST_SystemHandle GHOST_CreateSystem(void)
 {
-  GHOST_ISystem::createSystem(true);
+  GHOST_ISystem::createSystem(true, false);
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
 
   return (GHOST_SystemHandle)system;
@@ -161,7 +161,6 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       uint32_t height,
                                       GHOST_TWindowState state,
                                       bool is_dialog,
-                                      GHOST_TDrawingContextType type,
                                       GHOST_GLSettings glSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -172,7 +171,6 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                                   width,
                                                   height,
                                                   state,
-                                                  type,
                                                   glSettings,
                                                   false,
                                                   is_dialog,

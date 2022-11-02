@@ -1071,7 +1071,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
         for (int dim = 0; dim < 3; dim++) {
           location[dim] = cur[dim] * step[dim] + orgLoc[dim];
         }
-        cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+        cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
       }
     }
   }
@@ -1092,7 +1092,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
 
       /* Axis Symmetry. */
       flip_v3_v3(location, true_location, (char)i);
-      cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+      cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
 
       /* Tiling. */
       cursor_draw_tiling_preview(gpuattr, region, location, sd, ob, radius);
@@ -1107,7 +1107,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
           mul_m4_v3(symm_rot_mat, location);
 
           cursor_draw_tiling_preview(gpuattr, region, location, sd, ob, radius);
-          cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+          cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
         }
       }
     }
@@ -1334,7 +1334,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext *pcontext)
     }
 
     copy_v3_v3(pcontext->scene_space_location, pcontext->location);
-    mul_m4_v3(pcontext->vc.obact->obmat, pcontext->scene_space_location);
+    mul_m4_v3(pcontext->vc.obact->object_to_world, pcontext->scene_space_location);
   }
   else {
     Sculpt *sd = CTX_data_tool_settings(pcontext->C)->sculpt;
@@ -1464,7 +1464,7 @@ static void paint_cursor_drawing_setup_cursor_space(PaintCursorContext *pcontext
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, pcontext->vc.obact->obmat);
+  copy_m4_m4(cursor_trans, pcontext->vc.obact->object_to_world);
   translate_m4(cursor_trans, pcontext->location[0], pcontext->location[1], pcontext->location[2]);
   rotation_between_vecs_to_quat(quat, z_axis, pcontext->normal);
   quat_to_mat4(cursor_rot, quat);
@@ -1508,7 +1508,7 @@ static void paint_cursor_pose_brush_origins_draw(PaintCursorContext *pcontext)
     cursor_draw_point_screen_space(pcontext->pos,
                                    pcontext->region,
                                    ss->pose_ik_chain_preview->segments[i].initial_orig,
-                                   pcontext->vc.obact->obmat,
+                                   pcontext->vc.obact->object_to_world,
                                    3);
   }
 }
@@ -1526,7 +1526,7 @@ static void paint_cursor_preview_boundary_data_pivot_draw(PaintCursorContext *pc
       pcontext->pos,
       pcontext->region,
       SCULPT_vertex_co_get(pcontext->ss, pcontext->ss->boundary_preview->pivot_vertex),
-      pcontext->vc.obact->obmat,
+      pcontext->vc.obact->object_to_world,
       3);
 }
 
@@ -1634,7 +1634,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         pcontext->pos,
         pcontext->region,
         SCULPT_vertex_co_get(pcontext->ss, pcontext->ss->expand_cache->initial_active_vertex),
-        pcontext->vc.obact->obmat,
+        pcontext->vc.obact->object_to_world,
         2);
   }
 
@@ -1656,7 +1656,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                             NULL);
 
   GPU_matrix_push();
-  GPU_matrix_mul(pcontext->vc.obact->obmat);
+  GPU_matrix_mul(pcontext->vc.obact->object_to_world);
 
   /* Drawing Cursor overlays in 3D object space. */
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_GRAB &&
@@ -1747,7 +1747,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
                             NULL,
                             NULL);
   GPU_matrix_push();
-  GPU_matrix_mul(pcontext->vc.obact->obmat);
+  GPU_matrix_mul(pcontext->vc.obact->object_to_world);
 
   /* Draw the special active cursors different tools may have. */
 

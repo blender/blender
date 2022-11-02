@@ -2,6 +2,7 @@
 
 #include "DNA_collection_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_hash.h"
 #include "BLI_task.hh"
 
@@ -172,18 +173,7 @@ static void add_instances_from_component(
       dst_attribute_opt = instance_attributes.get_for_write(attribute_id);
     }
     BLI_assert(dst_attribute_opt);
-    const GMutableSpan dst_attribute = dst_attribute_opt->slice(start_len, select_len);
-    threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
-      attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        VArray<T> src = src_attribute.typed<T>();
-        MutableSpan<T> dst = dst_attribute.typed<T>();
-        for (const int range_i : selection_range) {
-          const int i = selection[range_i];
-          dst[range_i] = src[i];
-        }
-      });
-    });
+    array_utils::gather(src_attribute, selection, dst_attribute_opt->slice(start_len, select_len));
   }
 }
 

@@ -184,6 +184,7 @@ def write_sysinfo(filepath):
                 output.write("vendor:\t\t%r\n" % gpu.platform.vendor_get())
                 output.write("version:\t%r\n" % gpu.platform.version_get())
                 output.write("device type:\t%r\n" % gpu.platform.device_type_get())
+                output.write("backend type:\t%r\n" % gpu.platform.backend_type_get())
                 output.write("extensions:\n")
 
                 glext = sorted(gpu.capabilities.extensions_get())

@@ -95,7 +95,7 @@ static void createTransParticleVerts(bContext *UNUSED(C), TransInfo *t)
 
     unit_m4(mat);
 
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->imat, ob->object_to_world);
 
     for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
       TransData *head, *tail;

@@ -3082,16 +3082,10 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         /* Free all but the first tile. */
         image_remove_all_tiles(ima);
 
-        /* If the remaining tile is generated, we need to again ensure that we
-         * wouldn't continue to use the old filepath.
-         *
-         * Otherwise, if this used to be a UDIM image, get the concrete filepath associated
+        /* If this used to be a UDIM image, get the concrete filepath associated
          * with the remaining tile and use that as the new filepath. */
         ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-        if ((base_tile->gen_flag & IMA_GEN_TILE) != 0) {
-          ima->filepath[0] = '\0';
-        }
-        else if (BKE_image_is_filename_tokenized(ima->filepath)) {
+        if (BKE_image_is_filename_tokenized(ima->filepath)) {
           const bool was_relative = BLI_path_is_rel(ima->filepath);
 
           eUDIM_TILE_FORMAT tile_format;
@@ -3183,10 +3177,14 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
            * left. */
           image_remove_all_tiles(ima);
 
-          int remaining_tile_number = ((ImageTile *)ima->tiles.first)->tile_number;
+          ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+          int remaining_tile_number = base_tile->tile_number;
           bool needs_final_cleanup = true;
 
-          /* Add in all the new tiles. */
+          /* Add in all the new tiles. As the image is proven to be on disk at this point, remove
+           * the generation flag from the remaining tile in case this was previously a generated
+           * image. */
+          base_tile->gen_flag &= ~IMA_GEN_TILE;
           LISTBASE_FOREACH (LinkData *, new_tile, &new_tiles) {
             int new_tile_number = POINTER_AS_INT(new_tile->data);
             BKE_image_add_tile(ima, new_tile_number, nullptr);
@@ -3201,6 +3199,11 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
           }
         }
         BLI_freelistN(&new_tiles);
+      }
+      else if (ima->filepath[0] != '\0') {
+        /* If the filepath is set at this point remove the generation flag. */
+        ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+        base_tile->gen_flag &= ~IMA_GEN_TILE;
       }
 
       if (iuser) {

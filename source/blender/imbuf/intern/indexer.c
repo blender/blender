@@ -377,9 +377,9 @@ static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_l
 {
   if (!anim->index_dir[0]) {
     char filename[FILE_MAXFILE];
-    BLI_split_dirfile(anim->name, index_dir, filename, index_dir_len, sizeof(filename));
-    BLI_path_append(index_dir, index_dir_len, "BL_proxy");
-    BLI_path_append(index_dir, index_dir_len, filename);
+    char dirname[FILE_MAXDIR];
+    BLI_split_dirfile(anim->name, dirname, filename, index_dir_len, sizeof(filename));
+    BLI_path_join(index_dir, index_dir_len, dirname, "BL_proxy", filename);
   }
   else {
     BLI_strncpy(index_dir, anim->index_dir, index_dir_len);
@@ -498,7 +498,9 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->anim = anim;
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
-  BLI_make_existing_file(filepath);
+  if (!BLI_make_existing_file(filepath)) {
+    return NULL;
+  }
 
   rv->of = avformat_alloc_context();
   rv->of->oformat = av_guess_format("avi", NULL, NULL);
@@ -903,6 +905,14 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
         proxy_sizes_in_use &= ~proxy_sizes[i];
       }
     }
+  }
+
+  if (context->proxy_ctx[0] == NULL && context->proxy_ctx[1] == NULL &&
+      context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL) {
+    avformat_close_input(&context->iFormatCtx);
+    avcodec_free_context(&context->iCodecCtx);
+    MEM_freeN(context);
+    return NULL; /* Nothing to transcode. */
   }
 
   for (i = 0; i < num_indexers; i++) {

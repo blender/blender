@@ -60,9 +60,9 @@ typedef struct TransDataNla {
  * \{ */
 
 /**
- * \brief Applies a translation to the given NlaStrip.
- * \param strip_rna_ptr The RNA pointer of the NLA strip to modify.
- * \param transdata The transformation info structure.
+ * \brief Applies a translation to the given #NlaStrip.
+ * \param strip_rna_ptr: The RNA pointer of the NLA strip to modify.
+ * \param transdata: The transformation info structure.
  */
 static void applyTransformNLA_translation(PointerRNA *strip_rna_ptr, const TransDataNla *transdata)
 {

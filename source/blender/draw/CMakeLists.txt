@@ -71,7 +71,7 @@ set(SRC
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
-  intern/draw_cache_impl_gpencil.c
+  intern/draw_cache_impl_gpencil.cc
   intern/draw_cache_impl_lattice.c
   intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_particles.c
@@ -95,6 +95,7 @@ set(SRC
   intern/draw_manager_text.cc
   intern/draw_manager_texture.c
   intern/draw_pbvh.cc
+  intern/draw_pointcloud.cc
   intern/draw_select_buffer.c
   intern/draw_shader.cc
   intern/draw_texture_pool.cc

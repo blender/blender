@@ -35,6 +35,7 @@ struct ContextPathItem {
   std::string name;
   /* #BIFIconID */
   int icon;
+  int icon_indicator_number;
 };
 
 void context_path_add_generic(Vector<ContextPathItem> &path,

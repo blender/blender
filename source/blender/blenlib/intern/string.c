@@ -1176,4 +1176,34 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
   BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
 }
 
+void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
+{
+  float number_to_format_converted = number_to_format;
+  int order = 0;
+  const float base = 1000;
+  const char *units[] = {"", "K", "M", "B"};
+  const int units_num = ARRAY_SIZE(units);
+
+  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {
+    number_to_format_converted /= base;
+    order++;
+  }
+
+  const bool add_dot = (abs(number_to_format) > 99999) && fabsf(number_to_format_converted) > 99;
+
+  if (add_dot) {
+    number_to_format_converted /= 100;
+    order++;
+  }
+
+  const size_t dst_len = 5;
+  BLI_snprintf(dst,
+               dst_len,
+               "%s%s%d%s",
+               number_to_format < 0 ? "-" : "",
+               add_dot ? "." : "",
+               (int)floorf(fabsf(number_to_format_converted)),
+               units[order]);
+}
+
 /** \} */

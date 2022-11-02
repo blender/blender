@@ -8,7 +8,7 @@
 #  include <map>
 #  include <set>
 
-#  include <CL/sycl.hpp>
+#  include <sycl/sycl.hpp>
 
 #  include "kernel/device/oneapi/compat.h"
 #  include "kernel/device/oneapi/globals.h"
@@ -144,6 +144,10 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
 
 bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
 {
+#  ifdef SYCL_SKIP_KERNELS_PRELOAD
+  (void)queue_;
+  (void)requested_features;
+#  else
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
 
@@ -175,7 +179,7 @@ bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
 
       sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle =
           sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
-      sycl::build(one_kernel_bundle, {queue->get_device()}, sycl::property::queue::in_order());
+      sycl::build(one_kernel_bundle);
     }
   }
   catch (sycl::exception const &e) {
@@ -184,7 +188,7 @@ bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
     }
     return false;
   }
-
+#  endif
   return true;
 }
 
@@ -226,13 +230,6 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
     /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
      * we extend work size to fit uniformity requirements. */
     global_size = groups_count * local_size;
-
-#  ifdef WITH_ONEAPI_SYCL_HOST_ENABLED
-    if (queue->get_device().is_host()) {
-      global_size = 1;
-      local_size = 1;
-    }
-#  endif
   }
 
   /* Let the compiler throw an error if there are any kernels missing in this implementation. */

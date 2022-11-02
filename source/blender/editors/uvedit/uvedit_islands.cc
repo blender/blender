@@ -600,6 +600,22 @@ static BoxPack *pack_islands_params(const blender::Vector<FaceIsland *> &island_
   return box_array;
 }
 
+static bool island_has_pins(FaceIsland *island)
+{
+  BMLoop *l;
+  BMIter iter;
+  const int cd_loop_uv_offset = island->cd_loop_uv_offset;
+  for (int i = 0; i < island->faces_len; i++) {
+    BM_ITER_ELEM (l, &iter, island->faces[i], BM_LOOPS_OF_FACE) {
+      MLoopUV *luv = static_cast<MLoopUV *>(BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
+      if (luv->flag & MLOOPUV_PINNED) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Public UV Island Packing
  *
@@ -651,8 +667,14 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
                             aspect_y,
                             cd_loop_uv_offset);
 
-    int index;
-    LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list, index) {
+    /* Remove from linked list and append to blender::Vector. */
+    LISTBASE_FOREACH_MUTABLE (struct FaceIsland *, island, &island_list) {
+      BLI_remlink(&island_list, island);
+      if (params->ignore_pinned && island_has_pins(island)) {
+        MEM_freeN(island->faces);
+        MEM_freeN(island);
+        continue;
+      }
       island_vector.append(island);
     }
   }

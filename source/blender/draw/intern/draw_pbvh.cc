@@ -951,6 +951,14 @@ struct PBVHBatches {
 
   void create_index_faces(PBVH_GPU_Args *args)
   {
+    int *mat_index = static_cast<int *>(
+        CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
+
+    if (mat_index && args->totprim) {
+      int poly_index = args->mlooptri[args->prim_indices[0]].poly;
+      material_index = mat_index[poly_index];
+    }
+
     /* Calculate number of edges*/
     int edge_count = 0;
     for (int i = 0; i < args->totprim; i++) {
@@ -959,6 +967,7 @@ struct PBVHBatches {
       if (args->hide_poly && args->hide_poly[lt->poly]) {
         continue;
       }
+
       int r_edges[3];
       BKE_mesh_looptri_get_real_edges(args->me, lt, r_edges);
 
@@ -1030,6 +1039,14 @@ struct PBVHBatches {
 
   void create_index_grids(PBVH_GPU_Args *args)
   {
+    int *mat_index = static_cast<int *>(
+        CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
+
+    if (mat_index && args->totprim) {
+      int poly_index = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg, args->grid_indices[0]);
+      material_index = mat_index[poly_index];
+    }
+
     needs_tri_index = true;
     int gridsize = args->ccg_key.grid_size;
     int totgrid = args->totprim;

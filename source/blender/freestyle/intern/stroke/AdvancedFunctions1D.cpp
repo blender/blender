@@ -10,6 +10,8 @@
 
 #include "../view_map/SteerableViewMap.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle::Functions1D {
 
 int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)

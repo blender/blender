@@ -71,7 +71,6 @@ class GHOST_SystemSDL : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,

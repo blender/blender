@@ -220,8 +220,10 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   int return_value = op->type->modal(C, op, event);
   if (return_value == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op, op_data->stroke);
-    MEM_delete(op_data);
+    if (op->customdata != nullptr) {
+      paint_stroke_free(C, op, op_data->stroke);
+      MEM_delete(op_data);
+    }
     return OPERATOR_FINISHED;
   }
 
@@ -236,16 +238,19 @@ static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent
   int return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
   if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
+    op->customdata = nullptr;
   }
   return return_value;
 }
 
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
 {
-  SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-      op->customdata);
-  paint_stroke_cancel(C, op, op_data->stroke);
-  MEM_delete(op_data);
+  if (op->customdata != nullptr) {
+    SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
+        op->customdata);
+    paint_stroke_cancel(C, op, op_data->stroke);
+    MEM_delete(op_data);
+  }
 }
 
 static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
@@ -786,7 +791,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.obmat;
+  float4x4 curves_to_world_mat = curves_ob.object_to_world;
   float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   float4x4 projection;

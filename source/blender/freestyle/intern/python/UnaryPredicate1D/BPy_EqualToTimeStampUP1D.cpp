@@ -6,6 +6,8 @@
 
 #include "BPy_EqualToTimeStampUP1D.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -209,22 +209,25 @@ def list_render_passes(scene, srl):
         yield ("Debug Sample Count", "X", 'VALUE')
 
     # Cryptomatte passes.
-    crypto_depth = (srl.pass_cryptomatte_depth + 1) // 2
+    # NOTE: Name channels are lowercase RGBA so that compression rules check in OpenEXR DWA code
+    # uses lossless compression. Reportedly this naming is the only one which works good from the
+    # interoperability point of view. Using XYZW naming is not portable.
+    crypto_depth = (min(16, srl.pass_cryptomatte_depth) + 1) // 2
     if srl.use_pass_cryptomatte_object:
         for i in range(0, crypto_depth):
-            yield ("CryptoObject" + '{:02d}'.format(i), "RGBA", 'COLOR')
+            yield ("CryptoObject" + '{:02d}'.format(i), "rgba", 'COLOR')
     if srl.use_pass_cryptomatte_material:
         for i in range(0, crypto_depth):
-            yield ("CryptoMaterial" + '{:02d}'.format(i), "RGBA", 'COLOR')
+            yield ("CryptoMaterial" + '{:02d}'.format(i), "rgba", 'COLOR')
     if srl.use_pass_cryptomatte_asset:
         for i in range(0, crypto_depth):
-            yield ("CryptoAsset" + '{:02d}'.format(i), "RGBA", 'COLOR')
+            yield ("CryptoAsset" + '{:02d}'.format(i), "rgba", 'COLOR')
 
     # Denoising passes.
     if scene.cycles.use_denoising and crl.use_denoising:
         yield ("Noisy Image", "RGBA", 'COLOR')
         if crl.use_pass_shadow_catcher:
-            yield ("Noisy Shadow Catcher", "RGBA", 'COLOR')
+            yield ("Noisy Shadow Catcher", "RGB", 'COLOR')
     if crl.denoising_store_passes:
         yield ("Denoising Normal", "XYZ", 'VECTOR')
         yield ("Denoising Albedo", "RGB", 'COLOR')
@@ -232,6 +235,8 @@ def list_render_passes(scene, srl):
 
     # Custom AOV passes.
     for aov in srl.aovs:
+        if not aov.is_valid:
+            continue
         if aov.type == 'VALUE':
             yield (aov.name, "X", 'VALUE')
         else:

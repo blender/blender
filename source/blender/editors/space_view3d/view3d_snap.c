@@ -86,18 +86,18 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       }
 
       if (tvs.transverts_tot != 0) {
-        copy_m3_m4(bmat, obedit->obmat);
+        copy_m3_m4(bmat, obedit->object_to_world);
         invert_m3_m3(imat, bmat);
 
         tv = tvs.transverts;
         for (a = 0; a < tvs.transverts_tot; a++, tv++) {
           copy_v3_v3(vec, tv->loc);
           mul_m3_v3(bmat, vec);
-          add_v3_v3(vec, obedit->obmat[3]);
+          add_v3_v3(vec, obedit->object_to_world[3]);
           vec[0] = gridf * floorf(0.5f + vec[0] / gridf);
           vec[1] = gridf * floorf(0.5f + vec[1] / gridf);
           vec[2] = gridf * floorf(0.5f + vec[2] / gridf);
-          sub_v3_v3(vec, obedit->obmat[3]);
+          sub_v3_v3(vec, obedit->object_to_world[3]);
 
           mul_m3_v3(imat, vec);
           copy_v3_v3(tv->loc, vec);
@@ -118,7 +118,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       bPoseChannel *pchan_eval;
       bArmature *arm_eval = ob_eval->data;
 
-      invert_m4_m4(ob_eval->imat, ob_eval->obmat);
+      invert_m4_m4(ob_eval->imat, ob_eval->object_to_world);
 
       for (pchan_eval = ob_eval->pose->chanbase.first; pchan_eval; pchan_eval = pchan_eval->next) {
         if (pchan_eval->bone->flag & BONE_SELECTED) {
@@ -129,7 +129,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
               /* get nearest grid point to snap to */
               copy_v3_v3(nLoc, pchan_eval->pose_mat[3]);
               /* We must operate in world space! */
-              mul_m4_v3(ob_eval->obmat, nLoc);
+              mul_m4_v3(ob_eval->object_to_world, nLoc);
               vec[0] = gridf * floorf(0.5f + nLoc[0] / gridf);
               vec[1] = gridf * floorf(0.5f + nLoc[1] / gridf);
               vec[2] = gridf * floorf(0.5f + nLoc[2] / gridf);
@@ -214,9 +214,12 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
       Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
-      vec[0] = -ob_eval->obmat[3][0] + gridf * floorf(0.5f + ob_eval->obmat[3][0] / gridf);
-      vec[1] = -ob_eval->obmat[3][1] + gridf * floorf(0.5f + ob_eval->obmat[3][1] / gridf);
-      vec[2] = -ob_eval->obmat[3][2] + gridf * floorf(0.5f + ob_eval->obmat[3][2] / gridf);
+      vec[0] = -ob_eval->object_to_world[3][0] +
+               gridf * floorf(0.5f + ob_eval->object_to_world[3][0] / gridf);
+      vec[1] = -ob_eval->object_to_world[3][1] +
+               gridf * floorf(0.5f + ob_eval->object_to_world[3][1] / gridf);
+      vec[2] = -ob_eval->object_to_world[3][2] +
+               gridf * floorf(0.5f + ob_eval->object_to_world[3][2] / gridf);
 
       if (ob->parent) {
         float originmat[3][3];
@@ -343,11 +346,11 @@ static bool snap_selected_to_location(bContext *C,
       }
 
       if (tvs.transverts_tot != 0) {
-        copy_m3_m4(bmat, obedit->obmat);
+        copy_m3_m4(bmat, obedit->object_to_world);
         invert_m3_m3(imat, bmat);
 
         /* get the cursor in object space */
-        sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
+        sub_v3_v3v3(snap_target_local, snap_target_global, obedit->object_to_world[3]);
         mul_m3_v3(imat, snap_target_local);
 
         if (use_offset) {
@@ -384,7 +387,7 @@ static bool snap_selected_to_location(bContext *C,
       bArmature *arm = ob->data;
       float snap_target_local[3];
 
-      invert_m4_m4(ob->imat, ob->obmat);
+      invert_m4_m4(ob->imat, ob->object_to_world);
       mul_v3_m4v3(snap_target_local, ob->imat, snap_target_global);
 
       for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -409,7 +412,7 @@ static bool snap_selected_to_location(bContext *C,
           float cursor_pose[3];
 
           if (use_offset) {
-            mul_v3_m4v3(cursor_pose, ob->obmat, pchan->pose_mat[3]);
+            mul_v3_m4v3(cursor_pose, ob->object_to_world, pchan->pose_mat[3]);
             add_v3_v3(cursor_pose, offset_global);
 
             mul_m4_v3(ob->imat, cursor_pose);
@@ -510,13 +513,13 @@ static bool snap_selected_to_location(bContext *C,
       float cursor_parent[3]; /* parent-relative */
 
       if (use_offset) {
-        add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
+        add_v3_v3v3(cursor_parent, ob->object_to_world[3], offset_global);
       }
       else {
         copy_v3_v3(cursor_parent, snap_target_global);
       }
 
-      sub_v3_v3(cursor_parent, ob->obmat[3]);
+      sub_v3_v3(cursor_parent, ob->object_to_world[3]);
 
       if (ob->parent) {
         float originmat[3][3], parentmat[4][4];
@@ -730,7 +733,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 
   tracking = &clip->tracking;
 
-  copy_m4_m4(cammat, ob->obmat);
+  copy_m4_m4(cammat, ob->object_to_world);
 
   BKE_tracking_get_camera_object_matrix(ob, mat);
 
@@ -809,13 +812,13 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       count += tvs.transverts_tot;
       if (tvs.transverts_tot != 0) {
         Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-        copy_m3_m4(bmat, obedit_eval->obmat);
+        copy_m3_m4(bmat, obedit_eval->object_to_world);
 
         tv = tvs.transverts;
         for (int i = 0; i < tvs.transverts_tot; i++, tv++) {
           copy_v3_v3(vec, tv->loc);
           mul_m3_v3(bmat, vec);
-          add_v3_v3(vec, obedit_eval->obmat[3]);
+          add_v3_v3(vec, obedit_eval->object_to_world[3]);
           add_v3_v3(centroid, vec);
           minmax_v3v3_v3(min, max, vec);
         }
@@ -835,7 +838,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
         if (arm->layer & pchan->bone->layer) {
           if (pchan->bone->flag & BONE_SELECTED) {
             copy_v3_v3(vec, pchan->pose_head);
-            mul_m4_v3(obact_eval->obmat, vec);
+            mul_m4_v3(obact_eval->object_to_world, vec);
             add_v3_v3(centroid, vec);
             minmax_v3v3_v3(min, max, vec);
             count++;
@@ -845,7 +848,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     }
     else {
       FOREACH_SELECTED_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
-        copy_v3_v3(vec, ob_eval->obmat[3]);
+        copy_v3_v3(vec, ob_eval->object_to_world[3]);
 
         /* special case for camera -- snap to bundles */
         if (ob_eval->type == OB_CAMERA) {
@@ -1008,7 +1011,7 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
     float ob_min[3], ob_max[3];
     bool changed;
 
-    changed = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->obmat, SELECT);
+    changed = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->object_to_world, SELECT);
     if (changed) {
       minmax_v3v3_v3(r_min, r_max, ob_min);
       minmax_v3v3_v3(r_min, r_max, ob_max);
@@ -1024,13 +1027,13 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
     return false;
   }
 
-  copy_m3_m4(bmat, obedit->obmat);
+  copy_m3_m4(bmat, obedit->object_to_world);
 
   tv = tvs.transverts;
   for (int a = 0; a < tvs.transverts_tot; a++, tv++) {
     copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
     mul_m3_v3(bmat, vec);
-    add_v3_v3(vec, obedit->obmat[3]);
+    add_v3_v3(vec, obedit->object_to_world[3]);
     add_v3_v3(centroid, vec);
     minmax_v3v3_v3(r_min, r_max, vec);
   }

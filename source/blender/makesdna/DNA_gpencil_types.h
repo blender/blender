@@ -243,12 +243,15 @@ typedef struct bGPDstroke_Runtime {
   /** Runtime falloff factor (only for transform). */
   float multi_frame_falloff;
 
-  /** Vertex offset in the VBO where this stroke starts. */
+  /** Triangle offset in the IBO where this stroke starts. */
   int stroke_start;
   /** Triangle offset in the IBO where this fill starts. */
   int fill_start;
+  /** Vertex offset in the VBO where this stroke starts. */
+  int vertex_start;
   /** Curve Handles offset in the IBO where this handle starts. */
   int curve_start;
+  int _pad0;
 
   /** Original stroke (used to dereference evaluated data) */
   struct bGPDstroke *gps_orig;
@@ -613,8 +616,9 @@ typedef struct bGPdata_Runtime {
   /** Stroke buffer. */
   void *sbuffer;
   /** Temp batches cleared after drawing. */
-  struct GPUBatch *sbuffer_stroke_batch;
-  struct GPUBatch *sbuffer_fill_batch;
+  struct GPUVertBuf *sbuffer_position_buf;
+  struct GPUVertBuf *sbuffer_color_buf;
+  struct GPUBatch *sbuffer_batch;
   /** Temp stroke used for drawing. */
   struct bGPDstroke *sbuffer_gps;
 

@@ -173,13 +173,9 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
   /* TODO: more granular update tagging. */
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_point_buf);
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_length_buf);
-  DRW_TEXTURE_FREE_SAFE(hair_cache->point_tex);
-  DRW_TEXTURE_FREE_SAFE(hair_cache->length_tex);
 
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_strand_buf);
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_strand_seg_buf);
-  DRW_TEXTURE_FREE_SAFE(hair_cache->strand_tex);
-  DRW_TEXTURE_FREE_SAFE(hair_cache->strand_seg_tex);
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_uv_buf[i]);
@@ -192,7 +188,6 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 
   for (int i = 0; i < MAX_HAIR_SUBDIV; i++) {
     GPU_VERTBUF_DISCARD_SAFE(hair_cache->final[i].proc_buf);
-    DRW_TEXTURE_FREE_SAFE(hair_cache->final[i].proc_tex);
     for (int j = 0; j < MAX_THICKRES; j++) {
       GPU_BATCH_DISCARD_SAFE(hair_cache->final[i].proc_hairs[j]);
     }
@@ -810,7 +805,7 @@ static int particle_batch_cache_fill_strands_data(ParticleSystem *psys,
 static void particle_batch_cache_ensure_procedural_final_points(ParticleHairCache *cache,
                                                                 int subdiv)
 {
-  /* Same format as point_tex. */
+  /* Same format as proc_point_buf. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
@@ -823,12 +818,6 @@ static void particle_batch_cache_ensure_procedural_final_points(ParticleHairCach
   /* Those are points! not line segments. */
   GPU_vertbuf_data_alloc(cache->final[subdiv].proc_buf,
                          cache->final[subdiv].strands_res * cache->strands_len);
-
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(cache->final[subdiv].proc_buf);
-
-  cache->final[subdiv].proc_tex = GPU_texture_create_from_vertbuf("part_proc",
-                                                                  cache->final[subdiv].proc_buf);
 }
 
 static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit,
@@ -1034,14 +1023,6 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     MEM_freeN(parent_mcol);
   }
 
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(cache->proc_strand_buf);
-  cache->strand_tex = GPU_texture_create_from_vertbuf("part_strand", cache->proc_strand_buf);
-
-  GPU_vertbuf_use(cache->proc_strand_seg_buf);
-  cache->strand_seg_tex = GPU_texture_create_from_vertbuf("part_strand_seg",
-                                                          cache->proc_strand_seg_buf);
-
   for (int i = 0; i < cache->num_uv_layers; i++) {
     GPU_vertbuf_use(cache->proc_uv_buf[i]);
     cache->uv_tex[i] = GPU_texture_create_from_vertbuf("part_uv", cache->proc_uv_buf[i]);
@@ -1107,7 +1088,7 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
 static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
                                                        ParticleSystem *psys,
                                                        ParticleHairCache *cache,
-                                                       GPUMaterial *gpu_material)
+                                                       GPUMaterial *UNUSED(gpu_material))
 {
   if (cache->proc_point_buf == NULL) {
     /* initialize vertex format */
@@ -1147,22 +1128,6 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
         const int child_count = psys->totchild * psys->part->disp / 100;
         particle_batch_cache_fill_segments_proc_pos(
             psys->childcache, child_count, &pos_step, &length_step);
-      }
-    }
-
-    /* Create vbo immediately to bind to texture buffer. */
-    GPU_vertbuf_use(cache->proc_point_buf);
-    cache->point_tex = GPU_texture_create_from_vertbuf("part_point", cache->proc_point_buf);
-  }
-
-  /* Checking hair length separately, only allocating gpu memory when needed. */
-  if (gpu_material && cache->proc_length_buf != NULL && cache->length_tex == NULL) {
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &gpu_attrs) {
-      if (attr->type == CD_HAIRLENGTH) {
-        GPU_vertbuf_use(cache->proc_length_buf);
-        cache->length_tex = GPU_texture_create_from_vertbuf("hair_length", cache->proc_length_buf);
-        break;
       }
     }
   }
@@ -1722,7 +1687,7 @@ bool particles_ensure_procedural_data(Object *object,
 
   /* Refreshed on combing and simulation. */
   if ((*r_hair_cache)->proc_point_buf == NULL ||
-      (gpu_material && (*r_hair_cache)->length_tex == NULL)) {
+      (gpu_material && (*r_hair_cache)->proc_length_buf == NULL)) {
     ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
     particle_batch_cache_ensure_procedural_pos(
         source.edit, source.psys, &cache->hair, gpu_material);
@@ -1730,7 +1695,7 @@ bool particles_ensure_procedural_data(Object *object,
   }
 
   /* Refreshed if active layer or custom data changes. */
-  if ((*r_hair_cache)->strand_tex == NULL) {
+  if ((*r_hair_cache)->proc_strand_buf == NULL) {
     particle_batch_cache_ensure_procedural_strand_data(
         source.edit, source.psys, source.md, &cache->hair);
   }

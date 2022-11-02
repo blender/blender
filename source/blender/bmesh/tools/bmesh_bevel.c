@@ -2058,7 +2058,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int ns
     }
     else {
       BLI_assert(is_power_of_2_i(nseg) && nseg <= bp->pro_spacing.seg_2);
-      /* Find spacing between subsamples in prof_co_2. */
+      /* Find spacing between sub-samples in `prof_co_2`. */
       int subsample_spacing = bp->pro_spacing.seg_2 / nseg;
       copy_v3_v3(r_co, pro->prof_co_2 + 3 * i * subsample_spacing);
     }

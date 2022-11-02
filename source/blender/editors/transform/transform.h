@@ -469,7 +469,8 @@ typedef struct TransDataContainer {
 
   /**
    * Store matrix, this avoids having to have duplicate check all over
-   * Typically: 'obedit->obmat' or 'poseobj->obmat', but may be used elsewhere too.
+   * Typically: 'obedit->object_to_world' or 'poseobj->object_to_world', but may be used elsewhere
+   * too.
    */
   bool use_local_mat;
 
@@ -555,9 +556,12 @@ typedef struct TransInfo {
   /** Snapping Gears. */
   float snap[2];
   /** Spatial snapping gears(even when rotating, scaling... etc). */
-  float snap_spatial_x[2];
-  /** Spatial snapping in the Y coordinate, for non-uniform grid in UV Editor. */
-  float snap_spatial_y[2];
+  float snap_spatial[3];
+  /**
+   * Precision factor that is multiplied to snap_spatial when precision
+   * modifier is enabled for snap to grid or incremental snap.
+   */
+  float snap_spatial_precision;
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 

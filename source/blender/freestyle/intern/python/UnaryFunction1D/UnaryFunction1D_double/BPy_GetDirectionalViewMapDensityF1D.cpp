@@ -10,6 +10,8 @@
 #include "../../BPy_Convert.h"
 #include "../../BPy_IntegrationType.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

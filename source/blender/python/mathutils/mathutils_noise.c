@@ -40,7 +40,7 @@
  *
  * Any feedback is very welcome.
  * http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
- * email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space). */
+ * email: `m-mat @ math.sci.hiroshima-u.ac.jp` (remove space). */
 
 /* Period parameters */
 #define N 624
@@ -120,7 +120,7 @@ static void setRndSeed(int seed)
   }
 }
 
-/* float number in range [0, 1) using the mersenne twister rng */
+/* Float number in range [0, 1) using the mersenne twister random number generator. */
 static float frand(void)
 {
   ulong y;

@@ -15,6 +15,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
@@ -208,6 +210,7 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
     }
     const VolumeComponent *component = geometry_set.get_component_for_read<VolumeComponent>();
     const Volume *volume = component->get_for_read();
+    BKE_volume_load(volume, DEG_get_bmain(params.depsgraph()));
 
     Vector<float3> positions;
 

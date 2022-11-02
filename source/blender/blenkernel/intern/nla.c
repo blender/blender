@@ -464,6 +464,7 @@ NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, const bool is_libo
      */
     nlt = BKE_nlatrack_add(adt, NULL, is_liboverride);
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
+    BLI_strncpy(nlt->name, act->id.name + 2, sizeof(nlt->name));
   }
 
   /* automatically name it too */
@@ -1918,7 +1919,7 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
    * NOTE: this must be done *after* adding the strip to the track, or else
    *       the strip locking will prevent the strip from getting added
    */
-  nlt->flag = (NLATRACK_MUTED | NLATRACK_PROTECTED);
+  nlt->flag |= (NLATRACK_MUTED | NLATRACK_PROTECTED);
   strip->flag &= ~(NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
 
   /* also mark the strip for auto syncing the length, so that the strips accurately
@@ -2054,7 +2055,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   }
 
   /* If block is already in tweak-mode, just leave, but we should report
-   * that this block is in tweak-mode (as our returncode). */
+   * that this block is in tweak-mode (as our return-code). */
   if (adt->flag & ADT_NLA_EDIT_ON) {
     return true;
   }

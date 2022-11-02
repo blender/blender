@@ -2,7 +2,7 @@
 
 set(INC
   .
-  ./algorithms
+  algorithms
   ../../blenkernel
   ../../blenlib
   ../../gpu

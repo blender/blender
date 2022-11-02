@@ -46,6 +46,15 @@ void IMB_freeImBuf(ImBuf * /*ibuf*/)
   BLI_assert_unreachable();
 }
 
+struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
+                             unsigned int /*y*/,
+                             unsigned char /*planes*/,
+                             unsigned int /*flags*/)
+{
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

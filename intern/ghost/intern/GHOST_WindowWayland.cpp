@@ -53,7 +53,7 @@ struct WGL_LibDecor_Window {
   bool configured = false;
 };
 
-static void wgl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
+static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
 {
   libdecor_frame_unref(decor->frame);
   delete decor;
@@ -67,7 +67,7 @@ struct WGL_XDG_Decor_Window {
   enum zxdg_toplevel_decoration_v1_mode mode = (enum zxdg_toplevel_decoration_v1_mode)0;
 };
 
-static void wgl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
+static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 {
   if (decor->toplevel_decor) {
     zxdg_toplevel_decoration_v1_destroy(decor->toplevel_decor);
@@ -91,12 +91,10 @@ struct GWL_Window {
   /** The scale value written to #wl_surface_set_buffer_scale. */
   int scale = 0;
   /**
-   * The DPI, either:
-   * - `scale * base_dpi`
-   * - `wl_fixed_to_int(scale_fractional * base_dpi)`
-   * When fractional scaling is available.
+   * The fractional scale used to calculate the DPI.
+   * (always set, even when scaling is rounded to whole units).
    */
-  uint32_t dpi = 0;
+  wl_fixed_t scale_fractional = 0;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   WGL_LibDecor_Window *libdecor = nullptr;
@@ -147,7 +145,7 @@ static int output_scale_cmp(const GWL_Output *output_a, const GWL_Output *output
 
 static int outputs_max_scale_or_default(const std::vector<GWL_Output *> &outputs,
                                         const int32_t scale_default,
-                                        uint32_t *r_dpi)
+                                        wl_fixed_t *r_scale_fractional)
 {
   const GWL_Output *output_max = nullptr;
   for (const GWL_Output *reg_output : outputs) {
@@ -157,18 +155,16 @@ static int outputs_max_scale_or_default(const std::vector<GWL_Output *> &outputs
   }
 
   if (output_max) {
-    if (r_dpi) {
-      *r_dpi = output_max->has_scale_fractional ?
-                   /* Fractional DPI. */
-                   wl_fixed_to_int(output_max->scale_fractional * base_dpi) :
-                   /* Simple non-fractional DPI. */
-                   (output_max->scale * base_dpi);
+    if (r_scale_fractional) {
+      *r_scale_fractional = output_max->has_scale_fractional ?
+                                output_max->scale_fractional :
+                                wl_fixed_from_int(output_max->scale);
     }
     return output_max->scale;
   }
 
-  if (r_dpi) {
-    *r_dpi = scale_default * base_dpi;
+  if (r_scale_fractional) {
+    *r_scale_fractional = wl_fixed_from_int(scale_default);
   }
   return scale_default;
 }
@@ -479,7 +475,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    *
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
-  window_->scale = outputs_max_scale_or_default(system_->outputs(), 1, &window_->dpi);
+  window_->scale = outputs_max_scale_or_default(system_->outputs(), 1, &window_->scale_fractional);
 
   /* Window surfaces. */
   window_->wl_surface = wl_compositor_create_surface(system_->wl_compositor());
@@ -727,12 +723,12 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    wgl_libdecor_window_destroy(window_->libdecor);
+    gwl_libdecor_window_destroy(window_->libdecor);
   }
   else
 #endif
   {
-    wgl_xdg_decor_window_destroy(window_->xdg_decor);
+    gwl_xdg_decor_window_destroy(window_->xdg_decor);
   }
 
   /* Clear any pointers to this window. This is needed because there are no guarantees
@@ -751,7 +747,9 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
 uint16_t GHOST_WindowWayland::getDPIHint()
 {
-  return window_->dpi;
+  /* Using the physical DPI will cause wrong scaling of the UI
+   * use a multiplier for the default DPI as a workaround. */
+  return wl_fixed_to_int(window_->scale_fractional * base_dpi);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
@@ -946,7 +944,12 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                      EGL_OPENGL_API);
   }
 
-  return (context->initializeDrawingContext() == GHOST_kSuccess) ? context : nullptr;
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+
+  delete context;
+  return nullptr;
 }
 
 /** \} */
@@ -957,14 +960,14 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
  * Expose some members via methods.
  * \{ */
 
-uint16_t GHOST_WindowWayland::dpi() const
-{
-  return window_->dpi;
-}
-
 int GHOST_WindowWayland::scale() const
 {
   return window_->scale;
+}
+
+wl_fixed_t GHOST_WindowWayland::scale_fractional() const
+{
+  return window_->scale_fractional;
 }
 
 wl_surface *GHOST_WindowWayland::wl_surface() const
@@ -1030,30 +1033,39 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
  */
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
-  uint32_t dpi_next;
-  const int scale_next = outputs_max_scale_or_default(outputs(), 0, &dpi_next);
+  wl_fixed_t scale_fractional_next = 0;
+  const int scale_next = outputs_max_scale_or_default(outputs(), 0, &scale_fractional_next);
   if (UNLIKELY(scale_next == 0)) {
     return false;
   }
 
-  const uint32_t dpi_curr = window_->dpi;
+  const wl_fixed_t scale_fractional_curr = window_->scale_fractional;
   const int scale_curr = window_->scale;
   bool changed = false;
 
   if (scale_next != scale_curr) {
-    /* Unlikely but possible there is a pending size change is set. */
-    window_->size_pending[0] = (window_->size_pending[0] / scale_curr) * scale_next;
-    window_->size_pending[1] = (window_->size_pending[1] / scale_curr) * scale_next;
-
     window_->scale = scale_next;
     wl_surface_set_buffer_scale(window_->wl_surface, scale_next);
+
+    /* It's important to resize the window immediately, to avoid the window changing size
+     * and flickering in a constant feedback loop (in some bases). */
+    if ((window_->size_pending[0] != 0) && (window_->size_pending[1] != 0)) {
+      /* Unlikely but possible there is a pending size change is set. */
+      window_->size[0] = window_->size_pending[0];
+      window_->size[1] = window_->size_pending[1];
+      window_->size_pending[0] = 0;
+      window_->size_pending[1] = 0;
+    }
+    window_->size[0] = (window_->size[0] / scale_curr) * scale_next;
+    window_->size[1] = (window_->size[1] / scale_curr) * scale_next;
+    wl_egl_window_resize(window_->egl_window, UNPACK2(window_->size), 0, 0);
+    window_->ghost_window->notify_size();
+
     changed = true;
   }
 
-  if (dpi_next != dpi_curr) {
-    /* Using the real DPI will cause wrong scaling of the UI
-     * use a multiplier for the default DPI as workaround. */
-    window_->dpi = dpi_next;
+  if (scale_fractional_next != scale_fractional_curr) {
+    window_->scale_fractional = scale_fractional_next;
     changed = true;
 
     /* As this is a low-level function, we might want adding this event to be optional,

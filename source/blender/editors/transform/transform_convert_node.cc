@@ -155,8 +155,51 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Node Transform Creation
+/** \name Flush Transform Nodes
  * \{ */
+
+static void node_snap_grid_apply(TransInfo *t)
+{
+  int i;
+
+  if (!(activeSnap(t) && (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
+    return;
+  }
+
+  float grid_size[2];
+  copy_v2_v2(grid_size, t->snap_spatial);
+  if (t->modifiers & MOD_PRECISION) {
+    mul_v2_fl(grid_size, t->snap_spatial_precision);
+  }
+
+  /* Early exit on unusable grid size. */
+  if (is_zero_v2(grid_size)) {
+    return;
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td;
+
+    for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+      float iloc[2], loc[2], tvec[2];
+      if (td->flag & TD_SKIP) {
+        continue;
+      }
+
+      if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f)) {
+        continue;
+      }
+
+      copy_v2_v2(iloc, td->loc);
+
+      loc[0] = roundf(iloc[0] / grid_size[0]) * grid_size[0];
+      loc[1] = roundf(iloc[1] / grid_size[1]) * grid_size[1];
+
+      sub_v2_v2v2(tvec, loc, iloc);
+      add_v2_v2(td->loc, tvec);
+    }
+  }
+}
 
 static void flushTransNodes(TransInfo *t)
 {
@@ -191,7 +234,7 @@ static void flushTransNodes(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    applyGridAbsolute(t);
+    node_snap_grid_apply(t);
 
     /* flush to 2d vector from internally used 3d vector */
     for (int i = 0; i < tc->data_len; i++) {

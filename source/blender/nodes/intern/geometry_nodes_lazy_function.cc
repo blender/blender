@@ -604,6 +604,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
  private:
   const bNode &group_node_;
   bool has_many_nodes_ = false;
+  bool use_fallback_outputs_ = false;
   std::optional<GeometryNodesLazyFunctionLogger> lf_logger_;
   std::optional<GeometryNodesLazyFunctionSideEffectProvider> lf_side_effect_provider_;
   std::optional<lf::GraphExecutor> graph_executor_;
@@ -640,6 +641,9 @@ class LazyFunctionForGroupNode : public LazyFunction {
         }
       }
     }
+    else {
+      use_fallback_outputs_ = true;
+    }
 
     lf_logger_.emplace(lf_graph_info);
     lf_side_effect_provider_.emplace();
@@ -659,6 +663,11 @@ class LazyFunctionForGroupNode : public LazyFunction {
       /* If the called node group has many nodes, it's likely that executing it takes a while even
        * if every individual node is very small. */
       lazy_threading::send_hint();
+    }
+    if (use_fallback_outputs_) {
+      /* The node group itself does not have an output node, so use default values as outputs.
+       * The group should still be executed in case it has side effects. */
+      params.set_default_remaining_outputs();
     }
 
     /* The compute context changes when entering a node group. */

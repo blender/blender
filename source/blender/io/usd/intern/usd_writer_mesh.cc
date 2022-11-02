@@ -4,6 +4,7 @@
 #include "usd_hierarchy_iterator.h"
 
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -107,6 +108,8 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(usd_mesh.GetPrim());
+
   const CustomData *ldata = &mesh->ldata;
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
@@ -119,7 +122,7 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
      * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
      * is the "standard" one. */
     pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
-    pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
+    pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
     MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);

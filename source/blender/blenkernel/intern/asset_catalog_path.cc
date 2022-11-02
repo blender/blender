@@ -12,7 +12,7 @@ namespace blender::bke {
 
 const char AssetCatalogPath::SEPARATOR = '/';
 
-AssetCatalogPath::AssetCatalogPath(const std::string &path) : path_(path)
+AssetCatalogPath::AssetCatalogPath(std::string path) : path_(std::move(path))
 {
 }
 

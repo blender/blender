@@ -37,7 +37,7 @@ void main()
   vec3 world_pos = pos;
 #elif defined(POINTCLOUD_SHADER)
   pointcloud_get_pos_and_radius(pointPosition, pointRadius);
-  pointID = gl_VertexID;
+  pointID = pointcloud_get_point_id();
 #else
   vec3 world_pos = point_object_to_world(pos);
 #endif

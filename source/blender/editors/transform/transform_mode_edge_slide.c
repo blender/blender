@@ -1149,7 +1149,7 @@ void drawEdgeSlide(TransInfo *t)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
-  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 

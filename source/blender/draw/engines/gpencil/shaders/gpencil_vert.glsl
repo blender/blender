@@ -31,23 +31,11 @@ void main()
   vec4 vert_color;
   vec3 vert_N;
 
+  ivec4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, gpencil_stroke_point_id() * 3 + 1));
   gpMaterial gp_mat = materials[ma1.x + gpMaterialOffset];
   gpMaterialFlag gp_flag = floatBitsToUint(gp_mat._flag);
 
-  gl_Position = gpencil_vertex(ma,
-                               ma1,
-                               ma2,
-                               ma3,
-                               pos,
-                               pos1,
-                               pos2,
-                               pos3,
-                               uv1,
-                               uv2,
-                               col1,
-                               col2,
-                               fcol1,
-                               vec4(viewportSize, 1.0 / viewportSize),
+  gl_Position = gpencil_vertex(vec4(viewportSize, 1.0 / viewportSize),
                                gp_flag,
                                gp_mat._alignment_rot,
                                gp_interp.pos,
@@ -60,7 +48,7 @@ void main()
                                gp_interp.thickness,
                                gp_interp.hardness);
 
-  if (GPENCIL_IS_STROKE_VERTEX) {
+  if (gpencil_is_stroke_vertex()) {
     if (!flag_test(gp_flag, GP_STROKE_ALIGNMENT)) {
       gp_interp.uv.x *= gp_mat._stroke_u_scale;
     }
@@ -83,7 +71,7 @@ void main()
       /* Use the index of the point as depth.
        * This means the stroke can overlap itself. */
       float point_index = float(ma1.z);
-      gp_interp.depth = (point_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
+      gp_interp.depth = (point_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
     }
     else {
       /* Use the index of first point of the stroke as depth.
@@ -92,10 +80,13 @@ void main()
        * We offset by one so that the fill can be overlapped by its stroke.
        * The offset is ok since we pad the strokes data because of adjacency infos. */
       float stroke_index = float(ma1.y);
-      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
+      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
     }
   }
   else {
+    int stroke_point_id = gpencil_stroke_point_id();
+    vec4 uv1 = texelFetch(gp_pos_tx, stroke_point_id * 3 + 2);
+    vec4 fcol1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 1);
     vec4 fill_col = gp_mat.fill_color;
 
     /* Special case: We don't modulate alpha in gradient mode. */
@@ -137,7 +128,7 @@ void main()
     else {
       /* Use the index of first point of the stroke as depth. */
       float stroke_index = float(ma1.y);
-      gp_interp.depth = (stroke_index + gpStrokeIndexOffset) * 0.0000002;
+      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
     }
   }
 }

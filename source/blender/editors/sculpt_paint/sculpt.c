@@ -1121,8 +1121,8 @@ void SCULPT_tag_update_overlays(bContext *C)
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-  View3D *v3d = CTX_wm_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
@@ -2458,7 +2458,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
-  const MTex *mtex = &br->mtex;
+  const MTex *mtex = BKE_brush_mask_texture_get(br, OB_MODE_SCULPT);
   float avg = 1.0f;
   float rgba[4];
   float point[3];
@@ -2470,7 +2470,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex location directly into a texture. */
-    avg = BKE_brush_sample_tex_3d(scene, br, point, rgba, 0, ss->tex_pool);
+    avg = BKE_brush_sample_tex_3d(scene, br, mtex, point, rgba, 0, ss->tex_pool);
   }
   else {
     float symm_point[3], point_2d[2];
@@ -2499,19 +2499,19 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       x = symm_point[0];
       y = symm_point[1];
 
-      x *= br->mtex.size[0];
-      y *= br->mtex.size[1];
+      x *= mtex->size[0];
+      y *= mtex->size[1];
 
-      x += br->mtex.ofs[0];
-      y += br->mtex.ofs[1];
+      x += mtex->ofs[0];
+      y += mtex->ofs[1];
 
-      avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_id);
+      avg = paint_get_tex_pixel(mtex, x, y, ss->tex_pool, thread_id);
 
       avg += br->texture_sample_bias;
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
-      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
+      avg = BKE_brush_sample_tex_3d(scene, br, mtex, point_3d, rgba, 0, ss->tex_pool);
     }
   }
 
@@ -2793,7 +2793,7 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat
   float up[3];
 
   /* Ensure `ob->imat` is up to date. */
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->imat, ob->object_to_world);
 
   /* Initialize last column of matrix. */
   mat[0][3] = 0.0f;
@@ -2833,7 +2833,7 @@ void SCULPT_tilt_apply_to_normal(float r_normal[3], StrokeCache *cache, const fl
     return;
   }
   const float rot_max = M_PI_2 * tilt_strength * SCULPT_TILT_SENSITIVITY;
-  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->obmat, r_normal);
+  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->object_to_world, r_normal);
   float normal_tilt_y[3];
   rotate_v3_v3v3fl(normal_tilt_y, r_normal, cache->vc->rv3d->viewinv[0], cache->y_tilt * rot_max);
   float normal_tilt_xy[3];
@@ -3284,7 +3284,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
-  mul_m4_v3(ob->obmat, location);
+  mul_m4_v3(ob->object_to_world, location);
 }
 
 static void do_brush_action_task_cb(void *__restrict userdata,
@@ -3615,7 +3615,7 @@ static void do_brush_action(Sculpt *sd,
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
-  mul_m4_v3(ob->obmat, location);
+  mul_m4_v3(ob->object_to_world, location);
 
   add_v3_v3(ups->average_stroke_accum, location);
   ups->average_stroke_counter++;
@@ -4201,8 +4201,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
       /* Store matrix for mirror object clipping. */
       if (mmd->mirror_ob) {
         float imtx_mirror_ob[4][4];
-        invert_m4_m4(imtx_mirror_ob, mmd->mirror_ob->obmat);
-        mul_m4_m4m4(ss->cache->clip_mirror_mtx, imtx_mirror_ob, ob->obmat);
+        invert_m4_m4(imtx_mirror_ob, mmd->mirror_ob->object_to_world);
+        mul_m4_m4m4(ss->cache->clip_mirror_mtx, imtx_mirror_ob, ob->object_to_world);
       }
     }
   }
@@ -4354,7 +4354,7 @@ static void sculpt_update_cache_invariants(
   /* Cache projection matrix. */
   ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->imat, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
   copy_m3_m4(mat, ob->imat);
@@ -4373,7 +4373,7 @@ static void sculpt_update_cache_invariants(
     if (sd->gravity_object) {
       Object *gravity_object = sd->gravity_object;
 
-      copy_v3_v3(cache->true_gravity_direction, gravity_object->obmat[2]);
+      copy_v3_v3(cache->true_gravity_direction, gravity_object->object_to_world[2]);
     }
     else {
       cache->true_gravity_direction[0] = cache->true_gravity_direction[1] = 0.0f;
@@ -4527,27 +4527,27 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
   }
 
   /* Compute 3d coordinate at same z from original location + mval. */
-  mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
+  mul_v3_m4v3(loc, ob->object_to_world, cache->orig_grab_location);
   ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->region, loc, mval, grab_location);
 
   /* Compute delta to move verts by. */
   if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (sculpt_needs_delta_from_anchored_origin(brush)) {
       sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
-      invert_m4_m4(imat, ob->obmat);
+      invert_m4_m4(imat, ob->object_to_world);
       mul_mat3_m4_v3(imat, delta);
       add_v3_v3(cache->grab_delta, delta);
     }
     else if (sculpt_needs_delta_for_tip_orientation(brush)) {
       if (brush->flag & BRUSH_ANCHORED) {
         float orig[3];
-        mul_v3_m4v3(orig, ob->obmat, cache->orig_grab_location);
+        mul_v3_m4v3(orig, ob->object_to_world, cache->orig_grab_location);
         sub_v3_v3v3(cache->grab_delta, grab_location, orig);
       }
       else {
         sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
       }
-      invert_m4_m4(imat, ob->obmat);
+      invert_m4_m4(imat, ob->object_to_world);
       mul_mat3_m4_v3(imat, cache->grab_delta);
     }
     else {
@@ -4592,7 +4592,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
   /* Handle 'rake' */
   cache->is_rake_rotation_valid = false;
 
-  invert_m4_m4(imat, ob->obmat);
+  invert_m4_m4(imat, ob->object_to_world);
   mul_mat3_m4_v3(imat, grab_location);
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
@@ -4813,12 +4813,12 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
-  View3D *v3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   bool need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, 0);
   if (ss->shapekey_active || ss->deform_modifiers_active ||
-      (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
+      (!BKE_sculptsession_use_pbvh_draw(ob, rv3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_sculpt_update_object_for_edit(
         depsgraph, ob, need_pmap, false, SCULPT_tool_is_paint(brush->sculpt_tool));
@@ -4913,7 +4913,7 @@ float SCULPT_raycast_init(ViewContext *vc,
   ED_view3d_win_to_segment_clipped(
       vc->depsgraph, vc->region, vc->v3d, mval, ray_start, ray_end, true);
 
-  invert_m4_m4(obimat, ob->obmat);
+  invert_m4_m4(obimat, ob->object_to_world);
   mul_m4_v3(obimat, ray_start);
   mul_m4_v3(obimat, ray_end);
 
@@ -5021,7 +5021,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   float radius;
 
   /* Update cursor data in SculptSession. */
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->imat, ob->object_to_world);
   copy_m3_m4(mat, vc.rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
   copy_m3_m4(mat, ob->imat);
@@ -5249,7 +5249,6 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   SculptSession *ss = ob->sculpt;
   ARegion *region = CTX_wm_region(C);
   MultiresModifierData *mmd = ss->multires.modifier;
-  View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
   if (rv3d) {
@@ -5274,7 +5273,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 
   /* Only current viewport matters, slower update for all viewports will
    * be done in sculpt_flush_update_done. */
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -5316,16 +5315,15 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
   wmWindowManager *wm = CTX_wm_manager(C);
-  View3D *current_v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = ob->data;
 
   /* Always needed for linked duplicates. */
   bool need_tag = (ID_REAL_USERS(&mesh->id) > 1);
 
-  if (rv3d) {
-    rv3d->rflag &= ~RV3D_PAINTING;
+  if (current_rv3d) {
+    current_rv3d->rflag &= ~RV3D_PAINTING;
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -5335,16 +5333,17 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
       if (sl->spacetype != SPACE_VIEW3D) {
         continue;
       }
-      View3D *v3d = (View3D *)sl;
-      if (v3d != current_v3d) {
-        need_tag |= !BKE_sculptsession_use_pbvh_draw(ob, v3d);
-      }
 
       /* Tag all 3D viewports for redraw now that we are done. Others
        * viewports did not get a full redraw, and anti-aliasing for the
        * current viewport was deactivated. */
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
+          RegionView3D *rv3d = region->regiondata;
+          if (rv3d != current_rv3d) {
+            need_tag |= !BKE_sculptsession_use_pbvh_draw(ob, rv3d);
+          }
+
           ED_region_tag_redraw(region);
         }
       }
@@ -5378,15 +5377,17 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 
   BKE_sculpt_attributes_destroy_temporary_stroke(ob);
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BKE_pbvh_bmesh_after_stroke(ss->pbvh);
-  }
+  if (update_flags & SCULPT_UPDATE_COORDS) {
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+      BKE_pbvh_bmesh_after_stroke(ss->pbvh);
+    }
 
-  /* Optimization: if there is locked key and active modifiers present in */
-  /* the stack, keyblock is updating at each step. otherwise we could update */
-  /* keyblock only when stroke is finished. */
-  if (ss->shapekey_active && !ss->deform_modifiers_active) {
-    sculpt_update_keyblock(ob);
+    /* Optimization: if there is locked key and active modifiers present in */
+    /* the stack, keyblock is updating at each step. otherwise we could update */
+    /* keyblock only when stroke is finished. */
+    if (ss->shapekey_active && !ss->deform_modifiers_active) {
+      sculpt_update_keyblock(ob);
+    }
   }
 
   if (need_tag) {
@@ -5511,7 +5512,8 @@ static void sculpt_stroke_update_step(bContext *C,
   sculpt_restore_mesh(sd, ob);
 
   if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
+    float object_space_constant_detail = 1.0f / (sd->constant_detail *
+                                                 mat4_to_scale(ob->object_to_world));
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
   }
   else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
@@ -5625,6 +5627,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     }
     else {
       BKE_sculpt_attributes_destroy_temporary_stroke(ob);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
     }
   }
   else {

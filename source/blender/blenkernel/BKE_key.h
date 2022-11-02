@@ -167,9 +167,9 @@ void BKE_keyblock_update_from_offset(const struct Object *ob,
  * Move shape key from org_index to new_index. Safe, clamps index to valid range,
  * updates reference keys, the object's active shape index,
  * the 'frame' value in case of absolute keys, etc.
- * Note indices are expected in real values (not 'fake' shapenr +1 ones).
+ * Note indices are expected in real values (not *fake* `shapenr +1` ones).
  *
- * \param org_index: if < 0, current object's active shape will be used as skey to move.
+ * \param org_index: if < 0, current object's active shape will be used as shape-key to move.
  * \return true if something was done, else false.
  */
 bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);

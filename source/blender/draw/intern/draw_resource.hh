@@ -31,7 +31,7 @@
 
 inline void ObjectMatrices::sync(const Object &object)
 {
-  model = object.obmat;
+  model = object.object_to_world;
   model_inverse = object.imat;
 }
 

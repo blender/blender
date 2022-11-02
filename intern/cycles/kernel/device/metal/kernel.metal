@@ -228,7 +228,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   /* Always use baked shadow transparency for curves. */
   if (type & PRIMITIVE_CURVE) {
     float throughput = payload.throughput;
-    throughput *= context.intersection_curve_shadow_transparency(nullptr, object, prim, u);
+    throughput *= context.intersection_curve_shadow_transparency(nullptr, object, prim, type, u);
     payload.throughput = throughput;
     payload.num_hits += 1;
 

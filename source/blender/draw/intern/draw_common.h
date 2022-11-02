@@ -88,6 +88,14 @@ void DRW_curves_ubos_pool_free(struct CurvesUniformBufPool *pool);
 void DRW_curves_update(void);
 void DRW_curves_free(void);
 
+/* draw_pointcloud.cc */
+
+struct DRWShadingGroup *DRW_shgroup_pointcloud_create_sub(struct Object *object,
+                                                          struct DRWShadingGroup *shgrp_parent,
+                                                          struct GPUMaterial *gpu_material);
+void DRW_pointcloud_init(void);
+void DRW_pointcloud_free(void);
+
 /* draw_volume.cc */
 
 /**

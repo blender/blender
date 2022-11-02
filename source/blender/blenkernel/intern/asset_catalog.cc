@@ -9,6 +9,7 @@
 
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.h"
+#include "BKE_asset_library.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
@@ -785,6 +786,41 @@ void AssetCatalogTree::foreach_root_item(const ItemIterFn callback)
   for (auto &[key, item] : root_items_) {
     callback(item);
   }
+}
+
+bool AssetCatalogTree::is_empty() const
+{
+  return root_items_.empty();
+}
+
+AssetCatalogTreeItem *AssetCatalogTree::find_item(const AssetCatalogPath &path)
+{
+  AssetCatalogTreeItem *result = nullptr;
+  this->foreach_item([&](AssetCatalogTreeItem &item) {
+    if (result) {
+      /* There is no way to stop iteration. */
+      return;
+    }
+    if (item.catalog_path() == path) {
+      result = &item;
+    }
+  });
+  return result;
+}
+
+AssetCatalogTreeItem *AssetCatalogTree::find_root_item(const AssetCatalogPath &path)
+{
+  AssetCatalogTreeItem *result = nullptr;
+  this->foreach_root_item([&](AssetCatalogTreeItem &item) {
+    if (result) {
+      /* There is no way to stop iteration. */
+      return;
+    }
+    if (item.catalog_path() == path) {
+      result = &item;
+    }
+  });
+  return result;
 }
 
 /* ---------------------------------------------------------------------- */

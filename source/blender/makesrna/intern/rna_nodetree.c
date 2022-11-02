@@ -12230,7 +12230,7 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Custom Color", "Use custom color for the node");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
-  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");

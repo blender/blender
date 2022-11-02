@@ -47,6 +47,9 @@ typedef struct GPUOffScreen GPUOffScreen;
 GPUFrameBuffer *GPU_framebuffer_create(const char *name);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
+
+const char *GPU_framebuffer_get_name(GPUFrameBuffer *fb);
+
 /**
  * Workaround for binding a SRGB frame-buffer without doing the SRGB transform.
  */

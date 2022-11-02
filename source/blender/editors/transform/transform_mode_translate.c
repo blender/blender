@@ -170,7 +170,7 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Transform (Translation)
+/** \name Transform (Translation) Header
  * \{ */
 
 static void translate_dist_to_str(char *r_str,
@@ -341,6 +341,96 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Translation) Snapping
+ * \{ */
+
+static void translate_snap_target_grid_ensure(TransInfo *t)
+{
+  /* Only need to calculate once. */
+  if ((t->tsnap.status & TARGET_GRID_INIT) == 0) {
+    if (t->data_type == &TransConvertType_Cursor3D) {
+      /* Use a fallback when transforming the cursor.
+       * In this case the center is _not_ derived from the cursor which is being transformed. */
+      copy_v3_v3(t->tsnap.snapTargetGrid, TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->data->iloc);
+    }
+    else if (t->around == V3D_AROUND_CURSOR) {
+      /* Use a fallback for cursor selection,
+       * this isn't useful as a global center for absolute grid snapping
+       * since its not based on the position of the selection. */
+      tranform_snap_target_median_calc(t, t->tsnap.snapTargetGrid);
+    }
+    else {
+      copy_v3_v3(t->tsnap.snapTargetGrid, t->center_global);
+    }
+    t->tsnap.status |= TARGET_GRID_INIT;
+  }
+}
+
+static void translate_snap_grid_apply(TransInfo *t,
+                                      const int max_index,
+                                      const float grid_dist[3],
+                                      const float loc[3],
+                                      float r_out[3])
+{
+  BLI_assert(max_index <= 2);
+  translate_snap_target_grid_ensure(t);
+  const float *center_global = t->tsnap.snapTargetGrid;
+  const float *asp = t->aspect;
+
+  float in[3];
+  if (t->con.mode & CON_APPLY) {
+    BLI_assert(t->tsnap.snapElem == SCE_SNAP_MODE_NONE);
+    t->con.applyVec(t, NULL, NULL, loc, in);
+  }
+  else {
+    copy_v3_v3(in, loc);
+  }
+
+  for (int i = 0; i <= max_index; i++) {
+    const float iter_fac = grid_dist[i] * asp[i];
+    r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac) - center_global[i];
+  }
+}
+
+static bool translate_snap_grid(TransInfo *t, float *val)
+{
+  if (!activeSnap(t)) {
+    return false;
+  }
+
+  if (!(t->tsnap.mode & SCE_SNAP_MODE_GRID) || validSnap(t)) {
+    /* Don't do grid snapping if there is a valid snap point. */
+    return false;
+  }
+
+  /* Don't do grid snapping if not in 3D viewport or UV editor */
+  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
+    return false;
+  }
+
+  if (t->mode != TFM_TRANSLATION) {
+    return false;
+  }
+
+  float grid_dist[3];
+  copy_v3_v3(grid_dist, t->snap_spatial);
+  if (t->modifiers & MOD_PRECISION) {
+    mul_v3_fl(grid_dist, t->snap_spatial_precision);
+  }
+
+  /* Early bailing out if no need to snap */
+  if (is_zero_v3(grid_dist)) {
+    return false;
+  }
+
+  translate_snap_grid_apply(t, t->idx_max, grid_dist, val, val);
+  t->tsnap.snapElem = SCE_SNAP_MODE_GRID;
+  return true;
+}
+
 static void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
   float point[3];
@@ -371,6 +461,12 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
     sub_v3_v3v3(vec, point, t->tsnap.snapTarget);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Translation)
+ * \{ */
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
@@ -514,7 +610,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
     t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
     applySnappingAsGroup(t, global_dir);
-    transform_snap_grid(t, global_dir);
+    translate_snap_grid(t, global_dir);
 
     if (t->con.mode & CON_APPLY) {
       float in[3];
@@ -590,7 +686,8 @@ void initTranslation(TransInfo *t)
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  copy_v2_v2(t->snap, t->snap_spatial_x);
+  t->snap[0] = t->snap_spatial[0];
+  t->snap[1] = t->snap_spatial[0] * t->snap_spatial_precision;
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;

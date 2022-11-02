@@ -1043,6 +1043,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_TEXTURE_PAINT;
     case PAINT_MODE_SCULPT_UV:
       return OB_MODE_EDIT;
+    case PAINT_MODE_SCULPT_CURVES:
+      return OB_MODE_SCULPT_CURVES;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;
@@ -1199,7 +1201,7 @@ void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
   }
   else {
-    copy_v3_v3(stroke, ob->obmat[3]);
+    copy_v3_v3(stroke, ob->object_to_world[3]);
   }
 }
 
@@ -2314,7 +2316,7 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         &key);
 }
 
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 {
   SculptSession *ss = ob->sculpt;
   if (ss == nullptr || ss->pbvh == nullptr || ss->mode_type != OB_MODE_SCULPT) {
@@ -2322,9 +2324,10 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    /* Regular mesh only draws from PBVH without modifiers and shape keys. */
-
-    return !(ss->shapekey_active || ss->deform_modifiers_active);
+    /* Regular mesh only draws from PBVH without modifiers and shape keys, or for
+     * external engines that do not have access to the PBVH like Eevee does. */
+    const bool external_engine = rv3d && rv3d->render_engine != nullptr;
+    return !(ss->shapekey_active || ss->deform_modifiers_active || external_engine);
   }
 
   /* Multires and dyntopo always draw directly from the PBVH. */

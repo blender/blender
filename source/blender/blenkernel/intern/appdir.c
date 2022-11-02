@@ -237,7 +237,7 @@ bool BKE_appdir_font_folder_default(char *dir)
   }
 #elif defined(__APPLE__)
   STRNCPY(test_dir, BLI_expand_tilde("~/Library/Fonts/"));
-  BLI_path_slash_ensure(test_dir);
+  BLI_path_slash_ensure(test_dir, sizeof(test_dir));
 #else
   STRNCPY(test_dir, "/usr/share/fonts");
 #endif
@@ -1093,13 +1093,13 @@ void BKE_appdir_app_templates(ListBase *templates)
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
-static void where_is_temp(char *tempdir, const size_t tempdir_len, const char *userdir)
+static void where_is_temp(char *tempdir, const size_t tempdir_maxlen, const char *userdir)
 {
 
   tempdir[0] = '\0';
 
   if (userdir && BLI_is_dir(userdir)) {
-    BLI_strncpy(tempdir, userdir, tempdir_len);
+    BLI_strncpy(tempdir, userdir, tempdir_maxlen);
   }
 
   if (tempdir[0] == '\0') {
@@ -1116,23 +1116,23 @@ static void where_is_temp(char *tempdir, const size_t tempdir_len, const char *u
     for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
       const char *tmp = BLI_getenv(env_vars[i]);
       if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
-        BLI_strncpy(tempdir, tmp, tempdir_len);
+        BLI_strncpy(tempdir, tmp, tempdir_maxlen);
         break;
       }
     }
   }
 
   if (tempdir[0] == '\0') {
-    BLI_strncpy(tempdir, "/tmp/", tempdir_len);
+    BLI_strncpy(tempdir, "/tmp/", tempdir_maxlen);
   }
   else {
     /* add a trailing slash if needed */
-    BLI_path_slash_ensure(tempdir);
+    BLI_path_slash_ensure(tempdir, tempdir_maxlen);
   }
 }
 
 static void tempdir_session_create(char *tempdir_session,
-                                   const size_t tempdir_session_len,
+                                   const size_t tempdir_session_maxlen,
                                    const char *tempdir)
 {
   tempdir_session[0] = '\0';
@@ -1146,9 +1146,9 @@ static void tempdir_session_create(char *tempdir_session,
    * #_mktemp_s also requires the last null character is included. */
   const int tempdir_session_len_required = tempdir_len + session_name_len + 1;
 
-  if (tempdir_session_len_required <= tempdir_session_len) {
+  if (tempdir_session_len_required <= tempdir_session_maxlen) {
     /* No need to use path joining utility as we know the last character of #tempdir is a slash. */
-    BLI_string_join(tempdir_session, tempdir_session_len, tempdir, session_name);
+    BLI_string_join(tempdir_session, tempdir_session_maxlen, tempdir, session_name);
 #ifdef WIN32
     const bool needs_create = (_mktemp_s(tempdir_session, tempdir_session_len_required) == 0);
 #else
@@ -1158,7 +1158,7 @@ static void tempdir_session_create(char *tempdir_session,
       BLI_dir_create_recursive(tempdir_session);
     }
     if (BLI_is_dir(tempdir_session)) {
-      BLI_path_slash_ensure(tempdir_session);
+      BLI_path_slash_ensure(tempdir_session, tempdir_session_maxlen);
       /* Success. */
       return;
     }
@@ -1168,7 +1168,7 @@ static void tempdir_session_create(char *tempdir_session,
             "Could not generate a temp file name for '%s', falling back to '%s'",
             tempdir_session,
             tempdir);
-  BLI_strncpy(tempdir_session, tempdir, tempdir_session_len);
+  BLI_strncpy(tempdir_session, tempdir, tempdir_session_maxlen);
 }
 
 void BKE_tempdir_init(const char *userdir)

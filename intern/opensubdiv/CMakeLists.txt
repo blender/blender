@@ -81,12 +81,6 @@ if(WITH_OPENSUBDIV)
     )
   endif()
 
-  opensubdiv_define_component(OPENSUBDIV_HAS_OPENMP)
-  opensubdiv_define_component(OPENSUBDIV_HAS_OPENCL)
-  opensubdiv_define_component(OPENSUBDIV_HAS_CUDA)
-  opensubdiv_define_component(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
-  opensubdiv_define_component(OPENSUBDIV_HAS_GLSL_COMPUTE)
-
   if(WIN32)
     add_definitions(-DNOMINMAX)
     add_definitions(-D_USE_MATH_DEFINES)

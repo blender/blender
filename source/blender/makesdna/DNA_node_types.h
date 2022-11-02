@@ -931,7 +931,7 @@ typedef struct NodeImageMultiFileSocket {
   char path[1024];
   ImageFormatData format;
 
-  /* multilayer output */
+  /* Multi-layer output. */
   /** EXR_TOT_MAXNAME-2 ('.' and channel char are appended). */
   char layer[30];
   char _pad2[2];
@@ -1273,7 +1273,7 @@ typedef struct CryptomatteLayer {
 typedef struct NodeCryptomatte_Runtime {
   /* Contains `CryptomatteLayer`. */
   ListBase layers;
-  /* Temp storage for the cryptomatte picker. */
+  /* Temp storage for the crypto-matte picker. */
   float add[3];
   float remove[3];
 } NodeCryptomatte_Runtime;
@@ -2082,6 +2082,12 @@ typedef enum CMPNodeLevelsChannel {
   CMP_NODE_LEVLES_BLUE = 4,
   CMP_NODE_LEVLES_LUMINANCE_BT709 = 5,
 } CMPNodeLevelsChannel;
+
+/* Tone Map Node. Stored in NodeTonemap.type. */
+typedef enum CMPNodeToneMapType {
+  CMP_NODE_TONE_MAP_SIMPLE = 0,
+  CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
+} CMPNodeToneMapType;
 
 /* Plane track deform node. */
 

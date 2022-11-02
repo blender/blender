@@ -88,13 +88,11 @@ static void curves_discard_attributes(CurvesEvalCache &curves_cache)
 {
   for (const int i : IndexRange(GPU_MAX_ATTR)) {
     GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_attributes_buf[i]);
-    DRW_TEXTURE_FREE_SAFE(curves_cache.proc_attributes_tex[i]);
   }
 
   for (const int i : IndexRange(MAX_HAIR_SUBDIV)) {
     for (const int j : IndexRange(GPU_MAX_ATTR)) {
       GPU_VERTBUF_DISCARD_SAFE(curves_cache.final[i].attributes_buf[j]);
-      DRW_TEXTURE_FREE_SAFE(curves_cache.final[i].attributes_tex[j]);
     }
 
     drw_attributes_clear(&curves_cache.final[i].attr_used);
@@ -107,17 +105,12 @@ static void curves_batch_cache_clear_data(CurvesEvalCache &curves_cache)
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_point_buf);
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_length_buf);
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.data_edit_points);
-  DRW_TEXTURE_FREE_SAFE(curves_cache.point_tex);
-  DRW_TEXTURE_FREE_SAFE(curves_cache.length_tex);
 
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_strand_buf);
   GPU_VERTBUF_DISCARD_SAFE(curves_cache.proc_strand_seg_buf);
-  DRW_TEXTURE_FREE_SAFE(curves_cache.strand_tex);
-  DRW_TEXTURE_FREE_SAFE(curves_cache.strand_seg_tex);
 
   for (const int i : IndexRange(MAX_HAIR_SUBDIV)) {
     GPU_VERTBUF_DISCARD_SAFE(curves_cache.final[i].proc_buf);
-    DRW_TEXTURE_FREE_SAFE(curves_cache.final[i].proc_tex);
     for (const int j : IndexRange(MAX_THICKRES)) {
       GPU_BATCH_DISCARD_SAFE(curves_cache.final[i].proc_hairs[j]);
     }
@@ -286,21 +279,6 @@ static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
                                 cache.strands_len};
 
     curves_batch_cache_fill_segments_proc_pos(curves, posTime_data, hairLength_data);
-
-    /* Create vbo immediately to bind to texture buffer. */
-    GPU_vertbuf_use(cache.proc_point_buf);
-    cache.point_tex = GPU_texture_create_from_vertbuf("hair_point", cache.proc_point_buf);
-  }
-
-  if (gpu_material && cache.proc_length_buf != nullptr && cache.length_tex) {
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &gpu_attrs) {
-      if (attr->type == CD_HAIRLENGTH) {
-        GPU_vertbuf_use(cache.proc_length_buf);
-        cache.length_tex = GPU_texture_create_from_vertbuf("hair_length", cache.proc_length_buf);
-        break;
-      }
-    }
   }
 }
 
@@ -363,12 +341,6 @@ static void curves_batch_cache_ensure_procedural_final_attr(CurvesEvalCache &cac
   /* Those are points! not line segments. */
   GPU_vertbuf_data_alloc(final_cache.attributes_buf[index],
                          final_cache.strands_res * cache.strands_len);
-
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(final_cache.attributes_buf[index]);
-
-  final_cache.attributes_tex[index] = GPU_texture_create_from_vertbuf(
-      name, final_cache.attributes_buf[index]);
 }
 
 static void curves_batch_ensure_attribute(const Curves &curves,
@@ -379,7 +351,6 @@ static void curves_batch_ensure_attribute(const Curves &curves,
 {
   using namespace blender;
   GPU_VERTBUF_DISCARD_SAFE(cache.proc_attributes_buf[index]);
-  DRW_TEXTURE_FREE_SAFE(cache.proc_attributes_tex[index]);
 
   char sampler_name[32];
   drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
@@ -414,13 +385,9 @@ static void curves_batch_ensure_attribute(const Curves &curves,
 
   attribute.materialize(vbo_span);
 
-  GPU_vertbuf_use(attr_vbo);
-  cache.proc_attributes_tex[index] = GPU_texture_create_from_vertbuf(sampler_name, attr_vbo);
-
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */
   GPU_VERTBUF_DISCARD_SAFE(cache.final[subdiv].attributes_buf[index]);
-  DRW_TEXTURE_FREE_SAFE(cache.final[subdiv].attributes_tex[index]);
 
   /* Ensure final data for points. */
   if (request.domain == ATTR_DOMAIN_POINT) {
@@ -466,19 +433,11 @@ static void curves_batch_cache_ensure_procedural_strand_data(Curves &curves,
   GPU_vertbuf_attr_get_raw_data(cache.proc_strand_seg_buf, seg_id, &seg_step);
 
   curves_batch_cache_fill_strands_data(curves, data_step, seg_step);
-
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(cache.proc_strand_buf);
-  cache.strand_tex = GPU_texture_create_from_vertbuf("curves_strand", cache.proc_strand_buf);
-
-  GPU_vertbuf_use(cache.proc_strand_seg_buf);
-  cache.strand_seg_tex = GPU_texture_create_from_vertbuf("curves_strand_seg",
-                                                         cache.proc_strand_seg_buf);
 }
 
 static void curves_batch_cache_ensure_procedural_final_points(CurvesEvalCache &cache, int subdiv)
 {
-  /* Same format as point_tex. */
+  /* Same format as proc_point_buf. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
@@ -489,12 +448,6 @@ static void curves_batch_cache_ensure_procedural_final_points(CurvesEvalCache &c
   /* Those are points! not line segments. */
   GPU_vertbuf_data_alloc(cache.final[subdiv].proc_buf,
                          cache.final[subdiv].strands_res * cache.strands_len);
-
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(cache.final[subdiv].proc_buf);
-
-  cache.final[subdiv].proc_tex = GPU_texture_create_from_vertbuf("hair_proc",
-                                                                 cache.final[subdiv].proc_buf);
 }
 
 static void curves_batch_cache_fill_segments_indices(const Curves &curves,
@@ -583,7 +536,6 @@ static bool curves_ensure_attributes(const Curves &curves,
       /* Some new attributes have been added, free all and start over. */
       for (const int i : IndexRange(GPU_MAX_ATTR)) {
         GPU_VERTBUF_DISCARD_SAFE(cache.curves_cache.proc_attributes_buf[i]);
-        DRW_TEXTURE_FREE_SAFE(cache.curves_cache.proc_attributes_tex[i]);
       }
       drw_attributes_merge(&final_cache.attr_used, &attrs_needed, cache.render_mutex);
     }
@@ -631,7 +583,7 @@ bool curves_ensure_procedural_data(Curves *curves,
   }
 
   /* Refreshed if active layer or custom data changes. */
-  if ((*r_hair_cache)->strand_tex == nullptr) {
+  if ((*r_hair_cache)->proc_strand_buf == nullptr) {
     curves_batch_cache_ensure_procedural_strand_data(*curves, cache.curves_cache);
   }
 
@@ -689,7 +641,7 @@ static void request_attribute(Curves &curves, const char *name)
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }
 
-GPUTexture **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
+GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                         const char *name,
                                                         bool *r_is_point_domain)
 {
@@ -715,10 +667,10 @@ GPUTexture **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
   switch (final_cache.attr_used.requests[request_i].domain) {
     case ATTR_DOMAIN_POINT:
       *r_is_point_domain = true;
-      return &final_cache.attributes_tex[request_i];
+      return &final_cache.attributes_buf[request_i];
     case ATTR_DOMAIN_CURVE:
       *r_is_point_domain = false;
-      return &cache.curves_cache.proc_attributes_tex[request_i];
+      return &cache.curves_cache.proc_attributes_buf[request_i];
     default:
       BLI_assert_unreachable();
       return nullptr;

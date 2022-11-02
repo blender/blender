@@ -201,7 +201,7 @@ set(INC
   ../../imbuf
   ../../makesdna
   ../../modifiers
-  ../../nodes/
+  ../../nodes
   ../../sequencer
   ../../simulation
   ../../windowmanager

@@ -415,8 +415,15 @@ static void vicon_collection_color_draw(
 
   const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
 
-  UI_icon_draw_ex(
-      x, y, ICON_OUTLINER_COLLECTION, aspect, 1.0f, 0.0f, collection_color->color, true);
+  UI_icon_draw_ex(x,
+                  y,
+                  ICON_OUTLINER_COLLECTION,
+                  aspect,
+                  1.0f,
+                  0.0f,
+                  collection_color->color,
+                  true,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 #  define DEF_ICON_COLLECTION_COLOR_DRAW(index, color) \
@@ -444,7 +451,8 @@ static void vicon_strip_color_draw(
 
   const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
 
-  UI_icon_draw_ex(x, y, ICON_SNAP_FACE, aspect, 1.0f, 0.0f, strip_color->color, true);
+  UI_icon_draw_ex(
+      x, y, ICON_SNAP_FACE, aspect, 1.0f, 0.0f, strip_color->color, true, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 #  define DEF_ICON_STRIP_COLOR_DRAW(index, color) \
@@ -472,8 +480,15 @@ static void vicon_strip_color_draw_library_data_indirect(
 {
   const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
 
-  UI_icon_draw_ex(
-      x, y, ICON_LIBRARY_DATA_DIRECT, aspect, ICON_INDIRECT_DATA_ALPHA * alpha, 0.0f, NULL, false);
+  UI_icon_draw_ex(x,
+                  y,
+                  ICON_LIBRARY_DATA_DIRECT,
+                  aspect,
+                  ICON_INDIRECT_DATA_ALPHA * alpha,
+                  0.0f,
+                  NULL,
+                  false,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 static void vicon_strip_color_draw_library_data_override_noneditable(
@@ -488,7 +503,8 @@ static void vicon_strip_color_draw_library_data_override_noneditable(
                   ICON_INDIRECT_DATA_ALPHA * alpha * 0.75f,
                   0.0f,
                   NULL,
-                  false);
+                  false,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
@@ -1716,9 +1732,47 @@ static void icon_draw_texture(float x,
                               int ih,
                               float alpha,
                               const float rgb[3],
-                              bool with_border)
+                              bool with_border,
+                              const IconTextOverlay *text_overlay)
 {
-  if (g_icon_draw_cache.enabled) {
+  const float zoom_factor = w / UI_DPI_ICON_SIZE;
+  float text_width = 0.0f;
+
+  /* No need to show if too zoomed out, otherwise it just adds noise. */
+  const bool show_indicator = (text_overlay && text_overlay->text[0] != '\0') &&
+                              (zoom_factor > 0.7f);
+
+  if (show_indicator) {
+    /* Handle the little numbers on top of the icon. */
+    uchar text_color[4];
+    UI_GetThemeColor3ubv(TH_TEXT, text_color);
+    text_color[3] = 255;
+
+    uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
+    fstyle_small.points *= zoom_factor;
+    fstyle_small.points *= 0.8f;
+
+    rcti text_rect = {
+        .xmax = x + UI_UNIT_X * zoom_factor,
+        .xmin = x,
+        .ymax = y,
+        .ymin = y,
+    };
+
+    UI_fontstyle_draw(&fstyle_small,
+                      &text_rect,
+                      text_overlay->text,
+                      sizeof(text_overlay->text),
+                      text_color,
+                      &(struct uiFontStyleDraw_Params){
+                          .align = UI_STYLE_TEXT_RIGHT,
+                      });
+    text_width = (float)UI_fontstyle_string_width(&fstyle_small, text_overlay->text) / UI_UNIT_X /
+                 zoom_factor;
+  }
+
+  /* Draw the actual icon. */
+  if (!show_indicator && g_icon_draw_cache.enabled) {
     icon_draw_texture_cached(x, y, w, h, ix, iy, iw, ih, alpha, rgb, with_border);
     return;
   }
@@ -1735,7 +1789,7 @@ static void icon_draw_texture(float x,
 
   GPUTexture *texture = with_border ? icongltex.tex[1] : icongltex.tex[0];
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_ICON);
   GPU_shader_bind(shader);
 
   const int img_binding = GPU_shader_get_texture_binding(shader, "image");
@@ -1752,6 +1806,7 @@ static void icon_draw_texture(float x,
 
   GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, (float[4]){x1, y1, x2, y2});
   GPU_shader_uniform_vector(shader, rect_geom_loc, 4, 1, (float[4]){x, y, x + w, y + h});
+  GPU_shader_uniform_1f(shader, "text_width", text_width);
 
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
 
@@ -1786,7 +1841,8 @@ static void icon_draw_size(float x,
                            int draw_size,
                            const float desaturate,
                            const uchar mono_rgba[4],
-                           const bool mono_border)
+                           const bool mono_border,
+                           const IconTextOverlay *text_overlay)
 {
   bTheme *btheme = UI_GetTheme();
   const float fdraw_size = (float)draw_size;
@@ -1874,7 +1930,8 @@ static void icon_draw_size(float x,
                       di->data.texture.h,
                       alpha,
                       NULL,
-                      false);
+                      false,
+                      text_overlay);
   }
   else if (di->type == ICON_TYPE_MONO_TEXTURE) {
     /* Monochrome icon that uses text or theme color. */
@@ -1908,7 +1965,8 @@ static void icon_draw_size(float x,
                       di->data.texture.h + 2 * border_texel,
                       color[3],
                       color,
-                      with_border);
+                      with_border,
+                      text_overlay);
   }
 
   else if (di->type == ICON_TYPE_BUFFER) {
@@ -2425,17 +2483,27 @@ int UI_icon_color_from_collection(const Collection *collection)
 
 void UI_icon_draw(float x, float y, int icon_id)
 {
-  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, NULL, false);
+  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, NULL, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
-  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, alpha, 0.0f, NULL, false);
+  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, alpha, 0.0f, NULL, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
-  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_PREVIEW, size, false, NULL, false);
+  icon_draw_size(x,
+                 y,
+                 icon_id,
+                 aspect,
+                 alpha,
+                 ICON_SIZE_PREVIEW,
+                 size,
+                 false,
+                 NULL,
+                 false,
+                 UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_ex(float x,
@@ -2445,7 +2513,8 @@ void UI_icon_draw_ex(float x,
                      float alpha,
                      float desaturate,
                      const uchar mono_color[4],
-                     const bool mono_border)
+                     const bool mono_border,
+                     const IconTextOverlay *text_overlay)
 {
   const int draw_size = get_draw_size(ICON_SIZE_ICON);
   icon_draw_size(x,
@@ -2457,7 +2526,19 @@ void UI_icon_draw_ex(float x,
                  draw_size,
                  desaturate,
                  mono_color,
-                 mono_border);
+                 mono_border,
+                 text_overlay);
+}
+
+void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
+                                          const int icon_indicator_number)
+{
+  /* The icon indicator is used as an aggregator, no need to show if it is 1. */
+  if (icon_indicator_number < 2) {
+    text_overlay->text[0] = '\0';
+    return;
+  }
+  BLI_str_format_integer_unit(text_overlay->text, icon_indicator_number);
 }
 
 /* ********** Alert Icons ********** */

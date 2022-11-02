@@ -1510,7 +1510,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   texture_descriptor_.mipmapLevelCount = mtl_max_mips_;
   texture_descriptor_.usage =
       MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-      MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+      MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
   texture_descriptor_.storageMode = [source_buffer storageMode];
   texture_descriptor_.sampleCount = 1;
   texture_descriptor_.cpuCacheMode = [source_buffer cpuCacheMode];

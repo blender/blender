@@ -453,6 +453,11 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
   if (id == nullptr) {
     return IDWALK_RET_NOP;
   }
+  if (!ID_TYPE_IS_COW(GS(id->name))) {
+    /* No need to go further if the id never had a cow copy in the depsgraph. This function is
+     * only concerned with keeping the mapping between original and COW ids intact. */
+    return IDWALK_RET_NOP;
+  }
 
   DepsgraphNodeBuilder *builder = static_cast<DepsgraphNodeBuilder *>(cb_data->user_data);
   ID *id_cow_self = cb_data->id_self;

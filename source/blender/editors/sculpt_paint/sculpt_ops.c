@@ -323,7 +323,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     BKE_report(
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
-  else if (is_negative_m4(ob->obmat)) {
+  else if (is_negative_m4(ob->object_to_world)) {
     BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 

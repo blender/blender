@@ -810,7 +810,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
 
-  bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+  bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                          !DRW_state_is_image_render();
 
   if (ob->sculpt && ob->sculpt->pbvh) {
@@ -924,17 +924,14 @@ void EEVEE_particle_hair_cache_populate(EEVEE_Data *vedata,
         if (matcache.depth_grp) {
           *matcache.depth_grp_p = DRW_shgroup_hair_create_sub(
               ob, psys, md, matcache.depth_grp, NULL);
-          DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
         }
         if (matcache.shading_grp) {
           *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(
               ob, psys, md, matcache.shading_grp, matcache.shading_gpumat);
-          DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
         }
         if (matcache.shadow_grp) {
           *matcache.shadow_grp_p = DRW_shgroup_hair_create_sub(
               ob, psys, md, matcache.shadow_grp, NULL);
-          DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
           *cast_shadow = true;
         }
 
@@ -954,16 +951,13 @@ void EEVEE_object_curves_cache_populate(EEVEE_Data *vedata,
 
   if (matcache.depth_grp) {
     *matcache.depth_grp_p = DRW_shgroup_curves_create_sub(ob, matcache.depth_grp, NULL);
-    DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shading_grp) {
     *matcache.shading_grp_p = DRW_shgroup_curves_create_sub(
         ob, matcache.shading_grp, matcache.shading_gpumat);
-    DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shadow_grp) {
     *matcache.shadow_grp_p = DRW_shgroup_curves_create_sub(ob, matcache.shadow_grp, NULL);
-    DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
     *cast_shadow = true;
   }
 

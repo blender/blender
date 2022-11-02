@@ -12,6 +12,8 @@
 #include "UnaryFunction0D/BPy_UnaryFunction0DFloat.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DUnsigned.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

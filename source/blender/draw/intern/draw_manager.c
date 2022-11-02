@@ -1690,6 +1690,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_globals_update();
 
   drw_debug_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -1959,20 +1960,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   DST.buffer_finish_called = false;
 }
 
-/* Callback function for RE_engine_update_render_passes to ensure all
- * render passes are registered. */
-static void draw_render_result_ensure_pass_cb(void *user_data,
-                                              struct Scene *UNUSED(scene),
-                                              struct ViewLayer *view_layer,
-                                              const char *name,
-                                              int channels,
-                                              const char *chanid,
-                                              eNodeSocketDatatype UNUSED(type))
-{
-  RenderEngine *engine = user_data;
-  RE_engine_add_pass(engine, name, channels, chanid, view_layer->name);
-}
-
 void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -2023,10 +2010,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   /* set default viewport */
   GPU_viewport(0, 0, size[0], size[1]);
 
-  /* Update the render passes. This needs to be done before acquiring the render result. */
-  RE_engine_update_render_passes(
-      engine, scene, view_layer, draw_render_result_ensure_pass_cb, engine);
-
   /* Init render result. */
   RenderResult *render_result = RE_engine_begin_result(engine,
                                                        0,
@@ -2071,6 +2054,7 @@ void DRW_render_object_iter(
     void (*callback)(void *vedata, Object *ob, RenderEngine *engine, struct Depsgraph *depsgraph))
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2131,6 +2115,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 
   drw_manager_init(&DST, NULL, NULL);
 
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2166,6 +2151,7 @@ void DRW_cache_restart(void)
 
   DST.buffer_finish_called = false;
 
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2491,6 +2477,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2672,6 +2659,7 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2813,7 +2801,7 @@ void DRW_draw_depth_object(
 
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
-  GPU_matrix_mul(object->obmat);
+  GPU_matrix_mul(object->object_to_world);
 
   /* Setup frame-buffer. */
   GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
@@ -2833,11 +2821,11 @@ void DRW_draw_depth_object(
   const bool use_clipping_planes = RV3D_CLIPPING_ENABLED(v3d, rv3d);
   if (use_clipping_planes) {
     GPU_clip_distances(6);
-    ED_view3d_clipping_local(rv3d, object->obmat);
+    ED_view3d_clipping_local(rv3d, object->object_to_world);
     for (int i = 0; i < 6; i++) {
       copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
     }
-    copy_m4_m4(planes.ModelMatrix, object->obmat);
+    copy_m4_m4(planes.ModelMatrix, object->object_to_world);
   }
 
   drw_batch_cache_validate(object);
@@ -3086,6 +3074,7 @@ void DRW_engines_free(void)
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
   DRW_shaders_free();
+  DRW_pointcloud_free();
   DRW_curves_free();
   DRW_volume_free();
   DRW_shape_cache_free();

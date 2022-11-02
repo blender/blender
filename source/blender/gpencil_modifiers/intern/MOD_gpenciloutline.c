@@ -116,7 +116,7 @@ static void convert_stroke(GpencilModifierData *md,
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(ob->obmat);
+  gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */
@@ -197,7 +197,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
   Object *cam_ob = scene->camera;
   float viewmat[4][4];
-  invert_m4_m4(viewmat, cam_ob->obmat);
+  invert_m4_m4(viewmat, cam_ob->object_to_world);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
@@ -240,7 +240,7 @@ static void bakeModifier(Main *UNUSED(bmain),
       BKE_scene_graph_update_for_newframe(depsgraph);
       /* Ensure the camera is the right one. */
       BKE_scene_camera_switch_update(scene);
-      invert_m4_m4(viewmat, cam_ob->obmat);
+      invert_m4_m4(viewmat, cam_ob->object_to_world);
 
       /* Prepare transform matrix. */
       float diff_mat[4][4];

@@ -1518,10 +1518,10 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false, false);
 
       /* Low-poly to high-poly transformation matrix. */
-      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
+      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world);
       invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
 
-      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->obmat);
+      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->object_to_world);
 
       i++;
     }
@@ -1540,18 +1540,19 @@ static int bake(const BakeAPIRender *bkr,
     pixel_array_high = MEM_mallocN(sizeof(BakePixel) * targets.pixels_num,
                                    "bake pixels high poly");
 
-    if (!RE_bake_pixels_populate_from_objects(me_low_eval,
-                                              pixel_array_low,
-                                              pixel_array_high,
-                                              highpoly,
-                                              tot_highpoly,
-                                              targets.pixels_num,
-                                              ob_cage != NULL,
-                                              bkr->cage_extrusion,
-                                              bkr->max_ray_distance,
-                                              ob_low_eval->obmat,
-                                              (ob_cage ? ob_cage->obmat : ob_low_eval->obmat),
-                                              me_cage_eval)) {
+    if (!RE_bake_pixels_populate_from_objects(
+            me_low_eval,
+            pixel_array_low,
+            pixel_array_high,
+            highpoly,
+            tot_highpoly,
+            targets.pixels_num,
+            ob_cage != NULL,
+            bkr->cage_extrusion,
+            bkr->max_ray_distance,
+            ob_low_eval->object_to_world,
+            (ob_cage ? ob_cage->object_to_world : ob_low_eval->object_to_world),
+            me_cage_eval)) {
       BKE_report(reports, RPT_ERROR, "Error handling selected objects");
       goto cleanup;
     }
@@ -1629,7 +1630,7 @@ static int bake(const BakeAPIRender *bkr,
                                           targets.result,
                                           me_low_eval,
                                           bkr->normal_swizzle,
-                                          ob_low_eval->obmat);
+                                          ob_low_eval->object_to_world);
         }
         else {
           /* From multi-resolution. */
@@ -1655,7 +1656,7 @@ static int bake(const BakeAPIRender *bkr,
                                           targets.result,
                                           (me_nores) ? me_nores : me_low_eval,
                                           bkr->normal_swizzle,
-                                          ob_low_eval->obmat);
+                                          ob_low_eval->object_to_world);
 
           if (md) {
             BKE_id_free(NULL, &me_nores->id);

@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_noise.hh"
 #include "BLI_span.hh"
@@ -101,16 +102,6 @@ static void threaded_slice_fill(Span<int> offsets,
   threading::parallel_for(IndexRange(offsets.size() - 1), 512, [&](IndexRange range) {
     for (const int i : range) {
       dst.slice(range_for_offsets_index(offsets, i)).fill(src[selection[i]]);
-    }
-  });
-}
-
-template<typename T>
-static void threaded_mapped_copy(const Span<int> mapping, const Span<T> src, MutableSpan<T> dst)
-{
-  threading::parallel_for(mapping.index_range(), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      dst[i] = src[mapping[i]];
     }
   });
 }
@@ -440,17 +431,17 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
       MutableSpan<T> dst = dst_attribute.span.typed<T>();
 
       switch (out_domain) {
+        case ATTR_DOMAIN_POINT:
+          array_utils::gather(src, vert_mapping, dst);
+          break;
+        case ATTR_DOMAIN_EDGE:
+          array_utils::gather(src, edge_mapping, dst);
+          break;
         case ATTR_DOMAIN_FACE:
           threaded_slice_fill<T>(offsets, selection, src, dst);
           break;
-        case ATTR_DOMAIN_EDGE:
-          threaded_mapped_copy<T>(edge_mapping, src, dst);
-          break;
-        case ATTR_DOMAIN_POINT:
-          threaded_mapped_copy<T>(vert_mapping, src, dst);
-          break;
         case ATTR_DOMAIN_CORNER:
-          threaded_mapped_copy<T>(loop_mapping, src, dst);
+          array_utils::gather(src, loop_mapping, dst);
           break;
         default:
           break;
@@ -653,7 +644,7 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
           threaded_slice_fill<T>(offsets, selection, src, dst);
           break;
         case ATTR_DOMAIN_POINT:
-          threaded_mapped_copy<T>(point_mapping, src, dst);
+          array_utils::gather(src, point_mapping, dst);
           break;
         default:
           break;

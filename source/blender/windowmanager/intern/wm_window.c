@@ -574,6 +574,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     glSettings.flags |= GHOST_glDebugContext;
   }
 
+  eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  glSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+
   int scr_w, scr_h;
   wm_get_desktopsize(&scr_w, &scr_h);
   int posy = (scr_h - win->posy - win->sizey);
@@ -591,7 +594,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                                    win->sizey,
                                                    (GHOST_TWindowState)win->windowstate,
                                                    is_dialog,
-                                                   GHOST_kDrawingContextTypeOpenGL,
                                                    glSettings);
 
   if (ghostwin) {
@@ -1660,6 +1662,32 @@ const char *WM_ghost_backend(void)
    * Use dummy values to prevent this being used on other systems. */
   return g_system ? "DEFAULT" : "NONE";
 #endif
+}
+
+GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gpu_backend)
+{
+  switch (gpu_backend) {
+    case GPU_BACKEND_NONE:
+      return GHOST_kDrawingContextTypeNone;
+    case GPU_BACKEND_ANY:
+    case GPU_BACKEND_OPENGL:
+      return GHOST_kDrawingContextTypeOpenGL;
+    case GPU_BACKEND_VULKAN:
+      BLI_assert_unreachable();
+      return GHOST_kDrawingContextTypeNone;
+    case GPU_BACKEND_METAL:
+#ifdef WITH_METAL_BACKEND
+      return GHOST_kDrawingContextTypeMetal;
+#else
+      BLI_assert_unreachable();
+      return GHOST_kDrawingContextTypeNone;
+#endif
+  }
+
+  /* Avoid control reaches end of non-void function compilation warning, which could be promoted
+   * to error. */
+  BLI_assert_unreachable();
+  return GHOST_kDrawingContextTypeNone;
 }
 
 /** \} */

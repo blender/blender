@@ -27,6 +27,12 @@ typedef struct IconFile {
   int index;
 } IconFile;
 
+typedef struct IconTextOverlay {
+  char text[5];
+} IconTextOverlay;
+
+#define UI_NO_ICON_OVERLAY_TEXT NULL
+
 #define ICON_DEFAULT_HEIGHT 16
 #define ICON_DEFAULT_WIDTH 16
 
@@ -105,7 +111,8 @@ void UI_icon_draw_ex(float x,
                      float alpha,
                      float desaturate,
                      const uchar mono_color[4],
-                     bool mono_border);
+                     bool mono_border,
+                     const struct IconTextOverlay *text_overlay);
 
 void UI_icons_free(void);
 void UI_icons_free_drawinfo(void *drawinfo);
@@ -123,6 +130,9 @@ int UI_icon_from_idcode(int idcode);
 int UI_icon_from_library(const struct ID *id);
 int UI_icon_from_object_mode(int mode);
 int UI_icon_color_from_collection(const struct Collection *collection);
+
+void UI_icon_text_overlay_init_from_count(struct IconTextOverlay *text_overlay,
+                                          const int icon_indicator_number);
 
 #ifdef __cplusplus
 }

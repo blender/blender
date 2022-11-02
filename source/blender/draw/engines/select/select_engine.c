@@ -205,7 +205,7 @@ static void select_cache_populate(void *vedata, Object *ob)
     struct Mesh *me = ob->data;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
     }
     else if (ob->dt >= OB_SOLID) {
 #ifdef USE_CAGE_OCCLUSION
@@ -213,17 +213,17 @@ static void select_cache_populate(void *vedata, Object *ob)
 #else
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
 #endif
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
     }
 
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
       struct GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_edges, ob->obmat);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_edges, ob->object_to_world);
     }
 
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
       struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_verts, ob->obmat);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_verts, ob->object_to_world);
     }
     return;
   }
@@ -231,7 +231,7 @@ static void select_cache_populate(void *vedata, Object *ob)
   float min[3], max[3];
   select_id_object_min_max(ob, min, max);
 
-  if (DRW_culling_min_max_test(stl->g_data->view_subregion, ob->obmat, min, max)) {
+  if (DRW_culling_min_max_test(stl->g_data->view_subregion, ob->object_to_world, min, max)) {
     if (sel_data == NULL) {
       sel_data = (SELECTID_ObjectData *)DRW_drawdata_ensure(
           &ob->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), NULL, NULL);

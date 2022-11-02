@@ -323,7 +323,7 @@ struct Base **BKE_object_pose_base_array_get(const struct Scene *scene,
 void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float r_parentmat[4][4]);
 
 /**
- * Compute object world transform and store it in `ob->obmat`.
+ * Compute object world transform and store it in `ob->object_to_world`.
  */
 void BKE_object_where_is_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Depsgraph *depsgraph,

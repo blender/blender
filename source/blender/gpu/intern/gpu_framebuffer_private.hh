@@ -95,11 +95,6 @@ class FrameBuffer {
 #endif
 
  public:
-  /* Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
-   * Points to #BPyGPUFrameBuffer::fb */
-  void **ref = nullptr;
-
- public:
   FrameBuffer(const char *name);
   virtual ~FrameBuffer();
 
@@ -208,6 +203,11 @@ class FrameBuffer {
   inline GPUTexture *color_tex(int slot) const
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
+  };
+
+  inline const char *const name_get() const
+  {
+    return name_;
   };
 };
 

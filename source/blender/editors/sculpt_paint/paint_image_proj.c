@@ -3684,7 +3684,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
   ps->viewDir[1] = 0.0f;
   ps->viewDir[2] = 1.0f;
 
-  copy_m4_m4(ps->obmat, ps->ob->obmat);
+  copy_m4_m4(ps->obmat, ps->ob->object_to_world);
 
   if (symmetry_flag) {
     int i;
@@ -3742,7 +3742,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
       CameraParams params;
 
       /* viewmat & viewinv */
-      copy_m4_m4(viewinv, cam_ob_eval->obmat);
+      copy_m4_m4(viewinv, cam_ob_eval->object_to_world);
       normalize_m4(viewinv);
       invert_m4_m4(viewmat, viewinv);
 
@@ -4462,7 +4462,7 @@ static void project_paint_begin(const bContext *C,
 
   if (ps->source == PROJ_SRC_VIEW) {
     /* faster clipping lookups */
-    ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);
+    ED_view3d_clipping_local(ps->rv3d, ps->ob->object_to_world);
   }
 
   ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
@@ -5370,7 +5370,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
 
             /* Color texture (alpha used as mask). */
             if (ps->is_texbrush) {
-              MTex *mtex = &brush->mtex;
+              const MTex *mtex = BKE_brush_color_texture_get(brush, OB_MODE_TEXTURE_PAINT);
               float samplecos[3];
               float texrgba[4];
 
@@ -5386,7 +5386,8 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
 
               /* NOTE: for clone and smear,
                * we only use the alpha, could be a special function */
-              BKE_brush_sample_tex_3d(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+              BKE_brush_sample_tex_3d(
+                  ps->scene, brush, mtex, samplecos, texrgba, thread_index, pool);
 
               copy_v3_v3(texrgb, texrgba);
               custom_mask *= texrgba[3];

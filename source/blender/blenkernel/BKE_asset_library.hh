@@ -10,6 +10,8 @@
 #  error This is a C++-only header file. Use BKE_asset_library.h instead.
 #endif
 
+#include "DNA_asset_types.h"
+
 #include "BKE_asset_library.h"
 
 #include "BKE_asset_catalog.hh"
@@ -44,18 +46,23 @@ struct AssetLibrary {
    * No-op if the catalog cannot be found. This could be the kind of "the
    * catalog definition file is corrupt/lost" scenario that the simple name is
    * meant to help recover from. */
-  void refresh_catalog_simplename(struct AssetMetaData *asset_data);
+  void refresh_catalog_simplename(AssetMetaData *asset_data);
 
   void on_blend_save_handler_register();
   void on_blend_save_handler_unregister();
 
-  void on_blend_save_post(struct Main *, struct PointerRNA **pointers, int num_pointers);
+  void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
 
  private:
   bCallbackFuncStore on_save_callback_store_{};
 };
 
+Vector<AssetLibraryReference> all_valid_asset_library_refs();
+
 }  // namespace blender::bke
+
+blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
+                                                   const AssetLibraryReference &library_reference);
 
 blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
     const ::AssetLibrary *library);

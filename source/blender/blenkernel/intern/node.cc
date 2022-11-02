@@ -516,10 +516,6 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
       write_node_socket(writer, sock);
     }
 
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_write_struct(writer, bNodeLink, link);
-    }
-
     if (node->storage) {
       if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT)) {
@@ -703,13 +699,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     BLO_read_data_address(reader, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
 
-    BLO_read_list(reader, &node->internal_links);
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_read_data_address(reader, &link->fromnode);
-      BLO_read_data_address(reader, &link->fromsock);
-      BLO_read_data_address(reader, &link->tonode);
-      BLO_read_data_address(reader, &link->tosock);
-    }
+    BLI_listbase_clear(&node->internal_links);
 
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
       /* Do nothing, this is runtime cache and hence handled by generic code using
@@ -2032,21 +2022,29 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 bool nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
 {
   *r_node = nullptr;
+  if (!ntree->runtime->topology_cache_is_dirty) {
+    bNode *node = &sock->owner_node();
+    *r_node = node;
+    if (r_sockindex) {
+      ListBase *sockets = (sock->in_out == SOCK_IN) ? &node->inputs : &node->outputs;
+      *r_sockindex = BLI_findindex(sockets, sock);
+    }
+    return true;
+  }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     ListBase *sockets = (sock->in_out == SOCK_IN) ? &node->inputs : &node->outputs;
-    int index = 0;
-    LISTBASE_FOREACH (bNodeSocket *, tsock, sockets) {
+    int i;
+    LISTBASE_FOREACH_INDEX (bNodeSocket *, tsock, sockets, i) {
       if (sock == tsock) {
         if (r_node != nullptr) {
           *r_node = node;
         }
         if (r_sockindex != nullptr) {
-          *r_sockindex = index;
+          *r_sockindex = i;
         }
         return true;
       }
-      index++;
     }
   }
   return false;

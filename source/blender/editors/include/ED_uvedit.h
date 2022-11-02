@@ -345,12 +345,14 @@ typedef enum {
   ED_UVPACK_MARGIN_FRACTION,   /* Specify a precise fraction of final UV output. */
 } eUVPackIsland_MarginMethod;
 
+/** See also #UnwrapOptions. */
 struct UVPackIsland_Params {
   uint rotate : 1;
   uint only_selected_uvs : 1;
   uint only_selected_faces : 1;
   uint use_seams : 1;
   uint correct_aspect : 1;
+  bool ignore_pinned;                       /* Ignore islands which have any pinned UVs. */
   eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
   float margin;                             /* Additional space to add around each island. */
 };

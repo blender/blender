@@ -11,6 +11,8 @@
 
 #include "UnaryFunction0D_vector_ViewShape/BPy_GetOccludersF0D.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

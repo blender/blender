@@ -1313,6 +1313,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
   CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
 
+  const bool verts_num_changed = mesh_dst->totvert != mesh_src->totvert;
   mesh_dst->totvert = mesh_src->totvert;
   mesh_dst->totedge = mesh_src->totedge;
   mesh_dst->totpoly = mesh_src->totpoly;
@@ -1339,11 +1340,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
       const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
       move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vdata, *key_dst, uid_active);
     }
-    else if (mesh_src->totvert != mesh_dst->totvert) {
-      CLOG_ERROR(&LOG, "Mesh in Main '%s' lost shape keys", mesh_src->id.name);
-      if (mesh_src->key) {
-        id_us_min(&mesh_src->key->id);
-      }
+    else if (verts_num_changed) {
+      CLOG_WARN(&LOG, "Shape key data lost when replacing mesh '%s' in Main", mesh_src->id.name);
+      id_us_min(&mesh_dst->key->id);
+      mesh_dst->key = nullptr;
     }
   }
 
