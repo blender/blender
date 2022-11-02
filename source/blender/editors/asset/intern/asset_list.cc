@@ -351,7 +351,7 @@ void AssetListStorage::fetch_library(const AssetLibraryReference &library_refere
 
 void AssetListStorage::destruct()
 {
-  global_storage().~AssetListMap();
+  global_storage().clear();
 }
 
 AssetList *AssetListStorage::lookup_list(const AssetLibraryReference &library_ref)
