@@ -5885,6 +5885,21 @@ static void def_sh_tex_coord(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_virtual_camera(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_sdna(prop, NULL, "id");
+  RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_ui_text(prop, "Camera", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  // TODO: add poll function show all cameras in active scene, excluding scene camera.
+}
+
 static void def_sh_vect_transform(StructRNA *srna)
 {
   static const EnumPropertyItem prop_vect_type_items[] = {

@@ -71,6 +71,12 @@ typedef struct Camera_Runtime {
   float drw_depth[2];
   float drw_focusmat[4][4];
   float drw_normalmat[4][4];
+
+  /* XXX(jbakker): Yuck but we are experimenting... true when virtual camera is evaluated, false
+   * when scene camera/main camera is evaluated. */
+  int virtual_camera_stage;
+  int _pad[1];
+  struct GPUTexture *virtual_display_texture;
 } Camera_Runtime;
 
 typedef struct Camera {

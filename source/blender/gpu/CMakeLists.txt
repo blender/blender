@@ -506,6 +506,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_vector_rotate.glsl
   shaders/material/gpu_shader_material_velvet.glsl
   shaders/material/gpu_shader_material_vertex_color.glsl
+  shaders/material/gpu_shader_material_virtual_camera.glsl
   shaders/material/gpu_shader_material_volume_absorption.glsl
   shaders/material/gpu_shader_material_volume_principled.glsl
   shaders/material/gpu_shader_material_volume_scatter.glsl

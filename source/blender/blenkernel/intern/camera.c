@@ -137,6 +137,8 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
       bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
     }
   }
+  ca->runtime.virtual_camera_stage = false;
+  ca->runtime.virtual_display_texture = NULL;
 }
 
 static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
