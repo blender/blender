@@ -1597,39 +1597,47 @@ const char *BLI_path_basename(const char *path)
   return filename ? filename + 1 : path;
 }
 
-bool BLI_path_name_at_index(const char *__restrict path,
-                            const int index,
-                            int *__restrict r_offset,
-                            int *__restrict r_len)
+static bool path_name_at_index_forward(const char *__restrict path,
+                                       const int index,
+                                       int *__restrict r_offset,
+                                       int *__restrict r_len)
 {
-  if (index >= 0) {
-    int index_step = 0;
-    int prev = -1;
-    int i = 0;
-    while (true) {
-      const char c = path[i];
-      if (ELEM(c, SEP, '\0')) {
-        if (prev + 1 != i) {
-          prev += 1;
+  BLI_assert(index >= 0);
+  int index_step = 0;
+  int prev = -1;
+  int i = 0;
+  while (true) {
+    const char c = path[i];
+    if (ELEM(c, SEP, '\0')) {
+      if (prev + 1 != i) {
+        prev += 1;
+        /* Skip '/./' (behave as if they don't exist). */
+        if (!((i - prev == 1) && (prev != 0) && (path[prev] == '.'))) {
           if (index_step == index) {
             *r_offset = prev;
             *r_len = i - prev;
-            // printf("!!! %d %d\n", start, end);
             return true;
           }
           index_step += 1;
         }
-        if (c == '\0') {
-          break;
-        }
-        prev = i;
       }
-      i += 1;
+      if (c == '\0') {
+        break;
+      }
+      prev = i;
     }
-    return false;
+    i += 1;
   }
+  return false;
+}
 
-  /* negative number, reverse where -1 is the last element */
+static bool path_name_at_index_backward(const char *__restrict path,
+                                        const int index,
+                                        int *__restrict r_offset,
+                                        int *__restrict r_len)
+{
+  /* Negative number, reverse where -1 is the last element. */
+  BLI_assert(index < 0);
   int index_step = -1;
   int prev = strlen(path);
   int i = prev - 1;
@@ -1638,12 +1646,15 @@ bool BLI_path_name_at_index(const char *__restrict path,
     if (ELEM(c, SEP, '\0')) {
       if (prev - 1 != i) {
         i += 1;
-        if (index_step == index) {
-          *r_offset = i;
-          *r_len = prev - i;
-          return true;
+        /* Skip '/./' (behave as if they don't exist). */
+        if (!((prev - i == 1) && (i != 0) && (path[i] == '.'))) {
+          if (index_step == index) {
+            *r_offset = i;
+            *r_len = prev - i;
+            return true;
+          }
+          index_step -= 1;
         }
-        index_step -= 1;
       }
       if (c == '\0') {
         break;
@@ -1653,6 +1664,15 @@ bool BLI_path_name_at_index(const char *__restrict path,
     i -= 1;
   }
   return false;
+}
+
+bool BLI_path_name_at_index(const char *__restrict path,
+                            const int index,
+                            int *__restrict r_offset,
+                            int *__restrict r_len)
+{
+  return (index >= 0) ? path_name_at_index_forward(path, index, r_offset, r_len) :
+                        path_name_at_index_backward(path, index, r_offset, r_len);
 }
 
 bool BLI_path_contains(const char *container_path, const char *containee_path)
