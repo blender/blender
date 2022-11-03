@@ -890,8 +890,7 @@ static size_t draw_seq_text_get_overlay_string(const Scene *scene,
 
   BLI_assert(i <= ARRAY_SIZE(text_array));
 
-  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i) -
-         r_overlay_string;
+  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i);
 }
 
 /* Draw info text on a sequence strip. */
