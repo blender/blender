@@ -995,7 +995,8 @@ function(data_to_c_simple_icons
   add_custom_command(
     OUTPUT  ${_file_from} ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
+    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py
+    #         ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc_icon>" ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
     DEPENDS
@@ -1073,23 +1074,27 @@ function(msgfmt_simple
 endfunction()
 
 function(find_python_package
-  package
-  relative_include_dir
+    package
+    relative_include_dir
   )
 
   string(TOUPPER ${package} _upper_package)
 
-  # set but invalid
+  # Set but invalid.
   if((NOT ${PYTHON_${_upper_package}_PATH} STREQUAL "") AND
      (NOT ${PYTHON_${_upper_package}_PATH} MATCHES NOTFOUND))
-#       if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
-#           message(WARNING "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in '${PYTHON_${_upper_package}_PATH}' "
-#                           "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing python")
-#           set(WITH_PYTHON_INSTALL${_upper_package} OFF)
-#       endif()
-  # not set, so initialize
+    # if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
+    #   message(
+    #     WARNING
+    #     "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in "
+    #     "'${PYTHON_${_upper_package}_PATH}' "
+    #     "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing Python"
+    #   )
+    #   set(WITH_PYTHON_INSTALL${_upper_package} OFF)
+    # endif()
+    # Not set, so initialize.
   else()
-    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache

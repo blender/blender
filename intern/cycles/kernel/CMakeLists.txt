@@ -866,8 +866,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
-    # it triggers at either AoT or JIT stages gets fixed.
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation
+    # crash it triggers at either AoT or JIT stages gets fixed.
     list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
@@ -881,7 +881,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       OUTPUT ${cycles_kernel_oneapi_lib}
       COMMAND ${CMAKE_COMMAND} -E env
               "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
-              "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}" # env PATH is for compiler to find ld
+              # `$ENV{PATH}` is for compiler to find `ld`.
+              "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}"
               ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
       DEPENDS ${cycles_oneapi_kernel_sources})
   endif()

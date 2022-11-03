@@ -224,7 +224,8 @@ include_directories(SYSTEM ${INC_SYS})
 cycles_add_library(cycles_device "${LIB}" ${SRC})
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
-  # Need to have proper rebuilding in case of changes in cycles_kernel_oneapi due external project behaviour
+  # Need to have proper rebuilding in case of changes
+  # in cycles_kernel_oneapi due external project behavior.
   add_dependencies(cycles_device cycles_kernel_oneapi)
 endif()
 

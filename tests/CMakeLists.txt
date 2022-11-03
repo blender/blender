@@ -20,9 +20,9 @@ else()
   endif()
 endif()
 
-# The installation directory's Python is the best one to use. However, it can only be there after the install step,
-# which means that Python will never be there on a fresh system. To suit different needs, the user can pass
-# -DTEST_PYTHON_EXE=/path/to/python to CMake.
+# The installation directory's Python is the best one to use. However, it can only be there
+# after the install step, # which means that Python will never be there on a fresh system.
+# To suit different needs, the user can pass `-DTEST_PYTHON_EXE=/path/to/python` to CMake.
 if(NOT TEST_PYTHON_EXE)
   set(TEST_PYTHON_EXE ${PYTHON_EXECUTABLE})
   message(STATUS "Tests: Using Python executable: ${TEST_PYTHON_EXE}")

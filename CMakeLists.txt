@@ -177,8 +177,11 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
-mark_as_advanced(WITH_PYTHON)  # don't want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
+# Don't want people disabling this unless they really know what they are doing.
+mark_as_advanced(WITH_PYTHON)
+# Some distributions see this as a security issue, rather than have them patch it,
+# make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some efficiency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)

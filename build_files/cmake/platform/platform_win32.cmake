@@ -150,10 +150,11 @@ endif()
 
 # Debug Symbol format
 # sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7
-# ON      # OFF       # Z7     # sccache will only play nice with Z7
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue
-# OFF     # OFF       # ZI     # Neither asan nor sscache is enabled Edit and Continue is available
+# ON      # ON        # Z7     # sccache will only play nice with Z7.
+# ON      # OFF       # Z7     # sccache will only play nice with Z7.
+# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue.
+# OFF     # OFF       # ZI     # Neither ASAN nor sscache is enabled Edit and
+#                                Continue is available.
 
 # Release Symbol format
 # sccache # MSVC_ASAN # format # why

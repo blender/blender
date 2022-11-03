@@ -406,8 +406,9 @@ if(WIN32 AND NOT UNIX)
   target_link_libraries(makesrna ${PTHREADS_LIBRARIES})
 endif()
 
-# Output rna_*_gen.c
-# note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes
+# Output `rna_*_gen.c`.
+# NOTE: (Linux only): with crashes try add this after COMMAND:
+# `valgrind --leak-check=full --track-origins=yes`
 add_custom_command(
   OUTPUT ${GENSRC}
   COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/  ${CMAKE_CURRENT_BINARY_DIR}/../
