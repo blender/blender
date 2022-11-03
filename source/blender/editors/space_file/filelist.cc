@@ -31,6 +31,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_stack.h"
+#include "BLI_string_utils.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -3542,9 +3543,10 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
       entry->uid = filelist_uid_generate(filelist);
 
-      /* When loading entries recursive, the rel_path should be relative from the root dir.
-       * we combine the relative path to the subdir with the relative path of the entry. */
-      BLI_path_join(dir, sizeof(dir), rel_subdir, entry->relpath);
+      /* When loading entries recursive, the `rel_path` should be relative from the root dir.
+       * we combine the relative path to the `subdir` with the relative path of the entry.
+       * Using #BLI_path_join works but isn't needed as `rel_subdir` has a trailing slash. */
+      BLI_string_join(dir, sizeof(dir), rel_subdir, entry->relpath);
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
@@ -3553,8 +3555,9 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
       if (filelist_readjob_should_recurse_into_entry(
               max_recursion, is_lib, recursion_level, entry)) {
-        /* We have a directory we want to list, add it to todo list! */
-        BLI_path_join(dir, sizeof(dir), root, entry->relpath);
+        /* We have a directory we want to list, add it to todo list!
+         * Using #BLI_path_join works but isn't needed as `root` has a trailing slash. */
+        BLI_string_join(dir, sizeof(dir), root, entry->relpath);
         BLI_path_normalize_dir(job_params->main_name, dir, sizeof(dir));
         td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
         td_dir->level = recursion_level + 1;
