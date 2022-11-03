@@ -31,6 +31,19 @@ elseif(NOT EXISTS ${TEST_PYTHON_EXE})
 endif()
 
 
+# Include these arguments before all others, they must not interfere with Python execution.
+set(TEST_PYTHON_EXE_EXTRA_ARGS)
+
+# Check if this a Blender managed Python installation, if so, don't add `*.pyc` files.
+if(LIBDIR)
+  cmake_path(IS_PREFIX LIBDIR "${TEST_PYTHON_EXE}" NORMALIZE _is_prefix)
+  if(_is_prefix)
+    # Keep the Python in Blender's SVN LIBDIR pristine, to avoid conflicts on updating.
+    set(TEST_PYTHON_EXE_EXTRA_ARGS "-B")
+  endif()
+  unset(_is_prefix)
+endif()
+
 # For testing with Valgrind
 # set(TEST_BLENDER_EXE valgrind --track-origins=yes --error-limit=no ${TEST_BLENDER_EXE})
 
