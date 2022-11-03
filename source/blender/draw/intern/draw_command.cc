@@ -166,7 +166,8 @@ void StateSet::execute(RecordingState &recording_state) const
    */
   BLI_assert(DST.state_lock == 0);
 
-  if (!assign_if_different(recording_state.pipeline_state, new_state)) {
+  if (!assign_if_different(recording_state.pipeline_state, new_state) &&
+      !assign_if_different(recording_state.clip_plane_count, clip_plane_count)) {
     return;
   }
 
@@ -190,12 +191,7 @@ void StateSet::execute(RecordingState &recording_state) const
   }
 
   /* TODO: this should be part of shader state. */
-  if (new_state & DRW_STATE_CLIP_PLANES) {
-    GPU_clip_distances(recording_state.view_clip_plane_count);
-  }
-  else {
-    GPU_clip_distances(0);
-  }
+  GPU_clip_distances(recording_state.clip_plane_count);
 
   if (new_state & DRW_STATE_IN_FRONT_SELECT) {
     /* XXX `GPU_depth_range` is not a perfect solution

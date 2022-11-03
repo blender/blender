@@ -39,7 +39,7 @@ struct RecordingState {
   bool front_facing = true;
   bool inverted_view = false;
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
-  int view_clip_plane_count = 0;
+  int clip_plane_count = 0;
   /** Used for gl_BaseInstance workaround. */
   GPUStorageBuf *resource_id_buf = nullptr;
 
@@ -325,6 +325,7 @@ struct Clear {
 
 struct StateSet {
   DRWState new_state;
+  int clip_plane_count;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;

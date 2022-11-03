@@ -159,8 +159,10 @@ class PassBase {
    *
    * IMPORTANT: This does not set the stencil mask/reference values. Add a call to state_stencil()
    * to ensure correct behavior of stencil aware draws.
+   *
+   * TODO(fclem): clip_plane_count should be part of shader state.
    */
-  void state_set(DRWState state);
+  void state_set(DRWState state, int clip_plane_count = 0);
 
   /**
    * Clear the current frame-buffer.
@@ -731,9 +733,13 @@ template<class T> inline void PassBase<T>::barrier(eGPUBarrier type)
 /** \name State Implementation
  * \{ */
 
-template<class T> inline void PassBase<T>::state_set(DRWState state)
+template<class T> inline void PassBase<T>::state_set(DRWState state, int clip_plane_count)
 {
-  create_command(Type::StateSet).state_set = {state};
+  /** \note This is for compatibility with the old clip plane API. */
+  if (clip_plane_count > 0) {
+    state |= DRW_STATE_CLIP_PLANES;
+  }
+  create_command(Type::StateSet).state_set = {state, clip_plane_count};
 }
 
 template<class T>
