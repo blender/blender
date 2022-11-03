@@ -483,7 +483,7 @@ class DrawMultiBuf {
                    ResourceHandle handle)
   {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
-    const bool custom_group = (vertex_first != 0 || vertex_first != -1 || vertex_len != -1);
+    const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
 
     instance_len = instance_len != -1 ? instance_len : 1;
 
