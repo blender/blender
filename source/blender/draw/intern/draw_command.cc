@@ -166,8 +166,10 @@ void StateSet::execute(RecordingState &recording_state) const
    */
   BLI_assert(DST.state_lock == 0);
 
-  if (!assign_if_different(recording_state.pipeline_state, new_state) &&
-      !assign_if_different(recording_state.clip_plane_count, clip_plane_count)) {
+  bool state_changed = assign_if_different(recording_state.pipeline_state, new_state);
+  bool clip_changed = assign_if_different(recording_state.clip_plane_count, clip_plane_count);
+
+  if (!state_changed && !clip_changed) {
     return;
   }
 
