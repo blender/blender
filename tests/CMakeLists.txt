@@ -36,7 +36,7 @@ set(TEST_PYTHON_EXE_EXTRA_ARGS)
 
 # Check if this a Blender managed Python installation, if so, don't add `*.pyc` files.
 if(LIBDIR)
-  cmake_path(IS_PREFIX LIBDIR "${TEST_PYTHON_EXE}" NORMALIZE _is_prefix)
+  path_is_prefix(LIBDIR TEST_PYTHON_EXE _is_prefix)
   if(_is_prefix)
     # Keep the Python in Blender's SVN LIBDIR pristine, to avoid conflicts on updating.
     set(TEST_PYTHON_EXE_EXTRA_ARGS "-B")

@@ -57,6 +57,25 @@ macro(path_ensure_trailing_slash
   unset(_path_sep)
 endmacro()
 
+# Our own version of `cmake_path(IS_PREFIX ..)`.
+# This can be removed when 3.20 or greater is the minimum supported version.
+macro(path_is_prefix
+  path_prefix path result_var
+  )
+  # Remove when CMAKE version is bumped to "3.20" or greater.
+  # `cmake_path(IS_PREFIX ${path_prefix} ${path} NORMALIZE result_var)`
+  # Get the normalized paths (needed to remove `..`).
+  get_filename_component(_abs_prefix "${${path_prefix}}" ABSOLUTE)
+  get_filename_component(_abs_suffix "${${path}}" ABSOLUTE)
+  string(LENGTH "${_abs_prefix}" _len)
+  string(SUBSTRING "${_abs_suffix}" 0 "${_len}" _substr)
+  string(COMPARE EQUAL "${_abs_prefix}" "${_substr}" "${result_var}")
+  unset(_abs_prefix)
+  unset(_abs_suffix)
+  unset(_len)
+  unset(_substr)
+endmacro()
+
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix
   file_name_new file_name file_suffix
