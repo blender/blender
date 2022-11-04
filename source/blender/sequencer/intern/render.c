@@ -2010,7 +2010,7 @@ ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
 float SEQ_render_thumbnail_first_frame_get(const Scene *scene,
                                            Sequence *seq,
                                            float frame_step,
-                                           rctf *view_area)
+                                           const rctf *view_area)
 {
   int first_drawable_frame = max_iii(
       SEQ_time_left_handle_frame_get(scene, seq), seq->start, view_area->xmin);
@@ -2102,7 +2102,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
                            Sequence *seq,
                            Sequence *seq_orig,
                            float frame_step,
-                           rctf *view_area,
+                           const rctf *view_area,
                            const short *stop)
 {
   SeqRenderState state;
@@ -2163,7 +2163,7 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Scene *scene, cons
 void SEQ_render_thumbnails_base_set(const SeqRenderData *context,
                                     Sequence *seq,
                                     Sequence *seq_orig,
-                                    rctf *view_area,
+                                    const rctf *view_area,
                                     const short *stop)
 {
   SeqRenderState state;
