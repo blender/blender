@@ -3,6 +3,7 @@
 set(INC
   .
   algorithms
+  cached_resources
   ../../blenkernel
   ../../blenlib
   ../../gpu
@@ -10,6 +11,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../nodes
+  ../../render
   ../../gpu/intern
   ../../../../intern/guardedalloc
 )
@@ -31,6 +33,7 @@ set(SRC
   intern/shader_node.cc
   intern/shader_operation.cc
   intern/simple_operation.cc
+  intern/static_cache_manager.cc
   intern/static_shader_manager.cc
   intern/texture_pool.cc
   intern/utilities.cc
@@ -51,6 +54,7 @@ set(SRC
   COM_shader_node.hh
   COM_shader_operation.hh
   COM_simple_operation.hh
+  COM_static_cache_manager.hh
   COM_static_shader_manager.hh
   COM_texture_pool.hh
   COM_utilities.hh
@@ -58,12 +62,22 @@ set(SRC
   algorithms/intern/algorithm_parallel_reduction.cc
 
   algorithms/COM_algorithm_parallel_reduction.hh
+
+  cached_resources/intern/morphological_distance_feather_weights.cc
+  cached_resources/intern/symmetric_blur_weights.cc
+  cached_resources/intern/symmetric_separable_blur_weights.cc
+
+  cached_resources/COM_cached_resource.hh
+  cached_resources/COM_morphological_distance_feather_weights.hh
+  cached_resources/COM_symmetric_blur_weights.hh
+  cached_resources/COM_symmetric_separable_blur_weights.hh
 )
 
 set(LIB
   bf_gpu
   bf_nodes
   bf_imbuf
+  bf_render
   bf_blenlib
   bf_blenkernel
 )

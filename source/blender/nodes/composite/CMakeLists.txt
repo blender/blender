@@ -19,6 +19,7 @@ set(INC
   ../../windowmanager
   ../../compositor/realtime_compositor
   ../../compositor/realtime_compositor/algorithms
+  ../../compositor/realtime_compositor/cached_resources
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h

@@ -24,6 +24,8 @@ set(INC
   ../render
   ../render/intern
   ../compositor/realtime_compositor
+  ../compositor/realtime_compositor/algorithms
+  ../compositor/realtime_compositor/cached_resources
   ../windowmanager
 
   ../../../intern/atomic

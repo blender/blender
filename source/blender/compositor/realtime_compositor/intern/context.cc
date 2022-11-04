@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_context.hh"
+#include "COM_static_cache_manager.hh"
 #include "COM_static_shader_manager.hh"
 #include "COM_texture_pool.hh"
 
@@ -30,6 +31,11 @@ TexturePool &Context::texture_pool()
 StaticShaderManager &Context::shader_manager()
 {
   return shader_manager_;
+}
+
+StaticCacheManager &Context::cache_manager()
+{
+  return cache_manager_;
 }
 
 }  // namespace blender::realtime_compositor
