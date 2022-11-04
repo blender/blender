@@ -426,23 +426,18 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
     else {
       /* Lazily init vertex -> loop maps. */
       if (!source_lmap) {
-        const MPoly *source_polys = (MPoly *)CustomData_get_layer(&source->pdata, CD_MPOLY);
-        const MLoop *source_loops = (MLoop *)CustomData_get_layer(&source->ldata, CD_MLOOP);
-        const MPoly *target_polys = (MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
-        const MLoop *target_loops = (MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
-
         BKE_mesh_vert_loop_map_create(&source_lmap,
                                       &source_lmap_mem,
-                                      source_polys,
-                                      source_loops,
+                                      source->polys().data(),
+                                      source->loops().data(),
                                       source->totvert,
                                       source->totpoly,
                                       source->totloop);
 
         BKE_mesh_vert_loop_map_create(&target_lmap,
                                       &target_lmap_mem,
-                                      target_polys,
-                                      target_loops,
+                                      target->polys().data(),
+                                      target->loops().data(),
                                       target->totvert,
                                       target->totpoly,
                                       target->totloop);
