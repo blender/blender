@@ -626,17 +626,6 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 
 bool BLI_path_parent_dir(char *path)
 {
-  char tmp[FILE_MAX];
-
-  STRNCPY(tmp, path);
-  /* Does all the work of normalizing the path for us.
-   *
-   * NOTE(@campbellbarton): While it's possible strip text after the second last slash,
-   * this would have to be clever and skip cases like "/./" & multiple slashes.
-   * Since this ends up solving some of the same problems as #BLI_path_normalize,
-   * call this function instead of attempting to handle them separately. */
-  BLI_path_normalize(NULL, tmp);
-
   /* Use #BLI_path_name_at_index instead of checking if the strings ends with `parent_dir`
    * to ensure the logic isn't confused by:
    * - Directory names that happen to end with `..`.
@@ -644,18 +633,19 @@ bool BLI_path_parent_dir(char *path)
    *   which would cause checking for a tailing `/../` fail.
    * Extracting the span of the final directory avoids both these issues. */
   int tail_ofs = 0, tail_len = 0;
-  if (!BLI_path_name_at_index(tmp, -1, &tail_ofs, &tail_len)) {
+  if (!BLI_path_name_at_index(path, -1, &tail_ofs, &tail_len)) {
     return false;
   }
   if (tail_len == 1) {
     /* Last path is ".", as normalize should remove this, it's safe to assume failure.
      * This happens when the input a single period (possibly with slashes before or after). */
-    if (tmp[tail_ofs] == '.') {
+    if (path[tail_ofs] == '.') {
       return false;
     }
   }
 
-  memcpy(path, tmp, tail_ofs);
+  /* Input paths should already be normalized if `..` is part of the path. */
+  BLI_assert(!((tail_len == 2) && (path[tail_ofs] == '.') && (path[tail_ofs + 1] == '.')));
   path[tail_ofs] = '\0';
   return true;
 }
