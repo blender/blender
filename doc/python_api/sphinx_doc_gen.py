@@ -1459,15 +1459,15 @@ def pyrna2sphinx(basepath):
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
         if prop.name or prop.description or enum_text:
-            fw(ident + ":%s%s:\n\n" % (id_name, identifier))
+            fw(ident + ":%s%s: " % (id_name, identifier))
 
             if prop.name or prop.description:
-                fw(indent(", ".join(val for val in (prop.name, prop.description) if val), ident + "   ") + "\n\n")
+                fw(", ".join(val for val in (prop.name, prop.description.replace("\n", "")) if val) + "\n")
 
             # Special exception, can't use generic code here for enums.
             if enum_text:
-                write_indented_lines(ident + "   ", fw, enum_text)
                 fw("\n")
+                write_indented_lines(ident + "   ", fw, enum_text)
             del enum_text
             # end enum exception
 
