@@ -45,6 +45,36 @@ bool kernel_has_intersection(DeviceKernel device_kernel)
 struct ShaderCache {
   ShaderCache(id<MTLDevice> _mtlDevice) : mtlDevice(_mtlDevice)
   {
+    /* Initialize occupancy tuning LUT. */
+    if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
+      switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
+        default:
+        case APPLE_M2:
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {32, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {832, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST] = {64, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW] = {64, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE] = {704, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY] = {1024, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND] = {64, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW] = {256, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = {448, 384};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY] = {1024, 1024};
+          break;
+        case APPLE_M1:
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {256, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {768, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST] = {512, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW] = {384, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE] = {512, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY] = {512, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND] = {512, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW] = {384, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = {576, 384};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY] = {832, 832};
+          break;
+      }
+    }
   }
   ~ShaderCache();
 
@@ -72,6 +102,11 @@ struct ShaderCache {
     MetalKernelPipeline *pipeline = nullptr;
     std::function<void(MetalKernelPipeline *)> completionHandler;
   };
+
+  struct OccupancyTuningParameters {
+    int threads_per_threadgroup = 0;
+    int num_threads_per_block = 0;
+  } occupancy_tuning[DEVICE_KERNEL_NUM];
 
   std::mutex cache_mutex;
 
@@ -230,6 +265,13 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
   request.pipeline->device_kernel = device_kernel;
   request.pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
 
+  if (occupancy_tuning[device_kernel].threads_per_threadgroup) {
+    request.pipeline->threads_per_threadgroup =
+        occupancy_tuning[device_kernel].threads_per_threadgroup;
+    request.pipeline->num_threads_per_block =
+        occupancy_tuning[device_kernel].num_threads_per_block;
+  }
+
   /* metalrt options */
   request.pipeline->use_metalrt = device->use_metalrt;
   request.pipeline->metalrt_hair = device->use_metalrt &&
@@ -373,13 +415,6 @@ void MetalKernelPipeline::compile()
 {
   const std::string function_name = std::string("cycles_metal_") +
                                     device_kernel_as_string(device_kernel);
-
-  int threads_per_threadgroup = this->threads_per_threadgroup;
-  if (device_kernel > DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL &&
-      device_kernel < DEVICE_KERNEL_INTEGRATOR_RESET) {
-    /* Always use 512 for the sorting kernels */
-    threads_per_threadgroup = 512;
-  }
 
   NSString *entryPoint = [@(function_name.c_str()) copy];
 
@@ -644,12 +679,14 @@ void MetalKernelPipeline::compile()
       return;
     }
 
-    int num_threads_per_block = round_down(computePipelineState.maxTotalThreadsPerThreadgroup,
-                                           computePipelineState.threadExecutionWidth);
-    num_threads_per_block = std::max(num_threads_per_block,
-                                     (int)computePipelineState.threadExecutionWidth);
+    if (!num_threads_per_block) {
+      num_threads_per_block = round_down(computePipelineState.maxTotalThreadsPerThreadgroup,
+                                         computePipelineState.threadExecutionWidth);
+      num_threads_per_block = std::max(num_threads_per_block,
+                                       (int)computePipelineState.threadExecutionWidth);
+    }
+
     this->pipeline = computePipelineState;
-    this->num_threads_per_block = num_threads_per_block;
 
     if (@available(macOS 11.0, *)) {
       if (creating_new_archive || recreate_archive) {
