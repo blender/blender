@@ -748,7 +748,7 @@ void RE_InitState(Render *re,
   if (re->rectx < 1 || re->recty < 1 ||
       (BKE_imtype_is_movie(rd->im_format.imtype) && (re->rectx < 16 || re->recty < 16))) {
     BKE_report(re->reports, RPT_ERROR, "Image too small");
-    re->ok = 0;
+    re->ok = false;
     return;
   }
 
@@ -1605,15 +1605,15 @@ const char *RE_GetActiveRenderView(Render *re)
   return re->viewname;
 }
 
-/* evaluating scene options for general Blender render */
-static int render_init_from_main(Render *re,
-                                 const RenderData *rd,
-                                 Main *bmain,
-                                 Scene *scene,
-                                 ViewLayer *single_layer,
-                                 Object *camera_override,
-                                 int anim,
-                                 int anim_init)
+/** Evaluating scene options for general Blender render. */
+static bool render_init_from_main(Render *re,
+                                  const RenderData *rd,
+                                  Main *bmain,
+                                  Scene *scene,
+                                  ViewLayer *single_layer,
+                                  Object *camera_override,
+                                  int anim,
+                                  int anim_init)
 {
   int winx, winy;
   rcti disprect;
@@ -1647,7 +1647,7 @@ static int render_init_from_main(Render *re,
   /* not too nice, but it survives anim-border render */
   if (anim) {
     re->disprect = disprect;
-    return 1;
+    return true;
   }
 
   /*
@@ -1669,7 +1669,7 @@ static int render_init_from_main(Render *re,
 
   RE_InitState(re, nullptr, &scene->r, &scene->view_layers, single_layer, winx, winy, &disprect);
   if (!re->ok) { /* if an error was printed, abort */
-    return 0;
+    return false;
   }
 
   /* initstate makes new result, have to send changed tags around */
@@ -1678,7 +1678,7 @@ static int render_init_from_main(Render *re,
   re->display_init(re->dih, re->result);
   re->display_clear(re->dch, re->result);
 
-  return 1;
+  return true;
 }
 
 void RE_SetReports(Render *re, ReportList *reports)
@@ -1831,7 +1831,7 @@ static bool use_eevee_for_freestyle_render(Render *re)
 
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
-  re->result_ok = 0;
+  re->result_ok = false;
   if (render_init_from_main(re, &scene->r, bmain, scene, nullptr, nullptr, 0, 0)) {
     if (render) {
       char scene_engine[32];
@@ -1845,7 +1845,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
       change_renderdata_engine(re, scene_engine);
     }
   }
-  re->result_ok = 1;
+  re->result_ok = true;
 }
 
 void RE_RenderFreestyleExternal(Render *re)

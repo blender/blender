@@ -39,7 +39,8 @@ struct Render {
   int slot;
 
   /* state settings */
-  short flag, ok, result_ok;
+  short flag;
+  bool ok, result_ok;
 
   /* result of rendering */
   RenderResult *result;
