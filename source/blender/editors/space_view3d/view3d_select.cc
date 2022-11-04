@@ -2965,6 +2965,9 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
     changed = true;
   }
+  else {
+    select_vert.finish();
+  }
 
   if (changed) {
     paintvert_tag_select_update(C, obact);
