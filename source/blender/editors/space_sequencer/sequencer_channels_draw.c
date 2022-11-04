@@ -357,6 +357,10 @@ void draw_channels(const bContext *C, ARegion *region)
   SeqChannelDrawContext context;
   channel_draw_context_init(C, region, &context);
 
+  if (round_fl_to_int(context.channel_height) == 0) {
+    return;
+  }
+
   UI_view2d_view_ortho(context.v2d);
 
   draw_channel_headers(&context);
