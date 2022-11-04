@@ -89,8 +89,8 @@ struct CompoJob {
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
   /* Jon system integration. */
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 };
 
@@ -166,7 +166,7 @@ static int compo_get_recalc_flags(const bContext *C)
 }
 
 /* called by compo, only to check job 'stop' value */
-static int compo_breakjob(void *cjv)
+static bool compo_breakjob(void *cjv)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
@@ -250,8 +250,8 @@ static void compo_progressjob(void *cjv, float progress)
 static void compo_startjob(void *cjv,
                            /* Cannot be const, this function implements wm_jobs_start_callback.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   CompoJob *cj = (CompoJob *)cjv;

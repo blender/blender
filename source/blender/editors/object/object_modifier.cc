@@ -3023,7 +3023,7 @@ static bool ocean_bake_poll(bContext *C)
 struct OceanBakeJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
   int current_frame;
   struct OceanCache *och;
@@ -3062,7 +3062,7 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
   *(oj->progress) = progress;
 }
 
-static void oceanbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void oceanbake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   OceanBakeJob *oj = static_cast<OceanBakeJob *>(customdata);
 
@@ -3075,7 +3075,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
   BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void oceanbake_endjob(void *customdata)

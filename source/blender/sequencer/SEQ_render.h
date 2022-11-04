@@ -67,7 +67,7 @@ void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            struct Sequence *seq_orig,
                            float frame_step,
                            const struct rctf *view_area,
-                           const short *stop);
+                           const bool *stop);
 /**
  * Get cached thumbnails.
  */
@@ -103,7 +103,7 @@ void SEQ_render_thumbnails_base_set(const struct SeqRenderData *context,
                                     struct Sequence *seq,
                                     struct Sequence *seq_orig,
                                     const struct rctf *view_area,
-                                    const short *stop);
+                                    const bool *stop);
 
 void SEQ_render_init_colorspace(struct Sequence *seq);
 void SEQ_render_new_render_data(struct Main *bmain,

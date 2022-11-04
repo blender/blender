@@ -2790,7 +2790,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
 int dynamicPaint_createUVSurface(Scene *scene,
                                  DynamicPaintSurface *surface,
                                  float *progress,
-                                 short *do_update)
+                                 bool *do_update)
 {
   /* Antialias jitter point relative coords */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;

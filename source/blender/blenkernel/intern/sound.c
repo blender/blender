@@ -1025,7 +1025,7 @@ void BKE_sound_free_waveform(bSound *sound)
   sound->tags &= ~SOUND_TAGS_WAVEFORM_NO_RELOAD;
 }
 
-void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
+void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop)
 {
   bool need_close_audio_handles = false;
   if (sound->playback_handle == NULL) {
@@ -1041,8 +1041,11 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
     int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
 
     waveform->data = MEM_mallocN(sizeof(float[3]) * length, "SoundWaveform.samples");
+    /* Ideally this would take a boolean argument. */
+    short stop_i16 = *stop;
     waveform->length = AUD_readSound(
-        sound->playback_handle, waveform->data, length, SOUND_WAVE_SAMPLES_PER_SECOND, stop);
+        sound->playback_handle, waveform->data, length, SOUND_WAVE_SAMPLES_PER_SECOND, &stop_i16);
+    *stop = stop_i16 != 0;
   }
   else {
     /* Create an empty waveform here if the sound couldn't be
@@ -1381,7 +1384,7 @@ int BKE_sound_scene_playing(Scene *UNUSED(scene))
 void BKE_sound_read_waveform(Main *bmain,
                              bSound *sound,
                              /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                             short *stop)
+                             bool *stop)
 {
   UNUSED_VARS(sound, stop, bmain);
 }

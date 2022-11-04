@@ -106,7 +106,7 @@ typedef struct BakeAPIRender {
 
   /* Progress Callbacks. */
   float *progress;
-  short *do_update;
+  bool *do_update;
 
   /* Operator state. */
   ReportList *reports;
@@ -150,12 +150,12 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
  * for exec() when there is no render job
  * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
-static int bake_break(void *UNUSED(rjv))
+static bool bake_break(void *UNUSED(rjv))
 {
   if (G.is_break) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 static void bake_update_image(ScrArea *area, Image *image)
@@ -1854,7 +1854,7 @@ finally:
   return result;
 }
 
-static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, float *progress)
+static void bake_startjob(void *bkv, bool *UNUSED(stop), bool *do_update, float *progress)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 

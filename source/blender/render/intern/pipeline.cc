@@ -177,7 +177,7 @@ static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/)
 static void float_nothing(void * /*arg*/, float /*val*/)
 {
 }
-static int default_break(void * /*arg*/)
+static bool default_break(void * /*arg*/)
 {
   return G.is_break == true;
 }
@@ -847,7 +847,7 @@ void RE_draw_lock_cb(Render *re, void *handle, void (*f)(void *handle, bool lock
   re->dlh = handle;
 }
 
-void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
+void RE_test_break_cb(Render *re, void *handle, bool (*f)(void *handle))
 {
   re->test_break = f;
   re->tbh = handle;

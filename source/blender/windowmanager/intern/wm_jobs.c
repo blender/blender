@@ -109,7 +109,8 @@ struct wmJob {
   /* internal */
   const void *owner;
   int flag;
-  short suspended, running, ready, do_update, stop, job_type;
+  short suspended, running, ready, job_type;
+  bool do_update, stop;
   float progress;
 
   /** For display in header, identification */
@@ -593,7 +594,7 @@ void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
 
 void WM_jobs_kill(wmWindowManager *wm,
                   void *owner,
-                  void (*startjob)(void *, short int *, short int *, float *))
+                  void (*startjob)(void *, bool *, bool *, float *))
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {

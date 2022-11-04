@@ -69,7 +69,7 @@
 #include "render_intern.hh"
 
 /* Render Callbacks */
-static int render_break(void *rjv);
+static bool render_break(void *rjv);
 
 struct RenderJob {
   Main *main;
@@ -87,8 +87,8 @@ struct RenderJob {
   Image *image;
   ImageUser iuser;
   bool image_outdated;
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
   ReportList *reports;
   int orig_layer;
@@ -637,7 +637,7 @@ static void current_scene_update(void *rjv, Scene *scene)
   rj->iuser.scene = scene;
 }
 
-static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
+static void render_startjob(void *rjv, bool *stop, bool *do_update, float *progress)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
@@ -791,29 +791,29 @@ static void render_endjob(void *rjv)
 }
 
 /* called by render, check job 'stop' value or the global */
-static int render_breakjob(void *rjv)
+static bool render_breakjob(void *rjv)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   if (G.is_break) {
-    return 1;
+    return true;
   }
   if (rj->stop && *(rj->stop)) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /**
  * For exec() when there is no render job
  * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
-static int render_break(void * /*rjv*/)
+static bool render_break(void * /*rjv*/)
 {
   if (G.is_break) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */

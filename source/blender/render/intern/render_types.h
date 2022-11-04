@@ -108,7 +108,7 @@ struct Render {
 
   void (*draw_lock)(void *handle, bool lock);
   void *dlh;
-  int (*test_break)(void *handle);
+  bool (*test_break)(void *handle);
   void *tbh;
 
   RenderStats i;

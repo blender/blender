@@ -246,7 +246,7 @@ struct FileList {
   bool (*check_dir_fn)(struct FileList *, char *, const bool);
 
   /* Fill filelist (to be called by read job). */
-  void (*read_job_fn)(struct FileListReadJob *, short *, short *, float *);
+  void (*read_job_fn)(struct FileListReadJob *, bool *, bool *, float *);
 
   /* Filter an entry of current filelist. */
   bool (*filter_fn)(struct FileListInternEntry *, const char *, FileListFilter *);
@@ -295,24 +295,24 @@ enum {
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
 static void filelist_readjob_main(FileListReadJob *job_params,
-                                  short *stop,
-                                  short *do_update,
+                                  bool *stop,
+                                  bool *do_update,
                                   float *progress);
 static void filelist_readjob_lib(FileListReadJob *job_params,
-                                 short *stop,
-                                 short *do_update,
+                                 bool *stop,
+                                 bool *do_update,
                                  float *progress);
 static void filelist_readjob_dir(FileListReadJob *job_params,
-                                 short *stop,
-                                 short *do_update,
+                                 bool *stop,
+                                 bool *do_update,
                                  float *progress);
 static void filelist_readjob_asset_library(FileListReadJob *job_params,
-                                           short *stop,
-                                           short *do_update,
+                                           bool *stop,
+                                           bool *do_update,
                                            float *progress);
 static void filelist_readjob_main_assets(FileListReadJob *job_params,
-                                         short *stop,
-                                         short *do_update,
+                                         bool *stop,
+                                         bool *do_update,
                                          float *progress);
 
 /* helper, could probably go in BKE actually? */
@@ -3401,7 +3401,7 @@ struct FileListReadJob {
 static void filelist_readjob_append_entries(FileListReadJob *job_params,
                                             ListBase *from_entries,
                                             int from_entries_num,
-                                            short *do_update)
+                                            bool *do_update)
 {
   BLI_assert(BLI_listbase_count(from_entries) == from_entries_num);
   if (from_entries_num <= 0) {
@@ -3456,8 +3456,8 @@ static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
 
 static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
                                                      FileListReadJob *job_params,
-                                                     const short *stop,
-                                                     short *do_update,
+                                                     const bool *stop,
+                                                     bool *do_update,
                                                      float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
@@ -3594,8 +3594,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
 static void filelist_readjob_do(const bool do_lib,
                                 FileListReadJob *job_params,
-                                const short *stop,
-                                short *do_update,
+                                const bool *stop,
+                                bool *do_update,
                                 float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
@@ -3611,16 +3611,16 @@ static void filelist_readjob_do(const bool do_lib,
 }
 
 static void filelist_readjob_dir(FileListReadJob *job_params,
-                                 short *stop,
-                                 short *do_update,
+                                 bool *stop,
+                                 bool *do_update,
                                  float *progress)
 {
   filelist_readjob_do(false, job_params, stop, do_update, progress);
 }
 
 static void filelist_readjob_lib(FileListReadJob *job_params,
-                                 short *stop,
-                                 short *do_update,
+                                 bool *stop,
+                                 bool *do_update,
                                  float *progress)
 {
   filelist_readjob_do(true, job_params, stop, do_update, progress);
@@ -3643,7 +3643,7 @@ static void filelist_asset_library_path(const FileListReadJob *job_params,
 /**
  * Load asset library data, which currently means loading the asset catalogs for the library.
  */
-static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params, short *do_update)
+static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params, bool *do_update)
 {
   FileList *tmp_filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
@@ -3667,8 +3667,8 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
 }
 
 static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
-                                                   short * /*stop*/,
-                                                   short *do_update,
+                                                   bool * /*stop*/,
+                                                   bool *do_update,
                                                    float * /*progress*/)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
@@ -3729,8 +3729,8 @@ static bool filelist_contains_main(const FileList *filelist, const Main *bmain)
 }
 
 static void filelist_readjob_asset_library(FileListReadJob *job_params,
-                                           short *stop,
-                                           short *do_update,
+                                           bool *stop,
+                                           bool *do_update,
                                            float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
@@ -3753,8 +3753,8 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
 }
 
 static void filelist_readjob_main(FileListReadJob *job_params,
-                                  short *stop,
-                                  short *do_update,
+                                  bool *stop,
+                                  bool *do_update,
                                   float *progress)
 {
   /* TODO! */
@@ -3762,8 +3762,8 @@ static void filelist_readjob_main(FileListReadJob *job_params,
 }
 
 static void filelist_readjob_main_assets(FileListReadJob *job_params,
-                                         short *stop,
-                                         short *do_update,
+                                         bool *stop,
+                                         bool *do_update,
                                          float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
@@ -3791,7 +3791,7 @@ static bool filelist_readjob_is_partial_read(const FileListReadJob *read_job)
  *       some current entries are kept and we just call the readjob to update the main files (see
  *       #FileListReadJob.only_main_data).
  */
-static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update, float *progress)
+static void filelist_readjob_startjob(void *flrjv, bool *stop, bool *do_update, float *progress)
 {
   FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
@@ -3939,8 +3939,8 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
   if (no_threads) {
-    short dummy_stop = false;
-    short dummy_do_update = false;
+    bool dummy_stop = false;
+    bool dummy_do_update = false;
     float dummy_progress = 0.0f;
 
     /* Single threaded execution. Just directly call the callbacks. */

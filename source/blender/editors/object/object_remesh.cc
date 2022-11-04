@@ -654,7 +654,7 @@ enum eSymmetryAxes {
 struct QuadriFlowJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   const struct wmOperator *op;
@@ -836,7 +836,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
   return mesh_mirror;
 }
 
-static void quadriflow_start_job(void *customdata, short *stop, short *do_update, float *progress)
+static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
@@ -884,7 +884,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   if (new_mesh == nullptr) {
     *do_update = true;
-    *stop = 0;
+    *stop = false;
     if (qj->success == 1) {
       /* This is not a user cancellation event. */
       qj->success = 0;
@@ -917,7 +917,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void quadriflow_end_job(void *customdata)
@@ -992,7 +992,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   if (op->flag == 0) {
     /* This is called directly from the exec operator, this operation is now blocking */
     job->is_nonblocking_job = false;
-    short stop = 0, do_update = true;
+    bool stop = false, do_update = true;
     float progress;
     quadriflow_start_job(job, &stop, &do_update, &progress);
     quadriflow_end_job(job);

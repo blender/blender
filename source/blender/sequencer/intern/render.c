@@ -2103,7 +2103,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
                            Sequence *seq_orig,
                            float frame_step,
                            const rctf *view_area,
-                           const short *stop)
+                           const bool *stop)
 {
   SeqRenderState state;
   seq_render_state_init(&state);
@@ -2164,7 +2164,7 @@ void SEQ_render_thumbnails_base_set(const SeqRenderData *context,
                                     Sequence *seq,
                                     Sequence *seq_orig,
                                     const rctf *view_area,
-                                    const short *stop)
+                                    const bool *stop)
 {
   SeqRenderState state;
   seq_render_state_init(&state);

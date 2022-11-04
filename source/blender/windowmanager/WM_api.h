@@ -1432,8 +1432,8 @@ void WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned 
 void WM_jobs_delay_start(struct wmJob *, double delay_time);
 
 typedef void (*wm_jobs_start_callback)(void *custom_data,
-                                       short *stop,
-                                       short *do_update,
+                                       bool *stop,
+                                       bool *do_update,
                                        float *progress);
 void WM_jobs_callbacks(struct wmJob *,
                        wm_jobs_start_callback startjob,
@@ -1463,7 +1463,7 @@ void WM_jobs_stop(struct wmWindowManager *wm, const void *owner, void *startjob)
  */
 void WM_jobs_kill(struct wmWindowManager *wm,
                   void *owner,
-                  void (*)(void *, short int *, short int *, float *));
+                  void (*)(void *, bool *, bool *, float *));
 /**
  * Wait until every job ended.
  */

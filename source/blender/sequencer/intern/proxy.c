@@ -479,10 +479,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
   return true;
 }
 
-void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
-                       short *stop,
-                       short *do_update,
-                       float *progress)
+void SEQ_proxy_rebuild(SeqIndexBuildContext *context, bool *stop, bool *do_update, float *progress)
 {
   const bool overwrite = context->overwrite;
   SeqRenderData render_context;
