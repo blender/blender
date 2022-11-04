@@ -1191,7 +1191,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   for (MEdge &edge : edges.take_back(len)) {
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edge.flag = ME_EDGEDRAW;
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();

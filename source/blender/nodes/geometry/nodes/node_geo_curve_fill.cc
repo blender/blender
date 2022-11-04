@@ -90,7 +90,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   for (const int i : IndexRange(result.edge.size())) {
     edges[i].v1 = result.edge[i].first;
     edges[i].v2 = result.edge[i].second;
-    edges[i].flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edges[i].flag = ME_EDGEDRAW;
   }
   int i_loop = 0;
   for (const int i : IndexRange(result.face.size())) {

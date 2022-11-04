@@ -1437,7 +1437,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
       med->v1 = ed->v1;
       med->v2 = ed->v2;
       if (use_old == false || ed->is_draw) {
-        med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+        med->flag = ME_EDGEDRAW;
       }
       if (ed->is_loose) {
         med->flag |= ME_LOOSEEDGE;
@@ -1462,7 +1462,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   if (ed->is_loose) {
     med->flag |= ME_LOOSEEDGE;
   }
-  med->flag |= ME_EDGERENDER;
 
   MEM_freeN(edsort);
 
@@ -1579,7 +1578,7 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
        BLI_edgesetIterator_step(ehi), i++, med++, index++) {
     BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
 
-    med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+    med->flag = ME_EDGEDRAW;
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

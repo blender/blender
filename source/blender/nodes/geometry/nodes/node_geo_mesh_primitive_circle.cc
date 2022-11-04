@@ -127,7 +127,7 @@ static Mesh *create_circle_mesh(const float radius,
   /* Create outer edges. */
   const short edge_flag = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ?
                               ME_LOOSEEDGE :
-                              (ME_EDGEDRAW | ME_EDGERENDER); /* NGON or TRIANGLE_FAN */
+                              ME_EDGEDRAW; /* NGON or TRIANGLE_FAN */
   for (const int i : IndexRange(verts_num)) {
     MEdge &edge = edges[i];
     edge.v1 = i;
@@ -141,7 +141,7 @@ static Mesh *create_circle_mesh(const float radius,
       MEdge &edge = edges[verts_num + i];
       edge.v1 = verts_num;
       edge.v2 = i;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
