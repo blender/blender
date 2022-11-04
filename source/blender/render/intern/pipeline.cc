@@ -710,7 +710,7 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
 void RE_InitState(Render *re,
                   Render *source,
                   RenderData *rd,
-                  ListBase *render_layers,
+                  ListBase * /*render_layers*/,
                   ViewLayer *single_layer,
                   int winx,
                   int winy,
