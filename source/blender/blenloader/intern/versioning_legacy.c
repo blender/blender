@@ -62,6 +62,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_mesh_legacy_convert.h"
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"

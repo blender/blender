@@ -307,8 +307,6 @@ void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
-
 void BKE_mesh_mselect_clear(struct Mesh *me);
 void BKE_mesh_mselect_validate(struct Mesh *me);
 /**
@@ -974,11 +972,6 @@ void BKE_mesh_strip_loose_faces(struct Mesh *me);
 void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
-/**
- * If the mesh is from a very old blender version,
- * convert #MFace.edcode to edge #ME_EDGEDRAW.
- */
-void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 /**
  * Calculate edges from polygons.
