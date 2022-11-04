@@ -507,13 +507,4 @@ const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) c
   return vertex_group.name;
 }
 
-std::optional<std::array<int, 2>> OBJMesh::calc_loose_edge_vert_indices(const int edge_index) const
-{
-  const Span<MEdge> edges = export_mesh_eval_->edges();
-  const MEdge &edge = edges[edge_index];
-  if (edge.flag & ME_LOOSEEDGE) {
-    return std::array<int, 2>{int(edge.v1), int(edge.v2)};
-  }
-  return std::nullopt;
-}
 }  // namespace blender::io::obj
