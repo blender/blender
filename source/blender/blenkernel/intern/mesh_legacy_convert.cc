@@ -563,6 +563,47 @@ static void update_active_fdata_layers(CustomData *fdata, CustomData *ldata)
   }
 }
 
+#ifndef NDEBUG
+/**
+ * Debug check, used to assert when we expect layers to be in/out of sync.
+ *
+ * \param fallback: Use when there are no layers to handle,
+ * since callers may expect success or failure.
+ */
+static bool check_matching_legacy_layer_counts(CustomData *fdata, CustomData *ldata, bool fallback)
+{
+  int a_num = 0, b_num = 0;
+#  define LAYER_CMP(l_a, t_a, l_b, t_b) \
+    ((a_num += CustomData_number_of_layers(l_a, t_a)) == \
+     (b_num += CustomData_number_of_layers(l_b, t_b)))
+
+  if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE)) {
+    return false;
+  }
+  if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata, CD_MCOL)) {
+    return false;
+  }
+  if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata, CD_PREVIEW_MCOL)) {
+    return false;
+  }
+  if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata, CD_ORIGSPACE)) {
+    return false;
+  }
+  if (!LAYER_CMP(ldata, CD_NORMAL, fdata, CD_TESSLOOPNORMAL)) {
+    return false;
+  }
+  if (!LAYER_CMP(ldata, CD_TANGENT, fdata, CD_TANGENT)) {
+    return false;
+  }
+
+#  undef LAYER_CMP
+
+  /* if no layers are on either CustomData's,
+   * then there was nothing to do... */
+  return a_num ? true : fallback;
+}
+#endif
+
 static void add_mface_layers(CustomData *fdata, CustomData *ldata, int total)
 {
   /* avoid accumulating extra layers */
@@ -1159,47 +1200,6 @@ void BKE_mesh_tessface_ensure(struct Mesh *mesh)
     BKE_mesh_tessface_calc(mesh);
   }
 }
-
-#ifndef NDEBUG
-/**
- * Debug check, used to assert when we expect layers to be in/out of sync.
- *
- * \param fallback: Use when there are no layers to handle,
- * since callers may expect success or failure.
- */
-static bool check_matching_legacy_layer_counts(CustomData *fdata, CustomData *ldata, bool fallback)
-{
-  int a_num = 0, b_num = 0;
-#  define LAYER_CMP(l_a, t_a, l_b, t_b) \
-    ((a_num += CustomData_number_of_layers(l_a, t_a)) == \
-     (b_num += CustomData_number_of_layers(l_b, t_b)))
-
-  if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE)) {
-    return false;
-  }
-  if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata, CD_MCOL)) {
-    return false;
-  }
-  if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata, CD_PREVIEW_MCOL)) {
-    return false;
-  }
-  if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata, CD_ORIGSPACE)) {
-    return false;
-  }
-  if (!LAYER_CMP(ldata, CD_NORMAL, fdata, CD_TESSLOOPNORMAL)) {
-    return false;
-  }
-  if (!LAYER_CMP(ldata, CD_TANGENT, fdata, CD_TANGENT)) {
-    return false;
-  }
-
-#  undef LAYER_CMP
-
-  /* if no layers are on either CustomData's,
-   * then there was nothing to do... */
-  return a_num ? true : fallback;
-}
-#endif
 
 /** \} */
 
