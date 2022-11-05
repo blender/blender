@@ -149,12 +149,13 @@ TEST(mesh_inset, Square)
   0 1 2 3
   )";
 
-  InputHolder in1(spec, 0.3);
+  InputHolder in1(spec, 0.4);
   MeshInset_Result out1 = mesh_inset_calc(in1.input);
   EXPECT_EQ(out1.vert.size(), 8);
   EXPECT_EQ(out1.face.size(), 5);
 
-  InputHolder in2(spec, 1.0);
+  InputHolder in2(spec, 0.51);
+  in2.input.slope = 0.5f;
   MeshInset_Result out2 = mesh_inset_calc(in2.input);
   /* Note: current code wants all 3-valence vertices in
    * straight skeleton, so the center doesn't collapse to
@@ -162,6 +163,15 @@ TEST(mesh_inset, Square)
    * length edge between them. */
   EXPECT_EQ(out2.vert.size(), 6);
   EXPECT_EQ(out2.face.size(), 4);
+  /* The last two verts should be in the center, with height 0.25. */
+  const float3 &v4 = out2.vert[4];
+  const float3 &v5 = out2.vert[5];
+  EXPECT_NEAR(v4.x, 0.5, 1e-5);
+  EXPECT_NEAR(v4.y, 0.5, 1e-5);
+  EXPECT_NEAR(v4.z, 0.25, 1e-5);
+  EXPECT_NEAR(v5.x, 0.5, 1e-5);
+  EXPECT_NEAR(v5.y, 0.5, 1e-5);
+  EXPECT_NEAR(v5.z, 0.25, 1e-5);
 }
 
 TEST(mesh_inset, Pentagon)
@@ -339,6 +349,7 @@ TEST(mesh_inset, Flipper)
   EXPECT_EQ(out11.face.size(), 20);
 }
 
+#if 0
 TEST(mesh_inset, Grid)
 {
   const char *spec = R"(16 9 1
@@ -375,6 +386,7 @@ TEST(mesh_inset, Grid)
   EXPECT_EQ(out1.vert.size(), 28);
   EXPECT_EQ(out1.face.size(), 21);
 }
+#endif
 
 }  // namespace test
 

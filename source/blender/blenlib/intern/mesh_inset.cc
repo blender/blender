@@ -154,12 +154,17 @@ class Vert {
 class Triangle {
 
   enum TriangleFlags {
+    /* TDELETED means the triangle is no longer part of its TriangleMesh. */
     TDELETED = 1,
+    /* TNORMAL_VALID means the normal_ member is the normal using current coordinates. */
     TNORMAL_VALID = 1 << 1,
+    /* TREGION means the triangle is part of the region still being inset. */
     TREGION = 1 << 2,
+    /* TSPOKEi means the ith edge is a spoke in the Straight Skeleton construction. */
     TSPOKE0 = 1 << 3,
     TSPOKE1 = 1 << 4,
     TSPOKE2 = 1 << 5,
+    /* TORIGi means the ith edge is an edge that was in the incoming mesh (before triangulation). */
     TORIG0 = 1 << 6,
     TORIG1 = 1 << 7,
     TORIG2 = 1 << 8,
@@ -1481,6 +1486,7 @@ void StraightSkeleton::dump_state() const
   std::cout << "State\n";
   dump_event_queue();
   std::cout << trimesh_;
+  trimesh_draw("dump_state", trimesh_);
   for (int i : IndexRange(trimesh_.all_tris().size())) {
     SkeletonVertex *skv = skel_vertex_map_.lookup_default(i, nullptr);
     if (skv != nullptr) {
@@ -2030,7 +2036,7 @@ void StraightSkeleton::add_triangle(Edge edge, float min_height)
  * wavefront too). Suppose we have the following, where e
  * is the argument edge, and ep--e--en are part of the wavefront,
  * and s and sn are spokes.
- * We need to collapse edge e (deleting tirangles X and C and vertex v).
+ * We need to collapse edge e (deleting triangles X and C and vertex vn).
  * Then we need to split the remaining vertex v, splitting off edges
  * en to ep CCW. Note: it is possible that en is a side of X, so be
  * careful about that after collapsing e.
@@ -2428,6 +2434,8 @@ void StraightSkeleton::compute()
       set_skel_vertex_map(v_src(new_spoke)->id, skv);
       new_v->co = event.final_pos();
       vertex_height_map.add(new_v->id, height);
+      /* Also need to set the height for the other end of the spoke, which has 0 length right now. */
+      vertex_height_map.add(v_src(new_spoke)->id, height);
 
       if (dbg_level > 0) {
         std::cout << "add_events for v" << new_v->id << " at height " << height
