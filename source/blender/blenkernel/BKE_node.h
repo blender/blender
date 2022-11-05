@@ -1005,7 +1005,7 @@ void node_type_storage(struct bNodeType *ntype,
 /** \name Node Generic Functions
  * \{ */
 
-bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
+bool BKE_node_is_connected_to_output(const struct bNodeTree *ntree, const struct bNode *node);
 
 /* ************** COMMON NODES *************** */
 

@@ -73,8 +73,8 @@ bool ED_object_get_active_image(struct Object *ob,
                                 int mat_nr,
                                 struct Image **r_ima,
                                 struct ImageUser **r_iuser,
-                                struct bNode **r_node,
-                                struct bNodeTree **r_ntree);
+                                const struct bNode **r_node,
+                                const struct bNodeTree **r_ntree);
 void ED_object_assign_active_image(struct Main *bmain,
                                    struct Object *ob,
                                    int mat_nr,

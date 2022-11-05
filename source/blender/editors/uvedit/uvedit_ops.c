@@ -111,8 +111,8 @@ bool ED_object_get_active_image(Object *ob,
                                 int mat_nr,
                                 Image **r_ima,
                                 ImageUser **r_iuser,
-                                bNode **r_node,
-                                bNodeTree **r_ntree)
+                                const bNode **r_node,
+                                const bNodeTree **r_ntree)
 {
   Material *ma = DEG_is_evaluated_object(ob) ? BKE_object_material_get_eval(ob, mat_nr) :
                                                BKE_object_material_get(ob, mat_nr);

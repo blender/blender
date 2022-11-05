@@ -467,8 +467,8 @@ static bool bake_object_check(const Scene *scene,
     }
 
     for (int i = 0; i < ob->totcol; i++) {
-      bNodeTree *ntree = NULL;
-      bNode *node = NULL;
+      const bNodeTree *ntree = NULL;
+      const bNode *node = NULL;
       const int mat_nr = i + 1;
       Image *image;
       ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);

@@ -22,6 +22,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_types.h"
@@ -378,42 +379,29 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 }
 
-static bool node_is_connected_to_output_recursive(bNodeTree *ntree, bNode *node)
+bool BKE_node_is_connected_to_output(const bNodeTree *ntree, const bNode *node)
 {
-  bNodeLink *link;
-
-  /* avoid redundant checks, and infinite loops in case of cyclic node links */
-  if (node->done) {
-    return false;
+  ntree->ensure_topology_cache();
+  Stack<const bNode *> nodes_to_check;
+  for (const bNodeSocket *socket : node->output_sockets()) {
+    for (const bNodeLink *link : socket->directly_linked_links()) {
+      nodes_to_check.push(link->tonode);
+    }
   }
-  node->done = 1;
-
-  /* main test, done before child loop so it catches output nodes themselves as well */
-  if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->flag & NODE_DO_OUTPUT) {
-    return true;
-  }
-
-  /* test all connected nodes, first positive find is sufficient to return true */
-  for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-    if (link->fromnode == node) {
-      if (node_is_connected_to_output_recursive(ntree, link->tonode)) {
-        return true;
+  while (!nodes_to_check.is_empty()) {
+    const bNode *next_node = nodes_to_check.pop();
+    for (const bNodeSocket *socket : next_node->output_sockets()) {
+      for (const bNodeLink *link : socket->directly_linked_links()) {
+        if (link->tonode->typeinfo->nclass == NODE_CLASS_OUTPUT &&
+            link->tonode->flag & NODE_DO_OUTPUT) {
+          return true;
+        }
+        nodes_to_check.push(link->tonode);
       }
     }
   }
+
   return false;
-}
-
-bool BKE_node_is_connected_to_output(bNodeTree *ntree, bNode *node)
-{
-  bNode *tnode;
-
-  /* clear flags */
-  for (tnode = (bNode *)ntree->nodes.first; tnode; tnode = tnode->next) {
-    tnode->done = 0;
-  }
-
-  return node_is_connected_to_output_recursive(ntree, node);
 }
 
 /** \} */
