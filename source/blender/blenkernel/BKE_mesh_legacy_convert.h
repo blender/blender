@@ -95,8 +95,6 @@ void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 
-void BKE_mesh_add_mface_layers(struct CustomData *fdata, struct CustomData *ldata, int total);
-
 /**
  * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
  * this is necessary to make the if #MFace.v4 check for quads work.

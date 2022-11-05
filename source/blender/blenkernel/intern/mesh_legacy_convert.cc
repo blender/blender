@@ -530,6 +530,74 @@ static void convert_mfaces_to_mpolys(ID *id,
 #undef ME_FGON
 }
 
+static void update_active_fdata_layers(CustomData *fdata, CustomData *ldata)
+{
+  int act;
+
+  if (CustomData_has_layer(ldata, CD_MLOOPUV)) {
+    act = CustomData_get_active_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_active(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_render_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_render(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_clone_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_clone(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_stencil_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
+  }
+
+  if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
+    act = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_active(fdata, CD_MCOL, act);
+
+    act = CustomData_get_render_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_render(fdata, CD_MCOL, act);
+
+    act = CustomData_get_clone_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_clone(fdata, CD_MCOL, act);
+
+    act = CustomData_get_stencil_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_stencil(fdata, CD_MCOL, act);
+  }
+}
+
+static void add_mface_layers(CustomData *fdata, CustomData *ldata, int total)
+{
+  /* avoid accumulating extra layers */
+  BLI_assert(!check_matching_legacy_layer_counts(fdata, ldata, false));
+
+  for (int i = 0; i < ldata->totlayer; i++) {
+    if (ldata->layers[i].type == CD_MLOOPUV) {
+      CustomData_add_layer_named(
+          fdata, CD_MTFACE, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+    if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
+      CustomData_add_layer_named(
+          fdata, CD_MCOL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+    else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
+      CustomData_add_layer_named(
+          fdata, CD_PREVIEW_MCOL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+    else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
+      CustomData_add_layer_named(
+          fdata, CD_ORIGSPACE, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+    else if (ldata->layers[i].type == CD_NORMAL) {
+      CustomData_add_layer_named(
+          fdata, CD_TESSLOOPNORMAL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+    else if (ldata->layers[i].type == CD_TANGENT) {
+      CustomData_add_layer_named(
+          fdata, CD_TANGENT, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
+    }
+  }
+
+  update_active_fdata_layers(fdata, ldata);
+}
+
 static void mesh_ensure_tessellation_customdata(Mesh *me)
 {
   if (UNLIKELY((me->totface != 0) && (me->totpoly == 0))) {
@@ -548,7 +616,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
     if (tottex_tessface != tottex_original || totcol_tessface != totcol_original) {
       BKE_mesh_tessface_clear(me);
 
-      BKE_mesh_add_mface_layers(&me->fdata, &me->ldata, me->totface);
+      add_mface_layers(&me->fdata, &me->ldata, me->totface);
 
       /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
@@ -1036,7 +1104,7 @@ static int mesh_tessface_calc(CustomData *fdata,
   /* #CD_ORIGINDEX will contain an array of indices from tessellation-faces to the polygons
    * they are directly tessellated from. */
   CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_to_poly_map, totface);
-  BKE_mesh_add_mface_layers(fdata, ldata, totface);
+  add_mface_layers(fdata, ldata, totface);
 
   /* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
    * Polygons take care of their loops ordering, hence not of their vertices ordering.
@@ -1132,41 +1200,6 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata, CustomData *ld
   return a_num ? true : fallback;
 }
 #endif
-
-void BKE_mesh_add_mface_layers(CustomData *fdata, CustomData *ldata, int total)
-{
-  /* avoid accumulating extra layers */
-  BLI_assert(!check_matching_legacy_layer_counts(fdata, ldata, false));
-
-  for (int i = 0; i < ldata->totlayer; i++) {
-    if (ldata->layers[i].type == CD_MLOOPUV) {
-      CustomData_add_layer_named(
-          fdata, CD_MTFACE, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-    if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
-      CustomData_add_layer_named(
-          fdata, CD_MCOL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
-      CustomData_add_layer_named(
-          fdata, CD_PREVIEW_MCOL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
-      CustomData_add_layer_named(
-          fdata, CD_ORIGSPACE, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_NORMAL) {
-      CustomData_add_layer_named(
-          fdata, CD_TESSLOOPNORMAL, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_TANGENT) {
-      CustomData_add_layer_named(
-          fdata, CD_TANGENT, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
-    }
-  }
-
-  CustomData_bmesh_update_active_layers(fdata, ldata);
-}
 
 /** \} */
 
