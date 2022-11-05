@@ -183,7 +183,6 @@ void OBJMesh::ensure_mesh_normals() const
 
 void OBJMesh::ensure_mesh_edges() const
 {
-  BKE_mesh_calc_edges(export_mesh_eval_, true, false);
   BKE_mesh_calc_edges_loose(export_mesh_eval_);
 }
 
