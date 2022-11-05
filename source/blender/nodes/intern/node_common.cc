@@ -86,8 +86,6 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
                    const bNodeTree *grouptree,
                    const char **r_disabled_hint)
 {
-  bool valid = true;
-
   /* unspecified node group, generally allowed
    * (if anything, should be avoided on operator level)
    */
@@ -106,11 +104,10 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
     if (node->typeinfo->poll_instance &&
         !node->typeinfo->poll_instance(
             const_cast<bNode *>(node), const_cast<bNodeTree *>(nodetree), r_disabled_hint)) {
-      valid = false;
-      break;
+      return false;
     }
   }
-  return valid;
+  return true;
 }
 
 static void add_new_socket_from_interface(bNodeTree &node_tree,
@@ -460,62 +457,53 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 void node_group_input_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = (bNodeSocket *)node->outputs.last;
-  bNodeLink *link, *linknext, *exposelink;
   /* Adding a tree socket and verifying will remove the extension socket!
    * This list caches the existing links from the extension socket
-   * so they can be recreated after verification.
-   */
-  ListBase tmplinks;
+   * so they can be recreated after verification. */
+  Vector<bNodeLink> temp_links;
 
   /* find links from the extension socket and store them */
-  BLI_listbase_clear(&tmplinks);
-  for (link = (bNodeLink *)ntree->links.first; link; link = linknext) {
-    linknext = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (nodeLinkIsHidden(link)) {
       continue;
     }
 
     if (link->fromsock == extsock) {
-      bNodeLink *tlink = MEM_cnew<bNodeLink>("temporary link");
-      *tlink = *link;
-      BLI_addtail(&tmplinks, tlink);
-
+      temp_links.append(*link);
       nodeRemLink(ntree, link);
     }
   }
 
   /* find valid link to expose */
-  exposelink = nullptr;
-  for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
+  bNodeLink *exposelink = nullptr;
+  for (bNodeLink &link : temp_links) {
     /* XXX Multiple sockets can be connected to the extension socket at once,
      * in that case the arbitrary first link determines name and type.
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (!is_group_extension_socket(link->tonode, link->tosock)) {
-      exposelink = link;
+    if (!is_group_extension_socket(link.tonode, link.tosock)) {
+      exposelink = &link;
       break;
     }
   }
 
   if (exposelink) {
-    bNodeSocket *gsock, *newsock;
-
-    gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->tonode, exposelink->tosock);
+    bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(
+        ntree, exposelink->tonode, exposelink->tosock);
 
     node_group_input_update(ntree, node);
-    newsock = node_group_input_find_socket(node, gsock->identifier);
+    bNodeSocket *newsock = node_group_input_find_socket(node, gsock->identifier);
 
     /* redirect links from the extension socket */
-    for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
-      bNodeLink *newlink = nodeAddLink(ntree, node, newsock, link->tonode, link->tosock);
+    for (bNodeLink &link : temp_links) {
+      bNodeLink *newlink = nodeAddLink(ntree, node, newsock, link.tonode, link.tosock);
       if (newlink->tosock->flag & SOCK_MULTI_INPUT) {
-        newlink->multi_input_socket_index = link->multi_input_socket_index;
+        newlink->multi_input_socket_index = link.multi_input_socket_index;
       }
     }
   }
 
-  BLI_freelistN(&tmplinks);
   group_verify_socket_list(*ntree, *node, ntree->inputs, node->outputs, SOCK_OUT, true);
 }
 
@@ -552,60 +540,51 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
 void node_group_output_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = (bNodeSocket *)node->inputs.last;
-  bNodeLink *link, *linknext, *exposelink;
   /* Adding a tree socket and verifying will remove the extension socket!
    * This list caches the existing links to the extension socket
-   * so they can be recreated after verification.
-   */
-  ListBase tmplinks;
+   * so they can be recreated after verification. */
+  Vector<bNodeLink> temp_links;
 
   /* find links to the extension socket and store them */
-  BLI_listbase_clear(&tmplinks);
-  for (link = (bNodeLink *)ntree->links.first; link; link = linknext) {
-    linknext = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (nodeLinkIsHidden(link)) {
       continue;
     }
 
     if (link->tosock == extsock) {
-      bNodeLink *tlink = MEM_cnew<bNodeLink>("temporary link");
-      *tlink = *link;
-      BLI_addtail(&tmplinks, tlink);
-
+      temp_links.append(*link);
       nodeRemLink(ntree, link);
     }
   }
 
   /* find valid link to expose */
-  exposelink = nullptr;
-  for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
+  bNodeLink *exposelink = nullptr;
+  for (bNodeLink &link : temp_links) {
     /* XXX Multiple sockets can be connected to the extension socket at once,
      * in that case the arbitrary first link determines name and type.
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (!is_group_extension_socket(link->fromnode, link->fromsock)) {
-      exposelink = link;
+    if (!is_group_extension_socket(link.fromnode, link.fromsock)) {
+      exposelink = &link;
       break;
     }
   }
 
   if (exposelink) {
-    bNodeSocket *gsock, *newsock;
-
     /* XXX what if connecting virtual to virtual socket?? */
-    gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->fromnode, exposelink->fromsock);
+    bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(
+        ntree, exposelink->fromnode, exposelink->fromsock);
 
     node_group_output_update(ntree, node);
-    newsock = node_group_output_find_socket(node, gsock->identifier);
+    bNodeSocket *newsock = node_group_output_find_socket(node, gsock->identifier);
 
     /* redirect links to the extension socket */
-    for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
-      nodeAddLink(ntree, link->fromnode, link->fromsock, node, newsock);
+    for (bNodeLink &link : temp_links) {
+      nodeAddLink(ntree, link.fromnode, link.fromsock, node, newsock);
     }
   }
 
-  BLI_freelistN(&tmplinks);
   group_verify_socket_list(*ntree, *node, ntree->outputs, node->inputs, SOCK_IN, true);
 }
 
