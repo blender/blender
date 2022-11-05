@@ -416,17 +416,6 @@ bool BKE_node_is_connected_to_output(bNodeTree *ntree, bNode *node)
   return node_is_connected_to_output_recursive(ntree, node);
 }
 
-void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree)
-{
-  bNode *node;
-
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
-    if (node->id == id) {
-      node->id = nullptr;
-    }
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
