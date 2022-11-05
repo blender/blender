@@ -108,8 +108,9 @@ struct wmJob {
 
   /* internal */
   const void *owner;
-  int flag;
-  short suspended, running, ready, job_type;
+  eWM_JobFlag flag;
+  bool suspended, running, ready;
+  eWM_JobType job_type;
   bool do_update, stop;
   float progress;
 
@@ -153,9 +154,9 @@ static void wm_job_main_thread_yield(wmJob *wm_job)
 /**
  * Finds if type or owner, compare for it, otherwise any matching job.
  */
-static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const int job_type)
+static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const eWM_JobType job_type)
 {
-  if (owner && job_type) {
+  if (owner && (job_type != WM_JOB_TYPE_ANY)) {
     LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       if (wm_job->owner == owner && wm_job->job_type == job_type) {
         return wm_job;
@@ -169,7 +170,7 @@ static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const in
       }
     }
   }
-  else if (job_type) {
+  else if (job_type != WM_JOB_TYPE_ANY) {
     LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       if (wm_job->job_type == job_type) {
         return wm_job;
@@ -186,8 +187,8 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
                    wmWindow *win,
                    const void *owner,
                    const char *name,
-                   int flag,
-                   int job_type)
+                   const eWM_JobFlag flag,
+                   const eWM_JobType job_type)
 {
   wmJob *wm_job = wm_job_find(wm, owner, job_type);
 

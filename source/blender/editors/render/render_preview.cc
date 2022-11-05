@@ -1755,7 +1755,8 @@ PreviewLoadJob::~PreviewLoadJob()
 
 PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
 {
-  wmJob *wm_job = WM_jobs_get(wm, win, nullptr, "Load Previews", 0, WM_JOB_TYPE_LOAD_PREVIEW);
+  wmJob *wm_job = WM_jobs_get(
+      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_LOAD_PREVIEW);
 
   if (!WM_jobs_is_running(wm_job)) {
     PreviewLoadJob *job_data = MEM_new<PreviewLoadJob>("PreviewLoadJobData");
