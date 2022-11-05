@@ -64,7 +64,7 @@ void register_node_type_tex_decompose(void)
 
   tex_node_type_base(&ntype, TEX_NODE_DECOMPOSE_LEGACY, "Separate RGBA", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_exec(&ntype, NULL, NULL, exec);
+  ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);
 }

@@ -104,7 +104,7 @@ void register_node_type_cmp_mask()
   cmp_node_type_base(&ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_mask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_mask;
-  node_type_init(&ntype, file_ns::node_composit_init_mask);
+  ntype.initfunc = file_ns::node_composit_init_mask;
   ntype.labelfunc = file_ns::node_mask_label;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

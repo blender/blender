@@ -254,9 +254,9 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
     tex_node_type_base(&ntype, TEX_NODE_PROC + TEXTYPE, Name, NODE_CLASS_TEXTURE); \
     node_type_socket_templates(&ntype, name##_inputs, outputs); \
     node_type_size_preset(&ntype, NODE_SIZE_MIDDLE); \
-    node_type_init(&ntype, init); \
+    ntype.initfunc = init; \
     node_type_storage(&ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
-    node_type_exec(&ntype, NULL, NULL, name##_exec); \
+    ntype.exec_fn = name##_exec; \
     ntype.flag |= NODE_PREVIEW; \
 \
     nodeRegisterType(&ntype); \

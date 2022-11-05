@@ -255,7 +255,7 @@ void register_node_type_frame()
   ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
-  node_type_init(ntype, node_frame_init);
+  ntype->initfunc = node_frame_init;
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
@@ -285,7 +285,7 @@ void register_node_type_reroute()
   ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
-  node_type_init(ntype, node_reroute_init);
+  ntype->initfunc = node_reroute_init;
 
   nodeRegisterType(ntype);
 }
@@ -527,8 +527,8 @@ void register_node_type_group_input()
 
   node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
-  node_type_init(ntype, node_group_input_init);
-  node_type_update(ntype, node_group_input_update);
+  ntype->initfunc = node_group_input_init;
+  ntype->updatefunc = node_group_input_update;
 
   nodeRegisterType(ntype);
 }
@@ -617,8 +617,8 @@ void register_node_type_group_output()
 
   node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
-  node_type_init(ntype, node_group_output_init);
-  node_type_update(ntype, node_group_output_update);
+  ntype->initfunc = node_group_output_init;
+  ntype->updatefunc = node_group_output_update;
 
   ntype->no_muting = true;
 

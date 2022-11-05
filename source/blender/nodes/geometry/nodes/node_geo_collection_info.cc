@@ -150,7 +150,7 @@ void register_node_type_geo_collection_info()
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_node_init);
+  ntype.initfunc = file_ns::node_node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,

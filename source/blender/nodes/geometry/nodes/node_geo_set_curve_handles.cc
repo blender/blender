@@ -174,7 +174,7 @@ void register_node_type_geo_set_curve_handles()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.minwidth = 100.0f;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometrySetCurveHandlePositions",
                     node_free_standard_storage,

@@ -43,7 +43,7 @@ void register_node_type_fn_input_int()
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_INT, "Integer", 0);
   ntype.declare = file_ns::fn_node_input_int_declare;
-  node_type_init(&ntype, file_ns::fn_node_input_int_init);
+  ntype.initfunc = file_ns::fn_node_input_int_init;
   node_type_storage(
       &ntype, "NodeInputInt", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = file_ns::fn_node_input_int_build_multi_function;

@@ -402,7 +402,7 @@ void register_node_type_geo_image_texture()
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_TEXTURE, "Image Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeGeometryImageTexture", node_free_standard_storage, node_copy_standard_storage);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

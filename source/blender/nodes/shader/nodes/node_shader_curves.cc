@@ -116,10 +116,10 @@ void register_node_type_sh_curve_vec()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_curve_vec_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_vec);
+  ntype.initfunc = file_ns::node_shader_init_curve_vec;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_vec);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_vec;
   ntype.build_multi_function = file_ns::sh_node_curve_vec_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -263,10 +263,10 @@ void register_node_type_sh_curve_rgb()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_curve_rgb_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_rgb);
+  ntype.initfunc = file_ns::node_shader_init_curve_rgb;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_rgb);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_rgb;
   ntype.build_multi_function = file_ns::sh_node_curve_rgb_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -383,10 +383,10 @@ void register_node_type_sh_curve_float()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_curve_float_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_float);
+  ntype.initfunc = file_ns::node_shader_init_curve_float;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_float);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_float;
   ntype.build_multi_function = file_ns::sh_node_curve_float_build_multi_function;
 
   nodeRegisterType(&ntype);

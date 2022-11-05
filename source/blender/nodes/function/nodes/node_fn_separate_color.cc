@@ -213,8 +213,8 @@ void register_node_type_fn_separate_color(void)
 
   fn_node_type_base(&ntype, FN_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::fn_node_separate_color_declare;
-  node_type_update(&ntype, blender::nodes::fn_node_separate_color_update);
-  node_type_init(&ntype, blender::nodes::fn_node_separate_color_init);
+  ntype.updatefunc = blender::nodes::fn_node_separate_color_update;
+  ntype.initfunc = blender::nodes::fn_node_separate_color_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = blender::nodes::fn_node_separate_color_build_multi_function;

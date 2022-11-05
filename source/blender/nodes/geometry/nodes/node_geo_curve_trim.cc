@@ -202,8 +202,8 @@ void register_node_type_geo_curve_trim()
   ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

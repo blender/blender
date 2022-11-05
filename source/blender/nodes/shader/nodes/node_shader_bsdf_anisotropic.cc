@@ -69,8 +69,8 @@ void register_node_type_sh_bsdf_anisotropic()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_anisotropic;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_anisotropic);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_anisotropic);
+  ntype.initfunc = file_ns::node_shader_init_anisotropic;
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_anisotropic;
 
   nodeRegisterType(&ntype);
 }

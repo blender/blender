@@ -396,8 +396,8 @@ void register_node_type_geo_attribute_statistic()
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
 
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

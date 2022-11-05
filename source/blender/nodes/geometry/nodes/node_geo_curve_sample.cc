@@ -62,7 +62,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "use_all_curves", 0, nullptr, ICON_NONE);
 }
 
-static void node_type_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveSample *data = MEM_cnew<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
@@ -569,8 +569,8 @@ void register_node_type_geo_curve_sample()
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, "Sample Curve", NODE_CLASS_GEOMETRY);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_type_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = file_ns::node_layout;
