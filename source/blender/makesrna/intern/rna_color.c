@@ -15,10 +15,21 @@
 #include "BKE_node_tree_update.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 #include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
+    {0,
+     "NONE",
+     0,
+     "None",
+     "Do not perform any color transform on load, treat colors as in scene linear space "
+     "already"},
+    {0, NULL, 0, NULL, NULL},
+};
 
 #ifdef RNA_RUNTIME
 
@@ -566,8 +577,11 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA 
 }
 
 static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(
-    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+    bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
+  if (C == NULL) {
+    return rna_enum_color_space_convert_default_items;
+  }
   EnumPropertyItem *items = NULL;
   int totitem = 0;
 
@@ -1190,16 +1204,6 @@ static void rna_def_colormanage(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem color_space_items[] = {
-      {0,
-       "NONE",
-       0,
-       "None",
-       "Do not perform any color transform on load, treat colors as in scene linear space "
-       "already"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   /* ** Display Settings ** */
   srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
   RNA_def_struct_path_func(srna, "rna_ColorManagedDisplaySettings_path");
@@ -1279,7 +1283,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_enum_items(prop, color_space_items);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_convert_default_items);
   RNA_def_property_enum_funcs(prop,
                               "rna_ColorManagedColorspaceSettings_colorspace_get",
                               "rna_ColorManagedColorspaceSettings_colorspace_set",
@@ -1309,7 +1313,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
-  RNA_def_property_enum_items(prop, color_space_items);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_convert_default_items);
   RNA_def_property_enum_funcs(prop,
                               "rna_ColorManagedColorspaceSettings_colorspace_get",
                               "rna_ColorManagedColorspaceSettings_colorspace_set",
