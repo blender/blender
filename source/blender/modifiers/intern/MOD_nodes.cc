@@ -876,6 +876,9 @@ static void find_side_effect_nodes_for_viewer_path(
     if (found_node->id == nullptr) {
       return;
     }
+    if (found_node->is_muted()) {
+      return;
+    }
     group_node_stack.push(found_node);
     group = reinterpret_cast<bNodeTree *>(found_node->id);
     compute_context_builder.push<blender::bke::NodeGroupComputeContext>(group_node_name);
