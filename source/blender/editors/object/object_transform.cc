@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <numeric>
 
 #include "DNA_anim_types.h"
@@ -1643,8 +1644,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         /* done */
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
-        float3 min;
-        float3 max;
+        float3 min(std::numeric_limits<float>::max());
+        float3 max(-std::numeric_limits<float>::max());
         if (curves.bounds_min_max(min, max)) {
           cent = math::midpoint(min, max);
         }
