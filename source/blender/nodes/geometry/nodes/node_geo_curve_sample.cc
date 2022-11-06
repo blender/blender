@@ -309,6 +309,7 @@ class SampleCurveFunction : public fn::MultiFunction {
     if (curves.points_num() == 0) {
       return return_default();
     }
+    curves.ensure_can_interpolate_to_evaluated();
     Span<float3> evaluated_positions = curves.evaluated_positions();
     Span<float3> evaluated_tangents;
     Span<float3> evaluated_normals;
