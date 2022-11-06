@@ -1187,14 +1187,13 @@ static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
 
   float co_local[3];
   float no_local[3];
-  int index;
 
   copy_v3_v3(co_local, init_co_local);
 
   for (int i = 0; i < params->face_nearest_steps; i++) {
     add_v3_v3(co_local, delta_local);
     nearest_world_tree_co(
-        tree, nearest_cb, treedata, co_local, co_local, no_local, &index, nullptr);
+        tree, nearest_cb, treedata, co_local, co_local, no_local, r_index, nullptr);
   }
 
   mul_v3_m4v3(r_loc, obmat, co_local);
@@ -1202,10 +1201,6 @@ static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
   if (r_no) {
     mul_v3_m3v3(r_no, timat, no_local);
     normalize_v3(r_no);
-  }
-
-  if (r_index) {
-    *r_index = index;
   }
 
   return true;
