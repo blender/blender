@@ -80,4 +80,15 @@ class HintReceiver {
   ~HintReceiver();
 };
 
+/**
+ * Used to make sure that lazy-threading hints don't propagate through task isolation. This is
+ * necessary to avoid deadlocks when isolated regions are used together with e.g. task pools. For
+ * more info see the comment on #BLI_task_isolate.
+ */
+class ReceiverIsolation {
+ public:
+  ReceiverIsolation();
+  ~ReceiverIsolation();
+};
+
 }  // namespace blender::lazy_threading
