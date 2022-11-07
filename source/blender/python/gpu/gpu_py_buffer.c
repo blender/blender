@@ -579,22 +579,22 @@ static PyGetSetDef pygpu_buffer_getseters[] = {
 };
 
 static PySequenceMethods pygpu_buffer__tp_as_sequence = {
-    (lenfunc)pygpu_buffer__sq_length,    /* sq_length */
-    (binaryfunc)NULL,                    /* sq_concat */
-    (ssizeargfunc)NULL,                  /* sq_repeat */
-    (ssizeargfunc)pygpu_buffer__sq_item, /* sq_item */
-    (ssizessizeargfunc)NULL, /* sq_slice, deprecated, handled in pygpu_buffer__sq_item */
-    (ssizeobjargproc)pygpu_buffer__sq_ass_item, /* sq_ass_item */
-    (ssizessizeobjargproc)NULL, /* sq_ass_slice, deprecated handled in pygpu_buffer__sq_ass_item */
-    (objobjproc)NULL,           /* sq_contains */
-    (binaryfunc)NULL,           /* sq_inplace_concat */
-    (ssizeargfunc)NULL,         /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)pygpu_buffer__sq_length,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)pygpu_buffer__sq_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. Handled by #pygpu_buffer__sq_item. */
+    /*sq_ass_item*/ (ssizeobjargproc)pygpu_buffer__sq_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. Handled by #pygpu_buffer__sq_ass_item. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods pygpu_buffer__tp_as_mapping = {
-    (lenfunc)pygpu_buffer__sq_length,
-    (binaryfunc)pygpu_buffer__mp_subscript,
-    (objobjargproc)pygpu_buffer__mp_ass_subscript,
+    /*mp_len*/ (lenfunc)pygpu_buffer__sq_length,
+    /*mp_subscript*/ (binaryfunc)pygpu_buffer__mp_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)pygpu_buffer__mp_ass_subscript,
 };
 
 #ifdef PYGPU_BUFFER_PROTOCOL
@@ -648,8 +648,8 @@ static void pygpu_buffer__bf_releasebuffer(PyObject *UNUSED(exporter), Py_buffer
 }
 
 static PyBufferProcs pygpu_buffer__tp_as_buffer = {
-    (getbufferproc)pygpu_buffer__bf_getbuffer,
-    (releasebufferproc)pygpu_buffer__bf_releasebuffer,
+    /*bf_getbuffer*/ (getbufferproc)pygpu_buffer__bf_getbuffer,
+    /*bf_releasebuffer*/ (releasebufferproc)pygpu_buffer__bf_releasebuffer,
 };
 #endif
 

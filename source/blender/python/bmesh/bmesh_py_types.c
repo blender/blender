@@ -3313,31 +3313,30 @@ static int bpy_bmelem_ass_subscript(BPy_BMElem *self, BPy_BMLayerItem *key, PyOb
 }
 
 static PySequenceMethods bpy_bmelemseq_as_sequence = {
-    (lenfunc)bpy_bmelemseq_length, /* sq_length */
-    NULL,                          /* sq_concat */
-    NULL,                          /* sq_repeat */
-    (ssizeargfunc)bpy_bmelemseq_subscript_int,
-    /* sq_item */                       /* Only set this so PySequence_Check() returns True */
-    NULL,                               /* sq_slice */
-    (ssizeobjargproc)NULL,              /* sq_ass_item */
-    NULL,                               /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmelemseq_contains, /* sq_contains */
-    (binaryfunc)NULL,                   /* sq_inplace_concat */
-    (ssizeargfunc)NULL,                 /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)bpy_bmelemseq_length,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /* Only set this so `PySequence_Check()` returns True. */
+    /*sq_item*/ (ssizeargfunc)bpy_bmelemseq_subscript_int,
+    /*was_sq_slice*/ NULL,
+    /*sq_ass_item*/ NULL,
+    /*was_sq_ass_slice*/ NULL,
+    /*sq_contains*/ (objobjproc)bpy_bmelemseq_contains,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    (lenfunc)bpy_bmelemseq_length,       /* mp_length */
-    (binaryfunc)bpy_bmelemseq_subscript, /* mp_subscript */
-    (objobjargproc)NULL,                 /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)bpy_bmelemseq_length,
+    /*mp_subscript*/ (binaryfunc)bpy_bmelemseq_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* for customdata access */
 static PyMappingMethods bpy_bm_elem_as_mapping = {
-    (lenfunc)NULL,
-    /* mp_length */                          /* keep this empty, messes up 'if elem: ...' test */
-    (binaryfunc)bpy_bmelem_subscript,        /* mp_subscript */
-    (objobjargproc)bpy_bmelem_ass_subscript, /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
+    /*mp_subscript*/ (binaryfunc)bpy_bmelem_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)bpy_bmelem_ass_subscript,
 };
 
 /* Iterator
