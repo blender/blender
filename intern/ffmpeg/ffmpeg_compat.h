@@ -36,6 +36,14 @@
 #  define FFMPEG_INLINE static inline
 #endif
 
+#if (LIBAVFORMAT_VERSION_MAJOR < 59)
+/* For versions older than ffmpeg 5.0, use the old channel layout variables.
+ * We intend to only keep this  workaround for around two releases (3.5, 3.6).
+ * If it sticks around any longer, then we should consider refactoring this.
+ */
+#  define FFMPEG_USE_OLD_CHANNEL_VARS
+#endif
+
 #if (LIBAVFORMAT_VERSION_MAJOR < 58) || \
     ((LIBAVFORMAT_VERSION_MAJOR == 58) && (LIBAVFORMAT_VERSION_MINOR < 76))
 #  define FFMPEG_USE_DURATION_WORKAROUND 1
