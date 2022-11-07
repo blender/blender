@@ -893,7 +893,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
-        sprintf(tmp, "%d", i % 1000);
+        BLI_snprintf(tmp, sizeof(tmp), "%d", i % 1000);
         BLI_path_suffix(name, FILE_MAX, tmp, "_");
       }
     }

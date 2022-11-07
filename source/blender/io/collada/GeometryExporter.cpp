@@ -522,7 +522,7 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
     suffix[0] = '\0';
   }
   else {
-    sprintf(suffix, "-%d", layer_index);
+    BLI_snprintf(suffix, sizeof(suffix), "-%d", layer_index);
   }
   return getIdBySemantics(geom_id, COLLADASW::InputSemantic::TEXCOORD) + suffix;
 }

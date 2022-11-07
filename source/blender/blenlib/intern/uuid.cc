@@ -5,6 +5,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_string.h"
 #include "BLI_uuid.h"
 
 #include <cstdio>
@@ -85,19 +86,19 @@ bool BLI_uuid_equal(const bUUID uuid1, const bUUID uuid2)
 
 void BLI_uuid_format(char *buffer, const bUUID uuid)
 {
-  std::sprintf(buffer,
-               "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-               uuid.time_low,
-               uuid.time_mid,
-               uuid.time_hi_and_version,
-               uuid.clock_seq_hi_and_reserved,
-               uuid.clock_seq_low,
-               uuid.node[0],
-               uuid.node[1],
-               uuid.node[2],
-               uuid.node[3],
-               uuid.node[4],
-               uuid.node[5]);
+  BLI_sprintf(buffer,
+              "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+              uuid.time_low,
+              uuid.time_mid,
+              uuid.time_hi_and_version,
+              uuid.clock_seq_hi_and_reserved,
+              uuid.clock_seq_low,
+              uuid.node[0],
+              uuid.node[1],
+              uuid.node[2],
+              uuid.node[3],
+              uuid.node[4],
+              uuid.node[5]);
 }
 
 bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)

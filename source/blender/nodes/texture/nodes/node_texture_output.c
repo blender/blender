@@ -83,7 +83,7 @@ static void unique_name(bNode *node)
       BLI_strncpy(new_name, name, sizeof(tno->name));
       name = new_name;
     }
-    sprintf(new_name + new_len - 4, ".%03d", ++suffix);
+    BLI_sprintf(new_name + new_len - 4, ".%03d", ++suffix);
   }
 
   if (new_name[0] != '\0') {

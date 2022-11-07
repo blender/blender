@@ -123,7 +123,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
 void BLI_path_sequence_encode(
     char *string, const char *head, const char *tail, ushort numlen, int pic)
 {
-  sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
+  BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
@@ -620,7 +620,7 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
   }
 
   BLI_strncpy(extension, string + a, sizeof(extension));
-  sprintf(string + a, "%s%s%s", sep, suffix, extension);
+  BLI_sprintf(string + a, "%s%s%s", sep, suffix, extension);
   return true;
 }
 

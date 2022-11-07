@@ -90,7 +90,8 @@ void GpencilExporterSVG::create_document_header()
 
   pugi::xml_node comment = main_doc_.append_child(pugi::node_comment);
   char txt[128];
-  sprintf(txt, " Generator: Blender, %s - %s ", SVG_EXPORTER_NAME, SVG_EXPORTER_VERSION);
+  BLI_snprintf(
+      txt, sizeof(txt), " Generator: Blender, %s - %s ", SVG_EXPORTER_NAME, SVG_EXPORTER_VERSION);
   comment.set_value(txt);
 
   pugi::xml_node doctype = main_doc_.append_child(pugi::node_doctype);
@@ -147,7 +148,7 @@ void GpencilExporterSVG::export_gpencil_layers()
     pugi::xml_node ob_node = frame_node_.append_child("g");
 
     char obtxt[96];
-    sprintf(obtxt, "blender_object_%s", ob->id.name + 2);
+    BLI_snprintf(obtxt, sizeof(obtxt), "blender_object_%s", ob->id.name + 2);
     ob_node.append_attribute("id").set_value(obtxt);
 
     /* Use evaluated version to get strokes with modifiers. */
@@ -402,7 +403,7 @@ std::string GpencilExporterSVG::rgb_to_hexstr(const float color[3])
   uint8_t g = color[1] * 255.0f;
   uint8_t b = color[2] * 255.0f;
   char hex_string[20];
-  sprintf(hex_string, "#%02X%02X%02X", r, g, b);
+  BLI_snprintf(hex_string, sizeof(hex_string), "#%02X%02X%02X", r, g, b);
 
   std::string hexstr = hex_string;
 

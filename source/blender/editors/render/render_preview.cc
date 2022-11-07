@@ -630,10 +630,10 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
   bool ok = false;
 
   if (!split || first) {
-    sprintf(name, "Preview %p", (void *)area);
+    BLI_snprintf(name, sizeof(name), "Preview %p", (void *)area);
   }
   else {
-    sprintf(name, "SecondPreview %p", (void *)area);
+    BLI_snprintf(name, sizeof(name), "SecondPreview %p", (void *)area);
   }
 
   if (split) {
@@ -1152,10 +1152,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   }
 
   if (!split || first) {
-    sprintf(name, "Preview %p", sp->owner);
+    BLI_snprintf(name, sizeof(name), "Preview %p", sp->owner);
   }
   else {
-    sprintf(name, "SecondPreview %p", sp->owner);
+    BLI_snprintf(name, sizeof(name), "SecondPreview %p", sp->owner);
   }
   re = RE_GetRender(name);
 

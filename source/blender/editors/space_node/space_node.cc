@@ -181,7 +181,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
       value += strlen(path->display_name);
     }
     else {
-      sprintf(value, "/%s", path->display_name);
+      BLI_sprintf(value, "/%s", path->display_name);
       value += strlen(path->display_name) + 1;
     }
   }
