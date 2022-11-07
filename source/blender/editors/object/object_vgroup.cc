@@ -1922,10 +1922,6 @@ static void vgroup_smooth_subset(Object *ob,
   BMesh *bm = em ? em->bm : nullptr;
   Mesh *me = em ? nullptr : static_cast<Mesh *>(ob->data);
 
-  const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
-
   MeshElemMap *emap;
   int *emap_mem;
 
@@ -1989,6 +1985,10 @@ static void vgroup_smooth_subset(Object *ob,
     }
   }
   else {
+    const bke::AttributeAccessor attributes = me->attributes();
+    const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+        ".select_vert", ATTR_DOMAIN_POINT, false);
+
     const blender::Span<MEdge> edges = me->edges();
     for (int i = 0; i < dvert_tot; i++) {
       if (IS_ME_VERT_WRITE(i)) {
@@ -2061,6 +2061,10 @@ static void vgroup_smooth_subset(Object *ob,
           }
         }
         else {
+          const bke::AttributeAccessor attributes = me->attributes();
+          const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+              ".select_vert", ATTR_DOMAIN_POINT, false);
+
           int j;
           const blender::Span<MEdge> edges = me->edges();
 
