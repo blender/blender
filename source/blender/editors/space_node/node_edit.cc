@@ -502,6 +502,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
     }
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ma->nodetree->owner_id = &ma->id;
     BKE_ntree_update_main_tree(bmain, ma->nodetree, nullptr);
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
