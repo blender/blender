@@ -3120,6 +3120,16 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
   sctx->runtime.depsgraph = depsgraph;
   sctx->runtime.v3d = v3d;
 
+  zero_v3(sctx->ret.loc);
+  zero_v3(sctx->ret.no);
+  sctx->ret.index = -1;
+  zero_m4(sctx->ret.obmat);
+  sctx->ret.hit_list = r_hit_list;
+  sctx->ret.ob = nullptr;
+  sctx->ret.data = nullptr;
+  sctx->ret.dist_sq = FLT_MAX;
+  sctx->ret.is_edit = false;
+
   if (ray_depth == -1.0f) {
     ray_depth = BVH_RAYCAST_DIST_MAX;
   }
@@ -3128,18 +3138,17 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
   float ray_depth_prev = ray_depth;
 #endif
 
-  bool retval = raycastObjects(sctx, params, ray_start, ray_normal, &ray_depth);
-
-  /* meant to be readonly for 'all' hits, ensure it is */
+  if (raycastObjects(sctx, params, ray_start, ray_normal, &ray_depth)) {
+    if (sort) {
+      BLI_listbase_sort(r_hit_list, hit_depth_cmp);
+    }
+    /* meant to be readonly for 'all' hits, ensure it is */
 #ifdef DEBUG
-  BLI_assert(ray_depth_prev == ray_depth);
+    BLI_assert(ray_depth_prev == ray_depth);
 #endif
-
-  if (sort) {
-    BLI_listbase_sort(r_hit_list, hit_depth_cmp);
+    return true;
   }
-
-  return retval;
+  return false;
 }
 
 /**
