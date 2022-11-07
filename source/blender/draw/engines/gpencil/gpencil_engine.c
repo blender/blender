@@ -289,7 +289,7 @@ void GPENCIL_cache_init(void *ved)
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 
-  Camera *cam = (pd->camera != NULL) ? pd->camera->data : NULL;
+  Camera *cam = (pd->camera != NULL && pd->camera->type == OB_CAMERA) ? pd->camera->data : NULL;
 
   /* Pseudo DOF setup. */
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
