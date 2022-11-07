@@ -189,7 +189,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-  Camera *cam = (camera != NULL) ? camera->data : NULL;
+  Camera *cam = (camera != NULL && camera->type == OB_CAMERA) ? camera->data : NULL;
 
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
     RegionView3D *rv3d = draw_ctx->rv3d;
