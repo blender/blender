@@ -114,8 +114,11 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
       if (BLI_uuid_is_nil(meta_data.catalog_id)) {
         return true;
       }
-      const LibraryCatalog &library_catalog = id_to_catalog_map.lookup(meta_data.catalog_id);
-      assets_per_path.add(library_catalog.catalog->path, LibraryAsset{library_ref, asset});
+      const LibraryCatalog *library_catalog = id_to_catalog_map.lookup_ptr(meta_data.catalog_id);
+      if (library_catalog == nullptr) {
+        return true;
+      }
+      assets_per_path.add(library_catalog->catalog->path, LibraryAsset{library_ref, asset});
       return true;
     });
   }

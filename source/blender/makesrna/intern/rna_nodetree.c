@@ -2425,21 +2425,13 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         const char *name,
                                         const char *identifier)
 {
-
-  if (ELEM(node->type, NODE_GROUP_INPUT, NODE_FRAME)) {
-    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return NULL;
-  }
-  /* Adding an input to a group node is not working,
-   * simpler to add it to its underlying nodetree. */
-  if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
-    return rna_NodeTree_inputs_new((bNodeTree *)node->id, bmain, reports, type, name);
   }
 
   bNodeTree *ntree = (bNodeTree *)id;
-  bNodeSocket *sock;
-
-  sock = nodeAddSocket(ntree, node, SOCK_IN, type, identifier, name);
+  bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, type, identifier, name);
 
   if (sock == NULL) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
@@ -2460,20 +2452,13 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          const char *name,
                                          const char *identifier)
 {
-  if (ELEM(node->type, NODE_GROUP_OUTPUT, NODE_FRAME)) {
-    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return NULL;
-  }
-  /* Adding an output to a group node is not working,
-   * simpler to add it to its underlying nodetree. */
-  if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
-    return rna_NodeTree_outputs_new((bNodeTree *)node->id, bmain, reports, type, name);
   }
 
   bNodeTree *ntree = (bNodeTree *)id;
-  bNodeSocket *sock;
-
-  sock = nodeAddSocket(ntree, node, SOCK_OUT, type, identifier, name);
+  bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_OUT, type, identifier, name);
 
   if (sock == NULL) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
@@ -2489,6 +2474,11 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
 static void rna_Node_socket_remove(
     ID *id, bNode *node, Main *bmain, ReportList *reports, bNodeSocket *sock)
 {
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Unable to remove socket from built-in node");
+    return;
+  }
+
   bNodeTree *ntree = (bNodeTree *)id;
 
   if (BLI_findindex(&node->inputs, sock) == -1 && BLI_findindex(&node->outputs, sock) == -1) {
@@ -2502,8 +2492,13 @@ static void rna_Node_socket_remove(
   }
 }
 
-static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain)
+static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain, ReportList *reports)
 {
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Unable to remove sockets from built-in node");
+    return;
+  }
+
   bNodeTree *ntree = (bNodeTree *)id;
   bNodeSocket *sock, *nextsock;
 
@@ -2516,8 +2511,13 @@ static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain)
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
-static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain)
+static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain, ReportList *reports)
 {
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Unable to remove socket from built-in node");
+    return;
+  }
+
   bNodeTree *ntree = (bNodeTree *)id;
   bNodeSocket *sock, *nextsock;
 
@@ -2530,8 +2530,14 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain)
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
-static void rna_Node_inputs_move(ID *id, bNode *node, Main *bmain, int from_index, int to_index)
+static void rna_Node_inputs_move(
+    ID *id, bNode *node, Main *bmain, ReportList *reports, int from_index, int to_index)
 {
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Unable to move sockets in built-in node");
+    return;
+  }
+
   bNodeTree *ntree = (bNodeTree *)id;
   bNodeSocket *sock;
 
@@ -2562,8 +2568,14 @@ static void rna_Node_inputs_move(ID *id, bNode *node, Main *bmain, int from_inde
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
-static void rna_Node_outputs_move(ID *id, bNode *node, Main *bmain, int from_index, int to_index)
+static void rna_Node_outputs_move(
+    ID *id, bNode *node, Main *bmain, ReportList *reports, int from_index, int to_index)
 {
+  if (node->type != NODE_CUSTOM) {
+    BKE_report(reports, RPT_ERROR, "Unable to move sockets in built-in node");
+    return;
+  }
+
   bNodeTree *ntree = (bNodeTree *)id;
   bNodeSocket *sock;
 
@@ -7042,11 +7054,11 @@ static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna,
 
   func = RNA_def_function(srna, "clear", "rna_Node_inputs_clear");
   RNA_def_function_ui_description(func, "Remove all file slots from this node");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
 
   func = RNA_def_function(srna, "move", "rna_Node_inputs_move");
   RNA_def_function_ui_description(func, "Move a file slot to another position");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_int(
       func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -12121,11 +12133,11 @@ static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int i
 
   func = RNA_def_function(srna, "clear", clearfunc);
   RNA_def_function_ui_description(func, "Remove all sockets from this node");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
 
   func = RNA_def_function(srna, "move", movefunc);
   RNA_def_function_ui_description(func, "Move a socket to another position");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_int(
       func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
