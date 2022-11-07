@@ -1,0 +1,5 @@
+.github/workflows/* -diff
+sonar-project.properties -diff
+build_* -diff
+cmake-* -diff
+.gitattributes -diff
