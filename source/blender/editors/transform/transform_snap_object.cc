@@ -258,6 +258,8 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
   BLI_assert(r_treedata->loop == loops.data());
   BLI_assert(!polys.data() || r_treedata->looptri);
   BLI_assert(!r_treedata->tree || r_treedata->looptri);
+
+  UNUSED_VARS_NDEBUG(verts, polys, loops);
 }
 
 /* Searches for the #Mesh_Runtime associated with the object that is most likely to be updated due
