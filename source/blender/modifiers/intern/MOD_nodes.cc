@@ -1542,15 +1542,18 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
                                               attribute_name_suffix + "\"]";
 
+  /* We're handling this manually in this case. */
+  uiLayoutSetPropDecorate(layout, false);
+
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemL(name_row, socket.name, ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(split, true);
+  uiLayout *prop_row = uiLayoutRow(split, true);
 
   PointerRNA props;
-  uiItemFullO(row,
+  uiItemFullO(prop_row,
               "object.geometry_nodes_input_attribute_toggle",
               "",
               ICON_SPREADSHEET,
@@ -1563,12 +1566,12 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
 
   const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
   if (use_attribute) {
-    add_attribute_search_button(C, row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-    uiItemL(row, "", ICON_BLANK1);
+    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    uiItemR(row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), -1);
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
+    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 }
 
@@ -1598,44 +1601,39 @@ static void draw_property_for_socket(const bContext &C,
   char rna_path[sizeof(socket_id_esc) + 4];
   BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
 
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetPropDecorate(row, true);
+
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   switch (socket.type) {
     case SOCK_OBJECT: {
-      uiItemPointerR(
-          layout, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemPointerR(layout,
-                     md_ptr,
-                     rna_path,
-                     bmain_ptr,
-                     "collections",
-                     socket.name,
-                     ICON_OUTLINER_COLLECTION);
+      uiItemPointerR(
+          row, md_ptr, rna_path, bmain_ptr, "collections", socket.name, ICON_OUTLINER_COLLECTION);
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
       break;
     }
     case SOCK_TEXTURE: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
       break;
     }
     case SOCK_IMAGE: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
       break;
     }
     default: {
       if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
-        add_attribute_search_or_value_buttons(C, layout, *nmd, md_ptr, socket);
+        add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
       }
       else {
-        uiLayout *row = uiLayoutRow(layout, false);
-        uiLayoutSetPropDecorate(row, true);
         uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
       }
     }
