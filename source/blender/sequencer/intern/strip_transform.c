@@ -145,7 +145,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     /* Move meta start/end points. */
     seq_time_translate_handles(evil_scene, seq, delta);
   }
-  else { /* All other strip types. */
+  else if (seq->seq1 == NULL && seq->seq2 == NULL) { /* All other strip types. */
     seq->start += delta;
     /* Only to make files usable in older versions. */
     seq->startdisp = SEQ_time_left_handle_frame_get(evil_scene, seq);
