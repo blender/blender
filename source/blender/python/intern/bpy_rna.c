@@ -3497,7 +3497,7 @@ PyDoc_STRVAR(pyrna_struct_keys_doc,
              "   :return: custom property keys.\n"
              "   :rtype: :class:`idprop.type.IDPropertyGroupViewKeys`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
-static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
+static PyObject *pyrna_struct_keys(BPy_StructRNA *self)
 {
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError, "bpy_struct.keys(): this type doesn't support IDProperties");
@@ -3518,7 +3518,7 @@ PyDoc_STRVAR(pyrna_struct_items_doc,
              "   :return: custom property key, value pairs.\n"
              "   :rtype: :class:`idprop.type.IDPropertyGroupViewItems`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
-static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
+static PyObject *pyrna_struct_items(BPy_StructRNA *self)
 {
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError, "bpy_struct.items(): this type doesn't support IDProperties");
@@ -3539,7 +3539,7 @@ PyDoc_STRVAR(pyrna_struct_values_doc,
              "   :return: custom property values.\n"
              "   :rtype: :class:`idprop.type.IDPropertyGroupViewValues`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
-static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
+static PyObject *pyrna_struct_values(BPy_StructRNA *self)
 {
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError,
