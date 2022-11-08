@@ -511,17 +511,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
 
 void CurvesGeometry::ensure_evaluated_offsets() const
 {
-  if (!this->runtime->offsets_cache_dirty) {
-    return;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->offsets_cache_mutex};
-  if (!this->runtime->offsets_cache_dirty) {
-    return;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->offsets_cache_mutex.ensure([&]() {
     this->runtime->evaluated_offsets_cache.resize(this->curves_num() + 1);
 
     if (this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
@@ -534,8 +524,6 @@ void CurvesGeometry::ensure_evaluated_offsets() const
     calculate_evaluated_offsets(
         *this, this->runtime->evaluated_offsets_cache, this->runtime->bezier_evaluated_offsets);
   });
-
-  this->runtime->offsets_cache_dirty = false;
 }
 
 Span<int> CurvesGeometry::evaluated_offsets() const
@@ -569,17 +557,7 @@ Array<int> CurvesGeometry::point_to_curve_map() const
 
 void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
-  if (!this->runtime->nurbs_basis_cache_dirty) {
-    return;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->nurbs_basis_cache_mutex};
-  if (!this->runtime->nurbs_basis_cache_dirty) {
-    return;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->nurbs_basis_cache_mutex.ensure([&]() {
     Vector<int64_t> nurbs_indices;
     const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, nurbs_indices);
     if (nurbs_mask.is_empty()) {
@@ -619,23 +597,11 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
       }
     });
   });
-
-  this->runtime->nurbs_basis_cache_dirty = false;
 }
 
 Span<float3> CurvesGeometry::evaluated_positions() const
 {
-  if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_positions_span;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->position_cache_mutex};
-  if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_positions_span;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->position_cache_mutex.ensure([&]() {
     if (this->is_single_type(CURVE_TYPE_POLY)) {
       this->runtime->evaluated_positions_span = this->positions();
       this->runtime->evaluated_position_cache.clear_and_make_inline();
@@ -699,24 +665,12 @@ Span<float3> CurvesGeometry::evaluated_positions() const
       }
     });
   });
-
-  this->runtime->position_cache_dirty = false;
   return this->runtime->evaluated_positions_span;
 }
 
 Span<float3> CurvesGeometry::evaluated_tangents() const
 {
-  if (!this->runtime->tangent_cache_dirty) {
-    return this->runtime->evaluated_tangent_cache;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->tangent_cache_mutex};
-  if (!this->runtime->tangent_cache_dirty) {
-    return this->runtime->evaluated_tangent_cache;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->tangent_cache_mutex.ensure([&]() {
     const Span<float3> evaluated_positions = this->evaluated_positions();
     const VArray<bool> cyclic = this->cyclic();
 
@@ -732,9 +686,9 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
       }
     });
 
-    /* Correct the first and last tangents of non-cyclic Bezier curves so that they align with the
-     * inner handles. This is a separate loop to avoid the cost when Bezier type curves are not
-     * used. */
+    /* Correct the first and last tangents of non-cyclic Bezier curves so that they align with
+     * the inner handles. This is a separate loop to avoid the cost when Bezier type curves are
+     * not used. */
     Vector<int64_t> bezier_indices;
     const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
     if (!bezier_mask.is_empty()) {
@@ -765,8 +719,6 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
       });
     }
   });
-
-  this->runtime->tangent_cache_dirty = false;
   return this->runtime->evaluated_tangent_cache;
 }
 
@@ -781,17 +733,7 @@ static void rotate_directions_around_axes(MutableSpan<float3> directions,
 
 Span<float3> CurvesGeometry::evaluated_normals() const
 {
-  if (!this->runtime->normal_cache_dirty) {
-    return this->runtime->evaluated_normal_cache;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->normal_cache_mutex};
-  if (!this->runtime->normal_cache_dirty) {
-    return this->runtime->evaluated_normal_cache;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->normal_cache_mutex.ensure([&]() {
     const Span<float3> evaluated_tangents = this->evaluated_tangents();
     const VArray<bool> cyclic = this->cyclic();
     const VArray<int8_t> normal_mode = this->normal_mode();
@@ -842,8 +784,6 @@ Span<float3> CurvesGeometry::evaluated_normals() const
       }
     });
   });
-
-  this->runtime->normal_cache_dirty = false;
   return this->runtime->evaluated_normal_cache;
 }
 
@@ -851,8 +791,8 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
                                               const GSpan src,
                                               GMutableSpan dst) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(!this->runtime->nurbs_basis_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
+  BLI_assert(this->runtime->nurbs_basis_cache_mutex.is_cached());
   const IndexRange points = this->points_for_curve(curve_index);
   BLI_assert(src.size() == points.size());
   BLI_assert(dst.size() == this->evaluated_points_for_curve(curve_index).size());
@@ -881,8 +821,8 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
 
 void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(!this->runtime->nurbs_basis_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
+  BLI_assert(this->runtime->nurbs_basis_cache_mutex.is_cached());
   const VArray<int8_t> types = this->curve_types();
   const VArray<int> resolution = this->resolution();
   const VArray<bool> cyclic = this->cyclic();
@@ -923,17 +863,7 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
 
 void CurvesGeometry::ensure_evaluated_lengths() const
 {
-  if (!this->runtime->length_cache_dirty) {
-    return;
-  }
-
-  /* A double checked lock. */
-  std::scoped_lock lock{this->runtime->length_cache_mutex};
-  if (!this->runtime->length_cache_dirty) {
-    return;
-  }
-
-  threading::isolate_task([&]() {
+  this->runtime->length_cache_mutex.ensure([&]() {
     /* Use an extra length value for the final cyclic segment for a consistent size
      * (see comment on #evaluated_length_cache). */
     const int total_num = this->evaluated_points_num() + this->curves_num();
@@ -954,8 +884,6 @@ void CurvesGeometry::ensure_evaluated_lengths() const
       }
     });
   });
-
-  this->runtime->length_cache_dirty = false;
 }
 
 void CurvesGeometry::ensure_can_interpolate_to_evaluated() const
@@ -986,23 +914,23 @@ void CurvesGeometry::resize(const int points_num, const int curves_num)
 
 void CurvesGeometry::tag_positions_changed()
 {
-  this->runtime->position_cache_dirty = true;
-  this->runtime->tangent_cache_dirty = true;
-  this->runtime->normal_cache_dirty = true;
-  this->runtime->length_cache_dirty = true;
+  this->runtime->position_cache_mutex.tag_dirty();
+  this->runtime->tangent_cache_mutex.tag_dirty();
+  this->runtime->normal_cache_mutex.tag_dirty();
+  this->runtime->length_cache_mutex.tag_dirty();
 }
 void CurvesGeometry::tag_topology_changed()
 {
-  this->runtime->position_cache_dirty = true;
-  this->runtime->tangent_cache_dirty = true;
-  this->runtime->normal_cache_dirty = true;
-  this->runtime->offsets_cache_dirty = true;
-  this->runtime->nurbs_basis_cache_dirty = true;
-  this->runtime->length_cache_dirty = true;
+  this->runtime->position_cache_mutex.tag_dirty();
+  this->runtime->tangent_cache_mutex.tag_dirty();
+  this->runtime->normal_cache_mutex.tag_dirty();
+  this->runtime->offsets_cache_mutex.tag_dirty();
+  this->runtime->nurbs_basis_cache_mutex.tag_dirty();
+  this->runtime->length_cache_mutex.tag_dirty();
 }
 void CurvesGeometry::tag_normals_changed()
 {
-  this->runtime->normal_cache_dirty = true;
+  this->runtime->normal_cache_mutex.tag_dirty();
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)

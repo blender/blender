@@ -54,6 +54,7 @@ set(SRC
   intern/bitmap_draw_2d.c
   intern/boxpack_2d.c
   intern/buffer.c
+  intern/cache_mutex.cc
   intern/compute_context.cc
   intern/convexhull_2d.c
   intern/cpp_type.cc
@@ -178,6 +179,7 @@ set(SRC
   BLI_bounds.hh
   BLI_boxpack_2d.h
   BLI_buffer.h
+  BLI_cache_mutex.hh
   BLI_color.hh
   BLI_color_mix.hh
   BLI_compiler_attrs.h
