@@ -3673,13 +3673,9 @@ static void colorband_buttons_layout(uiLayout *layout,
 
       row = uiLayoutRow(split, false);
       uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
       row = uiLayoutRow(layout, false);
       uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
     }
     else {
       split = uiLayoutSplit(layout, 0.5f, false);
@@ -3704,13 +3700,28 @@ static void colorband_buttons_layout(uiLayout *layout,
 
       row = uiLayoutRow(subsplit, false);
       uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
       row = uiLayoutRow(split, false);
       uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+    }
+
+    /* Some special (rather awkward) treatment to update UI state on certain property changes. */
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
+      if (but->rnapoin.data != ptr.data) {
+        continue;
+      }
+      if (!but->rnaprop) {
+        continue;
+      }
+
+      const char *prop_identifier = RNA_property_identifier(but->rnaprop);
+      if (STREQ(prop_identifier, "position")) {
+        UI_but_func_set(but, colorband_update_cb, but, coba);
+      }
+
+      if (STREQ(prop_identifier, "color")) {
+        UI_but_funcN_set(but, rna_update_cb, MEM_dupallocN(cb), NULL);
+      }
     }
   }
 }
