@@ -4512,15 +4512,8 @@ static void rna_NodeConvertColorSpace_to_color_space_set(struct PointerRNA *ptr,
 }
 
 static const EnumPropertyItem *rna_NodeConvertColorSpace_color_space_itemf(
-    bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-#  if 0 /* FIXME: Causes blank drop-down, see T102316. */
-  if (C == NULL) {
-    return rna_enum_color_space_convert_default_items;
-  }
-#  else
-  UNUSED_VARS(C);
-#  endif
   EnumPropertyItem *items = NULL;
   int totitem = 0;
 

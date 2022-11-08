@@ -241,7 +241,6 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
                                       BVHTreeFromMesh *r_treedata)
 {
   const Span<MVert> verts = me_eval->verts();
-  const Span<MEdge> edges = me_eval->edges();
   const Span<MPoly> polys = me_eval->polys();
   const Span<MLoop> loops = me_eval->loops();
 

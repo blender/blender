@@ -533,7 +533,8 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
     }
 
     if (md->type == eModifierType_Smooth) {
-      /* Smooth modifier works with mesh edges explicitly (so needs tesselation, thus cannnot work on control points). */
+      /* Smooth modifier works with mesh edges explicitly
+       * (so needs tessellation, thus cannot work on control points). */
       md->mode &= ~eModifierMode_ApplyOnSpline;
       return pretessellatePoint;
     }
