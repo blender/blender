@@ -1703,12 +1703,12 @@ static PyMethodDef BPy_IDArray_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static int BPy_IDArray_Len(BPy_IDArray *self)
+static Py_ssize_t BPy_IDArray_Len(BPy_IDArray *self)
 {
   return self->prop->len;
 }
 
-static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
+static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, Py_ssize_t index)
 {
   if (index < 0 || index >= self->prop->len) {
     PyErr_SetString(PyExc_IndexError, "index out of range!");
@@ -1730,7 +1730,7 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
   return NULL;
 }
 
-static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
+static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *value)
 {
   if (index < 0 || index >= self->prop->len) {
     PyErr_SetString(PyExc_RuntimeError, "index out of range!");

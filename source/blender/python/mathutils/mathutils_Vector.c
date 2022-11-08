@@ -1667,7 +1667,7 @@ static Py_hash_t Vector_hash(VectorObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Vector_len(VectorObject *self)
+static Py_ssize_t Vector_len(VectorObject *self)
 {
   return self->vec_num;
 }
@@ -1699,7 +1699,7 @@ static PyObject *vector_item_internal(VectorObject *self, int i, const bool is_a
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Vector_item(VectorObject *self, int i)
+static PyObject *Vector_item(VectorObject *self, Py_ssize_t i)
 {
   return vector_item_internal(self, i, false);
 }
@@ -1747,7 +1747,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Vector_ass_item(VectorObject *self, int i, PyObject *value)
+static int Vector_ass_item(VectorObject *self, Py_ssize_t i, PyObject *value)
 {
   return vector_ass_item_internal(self, i, value, false);
 }

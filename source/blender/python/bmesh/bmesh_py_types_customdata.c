@@ -740,7 +740,8 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
   return NULL;
 }
 
-static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self, int keynum)
+static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self,
+                                                     Py_ssize_t keynum)
 {
   Py_ssize_t len;
   BPY_BM_CHECK_OBJ(self);
