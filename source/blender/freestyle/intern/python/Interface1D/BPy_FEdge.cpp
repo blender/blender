@@ -89,7 +89,7 @@ static Py_ssize_t FEdge_sq_length(BPy_FEdge * /*self*/)
   return 2;
 }
 
-static PyObject *FEdge_sq_item(BPy_FEdge *self, int keynum)
+static PyObject *FEdge_sq_item(BPy_FEdge *self, Py_ssize_t keynum)
 {
   if (keynum < 0) {
     keynum += FEdge_sq_length(self);

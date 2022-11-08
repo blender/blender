@@ -3118,7 +3118,7 @@ static Py_ssize_t bpy_bmelemseq_length(BPy_BMElemSeq *self)
   }
 }
 
-static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, int keynum)
+static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, Py_ssize_t keynum)
 {
   BPY_BM_CHECK_OBJ(self);
 

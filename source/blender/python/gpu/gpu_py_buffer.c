@@ -159,7 +159,7 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
   return buffer;
 }
 
-static PyObject *pygpu_buffer__sq_item(BPyGPUBuffer *self, int i)
+static PyObject *pygpu_buffer__sq_item(BPyGPUBuffer *self, Py_ssize_t i)
 {
   if (i >= self->shape[0] || i < 0) {
     PyErr_SetString(PyExc_IndexError, "array index out of range");
@@ -200,10 +200,10 @@ static PyObject *pygpu_buffer__sq_item(BPyGPUBuffer *self, int i)
 
 static PyObject *pygpu_buffer_to_list(BPyGPUBuffer *self)
 {
-  int i, len = self->shape[0];
+  const Py_ssize_t len = self->shape[0];
   PyObject *list = PyList_New(len);
 
-  for (i = 0; i < len; i++) {
+  for (Py_ssize_t i = 0; i < len; i++) {
     PyList_SET_ITEM(list, i, pygpu_buffer__sq_item(self, i));
   }
 
@@ -313,7 +313,7 @@ static PyObject *pygpu_buffer__tp_repr(BPyGPUBuffer *self)
   return repr;
 }
 
-static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, int i, PyObject *v);
+static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, Py_ssize_t i, PyObject *v);
 
 static int pygpu_buffer_ass_slice(BPyGPUBuffer *self,
                                   Py_ssize_t begin,
@@ -430,7 +430,7 @@ static int pygpu_buffer__tp_is_gc(BPyGPUBuffer *self)
 
 /* BPyGPUBuffer sequence methods */
 
-static int pygpu_buffer__sq_length(BPyGPUBuffer *self)
+static Py_ssize_t pygpu_buffer__sq_length(BPyGPUBuffer *self)
 {
   return self->shape[0];
 }
@@ -458,7 +458,7 @@ static PyObject *pygpu_buffer_slice(BPyGPUBuffer *self, Py_ssize_t begin, Py_ssi
   return list;
 }
 
-static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, int i, PyObject *v)
+static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, Py_ssize_t i, PyObject *v)
 {
   if (i >= self->shape[0] || i < 0) {
     PyErr_SetString(PyExc_IndexError, "array assignment index out of range");

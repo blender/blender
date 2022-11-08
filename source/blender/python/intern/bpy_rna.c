@@ -2328,7 +2328,7 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self,
   return 0;
 }
 
-static PyObject *pyrna_prop_array_subscript_int(BPy_PropertyArrayRNA *self, int keynum)
+static PyObject *pyrna_prop_array_subscript_int(BPy_PropertyArrayRNA *self, Py_ssize_t keynum)
 {
   int len;
 
@@ -2883,7 +2883,7 @@ static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject
     if (key_slice->start == Py_None && key_slice->stop == Py_None) {
       /* NOTE: no significant advantage with optimizing [:] slice as with collections,
        * but include here for consistency with collection slice func */
-      const Py_ssize_t len = (Py_ssize_t)pyrna_prop_array_length(self);
+      const Py_ssize_t len = pyrna_prop_array_length(self);
       return pyrna_prop_array_subscript_slice(self, &self->ptr, self->prop, 0, len, len);
     }
 

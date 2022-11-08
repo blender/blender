@@ -351,13 +351,13 @@ static Py_hash_t Color_hash(ColorObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Color_len(ColorObject *UNUSED(self))
+static Py_ssize_t Color_len(ColorObject *UNUSED(self))
 {
   return COLOR_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Color_item(ColorObject *self, int i)
+static PyObject *Color_item(ColorObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = COLOR_SIZE - i;
@@ -378,7 +378,7 @@ static PyObject *Color_item(ColorObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Color_ass_item(ColorObject *self, int i, PyObject *value)
+static int Color_ass_item(ColorObject *self, Py_ssize_t i, PyObject *value)
 {
   float f;
 

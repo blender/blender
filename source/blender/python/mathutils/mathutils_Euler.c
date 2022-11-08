@@ -434,13 +434,13 @@ static Py_hash_t Euler_hash(EulerObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Euler_len(EulerObject *UNUSED(self))
+static Py_ssize_t Euler_len(EulerObject *UNUSED(self))
 {
   return EULER_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Euler_item(EulerObject *self, int i)
+static PyObject *Euler_item(EulerObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = EULER_SIZE - i;
@@ -461,7 +461,7 @@ static PyObject *Euler_item(EulerObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Euler_ass_item(EulerObject *self, int i, PyObject *value)
+static int Euler_ass_item(EulerObject *self, Py_ssize_t i, PyObject *value)
 {
   float f;
 

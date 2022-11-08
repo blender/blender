@@ -2379,7 +2379,7 @@ static Py_hash_t Matrix_hash(MatrixObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Matrix_len(MatrixObject *self)
+static Py_ssize_t Matrix_len(MatrixObject *self)
 {
   return self->row_num;
 }
@@ -2388,7 +2388,7 @@ static int Matrix_len(MatrixObject *self)
  * Sequence accessor (get): `x = object[i]`.
  * \note the wrapped vector gives direct access to the matrix data.
  */
-static PyObject *Matrix_item_row(MatrixObject *self, int row)
+static PyObject *Matrix_item_row(MatrixObject *self, Py_ssize_t row)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
@@ -2407,7 +2407,7 @@ static PyObject *Matrix_item_row(MatrixObject *self, int row)
  * Sequence accessor (get): `x = object.col[i]`.
  * \note the wrapped vector gives direct access to the matrix data.
  */
-static PyObject *Matrix_item_col(MatrixObject *self, int col)
+static PyObject *Matrix_item_col(MatrixObject *self, Py_ssize_t col)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
@@ -3633,15 +3633,15 @@ static int MatrixAccess_len(MatrixAccessObject *self)
   return (self->type == MAT_ACCESS_ROW) ? self->matrix_user->row_num : self->matrix_user->col_num;
 }
 
-static PyObject *MatrixAccess_slice(MatrixAccessObject *self, int begin, int end)
+static PyObject *MatrixAccess_slice(MatrixAccessObject *self, Py_ssize_t begin, Py_ssize_t end)
 {
   PyObject *tuple;
-  int count;
+  Py_ssize_t count;
 
   /* row/col access */
   MatrixObject *matrix_user = self->matrix_user;
   int matrix_access_len;
-  PyObject *(*Matrix_item_new)(MatrixObject *, int);
+  PyObject *(*Matrix_item_new)(MatrixObject *, Py_ssize_t);
 
   if (self->type == MAT_ACCESS_ROW) {
     matrix_access_len = matrix_user->row_num;

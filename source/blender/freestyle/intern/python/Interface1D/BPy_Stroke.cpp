@@ -74,7 +74,7 @@ static Py_ssize_t Stroke_sq_length(BPy_Stroke *self)
   return self->s->strokeVerticesSize();
 }
 
-static PyObject *Stroke_sq_item(BPy_Stroke *self, int keynum)
+static PyObject *Stroke_sq_item(BPy_Stroke *self, Py_ssize_t keynum)
 {
   if (keynum < 0) {
     keynum += Stroke_sq_length(self);

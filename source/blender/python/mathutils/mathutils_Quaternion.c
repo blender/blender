@@ -881,13 +881,13 @@ static Py_hash_t Quaternion_hash(QuaternionObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Quaternion_len(QuaternionObject *UNUSED(self))
+static Py_ssize_t Quaternion_len(QuaternionObject *UNUSED(self))
 {
   return QUAT_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Quaternion_item(QuaternionObject *self, int i)
+static PyObject *Quaternion_item(QuaternionObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = QUAT_SIZE - i;
@@ -908,7 +908,7 @@ static PyObject *Quaternion_item(QuaternionObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Quaternion_ass_item(QuaternionObject *self, int i, PyObject *ob)
+static int Quaternion_ass_item(QuaternionObject *self, Py_ssize_t i, PyObject *ob)
 {
   float f;
 

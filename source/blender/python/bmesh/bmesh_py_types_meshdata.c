@@ -391,7 +391,7 @@ typedef struct BPy_BMDeformVert {
 /* Mapping Protocols
  * ================= */
 
-static int bpy_bmdeformvert_len(BPy_BMDeformVert *self)
+static Py_ssize_t bpy_bmdeformvert_len(BPy_BMDeformVert *self)
 {
   return self->data->totweight;
 }
