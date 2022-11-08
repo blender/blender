@@ -737,26 +737,7 @@ void ED_node_set_active(
          * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
         if (node->id != nullptr && GS(node->id->name) == ID_IM) {
           Image *image = (Image *)node->id;
-          wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-          LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-            const bScreen *screen = WM_window_get_active_screen(win);
-            LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-              LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-                if (sl->spacetype != SPACE_IMAGE) {
-                  continue;
-                }
-                SpaceImage *sima = (SpaceImage *)sl;
-                if (sima->pin) {
-                  continue;
-                }
-                if (sima->image &&
-                    ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-                  continue;
-                }
-                ED_space_image_set(bmain, sima, image, true);
-              }
-            }
-          }
+          ED_space_image_sync(bmain, image, true);
         }
 
         if (r_active_texture_changed) {

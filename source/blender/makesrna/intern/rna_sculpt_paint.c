@@ -537,24 +537,9 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  bScreen *screen;
   Image *ima = scene->toolsettings->imapaint.canvas;
 
-  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-    ScrArea *area;
-    for (area = screen->areabase.first; area; area = area->next) {
-      SpaceLink *slink;
-      for (slink = area->spacedata.first; slink; slink = slink->next) {
-        if (slink->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = (SpaceImage *)slink;
-
-          if (!sima->pin) {
-            ED_space_image_set(bmain, sima, ima, true);
-          }
-        }
-      }
-    }
-  }
+  ED_space_image_sync(bmain, ima, false);
 
   if (ob && ob->type == OB_MESH) {
     ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
