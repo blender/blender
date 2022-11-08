@@ -194,7 +194,7 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
                                          const pxr::UsdSkelBindingAPI &skel_api,
                                          const std::vector<std::string> &bone_names) const
 {
-  if (!(skel_api && ob && mesh && mesh->dvert && mesh->totvert > 0)) {
+  if (!(skel_api && ob && mesh && mesh->totvert > 0)) {
     return;
   }
 
@@ -223,16 +223,17 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
     return;
   }
 
+  const Span<MDeformVert> dverts = mesh->deform_verts();
+
   int max_totweight = 1;
-  for (int i = 0; i < mesh->totvert; ++i) {
-    MDeformVert &vert = mesh->dvert[i];
+  for (const int i : dverts.index_range()) {
+    const MDeformVert &vert = dverts[i];
     if (vert.totweight > max_totweight) {
       max_totweight = vert.totweight;
     }
   }
 
   const int ELEM_SIZE = max_totweight;
-
   int num_points = mesh->totvert;
 
   pxr::VtArray<int> joint_indices(num_points * ELEM_SIZE, 0);
@@ -244,9 +245,8 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
   /* Record number of out of bounds vert group indices, for error reporting. */
   int num_out_of_bounds = 0;
 
-  for (int i = 0; i < mesh->totvert; ++i) {
-
-    MDeformVert &vert = mesh->dvert[i];
+  for (const int i : dverts.index_range()) {
+    const MDeformVert &vert = dverts[i];
 
     /* Sum of the weights, for normalizing. */
     float sum_weights = 0.0f;
