@@ -2799,11 +2799,6 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   int flag = 0;
 
-  if (!typeInfo->defaultname && CustomData_has_layer(data, type)) {
-    MEM_SAFE_FREE(layerdata);
-    return &data->layers[CustomData_get_layer_index(data, type)];
-  }
-
   void *newlayerdata = nullptr;
   switch (alloctype) {
     case CD_SET_DEFAULT:
@@ -2854,6 +2849,21 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
         }
       }
       break;
+  }
+
+  /* Some layer types only support a single layer. */
+  const bool reuse_existing_layer = !typeInfo->defaultname && CustomData_has_layer(data, type);
+  if (reuse_existing_layer) {
+    CustomDataLayer &layer = data->layers[CustomData_get_layer_index(data, type)];
+    if (layer.data != nullptr) {
+      if (typeInfo->free) {
+        typeInfo->free(layer.data, totelem, typeInfo->size);
+      }
+      MEM_SAFE_FREE(layer.data);
+    }
+    layer.data = newlayerdata;
+    layer.flag = flag;
+    return &layer;
   }
 
   int index = data->totlayer;
