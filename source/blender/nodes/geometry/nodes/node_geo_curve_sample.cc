@@ -528,29 +528,33 @@ static void node_geo_exec(GeoNodeExecParams params)
       mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? "Factor" : "Length");
   GField src_values_field = get_input_attribute_field(params, data_type);
 
-  auto sample_fn = std::make_unique<SampleCurveFunction>(
-      std::move(geometry_set), mode, std::move(src_values_field));
-
   std::shared_ptr<FieldOperation> sample_op;
   if (curves.curves_num() == 1) {
-    sample_op = FieldOperation::Create(std::move(sample_fn),
-                                       {fn::make_constant_field<int>(0), std::move(length_field)});
+    sample_op = FieldOperation::Create(
+        std::make_unique<SampleCurveFunction>(
+            std::move(geometry_set), mode, std::move(src_values_field)),
+        {fn::make_constant_field<int>(0), std::move(length_field)});
   }
   else {
-    Field<int> curve_index;
-    Field<float> length_in_curve;
     if (storage.use_all_curves) {
       auto index_fn = std::make_unique<SampleFloatSegmentsFunction>(
           curve_accumulated_lengths(curves), mode);
       auto index_op = FieldOperation::Create(std::move(index_fn), {std::move(length_field)});
-      curve_index = Field<int>(index_op, 0);
-      length_in_curve = Field<float>(index_op, 1);
+      Field<int> curve_index = Field<int>(index_op, 0);
+      Field<float> length_in_curve = Field<float>(index_op, 1);
+      sample_op = FieldOperation::Create(
+          std::make_unique<SampleCurveFunction>(
+              std::move(geometry_set), GEO_NODE_CURVE_SAMPLE_LENGTH, std::move(src_values_field)),
+          {std::move(curve_index), std::move(length_in_curve)});
     }
     else {
-      curve_index = params.extract_input<Field<int>>("Curve Index");
-      length_in_curve = std::move(length_field);
+      Field<int> curve_index = params.extract_input<Field<int>>("Curve Index");
+      Field<float> length_in_curve = std::move(length_field);
+      sample_op = FieldOperation::Create(
+          std::make_unique<SampleCurveFunction>(
+              std::move(geometry_set), mode, std::move(src_values_field)),
+          {std::move(curve_index), std::move(length_in_curve)});
     }
-    sample_op = FieldOperation::Create(std::move(sample_fn), {curve_index, length_in_curve});
   }
 
   params.set_output("Position", Field<float3>(sample_op, 0));
