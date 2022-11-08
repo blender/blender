@@ -104,9 +104,8 @@ void register_node_type_tex_curve_rgb(void)
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   ntype.initfunc = rgb_init;
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  ntype.init_exec_fn = node_initexec_curves ;
-  ntype.exec_fn =rgb_exec ;
-
+  ntype.init_exec_fn = node_initexec_curves;
+  ntype.exec_fn = rgb_exec;
 
   nodeRegisterType(&ntype);
 }
