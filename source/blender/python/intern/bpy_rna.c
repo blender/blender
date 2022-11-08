@@ -7672,14 +7672,14 @@ static struct PyMethodDef bpy_types_module_methods[] = {
 PyDoc_STRVAR(bpy_types_module_doc, "Access to internal Blender types");
 static struct PyModuleDef bpy_types_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bpy.types",                          /* m_name */
-    bpy_types_module_doc,                 /* m_doc */
-    sizeof(struct BPy_TypesModule_State), /* m_size */
-    bpy_types_module_methods,             /* m_methods */
-    NULL,                                 /* m_slots */
-    NULL,                                 /* m_traverse */
-    NULL,                                 /* m_clear */
-    NULL,                                 /* m_free */
+    /*m_name*/ "bpy.types",
+    /*m_doc*/ bpy_types_module_doc,
+    /*m_size*/ sizeof(struct BPy_TypesModule_State),
+    /*m_methods*/ bpy_types_module_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_rna_types(void)

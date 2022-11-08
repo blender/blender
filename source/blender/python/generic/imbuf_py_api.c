@@ -557,14 +557,14 @@ PyDoc_STRVAR(IMB_doc,
              ":class:`bpy.types.Image` data-block context.\n");
 static struct PyModuleDef IMB_module_def = {
     PyModuleDef_HEAD_INIT,
-    "imbuf",     /* m_name */
-    IMB_doc,     /* m_doc */
-    0,           /* m_size */
-    IMB_methods, /* m_methods */
-    NULL,        /* m_slots */
-    NULL,        /* m_traverse */
-    NULL,        /* m_clear */
-    NULL,        /* m_free */
+    /*m_name*/ "imbuf",
+    /*m_doc*/ IMB_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ IMB_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_imbuf(void)
@@ -601,14 +601,14 @@ PyDoc_STRVAR(IMB_types_doc,
 
 static struct PyModuleDef IMB_types_module_def = {
     PyModuleDef_HEAD_INIT,
-    "imbuf.types", /* m_name */
-    IMB_types_doc, /* m_doc */
-    0,             /* m_size */
-    NULL,          /* m_methods */
-    NULL,          /* m_slots */
-    NULL,          /* m_traverse */
-    NULL,          /* m_clear */
-    NULL,          /* m_free */
+    /*m_name*/ "imbuf.types",
+    /*m_doc*/ IMB_types_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_imbuf_types(void)

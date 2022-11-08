@@ -1293,14 +1293,14 @@ PyDoc_STRVAR(py_bvhtree_doc,
              "BVH tree structures for proximity searches and ray casts on geometry.");
 static struct PyModuleDef bvhtree_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "mathutils.bvhtree", /* m_name */
-    py_bvhtree_doc,      /* m_doc */
-    0,                   /* m_size */
-    NULL,                /* m_methods */
-    NULL,                /* m_slots */
-    NULL,                /* m_traverse */
-    NULL,                /* m_clear */
-    NULL,                /* m_free */
+    /*m_name*/ "mathutils.bvhtree",
+    /*m_doc*/ py_bvhtree_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyMODINIT_FUNC PyInit_mathutils_bvhtree(void)

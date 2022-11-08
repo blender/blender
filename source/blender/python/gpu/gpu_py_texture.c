@@ -565,9 +565,14 @@ static struct PyMethodDef pygpu_texture__m_methods[] = {
 PyDoc_STRVAR(pygpu_texture__m_doc, "This module provides utils for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.texture",
-    .m_doc = pygpu_texture__m_doc,
-    .m_methods = pygpu_texture__m_methods,
+    /*m_name*/ "gpu.texture",
+    /*m_doc*/ pygpu_texture__m_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_texture__m_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /** \} */

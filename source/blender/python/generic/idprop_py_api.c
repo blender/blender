@@ -2092,14 +2092,14 @@ static PyObject *BPy_IDGroup_ViewItems_CreatePyObject(BPy_IDProperty *group)
 
 static struct PyModuleDef IDProp_types_module_def = {
     PyModuleDef_HEAD_INIT,
-    "idprop.types", /* m_name */
-    NULL,           /* m_doc */
-    0,              /* m_size */
-    NULL,           /* m_methods */
-    NULL,           /* m_slots */
-    NULL,           /* m_traverse */
-    NULL,           /* m_clear */
-    NULL,           /* m_free */
+    /*m_name*/ "idprop.types",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 static PyObject *BPyInit_idprop_types(void)
@@ -2141,14 +2141,14 @@ PyDoc_STRVAR(IDProp_module_doc,
              "This module provides access id property types (currently mainly for docs).");
 static struct PyModuleDef IDProp_module_def = {
     PyModuleDef_HEAD_INIT,
-    "idprop",          /* m_name */
-    IDProp_module_doc, /* m_doc */
-    0,                 /* m_size */
-    IDProp_methods,    /* m_methods */
-    NULL,              /* m_slots */
-    NULL,              /* m_traverse */
-    NULL,              /* m_clear */
-    NULL,              /* m_free */
+    /*m_name*/ "idprop",
+    /*m_doc*/ IDProp_module_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ IDProp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_idprop(void)

@@ -1376,14 +1376,14 @@ BGL_Wrap(TexImage3DMultisample,
 
 static struct PyModuleDef BGL_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bgl", /* m_name */
-    NULL,  /* m_doc */
-    0,     /* m_size */
-    NULL,  /* m_methods */
-    NULL,  /* m_slots */
-    NULL,  /* m_traverse */
-    NULL,  /* m_clear */
-    NULL,  /* m_free */
+    /*m_name*/ "bgl",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 static void py_module_dict_add_int(PyObject *dict, const char *name, int value)
