@@ -82,24 +82,6 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
   return true;
 }
 
-void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *seq)
-{
-  int left, start;
-  if (!SEQ_transform_single_image_check(seq)) {
-    return;
-  }
-
-  /* make sure the image is always at the start since there is only one,
-   * adjusting its start should be ok */
-  left = SEQ_time_left_handle_frame_get(scene, seq);
-  start = seq->start;
-  if (start != left) {
-    const int offset = left - start;
-    seq_time_translate_handles(scene, seq, -offset);
-    seq->start += offset;
-  }
-}
-
 bool SEQ_transform_sequence_can_be_translated(Sequence *seq)
 {
   return !(seq->type & SEQ_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(seq->type) == 0);

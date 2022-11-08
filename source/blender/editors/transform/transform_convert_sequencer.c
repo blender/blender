@@ -615,7 +615,6 @@ static void flushTransSeq(TransInfo *t)
       case SEQ_LEFTSEL: { /* No vertical transform. */
         int old_startdisp = SEQ_time_left_handle_frame_get(scene, seq);
         SEQ_time_left_handle_frame_set(t->scene, seq, new_frame);
-        SEQ_transform_fix_single_image_seq_offsets(t->scene, seq);
 
         if (abs(SEQ_time_left_handle_frame_get(scene, seq) - old_startdisp) > abs(max_offset)) {
           max_offset = SEQ_time_left_handle_frame_get(scene, seq) - old_startdisp;
@@ -625,7 +624,6 @@ static void flushTransSeq(TransInfo *t)
       case SEQ_RIGHTSEL: { /* No vertical transform. */
         int old_enddisp = SEQ_time_right_handle_frame_get(scene, seq);
         SEQ_time_right_handle_frame_set(t->scene, seq, new_frame);
-        SEQ_transform_fix_single_image_seq_offsets(t->scene, seq);
 
         if (abs(SEQ_time_right_handle_frame_get(scene, seq) - old_enddisp) > abs(max_offset)) {
           max_offset = SEQ_time_right_handle_frame_get(scene, seq) - old_enddisp;
