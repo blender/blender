@@ -381,13 +381,44 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     return false;
   }
 
+  /* Skip creating OptiX module if only doing denoising. */
+  const bool need_optix_kernels = (kernel_features &
+                                   (KERNEL_FEATURE_PATH_TRACING | KERNEL_FEATURE_BAKING));
+
+  /* Detect existence of OptiX kernel and SDK here early. So we can error out
+   * before compiling the CUDA kernels, to avoid failing right after when
+   * compiling the OptiX kernel. */
+  string ptx_filename;
+  if (need_optix_kernels) {
+    ptx_filename = path_get(
+        (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+            "lib/kernel_optix_shader_raytrace.ptx" :
+            "lib/kernel_optix.ptx");
+    if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
+      std::string optix_include_dir = get_optix_include_dir();
+      if (optix_include_dir.empty()) {
+        set_error(
+            "Unable to compile OptiX kernels at runtime. Set OPTIX_ROOT_DIR environment variable "
+            "to a directory containing the OptiX SDK.");
+        return false;
+      }
+      else if (!path_is_directory(optix_include_dir)) {
+        set_error(string_printf(
+            "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
+            "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
+            "directory containing the OptiX SDK.",
+            optix_include_dir.c_str()));
+        return false;
+      }
+    }
+  }
+
   /* Load CUDA modules because we need some of the utility kernels. */
   if (!CUDADevice::load_kernels(kernel_features)) {
     return false;
   }
 
-  /* Skip creating OptiX module if only doing denoising. */
-  if (!(kernel_features & (KERNEL_FEATURE_PATH_TRACING | KERNEL_FEATURE_BAKING))) {
+  if (!need_optix_kernels) {
     return true;
   }
 
@@ -469,28 +500,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   { /* Load and compile PTX module with OptiX kernels. */
-    string ptx_data, ptx_filename = path_get(
-                         (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
-                             "lib/kernel_optix_shader_raytrace.ptx" :
-                             "lib/kernel_optix.ptx");
+    string ptx_data;
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
-      std::string optix_include_dir = get_optix_include_dir();
-      if (optix_include_dir.empty()) {
-        set_error(
-            "Unable to compile OptiX kernels at runtime. Set OPTIX_ROOT_DIR environment variable "
-            "to a directory containing the OptiX SDK.");
-        return false;
-      }
-      else if (!path_is_directory(optix_include_dir)) {
-        set_error(string_printf(
-            "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
-            "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
-            "directory containing the OptiX SDK.",
-            optix_include_dir.c_str()));
-        return false;
-      }
+      string cflags = compile_kernel_get_common_cflags(kernel_features);
       ptx_filename = compile_kernel(
-          kernel_features,
+          cflags,
           (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
               "kernel_shader_raytrace" :
               "kernel",
