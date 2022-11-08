@@ -993,7 +993,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
   }
 
   if (len != -1) {
-    sprintf(--c, "[%d]", len);
+    BLI_sprintf(--c, "[%d]", len);
   }
 
   /* If a pointer, try to print name of pointer target too. */

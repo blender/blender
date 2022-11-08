@@ -1386,7 +1386,7 @@ static void ffmpeg_filepath_get(
 
   if ((rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0) {
     if (context) {
-      sprintf(autosplit, "_%03d", context->ffmpeg_autosplit_count);
+      BLI_snprintf(autosplit, sizeof(autosplit), "_%03d", context->ffmpeg_autosplit_count);
     }
   }
 

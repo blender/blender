@@ -3436,7 +3436,7 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
 static void ntree_interface_identifier_base(bNodeTree *ntree, char *base)
 {
   /* generate a valid RNA identifier */
-  sprintf(base, "NodeTreeInterface_%s", ntree->id.name + 2);
+  BLI_sprintf(base, "NodeTreeInterface_%s", ntree->id.name + 2);
   RNA_identifier_sanitize(base, false);
 }
 
@@ -3462,8 +3462,8 @@ static void ntree_interface_identifier(bNodeTree *ntree,
   BLI_uniquename_cb(
       ntree_interface_unique_identifier_check, nullptr, base, '_', identifier, maxlen);
 
-  sprintf(name, "Node Tree %s Interface", ntree->id.name + 2);
-  sprintf(description, "Interface properties of node group %s", ntree->id.name + 2);
+  BLI_sprintf(name, "Node Tree %s Interface", ntree->id.name + 2);
+  BLI_sprintf(description, "Interface properties of node group %s", ntree->id.name + 2);
 }
 
 static void ntree_interface_type_create(bNodeTree *ntree)

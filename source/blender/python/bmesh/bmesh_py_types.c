@@ -7,6 +7,7 @@
 
 #include "BLI_math.h"
 #include "BLI_sort.h"
+#include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -4246,16 +4247,16 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
   /* zero to ensure string is always NULL terminated */
   char *ret_ptr = ret;
   if (htype & BM_VERT) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
   }
   if (htype & BM_EDGE) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
   }
   if (htype & BM_FACE) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
   }
   if (htype & BM_LOOP) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
   }
   ret[0] = '(';
   *ret_ptr++ = ')';

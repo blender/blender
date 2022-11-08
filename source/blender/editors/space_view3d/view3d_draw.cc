@@ -1306,15 +1306,15 @@ static void draw_selected_name(
   char info[300];
   char *s = info;
 
-  s += sprintf(s, "(%d)", cfra);
+  s += BLI_sprintf(s, "(%d)", cfra);
 
   if ((ob == nullptr) || (ob->mode == OB_MODE_OBJECT)) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
-    s += sprintf(s,
-                 " %s%s",
-                 BKE_collection_ui_name_get(layer_collection->collection),
-                 (ob == nullptr) ? "" : " |");
+    s += BLI_sprintf(s,
+                     " %s%s",
+                     BKE_collection_ui_name_get(layer_collection->collection),
+                     (ob == nullptr) ? "" : " |");
   }
 
   /* Info can contain:
@@ -1407,12 +1407,12 @@ static void draw_selected_name(
   }
 
   if (markern) {
-    s += sprintf(s, " <%s>", markern);
+    s += BLI_sprintf(s, " <%s>", markern);
   }
 
   if (v3d->flag2 & V3D_SHOW_VIEWER) {
     if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
-      s += sprintf(s, "%s", IFACE_(" (Viewer)"));
+      s += BLI_sprintf(s, "%s", IFACE_(" (Viewer)"));
     }
   }
 

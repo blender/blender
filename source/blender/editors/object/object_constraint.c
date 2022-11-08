@@ -182,7 +182,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  sprintf(buf, "Scripts: %%t|[None]%%x0|");
+  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */
@@ -201,7 +201,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
     if (BPY_is_pyconstraint(text)) {
       BLI_dynstr_append(pupds, text->id.name + 2);
 
-      sprintf(buf, "%%x%d", i);
+      BLI_snprintf(buf, sizeof(buf), "%%x%d", i);
       BLI_dynstr_append(pupds, buf);
 
       if (text->id.next) {
