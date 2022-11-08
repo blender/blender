@@ -562,31 +562,36 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       GPU_matrix_push();
 
+      float center[2] = {
+          ups->draw_anchored ? ups->anchored_initial_mouse[0] : x,
+          ups->draw_anchored ? ups->anchored_initial_mouse[1] : y,
+      };
+
       /* Brush rotation. */
-      GPU_matrix_translate_2f(x, y);
+      GPU_matrix_translate_2fv(center);
       GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
-      GPU_matrix_translate_2f(-x, -y);
+      GPU_matrix_translate_2f(-center[0], -center[1]);
 
       /* Scale based on tablet pressure. */
       if (primary && ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
         const float scale = ups->size_pressure_value;
-        GPU_matrix_translate_2f(x, y);
+        GPU_matrix_translate_2fv(center);
         GPU_matrix_scale_2f(scale, scale);
-        GPU_matrix_translate_2f(-x, -y);
+        GPU_matrix_translate_2f(-center[0], -center[1]);
       }
 
       if (ups->draw_anchored) {
-        quad.xmin = ups->anchored_initial_mouse[0] - ups->anchored_size;
-        quad.ymin = ups->anchored_initial_mouse[1] - ups->anchored_size;
-        quad.xmax = ups->anchored_initial_mouse[0] + ups->anchored_size;
-        quad.ymax = ups->anchored_initial_mouse[1] + ups->anchored_size;
+        quad.xmin = center[0] - ups->anchored_size;
+        quad.ymin = center[1] - ups->anchored_size;
+        quad.xmax = center[0] + ups->anchored_size;
+        quad.ymax = center[1] + ups->anchored_size;
       }
       else {
         const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
-        quad.xmin = x - radius;
-        quad.ymin = y - radius;
-        quad.xmax = x + radius;
-        quad.ymax = y + radius;
+        quad.xmin = center[0] - radius;
+        quad.ymin = center[1] - radius;
+        quad.xmax = center[0] + radius;
+        quad.ymax = center[1] + radius;
       }
     }
     else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
