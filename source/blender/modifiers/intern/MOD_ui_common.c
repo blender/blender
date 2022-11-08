@@ -352,7 +352,8 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       buttons_number++;
     }
     /* Some modifiers can work with pre-tessellated curves only. */
-    else if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+    else if (ELEM(
+                 md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
       /* Add button (appearing to be ON) and add tip why this can't be changed. */
       sub = uiLayoutRow(row, true);
       uiBlock *block = uiLayoutGetBlock(sub);
