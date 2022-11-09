@@ -178,7 +178,7 @@ static void pointdensity_cache_psys(
   invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
   total_particles = psys->totpart + psys->totchild;
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
   pd->totpoints = total_particles;
@@ -258,10 +258,7 @@ static void pointdensity_cache_psys(
 
   BLI_bvhtree_balance(pd->point_tree);
 
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 }
 
 static void pointdensity_cache_vertex_color(PointDensity *pd,
@@ -780,7 +777,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
 
   invert_m4_m4(imat, object->object_to_world);
   total_particles = psys->totpart + psys->totchild;
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   for (i = 0, pa = psys->particles; i < total_particles; i++, pa++) {
     float co_object[3], co_min[3], co_max[3];
@@ -796,10 +793,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
     minmax_v3v3_v3(min, max, co_max);
   }
 
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 }
 
 void RE_point_density_cache(struct Depsgraph *depsgraph, PointDensity *pd)

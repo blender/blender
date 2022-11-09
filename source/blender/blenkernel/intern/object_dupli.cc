@@ -1390,7 +1390,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
     RNG *rng = BLI_rng_new_srandom(31415926u + uint(psys->seed));
 
-    psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+    psys_sim_data_init(&sim);
 
     /* Gather list of objects or single object. */
     int totcollection = 0;
@@ -1612,16 +1612,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
     }
 
     BLI_rng_free(rng);
+    psys_sim_data_free(&sim);
   }
 
   /* Clean up. */
   if (oblist) {
     MEM_freeN(oblist);
-  }
-
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = nullptr;
   }
 }
 
