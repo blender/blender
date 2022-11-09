@@ -1543,13 +1543,6 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 /** \name Draw Viewport Contents
  * \{ */
 
-static void view3d_virtual_camera_stage_set(Main *bmain, const bool virtual_stage)
-{
-  LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
-    camera->runtime.virtual_camera_stage = virtual_stage;
-  }
-}
-
 static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Object *object)
 {
   BLI_assert(object->type == OB_CAMERA);
@@ -1569,6 +1562,8 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   DRW_draw_render_loop_offscreen(
       depsgraph, engine_type, region, v3d, true, false, false, offscreen, nullptr);
   GPU_offscreen_unbind(offscreen, true);
+  camera->runtime.gpu_texture = GPU_offscreen_color_texture(
+      camera->runtime.virtual_display_texture);
 }
 
 static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
@@ -1600,18 +1595,11 @@ static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
     return;
   }
 
-  // go over each camera and set the flag to virtual camera.
-  view3d_virtual_camera_stage_set(bmain, true);
-
   GPU_debug_group_begin("VirtualCameras");
   for (Object *object : virtual_cameras) {
     view3d_virtual_camera_update(C, region, object);
   }
   GPU_debug_group_end();
-
-  // get reference of the gpu texture and change its ownership
-  // go over eah camera and set the flag back to main camera.
-  view3d_virtual_camera_stage_set(bmain, false);
 }
 
 static void view3d_draw_view(const bContext *C, ARegion *region)

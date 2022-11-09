@@ -72,11 +72,9 @@ typedef struct Camera_Runtime {
   float drw_focusmat[4][4];
   float drw_normalmat[4][4];
 
-  /* XXX(jbakker): Yuck but we are experimenting... true when virtual camera is evaluated, false
-   * when scene camera/main camera is evaluated. */
-  int virtual_camera_stage;
-  int _pad[1];
   struct GPUOffScreen *virtual_display_texture;
+  /* Local reference to not owning gpu texture. Used to have a reliable pointer to the texture. */
+  struct GPUTexture *gpu_texture;
 } Camera_Runtime;
 
 typedef struct Camera {
