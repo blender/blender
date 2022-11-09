@@ -65,6 +65,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
+#include "GPU_debug.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -1602,9 +1603,11 @@ static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
   // go over each camera and set the flag to virtual camera.
   view3d_virtual_camera_stage_set(bmain, true);
 
+  GPU_debug_group_begin("VirtualCameras");
   for (Object *object : virtual_cameras) {
     view3d_virtual_camera_update(C, region, object);
   }
+  GPU_debug_group_end();
 
   // get reference of the gpu texture and change its ownership
   // go over eah camera and set the flag back to main camera.
