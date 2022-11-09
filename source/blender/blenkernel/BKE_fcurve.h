@@ -431,6 +431,11 @@ bool BKE_fcurve_is_keyframable(struct FCurve *fcu);
 bool BKE_fcurve_is_protected(struct FCurve *fcu);
 
 /**
+ * Are any of the keyframe control points selected on the F-Curve?
+ */
+bool BKE_fcurve_has_selected_control_points(const struct FCurve *fcu);
+
+/**
  * Checks if the F-Curve has a Cycles modifier with simple settings
  * that warrant transition smoothing.
  */

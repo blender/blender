@@ -965,6 +965,18 @@ bool BKE_fcurve_is_protected(FCurve *fcu)
   return ((fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)));
 }
 
+bool BKE_fcurve_has_selected_control_points(const FCurve *fcu)
+{
+  int i;
+  BezTriple *bezt;
+  for (bezt = fcu->bezt, i = 0; i < fcu->totvert; ++i, ++bezt) {
+    if ((bezt->f2 & SELECT) != 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool BKE_fcurve_is_keyframable(FCurve *fcu)
 {
   /* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
