@@ -150,7 +150,7 @@ struct UvElement *BM_uv_element_get_head(struct UvElementMap *element_map,
 int BM_uv_element_get_unique_index(struct UvElementMap *element_map, struct UvElement *child);
 
 struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *element_map);
-int **BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map);
+int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map);
 
 /**
  * Can we edit UV's for this mesh?

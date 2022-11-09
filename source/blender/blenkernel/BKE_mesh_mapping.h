@@ -83,7 +83,7 @@ typedef struct UvElementMap {
   struct UvElement **head_table;
 
   /** If Non-NULL, pointer to index of each unique UV. */
-  int **unique_index_table;
+  int *unique_index_table;
 
   /** Number of islands, or zero if not calculated. */
   int total_islands;

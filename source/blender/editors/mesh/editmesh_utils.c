@@ -619,7 +619,7 @@ struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *elem
   return element_map->head_table;
 }
 
-int **BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map)
+int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map)
 {
   if (!element_map->unique_index_table) {
     element_map->unique_index_table = MEM_callocN(
@@ -650,7 +650,7 @@ int **BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map)
 
 int BM_uv_element_get_unique_index(struct UvElementMap *element_map, struct UvElement *child)
 {
-  int **unique_index = BM_uv_element_map_ensure_unique_index(element_map);
+  int *unique_index = BM_uv_element_map_ensure_unique_index(element_map);
   int index = child - element_map->storage;
   BLI_assert(0 <= index);
   BLI_assert(index < element_map->total_uvs);
