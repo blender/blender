@@ -708,12 +708,11 @@ bool file_set_asset_catalog_filter_settings(
 
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const ::AssetLibrary *asset_library)
+    const bke::AssetLibrary *asset_library)
 {
   AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);
-  const AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
-      asset_library);
+  const AssetCatalogService *catalog_service = asset_library->catalog_service.get();
 
   if (filter_settings->asset_catalog_visibility != FILE_SHOW_ASSETS_ALL_CATALOGS) {
     filter_settings->catalog_filter = std::make_unique<AssetCatalogFilter>(

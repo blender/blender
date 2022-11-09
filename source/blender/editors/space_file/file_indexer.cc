@@ -67,8 +67,9 @@ void ED_file_indexer_entries_extend_from_datablock_infos(
   }
 }
 
-static void ED_file_indexer_entry_free(void *indexer_entry)
+static void ED_file_indexer_entry_free(void *indexer_entry_ptr)
 {
+  FileIndexerEntry *indexer_entry = static_cast<FileIndexerEntry *>(indexer_entry_ptr);
   MEM_freeN(indexer_entry);
 }
 

@@ -12,9 +12,12 @@
 
 #include "BKE_asset_library.hh"
 
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 
 #include <memory>
+
+struct AssetLibraryReference;
 
 namespace blender::bke {
 
@@ -58,11 +61,16 @@ class AssetLibraryService {
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;
 
+  void foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const;
+
  protected:
   static std::unique_ptr<AssetLibraryService> instance_;
 
   /* Mapping absolute path of the library's top-level directory to the AssetLibrary instance. */
   Map<std::string, AssetLibraryPtr> on_disk_libraries_;
+  /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
+   * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
+   * above should be used. */
   AssetLibraryPtr current_file_library_;
 
   /* Handlers for managing the life cycle of the AssetLibraryService instance. */

@@ -1107,7 +1107,7 @@ typedef struct FileDirEntry {
   uint32_t uid; /* FileUID */
   /* Name needs freeing if FILE_ENTRY_NAME_FREE is set. Otherwise this is a direct pointer to a
    * name buffer. */
-  char *name;
+  const char *name;
 
   uint64_t size;
   int64_t time;
@@ -1134,7 +1134,7 @@ typedef struct FileDirEntry {
   /** If this file represents an asset, its asset data is here. Note that we may show assets of
    * external files in which case this is set but not the id above.
    * Note comment for FileListInternEntry.local_data, the same applies here! */
-  struct AssetMetaData *asset_data;
+  struct AssetRepresentation *asset;
 
   /* The icon_id for the preview image. */
   int preview_icon_id;

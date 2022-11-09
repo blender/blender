@@ -6,6 +6,7 @@
 
 #include "asset_library_service.hh"
 
+#include "BKE_asset_library.hh"
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
@@ -47,15 +48,10 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 {
   if (library_reference.type == ASSET_LIBRARY_LOCAL) {
     /* For the "Current File" library  we get the asset library root path based on main. */
-    char root_path[FILE_MAX];
-    if (bmain) {
-      BKE_asset_library_find_suitable_root_path_from_main(bmain, root_path);
-    }
-    else {
-      root_path[0] = '\0';
-    }
+    std::string root_path = bmain ? BKE_asset_library_find_suitable_root_path_from_main(bmain) :
+                                    "";
 
-    if (root_path[0] == '\0') {
+    if (root_path.empty()) {
       /* File wasn't saved yet. */
       return get_asset_library_current_file();
     }
@@ -104,7 +100,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
   AssetLibrary *lib = lib_uptr.get();
 
   lib->on_blend_save_handler_register();
-  lib->load(top_dir_trailing_slash);
+  lib->load_catalogs(top_dir_trailing_slash);
 
   on_disk_libraries_.add_new(top_dir_trailing_slash, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", top_dir_trailing_slash.c_str());
@@ -178,6 +174,17 @@ bool AssetLibraryService::has_any_unsaved_catalogs() const
   }
 
   return false;
+}
+
+void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const
+{
+  if (current_file_library_) {
+    fn(*current_file_library_);
+  }
+
+  for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
+    fn(*asset_lib_uptr);
+  }
 }
 
 }  // namespace blender::bke
