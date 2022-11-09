@@ -19,9 +19,7 @@ namespace blender::bke {
 /**
  * \brief Abstraction to reference an asset, with necessary data for display & interaction.
  *
- * #AssetRepresentation is the data-structure to store information about a single asset. It doesn't
- * contain the asset itself, but information like the metadata and preview, as well as methods to
- * interact with them. Think of it like a view on an asset.
+ * https://wiki.blender.org/wiki/Source/Architecture/Asset_System/Back_End#Asset_Representation
  */
 class AssetRepresentation {
   friend class AssetLibrary;
