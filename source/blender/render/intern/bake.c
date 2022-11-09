@@ -740,6 +740,7 @@ void RE_bake_pixels_populate(Mesh *me,
   MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  const int materials_num = targets->materials_num;
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -748,7 +749,11 @@ void RE_bake_pixels_populate(Mesh *me,
     bd.primitive_id = i;
 
     /* Find images matching this material. */
-    Image *image = targets->material_to_image[mp->mat_nr];
+    const int material_index = (materials_num) ? clamp_i(targets->material_to_image[mp->mat_nr],
+                                                         0,
+                                                         materials_num - 1) :
+                                                 0;
+    Image *image = targets->material_to_image[material_index];
     for (int image_id = 0; image_id < targets->images_num; image_id++) {
       BakeImage *bk_image = &targets->images[image_id];
       if (bk_image->image != image) {
