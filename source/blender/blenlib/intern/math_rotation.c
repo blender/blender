@@ -292,6 +292,10 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[1][2] - mat[2][1]) * s;
       q[2] = (mat[0][1] + mat[1][0]) * s;
       q[3] = (mat[2][0] + mat[0][2]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[1] = 1.0f;
+      }
     }
     else {
       const float trace = 1.0f - mat[0][0] + mat[1][1] - mat[2][2];
@@ -305,6 +309,10 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[2][0] - mat[0][2]) * s;
       q[1] = (mat[0][1] + mat[1][0]) * s;
       q[3] = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[2] = 1.0f;
+      }
     }
   }
   else {
@@ -320,6 +328,10 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[0][1] - mat[1][0]) * s;
       q[1] = (mat[2][0] + mat[0][2]) * s;
       q[2] = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[2] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[3] = 1.0f;
+      }
     }
     else {
       /* NOTE(@campbellbarton): A zero matrix will fall through to this block,
@@ -331,11 +343,15 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[1] = (mat[1][2] - mat[2][1]) * s;
       q[2] = (mat[2][0] - mat[0][2]) * s;
       q[3] = (mat[0][1] - mat[1][0]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[1] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[0] = 1.0f;
+      }
     }
   }
 
   BLI_assert(!(q[0] < 0.0f));
-  normalize_qt(q);
+  BLI_ASSERT_UNIT_QUAT(q);
 }
 
 static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])
