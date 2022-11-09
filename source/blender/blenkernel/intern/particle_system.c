@@ -515,10 +515,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
     MEM_freeN(ctx->vg_twist);
   }
 
-  if (ctx->sim.psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(ctx->sim.psys->lattice_deform_data);
-    ctx->sim.psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&ctx->sim);
 
   /* distribution */
   if (ctx->jit) {
@@ -3558,11 +3555,11 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
   invert_m4_m4(ob->imat, ob->obmat);
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
-
   if (psys->totpart == 0) {
     return;
   }
+
+  psys_sim_data_init(sim);
 
   /* save new keys for elements if needed */
   LOOP_PARTICLES
@@ -3597,6 +3594,8 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
       zero_v3(root->co);
     }
   }
+
+  psys_sim_data_free(sim);
 }
 
 /* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
@@ -4100,6 +4099,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 
   disp = psys_get_current_display_percentage(psys, use_render_params);
 
+  psys_sim_data_init(sim);
+
   LOOP_PARTICLES
   {
     psys_get_texture(sim, pa, &ptex, PAMAP_SIZE, cfra);
@@ -4107,8 +4108,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
     if (part->randsize > 0.0f) {
       pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
     }
-
-    psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
 
     dietime = pa->dietime;
 
@@ -4126,11 +4125,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
       pa->alive = PARS_ALIVE;
     }
 
-    if (psys->lattice_deform_data) {
-      BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-      psys->lattice_deform_data = NULL;
-    }
-
     if (psys_frand(psys, p) > disp) {
       pa->flag |= PARS_NO_DISP;
     }
@@ -4138,6 +4132,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
       pa->flag &= ~PARS_NO_DISP;
     }
   }
+
+  psys_sim_data_free(sim);
 }
 
 static bool particles_has_flip(short parttype)
@@ -4610,10 +4606,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
   update_children(sim, use_render_params);
 
   /* cleanup */
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(sim);
 }
 
 void psys_changed_type(Object *ob, ParticleSystem *psys)
