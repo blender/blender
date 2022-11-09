@@ -1264,6 +1264,12 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
       GXMAP(gkey, XKB_KEY_XF86AudioStop, GHOST_kKeyMediaStop);
       GXMAP(gkey, XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst);
       GXMAP(gkey, XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast);
+
+      /* Additional keys for non US layouts. */
+
+      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: T102287. */
+      GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
+
       default:
         /* Rely on #xkb_map_gkey_or_scan_code to report when no key can be found. */
         gkey = GHOST_kKeyUnknown;
