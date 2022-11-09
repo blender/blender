@@ -160,6 +160,11 @@ class Device {
     return true;
   }
 
+  virtual bool load_osl_kernels()
+  {
+    return true;
+  }
+
   /* GPU device only functions.
    * These may not be used on CPU or multi-devices. */
 

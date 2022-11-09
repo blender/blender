@@ -493,8 +493,8 @@ ccl_device_inline void volume_shader_eval(KernelGlobals kg,
 
     /* evaluate shader */
 #  ifdef __OSL__
-    if (kg->osl) {
-      OSLShader::eval_volume(kg, state, sd, path_flag);
+    if (kernel_data.kernel_features & KERNEL_FEATURE_OSL) {
+      osl_eval_nodes<SHADER_TYPE_VOLUME>(kg, state, sd, path_flag);
     }
     else
 #  endif

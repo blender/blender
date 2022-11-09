@@ -155,6 +155,10 @@ def with_osl():
     import _cycles
     return _cycles.with_osl
 
+def osl_version():
+    import _cycles
+    return _cycles.osl_version
+
 
 def with_path_guiding():
     import _cycles

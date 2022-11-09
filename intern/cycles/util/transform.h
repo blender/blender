@@ -196,14 +196,7 @@ ccl_device_inline Transform make_transform_frame(float3 N)
   return make_transform(dx.x, dx.y, dx.z, 0.0f, dy.x, dy.y, dy.z, 0.0f, N.x, N.y, N.z, 0.0f);
 }
 
-#ifndef __KERNEL_GPU__
-
-ccl_device_inline Transform transform_zero()
-{
-  Transform zero = {zero_float4(), zero_float4(), zero_float4()};
-  return zero;
-}
-
+#if !defined(__KERNEL_METAL__)
 ccl_device_inline Transform operator*(const Transform a, const Transform b)
 {
   float4 c_x = make_float4(b.x.x, b.y.x, b.z.x, 0.0f);
@@ -217,6 +210,15 @@ ccl_device_inline Transform operator*(const Transform a, const Transform b)
   t.z = make_float4(dot(a.z, c_x), dot(a.z, c_y), dot(a.z, c_z), dot(a.z, c_w));
 
   return t;
+}
+#endif
+
+#ifndef __KERNEL_GPU__
+
+ccl_device_inline Transform transform_zero()
+{
+  Transform zero = {zero_float4(), zero_float4(), zero_float4()};
+  return zero;
 }
 
 ccl_device_inline void print_transform(const char *label, const Transform &t)

@@ -297,8 +297,10 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                           ccl_private float2 *roughness,
                                           ccl_private float *eta)
 {
+#ifdef __SVM__
   bool refractive = false;
   float alpha = 1.0f;
+#endif
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
       *roughness = one_float2();

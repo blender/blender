@@ -37,6 +37,14 @@ set(SRC_KERNEL_DEVICE_OPTIX
   device/optix/kernel_shader_raytrace.cu
 )
 
+if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
+  set(SRC_KERNEL_DEVICE_OPTIX
+    ${SRC_KERNEL_DEVICE_OPTIX}
+    osl/services_optix.cu
+    device/optix/kernel_osl.cu
+  )
+endif()
+
 set(SRC_KERNEL_DEVICE_ONEAPI
   device/oneapi/kernel.cpp
 )
@@ -181,6 +189,16 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/vertex_color.h
 )
 
+if(WITH_CYCLES_OSL)
+  set(SRC_KERNEL_OSL_HEADERS
+    osl/osl.h
+    osl/closures_setup.h
+    osl/closures_template.h
+    osl/services_gpu.h
+    osl/types.h
+  )
+endif()
+
 set(SRC_KERNEL_GEOM_HEADERS
   geom/geom.h
   geom/attribute.h
@@ -306,6 +324,7 @@ set(SRC_KERNEL_HEADERS
   ${SRC_KERNEL_GEOM_HEADERS}
   ${SRC_KERNEL_INTEGRATOR_HEADERS}
   ${SRC_KERNEL_LIGHT_HEADERS}
+  ${SRC_KERNEL_OSL_HEADERS}
   ${SRC_KERNEL_SAMPLE_HEADERS}
   ${SRC_KERNEL_SVM_HEADERS}
   ${SRC_KERNEL_TYPES_HEADERS}
@@ -708,6 +727,16 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     kernel_optix_shader_raytrace
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
+  if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
+    CYCLES_OPTIX_KERNEL_ADD(
+      kernel_optix_osl
+      "device/optix/kernel_osl.cu"
+      "--relocatable-device-code=true")
+    CYCLES_OPTIX_KERNEL_ADD(
+      kernel_optix_osl_services
+      "osl/services_optix.cu"
+      "--relocatable-device-code=true")
+  endif()
 
   add_custom_target(cycles_kernel_optix ALL DEPENDS ${optix_ptx})
   cycles_set_solution_folder(cycles_kernel_optix)
@@ -995,6 +1024,7 @@ source_group("geom" FILES ${SRC_KERNEL_GEOM_HEADERS})
 source_group("integrator" FILES ${SRC_KERNEL_INTEGRATOR_HEADERS})
 source_group("kernel" FILES ${SRC_KERNEL_TYPES_HEADERS})
 source_group("light" FILES ${SRC_KERNEL_LIGHT_HEADERS})
+source_group("osl" FILES ${SRC_KERNEL_OSL_HEADERS})
 source_group("sample" FILES ${SRC_KERNEL_SAMPLE_HEADERS})
 source_group("svm" FILES ${SRC_KERNEL_SVM_HEADERS})
 source_group("util" FILES ${SRC_KERNEL_UTIL_HEADERS})
@@ -1031,6 +1061,7 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_FILM_HEADERS}" ${CYCLE
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_INTEGRATOR_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/integrator)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_LIGHT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/light)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_OSL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/osl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SAMPLE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/sample)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_TYPES_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)

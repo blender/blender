@@ -170,7 +170,7 @@ class ShaderManager {
     UPDATE_NONE = 0u,
   };
 
-  static ShaderManager *create(int shadingsystem);
+  static ShaderManager *create(int shadingsystem, Device *device);
   virtual ~ShaderManager();
 
   virtual void reset(Scene *scene) = 0;
