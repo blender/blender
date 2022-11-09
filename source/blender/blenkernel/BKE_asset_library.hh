@@ -40,9 +40,6 @@ struct AssetLibrary {
    * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
   static bool save_catalogs_when_file_is_saved;
 
-  /** The directory representing the root of this library. */
-  std::string root_path;
-
   std::unique_ptr<AssetCatalogService> catalog_service;
 
   AssetLibrary();
