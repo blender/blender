@@ -498,6 +498,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
     }
     tex->colorband = colorband;
     tex->sky = sky;
+    tex->camera = camera;
     tex->sampler_state = sampler_state;
     BLI_snprintf(tex->sampler_name, sizeof(tex->sampler_name), "samp%d", num_textures);
     if (ELEM(link_type, GPU_NODE_LINK_IMAGE_TILED, GPU_NODE_LINK_IMAGE_TILED_MAPPING)) {
@@ -637,12 +638,11 @@ GPUNodeLink *GPU_image_camera(GPUMaterial *mat, Camera *camera, eGPUSamplerState
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
-  GPUTexture *texture = camera->runtime.virtual_camera_stage ?
-                            NULL :
-                            GPU_offscreen_color_texture(camera->runtime.virtual_display_texture);
+  GPUTexture *texture = GPU_offscreen_color_texture(camera->runtime.virtual_display_texture);
   link->link_type = GPU_NODE_LINK_IMAGE_CAMERA;
   link->texture = gpu_node_graph_add_texture(
       graph, NULL, NULL, NULL, NULL, &texture, link->link_type, sampler_state);
+  GPU_material_flag_set(mat, GPU_MATFLAG_VIRTUAL_CAMERA);
   return link;
 }
 

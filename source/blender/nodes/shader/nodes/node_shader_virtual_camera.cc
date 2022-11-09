@@ -30,18 +30,10 @@ static int node_shader_gpu_virtual_camera(GPUMaterial *mat,
   Object *orig_object = DEG_get_original_object(object);
 
   Camera *cam = static_cast<Camera *>(orig_object->data);
-  const bool virtual_camera_stage = cam->runtime.virtual_camera_stage;
-  const float stage_mix = virtual_camera_stage ? 1.0f : 0.0f;
-
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
 
-  return GPU_stack_link(mat,
-                        node,
-                        "node_virtual_camera",
-                        in,
-                        out,
-                        GPU_image_camera(mat, cam, GPU_SAMPLER_DEFAULT),
-                        GPU_uniform(&stage_mix));
+  return GPU_stack_link(
+      mat, node, "node_virtual_camera", in, out, GPU_image_camera(mat, cam, GPU_SAMPLER_DEFAULT));
 }
 
 }  // namespace blender::nodes::node_shader_virtual_camera_cc

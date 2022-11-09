@@ -1836,7 +1836,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
           grp, tex->sampler_name, *tex->sky, eGPUSamplerState(tex->sampler_state));
     }
     else if (tex->camera) {
-      /* Sky */
+      /* VirtualCamera */
       DRW_shgroup_uniform_texture_ex(
           grp, tex->sampler_name, *tex->camera, eGPUSamplerState(tex->sampler_state));
     }

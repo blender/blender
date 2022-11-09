@@ -394,7 +394,7 @@ void GPUCodegen::generate_resources()
     }
     else if (tex->camera) {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(0, ImageType::FLOAT_2D, name, Frequency::PASS);
+      info.sampler(0, ImageType::FLOAT_2D, name, Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
