@@ -27,7 +27,7 @@ struct Main;
 
 namespace blender::bke {
 
-struct AssetRepresentation;
+class AssetRepresentation;
 
 /**
  * AssetLibrary provides access to an asset library's data.

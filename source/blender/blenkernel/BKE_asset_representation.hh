@@ -22,7 +22,7 @@ namespace blender::bke {
  * https://wiki.blender.org/wiki/Source/Architecture/Asset_System/Back_End#Asset_Representation
  */
 class AssetRepresentation {
-  friend class AssetLibrary;
+  friend struct AssetLibrary;
 
   struct ExternalAsset {
     std::string name;
