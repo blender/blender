@@ -156,6 +156,13 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   u = v;
   v = 1.0f - tmp - v;
 
+  const float tmpdx = dudx;
+  const float tmpdy = dudy;
+  dudx = dvdx;
+  dudy = dvdy;
+  dvdx = -tmpdx - dvdx;
+  dvdy = -tmpdy - dvdy;
+
   /* Position and normal on triangle. */
   const int object = kernel_data.bake.object_index;
   float3 P, Ng;
