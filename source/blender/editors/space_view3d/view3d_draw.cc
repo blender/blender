@@ -1550,20 +1550,56 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   int2 resolution(1920 / 2, 1080 / 2);
-  Camera *camera = static_cast<Camera *>(object->data);
-  RenderEngineType *engine_type = ED_view3d_engine_type(scene, OB_RENDER);
 
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  int old_persp = rv3d->persp;
+  Object *old_camera = v3d->camera;
+  v3d->camera = object;
+  rv3d->persp = RV3D_CAMOB;
+
+  Camera *camera = static_cast<Camera *>(object->data);
   if (camera->runtime.virtual_display_texture == nullptr) {
     camera->runtime.virtual_display_texture = GPU_offscreen_create(
         UNPACK2(resolution), true, GPU_RGBA16F, nullptr);
   }
+
+  float4x4 winmat;
+
+  // TODO: Multi view support?
+  CameraParams params;
+  BKE_camera_params_init(&params);
+  /* fallback for non camera objects */
+  params.clip_start = v3d->clip_start;
+  params.clip_end = v3d->clip_end;
+  BKE_camera_params_from_object(&params, object);
+  BKE_camera_params_compute_viewplane(&params, UNPACK2(resolution), scene->r.xasp, scene->r.yasp);
+  BKE_camera_params_compute_matrix(&params);
+  copy_m4_m4(winmat.ptr(), params.winmat);
+
   GPUOffScreen *offscreen = camera->runtime.virtual_display_texture;
+
   GPU_offscreen_bind(offscreen, true);
-  DRW_draw_render_loop_offscreen(
-      depsgraph, engine_type, region, v3d, true, false, false, offscreen, nullptr);
+  ED_view3d_draw_offscreen(depsgraph,
+                           scene,
+                           OB_MATERIAL,
+                           v3d,
+                           region,
+                           UNPACK2(resolution),
+                           nullptr,
+                           winmat.ptr(),
+                           false,
+                           true,
+                           nullptr,
+                           false,
+                           true,
+                           offscreen,
+                           nullptr);
   GPU_offscreen_unbind(offscreen, true);
   camera->runtime.gpu_texture = GPU_offscreen_color_texture(
       camera->runtime.virtual_display_texture);
+
+  v3d->camera = old_camera;
+  rv3d->persp = old_persp;
 }
 
 static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
