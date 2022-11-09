@@ -1532,18 +1532,8 @@ static void emit_from_particles(Object *flow_ob,
     sim.scene = scene;
     sim.ob = flow_ob;
     sim.psys = psys;
-    sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
-    /* prepare curvemapping tables */
-    if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve) {
-      BKE_curvemapping_changed_all(psys->part->clumpcurve);
-    }
-    if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve) {
-      BKE_curvemapping_changed_all(psys->part->roughcurve);
-    }
-    if ((psys->part->child_flag & PART_CHILD_USE_TWIST_CURVE) && psys->part->twistcurve) {
-      BKE_curvemapping_changed_all(psys->part->twistcurve);
-    }
+    psys_sim_data_init(&sim);
 
     /* initialize particle cache */
     if (psys->part->type == PART_HAIR) {
@@ -1684,6 +1674,8 @@ static void emit_from_particles(Object *flow_ob,
     if (particle_vel) {
       MEM_freeN(particle_vel);
     }
+
+    psys_sim_data_free(&sim);
   }
 }
 

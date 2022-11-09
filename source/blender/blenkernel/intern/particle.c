@@ -684,10 +684,13 @@ void psys_set_current_num(Object *ob, int index)
   }
 }
 
-struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData *sim)
+void psys_sim_data_init(ParticleSimulationData *sim)
 {
-  struct LatticeDeformData *lattice_deform_data = NULL;
+  ParticleSystem *psys = sim->psys;
+  ParticleSettings *part = psys->part;
 
+  /* Prepare lattice deform. */
+  psys->lattice_deform_data = NULL;
   if (psys_in_edit_mode(sim->depsgraph, sim->psys) == 0) {
     Object *lattice = NULL;
     ModifierData *md = (ModifierData *)psys_get_modifier(sim->ob, sim->psys);
@@ -699,19 +702,39 @@ struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData
         if (md->mode & mode) {
           LatticeModifierData *lmd = (LatticeModifierData *)md;
           lattice = lmd->object;
-          sim->psys->lattice_strength = lmd->strength;
+          psys->lattice_strength = lmd->strength;
         }
 
         break;
       }
     }
     if (lattice) {
-      lattice_deform_data = BKE_lattice_deform_data_create(lattice, NULL);
+      psys->lattice_deform_data = BKE_lattice_deform_data_create(lattice, NULL);
     }
   }
 
-  return lattice_deform_data;
+  /* Prepare curvemapping tables. */
+  if ((part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && part->clumpcurve) {
+    BKE_curvemapping_init(part->clumpcurve);
+  }
+  if ((part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && part->roughcurve) {
+    BKE_curvemapping_init(part->roughcurve);
+  }
+  if ((part->child_flag & PART_CHILD_USE_TWIST_CURVE) && part->twistcurve) {
+    BKE_curvemapping_init(part->twistcurve);
+  }
 }
+
+void psys_sim_data_free(ParticleSimulationData *sim)
+{
+  ParticleSystem *psys = sim->psys;
+
+  if (psys->lattice_deform_data) {
+    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
+    psys->lattice_deform_data = NULL;
+  }
+}
+
 void psys_disable_all(Object *ob)
 {
   ParticleSystem *psys = ob->particlesystem.first;
@@ -2784,7 +2807,7 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
   ctx->cfra = cfra;
   ctx->editupdate = editupdate;
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&ctx->sim);
+  psys_sim_data_init(&ctx->sim);
 
   /* cache all relevant vertex groups if they exist */
   ctx->vg_length = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_LENGTH);
@@ -3340,7 +3363,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
   cache = psys->pathcache = psys_alloc_path_cache_buffers(
       &psys->pathcachebufs, totpart, segments + 1);
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
+  psys_sim_data_init(sim);
   ma = BKE_object_material_get(sim->ob, psys->part->omat);
   if (ma && (psys->part->draw_col == PART_DRAW_COL_MAT)) {
     copy_v3_v3(col, &ma->r);
@@ -3507,10 +3530,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 
   psys->totcached = totpart;
 
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(sim);
 
   if (vg_effector) {
     MEM_freeN(vg_effector);
@@ -4867,6 +4887,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
     }
   }
 }
+
 bool psys_get_particle_state(ParticleSimulationData *sim,
                              int p,
                              ParticleKey *state,
@@ -5225,7 +5246,7 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
   sim.psys = psys;
   sim.psmd = psys_get_modifier(ob, psys);
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   if (psys->lattice_deform_data) {
     ParticleData *pa = psys->particles;
@@ -5246,12 +5267,11 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
       }
     }
 
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-
     /* protect the applied shape */
     psys->flag |= PSYS_EDITED;
   }
+
+  psys_sim_data_free(&sim);
 }
 
 /* Draw Engine */

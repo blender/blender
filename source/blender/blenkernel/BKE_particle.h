@@ -291,7 +291,11 @@ void psys_set_current_num(struct Object *ob, int index);
 /* UNUSED */
 // struct Object *psys_find_object(struct Scene *scene, struct ParticleSystem *psys);
 
-struct LatticeDeformData *psys_create_lattice_deform_data(struct ParticleSimulationData *sim);
+/**
+ * Initialize/free data for particle simulation evaluation.
+ */
+void psys_sim_data_init(struct ParticleSimulationData *sim);
+void psys_sim_data_free(struct ParticleSimulationData *sim);
 
 /**
  * For a given evaluated particle system get its original.
@@ -416,7 +420,7 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim,
                                struct ParticleKey *state,
                                bool vel);
 /**
- * Gets particle's state at a time.
+ * Gets particle's state at a time. Must call psys_sim_data_init before this.
  * \return true if particle exists and can be seen and false if not.
  */
 bool psys_get_particle_state(struct ParticleSimulationData *sim,
