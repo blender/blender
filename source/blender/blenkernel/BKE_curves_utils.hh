@@ -543,12 +543,6 @@ IndexMask indices_for_type(const VArray<int8_t> &types,
                            const IndexMask selection,
                            Vector<int64_t> &r_indices);
 
-void indices_for_each_type(const VArray<int8_t> &types,
-                           const std::array<int, CURVE_TYPES_NUM> &counts,
-                           const IndexMask selection,
-                           std::array<IndexMask, CURVE_TYPES_NUM> &r_type_masks,
-                           std::array<Vector<int64_t>, CURVE_TYPES_NUM> &r_type_indices);
-
 void foreach_curve_by_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &type_counts,
                            IndexMask selection,
@@ -556,15 +550,6 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
                            FunctionRef<void(IndexMask)> poly_fn,
                            FunctionRef<void(IndexMask)> bezier_fn,
                            FunctionRef<void(IndexMask)> nurbs_fn);
-
-/**
- * Same as 'by_type' but index mask for each curve type is pre-computed.
- */
-void foreach_curve_by_type_mask(const std::array<IndexMask, CURVE_TYPES_NUM> &curve_type_mask,
-                                FunctionRef<void(IndexMask)> catmull_rom_fn,
-                                FunctionRef<void(IndexMask)> poly_fn,
-                                FunctionRef<void(IndexMask)> bezier_fn,
-                                FunctionRef<void(IndexMask)> nurbs_fn);
 
 /** \} */
 
