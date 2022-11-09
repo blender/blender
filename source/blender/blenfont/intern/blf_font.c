@@ -1356,13 +1356,24 @@ FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int m
     return NULL;
   }
 
+  font->name = BLI_strdup(name);
+  font->filepath = NULL;
+  blf_font_fill(font);
+
   if (FT_HAS_MULTIPLE_MASTERS(font->face)) {
     FT_Get_MM_Var(font->face, &(font->variations));
   }
 
-  font->name = BLI_strdup(name);
-  font->filepath = NULL;
-  blf_font_fill(font);
+  if (FT_HAS_KERNING(font->face)) {
+    /* Create kerning cache table and fill with value indicating "unset". */
+    font->kerning_cache = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
+    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
+        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
+      }
+    }
+  }
+
   return font;
 }
 
