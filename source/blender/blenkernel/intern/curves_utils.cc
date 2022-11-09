@@ -128,6 +128,18 @@ IndexMask indices_for_type(const VArray<int8_t> &types,
       selection, 4096, r_indices, [&](const int index) { return types_span[index] == type; });
 }
 
+void indices_for_each_type(const VArray<int8_t> &types,
+                           const std::array<int, CURVE_TYPES_NUM> &counts,
+                           const IndexMask selection,
+                           std::array<IndexMask, CURVE_TYPES_NUM> &r_type_masks,
+                           std::array<Vector<int64_t>, CURVE_TYPES_NUM> &r_type_indices)
+{
+  for (const int64_t curve_type : IndexRange(CURVE_TYPES_NUM)) {
+    r_type_masks[curve_type] = indices_for_type(
+        types, counts, CurveType(curve_type), selection, r_type_indices[curve_type]);
+  }
+}
+
 void foreach_curve_by_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &counts,
                            const IndexMask selection,
@@ -148,6 +160,23 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
   call_if_not_empty(CURVE_TYPE_POLY, poly_fn);
   call_if_not_empty(CURVE_TYPE_BEZIER, bezier_fn);
   call_if_not_empty(CURVE_TYPE_NURBS, nurbs_fn);
+}
+
+void foreach_curve_by_type_mask(const std::array<IndexMask, CURVE_TYPES_NUM> &curve_type_mask,
+                                FunctionRef<void(IndexMask)> catmull_rom_fn,
+                                FunctionRef<void(IndexMask)> poly_fn,
+                                FunctionRef<void(IndexMask)> bezier_fn,
+                                FunctionRef<void(IndexMask)> nurbs_fn)
+{
+  auto call_if_not_empty = [&](const IndexMask curve_type_mask, FunctionRef<void(IndexMask)> fn) {
+    if (!curve_type_mask.is_empty()) {
+      fn(curve_type_mask);
+    }
+  };
+  call_if_not_empty(curve_type_mask[0], catmull_rom_fn);
+  call_if_not_empty(curve_type_mask[1], poly_fn);
+  call_if_not_empty(curve_type_mask[2], bezier_fn);
+  call_if_not_empty(curve_type_mask[3], nurbs_fn);
 }
 
 }  // namespace blender::bke::curves
