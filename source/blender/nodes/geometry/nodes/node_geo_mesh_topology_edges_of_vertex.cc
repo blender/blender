@@ -139,7 +139,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/)const final
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
     return ATTR_DOMAIN_POINT;
   }
@@ -181,7 +181,7 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/)const final
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
     return ATTR_DOMAIN_POINT;
   }

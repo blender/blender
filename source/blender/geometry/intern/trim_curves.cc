@@ -768,100 +768,98 @@ void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
   const VArray<int8_t> curve_types = curves.curve_types();
 
   /* Compute. */
-  threading::parallel_for(
-      selection.index_range(), 128, [&](const IndexRange selection_range) {
-        for (const int64_t curve_i : selection.slice(selection_range)) {
-          CurveType curve_type = CurveType(curve_types[curve_i]);
+  threading::parallel_for(selection.index_range(), 128, [&](const IndexRange selection_range) {
+    for (const int64_t curve_i : selection.slice(selection_range)) {
+      CurveType curve_type = CurveType(curve_types[curve_i]);
 
-          int point_count;
-          if (curve_type == CURVE_TYPE_NURBS) {
-            dst_curve_types[curve_i] = CURVE_TYPE_POLY;
-            point_count = curves.evaluated_points_for_curve(curve_i).size();
-          }
-          else {
-            dst_curve_types[curve_i] = curve_type;
-            point_count = curves.points_num_for_curve(curve_i);
-          }
-          if (point_count == 1) {
-            /* Single point. */
-            dst_curve_size[curve_i] = 1;
-            src_ranges[curve_i] = bke::curves::IndexRangeCyclic(0, 0, 1, 1);
-            start_points[curve_i] = {0, 0, 0.0f};
-            end_points[curve_i] = {0, 0, 0.0f};
-            continue;
-          }
+      int point_count;
+      if (curve_type == CURVE_TYPE_NURBS) {
+        dst_curve_types[curve_i] = CURVE_TYPE_POLY;
+        point_count = curves.evaluated_points_for_curve(curve_i).size();
+      }
+      else {
+        dst_curve_types[curve_i] = curve_type;
+        point_count = curves.points_num_for_curve(curve_i);
+      }
+      if (point_count == 1) {
+        /* Single point. */
+        dst_curve_size[curve_i] = 1;
+        src_ranges[curve_i] = bke::curves::IndexRangeCyclic(0, 0, 1, 1);
+        start_points[curve_i] = {0, 0, 0.0f};
+        end_points[curve_i] = {0, 0, 0.0f};
+        continue;
+      }
 
-          const bool cyclic = src_cyclic[curve_i];
-          const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, cyclic);
-          BLI_assert(lengths.size() > 0);
+      const bool cyclic = src_cyclic[curve_i];
+      const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, cyclic);
+      BLI_assert(lengths.size() > 0);
 
-          const float start_length = trim_sample_length(lengths, starts[curve_i], mode);
-          float end_length;
+      const float start_length = trim_sample_length(lengths, starts[curve_i], mode);
+      float end_length;
 
-          bool equal_sample_point;
-          if (cyclic) {
-            end_length = trim_sample_length(lengths, ends[curve_i], mode);
-            const float cyclic_start = start_length == lengths.last() ? 0.0f : start_length;
-            const float cyclic_end = end_length == lengths.last() ? 0.0f : end_length;
-            equal_sample_point = cyclic_start == cyclic_end;
-          }
-          else {
-            end_length = ends[curve_i] <= starts[curve_i] ?
-                             start_length :
-                             trim_sample_length(lengths, ends[curve_i], mode);
-            equal_sample_point = start_length == end_length;
-          }
+      bool equal_sample_point;
+      if (cyclic) {
+        end_length = trim_sample_length(lengths, ends[curve_i], mode);
+        const float cyclic_start = start_length == lengths.last() ? 0.0f : start_length;
+        const float cyclic_end = end_length == lengths.last() ? 0.0f : end_length;
+        equal_sample_point = cyclic_start == cyclic_end;
+      }
+      else {
+        end_length = ends[curve_i] <= starts[curve_i] ?
+                         start_length :
+                         trim_sample_length(lengths, ends[curve_i], mode);
+        equal_sample_point = start_length == end_length;
+      }
 
-          start_points[curve_i] = lookup_curve_point(curves,
-                                                     curve_type,
-                                                     curve_i,
-                                                     lengths,
-                                                     start_length,
-                                                     cyclic,
-                                                     resolution[curve_i],
-                                                     point_count);
-          if (equal_sample_point) {
-            end_points[curve_i] = start_points[curve_i];
-            if (end_length <= start_length) {
-              /* Single point. */
-              dst_curve_size[curve_i] = 1;
-              src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_from_size(
-                  start_points[curve_i].index,
-                  start_points[curve_i].is_controlpoint(), /* Only iterate if control point. */
-                  point_count);
-            }
-            else {
-              /* Split. */
-              src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_between_endpoints(
-                                        start_points[curve_i], end_points[curve_i], point_count)
-                                        .push_loop();
-              const int count = 1 + !start_points[curve_i].is_controlpoint() + point_count;
-              BLI_assert(count > 1);
-              dst_curve_size[curve_i] = count;
-            }
-          }
-          else {
-            /* General case. */
-            end_points[curve_i] = lookup_curve_point(curves,
-                                                     curve_type,
-                                                     curve_i,
-                                                     lengths,
-                                                     end_length,
-                                                     cyclic,
-                                                     resolution[curve_i],
-                                                     point_count);
-
-            src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_between_endpoints(
-                start_points[curve_i], end_points[curve_i], point_count);
-            const int count = src_ranges[curve_i].size() +
-                              !start_points[curve_i].is_controlpoint() +
-                              !end_points[curve_i].is_controlpoint();
-            BLI_assert(count > 1);
-            dst_curve_size[curve_i] = count;
-          }
-          BLI_assert(dst_curve_size[curve_i] > 0);
+      start_points[curve_i] = lookup_curve_point(curves,
+                                                 curve_type,
+                                                 curve_i,
+                                                 lengths,
+                                                 start_length,
+                                                 cyclic,
+                                                 resolution[curve_i],
+                                                 point_count);
+      if (equal_sample_point) {
+        end_points[curve_i] = start_points[curve_i];
+        if (end_length <= start_length) {
+          /* Single point. */
+          dst_curve_size[curve_i] = 1;
+          src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_from_size(
+              start_points[curve_i].index,
+              start_points[curve_i].is_controlpoint(), /* Only iterate if control point. */
+              point_count);
         }
-      });
+        else {
+          /* Split. */
+          src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_between_endpoints(
+                                    start_points[curve_i], end_points[curve_i], point_count)
+                                    .push_loop();
+          const int count = 1 + !start_points[curve_i].is_controlpoint() + point_count;
+          BLI_assert(count > 1);
+          dst_curve_size[curve_i] = count;
+        }
+      }
+      else {
+        /* General case. */
+        end_points[curve_i] = lookup_curve_point(curves,
+                                                 curve_type,
+                                                 curve_i,
+                                                 lengths,
+                                                 end_length,
+                                                 cyclic,
+                                                 resolution[curve_i],
+                                                 point_count);
+
+        src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_between_endpoints(
+            start_points[curve_i], end_points[curve_i], point_count);
+        const int count = src_ranges[curve_i].size() + !start_points[curve_i].is_controlpoint() +
+                          !end_points[curve_i].is_controlpoint();
+        BLI_assert(count > 1);
+        dst_curve_size[curve_i] = count;
+      }
+      BLI_assert(dst_curve_size[curve_i] > 0);
+    }
+  });
 }
 
 /** \} */
