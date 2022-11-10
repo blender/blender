@@ -69,6 +69,10 @@
 #include <cstring>
 #include <mutex>
 
+#ifdef HAVE_POLL
+#  include <poll.h>
+#endif
+
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
@@ -1454,6 +1458,85 @@ static int memfd_create_sealed(const char *name)
   free(tmpname);
   return fd;
 #endif /* !HAVE_MEMFD_CREATE */
+}
+
+enum {
+  GWL_IOR_READ = 1 << 0,
+  GWL_IOR_WRITE = 1 << 1,
+  GWL_IOR_NO_RETRY = 1 << 2,
+};
+
+static int file_descriptor_is_io_ready(int fd, const int flags, const int timeout_ms)
+{
+  int result;
+
+  GHOST_ASSERT(flags & (GWL_IOR_READ | GWL_IOR_WRITE), "X");
+
+  /* Note: We don't bother to account for elapsed time if we get EINTR */
+  do {
+#ifdef HAVE_POLL
+    struct pollfd info;
+
+    info.fd = fd;
+    info.events = 0;
+    if (flags & GWL_IOR_READ) {
+      info.events |= POLLIN | POLLPRI;
+    }
+    if (flags & GWL_IOR_WRITE) {
+      info.events |= POLLOUT;
+    }
+    result = poll(&info, 1, timeout_ms);
+#else
+    fd_set rfdset, *rfdp = nullptr;
+    fd_set wfdset, *wfdp = nullptr;
+    struct timeval tv, *tvp = nullptr;
+
+    /* If this assert triggers we'll corrupt memory here */
+    GHOST_ASSERT(fd >= 0 && fd < FD_SETSIZE, "X");
+
+    if (flags & GWL_IOR_READ) {
+      FD_ZERO(&rfdset);
+      FD_SET(fd, &rfdset);
+      rfdp = &rfdset;
+    }
+    if (flags & GWL_IOR_WRITE) {
+      FD_ZERO(&wfdset);
+      FD_SET(fd, &wfdset);
+      wfdp = &wfdset;
+    }
+
+    if (timeout_ms >= 0) {
+      tv.tv_sec = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      tvp = &tv;
+    }
+
+    result = select(fd + 1, rfdp, wfdp, nullptr, tvp);
+#endif /* !HAVE_POLL */
+  } while (result < 0 && errno == EINTR && !(flags & GWL_IOR_NO_RETRY));
+
+  return result;
+}
+
+static int ghost_wl_display_event_pump(struct wl_display *wl_display)
+{
+  /* Based on SDL's `Wayland_PumpEvents`. */
+  int err;
+  if (wl_display_prepare_read(wl_display) == 0) {
+    /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
+    if (file_descriptor_is_io_ready(
+            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0) {
+      err = wl_display_read_events(wl_display);
+    }
+    else {
+      wl_display_cancel_read(wl_display);
+      err = 0;
+    }
+  }
+  else {
+    err = wl_display_dispatch_pending(wl_display);
+  }
+  return err;
 }
 
 static size_t ghost_wl_shm_format_as_size(enum wl_shm_format format)
@@ -5169,7 +5252,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     }
   }
   else {
-    if (wl_display_roundtrip(display_->wl_display) == -1) {
+    if (ghost_wl_display_event_pump(display_->wl_display) == -1) {
       ghost_wl_display_report_error(display_->wl_display);
     }
   }
