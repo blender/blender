@@ -752,16 +752,16 @@ static float trim_sample_length(const Span<float> accumulated_lengths,
  * Compute the selection for the given curve type. Tracks indices for splitting the selection if
  * there are curves reduced to a single point.
  */
-static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
-                                          const IndexMask selection,
-                                          const VArray<float> &starts,
-                                          const VArray<float> &ends,
-                                          const GeometryNodeCurveSampleMode mode,
-                                          MutableSpan<int> dst_curve_size,
-                                          MutableSpan<int8_t> dst_curve_types,
-                                          MutableSpan<bke::curves::CurvePoint> start_points,
-                                          MutableSpan<bke::curves::CurvePoint> end_points,
-                                          MutableSpan<bke::curves::IndexRangeCyclic> src_ranges)
+void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
+                                   const IndexMask selection,
+                                   const VArray<float> &starts,
+                                   const VArray<float> &ends,
+                                   const GeometryNodeCurveSampleMode mode,
+                                   MutableSpan<int> dst_curve_size,
+                                   MutableSpan<int8_t> dst_curve_types,
+                                   MutableSpan<bke::curves::CurvePoint> start_points,
+                                   MutableSpan<bke::curves::CurvePoint> end_points,
+                                   MutableSpan<bke::curves::IndexRangeCyclic> src_ranges)
 {
   const VArray<bool> src_cyclic = curves.cyclic();
   const VArray<int> resolution = curves.resolution();
@@ -785,8 +785,8 @@ static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
         /* Single point. */
         dst_curve_size[curve_i] = 1;
         src_ranges[curve_i] = bke::curves::IndexRangeCyclic(0, 0, 1, 1);
-        start_points[curve_i] = {{0, 0}, 0.0f};
-        end_points[curve_i] = {{0, 0}, 0.0f};
+        start_points[curve_i] = {0, 0, 0.0f};
+        end_points[curve_i] = {0, 0, 0.0f};
         continue;
       }
 
