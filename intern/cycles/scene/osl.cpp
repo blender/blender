@@ -641,6 +641,8 @@ string OSLCompiler::id(ShaderNode *node)
 {
   /* assign layer unique name based on pointer address + bump mode */
   stringstream stream;
+  stream.imbue(std::locale("C")); /* Ensure that no grouping characters (e.g. commas with en_US
+                                     locale) are added to the pointer string */
   stream << "node_" << node->type->name << "_" << node;
 
   return stream.str();
@@ -1132,12 +1134,12 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
 {
   current_type = type;
 
-  string name = shader->name.string();
-  /* Replace invalid characters. */
-  for (size_t i; (i = name.find_first_of(" .,:;+-*/#")) != string::npos;)
-    name.replace(i, 1, "_");
+  /* Use name hash to identify shader group to avoid issues with non-alphanumeric characters */
+  stringstream name;
+  name.imbue(std::locale("C"));
+  name << "shader_" << shader->name.hash();
 
-  OSL::ShaderGroupRef group = ss->ShaderGroupBegin(name);
+  OSL::ShaderGroupRef group = ss->ShaderGroupBegin(name.str());
 
   ShaderNode *output = graph->output();
   ShaderNodeSet dependencies;
