@@ -271,16 +271,9 @@ static bool geometry_attribute_convert_poll(bContext *C)
   return true;
 }
 
-static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
+static int geometry_attribute_convert(
+    wmOperator *op, ConvertAttributeMode mode, const std::string name, Object *ob, ID *ob_data)
 {
-  Object *ob = ED_object_context(C);
-  ID *ob_data = static_cast<ID *>(ob->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
-  const std::string name = layer->name;
-
-  const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
-      RNA_enum_get(op->ptr, "mode"));
-
   Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
@@ -348,7 +341,17 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+  return OPERATOR_FINISHED;
+}
 
+static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_context(C);
+  ID *ob_data = static_cast<ID *>(ob->data);
+  CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
+  const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
+      RNA_enum_get(op->ptr, "mode"));
+  geometry_attribute_convert(op, mode, layer->name, ob, ob_data);
   return OPERATOR_FINISHED;
 }
 
@@ -588,6 +591,75 @@ static int geometry_attribute_convert_invoke(bContext *C,
                                              const wmEvent * /*event*/)
 {
   return WM_operator_props_dialog_popup(C, op, 300);
+}
+
+static bool geometry_color_attribute_convert_poll(bContext *C)
+{
+  if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  ID *id = static_cast<ID *>(ob->data);
+  if (GS(id->name) != ID_ME) {
+    return false;
+  }
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+  if (layer == nullptr) {
+    return false;
+  }
+  return true;
+}
+
+static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_context(C);
+  ID *ob_data = static_cast<ID *>(ob->data);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ob_data);
+  geometry_attribute_convert(op, ConvertAttributeMode::Generic, layer->name, ob, ob_data);
+  return OPERATOR_FINISHED;
+}
+
+static void geometry_color_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
+
+void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)
+{
+  ot->name = "Convert Color Attribute";
+  ot->description = "Change how the color attribute is stored";
+  ot->idname = "GEOMETRY_OT_color_attribute_convert";
+
+  ot->invoke = geometry_attribute_convert_invoke;
+  ot->exec = geometry_color_attribute_convert_exec;
+  ot->poll = geometry_color_attribute_convert_poll;
+  ot->ui = geometry_color_attribute_convert_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_enum(ot->srna,
+                      "domain",
+                      rna_enum_color_attribute_domain_items,
+                      ATTR_DOMAIN_POINT,
+                      "Domain",
+                      "Type of element that attribute is stored on");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "data_type",
+                      rna_enum_color_attribute_type_items,
+                      CD_PROP_COLOR,
+                      "Data Type",
+                      "Type of data stored in attribute");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
