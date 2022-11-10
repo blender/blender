@@ -219,7 +219,7 @@ static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*
   static_cast<GWL_Window *>(data)->ghost_window->close();
 }
 
-static const xdg_toplevel_listener toplevel_listener = {
+static const xdg_toplevel_listener xdg_toplevel_listener = {
     xdg_toplevel_handle_configure,
     xdg_toplevel_handle_close,
 };
@@ -322,7 +322,7 @@ static void xdg_toplevel_decoration_handle_configure(
   static_cast<GWL_Window *>(data)->xdg_decor->mode = (zxdg_toplevel_decoration_v1_mode)mode;
 }
 
-static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
+static const zxdg_toplevel_decoration_v1_listener xdg_toplevel_decoration_v1_listener = {
     xdg_toplevel_decoration_handle_configure,
 };
 
@@ -418,7 +418,7 @@ static void surface_handle_leave(void *data,
   }
 }
 
-static struct wl_surface_listener wl_surface_listener = {
+static const struct wl_surface_listener wl_surface_listener = {
     surface_handle_enter,
     surface_handle_leave,
 };
@@ -483,7 +483,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   wl_surface_set_buffer_scale(window_->wl_surface, window_->scale);
 
-  wl_surface_add_listener(window_->wl_surface, &wl_surface_listener, this);
+  wl_surface_add_listener(window_->wl_surface, &wl_surface_listener, window_);
 
   window_->egl_window = wl_egl_window_create(
       window_->wl_surface, int(window_->size[0]), int(window_->size[1]));
@@ -537,13 +537,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
           system_->xdg_decor_manager(), decor.toplevel);
       zxdg_toplevel_decoration_v1_add_listener(
-          decor.toplevel_decor, &toplevel_decoration_v1_listener, window_);
+          decor.toplevel_decor, &xdg_toplevel_decoration_v1_listener, window_);
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
                                            ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
     }
 
     xdg_surface_add_listener(decor.surface, &xdg_surface_listener, window_);
-    xdg_toplevel_add_listener(decor.toplevel, &toplevel_listener, window_);
+    xdg_toplevel_add_listener(decor.toplevel, &xdg_toplevel_listener, window_);
 
     if (parentWindow && is_dialog) {
       WGL_XDG_Decor_Window &decor_parent =
