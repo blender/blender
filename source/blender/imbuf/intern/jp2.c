@@ -125,7 +125,7 @@ struct BufInfo {
 
 static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
 {
-  /* nop */
+  /* NOP. */
 }
 
 static OPJ_SIZE_T opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)

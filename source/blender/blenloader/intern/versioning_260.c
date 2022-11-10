@@ -280,10 +280,9 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         BLI_strncpy(filename, old_image->name, sizeof(filename));
       }
 
-      /* if z buffer is saved, change the image type to multilayer exr.
-       * XXX this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
-       * I'm just assuming here that IRIZ means IRIS with z buffer ...
-       */
+      /* If Z buffer is saved, change the image type to multi-layer EXR.
+       * XXX: this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
+       * I'm just assuming here that IRIZ means IRIS with z buffer. */
       if (old_data && ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
         char sockpath[FILE_MAX];
 
@@ -393,9 +392,8 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
       for (sock = node->inputs.first; sock; sock = sock->next) {
         NodeImageMultiFileSocket *input = sock->storage;
 
-        /* multilayer names are stored as separate strings now,
-         * used the path string before, so copy it over.
-         */
+        /* Multi-layer names are stored as separate strings now,
+         * used the path string before, so copy it over. */
         BLI_strncpy(input->layer, input->path, sizeof(input->layer));
 
         /* paths/layer names also have to be unique now, initial check */
