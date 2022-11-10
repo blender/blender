@@ -1464,7 +1464,7 @@ static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
     ndx[j] = tri[0][i];
     /* When the triangle edge cuts across our quad-to-be,
      * throw in the second triangle's vertex */
-    if ((ELEM(tri[0][i], e->v1, e->v2)) &&
+    if (ELEM(tri[0][i], e->v1, e->v2) &&
         (tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2)) {
       j++;
       ndx[j] = opp;
@@ -1734,7 +1734,7 @@ static void skin_smooth_hulls(BMesh *bm,
     }
   }
 
-  /* Add temporary shapekey layer to store original coordinates */
+  /* Add temporary shape-key layer to store original coordinates. */
   BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
   skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -2007,9 +2007,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
 }

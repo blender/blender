@@ -458,16 +458,13 @@ static bool decimate_poll_property(const bContext *UNUSED(C),
                                    const PropertyRNA *prop)
 {
   const char *prop_id = RNA_property_identifier(prop);
+  const int mode = RNA_enum_get(op->ptr, "mode");
 
-  if (STRPREFIX(prop_id, "remove")) {
-    int mode = RNA_enum_get(op->ptr, "mode");
-
-    if (STREQ(prop_id, "factor") && mode != DECIM_RATIO) {
-      return false;
-    }
-    if (STREQ(prop_id, "remove_error_margin") && mode != DECIM_ERROR) {
-      return false;
-    }
+  if (STREQ(prop_id, "factor") && mode != DECIM_RATIO) {
+    return false;
+  }
+  if (STREQ(prop_id, "remove_error_margin") && mode != DECIM_ERROR) {
+    return false;
   }
 
   return true;

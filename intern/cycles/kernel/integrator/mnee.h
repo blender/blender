@@ -279,7 +279,15 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 }
 
 /* Compute constraint derivatives. */
-ccl_device_forceinline bool mnee_compute_constraint_derivatives(
+
+#  if defined(__KERNEL_METAL__)
+/* Temporary workaround for front-end compilation bug (incorrect MNEE rendering when this is
+ * inlined). */
+__attribute__((noinline))
+#  else
+ccl_device_forceinline
+#  endif
+bool mnee_compute_constraint_derivatives(
     int vertex_count,
     ccl_private ManifoldVertex *vertices,
     ccl_private const float3 &surface_sample_pos,
@@ -807,7 +815,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   float3 wo = normalize_len(vertices[0].p - sd->P, &wo_len);
 
   /* Initialize throughput and evaluate receiver bsdf * |n.wo|. */
-  surface_shader_bsdf_eval(kg, sd, wo, false, throughput, ls->shader);
+  surface_shader_bsdf_eval(kg, state, sd, wo, throughput, ls->shader);
 
   /* Update light sample with new position / direct.ion
    * and keep pdf in vertex area measure */

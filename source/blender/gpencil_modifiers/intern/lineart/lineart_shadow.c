@@ -108,8 +108,8 @@ void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *
           (e->v1->fbcoord[3] - la1 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
     la2 = la2 * e->v2->fbcoord[3] /
           (e->v1->fbcoord[3] - la2 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
-    unsigned char shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
-                                                       LRT_SHADOW_MASK_ILLUMINATED;
+    uchar shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
+                                               LRT_SHADOW_MASK_ILLUMINATED;
 
     if (lineart_contour_viewed_from_dark_side(ld, e) &&
         shadow_bits == LRT_SHADOW_MASK_ILLUMINATED) {
@@ -1167,7 +1167,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   copy_v3_v3_db(ld->conf.camera_pos_secondary, ld->conf.camera_pos);
   copy_m4_m4(ld->conf.cam_obmat_secondary, ld->conf.cam_obmat);
 
-  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->obmat);
+  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world);
   copy_v3db_v3fl(ld->conf.camera_pos, ld->conf.cam_obmat[3]);
   ld->conf.cam_is_persp_secondary = ld->conf.cam_is_persp;
   ld->conf.cam_is_persp = is_persp;

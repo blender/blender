@@ -33,12 +33,22 @@ static PointCloud *rna_pointcloud(const PointerRNA *ptr)
   return (PointCloud *)ptr->owner_id;
 }
 
+static float (*get_pointcloud_positions(PointCloud *pointcloud))[3]
+{
+  return (float(*)[3])CustomData_get_layer_named(&pointcloud->pdata, CD_PROP_FLOAT3, "position");
+}
+
+static const float (*get_pointcloud_positions_const(const PointCloud *pointcloud))[3]
+{
+  return (const float(*)[3])CustomData_get_layer_named(
+      &pointcloud->pdata, CD_PROP_FLOAT3, "position");
+}
+
 static int rna_Point_index_get_const(const PointerRNA *ptr)
 {
   const PointCloud *pointcloud = rna_pointcloud(ptr);
   const float(*co)[3] = ptr->data;
-  const float(*positions)[3] = (const float(*)[3])CustomData_get_layer_named(
-      &pointcloud->pdata, CD_PROP_FLOAT3, "position");
+  const float(*positions)[3] = get_pointcloud_positions_const(pointcloud);
   return (int)(co - positions);
 }
 
@@ -55,11 +65,25 @@ static int rna_PointCloud_points_length(PointerRNA *ptr)
 
 static void rna_PointCloud_points_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  const PointCloud *pointcloud = rna_pointcloud(ptr);
-  const float(*positions)[3] = (const float(*)[3])CustomData_get_layer_named(
-      &pointcloud->pdata, CD_PROP_FLOAT3, "position");
-  rna_iterator_array_begin(
-      iter, (void *)positions, sizeof(float[3]), pointcloud->totpoint, false, NULL);
+  PointCloud *pointcloud = rna_pointcloud(ptr);
+  rna_iterator_array_begin(iter,
+                           get_pointcloud_positions(pointcloud),
+                           sizeof(float[3]),
+                           pointcloud->totpoint,
+                           false,
+                           NULL);
+}
+
+int rna_PointCloud_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  PointCloud *pointcloud = rna_pointcloud(ptr);
+  if (index < 0 || index >= pointcloud->totpoint) {
+    return false;
+  }
+  r_ptr->owner_id = &pointcloud->id;
+  r_ptr->type = &RNA_Point;
+  r_ptr->data = &get_pointcloud_positions(pointcloud)[index];
+  return true;
 }
 
 static void rna_Point_location_get(PointerRNA *ptr, float value[3])
@@ -157,7 +181,7 @@ static void rna_def_pointcloud(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_PointCloud_points_length",
-                                    NULL,
+                                    "rna_PointCloud_points_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_ui_text(prop, "Points", "");

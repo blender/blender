@@ -34,13 +34,13 @@ def batch_for_shader(shader, type, content, *, indices=None):
         return 'I32'
 
     def recommended_attr_len(attr_name):
-        item = content[attr_name][0]
         attr_len = 1
         try:
+            item = content[attr_name][0]
             while True:
                 attr_len *= len(item)
                 item = item[0]
-        except TypeError:
+        except (TypeError, IndexError):
             pass
         return attr_len
 

@@ -48,7 +48,7 @@ void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *dat
     }
   }
 
-  average /= (float)count;
+  average /= float(count);
 
   output[0] = average;
 }
@@ -75,7 +75,7 @@ bool KeyingBlurOperation::determine_depending_area_of_interest(rcti *input,
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void KeyingBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
+void KeyingBlurOperation::get_area_of_interest(const int /*input_idx*/,
                                                const rcti &output_area,
                                                rcti &r_input_area)
 {

@@ -8,12 +8,12 @@ namespace blender::nodes::node_shader_tex_image_cc {
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).implicit_field();
+  b.add_input<decl::Vector>(N_("Vector")).implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
 }
 
-static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tex_image(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTexImage *tex = MEM_cnew<NodeTexImage>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -25,7 +25,7 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_image(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
@@ -163,10 +163,10 @@ void register_node_type_sh_tex_image()
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_image_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_image);
+  ntype.initfunc = file_ns::node_shader_init_tex_image;
   node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_image);
+  ntype.gpu_fn = file_ns::node_shader_gpu_tex_image;
   ntype.labelfunc = node_image_label;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

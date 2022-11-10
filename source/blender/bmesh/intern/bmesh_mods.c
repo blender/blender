@@ -62,7 +62,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     e = v->e;
     do {
       e = bmesh_disk_edge_next(e, v);
-      if (!(BM_edge_share_face_check(e, v->e))) {
+      if (!BM_edge_share_face_check(e, v->e)) {
         keepedge = e;
         baseedge = v->e;
         break;
@@ -192,7 +192,7 @@ BMFace *BM_face_split(BMesh *bm,
   BLI_assert(!BM_loop_is_adjacent(l_a, l_b));
 
   /* could be an assert */
-  if (UNLIKELY(BM_loop_is_adjacent(l_a, l_b)) || UNLIKELY((f != l_a->f || f != l_b->f))) {
+  if (UNLIKELY(BM_loop_is_adjacent(l_a, l_b)) || UNLIKELY(f != l_a->f || f != l_b->f)) {
     if (r_l) {
       *r_l = NULL;
     }

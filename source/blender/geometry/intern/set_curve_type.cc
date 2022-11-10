@@ -186,12 +186,12 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
     const int segments_num = nurbs_positions_num - 1;
     const bool ignore_interior_segment = segments_num == 3 && is_periodic == false;
     if (ignore_interior_segment == false) {
-      const float mid_offset = (float)(segments_num - 1) / 2.0f;
+      const float mid_offset = float(segments_num - 1) / 2.0f;
       for (const int i : IndexRange(1, segments_num - 2)) {
         /* Divisor can have values: 1, 2 or 3. */
         const int divisor = is_periodic ?
                                 3 :
-                                std::min(3, (int)(-std::abs(i - mid_offset) + mid_offset + 1.0f));
+                                std::min(3, int(-std::abs(i - mid_offset) + mid_offset + 1.0f));
         const float3 &p1 = nurbs_positions[i];
         const float3 &p2 = nurbs_positions[i + 1];
         const float3 displacement = (p2 - p1) / divisor;
@@ -257,7 +257,7 @@ static int to_bezier_size(const CurveType src_type,
   switch (src_type) {
     case CURVE_TYPE_NURBS: {
       if (is_nurbs_to_bezier_one_to_one(knots_mode)) {
-        return cyclic ? src_size : src_size - 2;
+        return cyclic ? src_size : std::max(1, src_size - 2);
       }
       return (src_size + 1) / 3;
     }
@@ -392,6 +392,13 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
         const IndexRange src_points = src_curves.points_for_curve(i);
         const IndexRange dst_points = dst_curves.points_for_curve(i);
         const Span<float3> src_curve_positions = src_positions.slice(src_points);
+        if (dst_points.size() == 1) {
+          const float3 &position = src_positions[src_points.first()];
+          dst_positions[dst_points.first()] = position;
+          dst_handles_l[dst_points.first()] = position;
+          dst_handles_r[dst_points.first()] = position;
+          continue;
+        }
 
         KnotsMode knots_mode = KnotsMode(src_knot_modes[i]);
         Span<float3> nurbs_positions = src_curve_positions;

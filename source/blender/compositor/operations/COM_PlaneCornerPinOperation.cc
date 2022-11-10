@@ -195,8 +195,8 @@ void PlaneCornerPinMaskOperation::determine_canvas(const rcti &preferred_area, r
   r_area = preferred_area;
 }
 
-void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_idx),
-                                                       const rcti &UNUSED(output_area),
+void PlaneCornerPinMaskOperation::get_area_of_interest(const int /*input_idx*/,
+                                                       const rcti & /*output_area*/,
                                                        rcti &r_input_area)
 {
   /* All corner inputs are used as constants. */

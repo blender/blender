@@ -33,6 +33,9 @@
 #  include "gl_backend.hh"
 #  include "gl_context.hh"
 #endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backend.hh"
+#endif
 #ifdef WITH_METAL_BACKEND
 #  include "mtl_backend.hh"
 #endif
@@ -94,7 +97,7 @@ Context *Context::get()
 
 /* -------------------------------------------------------------------- */
 
-GPUContext *GPU_context_create(void *ghost_window)
+GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
 {
   {
     std::scoped_lock lock(backend_users_mutex);
@@ -105,7 +108,7 @@ GPUContext *GPU_context_create(void *ghost_window)
     num_backend_users++;
   }
 
-  Context *ctx = GPUBackend::get()->context_alloc(ghost_window);
+  Context *ctx = GPUBackend::get()->context_alloc(ghost_window, ghost_context);
 
   GPU_context_active_set(wrap(ctx));
   return wrap(ctx);
@@ -195,7 +198,11 @@ void GPU_render_begin()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_begin();
+  /* WORKAROUND: Currently a band-aid for the heist production. Has no side effect for GL backend
+   * but should be fixed for Metal. */
+  if (backend) {
+    backend->render_begin();
+  }
 }
 void GPU_render_end()
 {
@@ -216,14 +223,33 @@ void GPU_render_step()
 /** \name Backend selection
  * \{ */
 
-static const eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
+/* NOTE: To enable Metal API, we need to temporarily change this to `GPU_BACKEND_METAL`.
+ * Until a global switch is added, Metal also needs to be enabled in GHOST_ContextCGL:
+ * `m_useMetalForRendering = true`. */
+static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static GPUBackend *g_backend = nullptr;
+
+void GPU_backend_type_selection_set(const eGPUBackendType backend)
+{
+  g_backend_type = backend;
+}
+
+eGPUBackendType GPU_backend_type_selection_get()
+{
+  return g_backend_type;
+}
 
 bool GPU_backend_supported(void)
 {
   switch (g_backend_type) {
     case GPU_BACKEND_OPENGL:
 #ifdef WITH_OPENGL_BACKEND
+      return true;
+#else
+      return false;
+#endif
+    case GPU_BACKEND_VULKAN:
+#ifdef WITH_VULKAN_BACKEND
       return true;
 #else
       return false;
@@ -249,6 +275,11 @@ static void gpu_backend_create()
 #ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       g_backend = new GLBackend;
+      break;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    case GPU_BACKEND_VULKAN:
+      g_backend = new VKBackend;
       break;
 #endif
 #ifdef WITH_METAL_BACKEND

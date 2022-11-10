@@ -81,7 +81,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   Vector<bNode *> toposort_left_to_right;
   Vector<bNode *> toposort_right_to_left;
   Vector<bNode *> group_nodes;
-  bool has_link_cycle = false;
+  bool has_available_link_cycle = false;
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
 };
@@ -152,18 +152,17 @@ class bNodeRuntime : NonCopyable, NonMovable {
   Map<StringRefNull, bNodeSocket *> inputs_by_identifier;
   Map<StringRefNull, bNodeSocket *> outputs_by_identifier;
   int index_in_tree = -1;
-  bool has_linked_inputs = false;
-  bool has_linked_outputs = false;
+  bool has_available_linked_inputs = false;
+  bool has_available_linked_outputs = false;
   bNodeTree *owner_tree = nullptr;
 };
 
 namespace node_tree_runtime {
 
 /**
- * Is executed when the depsgraph determines that something in the node group changed that will
- * affect the output.
+ * Is executed when the node tree changed in the depsgraph.
  */
-void handle_node_tree_output_changed(bNodeTree &tree_cow);
+void preprocess_geometry_node_tree_for_evaluation(bNodeTree &tree_cow);
 
 class AllowUsingOutdatedInfo : NonCopyable, NonMovable {
  private:
@@ -270,10 +269,10 @@ inline blender::Span<bNode *> bNodeTree::group_nodes()
   return this->runtime->group_nodes;
 }
 
-inline bool bNodeTree::has_link_cycle() const
+inline bool bNodeTree::has_available_link_cycle() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->has_link_cycle;
+  return this->runtime->has_available_link_cycle;
 }
 
 inline bool bNodeTree::has_undefined_nodes_or_sockets() const
@@ -454,6 +453,11 @@ inline const blender::nodes::NodeDeclaration *bNode::declaration() const
 inline bool bNodeLink::is_muted() const
 {
   return this->flag & NODE_LINK_MUTED;
+}
+
+inline bool bNodeLink::is_available() const
+{
+  return this->fromsock->is_available() && this->tosock->is_available();
 }
 
 /** \} */

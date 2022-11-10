@@ -289,7 +289,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
       reports = MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
 
       /* Own so these don't move into global reports. */
-      BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD);
+      BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
 
 #ifdef BPY_RELEASE_GIL
       /* release GIL, since a thread could be started from an operator
@@ -493,14 +493,14 @@ static struct PyMethodDef bpy_ops_methods[] = {
 
 static struct PyModuleDef bpy_ops_module = {
     PyModuleDef_HEAD_INIT,
-    "_bpy.ops",
-    NULL,
-    -1, /* multiple "initialization" just copies the module dict. */
-    bpy_ops_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_name*/ "_bpy.ops",
+    /*m_doc*/ NULL,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ bpy_ops_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_operator_module(void)

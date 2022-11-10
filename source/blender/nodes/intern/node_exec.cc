@@ -162,7 +162,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
   /* XXX could let callbacks do this for specialized data */
   exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
-  /* backpointer to node tree */
+  /* Back-pointer to node tree. */
   exec->nodetree = ntree;
 
   /* set stack indices */

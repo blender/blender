@@ -89,6 +89,17 @@ class PREFERENCES_OT_copy_prev(Operator):
             if os.path.isdir(cls._old_version_path(version_split)):
                 return version_split
             version_old = version_old - 1
+
+        # Support loading 2.8x..2.9x startup (any older isn't so useful to load).
+        # NOTE: remove this block for Blender 4.0 and later.
+        if version_old == 299:
+            version_old = 294
+            while version_old >= 280:
+                version_split = version_old // 100, version_old % 100
+                if os.path.isdir(cls._old_version_path(version_split)):
+                    return version_split
+                version_old = version_old - 1
+
         return None
 
     @classmethod

@@ -1326,7 +1326,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 void ACTION_OT_extrapolation_type(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Keyframe Extrapolation";
+  ot->name = "Set F-Curve Extrapolation";
   ot->idname = "ACTION_OT_extrapolation_type";
   ot->description = "Set extrapolation mode for selected F-Curves";
 

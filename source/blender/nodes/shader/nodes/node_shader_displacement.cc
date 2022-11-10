@@ -14,7 +14,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Displacement"));
 }
 
-static void node_shader_init_displacement(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_displacement(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_SPACE_OBJECT; /* space */
 
@@ -28,7 +28,7 @@ static void node_shader_init_displacement(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int gpu_shader_displacement(GPUMaterial *mat,
                                    bNode *node,
-                                   bNodeExecData *UNUSED(execdata),
+                                   bNodeExecData * /*execdata*/,
                                    GPUNodeStack *in,
                                    GPUNodeStack *out)
 {
@@ -54,8 +54,8 @@ void register_node_type_sh_displacement()
 
   sh_node_type_base(&ntype, SH_NODE_DISPLACEMENT, "Displacement", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_displacement);
-  node_type_gpu(&ntype, file_ns::gpu_shader_displacement);
+  ntype.initfunc = file_ns::node_shader_init_displacement;
+  ntype.gpu_fn = file_ns::gpu_shader_displacement;
 
   nodeRegisterType(&ntype);
 }

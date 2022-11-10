@@ -163,7 +163,7 @@ static Py_ssize_t bpy_bmeditselseq_length(BPy_BMEditSelSeq *self)
   return BLI_listbase_count(&self->bm->selected);
 }
 
-static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keynum)
+static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, Py_ssize_t keynum)
 {
   BMEditSelection *ese;
 
@@ -291,23 +291,23 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 }
 
 static PySequenceMethods bpy_bmeditselseq_as_sequence = {
-    (lenfunc)bpy_bmeditselseq_length, /* sq_length */
-    NULL,                             /* sq_concat */
-    NULL,                             /* sq_repeat */
-    (ssizeargfunc)bpy_bmeditselseq_subscript_int,
-    /* sq_item */                          /* Only set this so PySequence_Check() returns True */
-    NULL,                                  /* sq_slice */
-    (ssizeobjargproc)NULL,                 /* sq_ass_item */
-    NULL,                                  /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmeditselseq_contains, /* sq_contains */
-    (binaryfunc)NULL,                      /* sq_inplace_concat */
-    (ssizeargfunc)NULL,                    /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)bpy_bmeditselseq_length,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /* Only set this so `PySequence_Check()` returns True. */
+    /*sq_item*/ (ssizeargfunc)bpy_bmeditselseq_subscript_int,
+    /*sq_slice */ NULL,
+    /*sq_ass_item */ NULL,
+    /*was_sq_ass_slice*/ NULL,
+    /*sq_contains*/ (objobjproc)bpy_bmeditselseq_contains,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods bpy_bmeditselseq_as_mapping = {
-    (lenfunc)bpy_bmeditselseq_length,       /* mp_length */
-    (binaryfunc)bpy_bmeditselseq_subscript, /* mp_subscript */
-    (objobjargproc)NULL,                    /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)bpy_bmeditselseq_length,
+    /*mp_subscript*/ (binaryfunc)bpy_bmeditselseq_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* Iterator

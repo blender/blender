@@ -183,6 +183,8 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
       return stream << "var_attrs.v" << input->attr->id;
     case GPU_SOURCE_UNIFORM_ATTR:
       return stream << "unf_attrs[resource_id].attr" << input->uniform_attr->id;
+    case GPU_SOURCE_LAYER_ATTR:
+      return stream << "attr_load_layer(" << input->layer_attr->hash_code << ")";
     case GPU_SOURCE_STRUCT:
       return stream << "strct" << input->id;
     case GPU_SOURCE_TEX:
@@ -386,6 +388,10 @@ void GPUCodegen::generate_resources()
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
       info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
     }
+    else if (tex->sky) {
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+    }
     else if (tex->tiled_mapping_name[0] != '\0') {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
       info.sampler(slot++, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
@@ -426,6 +432,10 @@ void GPUCodegen::generate_resources()
     /* TODO(fclem): Use the macro for length. Currently not working for EEVEE. */
     /* DRW_RESOURCE_CHUNK_LEN = 512 */
     info.uniform_buf(2, "UniformAttrs", GPU_ATTRIBUTE_UBO_BLOCK_NAME "[512]", Frequency::BATCH);
+  }
+
+  if (!BLI_listbase_is_empty(&graph.layer_attrs)) {
+    info.additional_info("draw_layer_attributes");
   }
 
   info.typedef_source_generated = ss.str();
@@ -807,7 +817,7 @@ void GPU_pass_cache_garbage_collect(void)
 {
   static int lasttime = 0;
   const int shadercollectrate = 60; /* hardcoded for now. */
-  int ctime = (int)PIL_check_seconds_timer();
+  int ctime = int(PIL_check_seconds_timer());
 
   if (ctime < shadercollectrate + lasttime) {
     return;

@@ -11,6 +11,10 @@
 /* For enum. */
 #include "DNA_space_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool peelObjectsTransform(struct TransInfo *t,
                           const float mval[2],
                           bool use_peel_object,
@@ -34,10 +38,10 @@ bool snapNodesTransform(struct TransInfo *t,
 
 bool transformModeUseSnap(const TransInfo *t);
 
+void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3]);
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val);
 bool transform_snap_increment(const TransInfo *t, float *val);
 float transform_snap_increment_get(const TransInfo *t);
-bool transform_snap_grid(TransInfo *t, float *val);
 
 bool activeSnap(const TransInfo *t);
 bool activeSnap_SnappingIndividual(const TransInfo *t);
@@ -48,7 +52,6 @@ bool validSnap(const TransInfo *t);
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void freeSnapping(struct TransInfo *t);
 void applySnappingIndividual(TransInfo *t);
-void applyGridAbsolute(TransInfo *t);
 void applySnappingAsGroup(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);
@@ -92,3 +95,7 @@ void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
                                     eAnimEdit_AutoSnap autosnap,
                                     float *r_val_final);
+
+#ifdef __cplusplus
+}
+#endif

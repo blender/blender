@@ -56,8 +56,8 @@ typedef struct MovieReconstructContext {
 } MovieReconstructContext;
 
 typedef struct ReconstructProgressData {
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
   char *stats_message;
   int message_size;
@@ -465,8 +465,8 @@ static void reconstructionOptionsFromContext(libmv_ReconstructionOptions *recons
 }
 
 void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
-                                       short *stop,
-                                       short *do_update,
+                                       bool *stop,
+                                       bool *do_update,
                                        float *progress,
                                        char *stats_message,
                                        int message_size)

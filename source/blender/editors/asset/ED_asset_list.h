@@ -27,6 +27,7 @@ void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_refe
                                 const struct bContext *C);
 void ED_assetlist_catalog_filter_set(const struct AssetLibraryReference *,
                                      const struct AssetCatalogFilterSettings *catalog_filter);
+bool ED_assetlist_is_loaded(const struct AssetLibraryReference *library_reference);
 void ED_assetlist_clear(const struct AssetLibraryReference *library_reference, struct bContext *C);
 bool ED_assetlist_storage_has_list_for_library(const AssetLibraryReference *library_reference);
 

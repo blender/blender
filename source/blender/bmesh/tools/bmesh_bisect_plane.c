@@ -170,7 +170,7 @@ static void bm_face_bisect_verts(
       BLI_assert(BM_VERT_DIR(l_iter->v) == 0);
 
       /* If both are -1 or 1, or both are zero: don't flip 'inside' var while walking. */
-      BM_VERT_SKIP(l_iter->v) = (((BM_VERT_DIR(l_iter->prev->v) ^ BM_VERT_DIR(l_iter->next->v))) ==
+      BM_VERT_SKIP(l_iter->v) = ((BM_VERT_DIR(l_iter->prev->v) ^ BM_VERT_DIR(l_iter->next->v)) ==
                                  0);
 
       STACK_PUSH(vert_split_arr, l_iter->v);
@@ -463,7 +463,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
     }
 
     vert_is_center_disable(v);
-    BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
+    BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &BM_VERT_DIST(v));
 
     if (BM_VERT_DIR(v) == 0) {
       if (oflag_center) {

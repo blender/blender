@@ -60,7 +60,8 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       height(0),
       preview_osl(preview_osl),
       python_thread_state(NULL),
-      use_developer_ui(false)
+      use_developer_ui(b_userpref.experimental().use_cycles_debug() &&
+                       b_userpref.view().show_developer_ui())
 {
   /* offline render */
   background = true;
@@ -496,9 +497,9 @@ void BlenderSession::render_frame_finish()
   session->full_buffer_written_cb = function_null;
 
   /* The display driver is the source of drawing context for both drawing and possible graphics
-   * interop objects in the path trace. Once the frame is finished the OpenGL context might be
-   * freed form Blender side. Need to ensure that all GPU resources are freed prior to that
-   * point.
+   * interoperability objects in the path trace. Once the frame is finished the OpenGL context
+   * might be freed form Blender side. Need to ensure that all GPU resources are freed prior to
+   * that point.
    * Ideally would only do this when OpenGL context is actually destroyed, but there is no way to
    * know when this happens (at least in the code at the time when this comment was written).
    * The penalty of re-creating resources on every frame is unlikely to be noticed. */

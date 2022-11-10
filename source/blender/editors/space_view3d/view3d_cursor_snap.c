@@ -692,6 +692,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     }
     else {
       ViewLayer *view_layer = CTX_data_view_layer(C);
+      BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
       Object *ob = BKE_view_layer_active_object_get(view_layer);
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;

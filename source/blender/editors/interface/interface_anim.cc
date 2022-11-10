@@ -315,7 +315,7 @@ void ui_but_anim_paste_driver(bContext *C)
   WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
 
-void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
+void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiButDecorator *but_decorate = static_cast<uiButDecorator *>(arg_but);

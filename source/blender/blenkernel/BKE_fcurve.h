@@ -106,7 +106,7 @@ typedef enum eFMI_Action_Types {
 
 /* Flags for the requirements of a FModifier Type */
 typedef enum eFMI_Requirement_Flags {
-  /* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
+  /* modifier requires original data-points (kind of beats the purpose of a modifier stack?) */
   FMI_REQUIRES_ORIGINAL_DATA = (1 << 0),
   /* modifier doesn't require on any preceding data (i.e. it will generate a curve).
    * Use in conjunction with FMI_TYPE_GENRATE_CURVE
@@ -429,6 +429,11 @@ bool BKE_fcurve_are_keyframes_usable(struct FCurve *fcu);
  */
 bool BKE_fcurve_is_keyframable(struct FCurve *fcu);
 bool BKE_fcurve_is_protected(struct FCurve *fcu);
+
+/**
+ * Are any of the keyframe control points selected on the F-Curve?
+ */
+bool BKE_fcurve_has_selected_control_points(const struct FCurve *fcu);
 
 /**
  * Checks if the F-Curve has a Cycles modifier with simple settings

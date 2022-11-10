@@ -12,7 +12,7 @@ CombineColorNode::CombineColorNode(bNode *editor_node) : Node(editor_node)
 }
 
 void CombineColorNode::convert_to_operations(NodeConverter &converter,
-                                             const CompositorContext &UNUSED(context)) const
+                                             const CompositorContext & /*context*/) const
 {
   NodeInput *input_rsocket = this->get_input_socket(0);
   NodeInput *input_gsocket = this->get_input_socket(1);

@@ -40,13 +40,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Variance"), "Variance_001");
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
   node->custom2 = ATTR_DOMAIN_POINT;
@@ -54,12 +54,12 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *socket_geo = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_geo = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *socket_selection = socket_geo->next;
   bNodeSocket *socket_float_attr = socket_selection->next;
   bNodeSocket *socket_float3_attr = socket_float_attr->next;
 
-  bNodeSocket *socket_float_mean = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *socket_float_mean = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *socket_float_median = socket_float_mean->next;
   bNodeSocket *socket_float_sum = socket_float_median->next;
   bNodeSocket *socket_float_min = socket_float_sum->next;
@@ -77,7 +77,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_vector_std = socket_vector_range->next;
   bNodeSocket *socket_vector_variance = socket_vector_std->next;
 
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node->custom1);
+  const eCustomDataType data_type = eCustomDataType(node->custom1);
 
   nodeSetSocketAvailability(ntree, socket_float_attr, data_type == CD_PROP_FLOAT);
   nodeSetSocketAvailability(ntree, socket_float_mean, data_type == CD_PROP_FLOAT);
@@ -184,8 +184,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.get_input<GeometrySet>("Geometry");
   const bNode &node = params.node();
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node.custom1);
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom2);
+  const eCustomDataType data_type = eCustomDataType(node.custom1);
+  const eAttrDomain domain = eAttrDomain(node.custom2);
   Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
 
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
@@ -396,8 +396,8 @@ void register_node_type_geo_attribute_statistic()
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
 
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

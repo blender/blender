@@ -117,7 +117,7 @@ vec3 light_volume_light_vector(LightData ld, vec3 P)
 vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 {
   /* Waiting for proper volume shadowmaps and out of frustum shadow map. */
-  vec3 ndc = project_point(ViewProjectionMatrix, wpos);
+  vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, wpos));
   vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
 
   /* Let the texture be clamped to edge. This reduce visual glitches. */
@@ -147,12 +147,15 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D v
 
   if (ld.l_type == SUN) {
     /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    vec3 ndcP = project_point(ViewProjectionMatrix, ray_wpos);
-    vec3 ndcL = project_point(ViewProjectionMatrix, ray_wpos + l_vector.xyz) - ndcP;
+    vec3 ndcP = project_point(ProjectionMatrix, transform_point(ViewMatrix, ray_wpos));
+    vec3 ndcL = project_point(ProjectionMatrix,
+                              transform_point(ViewMatrix, ray_wpos + l_vector.xyz)) -
+                ndcP;
 
     vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
-    L = project_point(ViewProjectionMatrixInverse, frustum_isect) - ray_wpos;
+    vec4 L_hom = ViewMatrixInverse * (ProjectionMatrixInverse * vec4(frustum_isect, 1.0));
+    L = (L_hom.xyz / L_hom.w) - ray_wpos;
     L /= volShadowSteps;
     dd = length(L);
   }

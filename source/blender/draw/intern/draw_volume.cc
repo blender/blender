@@ -127,7 +127,7 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
 
   grp = DRW_shgroup_create_sub(grp);
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->obmat);
+  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world);
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
@@ -184,7 +184,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
 
   /* Smoke Simulation */
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
-      (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
+      BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
       ((FluidModifierData *)md)->domain != nullptr) {
     FluidModifierData *fmd = (FluidModifierData *)md;
     FluidDomainSettings *fds = fmd->domain;

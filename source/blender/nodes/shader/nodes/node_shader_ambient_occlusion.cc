@@ -17,9 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("AO"));
 }
 
-static void node_shader_buts_ambient_occlusion(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_shader_buts_ambient_occlusion(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "inside", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
@@ -28,7 +26,7 @@ static void node_shader_buts_ambient_occlusion(uiLayout *layout,
 
 static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
                                              bNode *node,
-                                             bNodeExecData *UNUSED(execdata),
+                                             bNodeExecData * /*execdata*/,
                                              GPUNodeStack *in,
                                              GPUNodeStack *out)
 {
@@ -50,7 +48,7 @@ static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
                         GPU_constant(&f_samples));
 }
 
-static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_ambient_occlusion(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 16; /* samples */
   node->custom2 = 0;
@@ -68,8 +66,8 @@ void register_node_type_sh_ambient_occlusion()
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ambient_occlusion;
-  node_type_init(&ntype, file_ns::node_shader_init_ambient_occlusion);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_ambient_occlusion);
+  ntype.initfunc = file_ns::node_shader_init_ambient_occlusion;
+  ntype.gpu_fn = file_ns::node_shader_gpu_ambient_occlusion;
 
   nodeRegisterType(&ntype);
 }

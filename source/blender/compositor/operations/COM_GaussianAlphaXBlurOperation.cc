@@ -73,7 +73,7 @@ void GaussianAlphaXBlurOperation::execute_pixel(float output[4], int x, int y, v
 
   /* *** this is the main part which is different to 'GaussianXBlurOperation'  *** */
   int step = get_step();
-  int bufferindex = ((xmin - bufferstartx)) + ((ymin - bufferstarty) * bufferwidth);
+  int bufferindex = (xmin - bufferstartx) + ((ymin - bufferstarty) * bufferwidth);
 
   /* gauss */
   float alpha_accum = 0.0f;

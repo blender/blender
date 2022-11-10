@@ -113,7 +113,7 @@ void CompositorOperation::deinit_execution()
   depth_input_ = nullptr;
 }
 
-void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void CompositorOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   float color[8]; /* 7 is enough. */
   float *buffer = output_buffer_;
@@ -197,7 +197,7 @@ void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*
   }
 }
 
-void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void CompositorOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> inputs)
 {
@@ -213,7 +213,7 @@ void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(outp
   depth_buf.copy_from(inputs[2], area);
 }
 
-void CompositorOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
+void CompositorOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   int width, height;
   BKE_render_resolution(rd_, false, &width, &height);

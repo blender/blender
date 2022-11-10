@@ -10,6 +10,8 @@
 #include "../BPy_Id.h"
 #include "../Interface1D/BPy_FEdge.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -251,7 +253,7 @@ static Mathutils_Callback SVertex_mathutils_cb = {
     SVertex_mathutils_set_index,
 };
 
-static unsigned char SVertex_mathutils_cb_index = -1;
+static uchar SVertex_mathutils_cb_index = -1;
 
 void SVertex_mathutils_register_callback()
 {
@@ -265,13 +267,13 @@ PyDoc_STRVAR(SVertex_point_3d_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
       (PyObject *)self, 3, SVertex_mathutils_cb_index, MATHUTILS_SUBTYPE_POINT3D);
 }
 
-static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void *UNUSED(closure))
+static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
   if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
@@ -287,13 +289,13 @@ PyDoc_STRVAR(SVertex_point_2d_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
       (PyObject *)self, 3, SVertex_mathutils_cb_index, MATHUTILS_SUBTYPE_POINT2D);
 }
 
-static int SVertex_point_2d_set(BPy_SVertex *self, PyObject *value, void *UNUSED(closure))
+static int SVertex_point_2d_set(BPy_SVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
   if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
@@ -309,13 +311,13 @@ PyDoc_STRVAR(SVertex_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *SVertex_id_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_id_get(BPy_SVertex *self, void * /*closure*/)
 {
   Id id(self->sv->getId());
   return BPy_Id_from_Id(id);  // return a copy
 }
 
-static int SVertex_id_set(BPy_SVertex *self, PyObject *value, void *UNUSED(closure))
+static int SVertex_id_set(BPy_SVertex *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Id_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an Id");
@@ -332,13 +334,13 @@ PyDoc_STRVAR(SVertex_normals_doc,
              "\n"
              ":type: list of :class:`mathutils.Vector` objects");
 
-static PyObject *SVertex_normals_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_normals_get(BPy_SVertex *self, void * /*closure*/)
 {
   PyObject *py_normals;
   set<Vec3r> normals = self->sv->normals();
   set<Vec3r>::iterator it;
   py_normals = PyList_New(normals.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = normals.begin(); it != normals.end(); it++) {
     Vec3r v(*it);
@@ -352,7 +354,7 @@ PyDoc_STRVAR(SVertex_normals_size_doc,
              "\n"
              ":type: int");
 
-static PyObject *SVertex_normals_size_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_normals_size_get(BPy_SVertex *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->sv->normalsSize());
 }
@@ -363,7 +365,7 @@ PyDoc_STRVAR(SVertex_viewvertex_doc,
              "\n"
              ":type: :class:`ViewVertex`");
 
-static PyObject *SVertex_viewvertex_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_viewvertex_get(BPy_SVertex *self, void * /*closure*/)
 {
   ViewVertex *vv = self->sv->viewvertex();
   if (vv) {
@@ -385,7 +387,7 @@ PyDoc_STRVAR(SVertex_curvatures_doc,
              "\n"
              ":type: tuple");
 
-static PyObject *SVertex_curvatures_get(BPy_SVertex *self, void *UNUSED(closure))
+static PyObject *SVertex_curvatures_get(BPy_SVertex *self, void * /*closure*/)
 {
   const CurvatureInfo *info = self->sv->getCurvatureInfo();
   if (!info) {
@@ -438,44 +440,45 @@ static PyGetSetDef BPy_SVertex_getseters[] = {
 };
 
 /*-----------------------BPy_SVertex type definition ------------------------------*/
+
 PyTypeObject SVertex_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "SVertex", /* tp_name */
-    sizeof(BPy_SVertex),                         /* tp_basicsize */
-    0,                                           /* tp_itemsize */
-    nullptr,                                     /* tp_dealloc */
-    0,                                           /* tp_vectorcall_offset */
-    nullptr,                                     /* tp_getattr */
-    nullptr,                                     /* tp_setattr */
-    nullptr,                                     /* tp_reserved */
-    nullptr,                                     /* tp_repr */
-    nullptr,                                     /* tp_as_number */
-    nullptr,                                     /* tp_as_sequence */
-    nullptr,                                     /* tp_as_mapping */
-    nullptr,                                     /* tp_hash */
-    nullptr,                                     /* tp_call */
-    nullptr,                                     /* tp_str */
-    nullptr,                                     /* tp_getattro */
-    nullptr,                                     /* tp_setattro */
-    nullptr,                                     /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    /* tp_flags */
-    SVertex_doc,                                 /* tp_doc */
-    nullptr,                                     /* tp_traverse */
-    nullptr,                                     /* tp_clear */
-    nullptr,                                     /* tp_richcompare */
-    0,                                           /* tp_weaklistoffset */
-    nullptr,                                     /* tp_iter */
-    nullptr,                                     /* tp_iternext */
-    BPy_SVertex_methods,                         /* tp_methods */
-    nullptr,                                     /* tp_members */
-    BPy_SVertex_getseters,                       /* tp_getset */
-    &Interface0D_Type,                           /* tp_base */
-    nullptr,                                     /* tp_dict */
-    nullptr,                                     /* tp_descr_get */
-    nullptr,                                     /* tp_descr_set */
-    0,                                           /* tp_dictoffset */
-    (initproc)SVertex_init,                      /* tp_init */
-    nullptr,                                     /* tp_alloc */
-    nullptr,                                     /* tp_new */
+    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "SVertex",
+    /*tp_basicsize*/ sizeof(BPy_SVertex),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ SVertex_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_SVertex_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_SVertex_getseters,
+    /*tp_base*/ &Interface0D_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)SVertex_init,
+    /*tp_alloc*/ nullptr,
+    nullptr, /*tp_new*/
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

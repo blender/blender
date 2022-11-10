@@ -364,7 +364,7 @@ all: .FORCE
 	$(BUILD_COMMAND) -C "$(BUILD_DIR)" -j $(NPROCS) install
 	@echo
 	@echo Edit build configuration with: \"$(BUILD_DIR)/CMakeCache.txt\" run make again to rebuild.
-	@if test "$(BLENDER_IS_PYTHON_MODULE)" == ""; then \
+	@if test -z "$(BLENDER_IS_PYTHON_MODULE)"; then \
 		echo Blender successfully built, run from: $(BLENDER_BIN); \
 	else \
 		echo Blender successfully built as a Python module, \"bpy\" can be imported from: $(BLENDER_BIN_DIR); \

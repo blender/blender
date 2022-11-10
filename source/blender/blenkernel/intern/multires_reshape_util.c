@@ -206,6 +206,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->top.grid_size = BKE_subdiv_grid_size_from_level(reshape_context->top.level);
 
   reshape_context->cd_vertex_crease = CustomData_get_layer(&base_mesh->vdata, CD_CREASE);
+  reshape_context->cd_edge_crease = CustomData_get_layer(&base_mesh->edata, CD_CREASE);
 
   context_init_commoon(reshape_context);
 
@@ -271,6 +272,8 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->base_edges = BKE_mesh_edges(base_mesh);
   reshape_context->base_polys = BKE_mesh_polys(base_mesh);
   reshape_context->base_loops = BKE_mesh_loops(base_mesh);
+  reshape_context->cd_vertex_crease = (const float *)CustomData_get_layer(&base_mesh->edata,
+                                                                          CD_CREASE);
 
   reshape_context->subdiv = subdiv;
   reshape_context->need_free_subdiv = false;

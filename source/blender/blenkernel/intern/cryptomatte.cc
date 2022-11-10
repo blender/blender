@@ -311,7 +311,7 @@ static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
 
 static uint32_t cryptomatte_determine_identifier(const blender::StringRef name)
 {
-  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.data()), name.size(), 0);
+  return BLI_hash_mm3(reinterpret_cast<const uchar *>(name.data()), name.size(), 0);
 }
 
 static void add_render_result_meta_data(RenderResult *render_result,
@@ -464,7 +464,7 @@ static std::string to_manifest(const CryptomatteLayer *layer)
     else {
       manifest << ",";
     }
-    manifest << quoted(item.key) << ":\"" << (item.value.hex_encoded()) << "\"";
+    manifest << quoted(item.key) << ":\"" << item.value.hex_encoded() << "\"";
   }
   manifest << "}";
   return manifest.str();
@@ -580,7 +580,7 @@ blender::StringRef CryptomatteStampDataCallbackData::extract_layer_hash(blender:
 void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
                                                            const char *propname,
                                                            char *propvalue,
-                                                           int UNUSED(len))
+                                                           int /*len*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 
@@ -598,7 +598,7 @@ void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
 void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
                                                               const char *propname,
                                                               char *propvalue,
-                                                              int UNUSED(len))
+                                                              int /*len*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 

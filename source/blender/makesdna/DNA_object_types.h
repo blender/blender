@@ -231,6 +231,7 @@ enum eObjectLineArt_Usage {
   OBJECT_LRT_EXCLUDE = (1 << 2),
   OBJECT_LRT_INTERSECTION_ONLY = (1 << 3),
   OBJECT_LRT_NO_INTERSECTION = (1 << 4),
+  OBJECT_LRT_FORCE_INTERSECTION = (1 << 5),
 };
 
 enum eObjectLineArt_Flags {
@@ -321,20 +322,14 @@ typedef struct Object {
   float rotAxis[3], drotAxis[3];
   /** Axis angle rotation - angle part. */
   float rotAngle, drotAngle;
-  /** Final world-space matrix with constraints & animsys applied. */
-  float obmat[4][4];
+  /** Final transformation matrices with constraints & animsys applied. */
+  float object_to_world[4][4];
+  float world_to_object[4][4];
   /** Inverse result of parent, so that object doesn't 'stick' to parent. */
   float parentinv[4][4];
   /** Inverse result of constraints.
    * doesn't include effect of parent or object local transform. */
   float constinv[4][4];
-  /**
-   * Inverse matrix of 'obmat' for any other use than rendering!
-   *
-   * \note this isn't assured to be valid as with 'obmat',
-   * before using this value you should do: `invert_m4_m4(ob->imat, ob->obmat)`
-   */
-  float imat[4][4];
 
   /** Copy of Base's layer in the scene. */
   unsigned int lay DNA_DEPRECATED;

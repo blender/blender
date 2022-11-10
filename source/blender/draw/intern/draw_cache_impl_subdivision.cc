@@ -361,14 +361,14 @@ static GPUVertFormat *get_subdiv_vertex_format()
 struct CompressedPatchCoord {
   int ptex_face_index;
   /* UV coordinate encoded as u << 16 | v, where u and v are quantized on 16-bits. */
-  unsigned int encoded_uv;
+  uint encoded_uv;
 };
 
 MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, float v)
 {
   CompressedPatchCoord patch_coord = {
       ptex_face_index,
-      (static_cast<unsigned int>(u * 65535.0f) << 16) | static_cast<unsigned int>(v * 65535.0f),
+      (uint(u * 65535.0f) << 16) | uint(v * 65535.0f),
   };
   return patch_coord;
 }
@@ -635,17 +635,9 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
      SUBDIV_COARSE_FACE_FLAG_ACTIVE | SUBDIV_COARSE_FACE_FLAG_HIDDEN) \
     << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
-static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
+static uint32_t compute_coarse_face_flag_bm(BMFace *f, BMFace *efa_act)
 {
-  if (f == nullptr) {
-    /* May happen during mapped extraction. */
-    return 0;
-  }
-
   uint32_t flag = 0;
-  if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-    flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
-  }
   if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
   }
@@ -655,8 +647,7 @@ static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
   if (f == efa_act) {
     flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
   }
-  const int loopstart = BM_elem_index_get(f->l_first);
-  return (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+  return flag;
 }
 
 static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
@@ -668,7 +659,12 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int index = BM_elem_index_get(f);
-    flags_data[index] = compute_coarse_face_flag(f, efa_act);
+    uint32_t flag = compute_coarse_face_flag_bm(f, efa_act);
+    if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    const int loopstart = BM_elem_index_get(f->l_first);
+    flags_data[index] = uint(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -682,13 +678,13 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
     if ((polys[i].flag & ME_SMOOTH) != 0) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
-    if ((polys[i].flag & ME_FACE_SEL) != 0) {
+    if (mr->select_poly && mr->select_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
     if (mr->hide_poly && mr->hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
-    flags_data[i] = (uint)(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[i] = uint(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -702,9 +698,16 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     return;
   }
 
-  for (int i = 0; i < mesh->totpoly; i++) {
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
     BMFace *f = bm_original_face_get(mr, i);
-    flags_data[i] = compute_coarse_face_flag(f, mr->efa_act);
+    /* Selection and hiding from bmesh. */
+    uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr->efa_act) : 0;
+    /* Smooth from mesh. */
+    if ((polys[i].flag & ME_SMOOTH) != 0) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    flags_data[i] = uint(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -724,7 +727,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
                                                                   mesh->totpoly);
   }
 
-  uint32_t *flags_data = (uint32_t *)(GPU_vertbuf_get_data(cache->extra_coarse_face_data));
+  uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(cache->extra_coarse_face_data);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     draw_subdiv_cache_extra_coarse_face_data_bm(cache->bm, mr->efa_act, flags_data);
@@ -825,10 +828,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
 
   /* Set topology information only if we have loops. */
   if (num_loops != 0) {
-    cache->num_subdiv_edges = (uint)num_edges;
-    cache->num_subdiv_loops = (uint)num_loops;
-    cache->num_subdiv_verts = (uint)num_verts;
-    cache->num_subdiv_quads = (uint)num_polys;
+    cache->num_subdiv_edges = uint(num_edges);
+    cache->num_subdiv_loops = uint(num_loops);
+    cache->num_subdiv_verts = uint(num_verts);
+    cache->num_subdiv_quads = uint(num_polys);
     cache->subdiv_polygon_offset = static_cast<int *>(MEM_dupallocN(subdiv_polygon_offset));
   }
 
@@ -900,13 +903,13 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
 }
 
 static void draw_subdiv_vertex_corner_cb(const SubdivForeachContext *foreach_context,
-                                         void *UNUSED(tls),
-                                         const int UNUSED(ptex_face_index),
-                                         const float UNUSED(u),
-                                         const float UNUSED(v),
+                                         void * /*tls*/,
+                                         const int /*ptex_face_index*/,
+                                         const float /*u*/,
+                                         const float /*v*/,
                                          const int coarse_vertex_index,
-                                         const int UNUSED(coarse_poly_index),
-                                         const int UNUSED(coarse_corner),
+                                         const int /*coarse_poly_index*/,
+                                         const int /*coarse_corner*/,
                                          const int subdiv_vertex_index)
 {
   BLI_assert(coarse_vertex_index != ORIGINDEX_NONE);
@@ -914,26 +917,26 @@ static void draw_subdiv_vertex_corner_cb(const SubdivForeachContext *foreach_con
   ctx->vert_origindex_map[subdiv_vertex_index] = coarse_vertex_index;
 }
 
-static void draw_subdiv_vertex_edge_cb(const SubdivForeachContext *UNUSED(foreach_context),
-                                       void *UNUSED(tls_v),
-                                       const int UNUSED(ptex_face_index),
-                                       const float UNUSED(u),
-                                       const float UNUSED(v),
-                                       const int UNUSED(coarse_edge_index),
-                                       const int UNUSED(coarse_poly_index),
-                                       const int UNUSED(coarse_corner),
-                                       const int UNUSED(subdiv_vertex_index))
+static void draw_subdiv_vertex_edge_cb(const SubdivForeachContext * /*foreach_context*/,
+                                       void * /*tls_v*/,
+                                       const int /*ptex_face_index*/,
+                                       const float /*u*/,
+                                       const float /*v*/,
+                                       const int /*coarse_edge_index*/,
+                                       const int /*coarse_poly_index*/,
+                                       const int /*coarse_corner*/,
+                                       const int /*subdiv_vertex_index*/)
 {
   /* Required if SubdivForeachContext.vertex_corner is also set. */
 }
 
 static void draw_subdiv_edge_cb(const SubdivForeachContext *foreach_context,
-                                void *UNUSED(tls),
+                                void * /*tls*/,
                                 const int coarse_edge_index,
                                 const int subdiv_edge_index,
-                                const bool UNUSED(is_loose),
-                                const int UNUSED(subdiv_v1),
-                                const int UNUSED(subdiv_v2))
+                                const bool /*is_loose*/,
+                                const int /*subdiv_v1*/,
+                                const int /*subdiv_v2*/)
 {
   DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
 
@@ -953,13 +956,13 @@ static void draw_subdiv_edge_cb(const SubdivForeachContext *foreach_context,
 }
 
 static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
-                                void *UNUSED(tls_v),
+                                void * /*tls_v*/,
                                 const int ptex_face_index,
                                 const float u,
                                 const float v,
-                                const int UNUSED(coarse_loop_index),
+                                const int /*coarse_loop_index*/,
                                 const int coarse_poly_index,
-                                const int UNUSED(coarse_corner),
+                                const int /*coarse_corner*/,
                                 const int subdiv_loop_index,
                                 const int subdiv_vertex_index,
                                 const int subdiv_edge_index)
@@ -1292,7 +1295,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
                                         uint total_dispatch_size,
                                         const bool has_sculpt_mask = false)
 {
-  const uint max_res_x = static_cast<uint>(GPU_max_work_group_count(0));
+  const uint max_res_x = uint(GPU_max_work_group_count(0));
 
   const uint dispatch_size = get_dispatch_size(total_dispatch_size);
   uint dispatch_rx = dispatch_size;
@@ -1315,7 +1318,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
   /* X and Y dimensions may have different limits so the above computation may not be right, but
    * even with the standard 64k minimum on all dimensions we still have a lot of room. Therefore,
    * we presume it all fits. */
-  BLI_assert(dispatch_ry < static_cast<uint>(GPU_max_work_group_count(1)));
+  BLI_assert(dispatch_ry < uint(GPU_max_work_group_count(1)));
 
   draw_subdiv_ubo_update_and_bind(
       cache, shader, src_offset, dst_offset, total_dispatch_size, has_sculpt_mask);
@@ -2033,7 +2036,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfRuntimeData *runtime_data = mesh->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
   BLI_assert(runtime_data && runtime_data->has_gpu_subdiv);
 
   if (runtime_data->settings.level == 0) {
@@ -2134,7 +2137,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   const bool is_simple = subdiv_cache->subdiv->settings.is_simple;
   const int resolution = subdiv_cache->resolution;
   const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / (float)resolution_1;
+  const float inv_resolution_1 = 1.0f / float(resolution_1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
 
   const int num_subdivided_edge = coarse_loose_edge_len *
@@ -2228,13 +2231,13 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
 blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache *cache)
 {
-  return {cache->loose_geom.edges, static_cast<int64_t>(cache->loose_geom.edge_len)};
+  return {cache->loose_geom.edges, int64_t(cache->loose_geom.edge_len)};
 }
 
 blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache *cache)
 {
   return {cache->loose_geom.verts + cache->loose_geom.edge_len * 2,
-          static_cast<int64_t>(cache->loose_geom.vert_len)};
+          int64_t(cache->loose_geom.vert_len)};
 }
 
 static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;

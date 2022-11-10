@@ -34,9 +34,9 @@ typedef struct EditBone {
   /** User-Defined Properties on this Bone */
   struct IDProperty *prop;
   /**
-   * Editbones have a one-way link  (i.e. children refer
+   * Edit-bones have a one-way link  (i.e. children refer
    * to parents.  This is converted to a two-way link for
-   * normal bones when leaving editmode.
+   * normal bones when leaving edit-mode.
    */
   struct EditBone *parent;
   /** (64 == MAXBONENAME) */

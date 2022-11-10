@@ -285,7 +285,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 typedef struct DynamicPaintBakeJob {
   /* from wmJob */
   void *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   struct Main *bmain;
@@ -405,7 +405,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
       /* primary output layer */
       if (surface->flags & MOD_DPAINT_OUT1) {
         /* set filepath */
-        BLI_join_dirfile(
+        BLI_path_join(
             filepath, sizeof(filepath), surface->image_output_path, surface->output_name);
         BLI_path_frame(filepath, frame, 4);
 
@@ -415,7 +415,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
       /* secondary output */
       if (surface->flags & MOD_DPAINT_OUT2 && surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
         /* set filepath */
-        BLI_join_dirfile(
+        BLI_path_join(
             filepath, sizeof(filepath), surface->image_output_path, surface->output_name2);
         BLI_path_frame(filepath, frame, 4);
 
@@ -429,7 +429,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   ED_update_for_newframe(job->bmain, job->depsgraph);
 }
 
-static void dpaint_bake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void dpaint_bake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   DynamicPaintBakeJob *job = customdata;
 
@@ -450,7 +450,7 @@ static void dpaint_bake_startjob(void *customdata, short *stop, short *do_update
   dynamicPaint_bakeImageSequence(job);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 /*

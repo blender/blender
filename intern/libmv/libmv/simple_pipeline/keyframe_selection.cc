@@ -333,7 +333,7 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
       }
 
       double success_intersects_factor =
-          (double)intersects_success / intersects_total;
+          double(intersects_success) / intersects_total;
 
       if (success_intersects_factor < success_intersects_factor_best) {
         LG << "Skip keyframe candidate because of "

@@ -804,7 +804,7 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_MOVIE: {
-      BLI_join_dirfile(r_source, source_len, seq->strip->dir, seq->strip->stripdata->name);
+      BLI_path_join(r_source, source_len, seq->strip->dir, seq->strip->stripdata->name);
       break;
     }
     case SEQ_TYPE_SOUND_RAM: {
@@ -890,8 +890,7 @@ static size_t draw_seq_text_get_overlay_string(const Scene *scene,
 
   BLI_assert(i <= ARRAY_SIZE(text_array));
 
-  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i) -
-         r_overlay_string;
+  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i);
 }
 
 /* Draw info text on a sequence strip. */
@@ -963,8 +962,7 @@ static void draw_sequence_extensions_overlay(
   UI_GetColorPtrShade3ubv(col, blend_col, 10);
 
   const float strip_content_start = SEQ_time_start_frame_get(seq);
-  const float strip_content_end = SEQ_time_start_frame_get(seq) +
-                                  SEQ_time_strip_length_get(scene, seq);
+  const float strip_content_end = SEQ_time_content_end_frame_get(scene, seq);
   float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
   float left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
 
@@ -1095,8 +1093,7 @@ static void draw_seq_background(Scene *scene,
     }
     if (SEQ_time_has_right_still_frames(scene, seq)) {
       float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
-      const float content_end = SEQ_time_start_frame_get(seq) +
-                                SEQ_time_strip_length_get(scene, seq);
+      const float content_end = SEQ_time_content_end_frame_get(scene, seq);
       immRectf(pos, content_end, y1, right_handle_frame, y2);
     }
   }
@@ -1198,7 +1195,7 @@ static void fcurve_batch_add_verts(GPUVertBuf *vbo,
                                    float y_height,
                                    int timeline_frame,
                                    float curve_val,
-                                   unsigned int *vert_count)
+                                   uint *vert_count)
 {
   float vert_pos[2][2];
 
@@ -1317,9 +1314,8 @@ static void draw_seq_strip(const bContext *C,
   x1 = SEQ_time_has_left_still_frames(scene, seq) ? SEQ_time_start_frame_get(seq) :
                                                     SEQ_time_left_handle_frame_get(scene, seq);
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  x2 = SEQ_time_has_right_still_frames(scene, seq) ?
-           SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq) :
-           SEQ_time_right_handle_frame_get(scene, seq);
+  x2 = SEQ_time_has_right_still_frames(scene, seq) ? SEQ_time_content_end_frame_get(scene, seq) :
+                                                     SEQ_time_right_handle_frame_get(scene, seq);
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
@@ -1374,7 +1370,7 @@ static void draw_seq_strip(const bContext *C,
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
-      (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))) {
+      ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     draw_seq_strip_thumbnail(
         v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
@@ -2290,8 +2286,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         continue;
       }
       if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                 SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq)) <
-          v2d->cur.xmin) {
+                 SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin) {
         continue;
       }
       if (seq->machine + 1.0f < v2d->cur.ymin) {

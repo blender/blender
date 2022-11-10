@@ -11,6 +11,7 @@
 
 #include <mutex>
 
+#include "BLI_cache_mutex.hh"
 #include "BLI_float3x3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_generic_virtual_array.hh"
@@ -22,6 +23,7 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_math.hh"
 
 namespace blender::bke {
 
@@ -79,17 +81,14 @@ class CurvesGeometryRuntime {
    */
   mutable Vector<int> evaluated_offsets_cache;
   mutable Vector<int> bezier_evaluated_offsets;
-  mutable std::mutex offsets_cache_mutex;
-  mutable bool offsets_cache_dirty = true;
+  mutable CacheMutex offsets_cache_mutex;
 
   mutable Vector<curves::nurbs::BasisCache> nurbs_basis_cache;
-  mutable std::mutex nurbs_basis_cache_mutex;
-  mutable bool nurbs_basis_cache_dirty = true;
+  mutable CacheMutex nurbs_basis_cache_mutex;
 
   /** Cache of evaluated positions. */
   mutable Vector<float3> evaluated_position_cache;
-  mutable std::mutex position_cache_mutex;
-  mutable bool position_cache_dirty = true;
+  mutable CacheMutex position_cache_mutex;
   /**
    * The evaluated positions result, using a separate span in case all curves are poly curves,
    * in which case a separate array of evaluated positions is unnecessary.
@@ -102,18 +101,15 @@ class CurvesGeometryRuntime {
    * make slicing this array for a curve fast, an extra float is stored for every curve.
    */
   mutable Vector<float> evaluated_length_cache;
-  mutable std::mutex length_cache_mutex;
-  mutable bool length_cache_dirty = true;
+  mutable CacheMutex length_cache_mutex;
 
   /** Direction of the curve at each evaluated point. */
   mutable Vector<float3> evaluated_tangent_cache;
-  mutable std::mutex tangent_cache_mutex;
-  mutable bool tangent_cache_dirty = true;
+  mutable CacheMutex tangent_cache_mutex;
 
   /** Normal direction vectors for each evaluated point. */
   mutable Vector<float3> evaluated_normal_cache;
-  mutable std::mutex normal_cache_mutex;
-  mutable bool normal_cache_dirty = true;
+  mutable CacheMutex normal_cache_mutex;
 };
 
 /**
@@ -162,6 +158,11 @@ class CurvesGeometry : public ::CurvesGeometry {
   IndexRange curves_range() const;
 
   /**
+   * Number of control points in the indexed curve.
+   */
+  int points_num_for_curve(const int index) const;
+
+  /**
    * The index of the first point in every curve. The size of this span is one larger than the
    * number of curves. Consider using #points_for_curve rather than using the offsets directly.
    */
@@ -202,6 +203,8 @@ class CurvesGeometry : public ::CurvesGeometry {
                                    IndexMask selection,
                                    Vector<int64_t> &r_indices) const;
 
+  Array<int> point_to_curve_map() const;
+
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
 
@@ -212,7 +215,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   /**
    * How many evaluated points to create for each segment when evaluating Bezier,
-   * Catmull Rom, and NURBS curves. On the curve domain.
+   * Catmull Rom, and NURBS curves. On the curve domain. Values must be one or greater.
    */
   VArray<int> resolution() const;
   /** Mutable access to curve resolution. Call #tag_topology_changed after changes. */
@@ -532,6 +535,16 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
                        int segment_index);
 
 /**
+ * True if the Bezier curve contains polygonal segments of HandleType::BEZIER_HANDLE_VECTOR.
+ *
+ * \param num_curve_points: Number of points in the curve.
+ * \param evaluated_size: Number of evaluated points in the curve.
+ * \param cyclic: If curve is cyclic.
+ * \param resolution: Curve resolution.
+ */
+bool has_vector_handles(int num_curve_points, int64_t evaluated_size, bool cyclic, int resolution);
+
+/**
  * Return true if the curve's last cyclic segment has a vector type.
  * This only makes a difference in the shape of cyclic curves.
  */
@@ -693,6 +706,29 @@ void interpolate_to_evaluated(const GSpan src,
                               const Span<int> evaluated_offsets,
                               GMutableSpan dst);
 
+void calculate_basis(const float parameter, float4 &r_weights);
+
+/**
+ * Interpolate the control point values for the given parameter on the piecewise segment.
+ * \param a: Value associated with the first control point influencing the segment.
+ * \param d: Value associated with the fourth control point.
+ * \param parameter: Parameter in range [0, 1] to compute the interpolation for.
+ */
+template<typename T>
+T interpolate(const T &a, const T &b, const T &c, const T &d, const float parameter)
+{
+  BLI_assert(0.0f <= parameter && parameter <= 1.0f);
+  float4 n;
+  calculate_basis(parameter, n);
+  if constexpr (is_same_any_v<T, float, float2, float3>) {
+    /* Save multiplications by adjusting weights after mix. */
+    return 0.5f * attribute_math::mix4<T>(n, a, b, c, d);
+  }
+  else {
+    return attribute_math::mix4<T>(n * 0.5f, a, b, c, d);
+  }
+}
+
 }  // namespace catmull_rom
 
 /** \} */
@@ -807,6 +843,16 @@ inline IndexRange CurvesGeometry::curves_range() const
   return IndexRange(this->curves_num());
 }
 
+inline int CurvesGeometry::points_num_for_curve(const int index) const
+{
+  BLI_assert(this->curve_num > 0);
+  BLI_assert(this->curve_num > index);
+  BLI_assert(this->curve_offsets != nullptr);
+  const int offset = this->curve_offsets[index];
+  const int offset_next = this->curve_offsets[index + 1];
+  return offset_next - offset;
+}
+
 inline bool CurvesGeometry::is_single_type(const CurveType type) const
 {
   return this->curve_type_counts()[type] == this->curves_num();
@@ -833,6 +879,7 @@ inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 {
   /* Offsets are not allocated when there are no curves. */
   BLI_assert(this->curve_num > 0);
+  BLI_assert(this->curve_num > index);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[index];
   const int offset_next = this->curve_offsets[index + 1];
@@ -857,13 +904,13 @@ inline int CurvesGeometry::evaluated_points_num() const
 
 inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
   return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
 }
 
 inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
   BLI_assert(this->curve_num > 0);
   const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
   const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
@@ -888,7 +935,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
                                                                const bool cyclic) const
 {
-  BLI_assert(!this->runtime->length_cache_dirty);
+  BLI_assert(this->runtime->length_cache_mutex.is_cached());
   const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
   return this->runtime->evaluated_length_cache.as_span().slice(range);
 }
@@ -905,11 +952,13 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
 
 /** \} */
 
+namespace curves {
+
 /* -------------------------------------------------------------------- */
 /** \name Bezier Inline Methods
  * \{ */
 
-namespace curves::bezier {
+namespace bezier {
 
 inline bool point_is_sharp(const Span<int8_t> handle_types_left,
                            const Span<int8_t> handle_types_right,
@@ -929,14 +978,24 @@ inline bool segment_is_vector(const int8_t left, const int8_t right)
   return segment_is_vector(HandleType(left), HandleType(right));
 }
 
+inline bool has_vector_handles(const int num_curve_points,
+                               const int64_t evaluated_size,
+                               const bool cyclic,
+                               const int resolution)
+{
+  return evaluated_size - !cyclic != int64_t(segments_num(num_curve_points, cyclic)) * resolution;
+}
+
 inline float3 calculate_vector_handle(const float3 &point, const float3 &next_point)
 {
   return math::interpolate(point, next_point, 1.0f / 3.0f);
 }
 
+}  // namespace bezier
+
 /** \} */
 
-}  // namespace curves::bezier
+}  // namespace curves
 
 struct CurvesSurfaceTransforms {
   float4x4 curves_to_world;

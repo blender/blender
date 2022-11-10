@@ -21,12 +21,12 @@ static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Integer"));
 }
 
-static void fn_node_float_to_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_float_to_int_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "rounding_mode", 0, "", ICON_NONE);
 }
 
-static void node_float_to_int_label(const bNodeTree *UNUSED(ntree),
+static void node_float_to_int_label(const bNodeTree * /*tree*/,
                                     const bNode *node,
                                     char *label,
                                     int maxlen)
@@ -43,13 +43,13 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   static auto exec_preset = fn::CustomMF_presets::AllSpanOrSingle();
   static fn::CustomMF_SI_SO<float, int> round_fn{
-      "Round", [](float a) { return (int)round(a); }, exec_preset};
+      "Round", [](float a) { return int(round(a)); }, exec_preset};
   static fn::CustomMF_SI_SO<float, int> floor_fn{
-      "Floor", [](float a) { return (int)floor(a); }, exec_preset};
+      "Floor", [](float a) { return int(floor(a)); }, exec_preset};
   static fn::CustomMF_SI_SO<float, int> ceil_fn{
-      "Ceiling", [](float a) { return (int)ceil(a); }, exec_preset};
+      "Ceiling", [](float a) { return int(ceil(a)); }, exec_preset};
   static fn::CustomMF_SI_SO<float, int> trunc_fn{
-      "Truncate", [](float a) { return (int)trunc(a); }, exec_preset};
+      "Truncate", [](float a) { return int(trunc(a)); }, exec_preset};
 
   switch (static_cast<FloatToIntRoundingMode>(bnode.custom1)) {
     case FN_NODE_FLOAT_TO_INT_ROUND:

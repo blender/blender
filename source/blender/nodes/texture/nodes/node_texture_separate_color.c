@@ -95,8 +95,8 @@ void register_node_type_tex_separate_color(void)
 
   tex_node_type_base(&ntype, TEX_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_exec(&ntype, NULL, NULL, exec);
-  node_type_update(&ntype, update);
+  ntype.exec_fn = exec;
+  ntype.updatefunc = update;
 
   nodeRegisterType(&ntype);
 }

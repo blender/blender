@@ -9,6 +9,8 @@
 
 #include "OccluderSource.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 namespace Freestyle {
@@ -114,7 +116,7 @@ void OccluderSource::getOccluderProscenium(real proscenium[4])
 real OccluderSource::averageOccluderArea()
 {
   real area = 0.0;
-  unsigned numFaces = 0;
+  uint numFaces = 0;
   for (begin(); isValid(); next()) {
     Vec3r min, max;
     cachedPolygon.getBBox(min, max);

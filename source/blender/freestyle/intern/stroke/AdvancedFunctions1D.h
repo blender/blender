@@ -33,7 +33,7 @@ class DensityF1D : public UnaryFunction1D<double> {
  public:
   /** Builds the functor.
    *  \param sigma:
-   *    Thesigma used in DensityF0D and determining the window size used in each density query.
+   *    The sigma used in DensityF0D and determining the window size used in each density query.
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    *  \param sampling:

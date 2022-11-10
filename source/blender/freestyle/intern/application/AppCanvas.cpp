@@ -89,7 +89,7 @@ void AppCanvas::init()
 
 void AppCanvas::postDraw()
 {
-  for (unsigned int i = 0; i < _StyleModules.size(); i++) {
+  for (uint i = 0; i < _StyleModules.size(); i++) {
     if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
     }
@@ -118,8 +118,8 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
     int ymax = border().getMax().y();
     int rectx = _pass_diffuse.width;
     int recty = _pass_diffuse.height;
-    float xfac = ((float)rectx) / ((float)(xmax - xmin));
-    float yfac = ((float)recty) / ((float)(ymax - ymin));
+    float xfac = float(rectx) / float(xmax - xmin);
+    float yfac = float(recty) / float(ymax - ymin);
 #if 0
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n",
@@ -138,12 +138,12 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
 #endif
     int ii, jj;
     for (int j = 0; j < h; j++) {
-      jj = (int)((y - ymin + j) * yfac);
+      jj = int((y - ymin + j) * yfac);
       if (jj < 0 || jj >= recty) {
         continue;
       }
       for (int i = 0; i < w; i++) {
-        ii = (int)((x - xmin + i) * xfac);
+        ii = int((x - xmin + i) * xfac);
         if (ii < 0 || ii >= rectx) {
           continue;
         }
@@ -167,8 +167,8 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
     int ymax = border().getMax().y();
     int rectx = _pass_z.width;
     int recty = _pass_z.height;
-    float xfac = ((float)rectx) / ((float)(xmax - xmin));
-    float yfac = ((float)recty) / ((float)(ymax - ymin));
+    float xfac = float(rectx) / float(xmax - xmin);
+    float yfac = float(recty) / float(ymax - ymin);
 #if 0
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n",
@@ -187,12 +187,12 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
 #endif
     int ii, jj;
     for (int j = 0; j < h; j++) {
-      jj = (int)((y - ymin + j) * yfac);
+      jj = int((y - ymin + j) * yfac);
       if (jj < 0 || jj >= recty) {
         continue;
       }
       for (int i = 0; i < w; i++) {
-        ii = (int)((x - xmin + i) * xfac);
+        ii = int((x - xmin + i) * xfac);
         if (ii < 0 || ii >= rectx) {
           continue;
         }

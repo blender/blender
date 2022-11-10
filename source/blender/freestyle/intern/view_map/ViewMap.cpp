@@ -13,6 +13,8 @@
 
 #include "../geometry/GeomUtils.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 /**********************************/
@@ -73,7 +75,7 @@ void ViewMap::Clean()
   }
 }
 
-ViewShape *ViewMap::viewShape(unsigned id)
+ViewShape *ViewMap::viewShape(uint id)
 {
   int index = _shapeIdToIndex[id];
   return _VShapes[index];
@@ -770,7 +772,7 @@ ViewShape::~ViewShape()
 {
   _Vertices.clear();
 
-  if (!(_Edges.empty())) {
+  if (!_Edges.empty()) {
     for (vector<ViewEdge *>::iterator e = _Edges.begin(), eend = _Edges.end(); e != eend; e++) {
       delete (*e);
     }

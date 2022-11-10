@@ -365,7 +365,6 @@ static void seq_update_meta_disp_range(Scene *scene)
     /* Update meta strip endpoints. */
     SEQ_time_left_handle_frame_set(scene, ms->parseq, ms->disp_range[0]);
     SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
-    SEQ_transform_fix_single_image_seq_offsets(scene, ms->parseq);
 
     /* Recalculate effects using meta strip. */
     LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
@@ -1611,8 +1610,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if ((!MAIN_VERSION_ATLEAST(bmain, 292, 14)) ||
-      ((bmain->versionfile == 293) && (!MAIN_VERSION_ATLEAST(bmain, 293, 1)))) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 14) ||
+      ((bmain->versionfile == 293) && !MAIN_VERSION_ATLEAST(bmain, 293, 1))) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_GEOMETRY) {
         continue;

@@ -15,19 +15,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Normal"));
 }
 
-static void node_shader_buts_bevel(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_bevel(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-static void node_shader_init_bevel(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_bevel(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 4; /* samples */
 }
 
 static int gpu_shader_bevel(GPUMaterial *mat,
                             bNode *node,
-                            bNodeExecData *UNUSED(execdata),
+                            bNodeExecData * /*execdata*/,
                             GPUNodeStack *in,
                             GPUNodeStack *out)
 {
@@ -50,8 +50,8 @@ void register_node_type_sh_bevel()
   sh_node_type_base(&ntype, SH_NODE_BEVEL, "Bevel", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bevel;
-  node_type_init(&ntype, file_ns::node_shader_init_bevel);
-  node_type_gpu(&ntype, file_ns::gpu_shader_bevel);
+  ntype.initfunc = file_ns::node_shader_init_bevel;
+  ntype.gpu_fn = file_ns::gpu_shader_bevel;
 
   nodeRegisterType(&ntype);
 }

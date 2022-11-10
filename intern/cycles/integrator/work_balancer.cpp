@@ -17,6 +17,9 @@ void work_balance_do_initial(vector<WorkBalanceInfo> &work_balance_infos)
     work_balance_infos[0].weight = 1.0;
     return;
   }
+  else if (num_infos == 0) {
+    return;
+  }
 
   /* There is no statistics available, so start with an equal distribution. */
   const double weight = 1.0 / num_infos;

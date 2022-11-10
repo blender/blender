@@ -79,7 +79,7 @@ static void array_values_set(IDProperty *property,
 template<
     /** C-Primitive type of the array. Can be int32_t, float, double. */
     typename PrimitiveType,
-    /** Subtype of the ID_ARRAY. Must match PrimitiveType. */
+    /** Sub-type of the #ID_ARRAY. Must match #PrimitiveType. */
     eIDPropertyType id_property_subtype>
 std::unique_ptr<IDProperty, IDPropertyDeleter> create_array(StringRefNull prop_name,
                                                             Span<PrimitiveType> values)

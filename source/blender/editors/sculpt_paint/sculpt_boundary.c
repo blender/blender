@@ -7,13 +7,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -21,20 +19,13 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "bmesh.h"
@@ -681,12 +672,16 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     angle_factor = floorf(angle_factor * 10) / 10.0f;
   }
   const float angle = angle_factor * M_PI;
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (boundary->edit_info[vd.index].propagation_steps_num == -1) {
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
@@ -694,7 +689,8 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     }
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
@@ -729,12 +725,16 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   const float disp = sculpt_boundary_displacement_from_grab_delta_get(ss, boundary);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (boundary->edit_info[vd.index].propagation_steps_num == -1) {
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
@@ -742,7 +742,8 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
     }
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
@@ -773,6 +774,9 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   const float disp = sculpt_boundary_displacement_from_grab_delta_get(ss, boundary);
 
@@ -781,6 +785,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
@@ -788,7 +793,8 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
     }
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
@@ -819,12 +825,16 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (boundary->edit_info[vd.index].propagation_steps_num == -1) {
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
@@ -832,7 +842,8 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
     }
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
@@ -862,6 +873,9 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   const float disp = strength * sculpt_boundary_displacement_from_grab_delta_get(ss, boundary);
   float angle_factor = disp / ss->cache->radius;
@@ -876,6 +890,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
@@ -883,7 +898,8 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
     }
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+    const float automask = SCULPT_automasking_factor_get(
+        ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     sub_v3_v3v3(t_orig_co, orig_data.co, boundary->twist.pivot_position);

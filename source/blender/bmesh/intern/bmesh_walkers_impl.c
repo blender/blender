@@ -1062,7 +1062,7 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
           l = NULL;
           break;
         }
-      } while ((++i != i_opposite));
+      } while (++i != i_opposite);
     }
     else {
       l = NULL;

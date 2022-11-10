@@ -19,9 +19,9 @@ namespace blender::draw {
 #define NOR_AND_FLAG_HIDDEN -2
 
 static void extract_fdots_nor_init(const MeshRenderData *mr,
-                                   MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache * /*cache*/,
                                    void *buf,
-                                   void *UNUSED(tls_data))
+                                   void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -34,9 +34,9 @@ static void extract_fdots_nor_init(const MeshRenderData *mr,
 }
 
 static void extract_fdots_nor_finish(const MeshRenderData *mr,
-                                     MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache * /*cache*/,
                                      void *buf,
-                                     void *UNUSED(data))
+                                     void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
@@ -99,9 +99,9 @@ constexpr MeshExtract create_extractor_fdots_nor()
  * \{ */
 
 static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
-                                      MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache * /*cache*/,
                                       void *buf,
-                                      void *UNUSED(tls_data))
+                                      void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -114,9 +114,9 @@ static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
 }
 
 static void extract_fdots_nor_hq_finish(const MeshRenderData *mr,
-                                        MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache * /*cache*/,
                                         void *buf,
-                                        void *UNUSED(data))
+                                        void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};

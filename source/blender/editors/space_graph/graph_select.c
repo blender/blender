@@ -585,7 +585,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
   initialize_box_select_key_editing_data(
       sipo, incl_handles, mode, ac, data, &scaled_rectf, &ked, &mapping_flag);
 
-  /* Get beztriple editing/validation funcs. */
+  /* Get beztriple editing/validation functions. */
   const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
   const KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -893,7 +893,7 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
   ot->poll = graphop_visible_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* Properties. */
   ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
@@ -1061,6 +1061,12 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
   /* Apply box_select action. */
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
+  if (any_key_selection_changed) {
+    /* If any key was selected at any time during this process, the entire-curve selection should
+     * be disabled. Otherwise, sliding over any keyless part of the curve will immediately cause
+     * the entire curve to be selected. */
+    RNA_boolean_set(op->ptr, "use_curve_selection", false);
+  }
   const bool use_curve_selection = RNA_boolean_get(op->ptr, "use_curve_selection");
   if (use_curve_selection && !any_key_selection_changed) {
     box_select_graphcurves(&ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
@@ -1145,7 +1151,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
   min -= 0.5f;
   max += 0.5f;
 
-  /* get editing funcs + data */
+  /* Get editing functions + data. */
   ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
   select_cb = ANIM_editkeyframes_select(SELECT_ADD);
 
@@ -1295,6 +1301,7 @@ void GRAPH_OT_select_column(wmOperatorType *ot)
 
   /* props */
   ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 }
 
 /** \} */

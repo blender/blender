@@ -116,7 +116,7 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
                !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef>))>
   FunctionRef(Callable &&callable)
       : callback_(callback_fn<typename std::remove_reference_t<Callable>>),
-        callable_(reinterpret_cast<intptr_t>(&callable))
+        callable_(intptr_t(&callable))
   {
   }
 

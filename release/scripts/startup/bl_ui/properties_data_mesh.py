@@ -503,11 +503,15 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_bevel_weight_vertex_add", icon='ADD')
 
-        col = layout.column(heading="Store")
+        if me.has_crease_edge:
+            col.operator("mesh.customdata_crease_edge_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_crease_edge_add", icon='ADD')
 
-        col.enabled = obj is not None and obj.mode != 'EDIT'
-        col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
-        col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
+        if me.has_crease_vertex:
+            col.operator("mesh.customdata_crease_vertex_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_crease_vertex_add", icon='ADD')
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
@@ -582,7 +586,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
     def draw_attribute_warnings(self, context, layout):
         ob = context.object
-        mesh = ob.data
+        mesh = context.mesh
 
         unique_names = set()
         colliding_names = []
@@ -591,8 +595,11 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
                 {"position": None, "shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
                 mesh.uv_layers,
-                ob.vertex_groups,
+                None if ob is None else ob.vertex_groups,
         ):
+            if collection is None:
+                colliding_names.append("Cannot check for object vertex groups when pinning mesh")
+                continue
             for name in collection.keys():
                 unique_names_len = len(unique_names)
                 unique_names.add(name)

@@ -68,6 +68,20 @@ WorldHandle &SyncModule::sync_world(::World *world)
   return eevee_dd;
 }
 
+SceneHandle &SyncModule::sync_scene(::Scene *scene)
+{
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  struct DrawData *dd = DRW_drawdata_ensure(
+      (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
+  SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
+
+  const int recalc_flags = ID_RECALC_ALL;
+  if ((eevee_dd.recalc & recalc_flags) != 0) {
+    inst_.sampling.reset();
+  }
+  return eevee_dd;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -215,8 +229,8 @@ static void gpencil_drawcall_add(gpIterData &iter,
   iter.vcount = v_first + v_count - iter.vfirst;
 }
 
-static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
+                                bGPDframe * /*gpf*/,
                                 bGPDstroke *gps,
                                 void *thunk)
 {
@@ -234,17 +248,17 @@ static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
     return;
   }
 
+  GPUBatch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
+
   if (show_fill) {
-    GPUBatch *geom = DRW_cache_gpencil_fills_get(iter.ob, iter.cfra);
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, false);
   }
 
   if (show_stroke) {
-    GPUBatch *geom = DRW_cache_gpencil_strokes_get(iter.ob, iter.cfra);
     /* Start one vert before to have gl_InstanceID > 0 (see shader). */
-    int vfirst = gps->runtime.stroke_start - 1;
+    int vfirst = gps->runtime.stroke_start * 3;
     /* Include "potential" cyclic vertex and start adj vertex (see shader). */
     int vcount = gps->totpoints + 1 + 1;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, true);

@@ -5,6 +5,8 @@
 
 #include "kernel/bvh/bvh.h"
 
+#include "kernel/integrator/guiding.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Random walk subsurface scattering.
@@ -203,7 +205,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float anisotropy = INTEGRATOR_STATE(state, subsurface, anisotropy);
 
   Spectrum sigma_t, alpha;
-  Spectrum throughput = INTEGRATOR_STATE_WRITE(state, path, throughput);
+  Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
   subsurface_random_walk_coefficients(albedo, radius, anisotropy, &sigma_t, &alpha, &throughput);
   Spectrum sigma_s = sigma_t * alpha;
 
@@ -350,7 +352,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       }
     }
 
-    /* Sample direction along ray. */
+    /* Sample distance along ray. */
     float t = -logf(1.0f - randt) / sample_sigma_t;
 
     /* On the first bounce, we use the ray-cast to check if the opposite side is nearby.
@@ -432,6 +434,16 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
 
   if (hit) {
     kernel_assert(isfinite_safe(throughput));
+
+    guiding_record_bssrdf_bounce(
+        kg,
+        state,
+        pdf,
+        N,
+        D,
+        safe_divide_color(throughput, INTEGRATOR_STATE(state, path, throughput)),
+        albedo);
+
     INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
   }
 

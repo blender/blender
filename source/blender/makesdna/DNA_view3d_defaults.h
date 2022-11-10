@@ -36,8 +36,10 @@
 
 #define _DNA_DEFAULT_View3DOverlay \
   { \
+    .flag = V3D_OVERLAY_VIEWER_ATTRIBUTE, \
     .wireframe_threshold = 1.0f, \
     .wireframe_opacity = 1.0f, \
+    .viewer_attribute_opacity = 1.0f, \
     .xray_alpha_bone = 0.5f, \
     .bone_wire_alpha = 1.0f, \
     .fade_alpha = 0.40f, \
@@ -81,7 +83,7 @@
     .gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID, \
  \
     .flag = V3D_SELECT_OUTLINE, \
-    .flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION, \
+    .flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION | V3D_SHOW_VIEWER, \
  \
     .lens = 50.0f, \
     .clip_start = 0.01f, \

@@ -23,13 +23,14 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.h"
 #include "BKE_workspace.h"
 
 #include "ED_node.h" /* own include */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_spreadsheet.h"
 #include "ED_view3d.h"
+#include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -644,6 +645,15 @@ static bool node_mouse_select(bContext *C,
     }
   }
 
+  if (RNA_boolean_get(op->ptr, "clear_viewer")) {
+    if (node == nullptr) {
+      /* Disable existing active viewer. */
+      WorkSpace *workspace = CTX_wm_workspace(C);
+      BKE_viewer_path_clear(&workspace->viewer_path);
+      WM_event_add_notifier(C, NC_VIEWER_PATH, nullptr);
+    }
+  }
+
   if (!(changed || found)) {
     return false;
   }
@@ -655,7 +665,7 @@ static bool node_mouse_select(bContext *C,
     ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
   }
   else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
-    ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
+    viewer_path::activate_geometry_node(bmain, snode, *node);
   }
   ED_node_set_active_viewer_key(&snode);
   node_sort(*snode.edittree);
@@ -731,6 +741,12 @@ void NODE_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
+
+  RNA_def_boolean(ot->srna,
+                  "clear_viewer",
+                  false,
+                  "Clear Viewer",
+                  "Deactivate geometry nodes viewer when clicking in empty space");
 }
 
 /** \} */
@@ -843,8 +859,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   int x, y, radius;
   float2 offset;
 
-  float zoom = (float)(BLI_rcti_size_x(&region->winrct)) /
-               (float)(BLI_rctf_size_x(&region->v2d.cur));
+  float zoom = float(BLI_rcti_size_x(&region->winrct)) / float(BLI_rctf_size_x(&region->v2d.cur));
 
   const eSelectOp sel_op = ED_select_op_modal(
       (eSelectOp)RNA_enum_get(op->ptr, "mode"),
@@ -867,7 +882,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of _only_ other nodes inside that frame. */
         rctf frame_inside = node_frame_rect_inside(*node);
-        const float radius_adjusted = (float)radius / zoom;
+        const float radius_adjusted = float(radius) / zoom;
         BLI_rctf_pad(&frame_inside, -2.0f * radius_adjusted, -2.0f * radius_adjusted);
         if (BLI_rctf_isect_circle(&node->totr, offset, radius_adjusted) &&
             !BLI_rctf_isect_circle(&frame_inside, offset, radius_adjusted)) {
@@ -1119,7 +1134,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 /** \name Select Linked To Operator
  * \{ */
 
-static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1169,7 +1184,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 /** \name Select Linked From Operator
  * \{ */
 
-static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1337,10 +1352,10 @@ static void node_find_create_label(const bNode *node, char *str, int maxlen)
 
 /* Generic search invoke. */
 static void node_find_update_fn(const bContext *C,
-                                void *UNUSED(arg),
+                                void * /*arg*/,
                                 const char *str,
                                 uiSearchItems *items,
-                                const bool UNUSED(is_first))
+                                const bool /*is_first*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1368,7 +1383,7 @@ static void node_find_update_fn(const bContext *C,
   BLI_string_search_free(search);
 }
 
-static void node_find_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *active = (bNode *)arg2;
@@ -1435,7 +1450,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
   return block;
 }
 
-static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   UI_popup_block_invoke(C, node_find_menu, op, nullptr);
   return OPERATOR_CANCELLED;

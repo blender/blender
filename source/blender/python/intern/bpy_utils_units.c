@@ -90,7 +90,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
   const char **str_iter;
   PyStructSequence_Field *desc;
 
-  /* initialize array */
+  /* Initialize array. */
   /* We really populate the contexts' fields here! */
   for (str_iter = str_items, desc = py_sseq_desc->fields; *str_iter; str_iter++, desc++) {
     desc->name = (char *)*str_iter;
@@ -101,7 +101,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
 
   PyStructSequence_InitType(py_type, py_sseq_desc);
 
-  /* initialize pytype */
+  /* Initialize the Python type. */
   py_struct_seq = PyStructSequence_New(py_type);
   BLI_assert(py_struct_seq != NULL);
 
@@ -336,14 +336,14 @@ PyDoc_STRVAR(bpyunits_doc, "This module contains some data/methods regarding uni
 
 static struct PyModuleDef bpyunits_module = {
     PyModuleDef_HEAD_INIT,
-    "bpy.utils.units",
-    bpyunits_doc,
-    -1, /* multiple "initialization" just copies the module dict. */
-    bpyunits_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_name*/ "bpy.utils.units",
+    /*m_doc*/ bpyunits_doc,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ bpyunits_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_utils_units(void)

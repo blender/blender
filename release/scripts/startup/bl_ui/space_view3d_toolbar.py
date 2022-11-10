@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Menu, Panel, UIList, WindowManager
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,
@@ -52,6 +52,8 @@ class VIEW3D_MT_brush_context_menu(Menu):
         elif context.sculpt_object:
             layout.prop_menu_enum(brush, "sculpt_tool")
             layout.operator("brush.reset")
+        elif context.tool_settings.curves_sculpt:
+            layout.prop_menu_enum(brush, "curves_sculpt_tool")
 
 
 class VIEW3D_MT_brush_gpencil_context_menu(Menu):
@@ -79,22 +81,6 @@ class VIEW3D_MT_brush_gpencil_context_menu(Menu):
 
         layout.operator("gpencil.brush_reset")
         layout.operator("gpencil.brush_reset_all")
-
-
-class VIEW3D_MT_brush_context_menu_paint_modes(Menu):
-    bl_label = "Enabled Modes"
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
-
-        layout.prop(brush, "use_paint_sculpt", text="Sculpt")
-        layout.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
-        layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
-        layout.prop(brush, "use_paint_weight", text="Weight Paint")
-        layout.prop(brush, "use_paint_image", text="Texture Paint")
 
 
 class View3DPanel:
@@ -278,7 +264,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         # mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon_value=item.icon_value)
+            layout.label(text=item.name, icon_value=item.icon_value)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="")
@@ -964,14 +950,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_sculpt_delay_updates")
         col.prop(sculpt, "use_deform_only")
 
-        col.separator()
-
-        col = layout.column(heading="Auto-Masking", align=True)
-        col.prop(sculpt, "use_automasking_topology", text="Topology")
-        col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
-        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
-
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -1606,19 +1584,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 row.prop(gp_settings, "fill_layer_mode", text="Layers")
 
                 col.separator()
-                row = col.row(align=True)
-                row.prop(gp_settings, "extend_stroke_factor")
-                row.prop(
-                    gp_settings,
-                    "show_fill_extend",
-                    icon='HIDE_OFF' if gp_settings.show_fill_extend else 'HIDE_ON',
-                    text="",
-                )
-
-                col.separator()
-                col.prop(gp_settings, "fill_leak", text="Leak Size")
-
-                col.separator()
                 col.prop(gp_settings, "fill_simplify_level", text="Simplify")
                 if gp_settings.fill_draw_mode != 'STROKE':
                     col = layout.column(align=False, heading="Ignore Transparent")
@@ -1878,6 +1843,39 @@ class VIEW3D_PT_tools_grease_pencil_brush_paint_falloff(GreasePencilBrushFalloff
         return (settings and settings.brush and settings.brush.curve and gptool == 'TINT')
 
 
+class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_advanced'
+    bl_label = "Gap Closure"
+    bl_category = "Tool"
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool == 'FILL'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        brush = tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column()
+
+        col.prop(gp_settings, "extend_stroke_factor", text="Size")
+        row = col.row(align=True)
+        row.prop(gp_settings, "fill_extend_mode", text="Mode")
+        row = col.row(align=True)
+        row.prop(gp_settings, "show_fill_extend", text="Visual Aids")
+
+        if gp_settings.fill_extend_mode == 'EXTEND':
+            row = col.row(align=True)
+            row.prop(gp_settings, "use_collide_strokes")
+
+
 # Grease Pencil stroke sculpting tools
 class GreasePencilSculptPanel:
     bl_context = ".greasepencil_sculpt"
@@ -1917,7 +1915,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_select(Panel, View3DPanel, GreasePenc
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 
@@ -1966,7 +1964,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced(GreasePencilSculptAdva
             return False
 
         tool = brush.gpencil_sculpt_tool
-        return tool != 'CLONE'
+        return tool in {'SMOOTH', 'RANDOMIZE'}
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
@@ -1984,7 +1982,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvan
             return False
 
         tool = brush.gpencil_sculpt_tool
-        return tool != 'CLONE'
+        return tool in {'SMOOTH', 'RANDOMIZE'}
 
 
 # Grease Pencil weight painting tools
@@ -2026,7 +2024,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel, Grea
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 
@@ -2101,7 +2099,7 @@ class VIEW3D_PT_tools_grease_pencil_vertex_paint_select(View3DPanel, Panel, Grea
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 
@@ -2361,7 +2359,6 @@ class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
 classes = (
     VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_gpencil_context_menu,
-    VIEW3D_MT_brush_context_menu_paint_modes,
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,
@@ -2430,6 +2427,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_post_processing,
     VIEW3D_PT_tools_grease_pencil_brush_random,
     VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
+    VIEW3D_PT_tools_grease_pencil_brush_gap_closure,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
     VIEW3D_PT_tools_grease_pencil_sculpt_select,
     VIEW3D_PT_tools_grease_pencil_sculpt_settings,

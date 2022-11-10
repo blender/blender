@@ -69,6 +69,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
     _set_default(BOOST_ROOT "${_cycles_lib_dir}/boost")
     _set_default(BLOSC_ROOT_DIR "${_cycles_lib_dir}/blosc")
     _set_default(EMBREE_ROOT_DIR "${_cycles_lib_dir}/embree")
+    _set_default(EPOXY_ROOT_DIR "${_cycles_lib_dir}/epoxy")
     _set_default(IMATH_ROOT_DIR "${_cycles_lib_dir}/imath")
     _set_default(GLEW_ROOT_DIR "${_cycles_lib_dir}/glew")
     _set_default(JPEG_ROOT "${_cycles_lib_dir}/jpeg")
@@ -91,7 +92,11 @@ if(CYCLES_STANDALONE_REPOSITORY)
     _set_default(USD_ROOT_DIR "${_cycles_lib_dir}/usd")
     _set_default(WEBP_ROOT_DIR "${_cycles_lib_dir}/webp")
     _set_default(ZLIB_ROOT "${_cycles_lib_dir}/zlib")
-    _set_default(LEVEL_ZERO_ROOT_DIR "${_cycles_lib_dir}/level-zero")
+    if(WIN32)
+      set(LEVEL_ZERO_ROOT_DIR ${_cycles_lib_dir}/level_zero)
+    else()
+      set(LEVEL_ZERO_ROOT_DIR ${_cycles_lib_dir}/level-zero)
+    endif()
     _set_default(SYCL_ROOT_DIR "${_cycles_lib_dir}/dpcpp")
 
     # Ignore system libraries
@@ -197,17 +202,17 @@ endif()
 if(CYCLES_STANDALONE_REPOSITORY)
   if(MSVC AND EXISTS ${_cycles_lib_dir})
     set(OPENEXR_INCLUDE_DIR ${OPENEXR_ROOT_DIR}/include)
-    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR_ROOT_DIR}/include/OpenEXR)
+    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR_ROOT_DIR}/include/OpenEXR ${IMATH_ROOT_DIR}/include ${IMATH_ROOT_DIR}/include/Imath)
     set(OPENEXR_LIBRARIES
+      optimized ${OPENEXR_ROOT_DIR}/lib/OpenEXR_s.lib
+      optimized ${OPENEXR_ROOT_DIR}/lib/OpenEXRCore_s.lib
       optimized ${OPENEXR_ROOT_DIR}/lib/Iex_s.lib
-      optimized ${OPENEXR_ROOT_DIR}/lib/Half_s.lib
-      optimized ${OPENEXR_ROOT_DIR}/lib/IlmImf_s.lib
-      optimized ${OPENEXR_ROOT_DIR}/lib/Imath_s.lib
+      optimized ${IMATH_ROOT_DIR}/lib/Imath_s.lib
       optimized ${OPENEXR_ROOT_DIR}/lib/IlmThread_s.lib
+      debug ${OPENEXR_ROOT_DIR}/lib/OpenEXR_s_d.lib
+      debug ${OPENEXR_ROOT_DIR}/lib/OpenEXRCore_s_d.lib
       debug ${OPENEXR_ROOT_DIR}/lib/Iex_s_d.lib
-      debug ${OPENEXR_ROOT_DIR}/lib/Half_s_d.lib
-      debug ${OPENEXR_ROOT_DIR}/lib/IlmImf_s_d.lib
-      debug ${OPENEXR_ROOT_DIR}/lib/Imath_s_d.lib
+      debug ${IMATH_ROOT_DIR}/lib/Imath_s_d.lib
       debug ${OPENEXR_ROOT_DIR}/lib/IlmThread_s_d.lib
     )
   else()
@@ -261,6 +266,30 @@ if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OSL)
     find_package(OSL REQUIRED)
     find_package(LLVM REQUIRED)
     find_package(Clang REQUIRED)
+  endif()
+endif()
+
+###########################################################################
+# OpenPGL
+###########################################################################
+
+if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_PATH_GUIDING)
+  if(NOT openpgl_DIR AND EXISTS ${_cycles_lib_dir})
+    set(openpgl_DIR ${_cycles_lib_dir}/openpgl/lib/cmake/openpgl)
+  endif()
+
+  find_package(openpgl QUIET)
+  if(openpgl_FOUND)
+    if(WIN32)
+      get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
+      get_target_property(OPENPGL_LIBRARIES_DEBUG openpgl::openpgl LOCATION_DEBUG)
+      set(OPENPGL_LIBRARIES optimized ${OPENPGL_LIBRARIES_RELEASE} debug ${OPENPGL_LIBRARIES_DEBUG})
+    else()
+      get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
+    endif()
+    get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
+  else()
+    set_and_warn_library_found("OpenPGL" openpgl_FOUND WITH_CYCLES_PATH_GUIDING)
   endif()
 endif()
 
@@ -319,8 +348,8 @@ if(CYCLES_STANDALONE_REPOSITORY)
     if(NOT BOOST_VERSION)
       message(FATAL_ERROR "Unable to determine Boost version")
     endif()
-    set(BOOST_POSTFIX "vc141-mt-x64-${BOOST_VERSION}.lib")
-    set(BOOST_DEBUG_POSTFIX "vc141-mt-gd-x64-${BOOST_VERSION}.lib")
+    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}.lib")
+    set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}.lib")
     set(BOOST_LIBRARIES
       optimized ${BOOST_ROOT}/lib/libboost_date_time-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_iostreams-${BOOST_POSTFIX}
@@ -459,6 +488,7 @@ if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_NANOVDB)
 
   if(MSVC AND EXISTS ${_cycles_lib_dir})
     set(NANOVDB_INCLUDE_DIR ${NANOVDB_ROOT_DIR}/include)
+    set(NANOVDB_INCLUDE_DIRS ${NANOVDB_INCLUDE_DIR})
   else()
     find_package(NanoVDB REQUIRED)
   endif()
@@ -557,16 +587,14 @@ if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
   # We can't use the version from the Blender precompiled libraries because
   # it does not include the video subsystem.
   find_package(SDL2 REQUIRED)
+  set_and_warn_library_found("SDL" SDL2_FOUND WITH_CYCLES_STANDALONE_GUI)
 
-  if(NOT SDL2_FOUND)
-    set(WITH_CYCLES_STANDALONE_GUI OFF)
-    message(STATUS "SDL not found, disabling Cycles standalone GUI")
+  if(SDL2_FOUND)
+    include_directories(
+      SYSTEM
+      ${SDL2_INCLUDE_DIRS}
+    )
   endif()
-
-  include_directories(
-    SYSTEM
-    ${SDL2_INCLUDE_DIRS}
-  )
 endif()
 
 ###########################################################################
@@ -575,11 +603,11 @@ endif()
 
 if(WITH_CYCLES_DEVICE_CUDA AND (WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD))
   find_package(CUDA) # Try to auto locate CUDA toolkit
+  set_and_warn_library_found("CUDA compiler" CUDA_FOUND WITH_CYCLES_CUDA_BINARIES)
+
   if(CUDA_FOUND)
     message(STATUS "Found CUDA ${CUDA_NVCC_EXECUTABLE} (${CUDA_VERSION})")
   else()
-    message(STATUS "CUDA compiler not found, disabling WITH_CYCLES_CUDA_BINARIES")
-    set(WITH_CYCLES_CUDA_BINARIES OFF)
     if(NOT WITH_CUDA_DYNLOAD)
       message(STATUS "Additionally falling back to dynamic CUDA load")
       set(WITH_CUDA_DYNLOAD ON)
@@ -593,11 +621,10 @@ endif()
 
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   find_package(HIP)
+  set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
+
   if(HIP_FOUND)
     message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
-  else()
-    message(STATUS "HIP compiler not found, disabling WITH_CYCLES_HIP_BINARIES")
-    set(WITH_CYCLES_HIP_BINARIES OFF)
   endif()
 endif()
 
@@ -613,13 +640,17 @@ if(WITH_CYCLES_DEVICE_METAL)
   find_library(METAL_LIBRARY Metal)
 
   # This file was added in the 12.0 SDK, use it as a way to detect the version.
-  if(METAL_LIBRARY AND NOT EXISTS "${METAL_LIBRARY}/Headers/MTLFunctionStitching.h")
-    message(STATUS "Metal version too old, must be SDK 12.0 or newer, disabling WITH_CYCLES_DEVICE_METAL")
-    set(WITH_CYCLES_DEVICE_METAL OFF)
-  elseif(NOT METAL_LIBRARY)
-    message(STATUS "Metal not found, disabling WITH_CYCLES_DEVICE_METAL")
-    set(WITH_CYCLES_DEVICE_METAL OFF)
-  else()
+  if(METAL_LIBRARY)
+    if(EXISTS "${METAL_LIBRARY}/Headers/MTLFunctionStitching.h")
+      set(METAL_FOUND ON)
+    else()
+      message(STATUS "Metal version too old, must be SDK 12.0 or newer")
+      set(METAL_FOUND OFF)
+    endif()
+  endif()
+
+  set_and_warn_library_found("Metal" METAL_FOUND WITH_CYCLES_DEVICE_METAL)
+  if(METAL_FOUND)
     message(STATUS "Found Metal: ${METAL_LIBRARY}")
   endif()
 endif()
@@ -631,9 +662,10 @@ endif()
 if(WITH_CYCLES_DEVICE_ONEAPI)
   find_package(SYCL)
   find_package(LevelZero)
+  set_and_warn_library_found("oneAPI" SYCL_FOUND WITH_CYCLES_DEVICE_ONEAPI)
+  set_and_warn_library_found("Level Zero" LEVEL_ZERO_FOUND WITH_CYCLES_DEVICE_ONEAPI)
 
-  if(SYCL_FOUND AND LEVEL_ZERO_FOUND)
-    message(STATUS "Found oneAPI: ${SYCL_LIBRARY}")
+  if(SYCL_FOUND AND SYCL_VERSION VERSION_GREATER_EQUAL 6.0 AND LEVEL_ZERO_FOUND)
     message(STATUS "Found Level Zero: ${LEVEL_ZERO_LIBRARY}")
 
     if(WITH_CYCLES_ONEAPI_BINARIES)
@@ -644,13 +676,14 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       endif()
 
       if(NOT EXISTS ${OCLOC_INSTALL_DIR})
-        message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}, disabling WITH_CYCLES_ONEAPI_BINARIES."
+        set(OCLOC_FOUND OFF)
+        message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}."
                        " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-        set(WITH_CYCLES_ONEAPI_BINARIES OFF)
+        set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
       endif()
     endif()
   else()
-    message(STATUS "oneAPI or Level Zero not found, disabling WITH_CYCLES_DEVICE_ONEAPI")
+    message(STATUS "SYCL 6.0+ or Level Zero not found, disabling WITH_CYCLES_DEVICE_ONEAPI")
     set(WITH_CYCLES_DEVICE_ONEAPI OFF)
   endif()
 endif()

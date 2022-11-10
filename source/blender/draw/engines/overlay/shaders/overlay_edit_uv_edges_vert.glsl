@@ -5,8 +5,8 @@ void main()
   vec3 world_pos = point_object_to_world(vec3(au, 0.0));
   gl_Position = point_world_to_ndc(world_pos);
   /* Snap vertices to the pixel grid to reduce artifacts. */
-  vec2 half_viewport_res = drw_view.viewport_size * 0.5;
-  vec2 half_pixel_offset = drw_view.viewport_size_inverse * 0.5;
+  vec2 half_viewport_res = sizeViewport * 0.5;
+  vec2 half_pixel_offset = sizeViewportInv * 0.5;
   gl_Position.xy = floor(gl_Position.xy * half_viewport_res) / half_viewport_res +
                    half_pixel_offset;
 

@@ -36,18 +36,10 @@ void GPU_init(void)
   gpu_codegen_init();
 
   gpu_batch_init();
-
-#ifndef GPU_STANDALONE
-  gpu_pbvh_init();
-#endif
 }
 
 void GPU_exit(void)
 {
-#ifndef GPU_STANDALONE
-  gpu_pbvh_exit();
-#endif
-
   gpu_batch_exit();
 
   gpu_codegen_exit();

@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 struct AutomaskingCache;
+struct AutomaskingNodeData;
 struct Image;
 struct ImageUser;
 struct KeyBlock;
@@ -34,6 +35,9 @@ struct Object;
 struct SculptUndoNode;
 struct bContext;
 struct PaintModeSettings;
+struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
 
 /* Updates */
 
@@ -311,10 +315,6 @@ typedef struct SculptThreadedTaskData {
   float *cloth_sim_initial_location;
   float cloth_sim_radius;
 
-  float dirty_mask_min;
-  float dirty_mask_max;
-  bool dirty_mask_dirty_only;
-
   /* Mask By Color Tool */
 
   float mask_by_color_threshold;
@@ -332,7 +332,7 @@ typedef struct SculptThreadedTaskData {
   int mask_init_seed;
 
   ThreadMutex mutex;
-
+  int iteration;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -398,13 +398,20 @@ typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
   int flags;
   int initial_face_set;
+
+  float cavity_factor;
+  int cavity_blur_steps;
+  struct CurveMapping *cavity_curve;
+
+  float start_normal_limit, start_normal_falloff;
+  float view_normal_limit, view_normal_falloff;
 } AutomaskingSettings;
 
 typedef struct AutomaskingCache {
   AutomaskingSettings settings;
-  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #SCULPT_automasking_cache_init when needed. */
-  float *factor;
+
+  bool can_reuse_mask;
+  uchar current_stroke_id;
 } AutomaskingCache;
 
 typedef struct FilterCache {
@@ -464,6 +471,8 @@ typedef struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
+  float initial_normal[3];
+  float view_normal[3];
 
   /* Pre-smoothed colors used by sharpening. Colors are HSL. */
   float (*pre_smoothed_color)[4];
@@ -636,6 +645,7 @@ typedef struct StrokeCache {
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
 
+  int stroke_id;
 } StrokeCache;
 
 /* -------------------------------------------------------------------- */
@@ -913,6 +923,8 @@ float SCULPT_vertex_mask_get(struct SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_color_get(const SculptSession *ss, PBVHVertRef vertex, float r_color[4]);
 void SCULPT_vertex_color_set(SculptSession *ss, PBVHVertRef vertex, const float color[4]);
 
+bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool original);
+
 /** Returns true if a color attribute exists in the current sculpt session. */
 bool SCULPT_has_colors(const SculptSession *ss);
 
@@ -1004,9 +1016,13 @@ void SCULPT_connected_components_ensure(Object *ob);
 
 void SCULPT_vertex_visible_set(SculptSession *ss, PBVHVertRef vertex, bool visible);
 bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_visibility_sync_all_face_sets_to_verts(struct Object *ob);
-void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+void SCULPT_face_visibility_all_invert(SculptSession *ss);
+void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
+
+void SCULPT_visibility_sync_all_from_faces(struct Object *ob);
 
 /** \} */
 
@@ -1024,11 +1040,6 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 int SCULPT_face_set_next_available_get(SculptSession *ss);
 
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
-bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, PBVHVertRef vertex);
-bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, PBVHVertRef vertex);
-
-void SCULPT_face_sets_visibility_invert(SculptSession *ss);
-void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
 /** \} */
 
@@ -1195,7 +1206,8 @@ float SCULPT_brush_strength_factor(struct SculptSession *ss,
                                    const float fno[3],
                                    float mask,
                                    const PBVHVertRef vertex,
-                                   int thread_id);
+                                   int thread_id,
+                                   struct AutomaskingNodeData *automask_data);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.
@@ -1274,7 +1286,6 @@ void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct BMesh *bm);
-void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 
@@ -1284,9 +1295,30 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 /** \name Auto-masking.
  * \{ */
 
+typedef struct AutomaskingNodeData {
+  PBVHNode *node;
+  SculptOrigVertData orig_data;
+  bool have_orig_data;
+} AutomaskingNodeData;
+
+/** Call before PBVH vertex iteration.
+ * \param automask_data: pointer to an uninitialized AutomaskingNodeData struct.
+ */
+void SCULPT_automasking_node_begin(struct Object *ob,
+                                   const SculptSession *ss,
+                                   struct AutomaskingCache *automasking,
+                                   AutomaskingNodeData *automask_data,
+                                   PBVHNode *node);
+
+/* Call before SCULPT_automasking_factor_get and SCULPT_brush_strength_factor. */
+void SCULPT_automasking_node_update(SculptSession *ss,
+                                    AutomaskingNodeData *automask_data,
+                                    PBVHVertexIter *vd);
+
 float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
                                     SculptSession *ss,
-                                    PBVHVertRef vertex);
+                                    PBVHVertRef vertex,
+                                    AutomaskingNodeData *automask_data);
 
 /* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */
@@ -1302,6 +1334,12 @@ float *SCULPT_boundary_automasking_init(Object *ob,
                                         eBoundaryAutomaskMode mode,
                                         int propagation_steps,
                                         float *automask_factor);
+bool SCULPT_automasking_needs_normal(const SculptSession *ss,
+                                     const Sculpt *sculpt,
+                                     const Brush *brush);
+bool SCULPT_automasking_needs_original(const struct Sculpt *sd, const struct Brush *brush);
+int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1315,7 +1353,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
  * fallback to euclidean distances to one of the initial vertices in the set.
  */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
-                                        struct GSet *initial_vertices,
+                                        struct GSet *initial_verts,
                                         float limit_radius);
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,
@@ -1328,8 +1366,14 @@ float *SCULPT_geodesic_from_vertex(Object *ob, PBVHVertRef vertex, float limit_r
 /** \name Filter API
  * \{ */
 
-void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, int undo_type);
+void SCULPT_filter_cache_init(struct bContext *C,
+                              Object *ob,
+                              Sculpt *sd,
+                              int undo_type,
+                              const int mval[2],
+                              float area_normal_radius);
 void SCULPT_filter_cache_free(SculptSession *ss);
+void SCULPT_mesh_filter_properties(struct wmOperatorType *ot);
 
 void SCULPT_mask_filter_smooth_apply(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, int smooth_iterations);
@@ -1592,7 +1636,6 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot);
 /* Mask filter and Dirty Mask. */
 
 void SCULPT_OT_mask_filter(struct wmOperatorType *ot);
-void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 
 /* Mask and Face Sets Expand. */
 
@@ -1847,6 +1890,15 @@ BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
   return ELEM(tool, SCULPT_TOOL_DRAW_FACE_SETS);
 }
 
+void SCULPT_stroke_id_ensure(struct Object *ob);
+void SCULPT_stroke_id_next(struct Object *ob);
+bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
+
 #ifdef __cplusplus
 }
 #endif
+
+/* Make SCULPT_ alias to a few blenkernel sculpt methods. */
+
+#define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
+#define SCULPT_face_attr_get BKE_sculpt_face_attr_get

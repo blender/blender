@@ -74,11 +74,12 @@ static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *v
   if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
-  if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), seq->start) > view_area->xmax) {
+  if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
+      view_area->xmax) {
     return false;
   }
-  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq), seq->start + seq->len) <
-      view_area->xmin) {
+  if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
+             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin) {
     return false;
   }
   if (seq->machine + 1.0f < view_area->ymin) {
@@ -131,8 +132,8 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
 }
 
 static void thumbnail_start_job(void *data,
-                                short *stop,
-                                short *UNUSED(do_update),
+                                bool *stop,
+                                bool *UNUSED(do_update),
                                 float *UNUSED(progress))
 {
   ThumbnailDrawJob *tj = data;
@@ -374,7 +375,7 @@ static int sequencer_thumbnail_closest_guaranteed_frame_get(struct Scene *scene,
   /* Set of "guaranteed" thumbnails. */
   const int frame_index = timeline_frame - SEQ_time_left_handle_frame_get(scene, seq);
   const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, seq);
-  const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) * frame_step;
+  const int relative_base_frame = round_fl_to_int(frame_index / (float)frame_step) * frame_step;
   const int nearest_guaranted_absolute_frame = relative_base_frame +
                                                SEQ_time_left_handle_frame_get(scene, seq);
   return nearest_guaranted_absolute_frame;
@@ -536,7 +537,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     if (seq->flag & SEQ_OVERLAP) {
       GPU_blend(GPU_BLEND_ALPHA);
       if (ibuf->rect) {
-        unsigned char *buf = (unsigned char *)ibuf->rect;
+        uchar *buf = (uchar *)ibuf->rect;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
           buf[3] = OVERLAP_ALPHA;
         }

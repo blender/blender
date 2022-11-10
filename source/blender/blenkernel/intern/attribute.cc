@@ -354,7 +354,7 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
   get_domains(id, info);
 
   for (eAttrDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM;
-       domain = static_cast<eAttrDomain>((static_cast<int>(domain)) + 1)) {
+       domain = static_cast<eAttrDomain>(int(domain) + 1)) {
     if (!(domain_mask & ATTR_DOMAIN_AS_MASK(domain))) {
       continue;
     }
@@ -388,7 +388,7 @@ int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomD
       continue;
     }
 
-    if ((1 << (int)domain) & domain_mask) {
+    if ((1 << int(domain)) & domain_mask) {
       length += CustomData_number_of_layers_typemask(customdata, mask);
     }
   }
@@ -452,12 +452,10 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
 bool BKE_id_attribute_required(const ID *id, const char *name)
 {
   switch (GS(id->name)) {
-    case ID_PT: {
-      return BKE_pointcloud_customdata_required((const PointCloud *)id, name);
-    }
-    case ID_CV: {
-      return BKE_curves_customdata_required((const Curves *)id, name);
-    }
+    case ID_PT:
+      return BKE_pointcloud_attribute_required((const PointCloud *)id, name);
+    case ID_CV:
+      return BKE_curves_attribute_required((const Curves *)id, name);
     default:
       return false;
   }
@@ -576,7 +574,7 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     CustomData *customdata = info[domain].customdata;
 
-    if (!customdata || !((1 << (int)domain) & domain_mask)) {
+    if (!customdata || !((1 << int(domain)) & domain_mask)) {
       continue;
     }
 

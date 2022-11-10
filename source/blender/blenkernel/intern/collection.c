@@ -796,10 +796,10 @@ static void collection_object_cache_fill(ListBase *lb,
     /* Only collection flags are checked here currently, object restrict flag is checked
      * in FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN since it can be animated
      * without updating the cache. */
-    if (((child_restrict & COLLECTION_HIDE_VIEWPORT) == 0)) {
+    if ((child_restrict & COLLECTION_HIDE_VIEWPORT) == 0) {
       base->flag |= BASE_ENABLED_VIEWPORT;
     }
-    if (((child_restrict & COLLECTION_HIDE_RENDER) == 0)) {
+    if ((child_restrict & COLLECTION_HIDE_RENDER) == 0) {
       base->flag |= BASE_ENABLED_RENDER;
     }
   }
@@ -859,13 +859,15 @@ void BKE_collection_object_cache_free(Collection *collection)
   collection_object_cache_free(collection);
 }
 
-Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *collection)
+Base *BKE_collection_or_layer_objects(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      Collection *collection)
 {
   if (collection) {
     return BKE_collection_object_cache_get(collection).first;
   }
-
-  return view_layer->object_bases.first;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  return BKE_view_layer_object_bases_get(view_layer)->first;
 }
 
 /** \} */
@@ -944,7 +946,7 @@ bool BKE_collection_has_object(Collection *collection, const Object *ob)
     return false;
   }
 
-  return (BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob)));
+  return BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob));
 }
 
 bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
@@ -954,7 +956,7 @@ bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
   }
 
   const ListBase objects = BKE_collection_object_cache_get(collection);
-  return (BLI_findptr(&objects, ob, offsetof(Base, object)));
+  return BLI_findptr(&objects, ob, offsetof(Base, object));
 }
 
 bool BKE_collection_has_object_recursive_instanced(Collection *collection, Object *ob)
@@ -964,7 +966,7 @@ bool BKE_collection_has_object_recursive_instanced(Collection *collection, Objec
   }
 
   const ListBase objects = BKE_collection_object_cache_instanced_get(collection);
-  return (BLI_findptr(&objects, ob, offsetof(Base, object)));
+  return BLI_findptr(&objects, ob, offsetof(Base, object));
 }
 
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)
@@ -1749,7 +1751,10 @@ Collection *BKE_collection_from_index(Scene *scene, const int index)
   return collection_from_index_recursive(master_collection, index, &index_current);
 }
 
-static bool collection_objects_select(ViewLayer *view_layer, Collection *collection, bool deselect)
+static bool collection_objects_select(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      Collection *collection,
+                                      bool deselect)
 {
   bool changed = false;
 
@@ -1757,6 +1762,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
     return false;
   }
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
@@ -1777,7 +1783,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    if (collection_objects_select(view_layer, collection, deselect)) {
+    if (collection_objects_select(scene, view_layer, collection, deselect)) {
       changed = true;
     }
   }
@@ -1785,16 +1791,19 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
   return changed;
 }
 
-bool BKE_collection_objects_select(ViewLayer *view_layer, Collection *collection, bool deselect)
+bool BKE_collection_objects_select(const Scene *scene,
+                                   ViewLayer *view_layer,
+                                   Collection *collection,
+                                   bool deselect)
 {
   LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(view_layer,
                                                                                        collection);
 
   if (layer_collection != NULL) {
-    return BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
+    return BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
   }
 
-  return collection_objects_select(view_layer, collection, deselect);
+  return collection_objects_select(scene, view_layer, collection, deselect);
 }
 
 /** \} */

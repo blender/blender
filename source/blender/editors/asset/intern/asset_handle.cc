@@ -8,14 +8,19 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_asset.h"
+#include "BKE_asset_representation.hh"
+
 #include "BLO_readfile.h"
 
 #include "ED_asset_handle.h"
 #include "ED_asset_list.hh"
 
+#include "WM_api.h"
+
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
-  return asset->file_data->name;
+  return BKE_asset_representation_name_get(asset->file_data->asset);
 }
 
 const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
@@ -23,9 +28,9 @@ const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
   return asset->file_data->relpath;
 }
 
-AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset)
+AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset_handle)
 {
-  return asset->file_data->asset_data;
+  return BKE_asset_representation_metadata_get(asset_handle->file_data->asset);
 }
 
 ID *ED_asset_handle_get_local_id(const AssetHandle *asset)
@@ -52,3 +57,31 @@ void ED_asset_handle_get_full_library_path(const bContext *C,
 
   BLO_library_path_explode(asset_path.c_str(), r_full_lib_path, nullptr, nullptr);
 }
+
+namespace blender::ed::asset {
+
+ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain,
+                                                const AssetLibraryReference &library_ref,
+                                                const AssetHandle asset)
+{
+  if (ID *local_id = ED_asset_handle_get_local_id(&asset)) {
+    return local_id;
+  }
+
+  char blend_path[FILE_MAX_LIBEXTRA];
+  ED_asset_handle_get_full_library_path(nullptr, &library_ref, &asset, blend_path);
+  const char *id_name = ED_asset_handle_get_name(&asset);
+
+  return WM_file_append_datablock(&bmain,
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  blend_path,
+                                  ED_asset_handle_get_id_type(&asset),
+                                  id_name,
+                                  BLO_LIBLINK_APPEND_RECURSIVE |
+                                      BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
+                                      BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
+}
+
+}  // namespace blender::ed::asset

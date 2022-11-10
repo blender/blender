@@ -96,7 +96,7 @@ void main()
   wofs = normal_world_to_view(wofs);
 
   /* Push vertex half a pixel (maximum) in normal direction. */
-  gl_Position.xy += wofs.xy * drw_view.viewport_size_inverse * gl_Position.w;
+  gl_Position.xy += wofs.xy * sizeViewportInv * gl_Position.w;
 
   /* Push the vertex towards the camera. Helps a bit. */
   gl_Position.z -= facing_ratio * curvature * 1.0e-6 * gl_Position.w;
@@ -136,8 +136,7 @@ void main()
 #ifdef SELECT_EDGES
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
-  gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w *
-                    ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif
 
   view_clipping_distances(wpos);

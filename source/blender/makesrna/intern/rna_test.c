@@ -103,7 +103,7 @@ void RNA_def_test(BlenderRNA *brna)
 #  ifdef UNIT_TEST
   StructRNA *srna;
   PropertyRNA *prop;
-  unsigned short dimsize[] = {MARRAY_DIMSIZE};
+  ushort dimsize[] = {MARRAY_DIMSIZE};
 
   srna = RNA_def_struct(brna, "Test", NULL);
   RNA_def_struct_sdna(srna, "Test");

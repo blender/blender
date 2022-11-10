@@ -17,6 +17,7 @@
 #include "BKE_curves.hh"
 #include "BKE_deform.h"
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
@@ -30,6 +31,8 @@ using blender::bke::AttributeMetaData;
 using blender::bke::custom_data_type_to_cpp_type;
 using blender::bke::CustomDataAttributes;
 using blender::bke::GSpanAttributeWriter;
+using blender::bke::InstanceReference;
+using blender::bke::Instances;
 using blender::bke::object_get_evaluated_geometry_set;
 using blender::bke::SpanAttributeWriter;
 
@@ -370,11 +373,11 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
  */
 static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
     GatherTasksInfo &gather_info,
-    const InstancesComponent &instances_component,
+    const Instances &instances,
     const OrderedAttributes &ordered_attributes)
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
-  const CustomDataAttributes &attributes = instances_component.instance_attributes();
+  const CustomDataAttributes &attributes = instances.custom_data_attributes();
   attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
@@ -394,7 +397,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           }
           /* Convert the attribute on the instances component to the expected attribute type. */
           std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-              to_type, instances_component.instances_num());
+              to_type, instances.instances_num());
           conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
           span = temporary_array->as_span();
           gather_info.r_temporary_arrays.append(std::move(temporary_array));
@@ -430,7 +433,7 @@ static void foreach_geometry_in_reference(
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix * object->obmat;
+        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world;
         const int sub_id = noise::hash(id, index);
         fn(object_geometry_set, matrix, sub_id);
         index++;
@@ -450,17 +453,17 @@ static void foreach_geometry_in_reference(
 }
 
 static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
-                                               const InstancesComponent &instances_component,
+                                               const Instances &instances,
                                                const float4x4 &base_transform,
                                                const InstanceContext &base_instance_context)
 {
-  const Span<InstanceReference> references = instances_component.references();
-  const Span<int> handles = instances_component.instance_reference_handles();
-  const Span<float4x4> transforms = instances_component.instance_transforms();
+  const Span<InstanceReference> references = instances.references();
+  const Span<int> handles = instances.reference_handles();
+  const Span<float4x4> transforms = instances.transforms();
 
   Span<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
-    std::optional<GSpan> ids = instances_component.instance_attributes().get_for_read("id");
+    std::optional<GSpan> ids = instances.custom_data_attributes().get_for_read("id");
     if (ids.has_value()) {
       stored_instance_ids = ids->typed<int>();
     }
@@ -469,11 +472,11 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
   /* Prepare attribute fallbacks. */
   InstanceContext instance_context = base_instance_context;
   Vector<std::pair<int, GSpan>> pointcloud_attributes_to_override = prepare_attribute_fallbacks(
-      gather_info, instances_component, gather_info.pointclouds.attributes);
+      gather_info, instances, gather_info.pointclouds.attributes);
   Vector<std::pair<int, GSpan>> mesh_attributes_to_override = prepare_attribute_fallbacks(
-      gather_info, instances_component, gather_info.meshes.attributes);
+      gather_info, instances, gather_info.meshes.attributes);
   Vector<std::pair<int, GSpan>> curve_attributes_to_override = prepare_attribute_fallbacks(
-      gather_info, instances_component, gather_info.curves.attributes);
+      gather_info, instances, gather_info.curves.attributes);
 
   for (const int i : transforms.index_range()) {
     const int handle = handles[i];
@@ -495,10 +498,10 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
     uint32_t local_instance_id = 0;
     if (gather_info.create_id_attribute_on_any_component) {
       if (stored_instance_ids.is_empty()) {
-        local_instance_id = (uint32_t)i;
+        local_instance_id = uint32_t(i);
       }
       else {
-        local_instance_id = (uint32_t)stored_instance_ids[i];
+        local_instance_id = uint32_t(stored_instance_ids[i]);
       }
     }
     const uint32_t instance_id = noise::hash(base_instance_context.id, local_instance_id);
@@ -584,8 +587,11 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const InstancesComponent &instances_component = *static_cast<const InstancesComponent *>(
             component);
-        gather_realize_tasks_for_instances(
-            gather_info, instances_component, base_transform, base_instance_context);
+        const Instances *instances = instances_component.get_for_read();
+        if (instances != nullptr && instances->instances_num() > 0) {
+          gather_realize_tasks_for_instances(
+              gather_info, *instances, base_transform, base_instance_context);
+        }
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
@@ -645,8 +651,7 @@ static void gather_pointclouds_to_realize(const GeometrySet &geometry_set,
       r_pointclouds.add(pointcloud);
     }
   }
-  if (const InstancesComponent *instances =
-          geometry_set.get_component_for_read<InstancesComponent>()) {
+  if (const Instances *instances = geometry_set.get_instances_for_read()) {
     instances->foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
       gather_pointclouds_to_realize(instance_geometry_set, r_pointclouds);
     });
@@ -782,9 +787,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     dst_attribute.finish();
   }
   positions.finish();
-  if (point_ids) {
-    point_ids.finish();
-  }
+  point_ids.finish();
 }
 
 /** \} */
@@ -811,7 +814,6 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("normal");
   attributes_to_propagate.remove("shade_smooth");
-  attributes_to_propagate.remove("crease");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
@@ -830,8 +832,7 @@ static void gather_meshes_to_realize(const GeometrySet &geometry_set,
       r_meshes.add(mesh);
     }
   }
-  if (const InstancesComponent *instances =
-          geometry_set.get_component_for_read<InstancesComponent>()) {
+  if (const Instances *instances = geometry_set.get_instances_for_read()) {
     instances->foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
       gather_meshes_to_realize(instance_geometry_set, r_meshes);
     });
@@ -858,6 +859,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
       }
     }
   }
+  info.create_material_index_attribute |= info.materials.size() > 1;
   info.realize_info.reinitialize(info.order.size());
   for (const int mesh_index : info.realize_info.index_range()) {
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
@@ -1107,12 +1109,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
   }
-  if (vertex_ids) {
-    vertex_ids.finish();
-  }
-  if (material_indices) {
-    material_indices.finish();
-  }
+  vertex_ids.finish();
+  material_indices.finish();
 }
 
 /** \} */
@@ -1155,8 +1153,7 @@ static void gather_curves_to_realize(const GeometrySet &geometry_set,
       r_curves.add(curves);
     }
   }
-  if (const InstancesComponent *instances =
-          geometry_set.get_component_for_read<InstancesComponent>()) {
+  if (const Instances *instances = geometry_set.get_instances_for_read()) {
     instances->foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
       gather_curves_to_realize(instance_geometry_set, r_curves);
     });
@@ -1406,19 +1403,11 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
   }
-  if (point_ids) {
-    point_ids.finish();
-  }
-  if (radius) {
-    radius.finish();
-  }
-  if (resolution) {
-    resolution.finish();
-  }
-  if (all_curves_info.create_handle_postion_attributes) {
-    handle_left.finish();
-    handle_right.finish();
-  }
+  point_ids.finish();
+  radius.finish();
+  resolution.finish();
+  handle_left.finish();
+  handle_right.finish();
 }
 
 /** \} */
@@ -1430,9 +1419,8 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 static void remove_id_attribute_from_instances(GeometrySet &geometry_set)
 {
   geometry_set.modify_geometry_sets([&](GeometrySet &sub_geometry) {
-    if (sub_geometry.has<InstancesComponent>()) {
-      InstancesComponent &component = sub_geometry.get_component_for_write<InstancesComponent>();
-      component.instance_attributes().remove("id");
+    if (Instances *instances = sub_geometry.get_instances_for_write()) {
+      instances->custom_data_attributes().remove("id");
     }
   });
 }

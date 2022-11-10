@@ -142,9 +142,6 @@ typedef struct GlyphCacheBLF {
   /** Font size. */
   float size;
 
-  /** DPI. */
-  unsigned int dpi;
-
   float char_weight;
   float char_slant;
   float char_width;
@@ -299,9 +296,6 @@ typedef struct FontBLF {
 
   /** The width to wrap the text, see #BLF_WORD_WRAP. */
   int wrap_width;
-
-  /** Font DPI (default 72). */
-  unsigned int dpi;
 
   /** Font size. */
   float size;

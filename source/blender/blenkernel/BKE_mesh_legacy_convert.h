@@ -10,12 +10,38 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
+#  include "BLI_span.hh"
+#  include "DNA_customdata_types.h"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 struct CustomData;
 struct Mesh;
 struct MFace;
+
+#ifdef __cplusplus
+
+/**
+ * Move face sets to the legacy type from a generic type.
+ */
+void BKE_mesh_legacy_face_set_from_generic(
+    Mesh *mesh, blender::MutableSpan<CustomDataLayer> poly_layers_to_write);
+/**
+ * Copy face sets to the generic data type from the legacy type.
+ */
+void BKE_mesh_legacy_face_set_to_generic(struct Mesh *mesh);
+
+/**
+ * Copy edge creases from a separate layer into edges.
+ */
+void BKE_mesh_legacy_edge_crease_from_layers(struct Mesh *mesh);
+/**
+ * Copy edge creases from edges to a separate layer.
+ */
+void BKE_mesh_legacy_edge_crease_to_layers(struct Mesh *mesh);
 
 /**
  * Copy bevel weights from separate layers into vertices and edges.
@@ -37,6 +63,16 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(struct Mesh *mesh);
 void BKE_mesh_legacy_convert_flags_to_hide_layers(struct Mesh *mesh);
 
 /**
+ * Convert the selected element attributes to the old flag format for writing.
+ */
+void BKE_mesh_legacy_convert_selection_layers_to_flags(struct Mesh *mesh);
+/**
+ * Convert the old selection flags (#SELECT/#ME_FACE_SEL) to the selected element attribute for
+ * reading. Only add the attributes when there are any elements in each domain selected.
+ */
+void BKE_mesh_legacy_convert_flags_to_selection_layers(struct Mesh *mesh);
+
+/**
  * Move material indices from a generic attribute to #MPoly.
  */
 void BKE_mesh_legacy_convert_material_indices_to_mpoly(struct Mesh *mesh);
@@ -45,6 +81,8 @@ void BKE_mesh_legacy_convert_material_indices_to_mpoly(struct Mesh *mesh);
  * Only add the attribute when the indices are not all zero.
  */
 void BKE_mesh_legacy_convert_mpoly_to_material_indices(struct Mesh *mesh);
+
+#endif
 
 /**
  * Recreate #MFace Tessellation.
@@ -56,8 +94,6 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(struct Mesh *mesh);
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
-
-void BKE_mesh_add_mface_layers(struct CustomData *fdata, struct CustomData *ldata, int total);
 
 /**
  * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
@@ -84,6 +120,13 @@ void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
  * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.
  */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(struct Mesh *mesh);
+
+/**
+ * Convert legacy #MFace.edcode to edge #ME_EDGEDRAW.
+ */
+void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
+
+void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
 
 /* Inlines */
 

@@ -75,13 +75,12 @@ class Grid3DFieldContext : public FieldContext {
 
   int64_t points_num() const
   {
-    return static_cast<int64_t>(resolution_.x) * static_cast<int64_t>(resolution_.y) *
-           static_cast<int64_t>(resolution_.z);
+    return int64_t(resolution_.x) * int64_t(resolution_.y) * int64_t(resolution_.z);
   }
 
   GVArray get_varray_for_input(const FieldInput &field_input,
-                               const IndexMask UNUSED(mask),
-                               ResourceScope &UNUSED(scope)) const
+                               const IndexMask /*mask*/,
+                               ResourceScope & /*scope*/) const
   {
     const bke::AttributeFieldInput *attribute_field_input =
         dynamic_cast<const bke::AttributeFieldInput *>(&field_input);
@@ -113,9 +112,9 @@ class Grid3DFieldContext : public FieldContext {
   }
 };
 
-#ifdef WITH_OPENVDB
 static void node_geo_exec(GeoNodeExecParams params)
 {
+#ifdef WITH_OPENVDB
   const float3 bounds_min = params.extract_input<float3>("Min");
   const float3 bounds_max = params.extract_input<float3>("Max");
 
@@ -169,7 +168,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   grid->transform().postTranslate(
       openvdb::math::Vec3<float>(bounds_min.x, bounds_min.y, bounds_min.z));
 
-  Volume *volume = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
+  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
   BKE_volume_init_grids(volume);
 
   BKE_volume_grid_add_vdb(*volume, "density", std::move(grid));
@@ -177,16 +176,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet r_geometry_set;
   r_geometry_set.replace_volume(volume);
   params.set_output("Volume", r_geometry_set);
-}
-
 #else
-static void node_geo_exec(GeoNodeExecParams params)
-{
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_default_remaining_outputs();
+#endif
 }
-#endif /* WITH_OPENVDB */
 
 }  // namespace blender::nodes::node_geo_volume_cube_cc
 

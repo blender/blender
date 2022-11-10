@@ -165,6 +165,7 @@ enum class OperationCode {
 
   /* Node Tree. ----------------------------------------------------------- */
   NTREE_OUTPUT,
+  NTREE_GEOMETRY_PREPROCESS,
 
   /* Batch caches. -------------------------------------------------------- */
   GEOMETRY_SELECT_UPDATE,

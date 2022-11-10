@@ -689,7 +689,6 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                                uint32_t width,
                                                uint32_t height,
                                                GHOST_TWindowState state,
-                                               GHOST_TDrawingContextType type,
                                                GHOST_GLSettings glSettings,
                                                const bool exclusive,
                                                const bool is_dialog,
@@ -719,7 +718,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                    width,
                                    height,
                                    state,
-                                   type,
+                                   glSettings.context_type,
                                    glSettings.flags & GHOST_glStereoVisual,
                                    glSettings.flags & GHOST_glDebugContext,
                                    is_dialog,
@@ -751,7 +750,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL);
+  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, glSettings.context_type);
   if (context->initializeDrawingContext())
     return context;
   else
@@ -856,7 +855,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  keys.set(GHOST_kModifierKeyOS, (m_modifierMask & NSEventModifierFlagCommand) ? true : false);
+  keys.set(GHOST_kModifierKeyLeftOS, (m_modifierMask & NSEventModifierFlagCommand) ? true : false);
   keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSEventModifierFlagOption) ? true : false);
   keys.set(GHOST_kModifierKeyLeftShift,
            (m_modifierMask & NSEventModifierFlagShift) ? true : false);
@@ -1020,7 +1019,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
                                  (modifiers & NSEventModifierFlagCommand) ? GHOST_kEventKeyDown :
                                                                             GHOST_kEventKeyUp,
                                  window,
-                                 GHOST_kKeyOS,
+                                 GHOST_kKeyLeftOS,
                                  false));
   }
 
@@ -1123,6 +1122,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
     case GHOST_kEventDraggingEntered:
     case GHOST_kEventDraggingUpdated:
     case GHOST_kEventDraggingExited:
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, NULL));
       break;
@@ -1331,6 +1331,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           return GHOST_kFailure;
           break;
       }
+
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, eventData));
 
@@ -1678,7 +1680,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       /* we assume phases are only set for gestures from trackpad or magic
        * mouse events. note that using tablet at the same time may not work
        * since this is a static variable */
-      if (phase == NSEventPhaseBegan)
+      if (phase == NSEventPhaseBegan && m_multitouchGestures)
         m_multiTouchScroll = true;
       else if (phase == NSEventPhaseEnded)
         m_multiTouchScroll = false;
@@ -1898,7 +1900,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagCommand) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
             window,
-            GHOST_kKeyOS,
+            GHOST_kKeyLeftOS,
             false));
       }
 

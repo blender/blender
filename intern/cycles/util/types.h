@@ -97,6 +97,7 @@ ccl_device_inline void print_float(ccl_private const char *label, const float a)
 #include "util/types_int2.h"
 #include "util/types_int3.h"
 #include "util/types_int4.h"
+#include "util/types_int8.h"
 
 #include "util/types_uint2.h"
 #include "util/types_uint3.h"
@@ -119,6 +120,7 @@ ccl_device_inline void print_float(ccl_private const char *label, const float a)
 #include "util/types_int2_impl.h"
 #include "util/types_int3_impl.h"
 #include "util/types_int4_impl.h"
+#include "util/types_int8_impl.h"
 
 #include "util/types_uint2_impl.h"
 #include "util/types_uint3_impl.h"
@@ -128,17 +130,5 @@ ccl_device_inline void print_float(ccl_private const char *label, const float a)
 #include "util/types_float3_impl.h"
 #include "util/types_float4_impl.h"
 #include "util/types_float8_impl.h"
-
-/* SSE types. */
-#ifndef __KERNEL_GPU__
-#  include "util/sseb.h"
-#  include "util/ssef.h"
-#  include "util/ssei.h"
-#  if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
-#    include "util/avxb.h"
-#    include "util/avxf.h"
-#    include "util/avxi.h"
-#  endif
-#endif
 
 #endif /* __UTIL_TYPES_H__ */

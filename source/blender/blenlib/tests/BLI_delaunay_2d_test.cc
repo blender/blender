@@ -99,7 +99,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
  */
 static int get_orig_index(const Array<Vector<int>> &out_to_orig, int orig_index)
 {
-  int n = static_cast<int>(out_to_orig.size());
+  int n = int(out_to_orig.size());
   for (int i = 0; i < n; ++i) {
     for (int orig : out_to_orig[i]) {
       if (orig == orig_index) {
@@ -110,7 +110,7 @@ static int get_orig_index(const Array<Vector<int>> &out_to_orig, int orig_index)
   return -1;
 }
 
-template<typename T> static double math_to_double(const T UNUSED(v))
+template<typename T> static double math_to_double(const T /*v*/)
 {
   BLI_assert(false); /* Need implementation for other type. */
   return 0.0;
@@ -147,7 +147,7 @@ template<> double math_abs(const double v)
  */
 template<typename T> int get_vertex_by_coord(const CDT_result<T> &out, double x, double y)
 {
-  int nv = static_cast<int>(out.vert.size());
+  int nv = int(out.vert.size());
   for (int i = 0; i < nv; ++i) {
     double vx = math_to_double(out.vert[i][0]);
     double vy = math_to_double(out.vert[i][1]);
@@ -162,7 +162,7 @@ template<typename T> int get_vertex_by_coord(const CDT_result<T> &out, double x,
 template<typename T>
 int get_output_edge_index(const CDT_result<T> &out, int out_index_1, int out_index_2)
 {
-  int ne = static_cast<int>(out.edge.size());
+  int ne = int(out.edge.size());
   for (int i = 0; i < ne; ++i) {
     if ((out.edge[i].first == out_index_1 && out.edge[i].second == out_index_2) ||
         (out.edge[i].first == out_index_2 && out.edge[i].second == out_index_1)) {
@@ -175,7 +175,7 @@ int get_output_edge_index(const CDT_result<T> &out, int out_index_1, int out_ind
 template<typename T>
 bool output_edge_has_input_id(const CDT_result<T> &out, int out_edge_index, int in_edge_index)
 {
-  return out_edge_index < static_cast<int>(out.edge_orig.size()) &&
+  return out_edge_index < int(out.edge_orig.size()) &&
          out.edge_orig[out_edge_index].contains(in_edge_index);
 }
 
@@ -184,8 +184,8 @@ bool output_edge_has_input_id(const CDT_result<T> &out, int out_edge_index, int 
  */
 template<typename T> int get_output_face_index(const CDT_result<T> &out, const Array<int> &poly)
 {
-  int nf = static_cast<int>(out.face.size());
-  int npolyv = static_cast<int>(poly.size());
+  int nf = int(out.face.size());
+  int npolyv = int(poly.size());
   for (int f = 0; f < nf; ++f) {
     if (out.face[f].size() != poly.size()) {
       continue;
@@ -218,7 +218,7 @@ int get_output_tri_index(const CDT_result<T> &out,
 template<typename T>
 bool output_face_has_input_id(const CDT_result<T> &out, int out_face_index, int in_face_index)
 {
-  return out_face_index < static_cast<int>(out.face_orig.size()) &&
+  return out_face_index < int(out.face_orig.size()) &&
          out.face_orig[out_face_index].contains(in_face_index);
 }
 
@@ -310,10 +310,10 @@ void graph_draw(const std::string &label,
   double height = maxy - miny;
   double aspect = height / width;
   int view_width = max_draw_width;
-  int view_height = static_cast<int>(view_width * aspect);
+  int view_height = int(view_width * aspect);
   if (view_height > max_draw_height) {
     view_height = max_draw_height;
-    view_width = static_cast<int>(view_height / aspect);
+    view_width = int(view_height / aspect);
   }
   double scale = view_width / width;
 

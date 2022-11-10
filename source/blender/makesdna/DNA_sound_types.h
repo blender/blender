@@ -78,7 +78,7 @@ typedef struct bSound {
   /* XXX unused currently (SOUND_TYPE_LIMITER) */
   /* float start, end; */
 
-  /* Description of Audio channels, as of eSoundChannels*/
+  /* Description of Audio channels, as of #eSoundChannels. */
   int audio_channels;
 
   int samplerate;

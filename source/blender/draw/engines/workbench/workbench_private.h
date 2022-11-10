@@ -511,6 +511,11 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
 #define workbench_image_hair_setup(wpd, ob, mat_nr, ima, iuser, interp) \
   workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_DATATYPE_HAIR)
 
+#define workbench_material_ptcloud_setup(wpd, ob, mat_nr, color_type) \
+  workbench_material_setup_ex(wpd, ob, mat_nr, color_type, WORKBENCH_DATATYPE_POINTCLOUD, 0)
+#define workbench_image_ptcloud_setup(wpd, ob, mat_nr, ima, iuser, interp) \
+  workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_DATATYPE_POINTCLOUD)
+
 /* workbench_data.c */
 
 void workbench_private_data_alloc(WORKBENCH_StorageList *stl);

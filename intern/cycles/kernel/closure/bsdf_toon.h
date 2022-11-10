@@ -49,33 +49,29 @@ ccl_device float bsdf_toon_get_sample_angle(float max_angle, float smooth)
   return fminf(max_angle + smooth, M_PI_2_F);
 }
 
-ccl_device Spectrum bsdf_diffuse_toon_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
-                                                   ccl_private float *pdf)
+ccl_device Spectrum bsdf_diffuse_toon_eval(ccl_private const ShaderClosure *sc,
+                                           const float3 I,
+                                           const float3 omega_in,
+                                           ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
-  float max_angle = bsdf->size * M_PI_2_F;
-  float smooth = bsdf->smooth * M_PI_2_F;
-  float angle = safe_acosf(fmaxf(dot(bsdf->N, omega_in), 0.0f));
+  float cosNI = dot(bsdf->N, omega_in);
 
-  float eval = bsdf_toon_get_intensity(max_angle, smooth, angle);
+  if (cosNI >= 0.0f) {
+    float max_angle = bsdf->size * M_PI_2_F;
+    float smooth = bsdf->smooth * M_PI_2_F;
+    float angle = safe_acosf(fmaxf(cosNI, 0.0f));
 
-  if (eval > 0.0f) {
-    float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
+    float eval = bsdf_toon_get_intensity(max_angle, smooth, angle);
 
-    *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
-    return make_spectrum(*pdf * eval);
+    if (eval > 0.0f) {
+      float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
+
+      *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
+      return make_spectrum(*pdf * eval);
+    }
   }
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
 
-ccl_device Spectrum bsdf_diffuse_toon_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                    const float3 I,
-                                                    const float3 omega_in,
-                                                    ccl_private float *pdf)
-{
   *pdf = 0.0f;
   return zero_spectrum();
 }
@@ -125,10 +121,10 @@ ccl_device int bsdf_glossy_toon_setup(ccl_private ToonBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_glossy_toon_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
+ccl_device Spectrum bsdf_glossy_toon_eval(ccl_private const ShaderClosure *sc,
+                                          const float3 I,
+                                          const float3 omega_in,
+                                          ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
   float max_angle = bsdf->size * M_PI_2_F;
@@ -149,15 +145,6 @@ ccl_device Spectrum bsdf_glossy_toon_eval_reflect(ccl_private const ShaderClosur
     *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
     return make_spectrum(*pdf * eval);
   }
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
-
-ccl_device Spectrum bsdf_glossy_toon_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
-                                                   ccl_private float *pdf)
-{
   *pdf = 0.0f;
   return zero_spectrum();
 }

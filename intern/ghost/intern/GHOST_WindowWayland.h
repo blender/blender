@@ -12,6 +12,8 @@
 
 #include <vector>
 
+#include <wayland-util.h> /* For #wl_fixed_t */
+
 class GHOST_SystemWayland;
 
 struct GWL_Output;
@@ -95,8 +97,8 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND direct-data access. */
 
-  uint16_t dpi() const;
   int scale() const;
+  wl_fixed_t scale_fractional() const;
   struct wl_surface *wl_surface() const;
   const std::vector<GWL_Output *> &outputs();
 
@@ -115,9 +117,9 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_changed_update_scale();
 
  private:
-  GHOST_SystemWayland *m_system;
-  struct GWL_Window *w;
-  std::string title;
+  GHOST_SystemWayland *system_;
+  struct GWL_Window *window_;
+  std::string title_;
 
   /**
    * \param type: The type of rendering context create.

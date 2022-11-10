@@ -173,6 +173,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Node Tree. */
     case OperationCode::NTREE_OUTPUT:
       return "NTREE_OUTPUT";
+    case OperationCode::NTREE_GEOMETRY_PREPROCESS:
+      return "NTREE_GEOMETRY_PREPROCESS";
     /* Movie clip. */
     case OperationCode::MOVIECLIP_EVAL:
       return "MOVIECLIP_EVAL";

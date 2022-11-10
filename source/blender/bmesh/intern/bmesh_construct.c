@@ -21,8 +21,6 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-#define SELECT 1
-
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
 {
   int i, i_prev = len - 1;
@@ -507,42 +505,40 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  char cd_flag = 0;
-
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
+    CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
+        &me_src->vdata, CD_MASK_BMESH.vmask);
+    CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(
+        &me_src->edata, CD_MASK_BMESH.emask);
+    CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
+        &me_src->pdata, CD_MASK_BMESH.lmask);
+    CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(
+        &me_src->ldata, CD_MASK_BMESH.pmask);
+
     if (i == 0) {
-      CustomData_copy_mesh_to_bmesh(
-          &me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(
-          &me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(
-          &me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(
-          &me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_copy(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+      CustomData_copy(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+      CustomData_copy(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_copy(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
     }
     else {
-      CustomData_merge_mesh_to_bmesh(
-          &me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_merge_mesh_to_bmesh(
-          &me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_merge_mesh_to_bmesh(
-          &me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
-      CustomData_merge_mesh_to_bmesh(
-          &me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_merge(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+      CustomData_merge(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+      CustomData_merge(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_merge(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
     }
 
-    cd_flag |= me_src->cd_flag;
+    MEM_SAFE_FREE(mesh_vdata.layers);
+    MEM_SAFE_FREE(mesh_edata.layers);
+    MEM_SAFE_FREE(mesh_pdata.layers);
+    MEM_SAFE_FREE(mesh_ldata.layers);
   }
-
-  cd_flag |= BM_mesh_cd_flag_from_bmesh(bm_dst);
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
   CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
   CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
-
-  BM_mesh_cd_flag_apply(bm_dst, cd_flag);
 }
 
 void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
@@ -720,43 +716,27 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   return bm_new;
 }
 
-char BM_vert_flag_from_mflag(const char mflag)
-{
-  return ((mflag & SELECT) ? BM_ELEM_SELECT : 0);
-}
 char BM_edge_flag_from_mflag(const short mflag)
 {
-  return (((mflag & SELECT) ? BM_ELEM_SELECT : 0) | ((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) |
-          ((mflag & ME_EDGEDRAW) ? BM_ELEM_DRAW : 0) |
+  return (((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) | ((mflag & ME_EDGEDRAW) ? BM_ELEM_DRAW : 0) |
           ((mflag & ME_SHARP) == 0 ? BM_ELEM_SMOOTH : 0));
 }
 char BM_face_flag_from_mflag(const char mflag)
 {
-  return (((mflag & ME_FACE_SEL) ? BM_ELEM_SELECT : 0) |
-          ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0));
-}
-
-char BM_vert_flag_to_mflag(BMVert *v)
-{
-  const char hflag = v->head.hflag;
-
-  return (((hflag & BM_ELEM_SELECT) ? SELECT : 0));
+  return ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0);
 }
 
 short BM_edge_flag_to_mflag(BMEdge *e)
 {
   const char hflag = e->head.hflag;
 
-  return (((hflag & BM_ELEM_SELECT) ? SELECT : 0) | ((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) |
-          ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0) |
+  return (((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) | ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0) |
           ((hflag & BM_ELEM_SMOOTH) == 0 ? ME_SHARP : 0) |
-          (BM_edge_is_wire(e) ? ME_LOOSEEDGE : 0) | /* not typical */
-          ME_EDGERENDER);
+          (BM_edge_is_wire(e) ? ME_LOOSEEDGE : 0));
 }
 char BM_face_flag_to_mflag(BMFace *f)
 {
   const char hflag = f->head.hflag;
 
-  return (((hflag & BM_ELEM_SELECT) ? ME_FACE_SEL : 0) |
-          ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0));
+  return ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0);
 }

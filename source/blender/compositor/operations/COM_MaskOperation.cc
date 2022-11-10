@@ -33,7 +33,7 @@ void MaskOperation::init_execution()
     }
     else {
       /* make a throw away copy of the mask */
-      const float frame = (float)frame_number_ - frame_shutter_;
+      const float frame = float(frame_number_) - frame_shutter_;
       const float frame_step = (frame_shutter_ * 2.0f) / raster_mask_handle_tot_;
       float frame_iter = frame;
 
@@ -52,7 +52,7 @@ void MaskOperation::init_execution()
         }
       }
 
-      for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+      for (uint i = 0; i < raster_mask_handle_tot_; i++) {
         raster_mask_handles_[i] = BKE_maskrasterize_handle_new();
 
         /* re-eval frame info */
@@ -76,7 +76,7 @@ void MaskOperation::init_execution()
 
 void MaskOperation::deinit_execution()
 {
-  for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+  for (uint i = 0; i < raster_mask_handle_tot_; i++) {
     if (raster_mask_handles_[i]) {
       BKE_maskrasterize_handle_free(raster_mask_handles_[i]);
       raster_mask_handles_[i] = nullptr;
@@ -118,7 +118,7 @@ void MaskOperation::execute_pixel_sampled(float output[4],
     /* In case loop below fails. */
     output[0] = 0.0f;
 
-    for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+    for (uint i = 0; i < raster_mask_handle_tot_; i++) {
       if (raster_mask_handles_[i]) {
         output[0] += BKE_maskrasterize_handle_sample(raster_mask_handles_[i], xy);
       }
@@ -131,7 +131,7 @@ void MaskOperation::execute_pixel_sampled(float output[4],
 
 void MaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  const rcti &area,
-                                                 Span<MemoryBuffer *> UNUSED(inputs))
+                                                 Span<MemoryBuffer *> /*inputs*/)
 {
   Vector<MaskRasterHandle *> handles = get_non_null_handles();
   if (handles.size() == 0) {

@@ -97,7 +97,7 @@ static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
     case Py_GT:
       return PyBool_from_bool(!(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id))));
     case Py_GE:
-      return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
+      return PyBool_from_bool(!o1->id->operator<(*(o2->id)));
   }
   Py_RETURN_NONE;
 }
@@ -109,12 +109,12 @@ PyDoc_STRVAR(Id_first_doc,
              "\n"
              ":type: int");
 
-static PyObject *Id_first_get(BPy_Id *self, void *UNUSED(closure))
+static PyObject *Id_first_get(BPy_Id *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->id->getFirst());
 }
 
-static int Id_first_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+static int Id_first_set(BPy_Id *self, PyObject *value, void * /*closure*/)
 {
   int scalar;
   if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
@@ -130,12 +130,12 @@ PyDoc_STRVAR(Id_second_doc,
              "\n"
              ":type: int");
 
-static PyObject *Id_second_get(BPy_Id *self, void *UNUSED(closure))
+static PyObject *Id_second_get(BPy_Id *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->id->getSecond());
 }
 
-static int Id_second_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+static int Id_second_set(BPy_Id *self, PyObject *value, void * /*closure*/)
 {
   int scalar;
   if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
@@ -155,43 +155,44 @@ static PyGetSetDef BPy_Id_getseters[] = {
 /*-----------------------BPy_Id type definition ------------------------------*/
 
 PyTypeObject Id_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Id",   /* tp_name */
-    sizeof(BPy_Id),                           /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    (destructor)Id_dealloc,                   /* tp_dealloc */
-    0,                                        /* tp_vectorcall_offset */
-    nullptr,                                  /* tp_getattr */
-    nullptr,                                  /* tp_setattr */
-    nullptr,                                  /* tp_reserved */
-    (reprfunc)Id_repr,                        /* tp_repr */
-    nullptr,                                  /* tp_as_number */
-    nullptr,                                  /* tp_as_sequence */
-    nullptr,                                  /* tp_as_mapping */
-    nullptr,                                  /* tp_hash */
-    nullptr,                                  /* tp_call */
-    nullptr,                                  /* tp_str */
-    nullptr,                                  /* tp_getattro */
-    nullptr,                                  /* tp_setattro */
-    nullptr,                                  /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Id_doc,                                   /* tp_doc */
-    nullptr,                                  /* tp_traverse */
-    nullptr,                                  /* tp_clear */
-    (richcmpfunc)Id_RichCompare,              /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    nullptr,                                  /* tp_iter */
-    nullptr,                                  /* tp_iternext */
-    nullptr,                                  /* tp_methods */
-    nullptr,                                  /* tp_members */
-    BPy_Id_getseters,                         /* tp_getset */
-    nullptr,                                  /* tp_base */
-    nullptr,                                  /* tp_dict */
-    nullptr,                                  /* tp_descr_get */
-    nullptr,                                  /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    (initproc)Id_init,                        /* tp_init */
-    nullptr,                                  /* tp_alloc */
-    PyType_GenericNew,                        /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "Id",
+    /*tp_basicsize*/ sizeof(BPy_Id),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)Id_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ (reprfunc)Id_repr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ Id_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ (richcmpfunc)Id_RichCompare,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_Id_getseters,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)Id_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

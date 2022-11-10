@@ -26,14 +26,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_toon(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_toon(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "component", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static int node_shader_gpu_bsdf_toon(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
@@ -59,7 +59,7 @@ void register_node_type_sh_bsdf_toon()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_toon;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_toon);
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_toon;
 
   nodeRegisterType(&ntype);
 }

@@ -35,7 +35,7 @@ static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Z")).default_value(1.0f).min(0.0f).max(1.0f);
 }
 
-static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
@@ -46,12 +46,12 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
-static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_viewer(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-static void node_composit_buts_viewer_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_viewer_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -196,7 +196,7 @@ void register_node_type_cmp_viewer()
   ntype.draw_buttons = file_ns::node_composit_buts_viewer;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_viewer_ex;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_viewer);
+  ntype.initfunc = file_ns::node_composit_init_viewer;
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

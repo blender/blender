@@ -2,6 +2,7 @@
 
 #include "NOD_node_declaration.hh"
 
+#include "BKE_geometry_fields.hh"
 #include "BKE_node.h"
 
 namespace blender::nodes {
@@ -80,5 +81,31 @@ bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
   }
   return true;
 }
+
+namespace implicit_field_inputs {
+
+void position(const bNode & /*node*/, void *r_value)
+{
+  new (r_value) fn::ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
+}
+
+void normal(const bNode & /*node*/, void *r_value)
+{
+  new (r_value)
+      fn::ValueOrField<float3>(fn::Field<float3>(std::make_shared<bke::NormalFieldInput>()));
+}
+
+void index(const bNode & /*node*/, void *r_value)
+{
+  new (r_value) fn::ValueOrField<int>(fn::Field<int>(std::make_shared<fn::IndexFieldInput>()));
+}
+
+void id_or_index(const bNode & /*node*/, void *r_value)
+{
+  new (r_value)
+      fn::ValueOrField<int>(fn::Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
+}
+
+}  // namespace implicit_field_inputs
 
 }  // namespace blender::nodes

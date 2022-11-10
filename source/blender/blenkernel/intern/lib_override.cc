@@ -23,6 +23,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -494,8 +495,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   if (id_hierarchy_root != nullptr) {
     /* If the hierarchy root is given, it must be a valid existing override (used during partial
      * resync process mainly). */
-    BLI_assert((ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
-                id_hierarchy_root->override_library->reference->lib == id_root_reference->lib));
+    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
+               id_hierarchy_root->override_library->reference->lib == id_root_reference->lib);
 
     if (!do_no_main) {
       /* When processing within Main, set existing overrides in given hierarchy as 'newid' of their
@@ -507,8 +508,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   if (!ELEM(id_hierarchy_root_reference, nullptr, id_root_reference)) {
     /* If the reference hierarchy root is given, it must be from the same library as the reference
      * root, and also tagged for override. */
-    BLI_assert((id_hierarchy_root_reference->lib == id_root_reference->lib &&
-                (id_hierarchy_root_reference->tag & LIB_TAG_DOIT) != 0));
+    BLI_assert(id_hierarchy_root_reference->lib == id_root_reference->lib &&
+               (id_hierarchy_root_reference->tag & LIB_TAG_DOIT) != 0);
   }
 
   const Library *reference_library = id_root_reference->lib;
@@ -1210,6 +1211,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      const Object *old_active_object,
                                                      const bool is_resync)
 {
+  /* If there is an old active object, there should also always be a given view layer. */
+  BLI_assert(old_active_object == nullptr || view_layer != nullptr);
+
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
    * do not do anything about it. */
 
@@ -1267,6 +1271,13 @@ static void lib_override_library_create_post_process(Main *bmain,
       default:
         break;
     }
+  }
+
+  if (view_layer != nullptr) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+  }
+  else {
+    BKE_scene_view_layers_synced_ensure(scene);
   }
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
@@ -1378,7 +1389,13 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
-  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
+  /* While in theory it _should_ be enough to ensure sync of given view-layer (if any), or at least
+   * of given scene, think for now it's better to get a fully synced Main at this point, this code
+   * may do some very wide remapping/data access in some cases. */
+  BKE_main_view_layers_synced_ensure(bmain);
+  const Object *old_active_object = (view_layer != nullptr) ?
+                                        BKE_view_layer_active_object_get(view_layer) :
+                                        nullptr;
 
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
@@ -1716,6 +1733,7 @@ static bool lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
   ID *id;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
 
   if (id_root_reference->tag & LIB_TAG_MISSING) {
@@ -1843,8 +1861,8 @@ static bool lib_override_library_resync(Main *bmain,
         }
       }
       if (reference_id == nullptr) {
-        /* Can happen e.g. when there is a local override of a shapekey, but the matching linked
-         * obdata (mesh etc.) does not have any shapekey anymore. */
+        /* Can happen e.g. when there is a local override of a shape-key, but the matching linked
+         * obdata (mesh etc.) does not have any shape-key anymore. */
         continue;
       }
       BLI_assert(GS(reference_id->name) == GS(id->name));
@@ -2696,7 +2714,8 @@ void BKE_lib_override_library_main_resync(Main *bmain,
     /* Hide the collection from viewport and render. */
     override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
-
+  /* BKE_collection_add above could have tagged the view_layer out of sync. */
+  BKE_view_layer_synced_ensure(scene, view_layer);
   const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
@@ -3127,7 +3146,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
-void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
+void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *reports)
 {
   if (id->override_library == nullptr) {
     return;
@@ -3811,9 +3830,8 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   /* This temporary swap of G_MAIN is rather ugly,
    * but necessary to avoid asserts checks in some RNA assignment functions,
-   * since those always use on G_MAIN when they need access to a Main database. */
-  Main *orig_gmain = G_MAIN;
-  G_MAIN = bmain;
+   * since those always use G_MAIN when they need access to a Main database. */
+  Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
@@ -3826,7 +3844,9 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
-  G_MAIN = orig_gmain;
+  Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
+  BLI_assert(tmp_gmain == bmain);
+  UNUSED_VARS_NDEBUG(tmp_gmain);
 }
 
 bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
@@ -3934,8 +3954,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-void BKE_lib_override_library_operations_store_end(
-    OverrideLibraryStorage *UNUSED(override_storage), ID *local)
+void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage * /*override_storage*/,
+                                                   ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
@@ -3947,7 +3967,7 @@ void BKE_lib_override_library_operations_store_end(
 void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
 {
   /* We cannot just call BKE_main_free(override_storage), not until we have option to make
-   * 'ghost' copies of IDs without increasing usercount of used data-blocks. */
+   * 'ghost' copies of IDs without increasing user-count of used data-blocks. */
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (override_storage, id) {

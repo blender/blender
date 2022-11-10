@@ -152,8 +152,8 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
     /* Get the plane. */
     float plane[4];
     /* Only normalize to avoid precision errors. */
-    normalize_v3_v3(plane, vc->obedit->obmat[2]);
-    plane[3] = -dot_v3v3(plane, vc->obedit->obmat[3]);
+    normalize_v3_v3(plane, vc->obedit->object_to_world[2]);
+    plane[3] = -dot_v3v3(plane, vc->obedit->object_to_world[3]);
 
     if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
       /* Can't project on an aligned plane. */
@@ -173,7 +173,7 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
   }
 
   float imat[4][4];
-  invert_m4_m4(imat, vc->obedit->obmat);
+  invert_m4_m4(imat, vc->obedit->object_to_world);
   mul_m4_v3(imat, location);
 
   if (CU_IS_2D(cu)) {
@@ -186,7 +186,7 @@ static void screenspace_to_worldspace(const ViewContext *vc,
                                       const float depth[3],
                                       float r_pos_3d[3])
 {
-  mul_v3_m4v3(r_pos_3d, vc->obedit->obmat, depth);
+  mul_v3_m4v3(r_pos_3d, vc->obedit->object_to_world, depth);
   ED_view3d_win_to_3d(vc->v3d, vc->region, r_pos_3d, pos_2d, r_pos_3d);
   update_location_for_2d_curve(vc, r_pos_3d);
 }
@@ -1082,7 +1082,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
 
   float location[3];
   if (sel_exists) {
-    mul_v3_m4v3(location, vc->obedit->obmat, center);
+    mul_v3_m4v3(location, vc->obedit->object_to_world, center);
   }
   else {
     copy_v3_v3(location, vc->scene->cursor.location);
@@ -1366,12 +1366,10 @@ static bool make_cyclic_if_endpoints(ViewContext *vc,
                                      BPoint *sel_bp)
 {
   if (sel_bezt || (sel_bp && sel_nu->pntsu > 2)) {
-    const bool is_bezt_endpoint = (sel_nu->type == CU_BEZIER &&
-                                   (sel_bezt == sel_nu->bezt ||
-                                    sel_bezt == sel_nu->bezt + sel_nu->pntsu - 1));
-    const bool is_bp_endpoint = (sel_nu->type != CU_BEZIER &&
-                                 (sel_bp == sel_nu->bp ||
-                                  sel_bp == sel_nu->bp + sel_nu->pntsu - 1));
+    const bool is_bezt_endpoint = ((sel_nu->type == CU_BEZIER) &&
+                                   ELEM(sel_bezt, sel_nu->bezt, sel_nu->bezt + sel_nu->pntsu - 1));
+    const bool is_bp_endpoint = ((sel_nu->type != CU_BEZIER) &&
+                                 ELEM(sel_bp, sel_nu->bp, sel_nu->bp + sel_nu->pntsu - 1));
     if (!(is_bezt_endpoint || is_bp_endpoint)) {
       return false;
     }
@@ -1388,9 +1386,8 @@ static bool make_cyclic_if_endpoints(ViewContext *vc,
 
     if (nu == sel_nu &&
         ((nu->type == CU_BEZIER && bezt != sel_bezt &&
-          (bezt == nu->bezt || bezt == nu->bezt + nu->pntsu - 1) && bezt_idx == 1) ||
-         (nu->type != CU_BEZIER && bp != sel_bp &&
-          (bp == nu->bp || bp == nu->bp + nu->pntsu - 1)))) {
+          ELEM(bezt, nu->bezt, nu->bezt + nu->pntsu - 1) && bezt_idx == 1) ||
+         (nu->type != CU_BEZIER && bp != sel_bp && ELEM(bp, nu->bp, nu->bp + nu->pntsu - 1)))) {
       View3D *v3d = vc->v3d;
       ListBase *nurbs = object_editcurve_get(vc->obedit);
       curve_toggle_cyclic(v3d, nurbs, 0);
@@ -1532,7 +1529,7 @@ wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Curve Pen Modal Map");
 
-  /* This function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return NULL;
   }

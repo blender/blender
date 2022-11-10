@@ -305,7 +305,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
     for (NodeOperation *operation : group->operations_) {
 
-      sprintf(strbuf, "_%p", group);
+      BLI_snprintf(strbuf, sizeof(strbuf), "_%p", group);
       op_groups[operation].push_back(std::string(strbuf));
 
       len += graphviz_operation(
@@ -428,7 +428,7 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     else {
       BLI_strncpy(basename, (name + ".dot").c_str(), sizeof(basename));
     }
-    BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_session(), basename);
+    BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_session(), basename);
     file_index_++;
 
     std::cout << "Writing compositor debug to: " << filepath << "\n";

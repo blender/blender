@@ -74,8 +74,8 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
 void OutputOpenExrSingleLayerMultiViewOperation::deinit_execution()
 {
-  unsigned int width = this->get_width();
-  unsigned int height = this->get_height();
+  uint width = this->get_width();
+  uint height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;
@@ -132,8 +132,8 @@ OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOpera
 
 void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename)
 {
-  unsigned int width = this->get_width();
-  unsigned int height = this->get_height();
+  uint width = this->get_width();
+  uint height = this->get_height();
 
   if (width != 0 && height != 0) {
 
@@ -158,7 +158,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 
       IMB_exr_add_view(exrhandle, srv->name);
 
-      for (unsigned int i = 0; i < layers_.size(); i++) {
+      for (uint i = 0; i < layers_.size(); i++) {
         add_exr_channels(exrhandle,
                          layers_[i].name,
                          layers_[i].datatype,
@@ -189,8 +189,8 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 
 void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
 {
-  unsigned int width = this->get_width();
-  unsigned int height = this->get_height();
+  uint width = this->get_width();
+  uint height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;
@@ -207,7 +207,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
 
     exrhandle = this->get_handle(filename);
 
-    for (unsigned int i = 0; i < layers_.size(); i++) {
+    for (uint i = 0; i < layers_.size(); i++) {
       add_exr_channels(exrhandle,
                        layers_[i].name,
                        layers_[i].datatype,
@@ -217,7 +217,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
                        layers_[i].output_buffer);
     }
 
-    for (unsigned int i = 0; i < layers_.size(); i++) {
+    for (uint i = 0; i < layers_.size(); i++) {
       /* memory can only be freed after we write all views to the file */
       layers_[i].output_buffer = nullptr;
       layers_[i].image_input = nullptr;
@@ -228,7 +228,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
       IMB_exr_write_channels(exrhandle);
 
       /* free buffer memory for all the views */
-      for (unsigned int i = 0; i < layers_.size(); i++) {
+      for (uint i = 0; i < layers_.size(); i++) {
         free_exr_channels(exrhandle, rd_, layers_[i].name, layers_[i].datatype);
       }
 
@@ -284,8 +284,8 @@ void *OutputStereoOperation::get_handle(const char *filename)
 
 void OutputStereoOperation::deinit_execution()
 {
-  unsigned int width = this->get_width();
-  unsigned int height = this->get_height();
+  uint width = this->get_width();
+  uint height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;

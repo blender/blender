@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2022 Blender Foundation. */
 #include "BKE_cryptomatte.hh"
 
 #include "GPU_material.h"

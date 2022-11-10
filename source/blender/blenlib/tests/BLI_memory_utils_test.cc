@@ -20,7 +20,7 @@ struct MyValue {
     alive++;
   }
 
-  MyValue(const MyValue &UNUSED(other))
+  MyValue(const MyValue & /*other*/)
   {
     if (alive == 15) {
       throw std::exception();

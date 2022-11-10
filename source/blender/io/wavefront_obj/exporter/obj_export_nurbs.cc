@@ -31,10 +31,10 @@ void OBJCurve::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the Blender's default axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->obmat);
-  /* #mul_m4_m3m4 does not transform last row of #Object.obmat, i.e. location data. */
-  mul_v3_m3v3(world_axes_transform_[3], axes_transform, export_object_eval_->obmat[3]);
-  world_axes_transform_[3][3] = export_object_eval_->obmat[3][3];
+  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world);
+  /* #mul_m4_m3m4 does not transform last row of #Object.object_to_world, i.e. location data. */
+  mul_v3_m3v3(world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world[3]);
+  world_axes_transform_[3][3] = export_object_eval_->object_to_world[3][3];
 }
 
 const char *OBJCurve::get_curve_name() const
@@ -55,14 +55,14 @@ int OBJCurve::total_spline_vertices(const int spline_index) const
 
 float3 OBJCurve::vertex_coordinates(const int spline_index,
                                     const int vertex_index,
-                                    const float scaling_factor) const
+                                    const float global_scale) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
   float3 r_coord;
   const BPoint &bpoint = nurb->bp[vertex_index];
   copy_v3_v3(r_coord, bpoint.vec);
   mul_m4_v3(world_axes_transform_, r_coord);
-  mul_v3_fl(r_coord, scaling_factor);
+  mul_v3_fl(r_coord, global_scale);
   return r_coord;
 }
 

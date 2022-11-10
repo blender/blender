@@ -21,11 +21,11 @@
 namespace blender::geometry {
 
 /* Indicates when the element was not computed. */
-#define OUT_OF_CONTEXT (int)(-1)
+#define OUT_OF_CONTEXT int(-1)
 /* Indicates if the edge or face will be collapsed. */
-#define ELEM_COLLAPSED (int)(-2)
+#define ELEM_COLLAPSED int(-2)
 /* indicates whether an edge or vertex in groups_map will be merged. */
-#define ELEM_MERGED (int)(-2)
+#define ELEM_MERGED int(-2)
 
 /* Used to indicate a range in an array specifying a group. */
 struct WeldGroup {
@@ -702,7 +702,7 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
     else {
       const MLoop &ml = iter.mloop[l];
 #ifdef USE_WELD_DEBUG
-      BLI_assert((uint)iter.v != ml.v);
+      BLI_assert(uint(iter.v) != ml.v);
 #endif
       iter.v = ml.v;
       iter.e = ml.e;
@@ -1232,7 +1232,6 @@ static void customdata_weld(
 #ifdef USE_WELD_NORMALS
   float no[3] = {0.0f, 0.0f, 0.0f};
 #endif
-  int crease = 0;
   short flag = 0;
 
   /* interpolates a layer at a time */
@@ -1266,13 +1265,11 @@ static void customdata_weld(
           no[1] += mv_src_no[1];
           no[2] += mv_src_no[2];
 #endif
-          flag |= mv_src->flag;
         }
       }
       else if (type == CD_MEDGE) {
         for (j = 0; j < count; j++) {
           MEdge *me_src = &((MEdge *)src_data)[src_indices[j]];
-          crease += me_src->crease;
           flag |= me_src->flag;
         }
       }
@@ -1283,10 +1280,10 @@ static void customdata_weld(
       else if (CustomData_layer_has_math(dest, dest_i)) {
         const int size = CustomData_sizeof(type);
         void *dst_data = dest->layers[dest_i].data;
-        void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+        void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
         for (j = 0; j < count; j++) {
           CustomData_data_add(
-              type, v_dst, POINTER_OFFSET(src_data, (size_t)src_indices[j] * size));
+              type, v_dst, POINTER_OFFSET(src_data, size_t(src_indices[j]) * size));
         }
       }
       else {
@@ -1314,19 +1311,13 @@ static void customdata_weld(
 #ifdef USE_WELD_NORMALS
       mul_v3_fl(no, fac);
       short *mv_no = mv->no;
-      mv_no[0] = (short)no[0];
-      mv_no[1] = (short)no[1];
-      mv_no[2] = (short)no[2];
+      mv_no[0] = short(no[0]);
+      mv_no[1] = short(no[1]);
+      mv_no[2] = short(no[2]);
 #endif
-
-      mv->flag = (char)flag;
     }
     else if (type == CD_MEDGE) {
       MEdge *me = &((MEdge *)layer_dst->data)[dest_index];
-      crease *= fac;
-      CLAMP_MAX(crease, 255);
-
-      me->crease = (char)crease;
       me->flag = flag;
     }
     else if (CustomData_layer_has_interp(dest, dest_i)) {
@@ -1335,7 +1326,7 @@ static void customdata_weld(
     else if (CustomData_layer_has_math(dest, dest_i)) {
       const int size = CustomData_sizeof(type);
       void *dst_data = layer_dst->data;
-      void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+      void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
       CustomData_data_multiply(type, v_dst, fac);
     }
   }
@@ -1541,7 +1532,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     r_i++;
   }
 
-  BLI_assert((int)r_i == result_npolys);
+  BLI_assert(int(r_i) == result_npolys);
   BLI_assert(loop_cur == result_nloops);
 
   return result;
@@ -1639,7 +1630,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     const float dist_sq = len_squared_v3(edgedir);
     if (dist_sq <= merge_dist_sq) {
       float influence = (v2_cluster->merged_verts + 1) /
-                        (float)(v1_cluster->merged_verts + v2_cluster->merged_verts + 2);
+                        float(v1_cluster->merged_verts + v2_cluster->merged_verts + 2);
       madd_v3_v3fl(v1_cluster->co, edgedir, influence);
 
       v1_cluster->merged_verts += v2_cluster->merged_verts + 1;

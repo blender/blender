@@ -44,6 +44,7 @@ class Manager {
   using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
   using ObjectInfosBuf = StorageArrayBuffer<ObjectInfos, 128>;
   using ObjectAttributeBuf = StorageArrayBuffer<ObjectAttribute, 128>;
+  using LayerAttributeBuf = UniformArrayBuffer<LayerAttribute, 512>;
   /**
    * TODO(@fclem): Remove once we get rid of old EEVEE code-base.
    * `DRW_RESOURCE_CHUNK_LEN = 512`.
@@ -85,6 +86,16 @@ class Manager {
    * Only here to satisfy bindings.
    */
   ObjectAttributeLegacyBuf attributes_buf_legacy;
+
+  /**
+   * Table of all View Layer attributes required by shaders, used to populate the buffer below.
+   */
+  Map<uint32_t, GPULayerAttr> layer_attributes;
+
+  /**
+   * Buffer of layer attribute values, indexed and sorted by the hash.
+   */
+  LayerAttributeBuf layer_attributes_buf;
 
   /**
    * List of textures coming from Image data-blocks.
@@ -131,6 +142,11 @@ class Manager {
                                  Span<GPUMaterial *> materials);
 
   /**
+   * Collect necessary View Layer attributes.
+   */
+  void register_layer_attributes(GPUMaterial *material);
+
+  /**
    * Submit a pass for drawing. All resource reference will be dereferenced and commands will be
    * sent to GPU.
    */
@@ -169,6 +185,9 @@ class Manager {
 
   void debug_bind();
   void resource_bind();
+
+ private:
+  void sync_layer_attributes();
 };
 
 inline ResourceHandle Manager::resource_handle(const ObjectRef ref)
@@ -225,6 +244,19 @@ inline void Manager::extract_object_attributes(ResourceHandle handle,
         infos.object_attrs_len++;
         attribute_len_++;
       }
+    }
+  }
+}
+
+inline void Manager::register_layer_attributes(GPUMaterial *material)
+{
+  const ListBase *attr_list = GPU_material_layer_attributes(material);
+
+  if (attr_list != nullptr) {
+    LISTBASE_FOREACH (const GPULayerAttr *, attr, attr_list) {
+      /** Since layer attributes are global to the whole render pass,
+       *  this only collects a table of their names. */
+      layer_attributes.add(attr->hash_code, *attr);
     }
   }
 }

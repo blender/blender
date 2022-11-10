@@ -100,15 +100,10 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
     }
 
 #  ifndef NDEBUG
-    _ftprintf(stderr,
-              "%s(%d):[%s] -> Win32 Error# (%lu): %s",
-              file,
-              line,
-              text,
-              (unsigned long)error,
-              msg);
+    _ftprintf(
+        stderr, "%s(%d):[%s] -> Win32 Error# (%lu): %s", file, line, text, ulong(error), msg);
 #  else
-    _ftprintf(stderr, "Win32 Error# (%lu): %s", (unsigned long)error, msg);
+    _ftprintf(stderr, "Win32 Error# (%lu): %s", ulong(error), msg);
 #  endif
 
     SetLastError(NO_ERROR);

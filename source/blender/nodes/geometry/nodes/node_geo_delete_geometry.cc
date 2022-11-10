@@ -4,6 +4,7 @@
 #include "UI_resources.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -12,6 +13,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
 
@@ -22,15 +24,9 @@ namespace blender::nodes::node_geo_delete_geometry_cc {
 using blender::bke::CustomDataAttributes;
 
 template<typename T>
-static void copy_data_based_on_mask(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
-{
-  for (const int i_out : mask.index_range()) {
-    r_data[i_out] = data[mask[i_out]];
-  }
-}
-
-template<typename T>
-static void copy_data_based_on_map(Span<T> src, MutableSpan<T> dst, Span<int> index_map)
+static void copy_data_based_on_map(const Span<T> src,
+                                   const Span<int> index_map,
+                                   MutableSpan<T> dst)
 {
   for (const int i_src : index_map.index_range()) {
     const int i_dst = index_map[i_src];
@@ -54,26 +50,17 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (!domains.contains(attribute.domain)) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
-
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      out_span.copy_from(span);
-    });
+    attribute.varray.materialize(result_attribute.span.data());
     result_attribute.finish();
   }
 }
@@ -94,26 +81,19 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (domain != attribute.domain) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      copy_data_based_on_mask(span, out_span, mask);
-    });
+    array_utils::gather(attribute.varray, mask, result_attribute.span);
+
     result_attribute.finish();
   }
 }
@@ -130,16 +110,13 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
     if (!attribute) {
       continue;
     }
-
     /* Only copy if it is on a domain we want. */
     if (domain != attribute.domain) {
       continue;
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-
     GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, attribute.domain, data_type);
-
     if (!result_attribute) {
       continue;
     }
@@ -148,7 +125,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      copy_data_based_on_map(span, out_span, index_map);
+      copy_data_based_on_map(span, index_map, out_span);
     });
     result_attribute.finish();
   }
@@ -392,8 +369,8 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
 static void delete_selected_instances(GeometrySet &geometry_set,
                                       const Field<bool> &selection_field)
 {
-  InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-  bke::GeometryFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
+  bke::Instances &instances = *geometry_set.get_instances_for_write();
+  bke::InstancesFieldContext field_context{instances};
 
   fn::FieldEvaluator evaluator{field_context, instances.instances_num()};
   evaluator.set_selection(selection_field);
@@ -404,7 +381,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
     return;
   }
 
-  instances.remove_instances(selection);
+  instances.remove(selection);
 }
 
 static void compute_selected_verts_from_vertex_selection(const Span<bool> vertex_selection,
@@ -1159,11 +1136,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
@@ -1172,7 +1149,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
   }
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryDeleteGeometry *data = MEM_cnew<NodeGeometryDeleteGeometry>(__func__);
   data->domain = ATTR_DOMAIN_POINT;
@@ -1192,7 +1169,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<Field<bool>>("Selection"));
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
   if (domain == ATTR_DOMAIN_INSTANCE) {
@@ -1225,7 +1202,7 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
 
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;

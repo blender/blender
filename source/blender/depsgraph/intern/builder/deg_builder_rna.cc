@@ -138,8 +138,8 @@ bool RNANodeQuery::contains(const char *prop_identifier, const char *rna_path_co
     return false;
   }
 
-  /* If substr != prop_identifier, it means that the substring is found further in prop_identifier,
-   * and that thus index -1 is a valid memory location. */
+  /* If `substr != prop_identifier`, it means that the sub-string is found further in
+   * `prop_identifier`, and that thus index -1 is a valid memory location. */
   const bool start_ok = substr == prop_identifier || substr[-1] == '.';
   if (!start_ok) {
     return false;

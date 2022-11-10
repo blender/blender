@@ -135,9 +135,9 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
 {
   float normal[3], co[3];
   copy_v3_v3(normal, face->no);
-  mul_transposed_mat3_m4_v3(ob->imat, normal);
+  mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
   normalize_v3(normal);
-  mul_v3_m4v3(co, ob->obmat, BM_FACE_FIRST_LOOP(face)->v->co);
+  mul_v3_m4v3(co, ob->object_to_world, BM_FACE_FIRST_LOOP(face)->v->co);
   plane_from_point_normal_v3(r_plane, co, normal);
 }
 
@@ -147,6 +147,7 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
  */
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -157,7 +158,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   int tot_faces_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -205,7 +206,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     Material ***material_array = NULL;
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
     int custom_data_offset = 0;
 
     if (bm->totfacesel == 0) {
@@ -213,7 +214,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     }
 
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->obmat);
+    copy_m3_m4(ob_m3, ob->object_to_world);
 
     switch (type) {
       case SIMFACE_MATERIAL: {
@@ -268,7 +269,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, face->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
             BLI_kdtree_3d_insert(tree_3d, tree_index++, normal);
             break;
@@ -334,7 +335,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     int custom_data_offset;
 
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->obmat);
+    copy_m3_m4(ob_m3, ob->object_to_world);
 
     bool has_custom_data_layer = false;
     switch (type) {
@@ -413,7 +414,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, face->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             /* We are treating the normals as coordinates, the "nearest" one will
@@ -558,8 +559,8 @@ static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r
   copy_v3_v3(v1, edge->v1->co);
   copy_v3_v3(v2, edge->v2->co);
 
-  mul_m4_v3(ob->obmat, v1);
-  mul_m4_v3(ob->obmat, v2);
+  mul_m4_v3(ob->object_to_world, v1);
+  mul_m4_v3(ob->object_to_world, v2);
 
   sub_v3_v3v3(r_dir, v1, v2);
   normalize_v3(r_dir);
@@ -585,8 +586,8 @@ static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge)
 {
   float v1[3], v2[3];
 
-  mul_v3_mat3_m4v3(v1, ob->obmat, edge->v1->co);
-  mul_v3_mat3_m4v3(v2, ob->obmat, edge->v2->co);
+  mul_v3_mat3_m4v3(v1, ob->object_to_world, edge->v1->co);
+  mul_v3_mat3_m4v3(v2, ob->object_to_world, edge->v2->co);
 
   return len_squared_v3v3(v1, v2);
 }
@@ -620,6 +621,7 @@ static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
  */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -631,7 +633,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
   int tot_edges_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -703,7 +705,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     }
 
     float ob_m3[3][3], ob_m3_inv[3][3];
-    copy_m3_m4(ob_m3, ob->obmat);
+    copy_m3_m4(ob_m3, ob->object_to_world);
     invert_m3_m3(ob_m3_inv, ob_m3);
 
     BMEdge *edge; /* Mesh edge. */
@@ -810,7 +812,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     }
 
     float ob_m3[3][3], ob_m3_inv[3][3];
-    copy_m3_m4(ob_m3, ob->obmat);
+    copy_m3_m4(ob_m3, ob->object_to_world);
     invert_m3_m3(ob_m3_inv, ob_m3);
 
     BMEdge *edge; /* Mesh edge. */
@@ -970,6 +972,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* get the type from RNA */
@@ -981,7 +984,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
   int tot_verts_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -1025,7 +1028,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     if (bm->totvertsel == 0) {
       continue;
@@ -1064,7 +1067,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
           case SIMVERT_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, vert->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             BLI_kdtree_3d_insert(tree_3d, normal_tree_index++, normal);
@@ -1214,7 +1217,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
           case SIMVERT_NORMAL: {
             float normal[3];
             copy_v3_v3(normal, vert->no);
-            mul_transposed_mat3_m4_v3(ob->imat, normal);
+            mul_transposed_mat3_m4_v3(ob->world_to_object, normal);
             normalize_v3(normal);
 
             /* We are treating the normals as coordinates, the "nearest" one will

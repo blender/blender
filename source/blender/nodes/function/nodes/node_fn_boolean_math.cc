@@ -22,7 +22,7 @@ static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Boolean"));
 }
 
-static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_boolean_math_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
@@ -34,7 +34,7 @@ static void node_boolean_math_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }
 
-static void node_boolean_math_label(const bNodeTree *UNUSED(ntree),
+static void node_boolean_math_label(const bNodeTree * /*tree*/,
                                     const bNode *node,
                                     char *label,
                                     int maxlen)
@@ -131,7 +131,7 @@ void register_node_type_fn_boolean_math()
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_boolean_math_declare;
   ntype.labelfunc = file_ns::node_boolean_math_label;
-  node_type_update(&ntype, file_ns::node_boolean_math_update);
+  ntype.updatefunc = file_ns::node_boolean_math_update;
   ntype.build_multi_function = file_ns::fn_node_boolean_math_build_multi_function;
   ntype.draw_buttons = file_ns::fn_node_boolean_math_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

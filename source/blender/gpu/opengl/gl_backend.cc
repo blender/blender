@@ -351,7 +351,7 @@ static void detect_workarounds()
   }
   /* Somehow fixes armature display issues (see T69743). */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY) &&
-      (strstr(version, "Build 20.19.15.4285"))) {
+      strstr(version, "Build 20.19.15.4285")) {
     GCaps.use_main_context_workaround = true;
   }
   /* See T70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`
@@ -431,6 +431,12 @@ static void detect_workarounds()
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
   GCaps.minimum_per_vertex_stride = 1;
 
+  /* Force disable per feature. */
+  if (G.debug & G_DEBUG_GPU_FORCE_DISABLE_SSBO) {
+    printf("\n");
+    printf("GL: Force disabling SSBO support from commandline arguments.\n");
+    GCaps.shader_storage_buffer_objects_support = false;
+  }
 }  // namespace blender::gpu
 
 /** Internal capabilities. */

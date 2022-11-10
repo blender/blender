@@ -632,7 +632,7 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
   STRNCPY(name, "Generic Gizmo Tweak Modal Map");
   keymap = WM_modalkeymap_find(keyconf, name);
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return NULL;
   }

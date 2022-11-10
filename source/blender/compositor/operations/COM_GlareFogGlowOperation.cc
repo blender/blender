@@ -12,9 +12,9 @@ namespace blender::compositor {
 using fREAL = float;
 
 /* Returns next highest power of 2 of x, as well its log2 in L2. */
-static unsigned int next_pow2(unsigned int x, unsigned int *L2)
+static uint next_pow2(uint x, uint *L2)
 {
-  unsigned int pw, x_notpow2 = x & (x - 1);
+  uint pw, x_notpow2 = x & (x - 1);
   *L2 = 0;
   while (x >>= 1) {
     ++(*L2);
@@ -31,7 +31,7 @@ static unsigned int next_pow2(unsigned int x, unsigned int *L2)
 
 /* From FXT library by Joerg Arndt, faster in order bit-reversal
  * use: `r = revbin_upd(r, h)` where `h = N>>1`. */
-static unsigned int revbin_upd(unsigned int r, unsigned int h)
+static uint revbin_upd(uint r, uint h)
 {
   while (!((r ^= h) & h)) {
     h >>= 1;
@@ -39,14 +39,14 @@ static unsigned int revbin_upd(unsigned int r, unsigned int h)
   return r;
 }
 //------------------------------------------------------------------------------
-static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
+static void FHT(fREAL *data, uint M, uint inverse)
 {
   double tt, fc, dc, fs, ds, a = M_PI;
   fREAL t1, t2;
   int n2, bd, bl, istep, k, len = 1 << M, n = 1;
 
   int i, j = 0;
-  unsigned int Nh = len >> 1;
+  uint Nh = len >> 1;
   for (i = 1; i < (len - 1); i++) {
     j = revbin_upd(j, Nh);
     if (j > i) {
@@ -75,8 +75,8 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
         fREAL *data_nbd = &data_n[bd];
         fREAL *data_bd = &data[bd];
         for (k = bl; k < len; k += istep) {
-          t1 = fc * (double)data_n[k] + fs * (double)data_nbd[k];
-          t2 = fs * (double)data_n[k] - fc * (double)data_nbd[k];
+          t1 = fc * double(data_n[k]) + fs * double(data_nbd[k]);
+          t2 = fs * double(data_n[k]) - fc * double(data_nbd[k]);
           data_n[k] = data[k] - t1;
           data_nbd[k] = data_bd[k] - t2;
           data[k] += t1;
@@ -112,10 +112,9 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 /* 2D Fast Hartley Transform, Mx/My -> log2 of width/height,
  * nzp -> the row where zero pad data starts,
  * inverse -> see above. */
-static void FHT2D(
-    fREAL *data, unsigned int Mx, unsigned int My, unsigned int nzp, unsigned int inverse)
+static void FHT2D(fREAL *data, uint Mx, uint My, uint nzp, uint inverse)
 {
-  unsigned int i, j, Nx, Ny, maxy;
+  uint i, j, Nx, Ny, maxy;
 
   Nx = 1 << Mx;
   Ny = 1 << My;
@@ -130,13 +129,13 @@ static void FHT2D(
   if (Nx == Ny) { /* Square. */
     for (j = 0; j < Ny; j++) {
       for (i = j + 1; i < Nx; i++) {
-        unsigned int op = i + (j << Mx), np = j + (i << My);
+        uint op = i + (j << Mx), np = j + (i << My);
         SWAP(fREAL, data[op], data[np]);
       }
     }
   }
   else { /* Rectangular. */
-    unsigned int k, Nym = Ny - 1, stm = 1 << (Mx + My);
+    uint k, Nym = Ny - 1, stm = 1 << (Mx + My);
     for (i = 0; stm > 0; i++) {
 #define PRED(k) (((k & Nym) << Mx) + (k >> My))
       for (j = PRED(i); j > i; j = PRED(j)) {
@@ -153,8 +152,8 @@ static void FHT2D(
     }
   }
 
-  SWAP(unsigned int, Nx, Ny);
-  SWAP(unsigned int, Mx, My);
+  SWAP(uint, Nx, Ny);
+  SWAP(uint, Mx, My);
 
   /* Now columns == transposed rows. */
   for (j = 0; j < Ny; j++) {
@@ -163,11 +162,11 @@ static void FHT2D(
 
   /* Finalize. */
   for (j = 0; j <= (Ny >> 1); j++) {
-    unsigned int jm = (Ny - j) & (Ny - 1);
-    unsigned int ji = j << Mx;
-    unsigned int jmi = jm << Mx;
+    uint jm = (Ny - j) & (Ny - 1);
+    uint ji = j << Mx;
+    uint jmi = jm << Mx;
     for (i = 0; i <= (Nx >> 1); i++) {
-      unsigned int im = (Nx - i) & (Nx - 1);
+      uint im = (Nx - i) & (Nx - 1);
       fREAL A = data[ji + i];
       fREAL B = data[jmi + i];
       fREAL C = data[ji + im];
@@ -184,13 +183,13 @@ static void FHT2D(
 //------------------------------------------------------------------------------
 
 /* 2D convolution calc, d1 *= d2, M/N - > log2 of width/height. */
-static void fht_convolve(fREAL *d1, const fREAL *d2, unsigned int M, unsigned int N)
+static void fht_convolve(fREAL *d1, const fREAL *d2, uint M, uint N)
 {
   fREAL a, b;
-  unsigned int i, j, k, L, mj, mL;
-  unsigned int m = 1 << M, n = 1 << N;
-  unsigned int m2 = 1 << (M - 1), n2 = 1 << (N - 1);
-  unsigned int mn2 = m << (N - 1);
+  uint i, j, k, L, mj, mL;
+  uint m = 1 << M, n = 1 << N;
+  uint m2 = 1 << (M - 1), n2 = 1 << (N - 1);
+  uint mn2 = m << (N - 1);
 
   d1[0] *= d2[0];
   d1[mn2] *= d2[mn2];
@@ -242,15 +241,15 @@ static void fht_convolve(fREAL *d1, const fREAL *d2, unsigned int M, unsigned in
 static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 {
   fREAL *data1, *data2, *fp;
-  unsigned int w2, h2, hw, hh, log2_w, log2_h;
+  uint w2, h2, hw, hh, log2_w, log2_h;
   fRGB wt, *colp;
   int x, y, ch;
   int xbl, ybl, nxb, nyb, xbsz, ybsz;
   bool in2done = false;
-  const unsigned int kernel_width = in2->get_width();
-  const unsigned int kernel_height = in2->get_height();
-  const unsigned int image_width = in1->get_width();
-  const unsigned int image_height = in1->get_height();
+  const uint kernel_width = in2->get_width();
+  const uint kernel_height = in2->get_height();
+  const uint image_width = in1->get_width();
+  const uint image_height = in1->get_height();
   float *kernel_buffer = in2->get_buffer();
   float *image_buffer = in1->get_buffer();
 
@@ -361,14 +360,14 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         /* Data again transposed, so in order again. */
 
         /* Overlap-add result. */
-        for (y = 0; y < (int)h2; y++) {
+        for (y = 0; y < int(h2); y++) {
           const int yy = ybl * ybsz + y - hh;
           if ((yy < 0) || (yy >= image_height)) {
             continue;
           }
           fp = &data2[y * w2];
           colp = (fRGB *)&rdst->get_buffer()[yy * image_width * COM_DATA_TYPE_COLOR_CHANNELS];
-          for (x = 0; x < (int)w2; x++) {
+          for (x = 0; x < int(w2); x++) {
             const int xx = xbl * xbsz + x - hw;
             if ((xx < 0) || (xx >= image_width)) {
               continue;
@@ -397,7 +396,7 @@ void GlareFogGlowOperation::generate_glare(float *data,
   float scale, u, v, r, w, d;
   fRGB fcol;
   MemoryBuffer *ckrn;
-  unsigned int sz = 1 << settings->size;
+  uint sz = 1 << settings->size;
   const float cs_r = 1.0f, cs_g = 1.0f, cs_b = 1.0f;
 
   /* Temp. src image
@@ -406,12 +405,12 @@ void GlareFogGlowOperation::generate_glare(float *data,
   BLI_rcti_init(&kernel_rect, 0, sz, 0, sz);
   ckrn = new MemoryBuffer(DataType::Color, kernel_rect);
 
-  scale = 0.25f * sqrtf((float)(sz * sz));
+  scale = 0.25f * sqrtf(float(sz * sz));
 
   for (y = 0; y < sz; y++) {
-    v = 2.0f * (y / (float)sz) - 1.0f;
+    v = 2.0f * (y / float(sz)) - 1.0f;
     for (x = 0; x < sz; x++) {
-      u = 2.0f * (x / (float)sz) - 1.0f;
+      u = 2.0f * (x / float(sz)) - 1.0f;
       r = (u * u + v * v) * scale;
       d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
       fcol[0] = expf(d * cs_r);
@@ -420,7 +419,7 @@ void GlareFogGlowOperation::generate_glare(float *data,
       /* Linear window good enough here, visual result counts, not scientific analysis:
        * `w = (1.0f-fabs(u))*(1.0f-fabs(v));`
        * actually, Hanning window is ok, `cos^2` for some reason is slower. */
-      w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
+      w = (0.5f + 0.5f * cosf(u * float(M_PI))) * (0.5f + 0.5f * cosf(v * float(M_PI)));
       mul_v3_fl(fcol, w);
       ckrn->write_pixel(x, y, fcol);
     }

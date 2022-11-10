@@ -27,6 +27,8 @@
 
 #include "UI_interface.h"
 
+#include "BLO_read_write.h"
+
 /* ******************** default callbacks for userpref space ***************** */
 
 static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene))
@@ -183,6 +185,11 @@ static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSE
 {
 }
 
+static void userpref_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceUserPref, sl);
+}
+
 void ED_spacetype_userpref(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype userpref");
@@ -197,6 +204,7 @@ void ED_spacetype_userpref(void)
   st->duplicate = userpref_duplicate;
   st->operatortypes = userpref_operatortypes;
   st->keymap = userpref_keymap;
+  st->blend_write = userpref_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");

@@ -124,7 +124,8 @@ static int screenshot_exec(bContext *C, wmOperator *op)
         scd->dumprect = ibuf->rect;
       }
 
-      if (scd->im_format.planes == R_IMF_PLANES_BW) {
+      if ((scd->im_format.planes == R_IMF_PLANES_BW) &&
+          (scd->im_format.imtype != R_IMF_IMTYPE_MULTILAYER)) {
         /* bw screenshot? - users will notice if it fails! */
         IMB_color_to_bw(ibuf);
       }
@@ -195,7 +196,7 @@ static bool screenshot_draw_check_prop(PointerRNA *UNUSED(ptr),
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  return !(STREQ(prop_id, "filepath"));
+  return !STREQ(prop_id, "filepath");
 }
 
 static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)

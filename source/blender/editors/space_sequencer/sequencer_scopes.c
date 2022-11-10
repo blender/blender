@@ -615,7 +615,7 @@ static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, i
   rgb[2] = (float)b / 255.0f;
   rgb_to_yuv_normalized(rgb, yuv);
 
-  p = tgt + 4 * (w * (int)((yuv[2] * (h - 3) + 1)) + (int)((yuv[1] * (w - 3) + 1)));
+  p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
 
   if (r == 0 && g == 0 && b == 0) {
     r = 255;
@@ -667,7 +667,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
       rgb[2] = (float)src1[2] / 255.0f;
       rgb_to_yuv_normalized(rgb, yuv);
 
-      p = tgt + 4 * (w * (int)((yuv[2] * (h - 3) + 1)) + (int)((yuv[1] * (w - 3) + 1)));
+      p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
       scope_put_pixel(wtable, (uchar *)p);
     }
   }
@@ -713,7 +713,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 
       rgb_to_yuv_normalized(rgb, yuv);
 
-      p = tgt + 4 * (w * (int)((yuv[2] * (h - 3) + 1)) + (int)((yuv[1] * (w - 3) + 1)));
+      p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
       scope_put_pixel(wtable, (uchar *)p);
     }
   }

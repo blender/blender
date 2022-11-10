@@ -23,7 +23,7 @@
  * (sRGB conversion happens for LGG),
  * but this keeps settings comparable. */
 
-void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
+void ntreeCompositColorBalanceSyncFromLGG(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = (NodeColorBalance *)node->storage;
 
@@ -34,7 +34,7 @@ void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
   }
 }
 
-void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
+void ntreeCompositColorBalanceSyncFromCDL(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = (NodeColorBalance *)node->storage;
 
@@ -64,7 +64,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorBalance *n = MEM_cnew<NodeColorBalance>(__func__);
 
@@ -78,7 +78,7 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = n;
 }
 
-static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *split, *col, *row;
 
@@ -123,9 +123,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
   }
 }
 
-static void node_composit_buts_colorbalance_ex(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
@@ -212,7 +210,7 @@ void register_node_type_cmp_colorbalance()
   ntype.draw_buttons = file_ns::node_composit_buts_colorbalance;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorbalance_ex;
   node_type_size(&ntype, 400, 200, 400);
-  node_type_init(&ntype, file_ns::node_composit_init_colorbalance);
+  ntype.initfunc = file_ns::node_composit_init_colorbalance;
   node_type_storage(
       &ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

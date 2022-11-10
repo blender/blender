@@ -106,6 +106,8 @@ void Instance::begin_sync()
 
   gpencil_engine_enabled = false;
 
+  scene_sync();
+
   depth_of_field.sync();
   motion_blur.sync();
   hiz_buffer.sync();
@@ -113,6 +115,21 @@ void Instance::begin_sync()
   main_view.sync();
   world.sync();
   film.sync();
+}
+
+void Instance::scene_sync()
+{
+  SceneHandle &sc_handle = sync.sync_scene(scene);
+
+  sc_handle.reset_recalc_flag();
+
+  /* This refers specifically to the Scene camera that can be accessed
+   * via View Layer Attribute nodes, rather than the actual render camera. */
+  if (scene->camera != nullptr) {
+    ObjectHandle &ob_handle = sync.sync_object(scene->camera);
+
+    ob_handle.reset_recalc_flag();
+  }
 }
 
 void Instance::object_sync(Object *ob)
@@ -377,9 +394,9 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
     }
   }
 
-  /* NOTE: Name channels lowercase rgba so that compression rules check in OpenEXR DWA code uses
-   * loseless compression. Reportedly this naming is the only one which works good from the
-   * interoperability point of view. Using xyzw naming is not portable. */
+  /* NOTE: Name channels lowercase `rgba` so that compression rules check in OpenEXR DWA code uses
+   * lossless compression. Reportedly this naming is the only one which works good from the
+   * interoperability point of view. Using `xyzw` naming is not portable. */
   auto register_cryptomatte_passes = [&](eViewLayerCryptomatteFlags cryptomatte_layer,
                                          eViewLayerEEVEEPassType eevee_pass) {
     if (view_layer->cryptomatte_flag & cryptomatte_layer) {

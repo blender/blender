@@ -119,7 +119,9 @@ void RNA_api_space_text(StructRNA *srna)
   RNA_def_function_output(func, parm);
 }
 
-void rna_def_object_type_visibility_flags_common(StructRNA *srna, int noteflag)
+void rna_def_object_type_visibility_flags_common(StructRNA *srna,
+                                                 int noteflag,
+                                                 const char *update_func)
 {
   PropertyRNA *prop;
 
@@ -173,7 +175,7 @@ void rna_def_object_type_visibility_flags_common(StructRNA *srna, int noteflag)
       RNA_def_property_boolean_negative_sdna(
           prop, NULL, view_mask_member[mask_index], info[type_index].type_mask);
       RNA_def_property_ui_text(prop, info[type_index].name, "");
-      RNA_def_property_update(prop, noteflag, NULL);
+      RNA_def_property_update(prop, noteflag, update_func);
     }
   }
 }

@@ -150,7 +150,7 @@ static void brush_painter_2d_require_imbuf(
 {
   BrushPainterCache *cache = &tile->cache;
 
-  if ((cache->use_float != use_float)) {
+  if (cache->use_float != use_float) {
     if (cache->ibuf) {
       IMB_freeImBuf(cache->ibuf);
     }
@@ -402,7 +402,8 @@ static ImBuf *brush_painter_imbuf_new(
 
       if (is_texbrush) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-        BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
+        const MTex *mtex = &brush->mtex;
+        BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
         /* TODO(sergey): Support texture paint color space. */
         if (!use_float) {
           IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -446,6 +447,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
 {
   Scene *scene = painter->scene;
   Brush *brush = painter->brush;
+  const MTex *mtex = &brush->mtex;
   BrushPainterCache *cache = &tile->cache;
 
   const char *display_device = scene->display_settings.display_device;
@@ -485,7 +487,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
       if (!use_texture_old) {
         if (is_texbrush) {
           brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-          BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
+          BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
           /* TODO(sergey): Support texture paint color space. */
           if (!use_float) {
             IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -1178,8 +1180,8 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
 
 static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
 {
-  ipos[0] = (int)floorf((pos[0] - ibufb->x / 2));
-  ipos[1] = (int)floorf((pos[1] - ibufb->y / 2));
+  ipos[0] = (int)floorf(pos[0] - ibufb->x / 2);
+  ipos[1] = (int)floorf(pos[1] - ibufb->y / 2);
 }
 
 static void paint_2d_do_making_brush(ImagePaintState *s,

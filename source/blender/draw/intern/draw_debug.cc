@@ -21,7 +21,7 @@
 
 #include <iomanip>
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(WITH_DRAW_DEBUG)
 #  define DRAW_DEBUG
 #else
 /* Uncomment to forcibly enable debug draw in release mode. */
@@ -84,6 +84,9 @@ void DebugDraw::init()
   gpu_draw_buf_.command.instance_len = 1;
   gpu_draw_buf_.command.instance_first_array = 0;
   gpu_draw_buf_used = false;
+
+  print_col_ = 0;
+  print_row_ = 0;
 
   modelmat_reset();
 }
@@ -316,8 +319,8 @@ template<> void DebugDraw::print_value<uint4>(const uint4 &value)
 /* -------------------------------------------------------------------- */
 /** \name Internals
  *
- * IMPORTANT: All of these are copied from the shader libs (common_debug_draw_lib.glsl &
- * common_debug_print_lib.glsl). They need to be kept in sync to write the same data.
+ * IMPORTANT: All of these are copied from the shader libraries (`common_debug_draw_lib.glsl` &
+ * `common_debug_print_lib.glsl`). They need to be kept in sync to write the same data.
  * \{ */
 
 void DebugDraw::draw_line(float3 v1, float3 v2, uint color)
@@ -553,6 +556,9 @@ void DebugDraw::display_prints()
   GPUShader *shader = DRW_shader_debug_print_display_get();
   GPU_batch_set_shader(batch, shader);
   int slot = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+  float f_viewport[4];
+  GPU_viewport_size_get_f(f_viewport);
+  GPU_shader_uniform_2fv(shader, "viewport_size", f_viewport);
 
   if (gpu_print_buf_used) {
     GPU_debug_group_begin("GPU");

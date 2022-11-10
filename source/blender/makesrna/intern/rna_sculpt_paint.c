@@ -9,6 +9,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -32,6 +33,8 @@
 #include "WM_types.h"
 
 #include "bmesh.h"
+
+extern const EnumPropertyItem RNA_automasking_flags[];
 
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
     {PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
@@ -165,6 +168,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
 
@@ -185,6 +189,7 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
@@ -215,7 +220,9 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C,
                                                            PropertyRNA *UNUSED(prop),
                                                            bool *UNUSED(r_free))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 #  if 0
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -374,6 +381,7 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
@@ -389,12 +397,13 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 
 static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *object = BKE_view_layer_active_object_get(view_layer);
   if (object == NULL || object->sculpt == NULL) {
     return;
   }
-  Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings->sculpt;
   object->sculpt->show_mask = ((sd->flags & SCULPT_HIDE_MASK) == 0);
   if (object->sculpt->pbvh != NULL) {
@@ -488,6 +497,7 @@ static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob && ob->type == OB_MESH) {
@@ -505,6 +515,7 @@ static void rna_ImaPaint_stencil_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob && ob->type == OB_MESH) {
@@ -524,25 +535,11 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  bScreen *screen;
   Image *ima = scene->toolsettings->imapaint.canvas;
 
-  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-    ScrArea *area;
-    for (area = screen->areabase.first; area; area = area->next) {
-      SpaceLink *slink;
-      for (slink = area->spacedata.first; slink; slink = slink->next) {
-        if (slink->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = (SpaceImage *)slink;
-
-          if (!sima->pin) {
-            ED_space_image_set(bmain, sima, ima, true);
-          }
-        }
-      }
-    }
-  }
+  ED_space_image_sync(bmain, ima, false);
 
   if (ob && ob->type == OB_MESH) {
     ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
@@ -589,6 +586,31 @@ static char *rna_GPencilSculptGuide_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
 }
 
+static void rna_Sculpt_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
+{
+  Sculpt *sd = (Sculpt *)ptr->data;
+
+  if (val) {
+    sd->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
+    sd->automasking_flags |= BRUSH_AUTOMASKING_CAVITY_INVERTED;
+  }
+  else {
+    sd->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_INVERTED;
+  }
+}
+
+static void rna_Sculpt_automasking_cavity_set(PointerRNA *ptr, bool val)
+{
+  Sculpt *sd = (Sculpt *)ptr->data;
+
+  if (val) {
+    sd->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_INVERTED;
+    sd->automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
+  }
+  else {
+    sd->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
+  }
+}
 #else
 
 static void rna_def_paint_curve(BlenderRNA *brna)
@@ -874,32 +896,98 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
-  prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_TOPOLOGY);
-  RNA_def_property_ui_text(prop,
-                           "Topology Auto-Masking",
-                           "Affect only vertices connected to the active vertex under the brush");
+  const EnumPropertyItem *entry = RNA_automasking_flags;
+  do {
+    prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", entry->value);
+    RNA_def_property_ui_text(prop, entry->name, entry->description);
+
+    if (entry->value == BRUSH_AUTOMASKING_CAVITY_NORMAL) {
+      RNA_def_property_boolean_funcs(prop, NULL, "rna_Sculpt_automasking_cavity_set");
+    }
+    else if (entry->value == BRUSH_AUTOMASKING_CAVITY_INVERTED) {
+      RNA_def_property_boolean_funcs(prop, NULL, "rna_Sculpt_automasking_invert_cavity_set");
+    }
+
+    RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+  } while ((++entry)->identifier);
+
+  prop = RNA_def_property(srna, "automasking_cavity_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_cavity_factor");
+  RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-  prop = RNA_def_property(srna, "use_automasking_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_FACE_SETS);
-  RNA_def_property_ui_text(prop,
-                           "Face Sets Auto-Masking",
-                           "Affect only vertices that share Face Sets with the active vertex");
+  prop = RNA_def_property(srna, "automasking_cavity_blur_steps", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "automasking_cavity_blur_steps");
+  RNA_def_property_ui_text(prop, "Blur Steps", "The number of times the cavity mask is blurred");
+  RNA_def_property_int_default(prop, 0);
+  RNA_def_property_range(prop, 0, 25);
+  RNA_def_property_ui_range(prop, 0, 10, 1, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-  prop = RNA_def_property(srna, "use_automasking_boundary_edges", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_EDGES);
+  prop = RNA_def_property(srna, "automasking_cavity_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "automasking_cavity_curve");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Cavity Curve", "Curve used for the sensitivity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "automasking_cavity_curve_op", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "automasking_cavity_curve_op");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Cavity Curve", "Curve used for the sensitivity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_start_normal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BRUSH_NORMAL);
   RNA_def_property_ui_text(
-      prop, "Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges");
+      prop,
+      "Area Normal",
+      "Affect only vertices with a similar normal to where the stroke starts");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-  prop = RNA_def_property(srna, "use_automasking_boundary_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS);
-  RNA_def_property_ui_text(prop,
-                           "Face Sets Boundary Auto-Masking",
-                           "Do not affect vertices that belong to a Face Set boundary");
+  prop = RNA_def_property(srna, "use_automasking_view_normal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_VIEW_NORMAL);
+  RNA_def_property_ui_text(
+      prop, "View Normal", "Affect only vertices with a normal that faces the viewer");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_view_occlusion", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_VIEW_OCCLUSION);
+  RNA_def_property_ui_text(
+      prop,
+      "Occlusion",
+      "Only affect vertices that are not occluded by other faces. (Slower performance)");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "automasking_start_normal_limit", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_start_normal_limit");
+  RNA_def_property_range(prop, 0.0001f, M_PI);
+  RNA_def_property_ui_text(prop, "Area Normal Limit", "The range of angles that will be affected");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "automasking_start_normal_falloff", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_start_normal_falloff");
+  RNA_def_property_range(prop, 0.0001f, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "Area Normal Falloff", "Extend the angular range with a falloff gradient");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "automasking_view_normal_limit", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_view_normal_limit");
+  RNA_def_property_range(prop, 0.0001f, M_PI);
+  RNA_def_property_ui_text(prop, "View Normal Limit", "The range of angles that will be affected");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "automasking_view_normal_falloff", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_view_normal_falloff");
+  RNA_def_property_range(prop, 0.0001f, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "View Normal Falloff", "Extend the angular range with a falloff gradient");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
@@ -1547,6 +1635,36 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_SCALE_THICKNESS);
   RNA_def_property_ui_text(
       prop, "Scale Stroke Thickness", "Scale the stroke thickness when transforming strokes");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_stroke", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_AUTOMASK_STROKE);
+  RNA_def_property_ui_text(prop, "Auto-Masking Strokes", "Affect only strokes below the cursor");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_layer_stroke", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_STROKE);
+  RNA_def_property_ui_text(prop, "Auto-Masking Layer", "Affect only strokes below the cursor");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_material_stroke", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_STROKE);
+  RNA_def_property_ui_text(prop, "Auto-Masking Material", "Affect only strokes below the cursor");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_layer_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_ACTIVE);
+  RNA_def_property_ui_text(prop, "Auto-Masking Layer", "Affect only the Active Layer");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_material_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE);
+  RNA_def_property_ui_text(prop, "Auto-Masking Material", "Affect only the Active Material");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 

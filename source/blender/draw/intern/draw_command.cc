@@ -30,6 +30,11 @@ void ShaderBind::execute(RecordingState &state) const
   }
 }
 
+void FramebufferBind::execute() const
+{
+  GPU_framebuffer_bind(framebuffer);
+}
+
 void ResourceBind::execute() const
 {
   if (slot == -1) {
@@ -90,7 +95,7 @@ void DrawMulti::execute(RecordingState &state) const
   DrawMultiBuf::DrawGroupBuf &groups = multi_draw_buf->group_buf_;
 
   uint group_index = this->group_first;
-  while (group_index != (uint)-1) {
+  while (group_index != uint(-1)) {
     const DrawGroup &group = groups[group_index];
 
     if (group.vertex_len > 0) {
@@ -161,7 +166,10 @@ void StateSet::execute(RecordingState &recording_state) const
    */
   BLI_assert(DST.state_lock == 0);
 
-  if (!assign_if_different(recording_state.pipeline_state, new_state)) {
+  bool state_changed = assign_if_different(recording_state.pipeline_state, new_state);
+  bool clip_changed = assign_if_different(recording_state.clip_plane_count, clip_plane_count);
+
+  if (!state_changed && !clip_changed) {
     return;
   }
 
@@ -185,12 +193,7 @@ void StateSet::execute(RecordingState &recording_state) const
   }
 
   /* TODO: this should be part of shader state. */
-  if (new_state & DRW_STATE_CLIP_PLANES) {
-    GPU_clip_distances(recording_state.view_clip_plane_count);
-  }
-  else {
-    GPU_clip_distances(0);
-  }
+  GPU_clip_distances(recording_state.clip_plane_count);
 
   if (new_state & DRW_STATE_IN_FRONT_SELECT) {
     /* XXX `GPU_depth_range` is not a perfect solution
@@ -227,6 +230,11 @@ void StencilSet::execute() const
 std::string ShaderBind::serialize() const
 {
   return std::string(".shader_bind(") + GPU_shader_get_name(shader) + ")";
+}
+
+std::string FramebufferBind::serialize() const
+{
+  return std::string(".framebuffer_bind(") + GPU_framebuffer_get_name(framebuffer) + ")";
 }
 
 std::string ResourceBind::serialize() const
@@ -345,9 +353,9 @@ std::string PushConstant::serialize() const
 
 std::string Draw::serialize() const
 {
-  std::string inst_len = (instance_len == (uint)-1) ? "from_batch" : std::to_string(instance_len);
-  std::string vert_len = (vertex_len == (uint)-1) ? "from_batch" : std::to_string(vertex_len);
-  std::string vert_first = (vertex_first == (uint)-1) ? "from_batch" :
+  std::string inst_len = (instance_len == uint(-1)) ? "from_batch" : std::to_string(instance_len);
+  std::string vert_len = (vertex_len == uint(-1)) ? "from_batch" : std::to_string(vertex_len);
+  std::string vert_first = (vertex_first == uint(-1)) ? "from_batch" :
                                                         std::to_string(vertex_first);
   return std::string(".draw(inst_len=") + inst_len + ", vert_len=" + vert_len +
          ", vert_first=" + vert_first + ", res_id=" + std::to_string(handle.resource_index()) +
@@ -379,7 +387,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
 
   uint group_len = 0;
   uint group_index = this->group_first;
-  while (group_index != (uint)-1) {
+  while (group_index != uint(-1)) {
     const DrawGroup &grp = groups[group_index];
 
     ss << std::endl << line_prefix << "  .group(id=" << group_index << ", len=" << grp.len << ")";
@@ -505,7 +513,7 @@ void DrawCommandBuf::bind(RecordingState &state,
      * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
     BLI_assert(batch_inst_len == 1);
 
-    if (cmd.vertex_len == (uint)-1) {
+    if (cmd.vertex_len == uint(-1)) {
       cmd.vertex_len = batch_vert_len;
     }
 

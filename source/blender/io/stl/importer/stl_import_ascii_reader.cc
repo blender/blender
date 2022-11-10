@@ -97,7 +97,7 @@ class StringBuffer {
       start++;
     }
     fast_float::from_chars_result res = fast_float::from_chars(start, end, out);
-    if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
+    if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
       out = 0.0f;
     }
     start = const_cast<char *>(res.ptr);

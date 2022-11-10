@@ -210,7 +210,7 @@ void evaluate_segment(const float3 &point_0,
                       MutableSpan<float3> result)
 {
   BLI_assert(result.size() > 0);
-  const float inv_len = 1.0f / static_cast<float>(result.size());
+  const float inv_len = 1.0f / float(result.size());
   const float inv_len_squared = inv_len * inv_len;
   const float inv_len_cubed = inv_len_squared * inv_len;
 

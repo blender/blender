@@ -107,13 +107,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_principled(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_GGX;
   node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
@@ -125,7 +125,7 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
@@ -245,9 +245,9 @@ void register_node_type_sh_bsdf_principled()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_principled;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, file_ns::node_shader_init_principled);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_principled);
-  node_type_update(&ntype, file_ns::node_shader_update_principled);
+  ntype.initfunc = file_ns::node_shader_init_principled;
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_principled;
+  ntype.updatefunc = file_ns::node_shader_update_principled;
 
   nodeRegisterType(&ntype);
 }

@@ -75,11 +75,12 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
 {
   /* Setup currently building context. */
   scene_ = scene;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   /* Scene objects. */
   /* NOTE: Nodes builder requires us to pass CoW base because it's being
    * passed to the evaluation functions. During relations builder we only
    * do nullptr-pointer check of the base, so it's fine to pass original one. */
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (need_pull_base_into_graph(base)) {
       build_object_from_view_layer_base(base->object);
     }

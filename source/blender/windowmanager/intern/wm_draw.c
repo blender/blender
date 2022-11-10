@@ -894,7 +894,8 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     if (area->flag & AREA_FLAG_ACTIVE_TOOL_UPDATE) {
       if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-        WM_toolsystem_update_from_context(C, CTX_wm_workspace(C), CTX_data_view_layer(C), area);
+        WM_toolsystem_update_from_context(
+            C, CTX_wm_workspace(C), CTX_data_scene(C), CTX_data_view_layer(C), area);
       }
       area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }

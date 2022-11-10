@@ -141,8 +141,8 @@ void MotionBlurModule::sync()
   {
     /* Create max velocity tiles. */
     PassSimple::Sub &sub = motion_blur_ps_.sub("TilesFlatten");
-    eShaderType shader = (inst_.is_viewport()) ? MOTION_BLUR_TILE_FLATTEN_VIEWPORT :
-                                                 MOTION_BLUR_TILE_FLATTEN_RENDER;
+    eShaderType shader = inst_.is_viewport() ? MOTION_BLUR_TILE_FLATTEN_VIEWPORT :
+                                               MOTION_BLUR_TILE_FLATTEN_RENDER;
     sub.shader_set(inst_.shaders.static_shader_get(shader));
     sub.bind_ubo("motion_blur_buf", data_);
     sub.bind_texture("depth_tx", &render_buffers.depth_tx);

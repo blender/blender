@@ -47,5 +47,5 @@ endmacro()
 # Tests are disabled because they only work on Windows
 # Tests will be redone completely to work reliable
 #
-# COLLADA_TEST(mesh simple mesh_simple.blend)
-# COLLADA_TEST(animation simple suzannes_parent_inverse.blend)
+# collada_test(mesh simple mesh_simple.blend)
+# collada_test(animation simple suzannes_parent_inverse.blend)

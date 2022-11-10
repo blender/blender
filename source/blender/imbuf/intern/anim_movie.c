@@ -131,7 +131,7 @@ static int an_stringdec(const char *string, char *head, char *tail, ushort *numl
     strcpy(head, string);
     head[nums] = '\0';
     *numlen = nume - nums + 1;
-    return ((int)atoi(&(string[nums])));
+    return (int)atoi(&(string[nums]));
   }
   tail[0] = '\0';
   strcpy(head, string);
@@ -1093,12 +1093,19 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 
 static int64_t ffmpeg_get_seek_pts(struct anim *anim, int64_t pts_to_search)
 {
-  /* Step back half a frame position to make sure that we get the requested
-   * frame and not the one after it. This is a workaround as ffmpeg will
-   * sometimes not seek to a frame after the requested pts even if
-   * AVSEEK_FLAG_BACKWARD is specified.
+  /* FFmpeg seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
+   * offset and sometimes ffmpeg fails to take this into account when seeking.
+   * Therefore we need to seek backwards a certain offset to make sure the frame we want is in
+   * front of us. It is not possible to determine the exact needed offset, this value is determined
+   * experimentally. Note: Too big offset can impact performance. Current 3 frame offset has no
+   * measurable impact.
    */
-  return pts_to_search - (ffmpeg_steps_per_frame_get(anim) / 2);
+  int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
+
+  if (seek_pts < 0) {
+    seek_pts = 0;
+  }
+  return seek_pts;
 }
 
 /* This gives us an estimate of which pts our requested frame will have.
@@ -1405,6 +1412,10 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   }
 
   ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+
+  /* Update resolution as it can change per-frame with WebM. See T100741 & T100081. */
+  anim->x = anim->pCodecCtx->width;
+  anim->y = anim->pCodecCtx->height;
 
   IMB_freeImBuf(anim->cur_frame_final);
 

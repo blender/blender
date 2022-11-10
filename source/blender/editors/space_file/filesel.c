@@ -197,7 +197,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if (params->dir[0]) {
-      BLI_path_normalize_dir(blendfile_path, params->dir);
+      BLI_path_normalize_dir(blendfile_path, params->dir, sizeof(params->dir));
       BLI_path_abs(params->dir, blendfile_path);
     }
 
@@ -665,12 +665,17 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
   }
 }
 
-void fileselect_file_set(SpaceFile *sfile, const int index)
+void fileselect_file_set(struct bContext *C, SpaceFile *sfile, const int index)
 {
   const struct FileDirEntry *file = filelist_file(sfile->files, index);
   if (file && file->relpath && file->relpath[0] && !(file->typeflag & FILE_TYPE_DIR)) {
     FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     BLI_strncpy(params->file, file->relpath, FILE_MAXFILE);
+    if (sfile->op) {
+      /* Update the filepath properties of the operator. */
+      Main *bmain = CTX_data_main(C);
+      file_sfile_to_operator(C, bmain, sfile->op, sfile);
+    }
   }
 }
 
@@ -690,14 +695,14 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
    */
   if (layout->flag & FILE_LAYOUT_HOR) {
     const int x_item = layout->tile_w + (2 * layout->tile_border_x);
-    const int x_view = (int)(BLI_rctf_size_x(&region->v2d.cur));
+    const int x_view = (int)BLI_rctf_size_x(&region->v2d.cur);
     const int x_over = x_item - (x_view % x_item);
     numfiles = (int)((float)(x_view + x_over) / (float)(x_item));
     return numfiles * layout->rows;
   }
 
   const int y_item = layout->tile_h + (2 * layout->tile_border_y);
-  const int y_view = (int)(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
+  const int y_view = (int)BLI_rctf_size_y(&region->v2d.cur) - layout->offset_top;
   const int y_over = y_item - (y_view % y_item);
   numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
   return numfiles * layout->flow_columns;
@@ -1041,7 +1046,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     layout->attribute_column_header_h = 0;
     layout->offset_top = layout->attribute_column_header_h;
     layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
-    /* Padding by full scrollbar H is too much, can overlap tile border Y. */
+    /* Padding by full scroll-bar H is too much, can overlap tile border Y. */
     layout->rows = (layout->height - V2D_SCROLL_HEIGHT + layout->tile_border_y) /
                    (layout->tile_h + 2 * layout->tile_border_y);
     layout->tile_w = VERTLIST_MAJORCOLUMN_WIDTH;
@@ -1169,7 +1174,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
           char path[FILE_MAX];
           BLI_stat_t status;
 
-          BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
+          BLI_path_join(path, sizeof(path), dirname, de->d_name);
 
           if (BLI_stat(path, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */
@@ -1182,7 +1187,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 
       match = UI_autocomplete_end(autocpl, str);
       if (match == AUTOCOMPLETE_FULL_MATCH) {
-        BLI_path_slash_ensure(str);
+        BLI_path_slash_ensure(str, FILE_MAX);
       }
     }
   }

@@ -1034,7 +1034,7 @@ static void draw_marker_texts(SpaceClip *sc,
     return;
   }
 
-  BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(fontid, 11.0f * U.dpi_fac);
   fontsize = BLF_height_max(fontid);
 
   if (marker->flag & MARKER_DISABLED) {

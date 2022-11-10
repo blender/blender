@@ -49,7 +49,7 @@ static float3 float_to_float3(const float &a)
 }
 static int32_t float_to_int(const float &a)
 {
-  return (int32_t)a;
+  return int32_t(a);
 }
 static bool float_to_bool(const float &a)
 {
@@ -79,7 +79,7 @@ static float float2_to_float(const float2 &a)
 }
 static int float2_to_int(const float2 &a)
 {
-  return (int32_t)((a.x + a.y) / 2.0f);
+  return int32_t((a.x + a.y) / 2.0f);
 }
 static bool float2_to_bool(const float2 &a)
 {
@@ -112,7 +112,7 @@ static float float3_to_float(const float3 &a)
 }
 static int float3_to_int(const float3 &a)
 {
-  return (int)((a.x + a.y + a.z) / 3.0f);
+  return int((a.x + a.y + a.z) / 3.0f);
 }
 static float2 float3_to_float2(const float3 &a)
 {
@@ -138,19 +138,19 @@ static int8_t int_to_int8(const int32_t &a)
 }
 static float int_to_float(const int32_t &a)
 {
-  return (float)a;
+  return float(a);
 }
 static float2 int_to_float2(const int32_t &a)
 {
-  return float2((float)a);
+  return float2(float(a));
 }
 static float3 int_to_float3(const int32_t &a)
 {
-  return float3((float)a);
+  return float3(float(a));
 }
 static ColorGeometry4f int_to_color(const int32_t &a)
 {
-  return ColorGeometry4f((float)a, (float)a, (float)a, 1.0f);
+  return ColorGeometry4f(float(a), float(a), float(a), 1.0f);
 }
 static ColorGeometry4b int_to_byte_color(const int32_t &a)
 {
@@ -163,23 +163,23 @@ static bool int8_to_bool(const int8_t &a)
 }
 static int int8_to_int(const int8_t &a)
 {
-  return static_cast<int>(a);
+  return int(a);
 }
 static float int8_to_float(const int8_t &a)
 {
-  return (float)a;
+  return float(a);
 }
 static float2 int8_to_float2(const int8_t &a)
 {
-  return float2((float)a);
+  return float2(float(a));
 }
 static float3 int8_to_float3(const int8_t &a)
 {
-  return float3((float)a);
+  return float3(float(a));
 }
 static ColorGeometry4f int8_to_color(const int8_t &a)
 {
-  return ColorGeometry4f((float)a, (float)a, (float)a, 1.0f);
+  return ColorGeometry4f(float(a), float(a), float(a), 1.0f);
 }
 static ColorGeometry4b int8_to_byte_color(const int8_t &a)
 {
@@ -188,15 +188,15 @@ static ColorGeometry4b int8_to_byte_color(const int8_t &a)
 
 static float bool_to_float(const bool &a)
 {
-  return (bool)a;
+  return bool(a);
 }
 static int8_t bool_to_int8(const bool &a)
 {
-  return static_cast<int8_t>(a);
+  return int8_t(a);
 }
 static int32_t bool_to_int(const bool &a)
 {
-  return (int32_t)a;
+  return int32_t(a);
 }
 static float2 bool_to_float2(const bool &a)
 {
@@ -225,7 +225,7 @@ static float color_to_float(const ColorGeometry4f &a)
 }
 static int32_t color_to_int(const ColorGeometry4f &a)
 {
-  return (int)rgb_to_grayscale(a);
+  return int(rgb_to_grayscale(a));
 }
 static int8_t color_to_int8(const ColorGeometry4f &a)
 {

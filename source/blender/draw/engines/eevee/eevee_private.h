@@ -815,7 +815,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *dof_reduce_input_color_tx;
   /* Other */
   float prev_persmat[4][4];
-  /* Size used by all fullscreen buffers using mipmaps. */
+  /* Size used by all full-screen buffers using mipmaps. */
   int hiz_size[2];
   /* Lookdev */
   int sphere_size;
@@ -837,7 +837,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP - 1];
   struct GPUTexture *unf_source_buffer; /* pointer copy */
   struct GPUTexture *unf_base_buffer;   /* pointer copy */
-  /* Not alloced, just a copy of a *GPUtexture in EEVEE_TextureList. */
+  /* Not allocated, just a copy of a *GPUtexture in EEVEE_TextureList. */
   struct GPUTexture *source_buffer;     /* latest updated texture */
   struct GPUFrameBuffer *target_buffer; /* next target to render to */
   struct GPUTexture *final_tx;          /* Final color to transform to display color space. */
@@ -895,14 +895,12 @@ typedef struct EEVEE_CommonUniformBuffer {
   float prb_irradiance_smooth; /* float */
   float prb_lod_cube_max;      /* float */
   /* Misc */
-  int ray_type;            /* int */
-  float ray_depth;         /* float */
-  float alpha_hash_offset; /* float */
-  float alpha_hash_scale;  /* float */
-  float pad7;              /* float */
-  float pad8;              /* float */
-  float pad9;              /* float */
-  float pad10;             /* float */
+  int ray_type;                                /* int */
+  float ray_depth;                             /* float */
+  float alpha_hash_offset;                     /* float */
+  float alpha_hash_scale;                      /* float */
+  float camera_uv_scale[2], camera_uv_bias[2]; /* vec4 */
+  float planar_clip_plane[4];                  /* vec4 */
 } EEVEE_CommonUniformBuffer;
 
 BLI_STATIC_ASSERT_ALIGN(EEVEE_CommonUniformBuffer, 16)
@@ -1261,7 +1259,6 @@ struct GPUShader *EEVEE_shaders_volumes_scatter_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_scatter_with_lights_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_integration_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum);
-struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target);
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_lut_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_refraction_lut_sh_get(void);

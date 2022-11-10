@@ -74,7 +74,7 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_UI_EVENTS "UI_Events_KeyMaps"
 
 /* Mark the msgid applies to several elements
- * (needed in some cases, as english adjectives have no plural mark :( ). */
+ * (needed in some cases, as English adjectives have no plural mark :( ). */
 #define BLT_I18NCONTEXT_PLURAL "Plural"
 
 /* ID-types contexts. */

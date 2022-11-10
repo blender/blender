@@ -10,7 +10,7 @@
  * can combine the logged value with a `ComputeContext`, which identifies the place where the value
  * was computed.
  *
- * This is not a trivial problem because e.g. just storing storing a pointer to the socket a value
+ * This is not a trivial problem because e.g. just storing a pointer to the socket a value
  * belongs to is not enough. That's because the same socket may correspond to many different values
  * when the socket is used in a node group that is used multiple times. In this case, not only does
  * the socket have to be stored but also the entire nested node group path that led to the

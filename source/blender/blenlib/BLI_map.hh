@@ -887,6 +887,25 @@ class Map {
   }
 
   /**
+   * Remove all key-value-pairs for that the given predicate is true.
+   *
+   * This is similar to std::erase_if.
+   */
+  template<typename Predicate> void remove_if(Predicate &&predicate)
+  {
+    for (Slot &slot : slots_) {
+      if (slot.is_occupied()) {
+        const Key &key = *slot.key();
+        Value &value = *slot.value();
+        if (predicate(MutableItem{key, value})) {
+          slot.remove();
+          removed_slots_++;
+        }
+      }
+    }
+  }
+
+  /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
   void print_stats(StringRef name = "") const
@@ -943,7 +962,7 @@ class Map {
    */
   int64_t size_in_bytes() const
   {
-    return static_cast<int64_t>(sizeof(Slot) * slots_.size());
+    return int64_t(sizeof(Slot) * slots_.size());
   }
 
   /**
@@ -987,7 +1006,7 @@ class Map {
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     BLI_assert(total_slots >= 1);
-    const uint64_t new_slot_mask = static_cast<uint64_t>(total_slots) - 1;
+    const uint64_t new_slot_mask = uint64_t(total_slots) - 1;
 
     /**
      * Optimize the case when the map was empty beforehand. We can avoid some copies here.
@@ -1261,7 +1280,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
  public:
   int64_t size() const
   {
-    return static_cast<int64_t>(map_.size());
+    return int64_t(map_.size());
   }
 
   bool is_empty() const
@@ -1295,7 +1314,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
 
   bool remove(const Key &key)
   {
-    return (bool)map_.erase(key);
+    return bool(map_.erase(key));
   }
 
   Value &lookup(const Key &key)
@@ -1313,7 +1332,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
     map_.clear();
   }
 
-  void print_stats(StringRef UNUSED(name) = "") const
+  void print_stats(StringRef /*name*/ = "") const
   {
   }
 };

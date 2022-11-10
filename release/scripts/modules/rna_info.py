@@ -286,7 +286,10 @@ class InfoPropertyRNA:
 
         self.enum_pointer = 0
         if self.type == "enum":
-            items = tuple(rna_prop.enum_items)
+            # WARNING: don't convert to a tuple as this causes dynamically allocated enums to access freed memory
+            # since freeing the iterator may free the memory used to store the internal `EnumPropertyItem` array.
+            # To support this properly RNA would have to support owning the dynamically allocated memory.
+            items = rna_prop.enum_items
             items_static = tuple(rna_prop.enum_items_static)
             self.enum_items[:] = [(item.identifier, item.name, item.description) for item in items]
             self.is_enum_flag = rna_prop.is_enum_flag
@@ -295,6 +298,7 @@ class InfoPropertyRNA:
             item = (items_static or items)
             if item:
                 self.enum_pointer = item[0].as_pointer()
+            del items, items_static, item
         else:
             self.is_enum_flag = False
 

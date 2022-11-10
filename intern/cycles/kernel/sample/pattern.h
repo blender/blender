@@ -100,7 +100,7 @@ ccl_device_inline bool sample_is_class_A(int pattern, int sample)
   if (!(pattern == SAMPLING_PATTERN_PMJ || pattern == SAMPLING_PATTERN_SOBOL_BURLEY)) {
     /* Fallback: assign samples randomly.
      * This is guaranteed to work "okay" for any sampler, but isn't good.
-     * (Note: the seed constant is just a random number to guard against
+     * (NOTE: the seed constant is just a random number to guard against
      * possible interactions with other uses of the hash. There's nothing
      * special about it.)
      */

@@ -14,9 +14,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static int node_shader_gpu_volume_info(GPUMaterial *mat,
-                                       bNode *UNUSED(node),
-                                       bNodeExecData *UNUSED(execdata),
-                                       GPUNodeStack *UNUSED(in),
+                                       bNode * /*node*/,
+                                       bNodeExecData * /*execdata*/,
+                                       GPUNodeStack * /*in*/,
                                        GPUNodeStack *out)
 {
   if (out[0].hasoutput) {
@@ -49,7 +49,7 @@ void register_node_type_sh_volume_info()
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_INFO, "Volume Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_info);
+  ntype.gpu_fn = file_ns::node_shader_gpu_volume_info;
 
   nodeRegisterType(&ntype);
 }

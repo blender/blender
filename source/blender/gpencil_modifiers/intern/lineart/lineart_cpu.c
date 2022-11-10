@@ -1397,7 +1397,7 @@ void lineart_main_discard_out_of_frame_edges(LineartData *ld)
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.line_buffer_pointers) {
     e = (LineartEdge *)eln->pointer;
     for (i = 0; i < eln->element_count; i++) {
-      if ((LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2))) {
+      if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
         e[i].flags = LRT_EDGE_FLAG_CHAIN_PICKED;
       }
     }
@@ -1905,8 +1905,10 @@ static void lineart_load_tri_task(void *__restrict userdata,
   if (ob_info->usage == OBJECT_LRT_INTERSECTION_ONLY) {
     tri->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
   }
-  else if (ob_info->usage == OBJECT_LRT_NO_INTERSECTION ||
-           ob_info->usage == OBJECT_LRT_OCCLUSION_ONLY) {
+  else if (ob_info->usage == OBJECT_LRT_FORCE_INTERSECTION) {
+    tri->flags |= LRT_TRIANGLE_FORCE_INTERSECTION;
+  }
+  else if (ELEM(ob_info->usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
     tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
   }
 
@@ -1951,8 +1953,6 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   LineartEdgeNeighbor *edge_nabr = MEM_mallocN(sizeof(LineartEdgeNeighbor) * total_edges,
                                                "LineartEdgeNeighbor arr");
 
-  MLoopTri *mlooptri = me->runtime.looptris.array;
-
   TaskParallelSettings en_settings;
   BLI_parallel_range_settings_defaults(&en_settings);
   /* Set the minimum amount of edges a thread has to process. */
@@ -1961,7 +1961,7 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   EdgeNeighborData en_data;
   en_data.adj_e = adj_e;
   en_data.edge_nabr = edge_nabr;
-  en_data.mlooptri = mlooptri;
+  en_data.mlooptri = BKE_mesh_runtime_looptri_ensure(me);
   en_data.mloop = BKE_mesh_loops(me);
 
   BLI_task_parallel_range(0, total_edges, &en_data, lineart_edge_neighbor_init_task, &en_settings);
@@ -2251,8 +2251,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
         }
       }
 
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
       }
 
@@ -2280,8 +2283,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
       la_edge->object_ref = orig_ob;
       la_edge->edge_identifier = LRT_EDGE_IDENTIFIER(ob_info, la_edge);
       BLI_addtail(&la_edge->segments, la_seg);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
         if (shadow_eln) {
           LineartEdge *shadow_e = lineart_find_matching_edge(shadow_eln, la_edge->edge_identifier);
@@ -2382,6 +2388,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
             return OBJECT_LRT_INTERSECTION_ONLY;
           case COLLECTION_LRT_NO_INTERSECTION:
             return OBJECT_LRT_NO_INTERSECTION;
+          case COLLECTION_LRT_FORCE_INTERSECTION:
+            return OBJECT_LRT_FORCE_INTERSECTION;
         }
         return OBJECT_LRT_INHERIT;
       }
@@ -2597,9 +2605,13 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     flags |= DEG_ITER_OBJECT_FLAG_DUPLI;
   }
 
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = flags;
+
   /* XXX(@Yiming): Temporary solution, this iterator is technically unsafe to use *during*
    * depsgraph evaluation, see D14997 for detailed explanations. */
-  DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
 
     obindex++;
 
@@ -2621,7 +2633,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                           scene,
                                           eval_ob,
                                           eval_ob,
-                                          eval_ob->obmat,
+                                          eval_ob->object_to_world,
                                           is_render,
                                           olti,
                                           thread_count,
@@ -2877,7 +2889,7 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
   if ((e->flags & LRT_EDGE_FLAG_PROJECTED_SHADOW) &&
       (e->target_reference == tri->target_reference)) {
     if (((dot_f > 0) && (e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)) ||
-        ((dot_f < 0) && (!(e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)))) {
+        ((dot_f < 0) && !(e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT))) {
       *from = 0.0f;
       *to = 1.0f;
       return true;
@@ -3203,8 +3215,7 @@ static bool lineart_triangle_2v_intersection_math(
     return false;
   }
 
-  if (!(lineart_point_inside_triangle3d(
-          gloc, tri->v[0]->gloc, tri->v[1]->gloc, tri->v[2]->gloc))) {
+  if (!lineart_point_inside_triangle3d(gloc, tri->v[0]->gloc, tri->v[1]->gloc, tri->v[2]->gloc)) {
     return false;
   }
 
@@ -3410,10 +3421,11 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
     }
     tt->testing_e[th->thread_id] = (LineartEdge *)tri;
 
-    if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
-        ((testing_triangle->flags & LRT_TRIANGLE_INTERSECTION_ONLY) &&
-         (tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY))) {
-      continue;
+    if (!((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_FORCE_INTERSECTION)) {
+      if (((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_NO_INTERSECTION) ||
+          (testing_triangle->flags & tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY)) {
+        continue;
+      }
     }
 
     double *RG0 = testing_triangle->v[0]->gloc, *RG1 = testing_triangle->v[1]->gloc,
@@ -3577,11 +3589,11 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(ld->conf.camera_pos, camera->obmat[3]);
+  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world[3]);
   if (active_camera) {
-    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->obmat[3]);
+    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
   }
-  copy_m4_m4(ld->conf.cam_obmat, camera->obmat);
+  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
 
   ld->conf.cam_is_persp = (c->type == CAM_PERSP);
   ld->conf.near_clip = c->clip_start + clipping_offset;
@@ -3608,8 +3620,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   if (lmd->light_contour_object) {
     Object *light_obj = lmd->light_contour_object;
-    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->obmat[3]);
-    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->obmat);
+    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
+    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
     ld->conf.light_reference_available = true;
     if (light_obj->type == OB_LAMP) {
       ld->conf.cam_is_persp_secondary = ((Light *)light_obj->data)->type != LA_SUN;
@@ -4535,14 +4547,8 @@ static void lineart_add_triangles_worker(TaskPool *__restrict UNUSED(pool), Line
           _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
-              lineart_bounding_area_link_triangle(ld,
-                                                  &ld->qtree.initials[r * ld->qtree.count_x + co],
-                                                  tri,
-                                                  0,
-                                                  1,
-                                                  0,
-                                                  (!(tri->flags & LRT_TRIANGLE_NO_INTERSECTION)),
-                                                  th);
+              lineart_bounding_area_link_triangle(
+                  ld, &ld->qtree.initials[r * ld->qtree.count_x + co], tri, 0, 1, 0, 1, th);
             }
           }
         } /* Else throw away. */
@@ -5246,12 +5252,12 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
         /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
-        if ((shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
+            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)) {
           continue;
         }
-        if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
+            !(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)) {
           continue;
         }
         if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
@@ -5317,7 +5323,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (source_vgname && vgname) {
       Object *eval_ob = DEG_get_evaluated_object(depsgraph, ec->object_ref);
       int gpdg = -1;
-      if ((match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0)) {
+      if (match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0) {
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
           Mesh *me = BKE_object_get_evaluated_mesh(eval_ob);
@@ -5412,7 +5418,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
   }
 
   float gp_obmat_inverse[4][4];
-  invert_m4_m4(gp_obmat_inverse, ob->obmat);
+  invert_m4_m4(gp_obmat_inverse, ob->object_to_world);
   lineart_gpencil_generate(cache,
                            depsgraph,
                            ob,

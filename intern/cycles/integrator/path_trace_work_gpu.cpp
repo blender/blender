@@ -18,13 +18,15 @@
 
 CCL_NAMESPACE_BEGIN
 
-static size_t estimate_single_state_size()
+static size_t estimate_single_state_size(const uint kernel_features)
 {
   size_t state_size = 0;
 
 #define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
-#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) state_size += sizeof(type);
-#define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) state_size += sizeof(type);
+#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
+  state_size += (kernel_features & (feature)) ? sizeof(type) : 0;
+#define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
+  state_size += (kernel_features & (feature)) ? sizeof(type) : 0;
 #define KERNEL_STRUCT_END(name) \
   break; \
   }
@@ -76,16 +78,11 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
       display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
-      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size())),
-      min_num_active_main_paths_(queue_->num_concurrent_busy_states()),
+      max_num_paths_(0),
+      min_num_active_main_paths_(0),
       max_active_main_path_index_(0)
 {
   memset(&integrator_state_gpu_, 0, sizeof(integrator_state_gpu_));
-
-  /* Limit number of active paths to the half of the overall state. This is due to the logic in the
-   * path compaction which relies on the fact that regeneration does not happen sooner than half of
-   * the states are available again. */
-  min_num_active_main_paths_ = min(min_num_active_main_paths_, max_num_paths_ / 2);
 }
 
 void PathTraceWorkGPU::alloc_integrator_soa()
@@ -102,6 +99,20 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   integrator_state_soa_kernel_features_ = kernel_features;
   integrator_state_soa_volume_stack_size_ = max(integrator_state_soa_volume_stack_size_,
                                                 requested_volume_stack_size);
+
+  /* Determine the number of path states. Deferring this for as long as possible allows the
+   * back-end to make better decisions about memory availability. */
+  if (max_num_paths_ == 0) {
+    size_t single_state_size = estimate_single_state_size(kernel_features);
+
+    max_num_paths_ = queue_->num_concurrent_states(single_state_size);
+    min_num_active_main_paths_ = queue_->num_concurrent_busy_states(single_state_size);
+
+    /* Limit number of active paths to the half of the overall state. This is due to the logic in
+     * the path compaction which relies on the fact that regeneration does not happen sooner than
+     * half of the states are available again. */
+    min_num_active_main_paths_ = min(min_num_active_main_paths_, max_num_paths_ / 2);
+  }
 
   /* Allocate a device only memory buffer before for each struct member, and then
    * write the pointers into a struct that resides in constant memory.

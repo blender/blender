@@ -95,7 +95,7 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     return construct_curve_tangent_gvarray(curves, domain);
   }
@@ -109,6 +109,11 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const TangentFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).supports_field();
   b.add_input<decl::Vector>(N_("Center"))
       .subtype(PROP_TRANSLATION)
-      .implicit_field()
+      .implicit_field(implicit_field_inputs::position)
       .description(N_("Origin of the scaling for each element. If multiple elements are "
                       "connected, their center is averaged"));
   b.add_input<decl::Vector>(N_("Axis"))
@@ -36,13 +36,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 };
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "scale_mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = ATTR_DOMAIN_FACE;
   node->custom2 = GEO_NODE_SCALE_ELEMENTS_UNIFORM;
@@ -56,8 +56,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *center_socket = scale_float_socket->next;
   bNodeSocket *axis_socket = center_socket->next;
 
-  const GeometryNodeScaleElementsMode mode = static_cast<GeometryNodeScaleElementsMode>(
-      node->custom2);
+  const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
   const bool use_single_axis = mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS;
 
   nodeSetSocketAvailability(ntree, axis_socket, use_single_axis);
@@ -405,9 +404,8 @@ static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
-  const GeometryNodeScaleElementsMode scale_mode = static_cast<GeometryNodeScaleElementsMode>(
-      node.custom2);
+  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const GeometryNodeScaleElementsMode scale_mode = GeometryNodeScaleElementsMode(node.custom2);
 
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
 

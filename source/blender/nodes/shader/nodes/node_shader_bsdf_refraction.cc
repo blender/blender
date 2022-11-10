@@ -19,14 +19,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_init_refraction(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_refraction(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_BECKMANN;
 }
 
 static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
@@ -55,8 +55,8 @@ void register_node_type_sh_bsdf_refraction()
   sh_node_type_base(&ntype, SH_NODE_BSDF_REFRACTION, "Refraction BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_refraction);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_refraction);
+  ntype.initfunc = file_ns::node_shader_init_refraction;
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_refraction;
 
   nodeRegisterType(&ntype);
 }

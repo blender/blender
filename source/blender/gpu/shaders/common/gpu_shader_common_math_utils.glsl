@@ -132,7 +132,7 @@ vec3 fallback_pow(vec3 a, float b, vec3 fallback)
               fallback_pow(a.z, b, fallback.z));
 }
 
-/* Matirx Math */
+/* Matrix Math */
 
 /* Return a 2D rotation matrix with the angle that the input 2D vector makes with the x axis. */
 mat2 vector_to_rotation_matrix(vec2 vector)

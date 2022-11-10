@@ -178,12 +178,12 @@ constexpr StringRefBase::operator Span<char>() const
  */
 inline StringRefBase::operator std::string() const
 {
-  return std::string(data_, static_cast<size_t>(size_));
+  return std::string(data_, size_t(size_));
 }
 
 constexpr StringRefBase::operator std::string_view() const
 {
-  return std::string_view(data_, static_cast<size_t>(size_));
+  return std::string_view(data_, size_t(size_));
 }
 
 constexpr const char *StringRefBase::begin() const
@@ -209,7 +209,7 @@ constexpr IndexRange StringRefBase::index_range() const
 inline void StringRefBase::unsafe_copy(char *dst) const
 {
   if (size_ > 0) {
-    memcpy(dst, data_, static_cast<size_t>(size_));
+    memcpy(dst, data_, size_t(size_));
   }
   dst[size_] = '\0';
 }
@@ -308,86 +308,79 @@ constexpr int64_t index_or_npos_to_int64(size_t index)
   if (index == std::string_view::npos) {
     return StringRef::not_found;
   }
-  return static_cast<int64_t>(index);
+  return int64_t(index);
 }
 
 constexpr int64_t StringRefBase::find(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(std::string_view(*this).find(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find(c, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find(StringRef str, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(std::string_view(*this).find(str, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find(str, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::rfind(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(std::string_view(*this).rfind(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).rfind(c, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::rfind(StringRef str, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(std::string_view(*this).rfind(str, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).rfind(str, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_first_of(StringRef chars, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_first_of(chars, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_first_of(chars, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_first_of(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_first_of(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_first_of(c, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_of(StringRef chars, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_last_of(chars, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_last_of(chars, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_of(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(std::string_view(*this).find_last_of(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_last_of(c, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_first_not_of(StringRef chars, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_first_not_of(chars, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_first_not_of(chars, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_first_not_of(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_first_not_of(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_first_not_of(c, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_not_of(StringRef chars, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_last_not_of(chars, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_last_not_of(chars, size_t(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
 {
   BLI_assert(pos >= 0);
-  return index_or_npos_to_int64(
-      std::string_view(*this).find_last_not_of(c, static_cast<size_t>(pos)));
+  return index_or_npos_to_int64(std::string_view(*this).find_last_not_of(c, size_t(pos)));
 }
 
 constexpr StringRef StringRefBase::trim() const
@@ -440,15 +433,14 @@ constexpr StringRefNull::StringRefNull() : StringRefBase("", 0)
 constexpr StringRefNull::StringRefNull(const char *str, const int64_t size)
     : StringRefBase(str, size)
 {
-  BLI_assert(static_cast<int64_t>(strlen(str)) == size);
+  BLI_assert(int64_t(strlen(str)) == size);
 }
 
 /**
  * Construct a StringRefNull from a null terminated c-string. The pointer must not point to
  * NULL.
  */
-inline StringRefNull::StringRefNull(const char *str)
-    : StringRefBase(str, static_cast<int64_t>(strlen(str)))
+inline StringRefNull::StringRefNull(const char *str) : StringRefBase(str, int64_t(strlen(str)))
 {
   BLI_assert(str != nullptr);
   BLI_assert(data_[size_] == '\0');
@@ -504,7 +496,7 @@ constexpr StringRef::StringRef(StringRefNull other) : StringRefBase(other.data()
  * Create a StringRef from a null-terminated c-string.
  */
 constexpr StringRef::StringRef(const char *str)
-    : StringRefBase(str, str ? static_cast<int64_t>(std::char_traits<char>::length(str)) : 0)
+    : StringRefBase(str, str ? int64_t(std::char_traits<char>::length(str)) : 0)
 {
 }
 
@@ -560,7 +552,7 @@ constexpr char StringRef::operator[](int64_t index) const
  * second point points to a smaller address than the first one.
  */
 constexpr StringRef::StringRef(const char *begin, const char *one_after_end)
-    : StringRefBase(begin, static_cast<int64_t>(one_after_end - begin))
+    : StringRefBase(begin, int64_t(one_after_end - begin))
 {
   BLI_assert(begin <= one_after_end);
 }
@@ -570,12 +562,12 @@ constexpr StringRef::StringRef(const char *begin, const char *one_after_end)
  * will point to uninitialized memory.
  */
 inline StringRef::StringRef(const std::string &str)
-    : StringRefBase(str.data(), static_cast<int64_t>(str.size()))
+    : StringRefBase(str.data(), int64_t(str.size()))
 {
 }
 
 constexpr StringRef::StringRef(std::string_view view)
-    : StringRefBase(view.data(), static_cast<int64_t>(view.size()))
+    : StringRefBase(view.data(), int64_t(view.size()))
 {
 }
 
@@ -593,7 +585,7 @@ inline std::ostream &operator<<(std::ostream &stream, StringRef ref)
 
 inline std::ostream &operator<<(std::ostream &stream, StringRefNull ref)
 {
-  stream << std::string(ref.data(), (size_t)ref.size());
+  stream << std::string(ref.data(), size_t(ref.size()));
   return stream;
 }
 
@@ -619,7 +611,7 @@ constexpr bool operator==(StringRef a, StringRef b)
     /* This also avoids passing null to the call below, which would results in an ASAN warning. */
     return true;
   }
-  return STREQLEN(a.data(), b.data(), (size_t)a.size());
+  return STREQLEN(a.data(), b.data(), size_t(a.size()));
 }
 
 constexpr bool operator!=(StringRef a, StringRef b)

@@ -80,7 +80,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            const char *passname,
                                            int rres_index,
                                            eNodeSocketDatatype type,
-                                           int UNUSED(is_rlayers),
+                                           int /*is_rlayers*/,
                                            LinkNodePair *available_sockets,
                                            int *prev_index)
 {
@@ -273,8 +273,8 @@ static void cmp_node_rlayer_create_outputs_cb(void *userdata,
                                               Scene *scene,
                                               ViewLayer *view_layer,
                                               const char *name,
-                                              int UNUSED(channels),
-                                              const char *UNUSED(chanid),
+                                              int /*channels*/,
+                                              const char * /*chanid*/,
                                               eNodeSocketDatatype type)
 {
   CreateOutputUserData &data = *(CreateOutputUserData *)userdata;
@@ -426,7 +426,7 @@ static void node_composit_free_image(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
+static void node_composit_copy_image(bNodeTree * /*dst_ntree*/,
                                      bNode *dest_node,
                                      const bNode *src_node)
 {
@@ -660,10 +660,10 @@ void register_node_type_cmp_image()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
-  node_type_init(&ntype, file_ns::node_composit_init_image);
+  ntype.initfunc = file_ns::node_composit_init_image;
   node_type_storage(
       &ntype, "ImageUser", file_ns::node_composit_free_image, file_ns::node_composit_copy_image);
-  node_type_update(&ntype, file_ns::cmp_node_image_update);
+  ntype.updatefunc = file_ns::cmp_node_image_update;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
@@ -685,7 +685,7 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index)
   }
   const char *name = cmp_node_rlayers_out[sock_index].name;
   /* Exception for alpha, which is derived from Combined. */
-  return (STREQ(name, "Alpha")) ? RE_PASSNAME_COMBINED : name;
+  return STREQ(name, "Alpha") ? RE_PASSNAME_COMBINED : name;
 }
 
 namespace blender::nodes::node_composite_render_layer_cc {
@@ -710,7 +710,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype),
+static bool node_composit_poll_rlayers(bNodeType * /*ntype*/,
                                        bNodeTree *ntree,
                                        const char **r_disabled_hint)
 {
@@ -749,7 +749,7 @@ static void node_composit_free_rlayers(bNode *node)
   }
 }
 
-static void node_composit_copy_rlayers(bNodeTree *UNUSED(dest_ntree),
+static void node_composit_copy_rlayers(bNodeTree * /*dst_ntree*/,
                                        bNode *dest_node,
                                        const bNode *src_node)
 {
@@ -797,8 +797,7 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "layer");
   const char *layer_name;
-  if (!(RNA_property_enum_identifier(
-          C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name))) {
+  if (!RNA_property_enum_identifier(C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name)) {
     return;
   }
 
@@ -851,7 +850,7 @@ class RenderLayerOperation : public NodeOperation {
 
     /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!STREQ(output->identifier, "Image") && !STREQ(output->identifier, "Alpha")) {
+      if (!STR_ELEM(output->identifier, "Image", "Alpha")) {
         get_result(output->identifier).allocate_invalid();
       }
     }
@@ -880,8 +879,8 @@ void register_node_type_cmp_rlayers()
   ntype.flag |= NODE_PREVIEW;
   node_type_storage(
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
-  node_type_update(&ntype, file_ns::cmp_node_rlayers_update);
-  node_type_init(&ntype, node_cmp_rlayers_outputs);
+  ntype.updatefunc = file_ns::cmp_node_rlayers_update;
+  ntype.initfunc = node_cmp_rlayers_outputs;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
   nodeRegisterType(&ntype);

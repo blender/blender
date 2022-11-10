@@ -51,8 +51,8 @@ void VelocityModule::init()
 
 static void step_object_sync_render(void *velocity,
                                     Object *ob,
-                                    RenderEngine *UNUSED(engine),
-                                    Depsgraph *UNUSED(depsgraph))
+                                    RenderEngine * /*engine*/,
+                                    Depsgraph * /*depsgraph*/)
 {
   ObjectKey object_key(ob);
   /* NOTE: Dummy resource handle since this will not be used for drawing. */
@@ -106,16 +106,16 @@ bool VelocityModule::step_object_sync(Object *ob,
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
   vel.id = (ID *)ob->data;
-  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->obmat;
+  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->object_to_world;
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
     if (vel.obj.ofs[STEP_PREVIOUS] == -1) {
       vel.obj.ofs[STEP_PREVIOUS] = object_steps_usage[STEP_PREVIOUS]++;
-      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = ob->obmat;
+      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = ob->object_to_world;
     }
     if (vel.obj.ofs[STEP_NEXT] == -1) {
       vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
-      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->obmat;
+      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world;
     }
   }
 
@@ -226,11 +226,11 @@ void VelocityModule::step_swap()
 
     for (VelocityObjectData &vel : velocity_map.values()) {
       vel.obj.ofs[step_a] = vel.obj.ofs[step_b];
-      vel.obj.ofs[step_b] = (uint)-1;
+      vel.obj.ofs[step_b] = uint(-1);
       vel.geo.ofs[step_a] = vel.geo.ofs[step_b];
       vel.geo.len[step_a] = vel.geo.len[step_b];
-      vel.geo.ofs[step_b] = (uint)-1;
-      vel.geo.len[step_b] = (uint)-1;
+      vel.geo.ofs[step_b] = uint(-1);
+      vel.geo.len[step_b] = uint(-1);
     }
   };
 
@@ -262,7 +262,7 @@ void VelocityModule::end_sync()
   uint32_t max_resource_id_ = 0u;
 
   for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
-    if (item.value.obj.resource_id == (uint32_t)-1) {
+    if (item.value.obj.resource_id == uint32_t(-1)) {
       deleted_obj.append(item.key);
     }
     else {
@@ -302,7 +302,7 @@ void VelocityModule::end_sync()
     }
     indirection_buf[vel.obj.resource_id] = vel;
     /* Reset for next sync. */
-    vel.obj.resource_id = (uint)-1;
+    vel.obj.resource_id = uint(-1);
   }
 
   object_steps[STEP_PREVIOUS]->push_update();

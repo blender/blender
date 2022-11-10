@@ -43,6 +43,13 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_vector.hh"
 
+#include <atomic>
+#include <thread>
+
+#ifdef DEBUG
+#  define FN_LAZY_FUNCTION_DEBUG_THREADS
+#endif
+
 namespace blender::fn::lazy_function {
 
 enum class ValueUsage {
@@ -102,9 +109,13 @@ class Params {
    * The lazy-function this #Params has been prepared for.
    */
   const LazyFunction &fn_;
+#ifdef FN_LAZY_FUNCTION_DEBUG_THREADS
+  std::thread::id main_thread_id_;
+  std::atomic<bool> allow_multi_threading_;
+#endif
 
  public:
-  Params(const LazyFunction &fn);
+  Params(const LazyFunction &fn, bool allow_multi_threading_initially);
 
   /**
    * Get a pointer to an input value if the value is available already. Otherwise null is returned.
@@ -154,7 +165,7 @@ class Params {
    * Typed utility methods that wrap the methods above.
    */
   template<typename T> T extract_input(int index);
-  template<typename T> const T &get_input(int index);
+  template<typename T> const T &get_input(int index) const;
   template<typename T> T *try_get_input_data_ptr_or_request(int index);
   template<typename T> void set_output(int index, T &&value);
 
@@ -163,7 +174,15 @@ class Params {
    */
   void set_default_remaining_outputs();
 
+  /**
+   * Returns true when the lazy-function is now allowed to use multi-threading when interacting
+   * with this #Params. That means, it is allowed to call non-const methods from different threads.
+   */
+  bool try_enable_multi_threading();
+
  private:
+  void assert_valid_thread() const;
+
   /**
    * Methods that need to be implemented by subclasses. Those are separate from the non-virtual
    * methods above to make it easy to insert additional debugging logic on top of the
@@ -176,6 +195,7 @@ class Params {
   virtual bool output_was_set_impl(int index) const = 0;
   virtual ValueUsage get_output_usage_impl(int index) const = 0;
   virtual void set_input_unused_impl(int index) = 0;
+  virtual bool try_enable_multi_threading_impl();
 };
 
 /**
@@ -312,7 +332,14 @@ inline void LazyFunction::execute(Params &params, const Context &context) const
 /** \name #Params Inline Methods
  * \{ */
 
-inline Params::Params(const LazyFunction &fn) : fn_(fn)
+inline Params::Params(const LazyFunction &fn,
+                      [[maybe_unused]] bool allow_multi_threading_initially)
+    : fn_(fn)
+#ifdef FN_LAZY_FUNCTION_DEBUG_THREADS
+      ,
+      main_thread_id_(std::this_thread::get_id()),
+      allow_multi_threading_(allow_multi_threading_initially)
+#endif
 {
 }
 
@@ -323,16 +350,19 @@ inline void *Params::try_get_input_data_ptr(const int index) const
 
 inline void *Params::try_get_input_data_ptr_or_request(const int index)
 {
+  this->assert_valid_thread();
   return this->try_get_input_data_ptr_or_request_impl(index);
 }
 
 inline void *Params::get_output_data_ptr(const int index)
 {
+  this->assert_valid_thread();
   return this->get_output_data_ptr_impl(index);
 }
 
 inline void Params::output_set(const int index)
 {
+  this->assert_valid_thread();
   this->output_set_impl(index);
 }
 
@@ -348,18 +378,20 @@ inline ValueUsage Params::get_output_usage(const int index) const
 
 inline void Params::set_input_unused(const int index)
 {
+  this->assert_valid_thread();
   this->set_input_unused_impl(index);
 }
 
 template<typename T> inline T Params::extract_input(const int index)
 {
+  this->assert_valid_thread();
   void *data = this->try_get_input_data_ptr(index);
   BLI_assert(data != nullptr);
   T return_value = std::move(*static_cast<T *>(data));
   return return_value;
 }
 
-template<typename T> inline const T &Params::get_input(const int index)
+template<typename T> inline const T &Params::get_input(const int index) const
 {
   const void *data = this->try_get_input_data_ptr(index);
   BLI_assert(data != nullptr);
@@ -368,15 +400,41 @@ template<typename T> inline const T &Params::get_input(const int index)
 
 template<typename T> inline T *Params::try_get_input_data_ptr_or_request(const int index)
 {
+  this->assert_valid_thread();
   return static_cast<T *>(this->try_get_input_data_ptr_or_request(index));
 }
 
 template<typename T> inline void Params::set_output(const int index, T &&value)
 {
   using DecayT = std::decay_t<T>;
+  this->assert_valid_thread();
   void *data = this->get_output_data_ptr(index);
   new (data) DecayT(std::forward<T>(value));
   this->output_set(index);
+}
+
+inline bool Params::try_enable_multi_threading()
+{
+  this->assert_valid_thread();
+  const bool success = this->try_enable_multi_threading_impl();
+#ifdef FN_LAZY_FUNCTION_DEBUG_THREADS
+  if (success) {
+    allow_multi_threading_ = true;
+  }
+#endif
+  return success;
+}
+
+inline void Params::assert_valid_thread() const
+{
+#ifdef FN_LAZY_FUNCTION_DEBUG_THREADS
+  if (allow_multi_threading_) {
+    return;
+  }
+  if (main_thread_id_ != std::this_thread::get_id()) {
+    BLI_assert_unreachable();
+  }
+#endif
 }
 
 /** \} */

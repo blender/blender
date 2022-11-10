@@ -8,7 +8,6 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -16,10 +15,6 @@
 
 #include "UI_interface.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"
 
@@ -59,7 +54,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
                                                         const Span<float3> positions)
 {
   /* This value might have to be adjusted based on user feedback. */
-  const float brush_inner_radius_re = std::min<float>(brush_radius_re, (float)UI_UNIT_X / 3.0f);
+  const float brush_inner_radius_re = std::min<float>(brush_radius_re, float(UI_UNIT_X) / 3.0f);
   const float brush_inner_radius_sq_re = pow2f(brush_inner_radius_re);
 
   float4x4 projection;
@@ -190,7 +185,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
   /* Shorten ray when the surface object is hit. */
   if (surface_object_eval != nullptr) {
-    const float4x4 surface_to_world_mat = surface_object->obmat;
+    const float4x4 surface_to_world_mat = surface_object->object_to_world;
     const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
@@ -223,7 +218,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     }
   }
 
-  const float4x4 curves_to_world_mat = curves_object.obmat;
+  const float4x4 curves_to_world_mat = curves_object.object_to_world;
   const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   const float3 center_ray_start_cu = world_to_curves_mat * center_ray_start_wo;
@@ -352,33 +347,37 @@ float transform_brush_radius(const float4x4 &transform,
   return math::distance(new_position, new_offset_position);
 }
 
-void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position)
+void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
+                                  MutableSpan<float3> positions,
+                                  const float3 &new_last_position)
 {
   /* Find the accumulated length of each point in the original curve,
    * treating it as a poly curve for performance reasons and simplicity. */
-  Array<float> orig_lengths(length_parameterize::segments_num(positions.size(), false));
-  length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
-  const float orig_total_length = orig_lengths.last();
+  buffer.orig_lengths.reinitialize(length_parameterize::segments_num(positions.size(), false));
+  length_parameterize::accumulate_lengths<float3>(positions, false, buffer.orig_lengths);
+  const float orig_total_length = buffer.orig_lengths.last();
 
   /* Find the factor by which the new curve is shorter or longer than the original. */
   const float new_last_segment_length = math::distance(positions.last(1), new_last_position);
-  const float new_total_length = orig_lengths.last(1) + new_last_segment_length;
+  const float new_total_length = buffer.orig_lengths.last(1) + new_last_segment_length;
   const float length_factor = safe_divide(new_total_length, orig_total_length);
 
   /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
-  Array<float> new_lengths(positions.size() - 1);
-  new_lengths.first() = 0.0f;
-  for (const int i : new_lengths.index_range().drop_front(1)) {
-    new_lengths[i] = orig_lengths[i - 1] * length_factor;
+  buffer.new_lengths.reinitialize(positions.size() - 1);
+  buffer.new_lengths.first() = 0.0f;
+  for (const int i : buffer.new_lengths.index_range().drop_front(1)) {
+    buffer.new_lengths[i] = buffer.orig_lengths[i - 1] * length_factor;
   }
 
-  Array<int> indices(positions.size() - 1);
-  Array<float> factors(positions.size() - 1);
-  length_parameterize::sample_at_lengths(orig_lengths, new_lengths, indices, factors);
+  buffer.sample_indices.reinitialize(positions.size() - 1);
+  buffer.sample_factors.reinitialize(positions.size() - 1);
+  length_parameterize::sample_at_lengths(
+      buffer.orig_lengths, buffer.new_lengths, buffer.sample_indices, buffer.sample_factors);
 
-  Array<float3> new_positions(positions.size() - 1);
-  length_parameterize::interpolate<float3>(positions, indices, factors, new_positions);
-  positions.drop_back(1).copy_from(new_positions);
+  buffer.new_positions.reinitialize(positions.size() - 1);
+  length_parameterize::interpolate<float3>(
+      positions, buffer.sample_indices, buffer.sample_factors, buffer.new_positions);
+  positions.drop_back(1).copy_from(buffer.new_positions);
   positions.last() = new_last_position;
 }
 

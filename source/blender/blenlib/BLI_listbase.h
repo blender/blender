@@ -301,21 +301,22 @@ struct LinkData *BLI_genericNodeN(void *data);
  *
  * \code{.c}
  *
- * LISTBASE_CIRCULAR_FORWARD_BEGIN(listbase, item, item_init)
+ * LISTBASE_CIRCULAR_FORWARD_BEGIN(type, listbase, item, item_init)
  * {
  *     ...operate on marker...
  * }
- * LISTBASE_CIRCULAR_FORWARD_END (listbase, item, item_init);
+ * LISTBASE_CIRCULAR_FORWARD_END (type, listbase, item, item_init);
  *
  * \endcode
  */
-#define LISTBASE_CIRCULAR_FORWARD_BEGIN(lb, lb_iter, lb_init) \
-  if ((lb)->first && (lb_init || (lb_init = (lb)->first))) { \
-    lb_iter = lb_init; \
+#define LISTBASE_CIRCULAR_FORWARD_BEGIN(type, lb, lb_iter, lb_init) \
+  if ((lb)->first && (lb_init || (lb_init = (type)(lb)->first))) { \
+    lb_iter = (type)(lb_init); \
     do {
-#define LISTBASE_CIRCULAR_FORWARD_END(lb, lb_iter, lb_init) \
+#define LISTBASE_CIRCULAR_FORWARD_END(type, lb, lb_iter, lb_init) \
   } \
-  while ((lb_iter = (lb_iter)->next ? (lb_iter)->next : (lb)->first), (lb_iter != lb_init)) \
+  while ((lb_iter = (lb_iter)->next ? (type)(lb_iter)->next : (type)(lb)->first), \
+         (lb_iter != lb_init)) \
     ; \
   } \
   ((void)0)

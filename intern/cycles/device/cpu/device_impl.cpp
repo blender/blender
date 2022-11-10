@@ -38,6 +38,7 @@
 #include "util/debug.h"
 #include "util/foreach.h"
 #include "util/function.h"
+#include "util/guiding.h"
 #include "util/log.h"
 #include "util/map.h"
 #include "util/openimagedenoise.h"
@@ -276,6 +277,23 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   else
 #endif
     Device::build_bvh(bvh, progress, refit);
+}
+
+void *CPUDevice::get_guiding_device() const
+{
+#ifdef WITH_PATH_GUIDING
+  if (!guiding_device) {
+    if (guiding_device_type() == 8) {
+      guiding_device = make_unique<openpgl::cpp::Device>(PGL_DEVICE_TYPE_CPU_8);
+    }
+    else if (guiding_device_type() == 4) {
+      guiding_device = make_unique<openpgl::cpp::Device>(PGL_DEVICE_TYPE_CPU_4);
+    }
+  }
+  return guiding_device.get();
+#else
+  return nullptr;
+#endif
 }
 
 void CPUDevice::get_cpu_kernel_thread_globals(

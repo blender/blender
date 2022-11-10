@@ -15,7 +15,7 @@ GPU_SHADER_CREATE_INFO(overlay_background)
 
 GPU_SHADER_CREATE_INFO(overlay_clipbound)
     .do_static_compilation(true)
-    .push_constant(Type::VEC4, "color")
+    .push_constant(Type::VEC4, "ucolor")
     .push_constant(Type::VEC3, "boundbox", 8)
     .vertex_source("overlay_clipbound_vert.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")

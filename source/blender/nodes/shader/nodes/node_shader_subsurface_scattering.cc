@@ -29,12 +29,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSSRDF"));
 }
 
-static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_subsurface(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_subsurface_scattering(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
   node->custom2 = true;
@@ -42,7 +42,7 @@ static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNo
 
 static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
                                                  bNode *node,
-                                                 bNodeExecData *UNUSED(execdata),
+                                                 bNodeExecData * /*execdata*/,
                                                  GPUNodeStack *in,
                                                  GPUNodeStack *out)
 {
@@ -87,9 +87,9 @@ void register_node_type_sh_subsurface_scattering()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
+  ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
+  ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
+  ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;
 
   nodeRegisterType(&ntype);
 }

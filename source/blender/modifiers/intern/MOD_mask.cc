@@ -64,9 +64,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MaskModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
@@ -609,7 +607,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         cut_edge.v1 = dst_loops[mp_dst.loopstart].v;
         cut_edge.v2 = cut_dst_loop.v;
         BLI_assert(cut_edge.v1 != cut_edge.v2);
-        cut_edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+        cut_edge.flag = ME_EDGEDRAW;
         edge_index++;
 
         /* Only handle one of the cuts per iteration. */
@@ -638,7 +636,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
  * 2. Find edges and polygons only using those vertices.
  * 3. Create a new mesh that only uses the found vertices, edges and polygons.
  */
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   const bool invert_mask = mmd->flag & MOD_MASK_INV;
@@ -652,7 +650,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   }
 
   /* Quick test to see if we can return early. */
-  if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) || (mesh->totvert == 0) ||
+  if (!ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP) || (mesh->totvert == 0) ||
       BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
@@ -781,9 +779,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   return result;
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
 
@@ -795,7 +791,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return mmd->ob_arm && mmd->ob_arm->type != OB_ARMATURE;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub, *row;
   uiLayout *layout = panel->layout;

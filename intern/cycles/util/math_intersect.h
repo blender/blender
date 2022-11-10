@@ -133,7 +133,9 @@ ccl_device_forceinline float ray_triangle_rcp(const float x)
 ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 {
 #if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-  return madd(ssef(a.x), ssef(b.x), madd(ssef(a.y), ssef(b.y), ssef(a.z) * ssef(b.z)))[0];
+  return madd(make_float4(a.x),
+              make_float4(b.x),
+              madd(make_float4(a.y), make_float4(b.y), make_float4(a.z) * make_float4(b.z)))[0];
 #else
   return a.x * b.x + a.y * b.y + a.z * b.z;
 #endif
@@ -142,9 +144,10 @@ ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 ccl_device_inline float3 ray_triangle_cross(const float3 a, const float3 b)
 {
 #if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-  return make_float3(msub(ssef(a.y), ssef(b.z), ssef(a.z) * ssef(b.y))[0],
-                     msub(ssef(a.z), ssef(b.x), ssef(a.x) * ssef(b.z))[0],
-                     msub(ssef(a.x), ssef(b.y), ssef(a.y) * ssef(b.x))[0]);
+  return make_float3(
+      msub(make_float4(a.y), make_float4(b.z), make_float4(a.z) * make_float4(b.y))[0],
+      msub(make_float4(a.z), make_float4(b.x), make_float4(a.x) * make_float4(b.z))[0],
+      msub(make_float4(a.x), make_float4(b.y), make_float4(a.y) * make_float4(b.x))[0]);
 #else
   return make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 #endif

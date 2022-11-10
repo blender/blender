@@ -26,7 +26,7 @@ class AddFunction : public MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
     const VArray<int> &a = params.readonly_single_input<int>(0, "A");
     const VArray<int> &b = params.readonly_single_input<int>(1, "B");
@@ -198,7 +198,7 @@ TEST(multi_function, CustomMF_SI_SI_SI_SO)
 {
   CustomMF_SI_SI_SI_SO<int, std::string, bool, uint> fn{
       "custom",
-      [](int a, const std::string &b, bool c) { return (uint)((uint)a + b.size() + (uint)c); }};
+      [](int a, const std::string &b, bool c) { return uint(uint(a) + b.size() + uint(c)); }};
 
   Array<int> values_a = {5, 7, 3, 8};
   Array<std::string> values_b = {"hello", "world", "another", "test"};

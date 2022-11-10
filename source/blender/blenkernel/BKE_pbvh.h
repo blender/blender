@@ -16,6 +16,7 @@
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
+#include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +28,6 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
-struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
@@ -36,7 +36,9 @@ struct MVert;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
+struct PBVHBatches;
 struct PBVHNode;
+struct PBVH_GPU_Args;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -98,6 +100,12 @@ typedef struct PBVHPixelsNode {
   void *node_data;
 } PBVHPixelsNode;
 
+typedef struct PBVHAttrReq {
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  eAttrDomain domain;
+  eCustomDataType type;
+} PBVHAttrReq;
+
 typedef enum {
   PBVH_Leaf = 1 << 0,
 
@@ -117,6 +125,7 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
+  PBVH_TopologyUpdated = 1 << 16, /* Used internally by pbvh_bmesh.c */
 
 } PBVHNodeFlags;
 
@@ -230,7 +239,7 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 
 /* Building */
 
-PBVH *BKE_pbvh_new(void);
+PBVH *BKE_pbvh_new(PBVHType type);
 /**
  * Do a full rebuild with on Mesh data structure.
  *
@@ -257,7 +266,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGKey *key,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
-                          unsigned int **grid_hidden);
+                          unsigned int **grid_hidden,
+                          struct Mesh *me,
+                          struct SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -267,6 +278,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMLog *log,
                           int cd_vert_node_offset,
                           int cd_face_node_offset);
+
+void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
 void BKE_pbvh_build_pixels(PBVH *pbvh,
                            struct Mesh *mesh,
@@ -346,9 +359,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
+                      void (*draw_fn)(void *user_data,
+                                      struct PBVHBatches *batches,
+                                      struct PBVH_GPU_Args *args),
                       void *user_data,
-                      bool full_render);
+                      bool full_render,
+                      PBVHAttrReq *attrs,
+                      int attrs_num);
 
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(PBVHNode *node,
@@ -379,8 +396,6 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
                               int gridsize);
-
-void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh);
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.
@@ -472,7 +487,10 @@ struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
  *
  * Skips triangles that are hidden.
  */
-void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm, PBVHNode *node);
+void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm,
+                                   struct BMLog *log,
+                                   PBVHNode *node,
+                                   bool use_original);
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
 /* Update Bounding Box/Redraw and clear flags. */
@@ -487,9 +505,16 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            struct CCGElem **grids,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
-                           unsigned int **grid_hidden);
+                           unsigned int **grid_hidden,
+                           struct CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
+
+/**
+ * If an operation causes the hide status stored in the mesh to change, this must be called
+ * to update the references to those attributes, since they are only added when necessary.
+ */
+void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
 
 void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
 
@@ -645,7 +670,8 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
 void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3]);
+                                    float (**r_orco_coords)[3],
+                                    struct BMVert ***r_orco_verts);
 
 /**
  * \note doing a full search on all vertices here seems expensive,

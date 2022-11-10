@@ -114,7 +114,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
       Object *ob_arm = skin->BKE_armature_from_object();
       if (ob_arm) {
         float invmat[4][4];
-        invert_m4_m4(invmat, ob_arm->obmat);
+        invert_m4_m4(invmat, ob_arm->object_to_world);
         mul_m4_m4m4(mat, invmat, mat);
       }
 
@@ -190,7 +190,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
 
   COLLADAFW::NodePointerArray &children = node->getChildNodes();
 
-  for (unsigned int i = 0; i < children.getCount(); i++) {
+  for (uint i = 0; i < children.getCount(); i++) {
     int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm, layer_labels);
     if (cl > chain_length) {
       chain_length = cl;
@@ -708,7 +708,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,
 
     copy_m4_m4(mat, obmat);
     float invObmat[4][4];
-    invert_m4_m4(invObmat, ob_arm->obmat);
+    invert_m4_m4(invObmat, ob_arm->object_to_world);
     mul_m4_m4m4(pchan->pose_mat, invObmat, mat);
   }
 
@@ -719,7 +719,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,
 #endif
 
   COLLADAFW::NodePointerArray &children = root_node->getChildNodes();
-  for (unsigned int i = 0; i < children.getCount(); i++) {
+  for (uint i = 0; i < children.getCount(); i++) {
     set_pose(ob_arm, children[i], bone_name, mat);
   }
 }
@@ -727,7 +727,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,
 bool ArmatureImporter::node_is_decomposed(const COLLADAFW::Node *node)
 {
   const COLLADAFW::TransformationPointerArray &nodeTransforms = node->getTransformations();
-  for (unsigned int i = 0; i < nodeTransforms.getCount(); i++) {
+  for (uint i = 0; i < nodeTransforms.getCount(); i++) {
     COLLADAFW::Transformation *transform = nodeTransforms[i];
     COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
     if (tm_type == COLLADAFW::Transformation::MATRIX) {
@@ -879,7 +879,7 @@ bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControlle
 
   /* store join inv bind matrix to use it later in armature construction */
   const COLLADAFW::Matrix4Array &inv_bind_mats = data->getInverseBindMatrices();
-  for (unsigned int i = 0; i < data->getJointsCount(); i++) {
+  for (uint i = 0; i < data->getJointsCount(); i++) {
     skin.add_joint(inv_bind_mats[i]);
   }
 

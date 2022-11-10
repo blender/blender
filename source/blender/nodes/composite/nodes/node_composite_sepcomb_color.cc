@@ -8,7 +8,7 @@
 
 #include "node_composite_util.hh"
 
-static void node_cmp_combsep_color_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCMPCombSepColor *data = MEM_cnew<NodeCMPCombSepColor>(__func__);
   data->mode = CMP_NODE_COMBSEP_COLOR_RGB;
@@ -75,7 +75,7 @@ static void cmp_node_separate_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-static void cmp_node_separate_color_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
   node_cmp_combsep_color_label(&node->outputs, (CMPNodeCombSepColorMode)storage->mode);
@@ -137,10 +137,10 @@ void register_node_type_cmp_separate_color()
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_separate_color_declare;
-  node_type_init(&ntype, node_cmp_combsep_color_init);
+  ntype.initfunc = node_cmp_combsep_color_init;
   node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::cmp_node_separate_color_update);
+  ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
@@ -181,7 +181,7 @@ static void cmp_node_combine_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void cmp_node_combine_color_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
 {
   const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
   node_cmp_combsep_color_label(&node->inputs, (CMPNodeCombSepColorMode)storage->mode);
@@ -243,10 +243,10 @@ void register_node_type_cmp_combine_color()
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBINE_COLOR, "Combine Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combine_color_declare;
-  node_type_init(&ntype, node_cmp_combsep_color_init);
+  ntype.initfunc = node_cmp_combsep_color_init;
   node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::cmp_node_combine_color_update);
+  ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

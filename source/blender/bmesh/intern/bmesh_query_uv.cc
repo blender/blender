@@ -65,7 +65,7 @@ void BM_face_uv_calc_center_median_weighted(const BMFace *f,
   } while ((l_iter = l_iter->next) != l_first);
 
   if (totw != 0.0f) {
-    mul_v2_fl(r_cent, 1.0f / (float)totw);
+    mul_v2_fl(r_cent, 1.0f / float(totw));
   }
   /* Reverse aspect. */
   r_cent[0] /= aspect[0];
@@ -85,7 +85,7 @@ void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset,
     add_v2_v2(r_cent, luv->uv);
   } while ((l_iter = l_iter->next) != l_first);
 
-  mul_v2_fl(r_cent, 1.0f / (float)f->len);
+  mul_v2_fl(r_cent, 1.0f / float(f->len));
 }
 
 float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
@@ -110,17 +110,6 @@ void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd
   do {
     const MLoopUV *luv = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
     minmax_v2v2_v2(min, max, luv->uv);
-  } while ((l_iter = l_iter->next) != l_first);
-}
-
-void BM_face_uv_transform(BMFace *f, const float matrix[2][2], const int cd_loop_uv_offset)
-{
-  BMLoop *l_iter;
-  BMLoop *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    mul_m2_v2(matrix, luv->uv);
   } while ((l_iter = l_iter->next) != l_first);
 }
 

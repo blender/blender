@@ -22,12 +22,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Attribute"), "Attribute_Int").field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryInputNamedAttribute *data = MEM_cnew<NodeGeometryInputNamedAttribute>(__func__);
   data->data_type = CD_PROP_FLOAT;
@@ -37,9 +37,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_vector = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *socket_vector = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *socket_float = socket_vector->next;
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
@@ -59,7 +59,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   if (params.in_out() == SOCK_OUT) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-        static_cast<eNodeSocketDatatype>(params.other_socket().type));
+        eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
       params.add_item(IFACE_("Attribute"), [type](LinkSearchOpParams &params) {
@@ -74,7 +74,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
   const std::string name = params.extract_input<std::string>("Name");
 
@@ -126,7 +126,7 @@ void register_node_type_geo_input_named_attribute()
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.updatefunc = file_ns::node_update;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometryInputNamedAttribute",
                     node_free_standard_storage,

@@ -148,9 +148,9 @@ void FrameBuffer::load_store_config_array(const GPULoadStore *load_store_actions
   }
 }
 
-unsigned int FrameBuffer::get_bits_per_pixel()
+uint FrameBuffer::get_bits_per_pixel()
 {
-  unsigned int total_bits = 0;
+  uint total_bits = 0;
   for (GPUAttachment &attachment : attachments_) {
     Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
     if (tex != nullptr) {
@@ -179,7 +179,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
         /* Some Intel HDXXX have issue with rendering to a mipmap that is below
          * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
          * we allow GL_TEXTURE_MAX_LEVEL to be one level lower. In practice it does work! */
-        int mip_max = (GPU_mip_render_workaround()) ? mip_lvl : (mip_lvl - 1);
+        int mip_max = GPU_mip_render_workaround() ? mip_lvl : (mip_lvl - 1);
         /* Restrict fetches only to previous level. */
         tex->mip_range_set(mip_lvl - 1, mip_max);
         /* Bind next level. */
@@ -236,6 +236,11 @@ GPUFrameBuffer *GPU_framebuffer_create(const char *name)
 void GPU_framebuffer_free(GPUFrameBuffer *gpu_fb)
 {
   delete unwrap(gpu_fb);
+}
+
+const char *GPU_framebuffer_get_name(GPUFrameBuffer *gpu_fb)
+{
+  return unwrap(gpu_fb)->name_get();
 }
 
 /* ---------- Binding ----------- */
@@ -366,6 +371,11 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
     fb->attachment_set(type, attachment);
     ++type;
   }
+}
+
+void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height)
+{
+  unwrap(gpu_fb)->size_set(width, height);
 }
 
 /* ---------- Viewport & Scissor Region ----------- */
@@ -668,7 +678,7 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
   unwrap(gpu_offscreen_fb_get(ofs))->bind(false);
 }
 
-void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
+void GPU_offscreen_unbind(GPUOffScreen * /*ofs*/, bool restore)
 {
   GPUFrameBuffer *fb = nullptr;
   if (restore) {

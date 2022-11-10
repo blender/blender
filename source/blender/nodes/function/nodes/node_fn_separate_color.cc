@@ -19,18 +19,18 @@ static void fn_node_separate_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 };
 
-static void fn_node_separate_color_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_separate_color_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void fn_node_separate_color_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_separate_color_update(bNodeTree * /*tree*/, bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
 }
 
-static void fn_node_separate_color_init(bNodeTree *UNUSED(tree), bNode *node)
+static void fn_node_separate_color_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeCombSepColor *data = MEM_cnew<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
@@ -56,7 +56,7 @@ class SeparateRGBAFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -117,7 +117,7 @@ class SeparateHSVAFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -157,7 +157,7 @@ class SeparateHSLAFunction : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -213,8 +213,8 @@ void register_node_type_fn_separate_color(void)
 
   fn_node_type_base(&ntype, FN_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::fn_node_separate_color_declare;
-  node_type_update(&ntype, blender::nodes::fn_node_separate_color_update);
-  node_type_init(&ntype, blender::nodes::fn_node_separate_color_init);
+  ntype.updatefunc = blender::nodes::fn_node_separate_color_update;
+  ntype.initfunc = blender::nodes::fn_node_separate_color_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = blender::nodes::fn_node_separate_color_build_multi_function;

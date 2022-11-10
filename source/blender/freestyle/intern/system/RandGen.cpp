@@ -7,6 +7,8 @@
 
 #include "RandGen.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 //
@@ -15,7 +17,7 @@ namespace Freestyle {
 ///////////////////////////////////////////////////////////////////////////////
 
 #define N 16
-#define MASK ((unsigned)(1 << (N - 1)) + (1 << (N - 1)) - 1)
+#define MASK (uint(1 << (N - 1)) + (1 << (N - 1)) - 1)
 #define X0 0x330E
 #define X1 0xABCD
 #define X2 0x1234
@@ -27,18 +29,18 @@ namespace Freestyle {
 #  define HI_BIT (1L << (2 * N - 1))
 #endif
 
-#define LOW(x) ((unsigned)(x)&MASK)
+#define LOW(x) (uint(x) & MASK)
 #define HIGH(x) LOW((x) >> N)
 
 #define MUL(x, y, z) \
   { \
-    long l = (long)(x) * (long)(y); \
+    long l = long(x) * long(y); \
     (z)[0] = LOW(l); \
     (z)[1] = HIGH(l); \
   } \
   ((void)0)
 
-#define CARRY(x, y) ((unsigned long)((long)(x) + (long)(y)) > MASK)
+#define CARRY(x, y) (ulong(long(x) + long(y)) > MASK)
 #define ADDEQU(x, y, z) (z = CARRY(x, (y)), x = LOW(x + (y)))
 #define SET3(x, x0, x1, x2) ((x)[0] = (x0), (x)[1] = (x1), (x)[2] = (x2))
 #if 0  // XXX, unused
@@ -70,17 +72,17 @@ namespace Freestyle {
     }
 #endif
 
-static unsigned x[3] = {
+static uint x[3] = {
     X0,
     X1,
     X2,
 };
-static unsigned a[3] = {
+static uint a[3] = {
     A0,
     A1,
     A2,
 };
-static unsigned c = C;
+static uint c = C;
 
 //
 // Methods implementation
@@ -101,7 +103,7 @@ void RandGen::srand48(long seedval)
 
 void RandGen::next()
 {
-  unsigned p[2], q[2], r[2], carry0, carry1;
+  uint p[2], q[2], r[2], carry0, carry1;
 
   MUL(a[0], x[0], p);
   ADDEQU(p[0], c, carry0);

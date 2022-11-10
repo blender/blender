@@ -180,12 +180,12 @@ typedef enum IDRemapperApplyResult {
 
 typedef enum IDRemapperApplyOptions {
   /**
-   * Update the user count of the old and new ID datablock.
+   * Update the user count of the old and new ID data-block.
    *
    * For remapping the old ID users will be decremented and the new ID users will be
    * incremented. When un-assigning the old ID users will be decremented.
    *
-   * NOTE: Currently unused by main remapping code, since usercount is handled by
+   * NOTE: Currently unused by main remapping code, since user-count is handled by
    * `foreach_libblock_remap_callback_apply` there, depending on whether the remapped pointer does
    * use it or not. Need for rare cases in UI handling though (see e.g. `image_id_remap` in
    * `space_image.c`).
@@ -193,14 +193,14 @@ typedef enum IDRemapperApplyOptions {
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
 
   /**
-   * Make sure that the new ID datablock will have a 'real' user.
+   * Make sure that the new ID data-block will have a 'real' user.
    *
    * NOTE: See Note for #ID_REMAP_APPLY_UPDATE_REFCOUNT above.
    */
   ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
 
   /**
-   * Unassign in stead of remap when the new ID datablock would become id_self.
+   * Unassign in stead of remap when the new ID data-block would become id_self.
    *
    * To use this option 'BKE_id_remapper_apply_ex' must be used with a not-null id_self parameter.
    */

@@ -172,20 +172,14 @@ void DRW_globals_update(void)
 
   /* M_SQRT2 to be at least the same size of the old square */
   gb->size_vertex = U.pixelsize *
-                    (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
+                    max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
   gb->size_vertex_gpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->size_face_dot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
   gb->size_edge = U.pixelsize * (1.0f / 2.0f); /* TODO: Theme. */
   gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->size_edge * (float)M_SQRT1_2)));
 
-  const float(*screen_vecs)[3] = (float(*)[3])DRW_viewport_screenvecs_get();
-  for (int i = 0; i < 2; i++) {
-    copy_v3_v3(gb->screen_vecs[i], screen_vecs[i]);
-  }
-
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
-  /* Deprecated, use drw_view.viewport_size instead */
   copy_v2_v2(&gb->size_viewport[0], DRW_viewport_size_get());
   copy_v2_v2(&gb->size_viewport[2], &gb->size_viewport[0]);
   invert_v2(&gb->size_viewport[2]);
@@ -280,10 +274,11 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) && (ob->mode & OB_MODE_EDIT);
-  const bool active = view_layer->basact &&
-                      ((ob->base_flag & BASE_FROM_DUPLI) ?
-                           (DRW_object_get_dupli_parent(ob) == view_layer->basact->object) :
-                           (view_layer->basact->object == ob));
+  BKE_view_layer_synced_ensure(draw_ctx->scene, view_layer);
+  const Base *base = BKE_view_layer_active_base_get(view_layer);
+  const bool active = base && ((ob->base_flag & BASE_FROM_DUPLI) ?
+                                   (DRW_object_get_dupli_parent(ob) == base->object) :
+                                   (base->object == ob));
 
   /* confusing logic here, there are 2 methods of setting the color
    * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.

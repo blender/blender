@@ -97,7 +97,7 @@ int BKE_scene_base_iter_next(struct Depsgraph *depsgraph,
                              struct Base **base,
                              struct Object **ob);
 
-void BKE_scene_base_flag_to_objects(struct ViewLayer *view_layer);
+void BKE_scene_base_flag_to_objects(const struct Scene *scene, struct ViewLayer *view_layer);
 /**
  * Synchronize object base flags
  *

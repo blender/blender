@@ -22,7 +22,7 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_antialiasing(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeAntiAliasingData *data = MEM_cnew<NodeAntiAliasingData>(__func__);
 
@@ -33,7 +33,7 @@ static void node_composit_init_antialiasing(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = data;
 }
 
-static void node_composit_buts_antialiasing(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_antialiasing(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -74,7 +74,7 @@ void register_node_type_cmp_antialiasing()
   ntype.draw_buttons = file_ns::node_composit_buts_antialiasing;
   ntype.flag |= NODE_PREVIEW;
   node_type_size(&ntype, 170, 140, 200);
-  node_type_init(&ntype, file_ns::node_composit_init_antialiasing);
+  ntype.initfunc = file_ns::node_composit_init_antialiasing;
   node_type_storage(
       &ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

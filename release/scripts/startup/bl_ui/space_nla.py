@@ -88,6 +88,7 @@ class NLA_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_region_ui")
+        layout.prop(st, "show_region_hud")
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
@@ -306,6 +307,11 @@ class NLA_MT_context_menu(Menu):
 
         layout.operator("nla.split")
         layout.operator("nla.delete")
+
+        layout.separator()
+
+        layout.operator("nla.meta_add")
+        layout.operator("nla.meta_remove")
 
         layout.separator()
 

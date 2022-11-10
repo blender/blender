@@ -11,6 +11,8 @@
 #include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_ViewEdge.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -163,7 +165,7 @@ PyDoc_STRVAR(ViewShape_sshape_doc,
              "\n"
              ":type: :class:`SShape`");
 
-static PyObject *ViewShape_sshape_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_sshape_get(BPy_ViewShape *self, void * /*closure*/)
 {
   SShape *ss = self->vs->sshape();
   if (!ss) {
@@ -172,7 +174,7 @@ static PyObject *ViewShape_sshape_get(BPy_ViewShape *self, void *UNUSED(closure)
   return BPy_SShape_from_SShape(*ss);
 }
 
-static int ViewShape_sshape_set(BPy_ViewShape *self, PyObject *value, void *UNUSED(closure))
+static int ViewShape_sshape_set(BPy_ViewShape *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_SShape_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an SShape");
@@ -195,12 +197,12 @@ PyDoc_STRVAR(ViewShape_vertices_doc,
              "\n"
              ":type: List of :class:`ViewVertex` objects");
 
-static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void * /*closure*/)
 {
   vector<ViewVertex *> vertices = self->vs->vertices();
   vector<ViewVertex *>::iterator it;
   PyObject *py_vertices = PyList_New(vertices.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = vertices.begin(); it != vertices.end(); it++) {
     PyList_SET_ITEM(py_vertices, i++, Any_BPy_ViewVertex_from_ViewVertex(*(*it)));
@@ -208,7 +210,7 @@ static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closur
   return py_vertices;
 }
 
-static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UNUSED(closure))
+static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void * /*closure*/)
 {
   PyObject *item;
   vector<ViewVertex *> v;
@@ -219,7 +221,7 @@ static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UN
   }
 
   v.reserve(PyList_GET_SIZE(value));
-  for (unsigned int i = 0; i < PyList_GET_SIZE(value); i++) {
+  for (uint i = 0; i < PyList_GET_SIZE(value); i++) {
     item = PyList_GET_ITEM(value, i);
     if (BPy_ViewVertex_Check(item)) {
       v.push_back(((BPy_ViewVertex *)item)->vv);
@@ -238,12 +240,12 @@ PyDoc_STRVAR(ViewShape_edges_doc,
              "\n"
              ":type: List of :class:`ViewEdge` objects");
 
-static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void * /*closure*/)
 {
   vector<ViewEdge *> edges = self->vs->edges();
   vector<ViewEdge *>::iterator it;
   PyObject *py_edges = PyList_New(edges.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = edges.begin(); it != edges.end(); it++) {
     PyList_SET_ITEM(py_edges, i++, BPy_ViewEdge_from_ViewEdge(*(*it)));
@@ -251,7 +253,7 @@ static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void *UNUSED(closure))
   return py_edges;
 }
 
-static int ViewShape_edges_set(BPy_ViewShape *self, PyObject *value, void *UNUSED(closure))
+static int ViewShape_edges_set(BPy_ViewShape *self, PyObject *value, void * /*closure*/)
 {
   PyObject *item;
   vector<ViewEdge *> v;
@@ -281,7 +283,7 @@ PyDoc_STRVAR(ViewShape_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *ViewShape_name_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_name_get(BPy_ViewShape *self, void * /*closure*/)
 {
   return PyUnicode_FromString(self->vs->getName().c_str());
 }
@@ -291,7 +293,7 @@ PyDoc_STRVAR(ViewShape_library_path_doc,
              "\n"
              ":type: str, or None if the ViewShape is not part of a library");
 
-static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void * /*closure*/)
 {
   return PyUnicode_FromString(self->vs->getLibraryPath().c_str());
 }
@@ -301,7 +303,7 @@ PyDoc_STRVAR(ViewShape_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *ViewShape_id_get(BPy_ViewShape *self, void *UNUSED(closure))
+static PyObject *ViewShape_id_get(BPy_ViewShape *self, void * /*closure*/)
 {
   Id id(self->vs->getId());
   return BPy_Id_from_Id(id);  // return a copy
@@ -336,43 +338,44 @@ static PyGetSetDef BPy_ViewShape_getseters[] = {
 /*-----------------------BPy_ViewShape type definition ------------------------------*/
 
 PyTypeObject ViewShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "ViewShape", /* tp_name */
-    sizeof(BPy_ViewShape),                         /* tp_basicsize */
-    0,                                             /* tp_itemsize */
-    (destructor)ViewShape_dealloc,                 /* tp_dealloc */
-    0,                                             /* tp_vectorcall_offset */
-    nullptr,                                       /* tp_getattr */
-    nullptr,                                       /* tp_setattr */
-    nullptr,                                       /* tp_reserved */
-    (reprfunc)ViewShape_repr,                      /* tp_repr */
-    nullptr,                                       /* tp_as_number */
-    nullptr,                                       /* tp_as_sequence */
-    nullptr,                                       /* tp_as_mapping */
-    nullptr,                                       /* tp_hash */
-    nullptr,                                       /* tp_call */
-    nullptr,                                       /* tp_str */
-    nullptr,                                       /* tp_getattro */
-    nullptr,                                       /* tp_setattro */
-    nullptr,                                       /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,      /* tp_flags */
-    ViewShape_doc,                                 /* tp_doc */
-    nullptr,                                       /* tp_traverse */
-    nullptr,                                       /* tp_clear */
-    nullptr,                                       /* tp_richcompare */
-    0,                                             /* tp_weaklistoffset */
-    nullptr,                                       /* tp_iter */
-    nullptr,                                       /* tp_iternext */
-    BPy_ViewShape_methods,                         /* tp_methods */
-    nullptr,                                       /* tp_members */
-    BPy_ViewShape_getseters,                       /* tp_getset */
-    nullptr,                                       /* tp_base */
-    nullptr,                                       /* tp_dict */
-    nullptr,                                       /* tp_descr_get */
-    nullptr,                                       /* tp_descr_set */
-    0,                                             /* tp_dictoffset */
-    (initproc)ViewShape_init,                      /* tp_init */
-    nullptr,                                       /* tp_alloc */
-    PyType_GenericNew,                             /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "ViewShape",
+    /*tp_basicsize*/ sizeof(BPy_ViewShape),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)ViewShape_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ (reprfunc)ViewShape_repr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ ViewShape_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_ViewShape_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_ViewShape_getseters,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)ViewShape_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

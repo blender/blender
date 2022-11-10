@@ -25,7 +25,7 @@
 static void textview_font_begin(const int font_id, const int lheight)
 {
   /* Font size in relation to line height. */
-  BLF_size(font_id, 0.8f * lheight, 72);
+  BLF_size(font_id, 0.8f * lheight);
 }
 
 typedef struct TextViewDrawState {
@@ -235,7 +235,8 @@ static bool textview_draw_string(TextViewDrawState *tds,
                     1.0f,
                     0.0f,
                     icon_fg,
-                    false);
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 

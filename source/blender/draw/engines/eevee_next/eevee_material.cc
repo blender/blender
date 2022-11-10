@@ -164,7 +164,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
                          blender_mat->nodetree :
                          default_surface_ntree_.nodetree_get(blender_mat);
 
-  MaterialPass matpass;
+  MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(
       blender_mat, ntree, pipeline_type, geometry_type, true);
 
@@ -186,6 +186,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   }
   /* Returned material should be ready to be drawn. */
   BLI_assert(GPU_material_status(matpass.gpumat) == GPU_MAT_SUCCESS);
+
+  inst_.manager->register_layer_attributes(matpass.gpumat);
 
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
     inst_.sampling.reset();
@@ -216,6 +218,9 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       /* Create a sub for this material as `shader_sub` is for sharing shader between materials. */
       matpass.sub_pass = &shader_sub->sub(GPU_material_get_name(matpass.gpumat));
       matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat);
+    }
+    else {
+      matpass.sub_pass = nullptr;
     }
   }
 

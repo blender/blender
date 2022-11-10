@@ -654,7 +654,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
     /* view */
     if (BLI_listbase_count_at_most(&rr->views, 2) > 1 &&
-        ((!show_stereo) || (!RE_RenderResult_is_stereo(rr)))) {
+        ((!show_stereo) || !RE_RenderResult_is_stereo(rr))) {
       rview = BLI_findlink(&rr->views, iuser->view);
       display_name = rview ? rview->name : "";
 
@@ -974,8 +974,16 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
   uiLayoutSetPropDecorate(col, false);
 
   uiItemR(col, imfptr, "file_format", 0, NULL, ICON_NONE);
-  uiItemR(
-      uiLayoutRow(col, true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
+
+  /* Multi-layer always saves raw unmodified channels. */
+  if (imf->imtype != R_IMF_IMTYPE_MULTILAYER) {
+    uiItemR(uiLayoutRow(col, true),
+            imfptr,
+            "color_mode",
+            UI_ITEM_R_EXPAND,
+            IFACE_("Color"),
+            ICON_NONE);
+  }
 
   /* only display depth setting if multiple depths can be used */
   if (ELEM(depth_ok,

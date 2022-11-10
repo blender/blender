@@ -57,7 +57,7 @@ bool transdata_check_local_center(const TransInfo *t, short around)
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
           ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
            /* implicit: (t->flag & T_EDIT) */
-           (ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
+           ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL) ||
            (t->spacetype == SPACE_GRAPH) ||
            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
@@ -1041,7 +1041,7 @@ void ElementResize(const TransInfo *t,
     if (t->options & CTX_POSE_BONE) {
       /* Without this, the resulting location of scaled bones aren't correct,
        * especially noticeable scaling root or disconnected bones around the cursor, see T92515. */
-      mul_mat3_m4_v3(tc->poseobj->obmat, vec);
+      mul_mat3_m4_v3(tc->poseobj->object_to_world, vec);
     }
     mul_m3_v3(td->smtx, vec);
   }

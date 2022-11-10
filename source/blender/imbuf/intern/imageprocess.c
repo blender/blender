@@ -219,7 +219,7 @@ void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int x
     return;
   }
 
-  /* gcc warns these could be uninitialized, but its ok. */
+  /* GCC warns these could be uninitialized, but its ok. */
   pixel_from_buffer(out, &outI, &outF, xout, yout);
 
   bilinear_interpolation_color(in, outI, outF, u, v);

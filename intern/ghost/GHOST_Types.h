@@ -11,6 +11,12 @@
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
+#else
+/* Convenience unsigned abbreviations (#WITH_CXX_GUARDEDALLOC defines these). */
+typedef unsigned int uint;
+typedef unsigned short ushort;
+typedef unsigned long ulong;
+typedef unsigned char uchar;
 #endif
 
 #if defined(WITH_CXX_GUARDEDALLOC) && defined(__cplusplus)
@@ -53,10 +59,6 @@ typedef struct {
   int data_size[2];
   int hot_spot[2];
 } GHOST_CursorBitmapRef;
-
-typedef struct {
-  int flags;
-} GHOST_GLSettings;
 
 typedef enum {
   GHOST_glStereoVisual = (1 << 0),
@@ -121,7 +123,8 @@ typedef enum {
   GHOST_kModifierKeyRightAlt,
   GHOST_kModifierKeyLeftControl,
   GHOST_kModifierKeyRightControl,
-  GHOST_kModifierKeyOS,
+  GHOST_kModifierKeyLeftOS,
+  GHOST_kModifierKeyRightOS,
   GHOST_kModifierKeyNum
 } GHOST_TModifierKey;
 
@@ -149,6 +152,9 @@ typedef enum {
   GHOST_kDrawingContextTypeOpenGL,
 #ifdef WIN32
   GHOST_kDrawingContextTypeD3D,
+#endif
+#ifdef __APPLE__
+  GHOST_kDrawingContextTypeMetal,
 #endif
 } GHOST_TDrawingContextType;
 
@@ -320,13 +326,18 @@ typedef enum {
   GHOST_kKeyBackslash = 0x5C,
   GHOST_kKeyAccentGrave = '`',
 
+#define _GHOST_KEY_MODIFIER_MIN GHOST_kKeyLeftShift
+  /* Modifiers: See #GHOST_KEY_MODIFIER_CHECK. */
   GHOST_kKeyLeftShift = 0x100,
   GHOST_kKeyRightShift,
   GHOST_kKeyLeftControl,
   GHOST_kKeyRightControl,
   GHOST_kKeyLeftAlt,
   GHOST_kKeyRightAlt,
-  GHOST_kKeyOS,     /* Command key on Apple, Windows key(s) on Windows. */
+  GHOST_kKeyLeftOS, /* Command key on Apple, Windows key(s) on Windows. */
+  GHOST_kKeyRightOS,
+#define _GHOST_KEY_MODIFIER_MAX GHOST_kKeyRightOS
+
   GHOST_kKeyGrLess, /* German PC only! */
   GHOST_kKeyApp,    /* Also known as menu key. */
 
@@ -399,6 +410,12 @@ typedef enum {
   GHOST_kKeyMediaFirst,
   GHOST_kKeyMediaLast
 } GHOST_TKey;
+
+#define GHOST_KEY_MODIFIER_NUM ((_GHOST_KEY_MODIFIER_MAX - _GHOST_KEY_MODIFIER_MIN) + 1)
+#define GHOST_KEY_MODIFIER_TO_INDEX(key) ((unsigned int)(key)-_GHOST_KEY_MODIFIER_MIN)
+#define GHOST_KEY_MODIFIER_FROM_INDEX(key) \
+  (GHOST_TKey)(((unsigned int)(key) + _GHOST_KEY_MODIFIER_MIN))
+#define GHOST_KEY_MODIFIER_CHECK(key) (GHOST_KEY_MODIFIER_TO_INDEX(key) < GHOST_KEY_MODIFIER_NUM)
 
 typedef enum {
   /** Grab not set. */
@@ -508,7 +525,7 @@ typedef struct {
 } GHOST_TStringArray;
 
 typedef enum {
-  GHOST_kNotStarted,
+  GHOST_kNotStarted = 0,
   GHOST_kStarting,
   GHOST_kInProgress,
   GHOST_kFinishing,
@@ -579,6 +596,11 @@ typedef struct {
   /** Refresh rate (in Hertz). */
   uint32_t frequency;
 } GHOST_DisplaySetting;
+
+typedef struct {
+  int flags;
+  GHOST_TDrawingContextType context_type;
+} GHOST_GLSettings;
 
 typedef enum {
   /** Axis that cursor grab will wrap. */

@@ -42,7 +42,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
@@ -89,6 +89,11 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
       return start_size_ == other_endpoint->start_size_ && end_size_ == other_endpoint->end_size_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

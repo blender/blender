@@ -266,7 +266,7 @@ class GHOST_ImeWin32 {
    * Parameters
    *   * window_handle [in] (HWND)
    *     Represents the window handle of the caller.
-   *   * caret_rect [in] (const gfx::Rect&)
+   *   * caret_rect [in] (`const gfx::Rect&`)
    *     Represent the rectangle of the input caret.
    *     This rectangle is used for controlling the positions of IME windows.
    *   * complete [in] (bool)

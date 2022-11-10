@@ -38,7 +38,7 @@ void register_node_type_tex_viewer(void)
 
   tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_socket_templates(&ntype, inputs, NULL);
-  node_type_exec(&ntype, NULL, NULL, exec);
+  ntype.exec_fn = exec;
 
   ntype.no_muting = true;
   ntype.flag |= NODE_PREVIEW;

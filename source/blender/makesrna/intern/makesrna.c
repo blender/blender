@@ -564,7 +564,7 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 
 static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 {
-  return ((prop->type == PROP_FLOAT) && (ELEM(prop->subtype, PROP_COLOR, PROP_COLOR_GAMMA)) &&
+  return ((prop->type == PROP_FLOAT) && ELEM(prop->subtype, PROP_COLOR, PROP_COLOR_GAMMA) &&
           (IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0));
 }
 
@@ -3904,7 +3904,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     }
     case PROP_BOOLEAN: {
       BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
-      unsigned int i;
+      uint i;
 
       if (prop->arraydimension && prop->totarraylength) {
         fprintf(f,
@@ -3932,7 +3932,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     }
     case PROP_INT: {
       IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
-      unsigned int i;
+      uint i;
 
       if (prop->arraydimension && prop->totarraylength) {
         fprintf(f,
@@ -3960,7 +3960,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     }
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
-      unsigned int i;
+      uint i;
 
       if (prop->arraydimension && prop->totarraylength) {
         fprintf(f,

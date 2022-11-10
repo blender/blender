@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
                                           bNode *node,
-                                          bNodeExecData *UNUSED(execdata),
+                                          bNodeExecData * /*execdata*/,
                                           GPUNodeStack *in,
                                           GPUNodeStack *out)
 {
@@ -64,7 +64,7 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY);
 
-  float use_clear = (socket_not_zero(6)) ? 1.0f : 0.0f;
+  float use_clear = socket_not_zero(6) ? 1.0f : 0.0f;
 
   return GPU_stack_link(mat, node, "node_eevee_specular", in, out, GPU_constant(&use_clear));
 }
@@ -80,7 +80,7 @@ void register_node_type_sh_eevee_specular()
 
   sh_node_type_base(&ntype, SH_NODE_EEVEE_SPECULAR, "Specular BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_eevee_specular);
+  ntype.gpu_fn = file_ns::node_shader_gpu_eevee_specular;
 
   nodeRegisterType(&ntype);
 }

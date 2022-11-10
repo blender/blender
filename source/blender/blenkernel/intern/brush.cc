@@ -56,7 +56,7 @@ static void brush_init_data(ID *id)
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
 
-static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   Brush *brush_dst = (Brush *)id_dst;
   const Brush *brush_src = (const Brush *)id_src;
@@ -72,6 +72,8 @@ static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   }
 
   brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
+  brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
+
   if (brush_src->gpencil_settings != nullptr) {
     brush_dst->gpencil_settings = MEM_cnew(__func__, *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
@@ -109,6 +111,7 @@ static void brush_free_data(ID *id)
     IMB_freeImBuf(brush->icon_imbuf);
   }
   BKE_curvemapping_free(brush->curve);
+  BKE_curvemapping_free(brush->automasking_cavity_curve);
 
   if (brush->gpencil_settings != nullptr) {
     BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
@@ -212,6 +215,10 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BKE_curvemapping_blend_write(writer, brush->curve);
   }
 
+  if (brush->automasking_cavity_curve) {
+    BKE_curvemapping_blend_write(writer, brush->automasking_cavity_curve);
+  }
+
   if (brush->gpencil_settings) {
     BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
 
@@ -265,6 +272,14 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
+  }
+
+  BLO_read_data_address(reader, &brush->automasking_cavity_curve);
+  if (brush->automasking_cavity_curve) {
+    BKE_curvemapping_blend_read(reader, brush->automasking_cavity_curve);
+  }
+  else {
+    brush->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
   }
 
   /* grease pencil */
@@ -982,7 +997,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     case GP_BRUSH_PRESET_FILL_AREA: {
       brush->size = 5.0f;
 
-      brush->gpencil_settings->fill_leak = 3;
       brush->gpencil_settings->fill_threshold = 0.1f;
       brush->gpencil_settings->fill_simplylvl = 1;
       brush->gpencil_settings->fill_factor = 1.0f;
@@ -1960,19 +1974,37 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   BKE_curvemapping_changed(cumap, false);
 }
 
+const struct MTex *BKE_brush_mask_texture_get(const struct Brush *brush,
+                                              const eObjectMode object_mode)
+{
+  if (object_mode == OB_MODE_SCULPT) {
+    return &brush->mtex;
+  }
+  return &brush->mask_mtex;
+}
+
+const struct MTex *BKE_brush_color_texture_get(const struct Brush *brush,
+                                               const eObjectMode object_mode)
+{
+  if (object_mode == OB_MODE_SCULPT) {
+    return &brush->mask_mtex;
+  }
+  return &brush->mtex;
+}
+
 float BKE_brush_sample_tex_3d(const Scene *scene,
                               const Brush *br,
+                              const MTex *mtex,
                               const float point[3],
                               float rgba[4],
                               const int thread,
                               struct ImagePool *pool)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  const MTex *mtex = &br->mtex;
   float intensity = 1.0;
   bool hasrgb = false;
 
-  if (!mtex->tex) {
+  if (mtex == nullptr || mtex->tex == nullptr) {
     intensity = 1;
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
@@ -2359,7 +2391,7 @@ void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
   float scale = new_brush_size;
   /* avoid division by zero */
   if (old_brush_size != 0) {
-    scale /= (float)old_brush_size;
+    scale /= float(old_brush_size);
   }
   (*unprojected_radius) *= scale;
 }
@@ -2373,7 +2405,7 @@ void BKE_brush_scale_size(int *r_brush_size,
   if (old_unprojected_radius != 0) {
     scale /= new_unprojected_radius;
   }
-  (*r_brush_size) = (int)((float)(*r_brush_size) * scale);
+  (*r_brush_size) = int(float(*r_brush_size) * scale);
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])

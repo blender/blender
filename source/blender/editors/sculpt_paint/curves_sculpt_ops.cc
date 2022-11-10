@@ -153,7 +153,7 @@ struct SculptCurvesBrushStrokeData {
 static bool stroke_get_location(bContext *C,
                                 float out[3],
                                 const float mouse[2],
-                                bool UNUSED(force_original))
+                                bool /*force_original*/)
 {
   out[0] = mouse[0];
   out[1] = mouse[1];
@@ -170,7 +170,7 @@ static bool stroke_test_start(bContext *C, struct wmOperator *op, const float mo
 
 static void stroke_update_step(bContext *C,
                                wmOperator *op,
-                               PaintStroke *UNUSED(stroke),
+                               PaintStroke * /*stroke*/,
                                PointerRNA *stroke_element)
 {
   SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
@@ -220,8 +220,10 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   int return_value = op->type->modal(C, op, event);
   if (return_value == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op, op_data->stroke);
-    MEM_delete(op_data);
+    if (op->customdata != nullptr) {
+      paint_stroke_free(C, op, op_data->stroke);
+      MEM_delete(op_data);
+    }
     return OPERATOR_FINISHED;
   }
 
@@ -236,16 +238,19 @@ static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent
   int return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
   if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
+    op->customdata = nullptr;
   }
   return return_value;
 }
 
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
 {
-  SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-      op->customdata);
-  paint_stroke_cancel(C, op, op_data->stroke);
-  MEM_delete(op_data);
+  if (op->customdata != nullptr) {
+    SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
+        op->customdata);
+    paint_stroke_cancel(C, op, op_data->stroke);
+    MEM_delete(op_data);
+  }
 }
 
 static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
@@ -344,7 +349,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
 
   const int seed = RNA_int_get(op->ptr, "seed");
-  RandomNumberGenerator rng{static_cast<uint32_t>(seed)};
+  RandomNumberGenerator rng{uint32_t(seed)};
 
   const bool partial = RNA_boolean_get(op->ptr, "partial");
   const bool constant_per_curve = RNA_boolean_get(op->ptr, "constant_per_curve");
@@ -448,7 +453,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void select_random_ui(bContext *UNUSED(C), wmOperator *op)
+static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
@@ -786,7 +791,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.obmat;
+  float4x4 curves_to_world_mat = curves_ob.object_to_world;
   float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   float4x4 projection;
@@ -914,7 +919,7 @@ static void SCULPT_CURVES_OT_select_grow(wmOperatorType *ot)
                        "Distance",
                        "By how much to grow the selection",
                        -10.0f,
-                       10.f);
+                       10.0f);
   RNA_def_property_subtype(prop, PROP_DISTANCE);
 }
 
@@ -1003,7 +1008,7 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
   return std::min(300, needed_points);
 }
 
-static void min_distance_edit_draw(bContext *C, int UNUSED(x), int UNUSED(y), void *customdata)
+static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(customdata);
@@ -1093,7 +1098,7 @@ static void min_distance_edit_draw(bContext *C, int UNUSED(x), int UNUSED(y), vo
   GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
   /* Draw the brush circle. */
-  GPU_matrix_translate_2f((float)op_data.initial_mouse.x, (float)op_data.initial_mouse.y);
+  GPU_matrix_translate_2f(float(op_data.initial_mouse.x), float(op_data.initial_mouse.y));
 
   GPUVertFormat *format = immVertexFormat();
   uint pos2d = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

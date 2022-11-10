@@ -45,12 +45,11 @@ void SpreadsheetCache::set_all_unused()
 void SpreadsheetCache::remove_all_unused()
 {
   /* First remove the keys from the map and free the values. */
-  for (auto it = cache_map_.keys().begin(); it != cache_map_.keys().end(); ++it) {
-    const Key &key = *it;
-    if (!key.is_used) {
-      cache_map_.remove(it);
-    }
-  }
+  cache_map_.remove_if([&](auto item) {
+    const Key &key = item.key;
+    return !key.is_used;
+  });
+
   /* Then free the keys. */
   for (int i = 0; i < keys_.size();) {
     if (keys_[i]->is_used) {

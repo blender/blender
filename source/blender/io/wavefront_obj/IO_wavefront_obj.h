@@ -35,7 +35,7 @@ struct OBJExportParams {
   /* Geometry Transform options. */
   eIOAxis forward_axis;
   eIOAxis up_axis;
-  float scaling_factor;
+  float global_scale;
 
   /* File Write Options. */
   bool export_selected_objects;
@@ -65,6 +65,7 @@ struct OBJImportParams {
   char filepath[FILE_MAX];
   /** Value 0 disables clamping. */
   float clamp_size;
+  float global_scale;
   eIOAxis forward_axis;
   eIOAxis up_axis;
   bool import_vertex_groups;

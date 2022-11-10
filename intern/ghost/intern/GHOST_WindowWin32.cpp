@@ -89,7 +89,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
      */
   }
 
-  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
+  RECT win_rect = {left, top, long(left + width), long(top + height)};
   adjustWindowRectForClosestMonitor(&win_rect, style, extended_style);
 
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);

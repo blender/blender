@@ -289,7 +289,7 @@ class ValueAllocator : NonCopyable, NonMovable {
       }
     }
 
-    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)value->type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[int(value->type)];
     stack.push(value);
   }
 
@@ -297,7 +297,7 @@ class ValueAllocator : NonCopyable, NonMovable {
   template<typename T, typename... Args> T *obtain(Args &&...args)
   {
     static_assert(std::is_base_of_v<VariableValue, T>);
-    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)T::static_type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[int(T::static_type)];
     if (stack.is_empty()) {
       void *buffer = linear_allocator_.allocate(sizeof(T), alignof(T));
       return new (buffer) T(std::forward<Args>(args)...);
@@ -449,7 +449,7 @@ class VariableState : NonCopyable, NonMovable {
         }
         else {
           new_value = value_allocator.obtain_GVectorArray_not_owned(
-              *(GVectorArray *)caller_provided_storage_);
+              *static_cast<GVectorArray *>(caller_provided_storage_));
         }
         if (value_ != nullptr) {
           if (value_->type == ValueType::GVVectorArray) {
@@ -780,8 +780,9 @@ class VariableState : NonCopyable, NonMovable {
         break;
       }
       case ValueType::Span: {
-        const Span<bool> span((bool *)this->value_as<VariableValue_Span>()->data,
-                              mask.min_array_size());
+        const Span<bool> span(
+            static_cast<const bool *>(this->value_as<VariableValue_Span>()->data),
+            mask.min_array_size());
         for (const int i : mask) {
           r_indices[span[i]].append(i);
         }
@@ -790,7 +791,7 @@ class VariableState : NonCopyable, NonMovable {
       case ValueType::OneSingle: {
         auto *value_typed = this->value_as<VariableValue_OneSingle>();
         BLI_assert(value_typed->is_initialized);
-        const bool condition = *(bool *)value_typed->data;
+        const bool condition = *static_cast<const bool *>(value_typed->data);
         r_indices[condition].extend(mask);
         break;
       }

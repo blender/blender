@@ -33,13 +33,13 @@ static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_despeckle(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom3 = 0.5f;
   node->custom4 = 0.5f;
 }
 
-static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_despeckle(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -115,7 +115,7 @@ void register_node_type_cmp_despeckle()
   ntype.declare = file_ns::cmp_node_despeckle_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_despeckle;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_despeckle);
+  ntype.initfunc = file_ns::node_composit_init_despeckle;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);

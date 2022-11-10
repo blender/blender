@@ -52,18 +52,18 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
   static inline void buffer_to_sector(const float source[2], float x, float y, float &u, float &v)
   {
-    int x0 = (int)source[0];
-    int y0 = (int)source[1];
-    x -= (float)x0;
-    y -= (float)y0;
+    int x0 = int(source[0]);
+    int y0 = int(source[1]);
+    x -= float(x0);
+    y -= float(y0);
     u = x * fxu + y * fyu;
     v = x * fxv + y * fyv;
   }
 
   static inline void sector_to_buffer(const float source[2], int u, int v, int &x, int &y)
   {
-    int x0 = (int)source[0];
-    int y0 = (int)source[1];
+    int x0 = int(source[0]);
+    int y0 = int(source[1]);
     x = x0 + u * fxu + v * fxv;
     y = y0 + u * fyu + v * fyv;
   }
@@ -95,7 +95,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     buffer_to_sector(source, co[0], co[1], pu, pv);
 
     /* line angle */
-    double tan_phi = pv / (double)pu;
+    double tan_phi = pv / double(pu);
     double dr = sqrt(tan_phi * tan_phi + 1.0);
     double cos_phi = 1.0 / dr;
 
@@ -105,13 +105,13 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     v = umin * tan_phi;
     dv = tan_phi;
 
-    int start = (int)floorf(umax);
-    int end = (int)ceilf(umin);
+    int start = int(floorf(umax));
+    int end = int(ceilf(umin));
     num = end - start;
 
-    sector_to_buffer(source, end, (int)ceilf(v), x, y);
+    sector_to_buffer(source, end, int(ceilf(v)), x, y);
 
-    falloff_factor = dist_max > dist_min ? dr / (double)(dist_max - dist_min) : 0.0f;
+    falloff_factor = dist_max > dist_min ? dr / double(dist_max - dist_min) : 0.0f;
 
     float *iter = input->get_buffer() + input->get_coords_offset(x, y);
     return iter;
@@ -139,7 +139,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     zero_v4(output);
 
-    if ((int)(co[0] - source[0]) == 0 && (int)(co[1] - source[1]) == 0) {
+    if (int(co[0] - source[0]) == 0 && int(co[1] - source[1]) == 0) {
       copy_v4_v4(output, input->get_elem(source[0], source[1]));
       return;
     }
@@ -154,7 +154,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     float v_local = v - floorf(v);
 
     for (int i = 0; i < num; i++) {
-      float weight = 1.0f - (float)i * falloff_factor;
+      float weight = 1.0f - float(i) * falloff_factor;
       weight *= weight;
 
       /* range check, use last valid color when running beyond the image border */
@@ -195,7 +195,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     /* normalize */
     if (num > 0) {
-      mul_v4_fl(output, 1.0f / (float)num);
+      mul_v4_fl(output, 1.0f / float(num));
     }
   }
 };
@@ -288,14 +288,14 @@ void *SunBeamsOperation::initialize_tile_data(rcti * /*rect*/)
 
 void SunBeamsOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  const float co[2] = {(float)x, (float)y};
+  const float co[2] = {float(x), float(y)};
 
   accumulate_line((MemoryBuffer *)data, output, co, source_px_, 0.0f, ray_length_px_);
 }
 
 static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], float ray_length)
 {
-  float co[2] = {(float)x, (float)y};
+  float co[2] = {float(x), float(y)};
   float dir[2], dist;
 
   /* move (x,y) vector toward the source by ray_length distance */
@@ -304,7 +304,7 @@ static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], 
   mul_v2_fl(dir, min_ff(dist, ray_length));
   sub_v2_v2(co, dir);
 
-  int ico[2] = {(int)co[0], (int)co[1]};
+  int ico[2] = {int(co[0]), int(co[1])};
   BLI_rcti_do_minmax_v(rect, ico);
 }
 

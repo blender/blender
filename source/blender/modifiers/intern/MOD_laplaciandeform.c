@@ -747,9 +747,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return 1;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 

@@ -474,7 +474,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   /* Location, X/Y/Z */
   mul_v3_fl(median_basis.generic.location, 1.0f / (float)tot);
   if (v3d->flag & V3D_GLOBAL_STATS) {
-    mul_m4_v3(ob->obmat, median_basis.generic.location);
+    mul_m4_v3(ob->object_to_world, median_basis.generic.location);
   }
 
   if (has_meshdata) {
@@ -954,9 +954,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     memcpy(&ve_median_basis, &tfp->ve_median, sizeof(tfp->ve_median));
 
     if (v3d->flag & V3D_GLOBAL_STATS) {
-      invert_m4_m4(ob->imat, ob->obmat);
-      mul_m4_v3(ob->imat, median_basis.generic.location);
-      mul_m4_v3(ob->imat, ve_median_basis.generic.location);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_m4_v3(ob->world_to_object, median_basis.generic.location);
+      mul_m4_v3(ob->world_to_object, ve_median_basis.generic.location);
     }
     sub_vn_vnvn((float *)&median_basis,
                 (float *)&ve_median_basis,
@@ -1005,7 +1005,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         }
 
         if (median->v_crease) {
-          BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_CREASE);
+          if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+            BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
+          }
           cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
           BLI_assert(cd_vert_crease_offset != -1);
 
@@ -1073,7 +1075,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         }
 
         if (median->e_crease) {
-          BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
+          if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+            BM_data_layer_add(bm, &bm->edata, CD_CREASE);
+          }
           cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
           BLI_assert(cd_edge_crease_offset != -1);
 
@@ -1211,7 +1215,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     BKE_object_dimensions_get(ob, tfp->ob_dims);
     copy_v3_v3(tfp->ob_dims_orig, tfp->ob_dims);
     copy_v3_v3(tfp->ob_scale_orig, ob->scale);
-    copy_m4_m4(tfp->ob_obmat_orig, ob->obmat);
+    copy_m4_m4(tfp->ob_obmat_orig, ob->object_to_world);
 
     uiDefBut(block,
              UI_BTYPE_LABEL,
@@ -1278,8 +1282,10 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
     return;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = view_layer->basact->object;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
   DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -1287,7 +1293,9 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 
 static bool view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   if (ob && (BKE_object_is_in_editmode_vgroup(ob) || BKE_object_is_in_wpaint_select_vert(ob))) {
     MDeformVert *dvert_act = ED_mesh_active_dvert_get_only(ob);
@@ -1304,7 +1312,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutAbsoluteBlock(panel->layout);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = view_layer->basact->object;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   MDeformVert *dv;
 
@@ -1686,8 +1695,10 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
 static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   switch (event) {
@@ -1715,15 +1726,19 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
 static bool view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  return (view_layer->basact != NULL);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  return (BKE_view_layer_active_base_get(view_layer) != NULL);
 }
 
 static void view3d_panel_transform(const bContext *C, Panel *panel)
 {
   uiBlock *block;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = view_layer->basact->object;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   uiLayout *col;
 
@@ -1806,7 +1821,7 @@ static int view3d_object_mode_menu(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "No active object found");
     return OPERATOR_CANCELLED;
   }
-  if (((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
+  if (((ob->mode & OB_MODE_EDIT) == 0) && ELEM(ob->type, OB_ARMATURE)) {
     ED_object_mode_set(C, (ob->mode == OB_MODE_OBJECT) ? OB_MODE_POSE : OB_MODE_OBJECT);
     return OPERATOR_CANCELLED;
   }

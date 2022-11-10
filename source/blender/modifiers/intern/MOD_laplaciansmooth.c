@@ -66,8 +66,6 @@ struct BLaplacianSystem {
 };
 typedef struct BLaplacianSystem LaplacianSystem;
 
-static void required_data_mask(Object *ob, ModifierData *md, CustomData_MeshMasks *r_cddata_masks);
-static bool is_disabled(const struct Scene *scene, ModifierData *md, bool useRenderParams);
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
                             const MPoly *mpoly,
@@ -511,9 +509,7 @@ static bool is_disabled(const struct Scene *UNUSED(scene),
   return 0;
 }
 
-static void required_data_mask(Object *UNUSED(ob),
-                               ModifierData *md,
-                               CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
 

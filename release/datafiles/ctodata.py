@@ -31,7 +31,7 @@ data = [int(v) for v in data]
 if strip_byte:
     # String data gets trailing byte.
     last = data.pop()
-    assert(last == 0)
+    assert last == 0
 
 data = bytes(data)
 

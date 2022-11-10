@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kernel/integrator/guiding.h"
 #include "kernel/integrator/shade_volume.h"
 #include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
@@ -165,6 +166,7 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
     return;
   }
   else {
+    guiding_record_direct_light(kg, state);
     film_write_direct_light(kg, state, render_buffer);
     integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;

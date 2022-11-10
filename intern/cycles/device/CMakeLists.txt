@@ -142,7 +142,6 @@ set(SRC
   ${SRC_DUMMY}
   ${SRC_MULTI}
   ${SRC_OPTIX}
-  ${SRC_ONEAPI}
   ${SRC_HEADERS}
 )
 
@@ -188,7 +187,29 @@ if(WITH_CYCLES_DEVICE_METAL)
   )
 endif()
 if (WITH_CYCLES_DEVICE_ONEAPI)
+  if(WITH_CYCLES_ONEAPI_BINARIES)
+    set(cycles_kernel_oneapi_lib_suffix "_aot")
+  else()
+    set(cycles_kernel_oneapi_lib_suffix "_jit")
+  endif()
+  if(WIN32)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
+  else()
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
+  endif()
+  list(APPEND LIB ${cycles_kernel_oneapi_lib})
+  if(WIN32)
+    list(APPEND LIB debug ${SYCL_LIBRARY_DEBUG} optimized ${SYCL_LIBRARY})
+  else()
+    list(APPEND LIB ${SYCL_LIBRARY})
+  endif()
   add_definitions(-DWITH_ONEAPI)
+  list(APPEND SRC
+    ${SRC_ONEAPI}
+  )
+  list(APPEND INC_SYS
+    ${SYCL_INCLUDE_DIR}
+  )
 endif()
 
 if(WITH_OPENIMAGEDENOISE)
@@ -203,7 +224,8 @@ include_directories(SYSTEM ${INC_SYS})
 cycles_add_library(cycles_device "${LIB}" ${SRC})
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
-  # Need to have proper rebuilding in case of changes in cycles_kernel_oneapi due external project behaviour
+  # Need to have proper rebuilding in case of changes
+  # in cycles_kernel_oneapi due external project behavior.
   add_dependencies(cycles_device cycles_kernel_oneapi)
 endif()
 

@@ -197,16 +197,16 @@ static void color_mul_hsl_v3(uchar ch[3], float h_factor, float s_factor, float 
  * \{ */
 
 /**
- * - in: roundbox codes for corner types and radius
- * - return: array of `[size][2][x, y]` points, the edges of the roundbox, + UV coords
+ * - in: `roundbox` codes for corner types and radius
+ * - return: array of `[size][2][x, y]` points, the edges of the `roundbox`, + UV coords
  *
- * - draw black box with alpha 0 on exact button boundbox
- * - for every AA step:
+ * - Draw black box with alpha 0 on exact button bounding-box.
+ * - For every AA step:
  *    - draw the inner part for a round filled box, with color blend codes or texture coords
  *    - draw outline in outline color
  *    - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
  *    - draw extra decorations
- * - draw background color box with alpha 1 on exact button boundbox
+ * - Draw background color box with alpha 1 on exact button bounding-box.
  */
 
 /* fill this struct with polygon info to draw AA'ed */
@@ -693,7 +693,7 @@ static void round_box__edges(
 {
   float vec[WIDGET_CURVE_RESOLU][2], veci[WIDGET_CURVE_RESOLU][2];
   const float minx = rect->xmin, miny = rect->ymin, maxx = rect->xmax, maxy = rect->ymax;
-  const float minxi = minx + U.pixelsize; /* boundbox inner */
+  const float minxi = minx + U.pixelsize; /* Bounding-box inner. */
   const float maxxi = maxx - U.pixelsize;
   const float minyi = miny + U.pixelsize;
   const float maxyi = maxy - U.pixelsize;
@@ -1371,7 +1371,7 @@ static void widget_draw_icon(
       alpha = 0.75f;
     }
   }
-  else if ((but->type == UI_BTYPE_LABEL)) {
+  else if (but->type == UI_BTYPE_LABEL) {
     /* extra feature allows more alpha blending */
     if (but->a1 == 1.0f) {
       alpha *= but->a2;
@@ -1420,21 +1420,25 @@ static void widget_draw_icon(
 
     /* to indicate draggable */
     if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
-      UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme);
+      UI_icon_draw_ex(
+          xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
-    else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, has_theme);
+    else if (but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) {
+      UI_icon_draw_ex(
+          xs, ys, icon, aspect, alpha, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
     else if (!((but->icon != ICON_NONE) && UI_but_is_tool(but))) {
       if (has_theme) {
         alpha *= 0.8f;
       }
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, has_theme);
+      UI_icon_draw_ex(
+          xs, ys, icon, aspect, alpha, 0.0f, color, has_theme, &but->icon_overlay_text);
     }
     else {
       const bTheme *btheme = UI_GetTheme();
       const float desaturate = 1.0 - btheme->tui.icon_saturation;
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, desaturate, color, has_theme);
+      UI_icon_draw_ex(
+          xs, ys, icon, aspect, alpha, desaturate, color, has_theme, &but->icon_overlay_text);
     }
   }
 
@@ -1858,33 +1862,6 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
 }
 #endif /* WITH_INPUT_IME */
 
-struct UnderlineData {
-  size_t str_offset;  /* The string offset of the underlined character. */
-  int width_px;       /* The underline width in pixels. */
-  int r_offset_px[2]; /* Write the X,Y offset here. */
-};
-
-static bool widget_draw_text_underline_calc_position(const char *UNUSED(str),
-                                                     const size_t str_step_ofs,
-                                                     const rcti *glyph_step_bounds,
-                                                     const int UNUSED(glyph_advance_x),
-                                                     const rcti *glyph_bounds,
-                                                     const int UNUSED(glyph_bearing[2]),
-                                                     void *user_data)
-{
-  struct UnderlineData *ul_data = user_data;
-  if (ul_data->str_offset == str_step_ofs) {
-    /* Full width of this glyph including both bearings. */
-    const int width = glyph_bounds->xmin + BLI_rcti_size_x(glyph_bounds) + glyph_bounds->xmin;
-    ul_data->r_offset_px[0] = glyph_step_bounds->xmin + ((width - ul_data->width_px) / 2);
-    /* One line-width below the lower glyph bounds. */
-    ul_data->r_offset_px[1] = glyph_bounds->ymin - U.pixelsize;
-    /* Early exit. */
-    return false;
-  }
-  return true;
-}
-
 static void widget_draw_text(const uiFontStyle *fstyle,
                              const uiWidgetColors *wcol,
                              uiBut *but,
@@ -2150,26 +2127,18 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         }
 
         if (ul_index != -1) {
-          int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
-
-          struct UnderlineData ul_data = {
-              .str_offset = ul_index,
-              .width_px = ul_width,
-          };
-
-          BLF_boundbox_foreach_glyph(fstyle->uifont_id,
-                                     drawstr_ofs,
-                                     ul_index + 1,
-                                     widget_draw_text_underline_calc_position,
-                                     &ul_data);
-
-          const int pos_x = rect->xmin + font_xofs + ul_data.r_offset_px[0];
-          const int pos_y = rect->ymin + font_yofs + ul_data.r_offset_px[1];
-
-          /* Use text output because direct drawing doesn't always work. See T89246. */
-          BLF_position(fstyle->uifont_id, pos_x, pos_y, 0.0f);
-          BLF_color4ubv(fstyle->uifont_id, wcol->text);
-          BLF_draw(fstyle->uifont_id, "_", 2);
+          rcti bounds;
+          if (BLF_str_offset_to_glyph_bounds(fstyle->uifont_id, drawstr_ofs, ul_index, &bounds) &&
+              !BLI_rcti_is_empty(&bounds)) {
+            int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
+            int pos_x = rect->xmin + font_xofs + bounds.xmin +
+                        (bounds.xmax - bounds.xmin - ul_width) / 2;
+            int pos_y = rect->ymin + font_yofs + bounds.ymin - U.pixelsize;
+            /* Use text output because direct drawing doesn't always work. See T89246. */
+            BLF_position(fstyle->uifont_id, (float)pos_x, pos_y, 0.0f);
+            BLF_color4ubv(fstyle->uifont_id, wcol->text);
+            BLF_draw(fstyle->uifont_id, "_", 2);
+          }
         }
       }
     }
@@ -5461,7 +5430,8 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
     GPU_blend(GPU_BLEND_ALPHA);
     /* XXX scale weak get from fstyle? */
-    UI_icon_draw_ex(xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text, false);
+    UI_icon_draw_ex(
+        xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text, false, UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 

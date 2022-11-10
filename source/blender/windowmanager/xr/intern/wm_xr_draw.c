@@ -213,9 +213,9 @@ static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_co
   GPUIndexBuf *ibo = NULL;
   if (model_data.count_indices > 0 && ((model_data.count_indices % 3) == 0)) {
     GPUIndexBufBuilder ibo_builder;
-    const unsigned int prim_len = model_data.count_indices / 3;
+    const uint prim_len = model_data.count_indices / 3;
     GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, prim_len, model_data.count_vertices);
-    for (unsigned int i = 0; i < prim_len; ++i) {
+    for (uint i = 0; i < prim_len; ++i) {
       const uint32_t *idx = &model_data.indices[i * 3];
       GPU_indexbuf_add_tri_verts(&ibo_builder, idx[0], idx[1], idx[2]);
     }
@@ -261,8 +261,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
 
       GPU_matrix_push();
       GPU_matrix_mul(controller->grip_mat);
-      for (unsigned int component_idx = 0; component_idx < model_data.count_components;
-           ++component_idx) {
+      for (uint component_idx = 0; component_idx < model_data.count_components; ++component_idx) {
         const GHOST_XrControllerModelComponent *component = &model_data.components[component_idx];
         GPU_matrix_push();
         GPU_matrix_mul(component->transform);

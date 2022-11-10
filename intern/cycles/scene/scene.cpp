@@ -99,11 +99,8 @@ Scene::Scene(const SceneParams &params_, Device *device)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
 
-  /* OSL only works on the CPU */
-  if (device->info.has_osl)
-    shader_manager = ShaderManager::create(params.shadingsystem);
-  else
-    shader_manager = ShaderManager::create(SHADINGSYSTEM_SVM);
+  shader_manager = ShaderManager::create(
+      device->info.has_osl ? params.shadingsystem : SHADINGSYSTEM_SVM, device);
 
   light_manager = new LightManager();
   geometry_manager = new GeometryManager();
@@ -439,9 +436,9 @@ bool Scene::need_data_update()
           film->is_modified() || procedural_manager->need_update());
 }
 
-bool Scene::need_reset()
+bool Scene::need_reset(const bool check_camera)
 {
-  return need_data_update() || camera->is_modified();
+  return need_data_update() || (check_camera && camera->is_modified());
 }
 
 void Scene::reset()
@@ -547,6 +544,10 @@ void Scene::update_kernel_features()
   if (has_caustics_caster && has_caustics_receiver && has_caustics_light) {
     dscene.data.integrator.use_caustics = true;
     kernel_features |= KERNEL_FEATURE_MNEE;
+  }
+
+  if (integrator->get_guiding_params(device).use) {
+    kernel_features |= KERNEL_FEATURE_PATH_GUIDING;
   }
 
   if (bake_manager->get_baking()) {

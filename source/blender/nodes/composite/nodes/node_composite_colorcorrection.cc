@@ -35,7 +35,7 @@ static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_colorcorrection(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorCorrection *n = MEM_cnew<NodeColorCorrection>(__func__);
   n->startmidtones = 0.2f;
@@ -64,9 +64,7 @@ static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *
   node->storage = n;
 }
 
-static void node_composit_buts_colorcorrection(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -155,7 +153,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout,
 }
 
 static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiLayout *row;
@@ -355,7 +353,7 @@ void register_node_type_cmp_colorcorrection()
   ntype.draw_buttons = file_ns::node_composit_buts_colorcorrection;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorcorrection_ex;
   node_type_size(&ntype, 400, 200, 600);
-  node_type_init(&ntype, file_ns::node_composit_init_colorcorrection);
+  ntype.initfunc = file_ns::node_composit_init_colorcorrection;
   node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

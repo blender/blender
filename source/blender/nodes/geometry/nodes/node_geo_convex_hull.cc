@@ -56,7 +56,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 #  if 0 /* Disabled because it only works for meshes, not predictable enough. */
       /* Copy custom data on vertices, like vertex groups etc. */
       if (mesh && original_index < mesh->totvert) {
-        CustomData_copy_data(&mesh->vdata, &result->vdata, (int)original_index, (int)i, 1);
+        CustomData_copy_data(&mesh->vdata, &result->vdata, int(original_index), int(i), 1);
       }
 #  endif
       /* Copy the position of the original point. */
@@ -81,13 +81,13 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     int v_to;
     plConvexHullGetLoop(hull, i, &v_from, &v_to);
 
-    mloop_src[i].v = (uint)v_from;
+    mloop_src[i].v = uint(v_from);
     /* Add edges for ascending order loops only. */
     if (v_from < v_to) {
       MEdge &edge = edges[edge_index];
       edge.v1 = v_from;
       edge.v2 = v_to;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
 
       /* Write edge index into both loops that have it. */
       int reverse_index = plConvexHullGetReversedLoopIndex(hull, i);
@@ -101,7 +101,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     MEdge &edge = edges[0];
     edge.v1 = 0;
     edge.v2 = 1;
-    edge.flag |= ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
+    edge.flag |= ME_EDGEDRAW | ME_LOOSEEDGE;
     edge_index++;
   }
   BLI_assert(edge_index == edges_num);

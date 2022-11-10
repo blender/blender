@@ -11,6 +11,10 @@
 struct bArgs;
 struct bContext;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef WITH_PYTHON_MODULE
 
 /* creator_args.c */
@@ -68,14 +72,14 @@ enum {
 #  define BUILD_DATE
 #endif
 
-/* from buildinfo.c */
+/* From `buildinfo.c`. */
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
 extern char build_hash[];
 extern unsigned long build_commit_timestamp;
 
-/* TODO(sergey): ideally size need to be in sync with buildinfo.c */
+/* TODO(@sergey): ideally size need to be in sync with `buildinfo.c`. */
 extern char build_commit_date[16];
 extern char build_commit_time[16];
 
@@ -87,3 +91,7 @@ extern char build_cxxflags[];
 extern char build_linkflags[];
 extern char build_system[];
 #endif /* BUILD_DATE */
+
+#ifdef __cplusplus
+}
+#endif

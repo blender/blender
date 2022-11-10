@@ -9,6 +9,7 @@
 
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.h"
+#include "BKE_asset_library.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
@@ -284,10 +285,10 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
 static std::string asset_definition_default_file_path_from_dir(StringRef asset_library_root)
 {
   char file_path[PATH_MAX];
-  BLI_join_dirfile(file_path,
-                   sizeof(file_path),
-                   asset_library_root.data(),
-                   AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
+  BLI_path_join(file_path,
+                sizeof(file_path),
+                asset_library_root.data(),
+                AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
   return file_path;
 }
 
@@ -507,16 +508,14 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
                  "catalog definition file should be put");
 
   /* Ask the asset library API for an appropriate location. */
-  char suitable_root_path[PATH_MAX];
-  const bool asset_lib_root_found = BKE_asset_library_find_suitable_root_path_from_path(
-      blend_file_path.c_str(), suitable_root_path);
-  if (asset_lib_root_found) {
+  const std::string suitable_root_path = BKE_asset_library_find_suitable_root_path_from_path(
+      blend_file_path);
+  if (!suitable_root_path.empty()) {
     char asset_lib_cdf_path[PATH_MAX];
     BLI_path_join(asset_lib_cdf_path,
                   sizeof(asset_lib_cdf_path),
-                  suitable_root_path,
-                  DEFAULT_CATALOG_FILENAME.c_str(),
-                  nullptr);
+                  suitable_root_path.c_str(),
+                  DEFAULT_CATALOG_FILENAME.c_str());
     return asset_lib_cdf_path;
   }
 
@@ -786,6 +785,41 @@ void AssetCatalogTree::foreach_root_item(const ItemIterFn callback)
   for (auto &[key, item] : root_items_) {
     callback(item);
   }
+}
+
+bool AssetCatalogTree::is_empty() const
+{
+  return root_items_.empty();
+}
+
+AssetCatalogTreeItem *AssetCatalogTree::find_item(const AssetCatalogPath &path)
+{
+  AssetCatalogTreeItem *result = nullptr;
+  this->foreach_item([&](AssetCatalogTreeItem &item) {
+    if (result) {
+      /* There is no way to stop iteration. */
+      return;
+    }
+    if (item.catalog_path() == path) {
+      result = &item;
+    }
+  });
+  return result;
+}
+
+AssetCatalogTreeItem *AssetCatalogTree::find_root_item(const AssetCatalogPath &path)
+{
+  AssetCatalogTreeItem *result = nullptr;
+  this->foreach_root_item([&](AssetCatalogTreeItem &item) {
+    if (result) {
+      /* There is no way to stop iteration. */
+      return;
+    }
+    if (item.catalog_path() == path) {
+      result = &item;
+    }
+  });
+  return result;
 }
 
 /* ---------------------------------------------------------------------- */

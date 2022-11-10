@@ -25,7 +25,7 @@ std::string LazyFunction::output_name(int index) const
   return outputs_[index].debug_name;
 }
 
-void *LazyFunction::init_storage(LinearAllocator<> &UNUSED(allocator)) const
+void *LazyFunction::init_storage(LinearAllocator<> & /*allocator*/) const
 {
   return nullptr;
 }
@@ -61,6 +61,11 @@ void Params::set_default_remaining_outputs()
     type.value_initialize(data_ptr);
     this->output_set(i);
   }
+}
+
+bool Params::try_enable_multi_threading_impl()
+{
+  return false;
 }
 
 }  // namespace blender::fn::lazy_function

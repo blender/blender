@@ -125,7 +125,7 @@ struct BufInfo {
 
 static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
 {
-  /* nop */
+  /* NOP. */
 }
 
 static OPJ_SIZE_T opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
@@ -746,17 +746,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                              image->comps[0].h * image->comps[0].prec)) /
+          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_24_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = ((float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                               image->comps[0].prec)) /
+          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
+                              image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_24_CS) {
-            parameters->tcp_rates[i] = ((float)(image->numcomps * image->comps[0].w *
-                                                image->comps[0].h * image->comps[0].prec)) /
+            parameters->tcp_rates[i] = (float)(image->numcomps * image->comps[0].w *
+                                               image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_24_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }
@@ -772,17 +772,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                              image->comps[0].h * image->comps[0].prec)) /
+          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_48_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = ((float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                               image->comps[0].prec)) /
+          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
+                              image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_48_CS) {
-            parameters->tcp_rates[0] = ((float)(image->numcomps * image->comps[0].w *
-                                                image->comps[0].h * image->comps[0].prec)) /
+            parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
+                                               image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_48_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }
@@ -885,7 +885,10 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   memset(&cmptparm, 0, sizeof(opj_image_cmptparm_t[4]));
   for (i = 0; i < numcomps; i++) {
     cmptparm[i].prec = prec;
+    /* Deprecated in openjpeg 2.5. */
+#if (OPJ_VERSION_MAJOR < 2) || (OPJ_VERSION_MAJOR == 2 && OPJ_VERSION_MINOR < 5)
     cmptparm[i].bpp = prec;
+#endif
     cmptparm[i].sgnd = 0;
     cmptparm[i].dx = subsampling_dx;
     cmptparm[i].dy = subsampling_dy;

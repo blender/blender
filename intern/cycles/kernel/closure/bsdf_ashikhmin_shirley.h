@@ -39,11 +39,10 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
   return 2.0f / (roughness * roughness) - 2.0f;
 }
 
-ccl_device_forceinline Spectrum
-bsdf_ashikhmin_shirley_eval_reflect(ccl_private const ShaderClosure *sc,
-                                    const float3 I,
-                                    const float3 omega_in,
-                                    ccl_private float *pdf)
+ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const ShaderClosure *sc,
+                                                            const float3 I,
+                                                            const float3 omega_in,
+                                                            ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float3 N = bsdf->N;
@@ -53,68 +52,58 @@ bsdf_ashikhmin_shirley_eval_reflect(ccl_private const ShaderClosure *sc,
 
   float out = 0.0f;
 
-  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
+  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f || !(NdotI > 0.0f && NdotO > 0.0f)) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
-  if (NdotI > 0.0f && NdotO > 0.0f) {
-    NdotI = fmaxf(NdotI, 1e-6f);
-    NdotO = fmaxf(NdotO, 1e-6f);
-    float3 H = normalize(omega_in + I);
-    float HdotI = fmaxf(fabsf(dot(H, I)), 1e-6f);
-    float HdotN = fmaxf(dot(H, N), 1e-6f);
 
-    /* pump from original paper
-     * (first derivative disc., but cancels the HdotI in the pdf nicely) */
-    float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotO, NdotI)));
-    /* pump from d-brdf paper */
-    /*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */
+  NdotI = fmaxf(NdotI, 1e-6f);
+  NdotO = fmaxf(NdotO, 1e-6f);
+  float3 H = normalize(omega_in + I);
+  float HdotI = fmaxf(fabsf(dot(H, I)), 1e-6f);
+  float HdotN = fmaxf(dot(H, N), 1e-6f);
 
-    float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
-    float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
+  /* pump from original paper
+   * (first derivative disc., but cancels the HdotI in the pdf nicely) */
+  float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotO, NdotI)));
+  /* pump from d-brdf paper */
+  /*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */
 
-    if (n_x == n_y) {
-      /* isotropic */
-      float e = n_x;
-      float lobe = powf(HdotN, e);
-      float norm = (n_x + 1.0f) / (8.0f * M_PI_F);
+  float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
+  float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
 
-      out = NdotO * norm * lobe * pump;
-      /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper). */
-      *pdf = norm * lobe / HdotI;
+  if (n_x == n_y) {
+    /* isotropic */
+    float e = n_x;
+    float lobe = powf(HdotN, e);
+    float norm = (n_x + 1.0f) / (8.0f * M_PI_F);
+
+    out = NdotO * norm * lobe * pump;
+    /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper). */
+    *pdf = norm * lobe / HdotI;
+  }
+  else {
+    /* anisotropic */
+    float3 X, Y;
+    make_orthonormals_tangent(N, bsdf->T, &X, &Y);
+
+    float HdotX = dot(H, X);
+    float HdotY = dot(H, Y);
+    float lobe;
+    if (HdotN < 1.0f) {
+      float e = (n_x * HdotX * HdotX + n_y * HdotY * HdotY) / (1.0f - HdotN * HdotN);
+      lobe = powf(HdotN, e);
     }
     else {
-      /* anisotropic */
-      float3 X, Y;
-      make_orthonormals_tangent(N, bsdf->T, &X, &Y);
-
-      float HdotX = dot(H, X);
-      float HdotY = dot(H, Y);
-      float lobe;
-      if (HdotN < 1.0f) {
-        float e = (n_x * HdotX * HdotX + n_y * HdotY * HdotY) / (1.0f - HdotN * HdotN);
-        lobe = powf(HdotN, e);
-      }
-      else {
-        lobe = 1.0f;
-      }
-      float norm = sqrtf((n_x + 1.0f) * (n_y + 1.0f)) / (8.0f * M_PI_F);
-
-      out = NdotO * norm * lobe * pump;
-      *pdf = norm * lobe / HdotI;
+      lobe = 1.0f;
     }
+    float norm = sqrtf((n_x + 1.0f) * (n_y + 1.0f)) / (8.0f * M_PI_F);
+
+    out = NdotO * norm * lobe * pump;
+    *pdf = norm * lobe / HdotI;
   }
 
   return make_spectrum(out);
-}
-
-ccl_device Spectrum bsdf_ashikhmin_shirley_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                         const float3 I,
-                                                         const float3 omega_in,
-                                                         ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
 }
 
 ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
@@ -137,86 +126,91 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
                                              float randv,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *omega_in,
-                                             ccl_private float *pdf)
+                                             ccl_private float *pdf,
+                                             ccl_private float2 *sampled_roughness)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  *sampled_roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
   float3 N = bsdf->N;
   int label = LABEL_REFLECT | LABEL_GLOSSY;
 
   float NdotI = dot(N, I);
-  if (NdotI > 0.0f) {
+  if (!(NdotI > 0.0f)) {
+    *pdf = 0.0f;
+    *eval = zero_spectrum();
+    return LABEL_NONE;
+  }
 
-    float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
-    float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
+  float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
+  float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
 
-    /* get x,y basis on the surface for anisotropy */
-    float3 X, Y;
+  /* get x,y basis on the surface for anisotropy */
+  float3 X, Y;
 
-    if (n_x == n_y)
-      make_orthonormals(N, &X, &Y);
-    else
-      make_orthonormals_tangent(N, bsdf->T, &X, &Y);
+  if (n_x == n_y)
+    make_orthonormals(N, &X, &Y);
+  else
+    make_orthonormals_tangent(N, bsdf->T, &X, &Y);
 
-    /* sample spherical coords for h in tangent space */
-    float phi;
-    float cos_theta;
-    if (n_x == n_y) {
-      /* isotropic sampling */
-      phi = M_2PI_F * randu;
-      cos_theta = powf(randv, 1.0f / (n_x + 1.0f));
+  /* sample spherical coords for h in tangent space */
+  float phi;
+  float cos_theta;
+  if (n_x == n_y) {
+    /* isotropic sampling */
+    phi = M_2PI_F * randu;
+    cos_theta = powf(randv, 1.0f / (n_x + 1.0f));
+  }
+  else {
+    /* anisotropic sampling */
+    if (randu < 0.25f) { /* first quadrant */
+      float remapped_randu = 4.0f * randu;
+      bsdf_ashikhmin_shirley_sample_first_quadrant(
+          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
     }
-    else {
-      /* anisotropic sampling */
-      if (randu < 0.25f) { /* first quadrant */
-        float remapped_randu = 4.0f * randu;
-        bsdf_ashikhmin_shirley_sample_first_quadrant(
-            n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
-      }
-      else if (randu < 0.5f) { /* second quadrant */
-        float remapped_randu = 4.0f * (.5f - randu);
-        bsdf_ashikhmin_shirley_sample_first_quadrant(
-            n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
-        phi = M_PI_F - phi;
-      }
-      else if (randu < 0.75f) { /* third quadrant */
-        float remapped_randu = 4.0f * (randu - 0.5f);
-        bsdf_ashikhmin_shirley_sample_first_quadrant(
-            n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
-        phi = M_PI_F + phi;
-      }
-      else { /* fourth quadrant */
-        float remapped_randu = 4.0f * (1.0f - randu);
-        bsdf_ashikhmin_shirley_sample_first_quadrant(
-            n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
-        phi = 2.0f * M_PI_F - phi;
-      }
+    else if (randu < 0.5f) { /* second quadrant */
+      float remapped_randu = 4.0f * (.5f - randu);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(
+          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+      phi = M_PI_F - phi;
     }
-
-    /* get half vector in tangent space */
-    float sin_theta = sqrtf(fmaxf(0.0f, 1.0f - cos_theta * cos_theta));
-    float cos_phi = cosf(phi);
-    float sin_phi = sinf(phi); /* no sqrt(1-cos^2) here b/c it causes artifacts */
-    float3 h = make_float3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
-
-    /* half vector to world space */
-    float3 H = h.x * X + h.y * Y + h.z * N;
-    float HdotI = dot(H, I);
-    if (HdotI < 0.0f)
-      H = -H;
-
-    /* reflect I on H to get omega_in */
-    *omega_in = -I + (2.0f * HdotI) * H;
-
-    if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
-      /* Some high number for MIS. */
-      *pdf = 1e6f;
-      *eval = make_spectrum(1e6f);
-      label = LABEL_REFLECT | LABEL_SINGULAR;
+    else if (randu < 0.75f) { /* third quadrant */
+      float remapped_randu = 4.0f * (randu - 0.5f);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(
+          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+      phi = M_PI_F + phi;
     }
-    else {
-      /* leave the rest to eval_reflect */
-      *eval = bsdf_ashikhmin_shirley_eval_reflect(sc, I, *omega_in, pdf);
+    else { /* fourth quadrant */
+      float remapped_randu = 4.0f * (1.0f - randu);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(
+          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+      phi = 2.0f * M_PI_F - phi;
     }
+  }
+
+  /* get half vector in tangent space */
+  float sin_theta = sqrtf(fmaxf(0.0f, 1.0f - cos_theta * cos_theta));
+  float cos_phi = cosf(phi);
+  float sin_phi = sinf(phi); /* no sqrt(1-cos^2) here b/c it causes artifacts */
+  float3 h = make_float3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
+
+  /* half vector to world space */
+  float3 H = h.x * X + h.y * Y + h.z * N;
+  float HdotI = dot(H, I);
+  if (HdotI < 0.0f)
+    H = -H;
+
+  /* reflect I on H to get omega_in */
+  *omega_in = -I + (2.0f * HdotI) * H;
+
+  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
+    /* Some high number for MIS. */
+    *pdf = 1e6f;
+    *eval = make_spectrum(1e6f);
+    label = LABEL_REFLECT | LABEL_SINGULAR;
+  }
+  else {
+    /* leave the rest to eval */
+    *eval = bsdf_ashikhmin_shirley_eval(sc, I, *omega_in, pdf);
   }
 
   return label;

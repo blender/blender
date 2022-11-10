@@ -27,9 +27,9 @@ BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride
 
   if ((*bs_p) == NULL) {
     /* calculate best chunk-count to fit a power of two */
-    unsigned int chunk_count = chunk_size;
+    uint chunk_count = chunk_size;
     {
-      unsigned int size = chunk_count * stride;
+      uint size = chunk_count * stride;
       size = power_of_2_max_u(size);
       size = MEM_SIZE_OPTIMAL(size);
       chunk_count = size / stride;

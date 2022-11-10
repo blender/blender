@@ -41,7 +41,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Start / Clear Search Filter Operators
  *
- *  \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
+ * \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
  * \{ */
 
 static int buttons_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
@@ -205,7 +205,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
     if (BLI_is_dir(path)) {
       /* Do this first so '//' isn't converted to '//\' on windows. */
-      BLI_path_slash_ensure(path);
+      BLI_path_slash_ensure(path, sizeof(path));
       if (is_relative) {
         BLI_path_rel(path, BKE_main_blendfile_path(bmain));
         str_len = strlen(path);
@@ -336,6 +336,12 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   RNA_string_set(op->ptr, path_prop, str);
   MEM_freeN(str);
+
+  PropertyRNA *prop_check_existing = RNA_struct_find_property(op->ptr, "check_existing");
+  if (!RNA_property_is_set(op->ptr, prop_check_existing)) {
+    const bool is_output_path = (RNA_property_flag(prop) & PROP_PATH_OUTPUT) != 0;
+    RNA_property_boolean_set(op->ptr, prop_check_existing, is_output_path);
+  }
 
   WM_event_add_fileselect(C, op);
 

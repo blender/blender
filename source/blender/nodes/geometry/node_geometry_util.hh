@@ -24,6 +24,8 @@
 
 #include "node_util.h"
 
+struct BVHTreeFromMesh;
+
 void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 bool geo_node_poll_default(struct bNodeType *ntype,
                            struct bNodeTree *ntree,
@@ -78,7 +80,34 @@ void separate_geometry(GeometrySet &geometry_set,
                        const Field<bool> &selection_field,
                        bool &r_is_error);
 
+void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
+                            const VArray<float3> &positions,
+                            const IndexMask mask,
+                            const MutableSpan<int> r_indices,
+                            const MutableSpan<float> r_distances_sq,
+                            const MutableSpan<float3> r_positions);
+
+int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
+
 std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
+
+class FieldAtIndexInput final : public bke::GeometryFieldInput {
+ private:
+  Field<int> index_field_;
+  GField value_field_;
+  eAttrDomain value_field_domain_;
+
+ public:
+  FieldAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask mask) const final;
+
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
+  {
+    return value_field_domain_;
+  }
+};
 
 }  // namespace blender::nodes

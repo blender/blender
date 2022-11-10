@@ -8,8 +8,6 @@
 #include "BLI_float4x4.hh"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "DEG_depsgraph.h"
 
 #include "BKE_attribute_math.hh"
@@ -17,17 +15,13 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_sample.hh"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
 #include "DNA_brush_enums.h"
-#include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -36,8 +30,6 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
-
-#include "UI_interface.h"
 
 #include "WM_api.h"
 
@@ -178,8 +170,7 @@ struct SlideOperationExecutor {
       report_empty_original_surface(stroke_extension.reports);
       return;
     }
-    surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
-                              BKE_mesh_runtime_looptri_len(surface_orig_)};
+    surface_looptris_orig_ = surface_orig_->looptris();
     surface_uv_map_orig_ = surface_orig_->attributes().lookup<float2>(uv_map_name,
                                                                       ATTR_DOMAIN_CORNER);
     if (surface_uv_map_orig_.is_empty()) {
@@ -205,8 +196,7 @@ struct SlideOperationExecutor {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
-    surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
-                              BKE_mesh_runtime_looptri_len(surface_eval_)};
+    surface_looptris_eval_ = surface_eval_->looptris();
     surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
     surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(uv_map_name,

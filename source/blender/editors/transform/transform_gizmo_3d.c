@@ -553,7 +553,7 @@ static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], con
 
 static bool test_rotmode_euler(short rotmode)
 {
-  return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
+  return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? 0 : 1;
 }
 
 bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
@@ -581,12 +581,12 @@ bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
     mul_m3_m3m3(mat, parent_mat, tmat);
 
     /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->obmat);
+    copy_m3_m4(obmat, ob->object_to_world);
     mul_m3_m3m3(gmat, obmat, mat);
   }
   else {
     /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->obmat);
+    copy_m3_m4(obmat, ob->object_to_world);
     mul_m3_m3m3(gmat, obmat, tmat);
   }
 
@@ -608,7 +608,7 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
 
   if (ob->parent) {
     float parent_mat[3][3];
-    copy_m3_m4(parent_mat, ob->parent->obmat);
+    copy_m3_m4(parent_mat, ob->parent->object_to_world);
     normalize_m3(parent_mat);
     mul_m3_m3m3(gmat, parent_mat, gmat);
   }
@@ -639,6 +639,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                  (params->orientation_index - 1) :
                                  BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -674,14 +675,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   copy_m3_m4(tbounds->axis, rv3d->twmat);
   if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
     float diff_mat[3][3];
-    copy_m3_m4(diff_mat, ob->obmat);
+    copy_m3_m4(diff_mat, ob->object_to_world);
     normalize_m3(diff_mat);
     invert_m3(diff_mat);
     mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
     normalize_m3(tbounds->axis);
 
     tbounds->use_matrix_space = true;
-    copy_m4_m4(tbounds->matrix_space, ob->obmat);
+    copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
   }
 
   if (is_gp_edit) {
@@ -750,10 +751,10 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
 #define FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) \
   { \
-    invert_m4_m4(obedit->imat, obedit->obmat); \
+    invert_m4_m4(obedit->world_to_object, obedit->object_to_world); \
     uint objects_len = 0; \
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode( \
-        view_layer, CTX_wm_view3d(C), &objects_len); \
+        scene, view_layer, CTX_wm_view3d(C), &objects_len); \
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) { \
       Object *ob_iter = objects[ob_index]; \
       const bool use_mat_local = (ob_iter != obedit);
@@ -779,7 +780,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -799,7 +800,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
@@ -832,7 +833,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         nu = nurbs->first;
@@ -892,7 +893,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
@@ -912,7 +913,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         while (a--) {
@@ -932,16 +933,16 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     /* selection center */
     if (totsel) {
       mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
-      mul_m4_v3(obedit->obmat, tbounds->center);
-      mul_m4_v3(obedit->obmat, tbounds->min);
-      mul_m4_v3(obedit->obmat, tbounds->max);
+      mul_m4_v3(obedit->object_to_world, tbounds->center);
+      mul_m4_v3(obedit->object_to_world, tbounds->min);
+      mul_m4_v3(obedit->object_to_world, tbounds->max);
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    invert_m4_m4(ob->imat, ob->obmat);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     uint objects_len = 0;
-    Object **objects = BKE_object_pose_array_get(view_layer, v3d, &objects_len);
+    Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
@@ -953,7 +954,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       float mat_local[4][4];
       if (use_mat_local) {
-        mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
+        mul_m4_m4m4(mat_local, ob->world_to_object, ob_iter->object_to_world);
       }
 
       /* Use channels to get stats. */
@@ -970,18 +971,18 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
     if (totsel) {
       mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
-      mul_m4_v3(ob->obmat, tbounds->center);
-      mul_m4_v3(ob->obmat, tbounds->min);
-      mul_m4_v3(ob->obmat, tbounds->max);
+      mul_m4_v3(ob->object_to_world, tbounds->center);
+      mul_m4_v3(ob->object_to_world, tbounds->min);
+      mul_m4_v3(ob->object_to_world, tbounds->max);
     }
   }
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
     if (ob->mode & OB_MODE_SCULPT) {
       totsel = 1;
-      calc_tw_center_with_matrix(tbounds, ob->sculpt->pivot_pos, false, ob->obmat);
-      mul_m4_v3(ob->obmat, tbounds->center);
-      mul_m4_v3(ob->obmat, tbounds->min);
-      mul_m4_v3(ob->obmat, tbounds->max);
+      calc_tw_center_with_matrix(tbounds, ob->sculpt->pivot_pos, false, ob->object_to_world);
+      mul_m4_v3(ob->object_to_world, tbounds->center);
+      mul_m4_v3(ob->object_to_world, tbounds->min);
+      mul_m4_v3(ob->object_to_world, tbounds->max);
     }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -1014,13 +1015,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   else {
 
     /* we need the one selected object, if its not active */
-    base = view_layer->basact;
-    ob = BKE_view_layer_active_object_get(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    base = BKE_view_layer_active_base_get(view_layer);
+    ob = base ? base->object : NULL;
     if (base && ((base->flag & BASE_SELECTED) == 0)) {
       ob = NULL;
     }
 
-    for (base = view_layer->object_bases.first; base; base = base->next) {
+    for (base = BKE_view_layer_object_bases_get(view_layer)->first; base; base = base->next) {
       if (!BASE_SELECTED_EDITABLE(v3d, base)) {
         continue;
       }
@@ -1035,12 +1037,12 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       }
 
       if (params->use_only_center || (bb == NULL)) {
-        calc_tw_center(tbounds, base->object->obmat[3]);
+        calc_tw_center(tbounds, base->object->object_to_world[3]);
       }
       else {
         for (uint j = 0; j < 8; j++) {
           float co[3];
-          mul_v3_m4v3(co, base->object->obmat, bb->vec[j]);
+          mul_v3_m4v3(co, base->object->object_to_world, bb->vec[j]);
           calc_tw_center(tbounds, co);
         }
       }
@@ -1098,13 +1100,15 @@ static void gizmo_prepare_mat(const bContext *C,
       mid_v3_v3v3(rv3d->twmat[3], tbounds->min, tbounds->max);
 
       if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-        bGPdata *gpd = CTX_data_gpencil_data(C);
-        if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-          /* pass */
-        }
-        else {
-          Object *ob = BKE_view_layer_active_object_get(view_layer);
-          if (ob != NULL) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        Object *ob = BKE_view_layer_active_object_get(view_layer);
+        if (ob != NULL) {
+          /* Grease Pencil uses object origin. */
+          bGPdata *gpd = CTX_data_gpencil_data(C);
+          if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+            ED_object_calc_active_center(ob, false, rv3d->twmat[3]);
+          }
+          else {
             if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
               SculptSession *ss = ob->sculpt;
               copy_v3_v3(rv3d->twmat[3], ss->pivot_pos);

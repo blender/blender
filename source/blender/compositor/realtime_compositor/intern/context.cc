@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_context.hh"
+#include "COM_static_cache_manager.hh"
 #include "COM_static_shader_manager.hh"
 #include "COM_texture_pool.hh"
 
@@ -17,9 +18,8 @@ int Context::get_frame_number() const
 
 float Context::get_time() const
 {
-  const float frame_number = static_cast<float>(get_frame_number());
-  const float frame_rate = static_cast<float>(get_scene()->r.frs_sec) /
-                           static_cast<float>(get_scene()->r.frs_sec_base);
+  const float frame_number = float(get_frame_number());
+  const float frame_rate = float(get_scene()->r.frs_sec) / float(get_scene()->r.frs_sec_base);
   return frame_number / frame_rate;
 }
 
@@ -31,6 +31,11 @@ TexturePool &Context::texture_pool()
 StaticShaderManager &Context::shader_manager()
 {
   return shader_manager_;
+}
+
+StaticCacheManager &Context::cache_manager()
+{
+  return cache_manager_;
 }
 
 }  // namespace blender::realtime_compositor

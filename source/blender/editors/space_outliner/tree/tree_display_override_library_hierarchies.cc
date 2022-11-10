@@ -324,7 +324,7 @@ static bool id_is_in_override_hierarchy(const Main &bmain,
 
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(&id)) {
     /* In many cases, `relationship_parent_id` is the owner, but not always (e.g. there can be
-     * drivers directly between an object and a shapekey). */
+     * drivers directly between an object and a shape-key). */
     BKE_lib_override_library_get(const_cast<Main *>(&bmain),
                                  const_cast<ID *>(&id),
                                  const_cast<ID *>(&relationship_parent_id),

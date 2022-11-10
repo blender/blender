@@ -7,6 +7,10 @@
  */
 
 #ifdef __cplusplus
+#  include "BLI_array.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -59,6 +63,10 @@ typedef struct UvElement {
  * If islands are calculated, it also stores UvElements
  * belonging to the same uv island in sequence and
  * the number of uvs per island.
+ *
+ * \note in C++, #head_table and #unique_index_table would
+ * be `mutable`, as they are created on demand, and never
+ * changed after creation.
  */
 typedef struct UvElementMap {
   /** UvElement Storage. */
@@ -73,6 +81,9 @@ typedef struct UvElementMap {
 
   /** If Non-NULL, pointer to local head of each unique UV. */
   struct UvElement **head_table;
+
+  /** If Non-NULL, pointer to index of each unique UV. */
+  int *unique_index_table;
 
   /** Number of islands, or zero if not calculated. */
   int total_islands;
@@ -93,6 +104,7 @@ typedef struct MeshElemMap {
 /* mapping */
 UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
                                        const bool *hide_poly,
+                                       const bool *select_poly,
                                        const struct MLoop *mloop,
                                        const struct MLoopUV *mloopuv,
                                        unsigned int totpoly,
@@ -328,4 +340,20 @@ int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+namespace blender::bke::mesh_topology {
+
+Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);
+
+Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
+Array<Vector<int>> build_vert_to_loop_map(Span<MLoop> loops, int verts_num);
+
+inline int previous_poly_loop(const MPoly &poly, int loop_i)
+{
+  return loop_i - 1 + (loop_i == poly.loopstart) * poly.totloop;
+}
+
+}  // namespace blender::bke::mesh_topology
 #endif

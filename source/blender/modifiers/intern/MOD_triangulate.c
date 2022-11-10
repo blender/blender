@@ -86,7 +86,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
   /* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
   for (i = 0; i < edges_num; i++, me++) {
-    me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+    me->flag |= ME_EDGEDRAW;
   }
 
   return result;

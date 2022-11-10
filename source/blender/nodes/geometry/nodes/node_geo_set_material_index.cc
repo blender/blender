@@ -24,11 +24,13 @@ static void set_material_index_in_component(GeometryComponent &component,
   MutableAttributeAccessor attributes = *component.attributes_for_write();
   bke::GeometryFieldContext field_context{component, domain};
 
+  const bke::AttributeValidator validator = attributes.lookup_validator("material_index");
   AttributeWriter<int> indices = attributes.lookup_or_add_for_write<int>("material_index", domain);
 
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(index_field, indices.varray);
+  evaluator.add_with_destination(validator.validate_field_if_necessary(index_field),
+                                 indices.varray);
   evaluator.evaluate();
   indices.finish();
 }

@@ -28,6 +28,7 @@ set(SRC
   ed_util.c
   ed_util_imbuf.c
   ed_util_ops.cc
+  ed_viewer_path.cc
   gizmo_utils.c
   numinput.c
   select_utils.c
@@ -89,6 +90,7 @@ set(SRC
   ../include/ED_uvedit.h
   ../include/ED_view3d.h
   ../include/ED_view3d_offscreen.h
+  ../include/ED_viewer_path.hh
   ../include/UI_abstract_view.hh
   ../include/UI_grid_view.hh
   ../include/UI_icons.h

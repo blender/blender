@@ -357,7 +357,7 @@ IDTypeInfo IDType_ID_MC = {
 
 /*********************** movieclip buffer loaders *************************/
 
-static int sequence_guess_offset(const char *full_name, int head_len, unsigned short numlen)
+static int sequence_guess_offset(const char *full_name, int head_len, ushort numlen)
 {
   char num[FILE_MAX] = {0};
 
@@ -425,7 +425,7 @@ static int get_timecode(MovieClip *clip, int flag)
 
 static void get_sequence_fname(const MovieClip *clip, const int framenr, char *name)
 {
-  unsigned short numlen;
+  ushort numlen;
   char head[FILE_MAX], tail[FILE_MAX];
   int offset;
 
@@ -647,7 +647,7 @@ static void movieclip_calc_length(MovieClip *clip)
     }
   }
   else if (clip->source == MCLIP_SRC_SEQUENCE) {
-    unsigned short numlen;
+    ushort numlen;
     char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
     BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
@@ -735,7 +735,7 @@ static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
 
   if (clip->source == MCLIP_SRC_SEQUENCE) {
     if (clip->cache->sequence_offset == -1) {
-      unsigned short numlen;
+      ushort numlen;
       char head[FILE_MAX], tail[FILE_MAX];
 
       BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
@@ -763,7 +763,7 @@ static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *ren
   *render_flags = key->render_flag;
 }
 
-static unsigned int moviecache_hashhash(const void *keyv)
+static uint moviecache_hashhash(const void *keyv)
 {
   const MovieClipImBufCacheKey *key = keyv;
   int rval = key->framenr;
@@ -880,7 +880,7 @@ static bool put_imbuf_cache(
     clip->cache->moviecache = moviecache;
     clip->cache->sequence_offset = -1;
     if (clip->source == MCLIP_SRC_SEQUENCE) {
-      unsigned short numlen;
+      ushort numlen;
       BLI_path_sequence_decode(clip->filepath, NULL, NULL, &numlen);
       clip->cache->is_still_sequence = (numlen == 0);
     }

@@ -72,7 +72,7 @@ AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle)
   if (!handle) {
     return nullptr;
   }
-  BLI_assert(handle->file_data->asset_data != nullptr);
+  BLI_assert(handle->file_data->asset != nullptr);
   return reinterpret_cast<AssetTempIDConsumer *>(
       MEM_new<AssetTemporaryIDConsumer>(__func__, *handle));
 }

@@ -73,7 +73,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   GPU_viewport_size_get_f(viewport);
 
   const float max_pixel_error = 0.25f;
-  int nsegments = (int)(ceilf(M_PI / acosf(1.0f - max_pixel_error / screen_scale)));
+  int nsegments = (int)ceilf(M_PI / acosf(1.0f - max_pixel_error / screen_scale));
   nsegments = max_ff(nsegments, 8);
   nsegments = min_ff(nsegments, 1000);
 

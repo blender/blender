@@ -17,16 +17,14 @@ int calculate_evaluated_num(const int points_num, const bool cyclic, const int r
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */
-template<typename T>
-static T calculate_basis(const T &a, const T &b, const T &c, const T &d, const float parameter)
+void calculate_basis(const float parameter, float4 &r_weights)
 {
   const float t = parameter;
   const float s = 1.0f - parameter;
-  const float n0 = -t * s * s;
-  const float n1 = 2.0f + t * t * (3.0f * t - 5.0f);
-  const float n2 = 2.0f + s * s * (3.0f * s - 5.0f);
-  const float n3 = -s * t * t;
-  return 0.5f * (a * n0 + b * n1 + c * n2 + d * n3);
+  r_weights[0] = -t * s * s;
+  r_weights[1] = 2.0f + t * t * (3.0f * t - 5.0f);
+  r_weights[2] = 2.0f + s * s * (3.0f * s - 5.0f);
+  r_weights[3] = -s * t * t;
 }
 
 template<typename T>
@@ -35,7 +33,7 @@ static void evaluate_segment(const T &a, const T &b, const T &c, const T &d, Mut
   const float step = 1.0f / dst.size();
   dst.first() = b;
   for (const int i : dst.index_range().drop_front(1)) {
-    dst[i] = calculate_basis<T>(a, b, c, d, i * step);
+    dst[i] = interpolate<T>(a, b, c, d, i * step);
   }
 }
 
@@ -141,11 +139,7 @@ void interpolate_to_evaluated(const GSpan src,
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    /* TODO: Use DefaultMixer or other generic mixing in the basis evaluation function to simplify
-     * supporting more types. */
-    if constexpr (is_same_any_v<T, float, float2, float3, float4, int8_t, int, int64_t>) {
-      interpolate_to_evaluated(src.typed<T>(), cyclic, resolution, dst.typed<T>());
-    }
+    interpolate_to_evaluated(src.typed<T>(), cyclic, resolution, dst.typed<T>());
   });
 }
 
@@ -156,11 +150,7 @@ void interpolate_to_evaluated(const GSpan src,
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    /* TODO: Use DefaultMixer or other generic mixing in the basis evaluation function to simplify
-     * supporting more types. */
-    if constexpr (is_same_any_v<T, float, float2, float3, float4, int8_t, int, int64_t>) {
-      interpolate_to_evaluated(src.typed<T>(), cyclic, evaluated_offsets, dst.typed<T>());
-    }
+    interpolate_to_evaluated(src.typed<T>(), cyclic, evaluated_offsets, dst.typed<T>());
   });
 }
 

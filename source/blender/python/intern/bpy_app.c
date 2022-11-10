@@ -559,7 +559,7 @@ PyObject *BPY_app_struct(void)
   BlenderAppType.tp_hash = (hashfunc)
       _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
 
-  /* kindof a hack ontop of PyStructSequence */
+  /* Kind of a hack on top of #PyStructSequence. */
   py_struct_seq_getset_init();
   py_struct_seq_method_init();
 

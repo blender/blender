@@ -332,8 +332,12 @@ bool BKE_gpencil_stroke_stretch(struct bGPDstroke *gps,
  * \param gps: Target stroke.
  * \param index_from: the index of the first point to be used in the trimmed result.
  * \param index_to: the index of the last point to be used in the trimmed result.
+ * \param keep_point: Keep strokes with one point. False remove the single points strokes
  */
-bool BKE_gpencil_stroke_trim_points(struct bGPDstroke *gps, int index_from, int index_to);
+bool BKE_gpencil_stroke_trim_points(struct bGPDstroke *gps,
+                                    int index_from,
+                                    int index_to,
+                                    const bool keep_point);
 /**
  * Split the given stroke into several new strokes, partitioning
  * it based on whether the stroke points have a particular flag

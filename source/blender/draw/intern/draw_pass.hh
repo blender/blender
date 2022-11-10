@@ -14,8 +14,7 @@
  * #Pass. Use many #PassSub along with a main #Pass to reduce the overhead and allow groupings of
  * commands. \note The draw call order inside a batch of multiple draw with the exact same state is
  * not guaranteed and is not even deterministic. Use a #PassSimple or #PassSortable if ordering is
- * needed. \note As of now, it is also quite limited in the type of draw command it can record
- * (no custom vertex count, no custom first vertex).
+ * needed. Custom vertex count and custom first vertex will effectively disable batching.
  *
  * `PassSimple`:
  * Does not have the overhead of #PassMain but does not have the culling and batching optimization.
@@ -160,8 +159,10 @@ class PassBase {
    *
    * IMPORTANT: This does not set the stencil mask/reference values. Add a call to state_stencil()
    * to ensure correct behavior of stencil aware draws.
+   *
+   * TODO(fclem): clip_plane_count should be part of shader state.
    */
-  void state_set(DRWState state);
+  void state_set(DRWState state, int clip_plane_count = 0);
 
   /**
    * Clear the current frame-buffer.
@@ -174,9 +175,15 @@ class PassBase {
 
   /**
    * Reminders:
-   * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
+   * - `compare_mask & reference` is what is tested against `compare_mask & stencil_value`
    *   stencil_value being the value stored in the stencil buffer.
-   * - (write-mask & reference) is what gets written if the test condition is fulfilled.
+   * - `write-mask & reference` is what gets written if the test condition is fulfilled.
+   *
+   * This will modify the stencil state until another call to this function.
+   * If not specified before any draw-call, these states will be undefined.
+   *
+   * For more information see:
+   * https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkStencilOpState.html
    */
   void state_stencil(uint8_t write_mask, uint8_t reference, uint8_t compare_mask);
 
@@ -184,6 +191,12 @@ class PassBase {
    * Bind a shader. Any following bind() or push_constant() call will use its interface.
    */
   void shader_set(GPUShader *shader);
+
+  /**
+   * Bind a framebuffer. This is equivalent to a deferred GPU_framebuffer_bind() call.
+   * \note Changes the global GPU state (outside of DRW).
+   */
+  void framebuffer_set(GPUFrameBuffer *framebuffer);
 
   /**
    * Bind a material shader along with its associated resources. Any following bind() or
@@ -403,7 +416,7 @@ class PassSortable : public PassMain {
   {
     int64_t index = sub_passes_.append_and_get_index(
         PassBase(name, draw_commands_buf_, sub_passes_, shader_));
-    headers_.append({Type::SubPass, static_cast<uint>(index)});
+    headers_.append({Type::SubPass, uint(index)});
     sorting_values_.append(sorting_value);
     return sub_passes_[index];
   }
@@ -442,7 +455,7 @@ namespace detail {
 template<class T> inline command::Undetermined &PassBase<T>::create_command(command::Type type)
 {
   int64_t index = commands_.append_and_get_index({});
-  headers_.append({type, static_cast<uint>(index)});
+  headers_.append({type, uint(index)});
   return commands_[index];
 }
 
@@ -452,7 +465,7 @@ inline void PassBase<T>::clear(eGPUFrameBufferBits planes,
                                float depth,
                                uint8_t stencil)
 {
-  create_command(command::Type::Clear).clear = {(uint8_t)planes, stencil, depth, color};
+  create_command(command::Type::Clear).clear = {uint8_t(planes), stencil, depth, color};
 }
 
 template<class T> inline GPUBatch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
@@ -477,7 +490,7 @@ template<class T> inline PassBase<T> &PassBase<T>::sub(const char *name)
 {
   int64_t index = sub_passes_.append_and_get_index(
       PassBase(name, draw_commands_buf_, sub_passes_, shader_));
-  headers_.append({command::Type::SubPass, static_cast<uint>(index)});
+  headers_.append({command::Type::SubPass, uint(index)});
   return sub_passes_[index];
 }
 
@@ -720,21 +733,30 @@ template<class T> inline void PassBase<T>::barrier(eGPUBarrier type)
 /** \name State Implementation
  * \{ */
 
-template<class T> inline void PassBase<T>::state_set(DRWState state)
+template<class T> inline void PassBase<T>::state_set(DRWState state, int clip_plane_count)
 {
-  create_command(Type::StateSet).state_set = {state};
+  /** \note This is for compatibility with the old clip plane API. */
+  if (clip_plane_count > 0) {
+    state |= DRW_STATE_CLIP_PLANES;
+  }
+  create_command(Type::StateSet).state_set = {state, clip_plane_count};
 }
 
 template<class T>
 inline void PassBase<T>::state_stencil(uint8_t write_mask, uint8_t reference, uint8_t compare_mask)
 {
-  create_command(Type::StencilSet).stencil_set = {write_mask, reference, compare_mask};
+  create_command(Type::StencilSet).stencil_set = {write_mask, compare_mask, reference};
 }
 
 template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)
 {
   shader_ = shader;
   create_command(Type::ShaderBind).shader_bind = {shader};
+}
+
+template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer *framebuffer)
+{
+  create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
 }
 
 template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMaterial *material)

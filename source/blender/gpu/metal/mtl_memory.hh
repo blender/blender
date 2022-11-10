@@ -340,13 +340,13 @@ class MTLBufferPool {
 
  private:
   /* Memory statistics. */
-  long long int total_allocation_bytes_ = 0;
+  int64_t total_allocation_bytes_ = 0;
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   /* Debug statistics. */
   std::atomic<int> per_frame_allocation_count_;
-  std::atomic<long long int> allocations_in_pool_;
-  std::atomic<long long int> buffers_in_pool_;
+  std::atomic<int64_t> allocations_in_pool_;
+  std::atomic<int64_t> buffers_in_pool_;
 #endif
 
   /* Metal resources. */

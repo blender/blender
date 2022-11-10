@@ -75,6 +75,7 @@ set(SRC
   intern/asset_catalog_path.cc
   intern/asset_library.cc
   intern/asset_library_service.cc
+  intern/asset_representation.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -110,7 +111,6 @@ set(SRC
   intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
-  intern/curve_eval.cc
   intern/curve_legacy_convert.cc
   intern/curve_nurbs.cc
   intern/curve_poly.cc
@@ -126,7 +126,7 @@ set(SRC
   intern/displist.cc
   intern/dynamicpaint.c
   intern/editlattice.c
-  intern/editmesh.c
+  intern/editmesh.cc
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
   intern/editmesh_tangent.cc
@@ -137,7 +137,6 @@ set(SRC
   intern/fluid.c
   intern/fmodifier.c
   intern/freestyle.c
-  intern/geometry_component_curve.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_edit_data.cc
   intern/geometry_component_instances.cc
@@ -165,6 +164,7 @@ set(SRC
   intern/image_gpu.cc
   intern/image_partial_update.cc
   intern/image_save.cc
+  intern/instances.cc
   intern/ipo.c
   intern/kelvinlet.c
   intern/key.c
@@ -193,7 +193,7 @@ set(SRC
   intern/mask_rasterize.c
   intern/material.c
   intern/mball.cc
-  intern/mball_tessellate.c
+  intern/mball_tessellate.cc
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
@@ -201,9 +201,9 @@ set(SRC
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
-  intern/mesh_iterators.c
+  intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
-  intern/mesh_mapping.c
+  intern/mesh_mapping.cc
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
@@ -216,9 +216,9 @@ set(SRC
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
-  intern/modifier.c
+  intern/modifier.cc
   intern/movieclip.c
-  intern/multires.c
+  intern/multires.cc
   intern/multires_reshape.c
   intern/multires_reshape_apply_base.c
   intern/multires_reshape_ccg.c
@@ -237,7 +237,7 @@ set(SRC
   intern/object_deform.c
   intern/object_dupli.cc
   intern/object_facemap.c
-  intern/object_update.c
+  intern/object_update.cc
   intern/ocean.c
   intern/ocean_spectrum.c
   intern/outliner_treehash.cc
@@ -261,18 +261,14 @@ set(SRC
   intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
-  intern/shrinkwrap.c
+  intern/shrinkwrap.cc
   intern/simulation.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
-  intern/spline_base.cc
-  intern/spline_bezier.cc
-  intern/spline_nurbs.cc
-  intern/spline_poly.cc
   intern/studiolight.c
   intern/subdiv.c
-  intern/subdiv_ccg.c
+  intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.c
   intern/subdiv_ccg_material.c
   intern/subdiv_converter.c
@@ -283,7 +279,7 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.cc
-  intern/subdiv_modifier.c
+  intern/subdiv_modifier.cc
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
@@ -303,10 +299,11 @@ set(SRC
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c
+  intern/viewer_path.cc
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
-  intern/workspace.c
+  intern/workspace.cc
   intern/world.c
   intern/writeavi.c
 
@@ -328,6 +325,7 @@ set(SRC
   BKE_asset_catalog_path.hh
   BKE_asset_library.h
   BKE_asset_library.hh
+  BKE_asset_representation.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -403,6 +401,7 @@ set(SRC
   BKE_image_partial_update.hh
   BKE_image_save.h
   BKE_image_wrappers.hh
+  BKE_instances.hh
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -469,7 +468,6 @@ set(SRC
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
-  BKE_spline.hh
   BKE_studiolight.h
   BKE_subdiv.h
   BKE_subdiv_ccg.h
@@ -489,6 +487,7 @@ set(SRC
   BKE_unit.h
   BKE_vfont.h
   BKE_vfontdata.h
+  BKE_viewer_path.h
   BKE_volume.h
   BKE_volume_render.h
   BKE_volume_to_mesh.hh

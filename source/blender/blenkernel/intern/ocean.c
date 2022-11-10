@@ -55,8 +55,8 @@ static float gaussRand(RNG *rng)
   float length2;
 
   do {
-    x = (float)(nextfr(rng, -1, 1));
-    y = (float)(nextfr(rng, -1, 1));
+    x = (float)nextfr(rng, -1, 1);
+    y = (float)nextfr(rng, -1, 1);
     length2 = x * x + y * y;
   } while (length2 >= 1 || length2 == 0);
 
@@ -915,7 +915,7 @@ bool BKE_ocean_init(struct Ocean *o,
       /* This ensures we get a value tied to the surface location, avoiding dramatic surface
        * change with changing resolution.
        * Explicitly cast to signed int first to ensure consistent behavior on all processors,
-       * since behavior of float to unsigned int cast is undefined in C. */
+       * since behavior of `float` to `uint` cast is undefined in C. */
       const int hash_x = o->_kx[i] * 360.0f;
       const int hash_z = o->_kz[j] * 360.0f;
       int new_seed = seed + BLI_hash_int_2d(hash_x, hash_z);
@@ -930,40 +930,37 @@ bool BKE_ocean_init(struct Ocean *o,
         case MOD_OCEAN_SPECTRUM_JONSWAP:
           mul_complex_f(o->_h0[i * o->_N + j],
                         r1r2,
-                        (float)(sqrt(BLI_ocean_spectrum_jonswap(o, o->_kx[i], o->_kz[j]) / 2.0f)));
-          mul_complex_f(
-              o->_h0_minus[i * o->_N + j],
-              r1r2,
-              (float)(sqrt(BLI_ocean_spectrum_jonswap(o, -o->_kx[i], -o->_kz[j]) / 2.0f)));
+                        (float)sqrt(BLI_ocean_spectrum_jonswap(o, o->_kx[i], o->_kz[j]) / 2.0f));
+          mul_complex_f(o->_h0_minus[i * o->_N + j],
+                        r1r2,
+                        (float)sqrt(BLI_ocean_spectrum_jonswap(o, -o->_kx[i], -o->_kz[j]) / 2.0f));
           break;
         case MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE:
           mul_complex_f(
               o->_h0[i * o->_N + j],
               r1r2,
-              (float)(sqrt(BLI_ocean_spectrum_texelmarsenarsloe(o, o->_kx[i], o->_kz[j]) / 2.0f)));
+              (float)sqrt(BLI_ocean_spectrum_texelmarsenarsloe(o, o->_kx[i], o->_kz[j]) / 2.0f));
           mul_complex_f(
               o->_h0_minus[i * o->_N + j],
               r1r2,
-              (float)(sqrt(BLI_ocean_spectrum_texelmarsenarsloe(o, -o->_kx[i], -o->_kz[j]) /
-                           2.0f)));
+              (float)sqrt(BLI_ocean_spectrum_texelmarsenarsloe(o, -o->_kx[i], -o->_kz[j]) / 2.0f));
           break;
         case MOD_OCEAN_SPECTRUM_PIERSON_MOSKOWITZ:
           mul_complex_f(
               o->_h0[i * o->_N + j],
               r1r2,
-              (float)(sqrt(BLI_ocean_spectrum_piersonmoskowitz(o, o->_kx[i], o->_kz[j]) / 2.0f)));
+              (float)sqrt(BLI_ocean_spectrum_piersonmoskowitz(o, o->_kx[i], o->_kz[j]) / 2.0f));
           mul_complex_f(
               o->_h0_minus[i * o->_N + j],
               r1r2,
-              (float)(sqrt(BLI_ocean_spectrum_piersonmoskowitz(o, -o->_kx[i], -o->_kz[j]) /
-                           2.0f)));
+              (float)sqrt(BLI_ocean_spectrum_piersonmoskowitz(o, -o->_kx[i], -o->_kz[j]) / 2.0f));
           break;
         default:
           mul_complex_f(
-              o->_h0[i * o->_N + j], r1r2, (float)(sqrt(Ph(o, o->_kx[i], o->_kz[j]) / 2.0f)));
+              o->_h0[i * o->_N + j], r1r2, (float)sqrt(Ph(o, o->_kx[i], o->_kz[j]) / 2.0f));
           mul_complex_f(o->_h0_minus[i * o->_N + j],
                         r1r2,
-                        (float)(sqrt(Ph(o, -o->_kx[i], -o->_kz[j]) / 2.0f)));
+                        (float)sqrt(Ph(o, -o->_kx[i], -o->_kz[j]) / 2.0f));
           break;
       }
     }
@@ -1147,7 +1144,7 @@ static void cache_filename(
       break;
   }
 
-  BLI_join_dirfile(cachepath, sizeof(cachepath), path, fname);
+  BLI_path_join(cachepath, sizeof(cachepath), path, fname);
 
   BKE_image_path_from_imtype(
       string, cachepath, relbase, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");

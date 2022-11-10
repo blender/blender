@@ -14,6 +14,8 @@
 #include "BLI_string.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
+#include "BKE_mesh.h"
 
 #include "draw_attributes.h"
 #include "draw_subdivision.h"
@@ -278,14 +280,14 @@ static void extract_attr_generic(const MeshRenderData *mr,
 }
 
 static void extract_attr_init(
-    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *UNUSED(tls_data), int index)
+    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void * /*tls_data*/, int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(*mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
+  init_vbo_for_attribute(*mr, vbo, request, false, uint32_t(mr->loop_len));
 
   /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -325,7 +327,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *mr,
                                      MeshBatchCache *cache,
                                      void *buffer,
-                                     void *UNUSED(tls_data),
+                                     void * /*tls_data*/,
                                      int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
@@ -340,7 +342,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertFormat coarse_format = {0};
   GPU_vertformat_attr_add(&coarse_format, "data", GPU_COMP_F32, dimensions, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
-  GPU_vertbuf_data_alloc(src_data, static_cast<uint32_t>(coarse_mesh->totloop));
+  GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->totloop));
 
   switch (request.cd_type) {
     case CD_PROP_BOOL:
@@ -379,7 +381,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   draw_subdiv_interp_custom_data(subdiv_cache,
                                  src_data,
                                  dst_buffer,
-                                 static_cast<int>(dimensions),
+                                 int(dimensions),
                                  0,
                                  ELEM(request.cd_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
 
@@ -432,6 +434,40 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
   return extractor;
 }
 
+static void extract_mesh_attr_viewer_init(const MeshRenderData *mr,
+                                          MeshBatchCache * /*cache*/,
+                                          void *buf,
+                                          void * /*tls_data*/)
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  }
+
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->loop_len);
+  MutableSpan<ColorGeometry4f> attr{static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo)),
+                                    mr->loop_len};
+
+  const StringRefNull attr_name = ".viewer";
+  const bke::AttributeAccessor attributes = mr->me->attributes();
+  attributes
+      .lookup_or_default<ColorGeometry4f>(attr_name, ATTR_DOMAIN_CORNER, {1.0f, 0.0f, 1.0f, 1.0f})
+      .materialize(attr);
+}
+
+constexpr MeshExtract create_extractor_attr_viewer()
+{
+  MeshExtract extractor = {nullptr};
+  extractor.init = extract_mesh_attr_viewer_init;
+  extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = 0;
+  extractor.use_threading = false;
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.attr_viewer);
+  return extractor;
+}
+
 /** \} */
 
 }  // namespace blender::draw
@@ -457,3 +493,5 @@ const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(13),
     CREATE_EXTRACTOR_ATTR(14),
 };
+
+const MeshExtract extract_attr_viewer = blender::draw::create_extractor_attr_viewer();

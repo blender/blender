@@ -60,7 +60,7 @@ void ViewerOperation::deinit_execution()
   output_buffer_ = nullptr;
 }
 
-void ViewerOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   float *buffer = output_buffer_;
   float *depthbuffer = depth_buffer_;
@@ -216,7 +216,7 @@ eCompositorPriority ViewerOperation::get_render_priority() const
   return eCompositorPriority::Low;
 }
 
-void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+void ViewerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                    const rcti &area,
                                                    Span<MemoryBuffer *> inputs)
 {
@@ -264,7 +264,7 @@ void ViewerOperation::clear_display_buffer()
     return;
   }
 
-  size_t buf_bytes = (size_t)ibuf_->y * ibuf_->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
+  size_t buf_bytes = size_t(ibuf_->y) * ibuf_->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
   if (buf_bytes > 0) {
     memset(output_buffer_, 0, buf_bytes);
     rcti display_area;

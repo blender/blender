@@ -191,7 +191,7 @@ bool BKE_appdir_folder_documents(char *dir)
 
   char try_documents_path[FILE_MAXDIR];
   /* Own attempt at getting a valid Documents path. */
-  BLI_path_join(try_documents_path, sizeof(try_documents_path), home_path, N_("Documents"), NULL);
+  BLI_path_join(try_documents_path, sizeof(try_documents_path), home_path, N_("Documents"));
   if (!BLI_is_dir(try_documents_path)) {
     return false;
   }
@@ -214,11 +214,11 @@ bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
 
 #ifdef WIN32
   BLI_path_join(
-      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR, NULL);
+      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR);
 #elif defined(__APPLE__)
-  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR, NULL);
+  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR);
 #else /* __linux__ */
-  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR, NULL);
+  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR);
 #endif
 
   return true;
@@ -237,7 +237,7 @@ bool BKE_appdir_font_folder_default(char *dir)
   }
 #elif defined(__APPLE__)
   STRNCPY(test_dir, BLI_expand_tilde("~/Library/Fonts/"));
-  BLI_path_slash_ensure(test_dir);
+  BLI_path_slash_ensure(test_dir, sizeof(test_dir));
 #else
   STRNCPY(test_dir, "/usr/share/fonts");
 #endif
@@ -281,7 +281,9 @@ static bool test_path(char *targetpath,
 
   /* Only the last argument should be NULL. */
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
-  BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
+  const char *path_array[] = {path_base, folder_name, subfolder_name};
+  const int path_array_num = (folder_name ? (subfolder_name ? 3 : 2) : 1);
+  BLI_path_join_array(targetpath, targetpath_len, path_array, path_array_num);
   if (check_is_dir == false) {
     CLOG_INFO(&LOG, 3, "using without test: '%s'", targetpath);
     return true;
@@ -365,7 +367,9 @@ static bool get_path_local_ex(char *targetpath,
             STR_OR_FALLBACK(subfolder_name));
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
-    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
+    const char *path_array[] = {folder_name, subfolder_name};
+    const int path_array_num = subfolder_name ? 2 : 1;
+    BLI_path_join_array(relfolder, sizeof(relfolder), path_array, path_array_num);
   }
   else {
     relfolder[0] = '\0';
@@ -379,8 +383,7 @@ static bool get_path_local_ex(char *targetpath,
    * we must move the blender_version dir with contents to Resources.
    * Add 4 + 9 for the temporary `/../` path & `Resources`. */
   char osx_resourses[FILE_MAX + 4 + 9];
-  BLI_path_join(
-      osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources", NULL);
+  BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources");
   /* Remove the '/../' added above. */
   BLI_path_normalize(NULL, osx_resourses);
   path_base = osx_resourses;
@@ -460,18 +463,22 @@ static bool get_path_user_ex(char *targetpath,
                              const bool check_is_dir)
 {
   char user_path[FILE_MAX];
-  const char *user_base_path;
 
-  /* for portable install, user path is always local */
-  if (BKE_appdir_app_is_portable_install()) {
-    return get_path_local_ex(
-        targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+  if (test_env_path(user_path, "BLENDER_USER_RESOURCES", check_is_dir)) {
+    /* Pass. */
   }
-  user_path[0] = '\0';
+  else {
+    /* for portable install, user path is always local */
+    if (BKE_appdir_app_is_portable_install()) {
+      return get_path_local_ex(
+          targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+    }
+    user_path[0] = '\0';
 
-  user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
-  if (user_base_path) {
-    BLI_strncpy(user_path, user_base_path, FILE_MAX);
+    const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
+    if (user_base_path) {
+      BLI_strncpy(user_path, user_base_path, FILE_MAX);
+    }
   }
 
   if (!user_path[0]) {
@@ -518,20 +525,26 @@ static bool get_path_system_ex(char *targetpath,
                                const bool check_is_dir)
 {
   char system_path[FILE_MAX];
-  const char *system_base_path;
   char relfolder[FILE_MAX];
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
-    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
+    const char *path_array[] = {folder_name, subfolder_name};
+    const int path_array_num = subfolder_name ? 2 : 1;
+    BLI_path_join_array(relfolder, sizeof(relfolder), path_array, path_array_num);
   }
   else {
     relfolder[0] = '\0';
   }
 
-  system_path[0] = '\0';
-  system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
-  if (system_base_path) {
-    BLI_strncpy(system_path, system_base_path, FILE_MAX);
+  if (test_env_path(system_path, "BLENDER_SYSTEM_RESOURCES", check_is_dir)) {
+    /* Pass. */
+  }
+  else {
+    system_path[0] = '\0';
+    const char *system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
+    if (system_base_path) {
+      BLI_strncpy(system_path, system_base_path, FILE_MAX);
+    }
   }
 
   if (!system_path[0]) {
@@ -752,9 +765,9 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
   return path;
 }
 
-const char *BKE_appdir_folder_id_version(const int folder_id,
-                                         const int version,
-                                         const bool check_is_dir)
+const char *BKE_appdir_resource_path_id_with_version(const int folder_id,
+                                                     const bool check_is_dir,
+                                                     const int version)
 {
   static char path[FILE_MAX] = "";
   bool ok;
@@ -775,6 +788,11 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
       break;
   }
   return ok ? path : NULL;
+}
+
+const char *BKE_appdir_resource_path_id(const int folder_id, const bool check_is_dir)
+{
+  return BKE_appdir_resource_path_id_with_version(folder_id, check_is_dir, BLENDER_VERSION);
 }
 
 /** \} */
@@ -888,7 +906,7 @@ void BKE_appdir_program_path_init(const char *argv0)
 
 const char *BKE_appdir_program_path(void)
 {
-#ifndef WITH_PYTHON_MODULE /* Default's to empty when building as as Python module. */
+#ifndef WITH_PYTHON_MODULE /* Default's to empty when building as a Python module. */
   BLI_assert(g_app.program_filepath[0]);
 #endif
   return g_app.program_filepath;
@@ -936,7 +954,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
     if (python_bin_dir) {
 
       for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-        BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+        BLI_path_join(fullpath, fullpath_len, python_bin_dir, python_names[i]);
 
         if (
 #ifdef _WIN32
@@ -1005,7 +1023,7 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 {
   for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
-    BLI_join_dirfile(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
+    BLI_path_join(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_len)) {
       return true;
     }
@@ -1028,8 +1046,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
   }
 
   char userpref_path[FILE_MAX];
-  BLI_path_join(
-      userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE, NULL);
+  BLI_path_join(userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE);
   return BLI_exists(userpref_path);
 }
 
@@ -1076,13 +1093,13 @@ void BKE_appdir_app_templates(ListBase *templates)
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
-static void where_is_temp(char *tempdir, const size_t tempdir_len, const char *userdir)
+static void where_is_temp(char *tempdir, const size_t tempdir_maxlen, const char *userdir)
 {
 
   tempdir[0] = '\0';
 
   if (userdir && BLI_is_dir(userdir)) {
-    BLI_strncpy(tempdir, userdir, tempdir_len);
+    BLI_strncpy(tempdir, userdir, tempdir_maxlen);
   }
 
   if (tempdir[0] == '\0') {
@@ -1099,23 +1116,23 @@ static void where_is_temp(char *tempdir, const size_t tempdir_len, const char *u
     for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
       const char *tmp = BLI_getenv(env_vars[i]);
       if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
-        BLI_strncpy(tempdir, tmp, tempdir_len);
+        BLI_strncpy(tempdir, tmp, tempdir_maxlen);
         break;
       }
     }
   }
 
   if (tempdir[0] == '\0') {
-    BLI_strncpy(tempdir, "/tmp/", tempdir_len);
+    BLI_strncpy(tempdir, "/tmp/", tempdir_maxlen);
   }
   else {
     /* add a trailing slash if needed */
-    BLI_path_slash_ensure(tempdir);
+    BLI_path_slash_ensure(tempdir, tempdir_maxlen);
   }
 }
 
 static void tempdir_session_create(char *tempdir_session,
-                                   const size_t tempdir_session_len,
+                                   const size_t tempdir_session_maxlen,
                                    const char *tempdir)
 {
   tempdir_session[0] = '\0';
@@ -1129,9 +1146,9 @@ static void tempdir_session_create(char *tempdir_session,
    * #_mktemp_s also requires the last null character is included. */
   const int tempdir_session_len_required = tempdir_len + session_name_len + 1;
 
-  if (tempdir_session_len_required <= tempdir_session_len) {
+  if (tempdir_session_len_required <= tempdir_session_maxlen) {
     /* No need to use path joining utility as we know the last character of #tempdir is a slash. */
-    BLI_string_join(tempdir_session, tempdir_session_len, tempdir, session_name);
+    BLI_string_join(tempdir_session, tempdir_session_maxlen, tempdir, session_name);
 #ifdef WIN32
     const bool needs_create = (_mktemp_s(tempdir_session, tempdir_session_len_required) == 0);
 #else
@@ -1141,7 +1158,7 @@ static void tempdir_session_create(char *tempdir_session,
       BLI_dir_create_recursive(tempdir_session);
     }
     if (BLI_is_dir(tempdir_session)) {
-      BLI_path_slash_ensure(tempdir_session);
+      BLI_path_slash_ensure(tempdir_session, tempdir_session_maxlen);
       /* Success. */
       return;
     }
@@ -1151,7 +1168,7 @@ static void tempdir_session_create(char *tempdir_session,
             "Could not generate a temp file name for '%s', falling back to '%s'",
             tempdir_session,
             tempdir);
-  BLI_strncpy(tempdir_session, tempdir, tempdir_session_len);
+  BLI_strncpy(tempdir_session, tempdir, tempdir_session_maxlen);
 }
 
 void BKE_tempdir_init(const char *userdir)

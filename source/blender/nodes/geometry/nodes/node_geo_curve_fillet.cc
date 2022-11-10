@@ -32,12 +32,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveFillet *data = MEM_cnew<NodeGeometryCurveFillet>(__func__);
   data->mode = GEO_NODE_CURVE_FILLET_BEZIER;
@@ -48,7 +48,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurveFillet &storage = node_storage(*node);
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
-  bNodeSocket *poly_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *poly_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
@@ -121,8 +121,8 @@ void register_node_type_geo_curve_fillet()
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

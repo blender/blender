@@ -5,6 +5,8 @@
  * \ingroup modifiers
  */
 
+#define DNA_DEPRECATED_ALLOW /* For #ME_FACE_SEL. */
+
 #include "BLI_utildefines.h"
 
 #include "BLI_edgehash.h"
@@ -76,9 +78,7 @@ static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
 {
   return true;
 }
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
@@ -985,9 +985,9 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   MTFace *mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
 
   /* getting back to object space */
-  invert_m4_m4(imat, ctx->object->obmat);
+  invert_m4_m4(imat, ctx->object->object_to_world);
 
-  psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   const MVert *mesh_verts = BKE_mesh_verts(mesh);
   MVert *explode_verts = BKE_mesh_verts_for_write(explode);
@@ -1020,7 +1020,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_particle_state(&sim, ed_v2, &state, 1);
 
       vertco = explode_verts[v].co;
-      mul_m4_v3(ctx->object->obmat, vertco);
+      mul_m4_v3(ctx->object->object_to_world, vertco);
 
       sub_v3_v3(vertco, birth.co);
 
@@ -1112,10 +1112,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
 
-  if (psmd->psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psmd->psys->lattice_deform_data);
-    psmd->psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 
   return explode;
 }

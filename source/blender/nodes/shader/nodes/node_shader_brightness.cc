@@ -15,7 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_brightcontrast(GPUMaterial *mat,
                                      bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
@@ -32,7 +32,7 @@ void register_node_type_sh_brightcontrast()
 
   sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_brightcontrast);
+  ntype.gpu_fn = file_ns::gpu_shader_brightcontrast;
 
   nodeRegisterType(&ntype);
 }

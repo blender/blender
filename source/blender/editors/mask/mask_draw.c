@@ -349,9 +349,9 @@ static void draw_spline_points(const bContext *C,
 static void mask_color_active_tint(uchar r_rgb[4], const uchar rgb[4], const bool is_active)
 {
   if (!is_active) {
-    r_rgb[0] = (uchar)((((int)(rgb[0])) + 128) / 2);
-    r_rgb[1] = (uchar)((((int)(rgb[1])) + 128) / 2);
-    r_rgb[2] = (uchar)((((int)(rgb[2])) + 128) / 2);
+    r_rgb[0] = (uchar)(((int)rgb[0] + 128) / 2);
+    r_rgb[1] = (uchar)(((int)rgb[1] + 128) / 2);
+    r_rgb[2] = (uchar)(((int)rgb[2] + 128) / 2);
     r_rgb[3] = rgb[3];
   }
   else {

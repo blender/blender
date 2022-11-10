@@ -106,7 +106,7 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */
-int poly_find_loop_from_vert(const struct MPoly *poly, const struct MLoop *loopstart, uint vert);
+int poly_find_loop_from_vert(const struct MPoly *poly, const struct MLoop *loopstart, int vert);
 /**
  * Fill \a r_adj with the loop indices in \a poly adjacent to the
  * vertex. Returns the index of the loop matching vertex, or -1 if the
@@ -114,8 +114,8 @@ int poly_find_loop_from_vert(const struct MPoly *poly, const struct MLoop *loops
  */
 int poly_get_adj_loops_from_vert(const struct MPoly *poly,
                                  const struct MLoop *mloop,
-                                 unsigned int vert,
-                                 unsigned int r_adj[2]);
+                                 int vert,
+                                 int r_adj[2]);
 
 /**
  * Return the index of the edge vert that is not equal to \a v. If
@@ -307,8 +307,6 @@ void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
-
 void BKE_mesh_mselect_clear(struct Mesh *me);
 void BKE_mesh_mselect_validate(struct Mesh *me);
 /**
@@ -490,7 +488,7 @@ void BKE_mesh_calc_normals(struct Mesh *me);
  * Called after calculating all modifiers.
  */
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
-void BKE_mesh_calc_normals_looptri(struct MVert *mverts,
+void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
                                    int numVerts,
                                    const struct MLoop *mloop,
                                    const struct MLoopTri *looptri,
@@ -870,16 +868,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
  */
 void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
 void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
-/**
- * simple poly -> vert/edge selection.
- */
-void BKE_mesh_flush_select_from_polys_ex(struct MVert *mvert,
-                                         int totvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         const struct MPoly *mpoly,
-                                         int totpoly);
+
 void BKE_mesh_flush_select_from_polys(struct Mesh *me);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
 
@@ -983,11 +972,6 @@ void BKE_mesh_strip_loose_faces(struct Mesh *me);
 void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
-/**
- * If the mesh is from a very old blender version,
- * convert #MFace.edcode to edge #ME_EDGEDRAW.
- */
-void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 /**
  * Calculate edges from polygons.
@@ -1148,7 +1132,11 @@ inline blender::MutableSpan<MLoop> Mesh::loops_for_write()
 
 inline blender::Span<MDeformVert> Mesh::deform_verts() const
 {
-  return {BKE_mesh_deform_verts(this), this->totvert};
+  const MDeformVert *dverts = BKE_mesh_deform_verts(this);
+  if (!dverts) {
+    return {};
+  }
+  return {dverts, this->totvert};
 }
 inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 {

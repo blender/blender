@@ -149,78 +149,6 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
 
-class NODE_OT_add_search(NodeAddOperator, Operator):
-    '''Add a node to the active tree'''
-    bl_idname = "node.add_search"
-    bl_label = "Search and Add Node"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_property = "node_item"
-
-    _enum_item_hack = []
-
-    # Create an enum list from node items
-    def node_enum_items(self, context):
-        import nodeitems_utils
-
-        enum_items = NODE_OT_add_search._enum_item_hack
-        enum_items.clear()
-
-        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
-            if isinstance(item, nodeitems_utils.NodeItem):
-                enum_items.append(
-                    (str(index),
-                     item.label,
-                     "",
-                     index,
-                     ))
-        return enum_items
-
-    # Look up the item based on index
-    def find_node_item(self, context):
-        import nodeitems_utils
-
-        node_item = int(self.node_item)
-        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
-            if index == node_item:
-                return item
-        return None
-
-    node_item: EnumProperty(
-        name="Node Type",
-        description="Node type",
-        items=NODE_OT_add_search.node_enum_items,
-    )
-
-    def execute(self, context):
-        item = self.find_node_item(context)
-
-        # no need to keep
-        self._enum_item_hack.clear()
-
-        if item:
-            # apply settings from the node item
-            for setting in item.settings.items():
-                ops = self.settings.add()
-                ops.name = setting[0]
-                ops.value = setting[1]
-
-            self.create_node(context, item.nodetype)
-
-            if self.use_transform:
-                bpy.ops.node.translate_attach_remove_on_cancel(
-                    'INVOKE_DEFAULT')
-
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
-
-    def invoke(self, context, event):
-        self.store_mouse_cursor(context, event)
-        # Delayed execution in the search popup
-        context.window_manager.invoke_search_popup(self)
-        return {'CANCELLED'}
-
-
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     '''Toggle collapsed nodes and hide unused sockets'''
     bl_idname = "node.collapse_hide_unused_toggle"
@@ -276,7 +204,6 @@ classes = (
     NodeSetting,
 
     NODE_OT_add_node,
-    NODE_OT_add_search,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_tree_path_parent,
 )

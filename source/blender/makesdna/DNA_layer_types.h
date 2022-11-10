@@ -35,8 +35,8 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
   EEVEE_RENDER_PASS_AOV = (1 << 15),
   /*
-   * TODO(jbakker): Clean up confliting bits after EEVEE has been removed.
-   * EEVEE_RENDER_PASS_CRYPTOMATTE is for EEVEE, EEVEE_RENDER_PASS_CRYTPOMATTE_* are for
+   * TODO(@jbakker): Clean up conflicting bits after EEVEE has been removed.
+   * #EEVEE_RENDER_PASS_CRYPTOMATTE is for EEVEE, `EEVEE_RENDER_PASS_CRYTPOMATTE_*` are for
    * EEVEE-Next.
    */
   EEVEE_RENDER_PASS_CRYPTOMATTE = (1 << 16),
@@ -71,27 +71,23 @@ typedef enum eViewLayerCryptomatteFlags {
 typedef struct Base {
   struct Base *next, *prev;
 
-  /* Flags which are based on the collections flags evaluation, does not
-   * include flags from object's restrictions. */
-  short flag_from_collection;
-
-  /* Final flags, including both accumulated collection flags and object's
-   * restriction flags. */
-  short flag;
-
-  unsigned short local_view_bits;
-  short sx, sy;
-  char _pad1[6];
   struct Object *object;
-  unsigned int lay DNA_DEPRECATED;
-  int flag_legacy;
-  unsigned short local_collections_bits;
-  short _pad2[3];
 
   /* Pointer to an original base. Is initialized for evaluated view layer.
    * NOTE: Only allowed to be accessed from within active dependency graph. */
   struct Base *base_orig;
-  void *_pad;
+
+  unsigned int lay DNA_DEPRECATED;
+  /* Final flags, including both accumulated collection flags and object's
+   * restriction flags. */
+  short flag;
+  /* Flags which are based on the collections flags evaluation, does not
+   * include flags from object's restrictions. */
+  short flag_from_collection;
+  short flag_legacy;
+  unsigned short local_view_bits;
+  unsigned short local_collections_bits;
+  char _pad1[2];
 } Base;
 
 typedef struct ViewLayerEngineData {
@@ -138,13 +134,13 @@ typedef struct ViewLayerAOV {
 typedef struct ViewLayerLightgroup {
   struct ViewLayerLightgroup *next, *prev;
 
-  /* Name of the Lightgroup */
+  /* Name of the Light-group. */
   char name[64];
 } ViewLayerLightgroup;
 
-/* Lightgroup membership information. */
+/* Light-group membership information. */
 typedef struct LightgroupMembership {
-  /* Name of the Lightgroup */
+  /* Name of the Light-group. */
   char name[64];
 } LightgroupMembership;
 
@@ -273,6 +269,7 @@ enum {
   VIEW_LAYER_RENDER = (1 << 0),
   /* VIEW_LAYER_DEPRECATED  = (1 << 1), */
   VIEW_LAYER_FREESTYLE = (1 << 2),
+  VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
 
 /****************************** Deprecated ******************************/

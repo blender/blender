@@ -499,7 +499,7 @@ float angle_signed_on_axis_v3v3_v3(const float v1[3], const float v2[3], const f
   /* calculate the sign (reuse 'tproj') */
   cross_v3_v3v3(tproj, v2_proj, v1_proj);
   if (dot_v3v3(tproj, axis) < 0.0f) {
-    angle = ((float)(M_PI * 2.0)) - angle;
+    angle = (float)(M_PI * 2.0) - angle;
   }
 
   return angle;

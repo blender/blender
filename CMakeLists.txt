@@ -112,6 +112,25 @@ enable_testing()
 
 
 # -----------------------------------------------------------------------------
+# Test Compiler Support
+#
+# Keep in sync with: https://wiki.blender.org/wiki/Building_Blender
+
+if(CMAKE_COMPILER_IS_GNUCC)
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.3.1")
+    message(FATAL_ERROR "The minimum supported version of GCC is 9.3.1")
+  endif()
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_COMPILER_IS_GNUCC AND ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0"))
+    message(FATAL_ERROR "The minimum supported version of CLANG is 8.0")
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  if(MSVC_VERSION VERSION_LESS "1928")
+    message(FATAL_ERROR "The minimum supported version of MSVC is 2019 (16.9.16)")
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
 # Test Compiler/Library Features
 
 include(build_files/cmake/have_features.cmake)
@@ -158,8 +177,11 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
-mark_as_advanced(WITH_PYTHON)  # don't want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
+# Don't want people disabling this unless they really know what they are doing.
+mark_as_advanced(WITH_PYTHON)
+# Some distributions see this as a security issue, rather than have them patch it,
+# make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some efficiency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)
@@ -223,17 +245,17 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_GHOST_X11 "Enable building Blender against X11 for windowing" ON)
   mark_as_advanced(WITH_GHOST_X11)
 
-  option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
+  option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing" ON)
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
-    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
+    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
     option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
 
-    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" OFF)
+    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
   endif()
 endif()
@@ -317,11 +339,9 @@ if(APPLE)
 else()
   set(WITH_COREAUDIO OFF)
 endif()
-if(NOT WIN32)
+if(UNIX AND NOT APPLE)
   option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" ON)
-  if(UNIX AND NOT APPLE)
-    option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
-  endif()
+  option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
 else()
   set(WITH_JACK OFF)
 endif()
@@ -410,6 +430,7 @@ mark_as_advanced(WITH_CPU_SIMD)
 # Cycles
 option(WITH_CYCLES                   "Enable Cycles Render Engine" ON)
 option(WITH_CYCLES_OSL               "Build Cycles with OpenShadingLanguage support" ON)
+option(WITH_CYCLES_PATH_GUIDING      "Build Cycles with path guiding support" ON)
 option(WITH_CYCLES_EMBREE            "Build Cycles with Embree support" ON)
 option(WITH_CYCLES_LOGGING           "Build Cycles with logging support" ON)
 option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debugging (e.g., MIS)" OFF)
@@ -469,13 +490,12 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
   option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
-  option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
-  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  # acm-g10 is the target for the first Intel Arc Alchemist GPUs.
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
   set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
-  mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
   mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
 endif()
@@ -533,6 +553,7 @@ endif()
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
 option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
+# NOTE: All callers of this must add `TEST_PYTHON_EXE_EXTRA_ARGS` before any other arguments.
 set(TEST_PYTHON_EXE "" CACHE PATH "Python executable to run unit tests")
 mark_as_advanced(TEST_PYTHON_EXE)
 
@@ -550,6 +571,12 @@ option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GPU_BUILDTIME_SHADER_BUILDER
+)
+
+# Vulkan
+option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
+mark_as_advanced(
+  WITH_VULKAN_BACKEND
 )
 
 # Metal
@@ -628,8 +655,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     unset(_asan_defaults)
 
     if(MSVC)
-        find_library(
-          COMPILER_ASAN_LIBRARY NAMES clang_rt.asan-x86_64
+      find_library(
+        COMPILER_ASAN_LIBRARY NAMES clang_rt.asan-x86_64
         PATHS
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/7.0.0/lib/windows
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows
@@ -760,6 +787,8 @@ endif()
 # -----------------------------------------------------------------------------
 # Check for Conflicting/Unsupported Configurations
 
+option(WITH_STRICT_BUILD_OPTIONS "When requirements for a build option are not met, error instead of disabling the option" OFF)
+
 if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
     "At least one of WITH_BLENDER or WITH_CYCLES_STANDALONE "
@@ -808,7 +837,7 @@ endif()
 set_and_warn_dependency(WITH_PUGIXML WITH_OPENIMAGEIO  OFF)
 
 if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
-   WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD OR WITH_ALEMBIC))
+  WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD OR WITH_ALEMBIC))
   message(STATUS "No dependencies need 'WITH_BOOST' forcing WITH_BOOST=OFF")
   set(WITH_BOOST OFF)
 endif()
@@ -875,10 +904,7 @@ endif()
 
 if(WITH_BUILDINFO)
   find_package(Git)
-  if(NOT GIT_FOUND)
-    message(WARNING "Git was not found, disabling WITH_BUILDINFO")
-    set(WITH_BUILDINFO OFF)
-  endif()
+  set_and_warn_library_found("Git" GIT_FOUND WITH_BUILDINFO)
 endif()
 
 if(WITH_AUDASPACE)
@@ -918,9 +944,10 @@ if(WITH_INTERNATIONAL)
       WARNING
       "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
-      "control systems, disabling 'WITH_INTERNATIONAL'."
+      "control systems."
     )
-    set(WITH_INTERNATIONAL OFF)
+    set(TRANSLATIONS_FOUND OFF)
+    set_and_warn_library_found("Translations" TRANSLATIONS_FOUND WITH_INTERNATIONAL)
   endif()
 endif()
 
@@ -1022,9 +1049,9 @@ if(WITH_CPU_SIMD)
   set(COMPILER_SSE2_FLAG)
 
   # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
-  TEST_NEON_SUPPORT()
+  test_neon_support()
   if(NOT SUPPORT_NEON_BUILD)
-    TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+    test_sse_support(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
   endif()
 endif()
 
@@ -1089,7 +1116,7 @@ if(WITH_INTERNATIONAL)
   endif()
 endif()
 
-# Enable SIMD support if detected by TEST_SSE_SUPPORT() or TEST_NEON_SUPPORT().
+# Enable SIMD support if detected by `test_sse_support()` or `test_neon_support()`.
 #
 # This is done globally, so that all modules can use it if available, and
 # because these are used in headers used by many modules.
@@ -1097,7 +1124,7 @@ if(WITH_CPU_SIMD)
   if(SUPPORT_NEON_BUILD)
     # Neon
     if(SSE2NEON_FOUND)
-      blender_include_dirs_sys("${SSE2NEON_INCLUDE_DIRS}")
+      include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
       add_definitions(-DWITH_SSE2NEON)
     endif()
   else()
@@ -1206,6 +1233,13 @@ endif()
 
 
 # -----------------------------------------------------------------------------
+# Configure Vulkan.
+
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
+# -----------------------------------------------------------------------------
 # Configure Metal
 
 if(WITH_METAL_BACKEND)
@@ -1225,6 +1259,8 @@ if(WITH_OPENMP)
     find_package(OpenMP)
   endif()
 
+  set_and_warn_library_found("OpenMP" OPENMP_FOUND WITH_OPENMP)
+
   if(OPENMP_FOUND)
     if(NOT WITH_OPENMP_STATIC)
       string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
@@ -1240,9 +1276,6 @@ if(WITH_OPENMP)
 
       find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
     endif()
-  else()
-    message(STATUS "OpenMP not found, disabling WITH_OPENMP")
-    set(WITH_OPENMP OFF)
   endif()
 
   mark_as_advanced(
@@ -1257,10 +1290,7 @@ endif()
 
 if(WITH_BULLET AND WITH_SYSTEM_BULLET)
   find_package(Bullet)
-  if(NOT BULLET_FOUND)
-    message(STATUS "Bullet not found, disabling WITH_BULLET")
-    set(WITH_BULLET OFF)
-  endif()
+  set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
 else()
   set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
   # set(BULLET_LIBRARIES "")
@@ -1271,7 +1301,11 @@ endif()
 # Configure Python
 
 if(WITH_PYTHON_MODULE)
-  add_definitions(-DPy_ENABLE_SHARED)
+  # Not currently supported due to different required Python link flags.
+  if(WITH_GTESTS)
+    message(STATUS "GTests not compatible with Python module, disabling WITH_GTESTS")
+    set(WITH_GTESTS OFF)
+  endif()
 endif()
 
 
@@ -1399,91 +1433,75 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
 
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ALL -Wall)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)
   # system headers sometimes do this, disable for now, was: -Werror=strict-prototypes
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_LOGICAL_OP -Wlogical-op)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEF -Wundef)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_TYPE_LIMITS -Wtype-limits)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_FORMAT_SIGN -Wformat-signedness)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_RESTRICT -Wrestrict)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_LOGICAL_OP -Wlogical-op)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNDEF -Wundef)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_TYPE_LIMITS -Wtype-limits)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_FORMAT_SIGN -Wformat-signedness)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_RESTRICT -Wrestrict)
 
   # C-only.
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_NULL -Wnonnull)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ABSOLUTE_VALUE -Wabsolute-value)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_NULL -Wnonnull)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ABSOLUTE_VALUE -Wabsolute-value)
 
-  # gcc 4.2 gives annoying warnings on every file with this
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
-    ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 
-  # versions before gcc4.6 give many BLI_math warnings
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.6")
-    ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
 
-  # versions before gcc4.8 include global name-space.
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.8")
-    ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_SHADOW -Wshadow)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_SHADOW -Wshadow)
 
   # disable because it gives warnings for printf() & friends.
-  # ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
+  # add_check_c_compiler_flag(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
 
   if(NOT APPLE)
-    ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+    add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
   endif()
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_TYPE_LIMITS -Wtype-limits)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_POINTER_ARITH -Wpointer-arith)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_PARAMETER -Wunused-parameter)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_WRITE_STRINGS -Wwrite-strings)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_FORMAT_SIGN -Wformat-signedness)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_RESTRICT -Wrestrict)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE  -Wno-suggest-override)
-
-  # gcc 4.2 gives annoying warnings on every file with this
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
-  endif()
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_ALL -Wall)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_TYPE_LIMITS -Wtype-limits)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_POINTER_ARITH -Wpointer-arith)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNUSED_PARAMETER -Wunused-parameter)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_WRITE_STRINGS -Wwrite-strings)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_FORMAT_SIGN -Wformat-signedness)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_RESTRICT -Wrestrict)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE  -Wno-suggest-override)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 
   # causes too many warnings
   if(NOT APPLE)
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
+    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
   endif()
 
   # Use 'ATTR_FALLTHROUGH' macro to suppress.
-  if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
-    ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
-    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
-  endif()
-
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
 
   # ---------------------
   # Suppress Strict Flags
@@ -1497,102 +1515,100 @@ if(CMAKE_COMPILER_IS_GNUCC)
   # If code in `./extern/` needs to suppress these flags that can be done on a case-by-case basis.
 
   # flags to undo strict flags
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_FUNCTION         -Wno-unused-function)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_TYPE_LIMITS             -Wno-type-limits)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_INT_IN_BOOL_CONTEXT     -Wno-int-in-bool-context)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_FORMAT                  -Wno-format)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_SWITCH                  -Wno-switch)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-unused-variable)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-uninitialized)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_FUNCTION         -Wno-unused-function)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_TYPE_LIMITS             -Wno-type-limits)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_INT_IN_BOOL_CONTEXT     -Wno-int-in-bool-context)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_FORMAT                  -Wno-format)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_SWITCH                  -Wno-switch)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-unused-variable)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-uninitialized)
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_CLASS_MEMACCESS     -Wno-class-memaccess)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_COMMENT             -Wno-comment)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_TYPEDEFS     -Wno-unused-local-typedefs)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-unused-variable)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-uninitialized)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_CLASS_MEMACCESS     -Wno-class-memaccess)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_COMMENT             -Wno-comment)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_TYPEDEFS     -Wno-unused-local-typedefs)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-unused-variable)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-uninitialized)
 
-  if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
-    ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
-  endif()
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
 
   if(NOT APPLE)
-    ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+    add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
   endif()
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 
   # strange, clang complains these are not supported, but then uses them.
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ALL -Wall)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_ALL -Wall)
   # Using C++20 features while having C++17 as the project language isn't allowed by MSVC.
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_CXX20_DESIGNATOR -Wc++20-designator)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_CXX20_DESIGNATOR -Wc++20-designator)
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS     -Wno-unknown-pragmas)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS     -Wno-char-subscripts)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL  -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE        -Wno-sign-compare)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF    -Wno-invalid-offsetof)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS     -Wno-unknown-pragmas)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS     -Wno-char-subscripts)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL  -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE        -Wno-sign-compare)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF    -Wno-invalid-offsetof)
   # Apple Clang (tested on version 12) doesn't support this flag while LLVM Clang 11 does.
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE    -Wno-suggest-override)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE    -Wno-suggest-override)
 
   # gives too many unfixable warnings
-  # ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
-  # ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
+  # add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
+  # add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
 
   # ---------------------
   # Suppress Strict Flags
 
   # flags to undo strict flags
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE  -Wno-unused-variable)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_MACROS    -Wno-unused-macros)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE  -Wno-unused-variable)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_MACROS    -Wno-unused-macros)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
 
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_VARIABLE_DECLARATIONS -Wno-missing-variable-declarations)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_INCOMPAT_PTR_DISCARD_QUAL -Wno-incompatible-pointer-types-discards-qualifiers)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_FUNCTION -Wno-unused-function)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_INT_TO_VOID_POINTER_CAST -Wno-int-to-void-pointer-cast)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_PROTOTYPES -Wno-missing-prototypes)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_DUPLICATE_ENUM -Wno-duplicate-enum)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNDEF -Wno-undef)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_NORETURN -Wno-missing-noreturn)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
-  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_VARIABLE_DECLARATIONS -Wno-missing-variable-declarations)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_INCOMPAT_PTR_DISCARD_QUAL -Wno-incompatible-pointer-types-discards-qualifiers)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_FUNCTION -Wno-unused-function)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_INT_TO_VOID_POINTER_CAST -Wno-int-to-void-pointer-cast)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_PROTOTYPES -Wno-missing-prototypes)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_DUPLICATE_ENUM -Wno-duplicate-enum)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNDEF -Wno-undef)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_NORETURN -Wno-missing-noreturn)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PRIVATE_FIELD -Wno-unused-private-field)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_CXX11_NARROWING -Wno-c++11-narrowing)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_NON_VIRTUAL_DTOR -Wno-non-virtual-dtor)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_MACROS -Wno-unused-macros)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE  -Wno-unused-variable)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_REORDER -Wno-reorder)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_COMMENT -Wno-comment)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_TYPEDEFS -Wno-unused-local-typedefs)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEFINED_VAR_TEMPLATE -Wno-undefined-var-template)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_INSTANTIATION_AFTER_SPECIALIZATION -Wno-instantiation-after-specialization)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PRIVATE_FIELD -Wno-unused-private-field)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_CXX11_NARROWING -Wno-c++11-narrowing)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_NON_VIRTUAL_DTOR -Wno-non-virtual-dtor)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_MACROS -Wno-unused-macros)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE  -Wno-unused-variable)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_REORDER -Wno-reorder)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_COMMENT -Wno-comment)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_TYPEDEFS -Wno-unused-local-typedefs)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEFINED_VAR_TEMPLATE -Wno-undefined-var-template)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_INSTANTIATION_AFTER_SPECIALIZATION -Wno-instantiation-after-specialization)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_ALL -Wall)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_ALL -Wall)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
   # disable numbered, false positives
   string(APPEND C_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
@@ -1605,6 +1621,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/w34062"  # switch statement contains 'default' but no 'case' labels
     "/w34115"  # 'type' : named type definition in parentheses
     "/w34189"  # local variable is initialized but not referenced
+    # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
+    "/w35038"  # order of initialization in c++ constructors
     # disable:
     "/wd4018"  # signed/unsigned mismatch
     "/wd4146"  # unary minus operator applied to unsigned type, result still unsigned
@@ -1624,12 +1642,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/we4013"  # 'function' undefined; assuming extern returning int
     "/we4133"  # incompatible pointer types
     "/we4431"  # missing type specifier - int assumed
+    "/we4033"  # 'function' must return a value
   )
-
-  if(MSVC_VERSION GREATER_EQUAL 1911)
-    # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
-    string(APPEND _WARNINGS " /w35038") # order of initialization in c++ constructors
-  endif()
 
   string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
   set(C_WARNINGS "${_WARNINGS}")
@@ -1682,7 +1696,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Make MSVC properly report the value of the __cplusplus preprocessor macro
 # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
 # of the C++ standard chosen above.
-if(MSVC AND MSVC_VERSION GREATER 1913)
+if(MSVC)
   string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
 endif()
 
@@ -1705,8 +1719,8 @@ endif()
 
 if(WITH_COMPILER_SHORT_FILE_MACRO)
   # Use '-fmacro-prefix-map' for Clang and GCC (MSVC doesn't support this).
-  ADD_CHECK_C_COMPILER_FLAG(C_PREFIX_MAP_FLAGS C_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
-  ADD_CHECK_CXX_COMPILER_FLAG(CXX_PREFIX_MAP_FLAGS CXX_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
+  add_check_c_compiler_flag(C_PREFIX_MAP_FLAGS C_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
+  add_check_cxx_compiler_flag(CXX_PREFIX_MAP_FLAGS CXX_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
   if(C_MACRO_PREFIX_MAP AND CXX_MACRO_PREFIX_MAP)
     if(APPLE)
       if(XCODE AND ${XCODE_VERSION} VERSION_LESS 12.0)
@@ -1909,9 +1923,25 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INSTALL_PORTABLE)
   info_cfg_option(WITH_MEM_JEMALLOC)
   info_cfg_option(WITH_MEM_VALGRIND)
-  info_cfg_option(WITH_X11_XF86VMODE)
-  info_cfg_option(WITH_X11_XFIXES)
-  info_cfg_option(WITH_X11_XINPUT)
+
+  info_cfg_text("GHOST Options:")
+  info_cfg_option(WITH_GHOST_DEBUG)
+  info_cfg_option(WITH_GHOST_SDL)
+  if(UNIX AND NOT APPLE)
+    info_cfg_option(WITH_GHOST_X11)
+    info_cfg_option(WITH_GHOST_WAYLAND)
+    if(WITH_GHOST_X11)
+      info_cfg_option(WITH_GHOST_XDND)
+      info_cfg_option(WITH_X11_XF86VMODE)
+      info_cfg_option(WITH_X11_XFIXES)
+      info_cfg_option(WITH_X11_XINPUT)
+    endif()
+    if(WITH_GHOST_WAYLAND)
+      info_cfg_option(WITH_GHOST_WAYLAND_DYNLOAD)
+      info_cfg_option(WITH_GHOST_WAYLAND_LIBDECOR)
+      info_cfg_option(WITH_GHOST_WAYLAND_DBUS)
+    endif()
+  endif()
 
   info_cfg_text("Image Formats:")
   info_cfg_option(WITH_IMAGE_CINEON)
@@ -1951,6 +1981,22 @@ if(FIRST_RUN)
   info_cfg_option(WITH_MOD_FLUID)
   info_cfg_option(WITH_MOD_OCEANSIM)
   info_cfg_option(WITH_MOD_REMESH)
+
+  if(WITH_CYCLES)
+    info_cfg_text("Cycles:")
+    info_cfg_option(WITH_CYCLES_OSL)
+    info_cfg_option(WITH_CYCLES_EMBREE)
+    info_cfg_option(WITH_CYCLES_PATH_GUIDING)
+    if(NOT APPLE)
+      info_cfg_option(WITH_CYCLES_DEVICE_OPTIX)
+      info_cfg_option(WITH_CYCLES_DEVICE_CUDA)
+      info_cfg_option(WITH_CYCLES_CUDA_BINARIES)
+      info_cfg_option(WITH_CYCLES_DEVICE_HIP)
+      info_cfg_option(WITH_CYCLES_HIP_BINARIES)
+      info_cfg_option(WITH_CYCLES_DEVICE_ONEAPI)
+      info_cfg_option(WITH_CYCLES_ONEAPI_BINARIES)
+    endif()
+  endif()
 
   info_cfg_text("")
 

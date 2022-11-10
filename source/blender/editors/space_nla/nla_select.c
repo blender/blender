@@ -401,7 +401,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
   ot->poll = nlaop_poll_tweakmode_off;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");

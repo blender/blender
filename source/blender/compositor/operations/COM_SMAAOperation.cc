@@ -65,7 +65,7 @@ static void sample_bilinear_vertical(T *reader, int x, int y, float yoffset, flo
 {
   float iy = floorf(yoffset);
   float fy = yoffset - iy;
-  y += (int)iy;
+  y += int(iy);
 
   float color00[4], color01[4];
 
@@ -83,7 +83,7 @@ static void sample_bilinear_horizontal(T *reader, int x, int y, float xoffset, f
 {
   float ix = floorf(xoffset);
   float fx = xoffset - ix;
-  x += (int)ix;
+  x += int(ix);
 
   float color00[4], color10[4];
 
@@ -113,12 +113,12 @@ static inline const float *areatex_sample_internal(const float *areatex, int x, 
 static void area(int d1, int d2, int e1, int e2, float weights[2])
 {
   /* The areas texture is compressed  quadratically: */
-  float x = (float)(SMAA_AREATEX_MAX_DISTANCE * e1) + sqrtf((float)d1);
-  float y = (float)(SMAA_AREATEX_MAX_DISTANCE * e2) + sqrtf((float)d2);
+  float x = float(SMAA_AREATEX_MAX_DISTANCE * e1) + sqrtf(float(d1));
+  float y = float(SMAA_AREATEX_MAX_DISTANCE * e2) + sqrtf(float(d2));
 
   float ix = floorf(x), iy = floorf(y);
   float fx = x - ix, fy = y - iy;
-  int X = (int)ix, Y = (int)iy;
+  int X = int(ix), Y = int(iy);
 
   const float *weights00 = areatex_sample_internal(areatex, X + 0, Y + 0);
   const float *weights10 = areatex_sample_internal(areatex, X + 1, Y + 0);
@@ -196,7 +196,7 @@ bool SMAAEdgeDetectionOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAAEdgeDetectionOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAAEdgeDetectionOperation::get_area_of_interest(const int /*input_idx*/,
                                                       const rcti &output_area,
                                                       rcti &r_input_area)
 {
@@ -404,7 +404,7 @@ void SMAABlendingWeightCalculationOperation::init_execution()
 void SMAABlendingWeightCalculationOperation::set_corner_rounding(float rounding)
 {
   /* UI values are between 0 and 1 for simplicity but algorithm expects values between 0 and 100 */
-  corner_rounding_ = static_cast<int>(scalenorm(0, 100, rounding));
+  corner_rounding_ = int(scalenorm(0, 100, rounding));
 }
 
 void SMAABlendingWeightCalculationOperation::execute_pixel(float output[4],
@@ -505,14 +505,14 @@ void SMAABlendingWeightCalculationOperation::execute_pixel(float output[4],
 }
 
 void SMAABlendingWeightCalculationOperation::update_memory_buffer_started(
-    MemoryBuffer *UNUSED(output), const rcti &UNUSED(out_area), Span<MemoryBuffer *> inputs)
+    MemoryBuffer * /*output*/, const rcti & /*out_area*/, Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *image = inputs[0];
   sample_image_fn_ = [=](int x, int y, float *out) { image->read_elem_checked(x, y, out); };
 }
 
 void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
-    MemoryBuffer *output, const rcti &out_area, Span<MemoryBuffer *> UNUSED(inputs))
+    MemoryBuffer *output, const rcti &out_area, Span<MemoryBuffer *> /*inputs*/)
 {
   for (BuffersIterator<float> it = output->iterate_with({}, out_area); !it.is_end(); ++it) {
     const int x = it.x;
@@ -631,7 +631,7 @@ bool SMAABlendingWeightCalculationOperation::determine_depending_area_of_interes
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int /*input_idx*/,
                                                                   const rcti &output_area,
                                                                   rcti &r_input_area)
 {
@@ -1123,7 +1123,7 @@ bool SMAANeighborhoodBlendingOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void SMAANeighborhoodBlendingOperation::get_area_of_interest(const int UNUSED(input_idx),
+void SMAANeighborhoodBlendingOperation::get_area_of_interest(const int /*input_idx*/,
                                                              const rcti &output_area,
                                                              rcti &r_input_area)
 {

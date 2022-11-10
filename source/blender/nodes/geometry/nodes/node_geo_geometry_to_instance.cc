@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_instances.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_geometry_to_instance_cc {
@@ -13,15 +15,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Vector<GeometrySet> geometries = params.extract_input<Vector<GeometrySet>>("Geometry");
-  GeometrySet instances_geometry;
-  InstancesComponent &instances_component =
-      instances_geometry.get_component_for_write<InstancesComponent>();
+  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
   for (GeometrySet &geometry : geometries) {
     geometry.ensure_owns_direct_data();
-    const int handle = instances_component.add_reference(std::move(geometry));
-    instances_component.add_instance(handle, float4x4::identity());
+    const int handle = instances->add_reference(std::move(geometry));
+    instances->add_instance(handle, float4x4::identity());
   }
-  params.set_output("Instances", std::move(instances_geometry));
+  params.set_output("Instances", GeometrySet::create_with_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_geometry_to_instance_cc

@@ -8,12 +8,16 @@
 
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
+#include "mtl_batch.hh"
 #include "mtl_context.hh"
+#include "mtl_drawlist.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_immediate.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
 #include "mtl_shader.hh"
 #include "mtl_uniform_buffer.hh"
+#include "mtl_vertex_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -36,21 +40,19 @@ void MTLBackend::samplers_update(){
     /* Placeholder -- Handled in MTLContext. */
 };
 
-Context *MTLBackend::context_alloc(void *ghost_window)
+Context *MTLBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
-  return new MTLContext(ghost_window);
+  return new MTLContext(ghost_window, ghost_context);
 };
 
 Batch *MTLBackend::batch_alloc()
 {
-  /* TODO(Metal): Implement MTLBatch. */
-  return nullptr;
+  return new MTLBatch();
 };
 
 DrawList *MTLBackend::drawlist_alloc(int list_length)
 {
-  /* TODO(Metal): Implement MTLDrawList. */
-  return nullptr;
+  return new MTLDrawList(list_length);
 };
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
@@ -94,8 +96,7 @@ StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const cha
 
 VertBuf *MTLBackend::vertbuf_alloc()
 {
-  /* TODO(Metal): Implement MTLVertBuf. */
-  return nullptr;
+  return new MTLVertBuf();
 }
 
 void MTLBackend::render_begin()
@@ -417,6 +418,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.depth_blitting_workaround = false;
   GCaps.use_main_context_workaround = false;
   GCaps.broken_amd_driver = false;
+  GCaps.clear_viewport_workaround = true;
 
   /* Metal related workarounds. */
   /* Minimum per-vertex stride is 4 bytes in Metal.

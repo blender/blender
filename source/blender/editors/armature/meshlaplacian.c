@@ -669,17 +669,25 @@ void heat_bone_weighting(Object *ob,
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
-      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
-        for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
-          mask[ml->v] = (mesh_verts[ml->v].flag & SELECT) != 0;
+      const bool *select_vert = (const bool *)CustomData_get_layer_named(
+          &me->vdata, CD_PROP_BOOL, ".select_vert");
+      if (select_vert) {
+        for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
+          for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
+            mask[ml->v] = select_vert[ml->v];
+          }
         }
       }
     }
     else if (use_face_sel) {
-      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
-        if (mp->flag & ME_FACE_SEL) {
-          for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
-            mask[ml->v] = 1;
+      const bool *select_poly = (const bool *)CustomData_get_layer_named(
+          &me->pdata, CD_PROP_BOOL, ".select_poly");
+      if (select_poly) {
+        for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
+          if (select_poly[a]) {
+            for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
+              mask[ml->v] = 1;
+            }
           }
         }
       }
@@ -1780,11 +1788,11 @@ void ED_mesh_deform_bind_callback(Object *object,
   mmd_orig->bindcagecos = (float *)mdb.cagecos;
   mmd_orig->verts_num = mdb.verts_num;
   mmd_orig->cage_verts_num = mdb.cage_verts_num;
-  copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->obmat);
+  copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->object_to_world);
 
   /* transform bindcagecos to world space */
   for (a = 0; a < mdb.cage_verts_num; a++) {
-    mul_m4_v3(mmd_orig->object->obmat, mmd_orig->bindcagecos + a * 3);
+    mul_m4_v3(mmd_orig->object->object_to_world, mmd_orig->bindcagecos + a * 3);
   }
 
   /* free */

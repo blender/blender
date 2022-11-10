@@ -204,8 +204,8 @@ static void track_markers_startjob(
     void *tmv,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
-    short *stop,
-    short *do_update,
+    bool *stop,
+    bool *do_update,
     float *progress)
 {
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
@@ -353,7 +353,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     return OPERATOR_RUNNING_MODAL;
   }
 
-  short stop = 0, do_update = 0;
+  bool stop = false, do_update = false;
   float progress = 0.0f;
   track_markers_startjob(tmj, &stop, &do_update, &progress);
   track_markers_endjob(tmj);

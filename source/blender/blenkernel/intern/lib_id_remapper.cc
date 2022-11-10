@@ -221,7 +221,7 @@ const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result)
   return "";
 }
 
-static void id_remapper_print_item_cb(ID *old_id, ID *new_id, void *UNUSED(user_data))
+static void id_remapper_print_item_cb(ID *old_id, ID *new_id, void * /*user_data*/)
 {
   if (old_id != nullptr && new_id != nullptr) {
     printf("Remap %s(%p) to %s(%p)\n", old_id->name, old_id, new_id->name, new_id);

@@ -4,11 +4,17 @@
 
 #include "FN_field.hh"
 
+#include "BKE_anonymous_attribute.hh"
 #include "BKE_curves.hh"
 
 namespace blender::geometry {
 
 using bke::CurvesGeometry;
+
+struct ResampleCurvesOutputAttributeIDs {
+  bke::AttributeIDRef tangent_id;
+  bke::AttributeIDRef normal_id;
+};
 
 /**
  * Create new curves where the selected curves have been resampled with a number of uniform-length
@@ -19,7 +25,8 @@ using bke::CurvesGeometry;
  */
 CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
                                  const fn::Field<bool> &selection_field,
-                                 const fn::Field<int> &count_field);
+                                 const fn::Field<int> &count_field,
+                                 const ResampleCurvesOutputAttributeIDs &output_ids = {});
 
 /**
  * Create new curves resampled to make each segment have the length specified by the
@@ -28,12 +35,14 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
  */
 CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
                                   const fn::Field<bool> &selection_field,
-                                  const fn::Field<float> &segment_length_field);
+                                  const fn::Field<float> &segment_length_field,
+                                  const ResampleCurvesOutputAttributeIDs &output_ids = {});
 
 /**
  * Evaluate each selected curve to its implicit evaluated points.
  */
 CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
-                                     const fn::Field<bool> &selection_field);
+                                     const fn::Field<bool> &selection_field,
+                                     const ResampleCurvesOutputAttributeIDs &output_ids = {});
 
 }  // namespace blender::geometry

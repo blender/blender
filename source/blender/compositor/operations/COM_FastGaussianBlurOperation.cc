@@ -102,18 +102,15 @@ void *FastGaussianBlurOperation::initialize_tile_data(rcti *rect)
   return iirgaus_;
 }
 
-void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
-                                          float sigma,
-                                          unsigned int chan,
-                                          unsigned int xy)
+void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, uint chan, uint xy)
 {
   BLI_assert(!src->is_a_single_elem());
   double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
   double *X, *Y, *W;
-  const unsigned int src_width = src->get_width();
-  const unsigned int src_height = src->get_height();
-  unsigned int x, y, src_dim_max;
-  unsigned int i;
+  const uint src_width = src->get_width();
+  const uint src_height = src->get_height();
+  uint x, y, src_dim_max;
+  uint i;
   float *buffer = src->get_buffer();
   const uint8_t num_channels = src->get_num_channels();
 
@@ -194,7 +191,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
     Y[L - 1] = cf[0] * W[L - 1] + cf[1] * tsv[0] + cf[2] * tsv[1] + cf[3] * tsv[2]; \
     Y[L - 2] = cf[0] * W[L - 2] + cf[1] * Y[L - 1] + cf[2] * tsv[0] + cf[3] * tsv[1]; \
     Y[L - 3] = cf[0] * W[L - 3] + cf[1] * Y[L - 2] + cf[2] * Y[L - 1] + cf[3] * tsv[0]; \
-    /* 'i != UINT_MAX' is really 'i >= 0', but necessary for unsigned int wrapping */ \
+    /* `i != UINT_MAX` is really `i >= 0`, but necessary for `uint` wrapping. */ \
     for (i = L - 4; i != UINT_MAX; i--) { \
       Y[i] = cf[0] * W[i] + cf[1] * Y[i + 1] + cf[2] * Y[i + 2] + cf[3] * Y[i + 3]; \
     } \
@@ -387,15 +384,15 @@ void *FastGaussianBlurValueOperation::initialize_tile_data(rcti *rect)
   return iirgaus_;
 }
 
-void FastGaussianBlurValueOperation::get_area_of_interest(const int UNUSED(input_idx),
-                                                          const rcti &UNUSED(output_area),
+void FastGaussianBlurValueOperation::get_area_of_interest(const int /*input_idx*/,
+                                                          const rcti & /*output_area*/,
                                                           rcti &r_input_area)
 {
   r_input_area = this->get_canvas();
 }
 
-void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                                                  const rcti &UNUSED(area),
+void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                                  const rcti & /*area*/,
                                                                   Span<MemoryBuffer *> inputs)
 {
   if (iirgaus_ == nullptr) {

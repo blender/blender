@@ -58,7 +58,7 @@ void DerivedNodeTree::destruct_context_recursively(DTreeContext *context)
 bool DerivedNodeTree::has_link_cycles() const
 {
   for (const bNodeTree *btree : used_btrees_) {
-    if (btree->has_link_cycle()) {
+    if (btree->has_available_link_cycle()) {
       return true;
     }
   }

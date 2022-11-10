@@ -545,7 +545,7 @@ static void unpack_generate_paths(const char *name,
         break;
     }
     if (dir_name) {
-      BLI_path_join(r_relpath, relpathlen, "//", dir_name, tempname, NULL);
+      BLI_path_join(r_relpath, relpathlen, "//", dir_name, tempname);
     }
   }
 

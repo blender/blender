@@ -167,7 +167,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
         float dir_dot;
 
         sub_v3_v3v3(tdir, sv->co_orig_3d, sv->co_link_orig_3d[j]);
-        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat, tdir);
+        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world, tdir);
         project_plane_v3_v3v3(tdir, tdir, t->viewinv[2]);
 
         normalize_v3(tdir);
@@ -382,7 +382,7 @@ void drawVertSlide(TransInfo *t)
       GPU_blend(GPU_BLEND_ALPHA);
 
       GPU_matrix_push();
-      GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+      GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
 
       GPU_line_width(line_size);
 
@@ -437,15 +437,16 @@ void drawVertSlide(TransInfo *t)
         xy_delta[0] = t->mval[0] - t->mouse.imval[0];
         xy_delta[1] = t->mval[1] - t->mouse.imval[1];
 
-        mul_v3_m4v3(
-            co_orig_3d, TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat, curr_sv->co_orig_3d);
+        mul_v3_m4v3(co_orig_3d,
+                    TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world,
+                    curr_sv->co_orig_3d);
         zfac = ED_view3d_calc_zfac(t->region->regiondata, co_orig_3d);
 
         ED_view3d_win_to_delta(t->region, xy_delta, zfac, co_dest_3d);
 
-        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->imat,
-                     TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
-        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->imat, co_dest_3d);
+        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object,
+                     TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
+        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object, co_dest_3d);
 
         add_v3_v3(co_dest_3d, curr_sv->co_orig_3d);
 

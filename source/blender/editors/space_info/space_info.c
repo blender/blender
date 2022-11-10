@@ -28,6 +28,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "info_intern.h" /* own include */
 
 /* ******************** default callbacks for info space ***************** */
@@ -248,6 +250,11 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
+static void info_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceInfo, sl);
+}
+
 void ED_spacetype_info(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype info");
@@ -262,6 +269,7 @@ void ED_spacetype_info(void)
   st->duplicate = info_duplicate;
   st->operatortypes = info_operatortypes;
   st->keymap = info_keymap;
+  st->blend_write = info_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype info region");

@@ -147,7 +147,7 @@ void ED_region_do_listen(wmRegionListenerParams *params)
   }
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    UI_block_views_listen(block, params);
+    UI_block_listen(block, params);
   }
 
   LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
@@ -175,7 +175,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *area)
 }
 
 /**
- * \brief Corner widget use for quitting fullscreen.
+ * \brief Corner widget use for quitting full-screen.
  */
 static void area_draw_azone_fullscreen(
     short UNUSED(x1), short UNUSED(y1), short x2, short y2, float alpha)
@@ -187,7 +187,8 @@ static void area_draw_azone_fullscreen(
                   min_ff(alpha, 0.75f),
                   0.0f,
                   NULL,
-                  false);
+                  false,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 /**
@@ -845,7 +846,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
 {
-  /* reinitialize entirely, regions and fullscreen add azones too */
+  /* reinitialize entirely, regions and full-screen add azones too */
   BLI_freelistN(&area->actionzones);
 
   if (screen->state != SCREENNORMAL) {
@@ -1902,6 +1903,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
   if (ED_area_is_global(area) && (area->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
@@ -1966,7 +1968,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   /* Avoid re-initializing tools while resizing the window. */
   if ((G.moving & G_TRANSFORM_WM) == 0) {
     if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-      WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
+      WM_toolsystem_refresh_screen_area(workspace, scene, view_layer, area);
       area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }
     else {
@@ -2577,8 +2579,8 @@ void ED_area_prevspace(bContext *C, ScrArea *area)
     /* no change */
     return;
   }
-  /* If this is a stacked fullscreen, changing to previous area exits it (meaning we're still in a
-   * fullscreen, but not in a stacked one). */
+  /* If this is a stacked full-screen, changing to previous area exits it (meaning we're still in a
+   * full-screen, but not in a stacked one). */
   area->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
 
   ED_area_tag_redraw(area);
@@ -3793,7 +3795,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
   float font_dims[2] = {0.0f, 0.0f};
 
   /* frame number */
-  BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(fontid, 11.0f * U.dpi_fac);
   BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);

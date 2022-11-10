@@ -46,6 +46,58 @@ inline void convert_to_static_type(const eCustomDataType data_type, const Func &
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Mix two values of the same type.
+ *
+ * This is just basic linear interpolation.
+ * \{ */
+
+template<typename T> T mix2(float factor, const T &a, const T &b);
+
+template<> inline bool mix2(const float factor, const bool &a, const bool &b)
+{
+  return ((1.0f - factor) * a + factor * b) >= 0.5f;
+}
+
+template<> inline int8_t mix2(const float factor, const int8_t &a, const int8_t &b)
+{
+  return int8_t(std::round((1.0f - factor) * a + factor * b));
+}
+
+template<> inline int mix2(const float factor, const int &a, const int &b)
+{
+  return int(std::round((1.0f - factor) * a + factor * b));
+}
+
+template<> inline float mix2(const float factor, const float &a, const float &b)
+{
+  return (1.0f - factor) * a + factor * b;
+}
+
+template<> inline float2 mix2(const float factor, const float2 &a, const float2 &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+template<>
+inline ColorGeometry4f mix2(const float factor, const ColorGeometry4f &a, const ColorGeometry4f &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+template<>
+inline ColorGeometry4b mix2(const float factor, const ColorGeometry4b &a, const ColorGeometry4b &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mix three values of the same type.
  *
  * This is typically used to interpolate values within a triangle.
@@ -56,7 +108,7 @@ template<typename T> T mix3(const float3 &weights, const T &v0, const T &v1, con
 template<>
 inline int8_t mix3(const float3 &weights, const int8_t &v0, const int8_t &v1, const int8_t &v2)
 {
-  return static_cast<int8_t>(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
+  return int8_t(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
 }
 
 template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v1, const bool &v2)
@@ -66,7 +118,7 @@ template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v
 
 template<> inline int mix3(const float3 &weights, const int &v0, const int &v1, const int &v2)
 {
-  return static_cast<int>(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
+  return int(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
 }
 
 template<>
@@ -108,62 +160,88 @@ inline ColorGeometry4b mix3(const float3 &weights,
   const float4 v1_f{&v1.r};
   const float4 v2_f{&v2.r};
   const float4 mixed = v0_f * weights[0] + v1_f * weights[1] + v2_f * weights[2];
-  return ColorGeometry4b{static_cast<uint8_t>(mixed[0]),
-                         static_cast<uint8_t>(mixed[1]),
-                         static_cast<uint8_t>(mixed[2]),
-                         static_cast<uint8_t>(mixed[3])};
+  return ColorGeometry4b{
+      uint8_t(mixed[0]), uint8_t(mixed[1]), uint8_t(mixed[2]), uint8_t(mixed[3])};
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mix two values of the same type.
+/** \name Mix four values of the same type.
  *
- * This is just basic linear interpolation.
  * \{ */
 
-template<typename T> T mix2(float factor, const T &a, const T &b);
+template<typename T>
+T mix4(const float4 &weights, const T &v0, const T &v1, const T &v2, const T &v3);
 
-template<> inline bool mix2(const float factor, const bool &a, const bool &b)
+template<>
+inline int8_t mix4(
+    const float4 &weights, const int8_t &v0, const int8_t &v1, const int8_t &v2, const int8_t &v3)
 {
-  return ((1.0f - factor) * a + factor * b) >= 0.5f;
-}
-
-template<> inline int8_t mix2(const float factor, const int8_t &a, const int8_t &b)
-{
-  return static_cast<int8_t>(std::round((1.0f - factor) * a + factor * b));
-}
-
-template<> inline int mix2(const float factor, const int &a, const int &b)
-{
-  return static_cast<int>(std::round((1.0f - factor) * a + factor * b));
-}
-
-template<> inline float mix2(const float factor, const float &a, const float &b)
-{
-  return (1.0f - factor) * a + factor * b;
-}
-
-template<> inline float2 mix2(const float factor, const float2 &a, const float2 &b)
-{
-  return math::interpolate(a, b, factor);
-}
-
-template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
-{
-  return math::interpolate(a, b, factor);
+  return int8_t(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3));
 }
 
 template<>
-inline ColorGeometry4f mix2(const float factor, const ColorGeometry4f &a, const ColorGeometry4f &b)
+inline bool mix4(
+    const float4 &weights, const bool &v0, const bool &v1, const bool &v2, const bool &v3)
 {
-  return math::interpolate(a, b, factor);
+  return (weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3) >= 0.5f;
 }
 
 template<>
-inline ColorGeometry4b mix2(const float factor, const ColorGeometry4b &a, const ColorGeometry4b &b)
+inline int mix4(const float4 &weights, const int &v0, const int &v1, const int &v2, const int &v3)
 {
-  return math::interpolate(a, b, factor);
+  return int(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3));
+}
+
+template<>
+inline float mix4(
+    const float4 &weights, const float &v0, const float &v1, const float &v2, const float &v3)
+{
+  return weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3;
+}
+
+template<>
+inline float2 mix4(
+    const float4 &weights, const float2 &v0, const float2 &v1, const float2 &v2, const float2 &v3)
+{
+  return weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3;
+}
+
+template<>
+inline float3 mix4(
+    const float4 &weights, const float3 &v0, const float3 &v1, const float3 &v2, const float3 &v3)
+{
+  return weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3;
+}
+
+template<>
+inline ColorGeometry4f mix4(const float4 &weights,
+                            const ColorGeometry4f &v0,
+                            const ColorGeometry4f &v1,
+                            const ColorGeometry4f &v2,
+                            const ColorGeometry4f &v3)
+{
+  ColorGeometry4f result;
+  interp_v4_v4v4v4v4(result, v0, v1, v2, v3, weights);
+  return result;
+}
+
+template<>
+inline ColorGeometry4b mix4(const float4 &weights,
+                            const ColorGeometry4b &v0,
+                            const ColorGeometry4b &v1,
+                            const ColorGeometry4b &v2,
+                            const ColorGeometry4b &v3)
+{
+  const float4 v0_f{&v0.r};
+  const float4 v1_f{&v1.r};
+  const float4 v2_f{&v2.r};
+  const float4 v3_f{&v3.r};
+  float4 mixed;
+  interp_v4_v4v4v4v4(mixed, v0_f, v1_f, v2_f, v3_f, weights);
+  return ColorGeometry4b{
+      uint8_t(mixed[0]), uint8_t(mixed[1]), uint8_t(mixed[2]), uint8_t(mixed[3])};
 }
 
 /** \} */
@@ -439,7 +517,7 @@ template<> struct DefaultMixerStruct<ColorGeometry4b> {
 template<> struct DefaultMixerStruct<int> {
   static int double_to_int(const double &value)
   {
-    return static_cast<int>(std::round(value));
+    return int(std::round(value));
   }
   /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
    * uses double instead of float so that it is accurate for all 32 bit integers. */
@@ -458,7 +536,7 @@ template<> struct DefaultMixerStruct<bool> {
 template<> struct DefaultMixerStruct<int8_t> {
   static int8_t float_to_int8_t(const float &value)
   {
-    return static_cast<int8_t>(std::round(value));
+    return int8_t(std::round(value));
   }
   /* Store interpolated 8 bit integers in a float temporarily to increase accuracy. */
   using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;

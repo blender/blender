@@ -34,20 +34,7 @@ void main()
   float unused_strength;
   vec2 unused_uv;
 
-  gl_Position = gpencil_vertex(ma,
-                               ma1,
-                               ma2,
-                               ma3,
-                               pos,
-                               pos1,
-                               pos2,
-                               pos3,
-                               uv1,
-                               uv2,
-                               col1,
-                               col2,
-                               fcol1,
-                               vec4(drw_view.viewport_size, drw_view.viewport_size_inverse),
+  gl_Position = gpencil_vertex(vec4(sizeViewport, sizeViewportInv),
                                world_pos,
                                unused_N,
                                unused_color,

@@ -70,7 +70,7 @@ GHOST_TSuccess GHOST_DisplayManager::getDisplaySetting(uint8_t display,
   uint8_t numDisplays;
   success = getNumDisplays(numDisplays);
   if (success == GHOST_kSuccess) {
-    if (display < numDisplays && ((uint8_t)index < m_settings[display].size())) {
+    if (display < numDisplays && (uint8_t(index) < m_settings[display].size())) {
       setting = m_settings[display][index];
     }
     else {
@@ -101,14 +101,14 @@ GHOST_TSuccess GHOST_DisplayManager::findMatch(uint8_t display,
                "GHOST_DisplayManager::findMatch(): m_settingsInitialized=false");
 
   int criteria[4] = {
-      (int)setting.xPixels, (int)setting.yPixels, (int)setting.bpp, (int)setting.frequency};
+      int(setting.xPixels), int(setting.yPixels), int(setting.bpp), int(setting.frequency)};
   int capabilities[4];
   double field, score;
   double best = 1e12; /* A big number. */
   int found = 0;
 
   /* Look at all the display modes. */
-  for (int i = 0; (i < (int)m_settings[display].size()); i++) {
+  for (int i = 0; (i < int(m_settings[display].size())); i++) {
     /* Store the capabilities of the display device. */
     capabilities[0] = m_settings[display][i].xPixels;
     capabilities[1] = m_settings[display][i].yPixels;

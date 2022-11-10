@@ -5,6 +5,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_string.h"
 #include "BLI_uuid.h"
 
 #include <cstdio>
@@ -85,19 +86,19 @@ bool BLI_uuid_equal(const bUUID uuid1, const bUUID uuid2)
 
 void BLI_uuid_format(char *buffer, const bUUID uuid)
 {
-  std::sprintf(buffer,
-               "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-               uuid.time_low,
-               uuid.time_mid,
-               uuid.time_hi_and_version,
-               uuid.clock_seq_hi_and_reserved,
-               uuid.clock_seq_low,
-               uuid.node[0],
-               uuid.node[1],
-               uuid.node[2],
-               uuid.node[3],
-               uuid.node[4],
-               uuid.node[5]);
+  BLI_sprintf(buffer,
+              "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+              uuid.time_low,
+              uuid.time_mid,
+              uuid.time_hi_and_version,
+              uuid.clock_seq_hi_and_reserved,
+              uuid.clock_seq_low,
+              uuid.node[0],
+              uuid.node[1],
+              uuid.node[2],
+              uuid.node[3],
+              uuid.node[4],
+              uuid.node[5]);
 }
 
 bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)
@@ -136,10 +137,10 @@ bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
   const auto *field_iter = field_values.begin();
 
   this->time_low = *field_iter++;
-  this->time_mid = static_cast<uint16_t>(*field_iter++);
-  this->time_hi_and_version = static_cast<uint16_t>(*field_iter++);
-  this->clock_seq_hi_and_reserved = static_cast<uint8_t>(*field_iter++);
-  this->clock_seq_low = static_cast<uint8_t>(*field_iter++);
+  this->time_mid = uint16_t(*field_iter++);
+  this->time_hi_and_version = uint16_t(*field_iter++);
+  this->clock_seq_hi_and_reserved = uint8_t(*field_iter++);
+  this->clock_seq_low = uint8_t(*field_iter++);
 
   std::copy(field_iter, field_values.end(), this->node);
 }

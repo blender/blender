@@ -78,9 +78,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
   Collection *col = bmd->collection;
@@ -141,8 +139,8 @@ static Mesh *get_quick_mesh(
 
           float imat[4][4];
           float omat[4][4];
-          invert_m4_m4(imat, ob_self->obmat);
-          mul_m4_m4m4(omat, imat, ob_operand_ob->obmat);
+          invert_m4_m4(imat, ob_self->object_to_world);
+          mul_m4_m4m4(omat, imat, ob_operand_ob->object_to_world);
 
           MutableSpan<MVert> verts = result->verts_for_write();
           for (const int i : verts.index_range()) {
@@ -169,7 +167,7 @@ static Mesh *get_quick_mesh(
 /**
  * Compare selected/unselected.
  */
-static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 {
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
@@ -229,7 +227,8 @@ static BMesh *BMD_mesh_bm_create(
   SCOPED_TIMER(__func__);
 #endif
 
-  *r_is_flip = (is_negative_m4(object->obmat) != is_negative_m4(operand_ob->obmat));
+  *r_is_flip = (is_negative_m4(object->object_to_world) !=
+                is_negative_m4(operand_ob->object_to_world));
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_operand_ob);
 
@@ -296,8 +295,8 @@ static void BMD_mesh_intersection(BMesh *bm,
 
     float imat[4][4];
     float omat[4][4];
-    invert_m4_m4(imat, object->obmat);
-    mul_m4_m4m4(omat, imat, operand_ob->obmat);
+    invert_m4_m4(imat, object->object_to_world);
+    mul_m4_m4m4(omat, imat, operand_ob->object_to_world);
 
     BMVert *eve;
     i = 0;
@@ -416,7 +415,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   }
 
   meshes.append(mesh);
-  obmats.append((float4x4 *)&ctx->object->obmat);
+  obmats.append((float4x4 *)&ctx->object->object_to_world);
   material_remaps.append({});
   if (mesh->totcol == 0) {
     /* Necessary for faces using the default material when there are no material slots. */
@@ -433,7 +432,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
-    obmats.append((float4x4 *)&bmd->object->obmat);
+    obmats.append((float4x4 *)&bmd->object->object_to_world);
     material_remaps.append(get_material_remap(*bmd->object, *mesh_operand, materials));
   }
   else if (bmd->flag & eBooleanModifierFlag_Collection) {
@@ -448,7 +447,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
-          obmats.append((float4x4 *)&ob->obmat);
+          obmats.append((float4x4 *)&ob->object_to_world);
           material_remaps.append(get_material_remap(*ob, *collection_mesh, materials));
         }
       }
@@ -458,14 +457,15 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
-                                                             obmats,
-                                                             *(float4x4 *)&ctx->object->obmat,
-                                                             material_remaps,
-                                                             use_self,
-                                                             hole_tolerant,
-                                                             bmd->operation,
-                                                             nullptr);
+  Mesh *result = blender::meshintersect::direct_mesh_boolean(
+      meshes,
+      obmats,
+      *(float4x4 *)&ctx->object->object_to_world,
+      material_remaps,
+      use_self,
+      hole_tolerant,
+      bmd->operation,
+      nullptr);
   MEM_SAFE_FREE(result->mat);
   result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
   result->totcol = materials.size();
@@ -570,16 +570,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   r_cddata_masks->emask |= CD_MASK_MEDGE;
   r_cddata_masks->fmask |= CD_MASK_MTFACE;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
@@ -601,7 +599,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);

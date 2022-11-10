@@ -280,9 +280,9 @@ PyDoc_STRVAR(
     "\n"
     "   Fill texture with specific value.\n"
     "\n"
-    "   :param format: The format that describes the content of a single item.\n"
+    "   :arg format: The format that describes the content of a single item.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "   :type type: str\n"
+    "   :type format: str\n"
     "   :arg value: sequence each representing the value to fill.\n"
     "   :type value: sequence of 1, 2, 3 or 4 values\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
@@ -565,9 +565,14 @@ static struct PyMethodDef pygpu_texture__m_methods[] = {
 PyDoc_STRVAR(pygpu_texture__m_doc, "This module provides utils for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.texture",
-    .m_doc = pygpu_texture__m_doc,
-    .m_methods = pygpu_texture__m_methods,
+    /*m_name*/ "gpu.texture",
+    /*m_doc*/ pygpu_texture__m_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_texture__m_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /** \} */

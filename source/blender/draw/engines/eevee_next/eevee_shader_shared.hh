@@ -163,7 +163,7 @@ struct CameraData {
   float4x4 viewinv;
   float4x4 winmat;
   float4x4 wininv;
-  /** Camera UV scale and bias. Also known as `viewcamtexcofac`. */
+  /** Camera UV scale and bias. */
   float2 uv_scale;
   float2 uv_bias;
   /** Panorama parameters. */
@@ -560,7 +560,7 @@ struct LightCullingData {
   uint local_lights_len;
   /** Items that are **NOT** processed by the 2.5D culling (i.e: Sun Lights). */
   uint sun_lights_len;
-  /** Number of items that passes the first culling test. */
+  /** Number of items that passes the first culling test. (local lights only) */
   uint visible_count;
   /** Extent of one square tile in pixels. */
   float tile_size;

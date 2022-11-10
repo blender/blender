@@ -33,9 +33,9 @@ struct SGLSLEditMeshToTangent {
   uint GetNumFaces()
   {
 #ifdef USE_LOOPTRI_DETECT_QUADS
-    return (uint)num_face_as_quad_map;
+    return uint(num_face_as_quad_map);
 #else
-    return (uint)numTessFaces;
+    return uint(numTessFaces);
 #endif
   }
 
@@ -94,12 +94,10 @@ struct SGLSLEditMeshToTangent {
       const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
-    else {
-      const float *orco_p = orco[BM_elem_index_get(l->v)];
-      float u, v;
-      map_to_sphere(&u, &v, orco_p[0], orco_p[1], orco_p[2]);
-      return mikk::float3(u, v, 1.0f);
-    }
+    const float *orco_p = orco[BM_elem_index_get(l->v)];
+    float u, v;
+    map_to_sphere(&u, &v, orco_p[0], orco_p[1], orco_p[2]);
+    return mikk::float3(u, v, 1.0f);
   }
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_index)
@@ -108,17 +106,13 @@ struct SGLSLEditMeshToTangent {
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[BM_elem_index_get(l)]);
     }
-    else if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
+    if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
       if (precomputedFaceNormals) {
         return mikk::float3(precomputedFaceNormals[BM_elem_index_get(l->f)]);
       }
-      else {
-        return mikk::float3(l->f->no);
-      }
+      return mikk::float3(l->f->no);
     }
-    else {
-      return mikk::float3(l->v->no);
-    }
+    return mikk::float3(l->v->no);
   }
 
   void SetTangentSpace(const uint face_num,
@@ -147,7 +141,7 @@ struct SGLSLEditMeshToTangent {
 #endif
 };
 
-static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), void *taskdata)
+static void emDM_calc_loop_tangents_thread(TaskPool *__restrict /*pool*/, void *taskdata)
 {
   SGLSLEditMeshToTangent *mesh_data = static_cast<SGLSLEditMeshToTangent *>(taskdata);
 
@@ -194,21 +188,21 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     for (int i = 0; i < tangent_names_len; i++) {
       if (tangent_names[i][0]) {
         BKE_mesh_add_loop_tangent_named_layer_for_uv(
-            &bm->ldata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
+            &bm->ldata, loopdata_out, int(loopdata_out_len), tangent_names[i]);
       }
     }
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, (int)loopdata_out_len, "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, int(loopdata_out_len), "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          &bm->ldata, loopdata_out, (int)loopdata_out_len, act_uv_name);
+          &bm->ldata, loopdata_out, int(loopdata_out_len), act_uv_name);
     }
     if (calc_ren && ren_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          &bm->ldata, loopdata_out, (int)loopdata_out_len, ren_uv_name);
+          &bm->ldata, loopdata_out, int(loopdata_out_len), ren_uv_name);
     }
     int totface = em->tottri;
 #ifdef USE_LOOPTRI_DETECT_QUADS

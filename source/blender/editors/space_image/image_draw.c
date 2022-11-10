@@ -168,7 +168,7 @@ void ED_image_draw_info(Scene *scene,
 
   GPU_blend(GPU_BLEND_NONE);
 
-  BLF_size(blf_mono_font, 11.0f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, 11.0f * U.dpi_fac);
 
   BLF_color3ub(blf_mono_font, 255, 255, 255);
   SNPRINTF(str, "X:%-4d  Y:%-4d |", x, y);
@@ -572,47 +572,60 @@ void draw_image_cache(const bContext *C, ARegion *region)
 float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
 {
   /* UV-space length per pixel */
-  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / ((float)(v2d->mask.xmax - v2d->mask.xmin));
-  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / ((float)(v2d->mask.ymax - v2d->mask.ymin));
+  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / (float)(v2d->mask.xmax - v2d->mask.xmin);
+  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / (float)(v2d->mask.ymax - v2d->mask.ymin);
 
   /* Zoom_factor for UV/Image editor is calculated based on:
    * - Default grid size on startup, which is 256x256 pixels
    * - How blend factor for grid lines is set up in the fragment shader `grid_frag.glsl`. */
   float zoom_factor;
   zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy. */
-  zoom_factor *= 256.0f / (powf(grid_dimension, 2));
+  zoom_factor *= 256.0f / powf(grid_dimension, 2);
   return zoom_factor;
 }
 
 void ED_space_image_grid_steps(SpaceImage *sima,
-                               float grid_steps[SI_GRID_STEPS_LEN],
+                               float grid_steps_x[SI_GRID_STEPS_LEN],
+                               float grid_steps_y[SI_GRID_STEPS_LEN],
                                const int grid_dimension)
 {
-  if (sima->flag & SI_CUSTOM_GRID) {
-    for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-      grid_steps[step] = powf(1, step) * (1.0f / ((float)sima->custom_grid_subdiv));
-    }
-  }
-  else {
-    for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-      grid_steps[step] = powf(grid_dimension, step) *
-                         (1.0f / (powf(grid_dimension, SI_GRID_STEPS_LEN)));
+  const eSpaceImage_GridShapeSource grid_shape_source = sima->grid_shape_source;
+  for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
+    switch (grid_shape_source) {
+      case SI_GRID_SHAPE_DYNAMIC:
+        grid_steps_x[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+        grid_steps_y[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+        break;
+      case SI_GRID_SHAPE_FIXED:
+        grid_steps_x[step] = 1.0f / sima->custom_grid_subdiv[0];
+        grid_steps_y[step] = 1.0f / sima->custom_grid_subdiv[1];
+        break;
+      case SI_GRID_SHAPE_PIXEL: {
+        int pixel_width = IMG_SIZE_FALLBACK;
+        int pixel_height = IMG_SIZE_FALLBACK;
+        ED_space_image_get_size(sima, &pixel_width, &pixel_height);
+        BLI_assert(pixel_width > 0 && pixel_height > 0);
+        grid_steps_x[step] = 1.0f / pixel_width;
+        grid_steps_y[step] = 1.0f / pixel_height;
+      } break;
+      default:
+        BLI_assert_unreachable();
     }
   }
 }
 
-float ED_space_image_increment_snap_value(const int grid_dimesnions,
+float ED_space_image_increment_snap_value(const int grid_dimensions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           const float zoom_factor)
 {
   /* Small offset on each grid_steps[] so that snapping value doesn't change until grid lines are
    * significantly visible.
-   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimesnsions))`
+   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimensions))`
    *
    * Refer `grid_frag.glsl` to find out when grid lines actually start appearing */
 
   for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimesnions));
+    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimensions));
 
     if ((grid_steps[step] - offset) > zoom_factor) {
       return grid_steps[step];

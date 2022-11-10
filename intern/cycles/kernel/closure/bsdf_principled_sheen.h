@@ -59,19 +59,19 @@ ccl_device int bsdf_principled_sheen_setup(ccl_private const ShaderData *sd,
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_principled_sheen_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                       const float3 I,
-                                                       const float3 omega_in,
-                                                       ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_sheen_eval(ccl_private const ShaderClosure *sc,
+                                               const float3 I,
+                                               const float3 omega_in,
+                                               ccl_private float *pdf)
 {
   ccl_private const PrincipledSheenBsdf *bsdf = (ccl_private const PrincipledSheenBsdf *)sc;
-
-  float3 N = bsdf->N;
-  float3 V = I;         // outgoing
-  float3 L = omega_in;  // incoming
-  float3 H = normalize(L + V);
+  const float3 N = bsdf->N;
 
   if (dot(N, omega_in) > 0.0f) {
+    const float3 V = I;         // outgoing
+    const float3 L = omega_in;  // incoming
+    const float3 H = normalize(L + V);
+
     *pdf = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
     return calculate_principled_sheen_brdf(N, V, L, H, pdf);
   }
@@ -79,15 +79,6 @@ ccl_device Spectrum bsdf_principled_sheen_eval_reflect(ccl_private const ShaderC
     *pdf = 0.0f;
     return zero_spectrum();
   }
-}
-
-ccl_device Spectrum bsdf_principled_sheen_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                        const float3 I,
-                                                        const float3 omega_in,
-                                                        ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
 }
 
 ccl_device int bsdf_principled_sheen_sample(ccl_private const ShaderClosure *sc,

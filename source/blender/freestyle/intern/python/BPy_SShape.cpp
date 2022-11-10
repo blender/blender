@@ -12,6 +12,8 @@
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -155,13 +157,13 @@ PyDoc_STRVAR(SShape_id_doc,
              "\n"
              ":type: :class:`Id`");
 
-static PyObject *SShape_id_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_id_get(BPy_SShape *self, void * /*closure*/)
 {
   Id id(self->ss->getId());
   return BPy_Id_from_Id(id);  // return a copy
 }
 
-static int SShape_id_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_id_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_Id_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an Id");
@@ -176,12 +178,12 @@ PyDoc_STRVAR(SShape_name_doc,
              "\n"
              ":type: str");
 
-static PyObject *SShape_name_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_name_get(BPy_SShape *self, void * /*closure*/)
 {
   return PyUnicode_FromString(self->ss->getName().c_str());
 }
 
-static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_name_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!PyUnicode_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a string");
@@ -197,13 +199,13 @@ PyDoc_STRVAR(SShape_bbox_doc,
              "\n"
              ":type: :class:`BBox`");
 
-static PyObject *SShape_bbox_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_bbox_get(BPy_SShape *self, void * /*closure*/)
 {
   BBox<Vec3r> bb(self->ss->bbox());
   return BPy_BBox_from_BBox(bb);  // return a copy
 }
 
-static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_BBox_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a BBox");
@@ -218,13 +220,13 @@ PyDoc_STRVAR(SShape_vertices_doc,
              "\n"
              ":type: List of :class:`SVertex` objects");
 
-static PyObject *SShape_vertices_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_vertices_get(BPy_SShape *self, void * /*closure*/)
 {
 
   vector<SVertex *> vertices = self->ss->getVertexList();
   vector<SVertex *>::iterator it;
   PyObject *py_vertices = PyList_New(vertices.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = vertices.begin(); it != vertices.end(); it++) {
     PyList_SET_ITEM(py_vertices, i++, BPy_SVertex_from_SVertex(*(*it)));
@@ -238,13 +240,13 @@ PyDoc_STRVAR(SShape_edges_doc,
              "\n"
              ":type: List of :class:`FEdge` objects");
 
-static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
+static PyObject *SShape_edges_get(BPy_SShape *self, void * /*closure*/)
 {
 
   vector<FEdge *> edges = self->ss->getEdgeList();
   vector<FEdge *>::iterator it;
   PyObject *py_edges = PyList_New(edges.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = edges.begin(); it != edges.end(); it++) {
     PyList_SET_ITEM(py_edges, i++, Any_BPy_FEdge_from_FEdge(*(*it)));
@@ -265,43 +267,44 @@ static PyGetSetDef BPy_SShape_getseters[] = {
 /*-----------------------BPy_SShape type definition ------------------------------*/
 
 PyTypeObject SShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "SShape", /* tp_name */
-    sizeof(BPy_SShape),                         /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    (destructor)SShape_dealloc,                 /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    nullptr,                                    /* tp_getattr */
-    nullptr,                                    /* tp_setattr */
-    nullptr,                                    /* tp_reserved */
-    (reprfunc)SShape_repr,                      /* tp_repr */
-    nullptr,                                    /* tp_as_number */
-    nullptr,                                    /* tp_as_sequence */
-    nullptr,                                    /* tp_as_mapping */
-    nullptr,                                    /* tp_hash */
-    nullptr,                                    /* tp_call */
-    nullptr,                                    /* tp_str */
-    nullptr,                                    /* tp_getattro */
-    nullptr,                                    /* tp_setattro */
-    nullptr,                                    /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
-    SShape_doc,                                 /* tp_doc */
-    nullptr,                                    /* tp_traverse */
-    nullptr,                                    /* tp_clear */
-    nullptr,                                    /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    nullptr,                                    /* tp_iter */
-    nullptr,                                    /* tp_iternext */
-    BPy_SShape_methods,                         /* tp_methods */
-    nullptr,                                    /* tp_members */
-    BPy_SShape_getseters,                       /* tp_getset */
-    nullptr,                                    /* tp_base */
-    nullptr,                                    /* tp_dict */
-    nullptr,                                    /* tp_descr_get */
-    nullptr,                                    /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)SShape_init,                      /* tp_init */
-    nullptr,                                    /* tp_alloc */
-    PyType_GenericNew,                          /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "SShape",
+    /*tp_basicsize*/ sizeof(BPy_SShape),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)SShape_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ (reprfunc)SShape_repr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ SShape_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_SShape_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_SShape_getseters,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)SShape_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

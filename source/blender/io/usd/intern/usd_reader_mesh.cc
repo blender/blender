@@ -33,6 +33,7 @@
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -275,7 +276,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
 bool USDMeshReader::valid() const
 {
-  return static_cast<bool>(mesh_prim_);
+  return bool(mesh_prim_);
 }
 
 bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
@@ -287,11 +288,13 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
   mesh_prim_.GetFaceVertexCountsAttr().Get(&face_counts_, motionSampleTime);
   mesh_prim_.GetPointsAttr().Get(&positions_, motionSampleTime);
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+
   /* TODO(makowalski): Reading normals probably doesn't belong in this function,
    * as this is not required to determine if the topology has changed. */
 
   /* If 'normals' and 'primvars:normals' are both specified, the latter has precedence. */
-  pxr::UsdGeomPrimvar primvar = mesh_prim_.GetPrimvar(usdtokens::normalsPrimvar);
+  pxr::UsdGeomPrimvar primvar = primvarsAPI.GetPrimvar(usdtokens::normalsPrimvar);
   if (primvar.HasValue()) {
     primvar.ComputeFlattened(&normals_, motionSampleTime);
     normal_interpolation_ = primvar.GetInterpolation();
@@ -342,9 +345,9 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
 
 void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bool load_uvs)
 {
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
 
   const CustomData *ldata = &mesh->ldata;
 
@@ -354,6 +357,8 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
   };
 
   std::vector<UVSample> uv_primvars(ldata->totlayer);
+
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
 
   if (has_uvs_) {
     for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
@@ -385,11 +390,11 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
       }
 
       /* Early out if mesh doesn't have primvar. */
-      if (!mesh_prim_.HasPrimvar(uv_token)) {
+      if (!primvarsAPI.HasPrimvar(uv_token)) {
         continue;
       }
 
-      if (pxr::UsdGeomPrimvar uv_primvar = mesh_prim_.GetPrimvar(uv_token)) {
+      if (pxr::UsdGeomPrimvar uv_primvar = primvarsAPI.GetPrimvar(uv_token)) {
         uv_primvar.ComputeFlattened(&uv_primvars[layer_idx].uvs, motionSampleTime);
         uv_primvars[layer_idx].interpolation = uv_primvar.GetInterpolation();
       }
@@ -422,9 +427,9 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!(ELEM(sample.interpolation,
-                   pxr::UsdGeomTokens->faceVarying,
-                   pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(sample.interpolation,
+                  pxr::UsdGeomTokens->faceVarying,
+                  pxr::UsdGeomTokens->vertex)) {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -601,7 +606,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 
   MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  vert_normals.copy_from({(float3 *)normals_.data(), int64_t(normals_.size())});
   BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
@@ -804,8 +809,8 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   std::map<pxr::SdfPath, int> mat_map;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
   material_indices.finish();
   /* Build material name map if it's not built yet. */
@@ -835,12 +840,14 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     is_left_handed_ = true;
   }
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+
   std::vector<pxr::TfToken> uv_tokens;
 
   /* Currently we only handle UV primvars. */
   if (read_flag & MOD_MESHSEQ_READ_UV) {
 
-    std::vector<pxr::UsdGeomPrimvar> primvars = mesh_prim_.GetPrimvars();
+    std::vector<pxr::UsdGeomPrimvar> primvars = primvarsAPI.GetPrimvars();
 
     for (pxr::UsdGeomPrimvar p : primvars) {
 
@@ -865,7 +872,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
         pxr::TfToken interp = p.GetInterpolation();
 
-        if (!(ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex)) {
           continue;
         }
 
@@ -914,7 +921,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
       material_indices.finish();
     }

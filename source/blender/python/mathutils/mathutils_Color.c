@@ -14,7 +14,9 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "IMB_colormanagement.h"
+#ifndef MATH_STANDALONE
+#  include "IMB_colormanagement.h"
+#endif
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
@@ -71,9 +73,8 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     case 0:
       break;
     case 1:
-      if ((mathutils_array_parse(
-              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) ==
-          -1) {
+      if (mathutils_array_parse(
+              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()") == -1) {
         return NULL;
       }
       break;
@@ -91,6 +92,8 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 /* -------------------------------------------------------------------- */
 /** \name Color Methods: Color Space Conversion
  * \{ */
+
+#ifndef MATH_STANDALONE
 
 PyDoc_STRVAR(Color_from_scene_linear_to_srgb_doc,
              ".. function:: from_scene_linear_to_srgb()\n"
@@ -203,6 +206,8 @@ static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
   IMB_colormanagement_rec709_to_scene_linear(col, self->col);
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
+
+#endif /* MATH_STANDALONE */
 
 /** \} */
 
@@ -346,13 +351,13 @@ static Py_hash_t Color_hash(ColorObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Color_len(ColorObject *UNUSED(self))
+static Py_ssize_t Color_len(ColorObject *UNUSED(self))
 {
   return COLOR_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Color_item(ColorObject *self, int i)
+static PyObject *Color_item(ColorObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = COLOR_SIZE - i;
@@ -373,7 +378,7 @@ static PyObject *Color_item(ColorObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Color_ass_item(ColorObject *self, int i, PyObject *value)
+static int Color_ass_item(ColorObject *self, Py_ssize_t i, PyObject *value)
 {
   float f;
 
@@ -820,59 +825,61 @@ static PyObject *Color_neg(ColorObject *self)
  * \{ */
 
 static PySequenceMethods Color_SeqMethods = {
-    (lenfunc)Color_len,              /*sq_length*/
-    (binaryfunc)NULL,                /*sq_concat*/
-    (ssizeargfunc)NULL,              /*sq_repeat*/
-    (ssizeargfunc)Color_item,        /*sq_item*/
-    NULL,                            /*sq_slice(DEPRECATED)*/
-    (ssizeobjargproc)Color_ass_item, /*sq_ass_item*/
-    NULL,                            /*sq_ass_slice(DEPRECATED)*/
-    (objobjproc)NULL,                /*sq_contains*/
-    (binaryfunc)NULL,                /*sq_inplace_concat*/
-    (ssizeargfunc)NULL,              /*sq_inplace_repeat*/
+    /*sq_length*/ (lenfunc)Color_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Color_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ (ssizeobjargproc)Color_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods Color_AsMapping = {
-    (lenfunc)Color_len,
-    (binaryfunc)Color_subscript,
-    (objobjargproc)Color_ass_subscript,
+    /*mp_len*/ (lenfunc)Color_len,
+    /*mp_subscript*/ (binaryfunc)Color_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Color_ass_subscript,
 };
 
 static PyNumberMethods Color_NumMethods = {
-    (binaryfunc)Color_add, /*nb_add*/
-    (binaryfunc)Color_sub, /*nb_subtract*/
-    (binaryfunc)Color_mul, /*nb_multiply*/
-    NULL,                  /*nb_remainder*/
-    NULL,                  /*nb_divmod*/
-    NULL,                  /*nb_power*/
-    (unaryfunc)Color_neg,  /*nb_negative*/
-    (unaryfunc)Color_copy, /*tp_positive*/
-    (unaryfunc)NULL,       /*tp_absolute*/
-    (inquiry)NULL,         /*tp_bool*/
-    (unaryfunc)NULL,       /*nb_invert*/
-    NULL,                  /*nb_lshift*/
-    (binaryfunc)NULL,      /*nb_rshift*/
-    NULL,                  /*nb_and*/
-    NULL,                  /*nb_xor*/
-    NULL,                  /*nb_or*/
-    NULL,                  /*nb_int*/
-    NULL,                  /*nb_reserved*/
-    NULL,                  /*nb_float*/
-    Color_iadd,            /*nb_inplace_add*/
-    Color_isub,            /*nb_inplace_subtract*/
-    Color_imul,            /*nb_inplace_multiply*/
-    NULL,                  /*nb_inplace_remainder*/
-    NULL,                  /*nb_inplace_power*/
-    NULL,                  /*nb_inplace_lshift*/
-    NULL,                  /*nb_inplace_rshift*/
-    NULL,                  /*nb_inplace_and*/
-    NULL,                  /*nb_inplace_xor*/
-    NULL,                  /*nb_inplace_or*/
-    NULL,                  /*nb_floor_divide*/
-    Color_div,             /*nb_true_divide*/
-    NULL,                  /*nb_inplace_floor_divide*/
-    Color_idiv,            /*nb_inplace_true_divide*/
-    NULL,                  /*nb_index*/
+    /*nb_add*/ (binaryfunc)Color_add,
+    /*nb_subtract*/ (binaryfunc)Color_sub,
+    /*nb_multiply*/ (binaryfunc)Color_mul,
+    /*nb_remainder*/ NULL,
+    /*nb_divmod*/ NULL,
+    /*nb_power*/ NULL,
+    /*nb_negative*/ (unaryfunc)Color_neg,
+    /*tp_positive*/ (unaryfunc)Color_copy,
+    /*tp_absolute*/ NULL,
+    /*tp_bool*/ NULL,
+    /*nb_invert*/ NULL,
+    /*nb_lshift*/ NULL,
+    /*nb_rshift*/ NULL,
+    /*nb_and*/ NULL,
+    /*nb_xor*/ NULL,
+    /*nb_or*/ NULL,
+    /*nb_int*/ NULL,
+    /*nb_reserved*/ NULL,
+    /*nb_float*/ NULL,
+    /*nb_inplace_add*/ Color_iadd,
+    /*nb_inplace_subtract*/ Color_isub,
+    /*nb_inplace_multiply*/ Color_imul,
+    /*nb_inplace_remainder*/ NULL,
+    /*nb_inplace_power*/ NULL,
+    /*nb_inplace_lshift*/ NULL,
+    /*nb_inplace_rshift*/ NULL,
+    /*nb_inplace_and*/ NULL,
+    /*nb_inplace_xor*/ NULL,
+    /*nb_inplace_or*/ NULL,
+    /*nb_floor_divide*/ NULL,
+    /*nb_true_divide*/ Color_div,
+    /*nb_inplace_floor_divide*/ NULL,
+    /*nb_inplace_true_divide*/ Color_idiv,
+    /*nb_index*/ NULL,
+    /*nb_matrix_multiply*/ NULL,
+    /*nb_inplace_matrix_multiply*/ NULL,
 };
 
 /** \} */
@@ -1050,7 +1057,8 @@ static struct PyMethodDef Color_methods[] = {
     /* base-math methods */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
-    /* Color-space methods. */
+/* Color-space methods. */
+#ifndef MATH_STANDALONE
     {"from_scene_linear_to_srgb",
      (PyCFunction)Color_from_scene_linear_to_srgb,
      METH_NOARGS,
@@ -1083,6 +1091,8 @@ static struct PyMethodDef Color_methods[] = {
      (PyCFunction)Color_from_rec709_linear_to_scene_linear,
      METH_NOARGS,
      Color_from_rec709_linear_to_scene_linear_doc},
+#endif /* MATH_STANDALONE */
+
     {NULL, NULL, 0, NULL},
 };
 
@@ -1091,6 +1101,10 @@ static struct PyMethodDef Color_methods[] = {
 /* -------------------------------------------------------------------- */
 /** \name Color Type: Python Object Definition
  * \{ */
+
+#ifdef MATH_STANDALONE
+#  define Color_str NULL
+#endif
 
 PyDoc_STRVAR(
     color_doc,
@@ -1102,59 +1116,63 @@ PyDoc_STRVAR(
     "   the OpenColorIO configuration. The notable exception is user interface theming colors, "
     "   which are in sRGB color space.\n"
     "\n"
-    "   :param rgb: (r, g, b) color values\n"
+    "   :arg rgb: (r, g, b) color values\n"
     "   :type rgb: 3d vector\n");
 PyTypeObject color_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Color", /* tp_name */
-    sizeof(ColorObject),                    /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)BaseMathObject_dealloc,     /* tp_dealloc */
-    (printfunc)NULL,                        /* tp_print */
-    NULL,                                   /* tp_getattr */
-    NULL,                                   /* tp_setattr */
-    NULL,                                   /* tp_compare */
-    (reprfunc)Color_repr,                   /* tp_repr */
-    &Color_NumMethods,                      /* tp_as_number */
-    &Color_SeqMethods,                      /* tp_as_sequence */
-    &Color_AsMapping,                       /* tp_as_mapping */
-    (hashfunc)Color_hash,                   /* tp_hash */
-    NULL,                                   /* tp_call */
-#ifndef MATH_STANDALONE
-    (reprfunc)Color_str, /* tp_str */
-#else
-    NULL, /* tp_str */
-#endif
-    NULL,                                                          /* tp_getattro */
-    NULL,                                                          /* tp_setattro */
-    NULL,                                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* tp_flags */
-    color_doc,                                                     /* tp_doc */
-    (traverseproc)BaseMathObject_traverse,                         /* tp_traverse */
-    (inquiry)BaseMathObject_clear,                                 /* tp_clear */
-    (richcmpfunc)Color_richcmpr,                                   /* tp_richcompare */
-    0,                                                             /* tp_weaklistoffset */
-    NULL,                                                          /* tp_iter */
-    NULL,                                                          /* tp_iternext */
-    Color_methods,                                                 /* tp_methods */
-    NULL,                                                          /* tp_members */
-    Color_getseters,                                               /* tp_getset */
-    NULL,                                                          /* tp_base */
-    NULL,                                                          /* tp_dict */
-    NULL,                                                          /* tp_descr_get */
-    NULL,                                                          /* tp_descr_set */
-    0,                                                             /* tp_dictoffset */
-    NULL,                                                          /* tp_init */
-    NULL,                                                          /* tp_alloc */
-    Color_new,                                                     /* tp_new */
-    NULL,                                                          /* tp_free */
-    NULL,                                                          /* tp_is_gc */
-    NULL,                                                          /* tp_bases */
-    NULL,                                                          /* tp_mro */
-    NULL,                                                          /* tp_cache */
-    NULL,                                                          /* tp_subclasses */
-    NULL,                                                          /* tp_weaklist */
-    NULL,                                                          /* tp_del */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "Color",
+    /*tp_basicsize*/ sizeof(ColorObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Color_repr,
+    /*tp_as_number*/ &Color_NumMethods,
+    /*tp_as_sequence*/ &Color_SeqMethods,
+    /*tp_as_mapping*/ &Color_AsMapping,
+    /*tp_hash*/ (hashfunc)Color_hash,
+    /*tp_call*/ NULL,
+    /*tp_str*/ (reprfunc)Color_str,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ color_doc,
+    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
+    /*tp_clear*/ (inquiry)BaseMathObject_clear,
+    /*tp_richcompare*/ (richcmpfunc)Color_richcmpr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Color_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Color_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Color_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
+
+#ifdef MATH_STANDALONE
+#  define Color_str
+#endif
 
 /** \} */
 
@@ -1226,6 +1244,7 @@ PyObject *Color_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_sub
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

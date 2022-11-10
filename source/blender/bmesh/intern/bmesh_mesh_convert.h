@@ -13,10 +13,6 @@ struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;
 
-void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, char cd_flag);
-void BM_mesh_cd_flag_apply(BMesh *bm, char cd_flag);
-char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
-
 struct BMeshFromMeshParams {
   bool calc_face_normal;
   bool calc_vert_normal;

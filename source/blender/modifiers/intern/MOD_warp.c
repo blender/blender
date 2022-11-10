@@ -70,9 +70,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -95,11 +93,11 @@ static void matrix_from_obj_pchan(float mat[4][4],
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
     float mat_bone_world[4][4];
-    mul_m4_m4m4(mat_bone_world, ob->obmat, pchan->pose_mat);
+    mul_m4_m4m4(mat_bone_world, ob->object_to_world, pchan->pose_mat);
     mul_m4_m4m4(mat, obinv, mat_bone_world);
   }
   else {
-    mul_m4_m4m4(mat, obinv, ob->obmat);
+    mul_m4_m4m4(mat, obinv, ob->object_to_world);
   }
 }
 
@@ -217,7 +215,7 @@ static void warpModifier_do(WarpModifierData *wmd,
     BKE_curvemapping_init(wmd->curfalloff);
   }
 
-  invert_m4_m4(obinv, ob->obmat);
+  invert_m4_m4(obinv, ob->object_to_world);
 
   /* Checks that the objects/bones are available. */
   matrix_from_obj_pchan(mat_from, obinv, wmd->object_from, wmd->bone_from);

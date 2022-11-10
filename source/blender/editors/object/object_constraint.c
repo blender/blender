@@ -31,6 +31,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -113,7 +114,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
   }
 
   /* try object constraints first */
-  if ((BLI_findindex(&ob->constraints, con) != -1)) {
+  if (BLI_findindex(&ob->constraints, con) != -1) {
     return &ob->constraints;
   }
 
@@ -125,7 +126,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
      * NOTE: it's not possible to directly look up the active bone yet, so this will have to do
      */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if ((BLI_findindex(&pchan->constraints, con) != -1)) {
+      if (BLI_findindex(&pchan->constraints, con) != -1) {
 
         if (r_pchan) {
           *r_pchan = pchan;
@@ -181,7 +182,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  sprintf(buf, "Scripts: %%t|[None]%%x0|");
+  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */
@@ -200,7 +201,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
     if (BPY_is_pyconstraint(text)) {
       BLI_dynstr_append(pupds, text->id.name + 2);
 
-      sprintf(buf, "%%x%d", i);
+      BLI_snprintf(buf, sizeof(buf), "%%x%d", i);
       BLI_dynstr_append(pupds, buf);
 
       if (text->id.next) {
@@ -296,10 +297,9 @@ static void test_constraint(
   if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
     bKinematicConstraint *data = con->data;
 
-    /* bad: we need a separate set of checks here as poletarget is
-     * optional... otherwise poletarget must exist too or else
-     * the constraint is deemed invalid
-     */
+    /* Bad: we need a separate set of checks here as pole-target is optional...
+     * otherwise pole-target must exist too or else the constraint is deemed invalid. */
+
     /* default IK check ... */
     if (BKE_object_exists_check(bmain, data->tar) == 0) {
       data->tar = NULL;
@@ -2313,26 +2313,28 @@ static bool get_new_constraint_target(
   /* if still not found, add a new empty to act as a target (if allowed) */
   if ((found == false) && (add)) {
     Main *bmain = CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Base *base = view_layer->basact;
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Base *base = BKE_view_layer_active_base_get(view_layer);
     Object *obt;
 
     /* add new target object */
-    obt = BKE_object_add(bmain, view_layer, OB_EMPTY, NULL);
+    obt = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, NULL);
 
     /* transform cent to global coords for loc */
     if (pchanact) {
       /* Since by default, IK targets the tip of the last bone,
        * use the tip of the active PoseChannel if adding a target for an IK Constraint. */
       if (con_type == CONSTRAINT_TYPE_KINEMATIC) {
-        mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_tail);
+        mul_v3_m4v3(obt->loc, obact->object_to_world, pchanact->pose_tail);
       }
       else {
-        mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_head);
+        mul_v3_m4v3(obt->loc, obact->object_to_world, pchanact->pose_head);
       }
     }
     else {
-      copy_v3_v3(obt->loc, obact->obmat[3]);
+      copy_v3_v3(obt->loc, obact->object_to_world[3]);
     }
 
     /* restore, BKE_object_add sets active */

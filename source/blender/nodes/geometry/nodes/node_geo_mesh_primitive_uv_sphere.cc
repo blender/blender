@@ -116,7 +116,7 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
     MEdge &edge = edges[edge_index++];
     edge.v1 = 0;
     edge.v2 = first_vert_ring_index_start + segment;
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edge.flag = ME_EDGEDRAW;
   }
 
   int ring_vert_index_start = 1;
@@ -128,7 +128,7 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
       MEdge &edge = edges[edge_index++];
       edge.v1 = ring_vert_index_start + segment;
       edge.v2 = ring_vert_index_start + ((segment + 1) % segments);
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
 
     /* Add the edges connecting to the next ring. */
@@ -137,7 +137,7 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
         MEdge &edge = edges[edge_index++];
         edge.v1 = ring_vert_index_start + segment;
         edge.v2 = next_ring_vert_index_start + segment;
-        edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+        edge.flag = ME_EDGEDRAW;
       }
     }
     ring_vert_index_start += segments;
@@ -150,7 +150,7 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
     MEdge &edge = edges[edge_index++];
     edge.v1 = last_vert_index;
     edge.v2 = last_vert_ring_start + segment;
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edge.flag = ME_EDGEDRAW;
   }
 }
 
@@ -266,16 +266,16 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
   const float segments_inv = 1.0f / segments;
 
   for (const int i_segment : IndexRange(segments)) {
-    const float segment = static_cast<float>(i_segment);
+    const float segment = float(i_segment);
     uvs[loop_index++] = float2((segment + 0.5f) * segments_inv, 0.0f);
     uvs[loop_index++] = float2(segment * segments_inv, dy);
     uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, dy);
   }
 
   for (const int i_ring : IndexRange(1, rings - 2)) {
-    const float ring = static_cast<float>(i_ring);
+    const float ring = float(i_ring);
     for (const int i_segment : IndexRange(segments)) {
-      const float segment = static_cast<float>(i_segment);
+      const float segment = float(i_segment);
       uvs[loop_index++] = float2(segment * segments_inv, ring / rings);
       uvs[loop_index++] = float2(segment * segments_inv, (ring + 1.0f) / rings);
       uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, (ring + 1.0f) / rings);
@@ -284,7 +284,7 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
   }
 
   for (const int i_segment : IndexRange(segments)) {
-    const float segment = static_cast<float>(i_segment);
+    const float segment = float(i_segment);
     uvs[loop_index++] = float2((segment + 0.5f) * segments_inv, 1.0f);
     uvs[loop_index++] = float2((segment + 1.0f) * segments_inv, 1.0f - dy);
     uvs[loop_index++] = float2(segment * segments_inv, 1.0f - dy);
@@ -309,7 +309,8 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+        MutableSpan vert_normals{
+            reinterpret_cast<float3 *>(BKE_mesh_vertex_normals_for_write(mesh)), mesh->totvert};
         calculate_sphere_vertex_data(verts, vert_normals, radius, segments, rings);
         BKE_mesh_vertex_normals_clear_dirty(mesh);
       },

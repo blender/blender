@@ -12,14 +12,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Material>(N_("Material"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "material", 0, "", ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Material *material = (Material *)params.node().id;
+  Material *material = reinterpret_cast<Material *>(params.node().id);
   params.set_output("Material", material);
 }
 

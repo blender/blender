@@ -408,6 +408,18 @@ void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference, 
   AssetListStorage::fetch_library(*library_reference, *C);
 }
 
+bool ED_assetlist_is_loaded(const AssetLibraryReference *library_reference)
+{
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  if (!list) {
+    return false;
+  }
+  if (list->needsRefetch()) {
+    return false;
+  }
+  return true;
+}
+
 void ED_assetlist_catalog_filter_set(const struct AssetLibraryReference *library_reference,
                                      const struct AssetCatalogFilterSettings *settings)
 {
@@ -473,7 +485,7 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
   const char *asset_relpath = asset_handle.file_data->relpath;
 
   char path[FILE_MAX_LIBEXTRA];
-  BLI_join_dirfile(path, sizeof(path), library_path, asset_relpath);
+  BLI_path_join(path, sizeof(path), library_path, asset_relpath);
 
   return path;
 }

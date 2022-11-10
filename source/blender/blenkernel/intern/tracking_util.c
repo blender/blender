@@ -723,7 +723,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
           int dst_index = (dst_y * width + dst_x) * 4,
               src_index = (src_y * orig_ibuf->x + src_x) * 4;
           rgba_uchar_to_float(final_ibuf->rect_float + dst_index,
-                              (unsigned char *)orig_ibuf->rect + src_index);
+                              (uchar *)orig_ibuf->rect + src_index);
         }
       }
     }

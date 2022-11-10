@@ -31,7 +31,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
   }
 }
 
-static void node_shader_init_uvmap(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_uvmap(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderUVMap *attr = MEM_cnew<NodeShaderUVMap>("NodeShaderUVMap");
   node->storage = attr;
@@ -39,7 +39,7 @@ static void node_shader_init_uvmap(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_uvmap(GPUMaterial *mat,
                                  bNode *node,
-                                 bNodeExecData *UNUSED(execdata),
+                                 bNodeExecData * /*execdata*/,
                                  GPUNodeStack *in,
                                  GPUNodeStack *out)
 {
@@ -70,10 +70,10 @@ void register_node_type_sh_uvmap()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_uvmap;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_uvmap);
+  ntype.initfunc = file_ns::node_shader_init_uvmap;
   node_type_storage(
       &ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_uvmap);
+  ntype.gpu_fn = file_ns::node_shader_gpu_uvmap;
 
   nodeRegisterType(&ntype);
 }

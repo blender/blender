@@ -201,7 +201,7 @@ static int open_exec(bContext *C, wmOperator *op)
     RNA_property_collection_lookup_int(op->ptr, prop, 0, &fileptr);
     RNA_string_get(&fileptr, "name", file_only);
 
-    BLI_join_dirfile(str, sizeof(str), dir_only, file_only);
+    BLI_path_join(str, sizeof(str), dir_only, file_only);
   }
   else {
     BKE_report(op->reports, RPT_ERROR, "No files selected to be opened");
@@ -1219,8 +1219,8 @@ static void do_movie_proxy(void *pjv,
                            int UNUSED(build_count),
                            int *build_undistort_sizes,
                            int build_undistort_count,
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   ProxyJob *pj = pjv;
@@ -1285,8 +1285,8 @@ typedef struct ProxyQueue {
   int efra;
   SpinLock spin;
 
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 } ProxyQueue;
 
@@ -1343,7 +1343,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     queue->cfra++;
     close(file);
 
-    *queue->do_update = 1;
+    *queue->do_update = true;
     *queue->progress = (float)(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
   }
   BLI_spin_unlock(&queue->spin);
@@ -1392,8 +1392,8 @@ static void do_sequence_proxy(void *pjv,
                               int build_undistort_count,
                               /* Cannot be const, because it is assigned to a non-const variable.
                                * NOLINTNEXTLINE: readability-non-const-parameter. */
-                              short *stop,
-                              short *do_update,
+                              bool *stop,
+                              bool *do_update,
                               float *progress)
 {
   ProxyJob *pj = pjv;
@@ -1452,7 +1452,7 @@ static void do_sequence_proxy(void *pjv,
   MEM_freeN(handles);
 }
 
-static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = pjv;
   MovieClip *clip = pj->clip;
@@ -1611,7 +1611,9 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
   ot->poll = ED_space_clip_poll;
 
   /* properties */
-  RNA_def_enum(ot->srna, "mode", rna_enum_clip_editor_mode_items, SC_MODE_TRACKING, "Mode", "");
+  ot->prop = RNA_def_enum(
+      ot->srna, "mode", rna_enum_clip_editor_mode_items, SC_MODE_TRACKING, "Mode", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
 }
 
 /** \} */
@@ -1639,14 +1641,14 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   float pan_vec[3];
 
   const wmNDOFMotionData *ndof = event->customdata;
-  const float speed = NDOF_PIXELS_PER_SECOND;
+  const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
   WM_event_ndof_pan_get(ndof, pan_vec, true);
 
-  mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
-  pan_vec[2] *= -ndof->dt;
+  mul_v3_fl(pan_vec, ndof->dt);
+  mul_v2_fl(pan_vec, pan_speed / sc->zoom);
 
-  sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL, false);
+  sclip_zoom_set_factor(C, max_ff(0.0f, 1.0f - pan_vec[2]), NULL, false);
   sc->xof += pan_vec[0];
   sc->yof += pan_vec[1];
 

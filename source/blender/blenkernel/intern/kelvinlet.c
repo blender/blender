@@ -154,7 +154,7 @@ static void kelvinlet_scale(float disp[3],
   sub_v3_v3v3(radius_vertex, vertex_co, location);
   const float radius = len_v3(radius_vertex);
   const float radius_e = sqrtf(pow2f(radius) + pow2f(p->radius_scaled[0]));
-  const float u = (2.0f * p->b - p->a) * ((1.0f / pow3f(radius_e))) +
+  const float u = (2.0f * p->b - p->a) * (1.0f / pow3f(radius_e)) +
                   ((3.0f * pow2f(p->radius_scaled[0])) / (2.0f * pow5f(radius_e)));
   const float fade = u * p->c;
   mul_v3_v3fl(disp, radius_vertex, fade * p->f);
@@ -181,7 +181,7 @@ static void kelvinlet_twist(float disp[3],
   sub_v3_v3v3(radius_vertex, vertex_co, location);
   const float radius = len_v3(radius_vertex);
   const float radius_e = sqrtf(pow2f(radius) + pow2f(p->radius_scaled[0]));
-  const float u = -p->a * ((1.0f / pow3f(radius_e))) +
+  const float u = -p->a * (1.0f / pow3f(radius_e)) +
                   ((3.0f * pow2f(p->radius_scaled[0])) / (2.0f * pow5f(radius_e)));
   const float fade = u * p->c;
   cross_v3_v3v3(q_r, normal, radius_vertex);

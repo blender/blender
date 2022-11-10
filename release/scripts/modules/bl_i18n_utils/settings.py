@@ -49,7 +49,7 @@ LANGUAGES = (
     (15, "Russian (Русский)", "ru_RU"),
     (16, "Croatian (Hrvatski)", "hr_HR"),
     (17, "Serbian (Српски)", "sr_RS"),
-    (18, "Ukrainian (Український)", "uk_UA"),
+    (18, "Ukrainian (Українська)", "uk_UA"),
     (19, "Polish (Polski)", "pl_PL"),
     (20, "Romanian (Român)", "ro_RO"),
     # Using the utf8 flipped form of Arabic (العربية).
@@ -87,7 +87,7 @@ LANGUAGES = (
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
 if bpy is not None:
-    assert(bpy.app.translations.contexts.default == "*")
+    assert bpy.app.translations.contexts.default == "*"
 DEFAULT_CONTEXT = "*"
 
 # Name of language file used by Blender to generate translations' menu.
@@ -260,9 +260,9 @@ PYGETTEXT_KEYWORDS = (() +
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
     # becomes extremely slow to process some (unrelated) source files.
-    ((r"\{(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,)){4}\s*" +
+    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*NULL\s*,)){4}\s*" +
       _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
-      + "\s*B_UNIT_DEF_[_A-Z]+\s*\}"),) +
+      + "(?:\|?\s*B_UNIT_DEF_[_A-Z]+\s*)+\}"),) +
 
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
            r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
@@ -367,9 +367,9 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "all and invert unselected",
     "and AMD driver version 22.10 or newer",
     "and AMD Radeon Pro 21.Q4 driver or newer",
-    "and Linux driver version xx.xx.23570 or newer",
+    "and Linux driver version xx.xx.23904 or newer",
     "and NVIDIA driver version 470 or newer",
-    "and Windows driver version 101.3268 or newer",
+    "and Windows driver version 101.3430 or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",

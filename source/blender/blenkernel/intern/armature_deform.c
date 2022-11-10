@@ -301,12 +301,22 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   }
 
   /* check if there's any  point in calculating for this vert */
-  if (armature_weight == 0.0f) {
-    return;
-  }
+  if (vert_coords_prev) {
+    if (prevco_weight == 1.0f) {
+      return;
+    }
 
-  /* get the coord we work on */
-  co = vert_coords_prev ? vert_coords_prev[i] : vert_coords[i];
+    /* get the coord we work on */
+    co = vert_coords_prev[i];
+  }
+  else {
+    if (armature_weight == 0.0f) {
+      return;
+    }
+
+    /* get the coord we work on */
+    co = vert_coords[i];
+  }
 
   /* Apply the object's matrix */
   mul_m4_v3(data->premat, co);
@@ -314,7 +324,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   if (use_dverts && dvert && dvert->totweight) { /* use weight groups ? */
     const MDeformWeight *dw = dvert->dw;
     int deformed = 0;
-    unsigned int j;
+    uint j;
     for (j = dvert->totweight; j != 0; j--, dw++) {
       const uint index = dw->def_nr;
       if (index < data->defbase_len && (pchan = data->pchan_from_defbase[index])) {
@@ -572,9 +582,9 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   };
 
   float obinv[4][4];
-  invert_m4_m4(obinv, ob_target->obmat);
+  invert_m4_m4(obinv, ob_target->object_to_world);
 
-  mul_m4_m4m4(data.postmat, obinv, ob_arm->obmat);
+  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world);
   invert_m4_m4(data.premat, data.postmat);
 
   if (em_target != NULL) {

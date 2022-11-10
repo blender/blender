@@ -202,7 +202,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   /* Always use baked shadow transparency for curves. */
   if (type & PRIMITIVE_CURVE) {
     float throughput = __uint_as_float(optixGetPayload_1());
-    throughput *= intersection_curve_shadow_transparency(nullptr, object, prim, u);
+    throughput *= intersection_curve_shadow_transparency(nullptr, object, prim, type, u);
     optixSetPayload_1(__float_as_uint(throughput));
     optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_hits + 1));
 

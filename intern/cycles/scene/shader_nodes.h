@@ -1542,6 +1542,10 @@ class OSLNode final : public ShaderNode {
   {
     return true;
   }
+  virtual int get_feature()
+  {
+    return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_RAYTRACE;
+  }
 
   virtual bool equals(const ShaderNode & /*other*/)
   {

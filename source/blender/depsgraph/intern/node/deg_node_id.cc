@@ -52,12 +52,12 @@ bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
 
 uint64_t IDNode::ComponentIDKey::hash() const
 {
-  const int type_as_int = static_cast<int>(type);
+  const int type_as_int = int(type);
   return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
                                     BLI_ghashutil_strhash_p(name));
 }
 
-void IDNode::init(const ID *id, const char *UNUSED(subdata))
+void IDNode::init(const ID *id, const char * /*subdata*/)
 {
   BLI_assert(id != nullptr);
   /* Store ID-pointer. */
@@ -75,7 +75,6 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
   has_base = false;
   is_user_modified = false;
   id_cow_recalc_backup = 0;
-  id_invisible_recalc = 0;
 
   visible_components_mask = 0;
   previously_visible_components_mask = 0;
@@ -191,7 +190,7 @@ IDComponentsMask IDNode::get_visible_components_mask() const
   IDComponentsMask result = 0;
   for (ComponentNode *comp_node : components.values()) {
     if (comp_node->possibly_affects_visible_id) {
-      const int component_type_as_int = static_cast<int>(comp_node->type);
+      const int component_type_as_int = int(comp_node->type);
       BLI_assert(component_type_as_int < 64);
       result |= (1ULL << component_type_as_int);
     }

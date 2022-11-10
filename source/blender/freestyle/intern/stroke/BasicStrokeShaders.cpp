@@ -23,6 +23,8 @@
 
 #include "BKE_global.h"
 
+#include "BLI_sys_types.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -80,11 +82,11 @@ int IncreasingThicknessShader::shade(Stroke &stroke) const
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++i) {
     float t;
-    if (i < (float)n / 2.0f) {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * _ThicknessMax;
+    if (i < float(n) / 2.0f) {
+      t = (1.0 - float(i) / float(n)) * _ThicknessMin + float(i) / float(n) * _ThicknessMax;
     }
     else {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMax + (float)i / (float)n * _ThicknessMin;
+      t = (1.0 - float(i) / float(n)) * _ThicknessMax + float(i) / float(n) * _ThicknessMin;
     }
     v->attribute().setThickness(t / 2.0, t / 2.0);
   }
@@ -102,11 +104,11 @@ int ConstrainedIncreasingThicknessShader::shade(Stroke &stroke) const
     // XXX Why not using an if/else here? Else, if last condition is true, everything else is
     // computed for nothing!
     float t;
-    if (i < (float)n / 2.0f) {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * maxT;
+    if (i < float(n) / 2.0f) {
+      t = (1.0 - float(i) / float(n)) * _ThicknessMin + float(i) / float(n) * maxT;
     }
     else {
-      t = (1.0 - (float)i / (float)n) * maxT + (float)i / (float)n * _ThicknessMin;
+      t = (1.0 - float(i) / float(n)) * maxT + float(i) / float(n) * _ThicknessMin;
     }
     v->attribute().setThickness(t / 2.0, t / 2.0);
     if (i == n - 1) {
@@ -152,18 +154,18 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   return 0;
 }
 
-static const unsigned NB_VALUE_NOISE = 512;
+static const uint NB_VALUE_NOISE = 512;
 
 ThicknessNoiseShader::ThicknessNoiseShader()
 {
   _amplitude = 1.0f;
-  _scale = 1.0f / 2.0f / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / 2.0f / float(NB_VALUE_NOISE);
 }
 
 ThicknessNoiseShader::ThicknessNoiseShader(float iAmplitude, float iPeriod)
 {
   _amplitude = iAmplitude;
-  _scale = 1.0f / iPeriod / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / iPeriod / float(NB_VALUE_NOISE);
 }
 
 int ThicknessNoiseShader::shade(Stroke &stroke) const
@@ -213,8 +215,8 @@ int IncreasingColorShader::shade(Stroke &stroke) const
   for (yo = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++yo) {
     for (int i = 0; i < 4; ++i) {
-      newcolor[i] = (1.0 - (float)yo / (float)n) * _colorMin[i] +
-                    (float)yo / (float)n * _colorMax[i];
+      newcolor[i] = (1.0 - float(yo) / float(n)) * _colorMin[i] +
+                    float(yo) / float(n) * _colorMax[i];
     }
     v->attribute().setColor(newcolor[0], newcolor[1], newcolor[2]);
     v->attribute().setAlpha(newcolor[3]);
@@ -243,13 +245,13 @@ int MaterialColorShader::shade(Stroke &stroke) const
 ColorNoiseShader::ColorNoiseShader()
 {
   _amplitude = 1.0f;
-  _scale = 1.0f / 2.0f / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / 2.0f / float(NB_VALUE_NOISE);
 }
 
 ColorNoiseShader::ColorNoiseShader(float iAmplitude, float iPeriod)
 {
   _amplitude = iAmplitude;
-  _scale = 1.0f / iPeriod / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / iPeriod / float(NB_VALUE_NOISE);
 }
 
 int ColorNoiseShader::shade(Stroke &stroke) const
@@ -373,7 +375,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if (!((fabs(v->x() - (previous)->x()) < M_EPSILON) &&
-          ((fabs(v->y() - (previous)->y()) < M_EPSILON)))) {
+          (fabs(v->y() - (previous)->y()) < M_EPSILON))) {
       data.emplace_back(v->x(), v->y());
     }
     previous = v;
@@ -395,7 +397,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
     p = segmentsVertices.begin();
     ++p;
     for (pend = segmentsVertices.end(); p != pend; ++p) {
-      CurveVertices.push_back((*p));
+      CurveVertices.push_back(*p);
     }
   }
 
@@ -467,7 +469,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
 
   vector<StrokeAttribute>::iterator a = attributes.begin(), aend = attributes.end();
   int index = 0;
-  int index1 = (int)floor((float)originalSize / 2.0);
+  int index1 = int(floor(float(originalSize) / 2.0));
   int index2 = index1 + nExtraVertex;
   for (it = stroke.strokeVerticesBegin(), itend = stroke.strokeVerticesEnd();
        (it != itend) && (a != aend);
@@ -614,7 +616,7 @@ int GuidingLinesShader::shade(Stroke &stroke) const
     n[0] = -n[0];
     n[1] = -n[1];
   }
-  float offset = (piece.error()) / 2.0f * _offset;
+  float offset = piece.error() / 2.0f * _offset;
   StrokeInternal::StrokeVertexIterator v, vend;
   for (v = a, vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     v->setPoint(piece.A.x() + v->u() * u.x() + n.x() * offset,
@@ -660,13 +662,13 @@ int TipRemoverShader::shade(Stroke &stroke) const
 
   vector<StrokeVertex *>::iterator sv, svend;
   for (sv = verticesToRemove.begin(), svend = verticesToRemove.end(); sv != svend; ++sv) {
-    stroke.RemoveVertex((*sv));
+    stroke.RemoveVertex(*sv);
   }
 
   // Resample so that our new stroke have the same number of vertices than before
   stroke.Resample(originalSize);
 
-  if ((int)stroke.strokeVerticesSize() != originalSize) {  // soc
+  if (int(stroke.strokeVerticesSize()) != originalSize) {  // soc
     cerr << "Warning: resampling problem" << endl;
   }
 

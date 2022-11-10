@@ -65,7 +65,7 @@ float floor_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));
   if (f != 0.0f) {
-    return 1.0f / (powf(10.0f, ceilf(log10f(1.0f / f))));
+    return 1.0f / powf(10.0f, ceilf(log10f(1.0f / f)));
   }
   return 0.0f;
 }
@@ -74,7 +74,7 @@ float ceil_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));
   if (f != 0.0f) {
-    return 1.0f / (powf(10.0f, floorf(log10f(1.0f / f))));
+    return 1.0f / powf(10.0f, floorf(log10f(1.0f / f)));
   }
   return 0.0f;
 }

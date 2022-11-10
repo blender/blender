@@ -73,7 +73,7 @@ Imath::M44d convert_matrix_datatype(float mat[4][4])
 
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      m[i][j] = static_cast<double>(mat[i][j]);
+      m[i][j] = double(mat[i][j]);
     }
   }
 
@@ -84,7 +84,7 @@ void convert_matrix_datatype(const Imath::M44d &xform, float r_mat[4][4])
 {
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      r_mat[i][j] = static_cast<float>(xform[i][j]);
+      r_mat[i][j] = float(xform[i][j]);
     }
   }
 }

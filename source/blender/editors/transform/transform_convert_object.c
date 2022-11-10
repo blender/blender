@@ -158,14 +158,14 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
         copy_qt_qt(td->ext->oquat, ob->quat);
       }
       /* update object's loc/rot to get current rigid body transform */
-      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->obmat);
+      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world);
       sub_v3_v3(ob->loc, ob->dloc);
       BKE_object_mat3_to_rot(ob, rot, false); /* drot is already corrected here */
     }
   }
 
   /* axismtx has the real orientation */
-  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->obmat));
+  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world));
   if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
     if (!gimbal_axis_object(ob, td->ext->axismtx_gimbal)) {
       copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
@@ -192,7 +192,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
    * More proper solution would be to make a shallow copy of the object and
    * evaluate that, and access matrix of that evaluated copy of the object.
    * Might be more tricky than it sounds, if some logic later on accesses the
-   * object matrix via td->ob->obmat. */
+   * object matrix via td->ob->object_to_world. */
   Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
   if (skip_invert == false && constinv == false) {
     object_eval->transflag |= OB_NO_CONSTRAINTS; /* BKE_object_where_is_calc checks this */
@@ -208,7 +208,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   }
   /* Copy newly evaluated fields to the original object, similar to how
    * active dependency graph will do it. */
-  copy_m4_m4(ob->obmat, object_eval->obmat);
+  copy_m4_m4(ob->object_to_world, object_eval->object_to_world);
   /* Only copy negative scale flag, this is the only flag which is modified by
    * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
    * otherwise we might lose dupli flags  (see T61787). */
@@ -258,9 +258,9 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_v3_v3(td->ext->isize, ob->scale);
   copy_v3_v3(td->ext->dscale, ob->dscale);
 
-  copy_v3_v3(td->center, ob->obmat[3]);
+  copy_v3_v3(td->center, ob->object_to_world[3]);
 
-  copy_m4_m4(td->ext->obmat, ob->obmat);
+  copy_m4_m4(td->ext->obmat, ob->object_to_world);
 
   /* is there a need to set the global<->data space conversion matrices? */
   if (ob->parent || constinv) {
@@ -271,7 +271,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
      *       done, as it doesn't work well.
      */
     BKE_object_to_mat3(ob, obmtx);
-    copy_m3_m4(totmat, ob->obmat);
+    copy_m3_m4(totmat, ob->object_to_world);
 
     /* If the object scale is zero on any axis, this might result in a zero matrix.
      * In this case, the transformation would not do anything, see: T50103. */
@@ -291,9 +291,10 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   }
 }
 
-static void trans_object_base_deps_flag_prepare(ViewLayer *view_layer)
+static void trans_object_base_deps_flag_prepare(const Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     base->object->id.tag &= ~LIB_TAG_DOIT;
   }
 }
@@ -323,11 +324,14 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
                                      NULL);
 }
 
-static void trans_object_base_deps_flag_finish(const TransInfo *t, ViewLayer *view_layer)
+static void trans_object_base_deps_flag_finish(const TransInfo *t,
+                                               const Scene *scene,
+                                               ViewLayer *view_layer)
 {
 
   if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (base->object->id.tag & LIB_TAG_DOIT) {
         base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
       }
@@ -352,13 +356,14 @@ static void set_trans_object_base_flags(TransInfo *t)
     return;
   }
   /* Makes sure base flags and object flags are identical. */
-  BKE_scene_base_flag_to_objects(t->view_layer);
+  BKE_scene_base_flag_to_objects(t->scene, t->view_layer);
   /* Make sure depsgraph is here. */
   DEG_graph_relations_update(depsgraph);
   /* Clear all flags we need. It will be used to detect dependencies. */
-  trans_object_base_deps_flag_prepare(view_layer);
+  trans_object_base_deps_flag_prepare(scene, view_layer);
   /* Traverse all bases and set all possible flags. */
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     base->flag_legacy &= ~(BA_WAS_SEL | BA_TRANSFORM_LOCKED_IN_PLACE);
     if (BASE_SELECTED_EDITABLE(v3d, base)) {
       Object *ob = base->object;
@@ -378,7 +383,7 @@ static void set_trans_object_base_flags(TransInfo *t)
       if (parsel != NULL) {
         /* Rotation around local centers are allowed to propagate. */
         if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-            (ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL))) {
+            ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL)) {
           base->flag_legacy |= BA_TRANSFORM_CHILD;
         }
         else {
@@ -392,7 +397,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   /* Store temporary bits in base indicating that base is being modified
    * (directly or indirectly) by transforming objects.
    */
-  trans_object_base_deps_flag_finish(t, view_layer);
+  trans_object_base_deps_flag_finish(t, scene, view_layer);
 }
 
 static bool mark_children(Object *ob)
@@ -420,11 +425,11 @@ static int count_proportional_objects(TransInfo *t)
   Scene *scene = t->scene;
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
   /* Clear all flags we need. It will be used to detect dependencies. */
-  trans_object_base_deps_flag_prepare(view_layer);
+  trans_object_base_deps_flag_prepare(scene, view_layer);
   /* Rotations around local centers are allowed to propagate, so we take all objects. */
-  if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL)))) {
+  if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL))) {
     /* Mark all parents. */
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (BASE_SELECTED_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
         Object *parent = base->object->parent;
         /* flag all parents */
@@ -435,7 +440,7 @@ static int count_proportional_objects(TransInfo *t)
       }
     }
     /* Mark all children. */
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       /* all base not already selected or marked that is editable */
       if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 &&
@@ -445,7 +450,7 @@ static int count_proportional_objects(TransInfo *t)
     }
   }
   /* Flush changed flags to all dependencies. */
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
     /* If base is not selected, not a parent of selection or not a child of
      * selection and it is editable and selectable.
@@ -460,16 +465,17 @@ static int count_proportional_objects(TransInfo *t)
   /* Store temporary bits in base indicating that base is being modified
    * (directly or indirectly) by transforming objects.
    */
-  trans_object_base_deps_flag_finish(t, view_layer);
+  trans_object_base_deps_flag_finish(t, scene, view_layer);
   return total;
 }
 
 static void clear_trans_object_base_flags(TransInfo *t)
 {
+  Scene *scene = t->scene;
   ViewLayer *view_layer = t->view_layer;
-  Base *base;
 
-  for (base = view_layer->object_bases.first; base; base = base->next) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->flag_legacy & BA_WAS_SEL) {
       ED_object_base_select(base, BA_SELECT);
     }
@@ -559,11 +565,12 @@ static void createTransObject(bContext *C, TransInfo *t)
   CTX_DATA_END;
 
   if (is_prop_edit) {
+    Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
     View3D *v3d = t->view;
-    Base *base;
 
-    for (base = view_layer->object_bases.first; base; base = base->next) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
 
       /* if base is not selected, not a parent of selection
@@ -592,10 +599,12 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
+    Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
     View3D *v3d = t->view;
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
 
       /* if base is not selected, not a parent of selection
@@ -640,14 +649,16 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
+    Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
       if (ob->parent != NULL) {
         if (ob->parent && !BLI_gset_haskey(objects_in_transdata, ob->parent) &&
             !BLI_gset_haskey(objects_in_transdata, ob)) {
-          if (((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0)) {
+          if ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0) {
             Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
             if (base_parent && !BASE_XFORM_INDIRECT(base_parent)) {
               Object *ob_parent_recurse = ob->parent;
@@ -672,7 +683,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
 
       if (BASE_XFORM_INDIRECT(base) || BLI_gset_haskey(objects_in_transdata, ob)) {
@@ -782,6 +793,7 @@ static void autokeyframe_object(
       }
       else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
+          BKE_view_layer_synced_ensure(scene, view_layer);
           if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
@@ -796,6 +808,7 @@ static void autokeyframe_object(
       }
       else if (tmode == TFM_RESIZE) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
+          BKE_view_layer_synced_ensure(scene, view_layer);
           if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }

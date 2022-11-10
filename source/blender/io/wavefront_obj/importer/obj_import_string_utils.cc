@@ -94,7 +94,7 @@ const char *parse_float(const char *p,
   }
   p = drop_plus(p, end);
   fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
-  if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
+  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
     dst = fallback;
   }
   else if (require_trailing_space && res.ptr < end && !is_whitespace(*res.ptr)) {
@@ -125,7 +125,7 @@ const char *parse_int(const char *p, const char *end, int fallback, int &dst, bo
   }
   p = drop_plus(p, end);
   std::from_chars_result res = std::from_chars(p, end, dst);
-  if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
+  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
     dst = fallback;
   }
   return res.ptr;

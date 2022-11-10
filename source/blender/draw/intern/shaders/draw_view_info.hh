@@ -45,7 +45,11 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewInfos", "drw_view", Frequency::PASS)
+    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view", Frequency::PASS)
+    .typedef_source("draw_shader_shared.h");
+
+GPU_SHADER_CREATE_INFO(draw_view_culling)
+    .uniform_buf(DRW_VIEW_CULLING_UBO_SLOT, "ViewCullingData", "drw_view_culling")
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
@@ -71,7 +75,10 @@ GPU_SHADER_CREATE_INFO(draw_modelmat_instanced_attr)
 /** \name Draw View
  * \{ */
 
-GPU_SHADER_CREATE_INFO(drw_clipped).define("USE_WORLD_CLIP_PLANES");
+GPU_SHADER_CREATE_INFO(drw_clipped)
+    /* TODO(fclem): Move to engine side. */
+    .uniform_buf(DRW_CLIPPING_UBO_SLOT, "vec4", "drw_clipping[6]", Frequency::PASS)
+    .define("USE_WORLD_CLIP_PLANES");
 
 /** \} */
 
@@ -105,9 +112,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
-    .vertex_in(0, Type::VEC4, "pos")
-    .vertex_in(1, Type::VEC3, "pos_inst")
-    .vertex_in(2, Type::VEC3, "nor")
+    .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
     .additional_info("draw_modelmat_instanced_attr", "draw_resource_id_uniform");
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");
@@ -115,26 +120,15 @@ GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resou
 GPU_SHADER_CREATE_INFO(draw_gpencil)
     .typedef_source("gpencil_shader_shared.h")
     .define("DRW_GPENCIL_INFO")
-    .vertex_in(0, Type::IVEC4, "ma")
-    .vertex_in(1, Type::IVEC4, "ma1")
-    .vertex_in(2, Type::IVEC4, "ma2")
-    .vertex_in(3, Type::IVEC4, "ma3")
-    .vertex_in(4, Type::VEC4, "pos")
-    .vertex_in(5, Type::VEC4, "pos1")
-    .vertex_in(6, Type::VEC4, "pos2")
-    .vertex_in(7, Type::VEC4, "pos3")
-    .vertex_in(8, Type::VEC4, "uv1")
-    .vertex_in(9, Type::VEC4, "uv2")
-    .vertex_in(10, Type::VEC4, "col1")
-    .vertex_in(11, Type::VEC4, "col2")
-    .vertex_in(12, Type::VEC4, "fcol1")
+    .sampler(0, ImageType::FLOAT_BUFFER, "gp_pos_tx")
+    .sampler(1, ImageType::FLOAT_BUFFER, "gp_col_tx")
     /* Per Object */
     .push_constant(Type::FLOAT, "gpThicknessScale") /* TODO(fclem): Replace with object info. */
     .push_constant(Type::FLOAT, "gpThicknessWorldScale") /* TODO(fclem): Same as above. */
     .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
     /* Per Layer */
     .push_constant(Type::FLOAT, "gpThicknessOffset")
-    .additional_info("draw_modelmat", "draw_resource_id_uniform", "draw_object_infos");
+    .additional_info("draw_modelmat", "draw_object_infos");
 
 /** \} */
 
@@ -160,7 +154,7 @@ GPU_SHADER_CREATE_INFO(draw_visibility_compute)
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
     .push_constant(Type::INT, "resource_len")
     .compute_source("draw_visibility_comp.glsl")
-    .additional_info("draw_view");
+    .additional_info("draw_view", "draw_view_culling");
 
 GPU_SHADER_CREATE_INFO(draw_command_generate)
     .do_static_compilation(true)

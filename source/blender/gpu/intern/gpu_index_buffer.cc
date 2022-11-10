@@ -76,7 +76,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
 #if TRUST_NO_ONE
   assert(verts_per_prim != -1);
 #endif
-  GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len);
+  GPU_indexbuf_init_ex(builder, prim_type, prim_len * uint(verts_per_prim), vertex_len);
 }
 
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
@@ -388,13 +388,13 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
                                  0xFFFFu :
                                  (max_idx - min_idx);
     for (uint i = 0; i < index_len_; i++) {
-      ushort_idx[i] = (uint16_t)MIN2(clamp_max_idx, uint_idx[i] - min_idx);
+      ushort_idx[i] = uint16_t(MIN2(clamp_max_idx, uint_idx[i] - min_idx));
     }
   }
   else {
     index_base_ = 0;
     for (uint i = 0; i < index_len_; i++) {
-      ushort_idx[i] = (uint16_t)(uint_idx[i]);
+      ushort_idx[i] = uint16_t(uint_idx[i]);
     }
   }
 }

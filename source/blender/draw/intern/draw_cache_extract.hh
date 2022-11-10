@@ -52,22 +52,6 @@ enum {
   DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE = (1 << 2),
 };
 
-struct DRW_MeshCDMask {
-  uint32_t uv : 8;
-  uint32_t tan : 8;
-  uint32_t orco : 1;
-  uint32_t tan_orco : 1;
-  uint32_t sculpt_overlays : 1;
-  /**
-   * Edit uv layer is from the base edit mesh as modifiers could remove it. (see T68857)
-   */
-  uint32_t edit_uv : 1;
-};
-/* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
- * bit-wise and atomic operations are used to compare and update the struct.
- * See `mesh_cd_layers_type_*` functions. */
-BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits")
-
 enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
@@ -130,6 +114,7 @@ struct MeshBufferList {
     GPUVertBuf *poly_idx;
     GPUVertBuf *fdot_idx;
     GPUVertBuf *attr[GPU_MAX_ATTR];
+    GPUVertBuf *attr_viewer;
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */
@@ -191,6 +176,7 @@ struct MeshBatchList {
   /* Same as wire_loops but only has uvs. */
   GPUBatch *wire_loops_uvs;
   GPUBatch *sculpt_overlays;
+  GPUBatch *surface_viewer_attribute;
 };
 
 #define MBC_BATCH_LEN (sizeof(MeshBatchList) / sizeof(void *))
@@ -228,6 +214,7 @@ enum DRWBatchFlag {
   MBC_WIRE_LOOPS = (1u << MBC_BATCH_INDEX(wire_loops)),
   MBC_WIRE_LOOPS_UVS = (1u << MBC_BATCH_INDEX(wire_loops_uvs)),
   MBC_SCULPT_OVERLAYS = (1u << MBC_BATCH_INDEX(sculpt_overlays)),
+  MBC_VIEWER_ATTRIBUTE_OVERLAY = (1u << MBC_BATCH_INDEX(surface_viewer_attribute)),
   MBC_SURFACE_PER_MAT = (1u << MBC_BATCH_LEN),
 };
 ENUM_OPERATORS(DRWBatchFlag, MBC_SURFACE_PER_MAT);

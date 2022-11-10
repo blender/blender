@@ -99,11 +99,12 @@ void importer_main(Main *bmain,
     BKE_mesh_validate(mesh, verbose_validate, false);
   }
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
   BKE_mesh_assign_object(bmain, obj, mesh);
   BKE_collection_object_add(bmain, lc->collection, obj);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 

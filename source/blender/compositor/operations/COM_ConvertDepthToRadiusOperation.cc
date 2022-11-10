@@ -46,8 +46,8 @@ void ConvertDepthToRadiusOperation::init_execution()
   }
   inverse_focal_distance_ = 1.0f / focal_distance;
   aspect_ = (this->get_width() > this->get_height()) ?
-                (this->get_height() / (float)this->get_width()) :
-                (this->get_width() / (float)this->get_height());
+                (this->get_height() / float(this->get_width())) :
+                (this->get_width() / float(this->get_height()));
   aperture_ = 0.5f * (cam_lens_ / (aspect_ * cam_sensor)) / f_stop_;
   const float minsz = MIN2(get_width(), get_height());
   dof_sp_ = minsz / ((cam_sensor / 2.0f) /

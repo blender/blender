@@ -33,7 +33,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Edges"));
 }
 
-static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeKeyingData *data = MEM_cnew<NodeKeyingData>(__func__);
 
@@ -47,7 +47,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_keying(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   /* bNode *node = (bNode*)ptr->data; */ /* UNUSED */
 
@@ -95,7 +95,7 @@ void register_node_type_cmp_keying()
   cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_keying_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keying;
-  node_type_init(&ntype, file_ns::node_composit_init_keying);
+  ntype.initfunc = file_ns::node_composit_init_keying;
   node_type_storage(
       &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

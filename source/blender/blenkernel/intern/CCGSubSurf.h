@@ -6,6 +6,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void *CCGMeshHDL;
 typedef void *CCGVertHDL;
 typedef void *CCGEdgeHDL;
@@ -215,3 +219,7 @@ void ccgEdgeIterator_next(CCGEdgeIterator *ei);
 CCGFace *ccgFaceIterator_getCurrent(CCGFaceIterator *fi);
 int ccgFaceIterator_isStopped(CCGFaceIterator *fi);
 void ccgFaceIterator_next(CCGFaceIterator *fi);
+
+#ifdef __cplusplus
+}
+#endif

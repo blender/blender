@@ -32,7 +32,7 @@ vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
     next_uv = curr_uv;
   }
   /* NOTE: We output both vectors in the same direction so we can reuse the same vector
-   * with rgrg swizzle in viewport. */
+   * with RGRG swizzle in viewport. */
   vec4 motion = vec4(prev_uv - curr_uv, curr_uv - next_uv);
   /* Convert NDC velocity to UV velocity */
   motion *= 0.5;
@@ -54,7 +54,7 @@ vec4 velocity_background(vec3 vV)
   vec2 curr_uv = project_point(camera_curr.winmat, V).xy;
   vec2 next_uv = project_point(camera_next.winmat, V).xy;
   /* NOTE: We output both vectors in the same direction so we can reuse the same vector
-   * with rgrg swizzle in viewport. */
+   * with RGRG swizzle in viewport. */
   vec4 motion = vec4(prev_uv - curr_uv, curr_uv - next_uv);
   /* Convert NDC velocity to UV velocity */
   motion *= 0.5;
