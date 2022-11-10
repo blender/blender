@@ -534,7 +534,7 @@ static void rna_AttributeGroup_active_set(PointerRNA *ptr,
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = attribute_ptr.data;
-  BKE_id_attributes_active_set(id, layer);
+  BKE_id_attributes_active_set(id, layer->name);
 }
 
 static void rna_AttributeGroup_active_index_set(PointerRNA *ptr, int value)
