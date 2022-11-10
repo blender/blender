@@ -121,7 +121,7 @@ typedef struct PaintStroke {
   float mouse_cubic[4][2];
   float world_cubic[4][3];
 
-  bool has_cubic_stroke;
+  bool need_roll_mapping;
 
   bool stroke_over_mesh;
 

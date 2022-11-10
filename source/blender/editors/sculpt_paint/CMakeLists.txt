@@ -95,8 +95,8 @@ set(SRC
   sculpt_undo.c
   sculpt_uv.c
 
-  sculpt.cc
-  sculpt.hh
+  sculpt_new.cc
+  sculpt_new.hh
 
   sculpt_brush_machine.c
 

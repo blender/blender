@@ -62,7 +62,7 @@ static void paint_stroke_add_sample(
 
 static int paint_stroke_max_points(const Paint *paint, PaintStroke *stroke)
 {
-  if (!stroke->has_cubic_stroke) {
+  if (!stroke->need_roll_mapping) {
     return 1;
   }
 
@@ -71,7 +71,7 @@ static int paint_stroke_max_points(const Paint *paint, PaintStroke *stroke)
   int tot = (int)ceilf(1.0f / s) + 2;
   tot = max_ii(tot, 5);
 
-  // return stroke->has_cubic_stroke ? 8.0 : 1;
+  // return stroke->need_roll_mapping ? 8.0 : 1;
   return tot;
 }
 
@@ -956,12 +956,12 @@ static void paint_brush_stroke_add_step(
                              stroke->pen_flip,
                              stroke->x_tilt,
                              stroke->y_tilt);
-      if (stroke->has_cubic_stroke) {
+      if (stroke->need_roll_mapping) {
         paint_brush_make_cubic(C, stroke);
       }
     }
 
-    if (stroke->has_cubic_stroke) {
+    if (stroke->need_roll_mapping) {
       // paint_brush_make_cubic(stroke);
 
       if (stroke->spline->segments.size() < paint_stroke_max_points(paint, stroke)) {
@@ -998,7 +998,7 @@ static void paint_brush_stroke_add_step(
     RNA_float_set(&itemptr, "x_tilt", point->x_tilt);
     RNA_float_set(&itemptr, "y_tilt", point->y_tilt);
 
-    if (stroke->has_cubic_stroke) {
+    if (stroke->need_roll_mapping) {
       RNA_float_set_array(&itemptr, "mouse_cubic", (float *)stroke->mouse_cubic);
     }
 
@@ -1347,7 +1347,7 @@ static int paint_space_stroke(bContext *C,
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush,
                                                            spacing / no_pressure_spacing);
       float real_spacing = spacing;
-      if (stroke->has_cubic_stroke) {
+      if (stroke->need_roll_mapping) {
         // paint_brush_make_cubic(stroke);
         // real_spacing = bezier3_arclength_v2(stroke->mouse_cubic);
       }
@@ -1426,7 +1426,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   get_imapaint_zoom(C, &zoomx, &zoomy);
   stroke->zoom_2d = max_ff(zoomx, zoomy);
 
-  stroke->has_cubic_stroke = ELEM(
+  stroke->need_roll_mapping = ELEM(
       MTEX_MAP_MODE_ROLL, br->mtex.brush_map_mode, br->mask_mtex.brush_map_mode);
   stroke->stroke_sample_index = 0;
 
@@ -1675,7 +1675,7 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 
 bool paint_stroke_has_cubic(const PaintStroke *stroke)
 {
-  return stroke->has_cubic_stroke;
+  return stroke->need_roll_mapping;
 }
 
 static void paint_stroke_add_sample(
@@ -1985,7 +1985,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     stroke->last_tablet_event_pressure = pressure;
   }
 
-  if (!stroke->has_cubic_stroke) {
+  if (!stroke->need_roll_mapping) {
     paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
     paint_stroke_sample_average(stroke, &sample_average);
   }

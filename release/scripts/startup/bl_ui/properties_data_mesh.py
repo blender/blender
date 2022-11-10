@@ -542,8 +542,6 @@ class MESH_UL_attributes(UIList):
             else:
                 flags.append(0)
 
-        print("items!", list(attributes), flags)
-
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
