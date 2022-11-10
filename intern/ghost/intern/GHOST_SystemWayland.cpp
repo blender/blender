@@ -5065,6 +5065,8 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     }
   }
   else
+#else
+  (void)background;
 #endif
   {
     GWL_XDG_Decor_System &decor = *display_->xdg_decor;
