@@ -571,7 +571,7 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
 /* ...................................... */
 
 /* Helper for calc_fcurve_* functions -> find first and last BezTriple to be used. */
-static short get_fcurve_end_keyframes(FCurve *fcu,
+static short get_fcurve_end_keyframes(const FCurve *fcu,
                                       BezTriple **first,
                                       BezTriple **last,
                                       const bool do_sel_only)
@@ -621,7 +621,7 @@ static short get_fcurve_end_keyframes(FCurve *fcu,
   return found;
 }
 
-bool BKE_fcurve_calc_bounds(FCurve *fcu,
+bool BKE_fcurve_calc_bounds(const FCurve *fcu,
                             float *xmin,
                             float *xmax,
                             float *ymin,
@@ -752,7 +752,7 @@ bool BKE_fcurve_calc_bounds(FCurve *fcu,
 }
 
 bool BKE_fcurve_calc_range(
-    FCurve *fcu, float *start, float *end, const bool do_sel_only, const bool do_min_length)
+    const FCurve *fcu, float *start, float *end, const bool do_sel_only, const bool do_min_length)
 {
   float min = 999999999.0f, max = -999999999.0f;
   bool foundvert = false;
@@ -900,7 +900,7 @@ void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, con
 /** \name Status Checks
  * \{ */
 
-bool BKE_fcurve_are_keyframes_usable(FCurve *fcu)
+bool BKE_fcurve_are_keyframes_usable(const FCurve *fcu)
 {
   /* F-Curve must exist. */
   if (fcu == NULL) {
@@ -960,7 +960,7 @@ bool BKE_fcurve_are_keyframes_usable(FCurve *fcu)
   return true;
 }
 
-bool BKE_fcurve_is_protected(FCurve *fcu)
+bool BKE_fcurve_is_protected(const FCurve *fcu)
 {
   return ((fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)));
 }
@@ -977,7 +977,7 @@ bool BKE_fcurve_has_selected_control_points(const FCurve *fcu)
   return false;
 }
 
-bool BKE_fcurve_is_keyframable(FCurve *fcu)
+bool BKE_fcurve_is_keyframable(const FCurve *fcu)
 {
   /* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
   if (BKE_fcurve_are_keyframes_usable(fcu) == 0) {
@@ -1168,7 +1168,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
  * that the handles are correct.
  */
 
-eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
+eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve *fcu)
 {
   FModifier *fcm = fcu->modifiers.first;
 
@@ -1201,7 +1201,7 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
   return FCU_CYCLE_NONE;
 }
 
-bool BKE_fcurve_is_cyclic(FCurve *fcu)
+bool BKE_fcurve_is_cyclic(const FCurve *fcu)
 {
   return BKE_fcurve_get_cycle_type(fcu) != FCU_CYCLE_NONE;
 }
@@ -2207,7 +2207,7 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
   return evaluate_fcurve_ex(fcu, evaltime, cvalue);
 }
 
-bool BKE_fcurve_is_empty(FCurve *fcu)
+bool BKE_fcurve_is_empty(const FCurve *fcu)
 {
   return (fcu->totvert == 0) && (fcu->driver == NULL) &&
          !list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE);
