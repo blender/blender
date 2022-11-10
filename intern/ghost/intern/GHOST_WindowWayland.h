@@ -14,6 +14,25 @@
 
 #include <wayland-util.h> /* For #wl_fixed_t */
 
+/**
+ * Define to workaround for a bug/limitation in WAYLAND, see: T100855 & upstream report:
+ * https://gitlab.freedesktop.org/wayland/wayland/-/issues/159
+ *
+ * Consume events from WAYLAND in a thread, this is needed because overflowing the event queue
+ * causes a fatal error (more than `sizeof(wl_buffer.data)` at the time of writing).
+ *
+ * Solve this using a thread that handles events, locking must be performed as follows:
+ *
+ * - Lock #GWL_Display.server_mutex to prevent wl_display_dispatch / wl_display_roundtrip
+ *   running from multiple threads at once.
+ *   GHOST functions that communicate with WAYLAND must use this lock to to be thread safe.
+ *
+ * - Lock #GWL_Display.timer_mutex when WAYLAND callbacks manipulate timers.
+ *
+ * - Lock #GWL_Display.events_pending_mutex before manipulating #GWL_Display.events_pending.
+ */
+#define USE_EVENT_BACKGROUND_THREAD
+
 class GHOST_SystemWayland;
 
 struct GWL_Output;
@@ -39,6 +58,8 @@ class GHOST_WindowWayland : public GHOST_Window {
   ~GHOST_WindowWayland() override;
 
   /* Ghost API */
+
+  GHOST_TSuccess swapBuffers() override;
 
   uint16_t getDPIHint() override;
 
@@ -115,6 +136,10 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_leave(GWL_Output *output);
 
   bool outputs_changed_update_scale();
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  void pending_actions_handle();
+#endif
 
  private:
   GHOST_SystemWayland *system_;
