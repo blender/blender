@@ -895,7 +895,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
     }
   }
 
-  /* Compute destiation curves. */
+  /* Compute destination curves. */
   compute_curve_trim_parameters(src_curves,
                                 selection,
                                 starts,

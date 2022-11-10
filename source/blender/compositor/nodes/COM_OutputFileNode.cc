@@ -65,7 +65,7 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
 
   if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
     const bool use_half_float = (storage->format.depth == R_IMF_CHAN_DEPTH_16);
-    /* single output operation for the multilayer file */
+    /* Single output operation for the multi-layer file. */
     OutputOpenExrMultiLayerOperation *output_operation;
 
     if (is_multiview && storage->format.views_format == R_IMF_VIEWS_MULTIVIEW) {
