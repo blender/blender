@@ -1162,7 +1162,7 @@ static void do_weight_paint_vertex(
   }
 }
 
-/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.c) */
+/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.cc) */
 static void vertex_paint_init_session(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *ob,
@@ -2388,7 +2388,7 @@ static void wpaint_do_paint(bContext *C,
                             WeightPaintInfo *wpi,
                             Mesh *me,
                             Brush *brush,
-                            const char symm,
+                            const ePaintSymmetryFlags symm,
                             const int axis,
                             const int i,
                             const float angle)
@@ -2415,7 +2415,7 @@ static void wpaint_do_radial_symmetry(bContext *C,
                                       WeightPaintInfo *wpi,
                                       Mesh *me,
                                       Brush *brush,
-                                      const char symm,
+                                      const ePaintSymmetryFlags symm,
                                       const int axis)
 {
   for (int i = 1; i < wp->radial_symm[axis - 'X']; i++) {
@@ -2424,7 +2424,7 @@ static void wpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: sculpt.c's,
+/* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
     bContext *C, Object *ob, VPaint *wp, Sculpt *sd, WPaintData *wpd, WeightPaintInfo *wpi)
@@ -2437,11 +2437,11 @@ static void wpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
-  cache->mirror_symmetry_pass = 0;
-  wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X', 0, 0);
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'Y');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'Z');
+  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'X');
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'Y');
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'Z');
 
   cache->symmetry = symm;
 
@@ -2456,21 +2456,22 @@ static void wpaint_do_symmetrical_brush_actions(
    * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 1; i <= symm; i++) {
     if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
-      cache->mirror_symmetry_pass = i;
+      const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
+      cache->mirror_symmetry_pass = symm;
       cache->radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
+      SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
 
       if (i & (1 << 0)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'X', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'X');
       }
       if (i & (1 << 1)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Y', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Y');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Y', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Y');
       }
       if (i & (1 << 2)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Z', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Z');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Z', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Z');
       }
     }
   }
@@ -3738,7 +3739,7 @@ static void vpaint_do_paint(bContext *C,
                             Object *ob,
                             Mesh *me,
                             Brush *brush,
-                            const char symm,
+                            const ePaintSymmetryFlags symm,
                             const int axis,
                             const int i,
                             const float angle)
@@ -3769,7 +3770,7 @@ static void vpaint_do_radial_symmetry(bContext *C,
                                       Object *ob,
                                       Mesh *me,
                                       Brush *brush,
-                                      const char symm,
+                                      const ePaintSymmetryFlags symm,
                                       const int axis)
 {
   for (int i = 1; i < vp->radial_symm[axis - 'X']; i++) {
@@ -3778,7 +3779,7 @@ static void vpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: sculpt.c's,
+/* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
 template<typename Color, typename Traits, eAttrDomain domain>
 static void vpaint_do_symmetrical_brush_actions(
@@ -3792,11 +3793,15 @@ static void vpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
-  cache->mirror_symmetry_pass = 0;
-  vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X', 0, 0);
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X');
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y');
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z');
+  const ePaintSymmetryFlags initial_symm = ePaintSymmetryFlags(0);
+  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, initial_symm, 'X', 0, 0);
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'X');
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'Y');
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'Z');
 
   cache->symmetry = symm;
 
@@ -3804,21 +3809,28 @@ static void vpaint_do_symmetrical_brush_actions(
    * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 1; i <= symm; i++) {
     if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
-      cache->mirror_symmetry_pass = i;
+      const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
+      cache->mirror_symmetry_pass = symm_pass;
       cache->radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
+      SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
 
       if (i & (1 << 0)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'X', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'X');
       }
       if (i & (1 << 1)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y');
       }
       if (i & (1 << 2)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z');
       }
     }
   }

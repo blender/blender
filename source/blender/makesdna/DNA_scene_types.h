@@ -2302,6 +2302,7 @@ typedef enum ePaintSymmetryFlags {
   PAINT_TILE_Y = (1 << 5),
   PAINT_TILE_Z = (1 << 6),
 } ePaintSymmetryFlags;
+ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
 
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
 

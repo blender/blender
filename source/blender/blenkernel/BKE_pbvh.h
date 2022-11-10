@@ -416,6 +416,8 @@ typedef enum {
   PBVH_Subdivide = 1,
   PBVH_Collapse = 2,
 } PBVHTopologyUpdateMode;
+ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_Collapse);
+
 /**
  * Collapse short edges, subdivide long edges.
  */
