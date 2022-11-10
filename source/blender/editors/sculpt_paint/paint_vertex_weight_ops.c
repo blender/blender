@@ -587,6 +587,7 @@ typedef struct WPGradient_userData {
   Scene *scene;
   Mesh *me;
   MDeformVert *dvert;
+  const bool *select_vert;
   Brush *brush;
   const float *sco_start; /* [2] */
   const float *sco_end;   /* [2] */
@@ -683,7 +684,7 @@ static void gradientVertInit__mapFunc(void *userData,
   WPGradient_userData *grad_data = userData;
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-  if (grad_data->use_select && !(grad_data->dvert[index].flag & SELECT)) {
+  if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
     copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }
@@ -811,6 +812,8 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.scene = scene;
   data.me = ob->data;
   data.dvert = dverts;
+  data.select_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".select_vert");
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
