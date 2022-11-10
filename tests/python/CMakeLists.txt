@@ -632,7 +632,7 @@ endif()
 
 # SVG Import
 if(True)
-  set(_svg_render_tests path)
+  set(_svg_render_tests complex path)
 
   foreach(render_test ${_svg_render_tests})
     add_python_test(

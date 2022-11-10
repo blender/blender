@@ -1157,6 +1157,18 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 /** \name Private Utility Functions
  * \{ */
 
+static void ghost_wl_display_report_error(struct wl_display *display)
+{
+  int ecode = wl_display_get_error(display);
+  GHOST_ASSERT(ecode, "Error not set!");
+  if ((ecode == EPIPE || ecode == ECONNRESET)) {
+    fprintf(stderr, "The Wayland connection broke. Did the Wayland compositor die?\n");
+  }
+  else {
+    fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
+  }
+}
+
 /**
  * Callback for WAYLAND to run when there is an error.
  *
@@ -5152,10 +5164,14 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 #endif /* WITH_INPUT_NDOF */
 
   if (waitForEvent) {
-    wl_display_dispatch(display_->wl_display);
+    if (wl_display_dispatch(display_->wl_display) == -1) {
+      ghost_wl_display_report_error(display_->wl_display);
+    }
   }
   else {
-    wl_display_roundtrip(display_->wl_display);
+    if (wl_display_roundtrip(display_->wl_display) == -1) {
+      ghost_wl_display_report_error(display_->wl_display);
+    }
   }
 
   if (getEventManager()->getNumEvents() > 0) {
