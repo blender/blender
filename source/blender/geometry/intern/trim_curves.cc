@@ -785,8 +785,8 @@ static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
         /* Single point. */
         dst_curve_size[curve_i] = 1;
         src_ranges[curve_i] = bke::curves::IndexRangeCyclic(0, 0, 1, 1);
-        start_points[curve_i] = {0, 0, 0.0f};
-        end_points[curve_i] = {0, 0, 0.0f};
+        start_points[curve_i] = {{0, 0}, 0.0f};
+        end_points[curve_i] = {{0, 0}, 0.0f};
         continue;
       }
 
