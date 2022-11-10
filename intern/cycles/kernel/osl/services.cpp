@@ -1176,9 +1176,10 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring file
     return (TextureSystem::TextureHandle *)it->second.get();
   }
   else {
-    if (it != textures.end() && it->second->type == OSLTextureHandle::SVM && it->second->svm_slots[0].w == -1) {
-        return reinterpret_cast<TextureSystem::TextureHandle *>(
-            static_cast<uintptr_t>(it->second->svm_slots[0].y + 1));
+    if (it != textures.end() && it->second->type == OSLTextureHandle::SVM &&
+        it->second->svm_slots[0].w == -1) {
+      return reinterpret_cast<TextureSystem::TextureHandle *>(
+          static_cast<uintptr_t>(it->second->svm_slots[0].y + 1));
     }
 
     return NULL;
