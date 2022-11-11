@@ -1554,6 +1554,7 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   RegionView3D *old_rv3d = static_cast<RegionView3D *>(region->regiondata);
   RegionView3D rv3d;
   memcpy(&rv3d, old_rv3d, sizeof(RegionView3D));
+  region->regiondata = &rv3d;
 
   Object *old_camera = v3d->camera;
   v3d->camera = object;
