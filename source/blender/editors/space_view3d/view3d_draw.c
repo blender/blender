@@ -1697,6 +1697,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                                  do_color_management,
                                  ofs,
                                  viewport);
+  DRW_cache_free_old_subdiv();
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
