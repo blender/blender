@@ -2417,6 +2417,11 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "nodes", oldname, node->name);
 }
 
+static bool allow_changing_sockets(bNode *node)
+{
+  return ELEM(node->type, NODE_CUSTOM, SH_NODE_SCRIPT);
+}
+
 static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         bNode *node,
                                         Main *bmain,
@@ -2425,7 +2430,7 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         const char *name,
                                         const char *identifier)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return NULL;
   }
@@ -2452,7 +2457,7 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          const char *name,
                                          const char *identifier)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return NULL;
   }
@@ -2474,7 +2479,7 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
 static void rna_Node_socket_remove(
     ID *id, bNode *node, Main *bmain, ReportList *reports, bNodeSocket *sock)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Unable to remove socket from built-in node");
     return;
   }
@@ -2494,7 +2499,7 @@ static void rna_Node_socket_remove(
 
 static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain, ReportList *reports)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Unable to remove sockets from built-in node");
     return;
   }
@@ -2513,7 +2518,7 @@ static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain, ReportList *
 
 static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain, ReportList *reports)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Unable to remove socket from built-in node");
     return;
   }
@@ -2533,7 +2538,7 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain, ReportList 
 static void rna_Node_inputs_move(
     ID *id, bNode *node, Main *bmain, ReportList *reports, int from_index, int to_index)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Unable to move sockets in built-in node");
     return;
   }
@@ -2571,7 +2576,7 @@ static void rna_Node_inputs_move(
 static void rna_Node_outputs_move(
     ID *id, bNode *node, Main *bmain, ReportList *reports, int from_index, int to_index)
 {
-  if (node->type != NODE_CUSTOM) {
+  if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Unable to move sockets in built-in node");
     return;
   }
