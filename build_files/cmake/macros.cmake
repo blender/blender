@@ -1240,7 +1240,7 @@ endmacro()
 
 macro(set_and_warn_library_found
   _library_name _library_found _setting)
-  if(NOT ${${_library_found}} AND ${${_setting}})
+  if(((NOT ${_library_found}) OR (NOT ${${_library_found}})) AND ${${_setting}})
     if(WITH_STRICT_BUILD_OPTIONS)
       message(SEND_ERROR "${_library_name} required but not found")
     else()
