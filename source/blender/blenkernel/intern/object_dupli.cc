@@ -87,6 +87,9 @@ struct DupliContext {
   Object *obedit;
 
   Scene *scene;
+  /** Root parent object at the scene level. */
+  Object *root_object;
+  /** Immediate parent object in the context. */
   Object *object;
   float space_mat[4][4];
   /**
@@ -138,6 +141,7 @@ static void init_context(DupliContext *r_ctx,
   r_ctx->scene = scene;
   r_ctx->collection = nullptr;
 
+  r_ctx->root_object = ob;
   r_ctx->object = ob;
   r_ctx->obedit = OBEDIT_FROM_OBACT(ob);
   r_ctx->instance_stack = &instance_stack;
@@ -264,8 +268,9 @@ static DupliObject *make_dupli(const DupliContext *ctx,
     dob->no_draw = true;
   }
 
-  /* Random number.
-   * The logic here is designed to match Cycles. */
+  /* Random number per instance.
+   * The root object in the scene, persistent ID up to the instance object, and the instance object
+   * name together result in a unique random number. */
   dob->random_id = BLI_hash_string(dob->ob->id.name + 2);
 
   if (dob->persistent_id[0] != INT_MAX) {
@@ -277,8 +282,8 @@ static DupliObject *make_dupli(const DupliContext *ctx,
     dob->random_id = BLI_hash_int_2d(dob->random_id, 0);
   }
 
-  if (ctx->object != ob) {
-    dob->random_id ^= BLI_hash_int(BLI_hash_string(ctx->object->id.name + 2));
+  if (ctx->root_object != ob) {
+    dob->random_id ^= BLI_hash_int(BLI_hash_string(ctx->root_object->id.name + 2));
   }
 
   return dob;
