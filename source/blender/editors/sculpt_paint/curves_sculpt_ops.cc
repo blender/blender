@@ -76,7 +76,7 @@ namespace blender::ed::sculpt_paint {
 using blender::bke::CurvesGeometry;
 
 /* -------------------------------------------------------------------- */
-/** \name * SCULPT_CURVES_OT_brush_stroke
+/** \name Brush Stroke Operator
  * \{ */
 
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension)
@@ -271,7 +271,7 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name * CURVES_OT_sculptmode_toggle
+/** \name Toggle Sculpt Mode
  * \{ */
 
 static void curves_sculptmode_enter(bContext *C)
@@ -1269,7 +1269,7 @@ static void SCULPT_CURVES_OT_min_distance_edit(wmOperatorType *ot)
 }  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
-/** \name * Registration
+/** \name Registration
  * \{ */
 
 void ED_operatortypes_sculpt_curves()
