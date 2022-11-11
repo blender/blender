@@ -618,7 +618,9 @@ void MetalKernelPipeline::compile()
     metalbin_path = path_cache_get(path_join("kernels", metalbin_name));
     path_create_directories(metalbin_path);
 
-    if (path_exists(metalbin_path) && use_binary_archive) {
+    /* Retrieve shader binary from disk, and update the file timestamp for LRU purging to work as
+     * intended. */
+    if (use_binary_archive && path_cache_kernel_exists_and_mark_used(metalbin_path)) {
       if (@available(macOS 11.0, *)) {
         MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
         archiveDesc.url = [NSURL fileURLWithPath:@(metalbin_path.c_str())];
@@ -694,6 +696,9 @@ void MetalKernelPipeline::compile()
                                error:&error]) {
           metal_printf("Failed to save binary archive, error:\n%s\n",
                        [[error localizedDescription] UTF8String]);
+        }
+        else {
+          path_cache_kernel_mark_added_and_clear_old(metalbin_path);
         }
       }
     }
