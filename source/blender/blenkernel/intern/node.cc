@@ -2019,7 +2019,7 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
   return (bNode *)BLI_findstring(&ntree->nodes, name, offsetof(bNode, name));
 }
 
-bool nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
+void nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
 {
   *r_node = nullptr;
   if (!ntree->runtime->topology_cache_is_dirty) {
@@ -2029,9 +2029,15 @@ bool nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_so
       ListBase *sockets = (sock->in_out == SOCK_IN) ? &node->inputs : &node->outputs;
       *r_sockindex = BLI_findindex(sockets, sock);
     }
-    return true;
+    return;
   }
+  const bool success = nodeFindNodeTry(ntree, sock, r_node, r_sockindex);
+  BLI_assert(success);
+  UNUSED_VARS_NDEBUG(success);
+}
 
+bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
+{
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     ListBase *sockets = (sock->in_out == SOCK_IN) ? &node->inputs : &node->outputs;
     int i;
