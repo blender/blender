@@ -1302,8 +1302,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     return NULL;
   }
 
-  nodeFindNode(ntree, fromsock, &fromnode, NULL);
-  nodeFindNode(ntree, tosock, &tonode, NULL);
+  nodeFindNodeTry(ntree, fromsock, &fromnode, NULL);
+  nodeFindNodeTry(ntree, tosock, &tonode, NULL);
   /* check validity of the sockets:
    * if sockets from different trees are passed in this will fail!
    */
@@ -2789,9 +2789,7 @@ static char *rna_NodeSocket_path(const PointerRNA *ptr)
   int socketindex;
   char name_esc[sizeof(node->name) * 2];
 
-  if (!nodeFindNode(ntree, sock, &node, &socketindex)) {
-    return NULL;
-  }
+  nodeFindNode(ntree, sock, &node, &socketindex);
 
   BLI_str_escape(name_esc, node->name, sizeof(name_esc));
 

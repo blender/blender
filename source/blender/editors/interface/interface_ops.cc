@@ -1165,7 +1165,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
       bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-      if (nodeFindNode(ntree, sock, &node, nullptr)) {
+      if (nodeFindNodeTry(ntree, sock, &node, nullptr)) {
         if ((path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node)) != nullptr) {
           /* we're good! */
         }
