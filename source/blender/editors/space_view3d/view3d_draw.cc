@@ -1551,11 +1551,13 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   View3D *v3d = CTX_wm_view3d(C);
   int2 resolution(1920 / 2, 1080 / 2);
 
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  int old_persp = rv3d->persp;
+  RegionView3D *old_rv3d = static_cast<RegionView3D *>(region->regiondata);
+  RegionView3D rv3d = {*old_rv3d};
+  region->regiondata = &rv3d;
+
   Object *old_camera = v3d->camera;
   v3d->camera = object;
-  rv3d->persp = RV3D_CAMOB;
+  rv3d.persp = RV3D_CAMOB;
 
   Camera *camera = static_cast<Camera *>(object->data);
   if (camera->runtime.virtual_display_texture == nullptr) {
@@ -1599,7 +1601,7 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
       camera->runtime.virtual_display_texture);
 
   v3d->camera = old_camera;
-  rv3d->persp = old_persp;
+  region->regiondata = old_rv3d;
 }
 
 static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
