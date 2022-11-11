@@ -419,6 +419,8 @@ ccl_device_extern bool osl_transformc(ccl_private ShaderGlobals *sg,
       c_out[i] = rgb;
     }
   }
+
+  return true;
 }
 
 /* Matrix Utilities */
