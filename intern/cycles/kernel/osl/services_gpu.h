@@ -15,6 +15,14 @@ namespace DeviceStrings {
 
 /* "" */
 ccl_device_constant DeviceString _emptystring_ = {0ull};
+/* "common" */
+ccl_device_constant DeviceString u_common = {14645198576927606093ull};
+/* "world" */
+ccl_device_constant DeviceString u_world = {16436542438370751598ull};
+/* "shader" */
+ccl_device_constant DeviceString u_shader = {4279676006089868ull};
+/* "object" */
+ccl_device_constant DeviceString u_object = {973692718279674627ull};
 /* "NDC" */
 ccl_device_constant DeviceString u_ndc = {5148305047403260775ull};
 /* "screen" */
@@ -23,10 +31,6 @@ ccl_device_constant DeviceString u_screen = {14159088609039777114ull};
 ccl_device_constant DeviceString u_camera = {2159505832145726196ull};
 /* "raster" */
 ccl_device_constant DeviceString u_raster = {7759263238610201778ull};
-/* "world" */
-ccl_device_constant DeviceString u_world = {16436542438370751598ull};
-/* "common" */
-ccl_device_constant DeviceString u_common = {14645198576927606093ull};
 /* "hsv" */
 ccl_device_constant DeviceString u_hsv = {2177035556331879497ull};
 /* "hsl" */
@@ -425,6 +429,7 @@ ccl_device_extern bool osl_transformc(ccl_private ShaderGlobals *sg,
 
 /* Matrix Utilities */
 
+#include "kernel/geom/object.h"
 #include "util/transform.h"
 
 ccl_device_forceinline void copy_matrix(ccl_private float *res, const Transform &tfm)
@@ -465,24 +470,24 @@ ccl_device_forceinline void copy_matrix(ccl_private float *res, const Projection
   res[14] = tfm.z.w;
   res[15] = tfm.w.w;
 }
-ccl_device_forceinline void copy_identity_matrix(ccl_private float *res)
+ccl_device_forceinline void copy_identity_matrix(ccl_private float *res, float value = 1.0f)
 {
-  res[0] = 1.0f;
+  res[0] = value;
   res[1] = 0.0f;
   res[2] = 0.0f;
   res[3] = 0.0f;
   res[4] = 0.0f;
-  res[5] = 1.0f;
+  res[5] = value;
   res[6] = 0.0f;
   res[7] = 0.0f;
   res[8] = 0.0f;
   res[9] = 0.0f;
-  res[10] = 1.0f;
+  res[10] = value;
   res[11] = 0.0f;
   res[12] = 0.0f;
   res[13] = 0.0f;
   res[14] = 0.0f;
-  res[15] = 1.0f;
+  res[15] = value;
 }
 ccl_device_forceinline Transform convert_transform(ccl_private const float *m)
 {
@@ -534,22 +539,7 @@ ccl_device_extern void osl_div_mfm(ccl_private float *res, float a, ccl_private 
 ccl_device_extern void osl_div_m_ff(ccl_private float *res, float a, float b)
 {
   float f = (b == 0) ? 0.0f : (a / b);
-  res[0] = f;
-  res[1] = 0.0f;
-  res[2] = 0.0f;
-  res[3] = 0.0f;
-  res[4] = 0.0f;
-  res[5] = f;
-  res[6] = 0.0f;
-  res[7] = 0.0f;
-  res[8] = 0.0f;
-  res[9] = 0.0f;
-  res[10] = f;
-  res[11] = 0.0f;
-  res[12] = 0.0f;
-  res[13] = 0.0f;
-  res[14] = 0.0f;
-  res[15] = f;
+  copy_identity_matrix(res, f);
 }
 
 ccl_device_extern void osl_transform_vmv(ccl_private float3 *res,
@@ -607,27 +597,43 @@ ccl_device_extern void osl_transformn_dvmdv(ccl_private float3 *res,
 }
 
 ccl_device_extern bool osl_get_matrix(ccl_private ShaderGlobals *sg,
-                                      ccl_private float *result,
+                                      ccl_private float *res,
                                       DeviceString from)
 {
-  if (from == DeviceStrings::u_ndc) {
-    copy_matrix(result, kernel_data.cam.ndctoworld);
+  if (from == DeviceStrings::u_common || from == DeviceStrings::u_world) {
+    copy_identity_matrix(res);
     return true;
   }
-  if (from == DeviceStrings::u_raster) {
-    copy_matrix(result, kernel_data.cam.rastertoworld);
+  if (from == DeviceStrings::u_shader || from == DeviceStrings::u_object) {
+    KernelGlobals kg = nullptr;
+    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    int object = sd->object;
+
+    if (object != OBJECT_NONE) {
+      const Transform tfm = object_get_transform(kg, sd);
+      copy_matrix(res, tfm);
+      return true;
+    }
+    else if (sd->type == PRIMITIVE_LAMP) {
+      const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
+      copy_matrix(res, tfm);
+      return true;
+    }
+  }
+  else if (from == DeviceStrings::u_ndc) {
+    copy_matrix(res, kernel_data.cam.ndctoworld);
     return true;
   }
-  if (from == DeviceStrings::u_screen) {
-    copy_matrix(result, kernel_data.cam.screentoworld);
+  else if (from == DeviceStrings::u_raster) {
+    copy_matrix(res, kernel_data.cam.rastertoworld);
     return true;
   }
-  if (from == DeviceStrings::u_camera) {
-    copy_matrix(result, kernel_data.cam.cameratoworld);
+  else if (from == DeviceStrings::u_screen) {
+    copy_matrix(res, kernel_data.cam.screentoworld);
     return true;
   }
-  if (from == DeviceStrings::u_world) {
-    copy_identity_matrix(result);
+  else if (from == DeviceStrings::u_camera) {
+    copy_matrix(res, kernel_data.cam.cameratoworld);
     return true;
   }
 
@@ -638,24 +644,53 @@ ccl_device_extern bool osl_get_inverse_matrix(ccl_private ShaderGlobals *sg,
                                               ccl_private float *res,
                                               DeviceString to)
 {
-  if (to == DeviceStrings::u_ndc) {
+  if (to == DeviceStrings::u_common || to == DeviceStrings::u_world) {
+    copy_identity_matrix(res);
+    return true;
+  }
+  if (to == DeviceStrings::u_shader || to == DeviceStrings::u_object) {
+    KernelGlobals kg = nullptr;
+    ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+    int object = sd->object;
+
+    if (object != OBJECT_NONE) {
+      const Transform itfm = object_get_inverse_transform(kg, sd);
+      copy_matrix(res, itfm);
+      return true;
+    }
+    else if (sd->type == PRIMITIVE_LAMP) {
+      const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
+      copy_matrix(res, itfm);
+      return true;
+    }
+  }
+  else if (to == DeviceStrings::u_ndc) {
     copy_matrix(res, kernel_data.cam.worldtondc);
     return true;
   }
-  if (to == DeviceStrings::u_raster) {
+  else if (to == DeviceStrings::u_raster) {
     copy_matrix(res, kernel_data.cam.worldtoraster);
     return true;
   }
-  if (to == DeviceStrings::u_screen) {
+  else if (to == DeviceStrings::u_screen) {
     copy_matrix(res, kernel_data.cam.worldtoscreen);
     return true;
   }
-  if (to == DeviceStrings::u_camera) {
+  else if (to == DeviceStrings::u_camera) {
     copy_matrix(res, kernel_data.cam.worldtocamera);
     return true;
   }
-  if (to == DeviceStrings::u_world) {
-    copy_identity_matrix(res);
+
+  return false;
+}
+
+ccl_device_extern bool osl_prepend_matrix_from(ccl_private ShaderGlobals *sg,
+                                               ccl_private float *res,
+                                               DeviceString from)
+{
+  float m_from[16];
+  if (osl_get_matrix(sg, m_from, from)) {
+    osl_mul_mmm(res, m_from, res);
     return true;
   }
 
@@ -674,16 +709,6 @@ ccl_device_extern bool osl_get_from_to_matrix(ccl_private ShaderGlobals *sg,
   }
 
   return false;
-}
-
-ccl_device_extern void osl_prepend_matrix_from(ccl_private ShaderGlobals *sg,
-                                               ccl_private float *res,
-                                               DeviceString from)
-{
-  float m[16];
-  if (osl_get_matrix(sg, m, from)) {
-    osl_mul_mmm(res, m, res);
-  }
 }
 
 ccl_device_extern bool osl_transform_triple(ccl_private ShaderGlobals *sg,
