@@ -1543,12 +1543,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 /** \name Draw Viewport Contents
  * \{ */
 
-static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Object *object)
+static void view3d_virtual_camera_update(
+    Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *region, Object *object)
 {
   BLI_assert(object->type == OB_CAMERA);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Scene *scene = CTX_data_scene(C);
-  View3D *v3d = CTX_wm_view3d(C);
   int2 resolution(1920 / 2, 1080 / 2);
 
   RegionView3D *old_rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -1595,6 +1593,7 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
                            nullptr,
                            false,
                            true,
+                           true,
                            offscreen,
                            nullptr);
   GPU_offscreen_unbind(offscreen, true);
@@ -1605,13 +1604,18 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   region->regiondata = old_rv3d;
 }
 
-static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
+static void view3d_draw_virtual_camera(Scene *scene,
+                                       Depsgraph *depsgraph,
+                                       View3D *v3d,
+                                       ARegion *region)
 {
-  Main *bmain = CTX_data_main(C);
+  /* TODO: Bad call! */
+  Main *bmain = DEG_get_bmain(depsgraph);
 
-  // create a custom view3d offscreen rendering.
+  /* Collect all cameras in the scene that is used inside a virtual monitor. This should be
+   * optimized by a tagging system. There are far more materials then cameras in a typical scene.
+   */
   Vector<Object *> virtual_cameras;
-
   LISTBASE_FOREACH (Material *, material, &bmain->materials) {
     if (!material->nodetree) {
       continue;
@@ -1630,26 +1634,29 @@ static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
   }
 
   if (virtual_cameras.is_empty()) {
-    /* No virtual cameras, so skip updating. */
+    /* No cameras used as virtual monitor, so skip updating. */
     return;
   }
 
   GPU_debug_group_begin("VirtualCameras");
   for (Object *object : virtual_cameras) {
-    view3d_virtual_camera_update(C, region, object);
+    view3d_virtual_camera_update(scene, depsgraph, v3d, region, object);
   }
   GPU_debug_group_end();
 }
 
 static void view3d_draw_view(const bContext *C, ARegion *region)
 {
-  view3d_draw_virtual_camera(C, region);
+  Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  view3d_draw_virtual_camera(scene, depsgraph, v3d, region);
   ED_view3d_draw_setup_view(CTX_wm_manager(C),
                             CTX_wm_window(C),
-                            CTX_data_expect_evaluated_depsgraph(C),
-                            CTX_data_scene(C),
+                            depsgraph,
+                            scene,
                             region,
-                            CTX_wm_view3d(C),
+                            v3d,
                             nullptr,
                             nullptr,
                             nullptr);
@@ -1747,6 +1754,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               const char *viewname,
                               const bool do_color_management,
                               const bool restore_rv3d_mats,
+                              const bool is_virtual_camera,
                               GPUOffScreen *ofs,
                               GPUViewport *viewport)
 {
@@ -1822,6 +1830,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                                  is_image_render,
                                  draw_background,
                                  do_color_management,
+                                 is_virtual_camera,
                                  ofs,
                                  viewport);
   GPU_matrix_pop_projection();
@@ -1936,6 +1945,8 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   /* Actually not used since we pass in the projection matrix. */
   v3d.lens = 0;
 
+  view3d_draw_virtual_camera(scene, depsgraph, &v3d, &ar);
+
   ED_view3d_draw_offscreen(depsgraph,
                            scene,
                            drawtype,
@@ -1950,6 +1961,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                            viewname,
                            do_color_management,
                            true,
+                           false,
                            ofs,
                            viewport);
 }
@@ -2073,6 +2085,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                            viewname,
                            do_color_management,
                            restore_rv3d_mats,
+                           false,
                            ofs,
                            nullptr);
 

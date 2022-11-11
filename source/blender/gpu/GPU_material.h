@@ -83,7 +83,7 @@ typedef enum eGPUMaterialFlag {
   GPU_MATFLAG_OBJECT_INFO = (1 << 10),
   GPU_MATFLAG_AOV = (1 << 11),
 
-  GPU_MATFLAG_VIRTUAL_CAMERA = (1 << 12),
+  GPU_MATFLAG_VIRTUAL_MONITOR = (1 << 12),
 
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
 

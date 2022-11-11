@@ -99,6 +99,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     bool is_image_render,
                                     bool draw_background,
                                     bool do_color_management,
+                                    bool is_virtual_camera,
                                     struct GPUOffScreen *ofs,
                                     struct GPUViewport *viewport);
 void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,

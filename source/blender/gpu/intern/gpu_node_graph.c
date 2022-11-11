@@ -647,7 +647,7 @@ GPUNodeLink *GPU_image_camera(GPUMaterial *mat, Camera *camera, eGPUSamplerState
                                              &camera->runtime.offscreen_color_texture,
                                              link->link_type,
                                              sampler_state);
-  GPU_material_flag_set(mat, GPU_MATFLAG_VIRTUAL_CAMERA);
+  GPU_material_flag_set(mat, GPU_MATFLAG_VIRTUAL_MONITOR);
   return link;
 }
 

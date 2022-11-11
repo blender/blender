@@ -861,10 +861,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
               continue;
             }
 
-            /* Virtual cameras can only be used in the main scene. TODO: needs to be a different
-             * DRW_state.*/
-            if (DRW_state_is_opengl_render() &&
-                GPU_material_flag_get(gpumat_array[i], GPU_MATFLAG_VIRTUAL_CAMERA)) {
+            /* Virtual cameras can only be used in the main scene. */
+            if (DRW_state_is_virtual_camera() &&
+                GPU_material_flag_get(gpumat_array[i], GPU_MATFLAG_VIRTUAL_MONITOR)) {
               continue;
             }
 

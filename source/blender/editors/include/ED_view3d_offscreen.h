@@ -39,6 +39,7 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               const char *viewname,
                               bool do_color_management,
                               bool restore_rv3d_mats,
+                              bool is_virtual_camera,
                               struct GPUOffScreen *ofs,
                               struct GPUViewport *viewport);
 /**
