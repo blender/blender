@@ -639,8 +639,14 @@ GPUNodeLink *GPU_image_camera(GPUMaterial *mat, Camera *camera, eGPUSamplerState
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_IMAGE_CAMERA;
-  link->texture = gpu_node_graph_add_texture(
-      graph, NULL, NULL, NULL, NULL, &camera->runtime.gpu_texture, link->link_type, sampler_state);
+  link->texture = gpu_node_graph_add_texture(graph,
+                                             NULL,
+                                             NULL,
+                                             NULL,
+                                             NULL,
+                                             &camera->runtime.offscreen_color_texture,
+                                             link->link_type,
+                                             sampler_state);
   GPU_material_flag_set(mat, GPU_MATFLAG_VIRTUAL_CAMERA);
   return link;
 }

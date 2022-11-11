@@ -41,6 +41,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "GPU_viewport.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLO_read_write.h"
@@ -83,10 +85,21 @@ static void camera_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */
+static void camera_free_runtime_data(Camera *camera)
+{
+  if (camera->runtime.virtual_monitor_offscreen) {
+    GPU_offscreen_free(camera->runtime.virtual_monitor_offscreen);
+    camera->runtime.virtual_monitor_offscreen = NULL;
+  }
+  /* GPU texture is owned by the GPUOffscreen instance. */
+  camera->runtime.offscreen_color_texture = NULL;
+}
+
 static void camera_free_data(ID *id)
 {
   Camera *cam = (Camera *)id;
   BLI_freelistN(&cam->bg_images);
+  camera_free_runtime_data(cam);
 }
 
 static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -137,8 +150,8 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
       bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
     }
   }
-  ca->runtime.virtual_display_texture = NULL;
-  ca->runtime.gpu_texture = NULL;
+  ca->runtime.virtual_monitor_offscreen = NULL;
+  ca->runtime.offscreen_color_texture = NULL;
 }
 
 static void camera_blend_read_lib(BlendLibReader *reader, ID *id)

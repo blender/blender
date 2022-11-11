@@ -5885,7 +5885,7 @@ static void def_sh_tex_coord(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_sh_virtual_camera(StructRNA *srna)
+static void def_sh_virtual_monitor(StructRNA *srna)
 {
   PropertyRNA *prop;
 
@@ -5897,7 +5897,8 @@ static void def_sh_virtual_camera(StructRNA *srna)
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_ui_text(prop, "Camera", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-  // TODO: add poll function show all cameras in active scene, excluding scene camera.
+  /* TODO: add poll function show all cameras in active scene and view layer, excluding scene
+   * camera. */
 }
 
 static void def_sh_vect_transform(StructRNA *srna)

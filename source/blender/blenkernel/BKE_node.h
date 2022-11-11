@@ -1222,7 +1222,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_COMBINE_COLOR 711
 #define SH_NODE_SEPARATE_COLOR 712
 #define SH_NODE_MIX 713
-#define SH_NODE_VIRTUAL_CAMERA 714
+#define SH_NODE_VIRTUAL_MONITOR 714
 
 /** \} */
 

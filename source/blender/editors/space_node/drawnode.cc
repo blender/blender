@@ -432,7 +432,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
   node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
-static void node_shader_buts_virtual_camera(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_virtual_monitor(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiTemplateID(layout,
                C,
@@ -513,8 +513,8 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       ntype->draw_buttons = node_shader_buts_tex_environment;
       ntype->draw_buttons_ex = node_shader_buts_tex_environment_ex;
       break;
-    case SH_NODE_VIRTUAL_CAMERA:
-      ntype->draw_buttons = node_shader_buts_virtual_camera;
+    case SH_NODE_VIRTUAL_MONITOR:
+      ntype->draw_buttons = node_shader_buts_virtual_monitor;
       break;
     case SH_NODE_DISPLACEMENT:
     case SH_NODE_VECTOR_DISPLACEMENT:

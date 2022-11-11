@@ -7,20 +7,20 @@
 
 #include "DEG_depsgraph_query.h"
 
-namespace blender::nodes::node_shader_virtual_camera_cc {
+namespace blender::nodes::node_shader_virtual_monitor_cc {
 
-static void sh_node_virtual_camera_declare(NodeDeclarationBuilder &b)
+static void sh_node_virtual_monitor_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Vector")).implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
 }
 
-static int node_shader_gpu_virtual_camera(GPUMaterial *mat,
-                                          bNode *node,
-                                          bNodeExecData * /*execdata*/,
-                                          GPUNodeStack *in,
-                                          GPUNodeStack *out)
+static int node_shader_gpu_virtual_monitor(GPUMaterial *mat,
+                                           bNode *node,
+                                           bNodeExecData * /*execdata*/,
+                                           GPUNodeStack *in,
+                                           GPUNodeStack *out)
 {
   Object *object = (Object *)node->id;
   if (object == nullptr || object->type != OB_CAMERA) {
@@ -36,17 +36,17 @@ static int node_shader_gpu_virtual_camera(GPUMaterial *mat,
       mat, node, "node_virtual_camera", in, out, GPU_image_camera(mat, cam, GPU_SAMPLER_DEFAULT));
 }
 
-}  // namespace blender::nodes::node_shader_virtual_camera_cc
+}  // namespace blender::nodes::node_shader_virtual_monitor_cc
 
 void register_node_type_sh_virtual_camera()
 {
-  namespace file_ns = blender::nodes::node_shader_virtual_camera_cc;
+  namespace file_ns = blender::nodes::node_shader_virtual_monitor_cc;
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VIRTUAL_CAMERA, "Virtual Camera", NODE_CLASS_TEXTURE);
-  ntype.declare = file_ns::sh_node_virtual_camera_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_virtual_camera);
+  sh_node_type_base(&ntype, SH_NODE_VIRTUAL_MONITOR, "Virtual Monitor", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::sh_node_virtual_monitor_declare;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_virtual_monitor);
 
   nodeRegisterType(&ntype);
 }

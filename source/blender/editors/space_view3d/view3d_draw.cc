@@ -1552,16 +1552,16 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   int2 resolution(1920 / 2, 1080 / 2);
 
   RegionView3D *old_rv3d = static_cast<RegionView3D *>(region->regiondata);
-  RegionView3D rv3d = {*old_rv3d};
-  region->regiondata = &rv3d;
+  RegionView3D rv3d;
+  memcpy(&rv3d, old_rv3d, sizeof(RegionView3D));
 
   Object *old_camera = v3d->camera;
   v3d->camera = object;
   rv3d.persp = RV3D_CAMOB;
 
   Camera *camera = static_cast<Camera *>(object->data);
-  if (camera->runtime.virtual_display_texture == nullptr) {
-    camera->runtime.virtual_display_texture = GPU_offscreen_create(
+  if (camera->runtime.virtual_monitor_offscreen == nullptr) {
+    camera->runtime.virtual_monitor_offscreen = GPU_offscreen_create(
         UNPACK2(resolution), true, GPU_RGBA16F, nullptr);
   }
 
@@ -1578,7 +1578,7 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
   BKE_camera_params_compute_matrix(&params);
   copy_m4_m4(winmat.ptr(), params.winmat);
 
-  GPUOffScreen *offscreen = camera->runtime.virtual_display_texture;
+  GPUOffScreen *offscreen = camera->runtime.virtual_monitor_offscreen;
 
   GPU_offscreen_bind(offscreen, true);
   ED_view3d_draw_offscreen(depsgraph,
@@ -1597,8 +1597,8 @@ static void view3d_virtual_camera_update(const bContext *C, ARegion *region, Obj
                            offscreen,
                            nullptr);
   GPU_offscreen_unbind(offscreen, true);
-  camera->runtime.gpu_texture = GPU_offscreen_color_texture(
-      camera->runtime.virtual_display_texture);
+  camera->runtime.offscreen_color_texture = GPU_offscreen_color_texture(
+      camera->runtime.virtual_monitor_offscreen);
 
   v3d->camera = old_camera;
   region->regiondata = old_rv3d;
@@ -1617,7 +1617,7 @@ static void view3d_draw_virtual_camera(const bContext *C, ARegion *region)
     }
 
     LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
-      if (node->type != SH_NODE_VIRTUAL_CAMERA) {
+      if (node->type != SH_NODE_VIRTUAL_MONITOR) {
         continue;
       }
       Object *ob = static_cast<Object *>(static_cast<void *>(node->id));
