@@ -2039,6 +2039,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   DRW_smoke_exit(DST.vmempool);
 
   drw_manager_exit(&DST);
+  DRW_cache_free_old_subdiv();
 
   /* Reset state after drawing */
   DRW_state_reset();
