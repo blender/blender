@@ -1109,7 +1109,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
       PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
     return &TransConvertType_Particle;
   }
-  if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+  if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
       return &TransConvertType_PaintCurve;
     }
