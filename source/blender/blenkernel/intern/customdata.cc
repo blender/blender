@@ -19,7 +19,6 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
-#include "BLI_cpp_type_make.hh"
 #include "BLI_endian_switch.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
@@ -5407,5 +5406,3 @@ size_t CustomData_get_elem_size(CustomDataLayer *layer)
 {
   return LAYERTYPEINFO[layer->type].size;
 }
-
-BLI_CPP_TYPE_MAKE(MStringProperty, MStringProperty, CPPTypeFlags::None);

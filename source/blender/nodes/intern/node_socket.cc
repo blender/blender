@@ -10,7 +10,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_cpp_type_make.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
@@ -778,12 +777,6 @@ static bNodeSocketType *make_socket_type_string()
   };
   return socktype;
 }
-
-BLI_CPP_TYPE_MAKE(Object, Object *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Collection, Collection *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Texture, Tex *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Image, Image *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Material, Material *, CPPTypeFlags::BasicType)
 
 static bNodeSocketType *make_socket_type_object()
 {

@@ -817,11 +817,10 @@ static void initialize_group_input(NodesModifierData &nmd,
     auto attribute_input = std::make_shared<blender::bke::AttributeFieldInput>(
         attribute_name, *socket_type.base_cpp_type);
     GField attribute_field{std::move(attribute_input), 0};
-    const blender::fn::ValueOrFieldCPPType *cpp_type =
-        dynamic_cast<const blender::fn::ValueOrFieldCPPType *>(
-            socket_type.geometry_nodes_cpp_type);
-    BLI_assert(cpp_type != nullptr);
-    cpp_type->construct_from_field(r_value, std::move(attribute_field));
+    const auto *value_or_field_cpp_type = ValueOrFieldCPPType::get_from_self(
+        *socket_type.geometry_nodes_cpp_type);
+    BLI_assert(value_or_field_cpp_type != nullptr);
+    value_or_field_cpp_type->construct_from_field(r_value, std::move(attribute_field));
   }
   else {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
@@ -984,9 +983,9 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
 
     const int index = socket->index();
     const GPointer value = output_values[index];
-    const ValueOrFieldCPPType *cpp_type = dynamic_cast<const ValueOrFieldCPPType *>(value.type());
-    BLI_assert(cpp_type != nullptr);
-    const GField field = cpp_type->as_field(value.get());
+    const auto *value_or_field_type = ValueOrFieldCPPType::get_from_self(*value.type());
+    BLI_assert(value_or_field_type != nullptr);
+    const GField field = value_or_field_type->as_field(value.get());
 
     const bNodeSocket *interface_socket = (const bNodeSocket *)BLI_findlink(
         &nmd.node_group->outputs, index);

@@ -102,6 +102,7 @@ set(SRC
   intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
+  intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
@@ -354,6 +355,7 @@ set(SRC
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
+  BKE_cpp_types.h
   BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h

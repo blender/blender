@@ -166,10 +166,9 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     const GeometrySet &geometry = *value.get<GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
-  else if (const auto *value_or_field_type = dynamic_cast<const fn::ValueOrFieldCPPType *>(
-               &type)) {
+  else if (const auto *value_or_field_type = fn::ValueOrFieldCPPType::get_from_self(type)) {
     const void *value_or_field = value.get();
-    const CPPType &base_type = value_or_field_type->base_type();
+    const CPPType &base_type = value_or_field_type->value;
     if (value_or_field_type->is_field(value_or_field)) {
       const GField *field = value_or_field_type->get_field_ptr(value_or_field);
       if (field->node().depends_on_input()) {
