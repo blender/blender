@@ -494,15 +494,6 @@ void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
                                    const struct MLoopTri *looptri,
                                    int looptri_num,
                                    float (*r_tri_nors)[3]);
-void BKE_mesh_loop_manifold_fan_around_vert_next(const struct MLoop *mloops,
-                                                 const struct MPoly *mpolys,
-                                                 const int *loop_to_poly,
-                                                 const int *e2lfan_curr,
-                                                 uint mv_pivot_index,
-                                                 const struct MLoop **r_mlfan_curr,
-                                                 int *r_mlfan_curr_index,
-                                                 int *r_mlfan_vert_index,
-                                                 int *r_mpfan_curr_index);
 
 /**
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.

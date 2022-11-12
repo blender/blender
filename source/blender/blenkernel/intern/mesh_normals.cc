@@ -966,15 +966,15 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   MEM_freeN(loop_to_poly);
 }
 
-void BKE_mesh_loop_manifold_fan_around_vert_next(const MLoop *mloops,
-                                                 const MPoly *mpolys,
-                                                 const int *loop_to_poly,
-                                                 const int *e2lfan_curr,
-                                                 const uint mv_pivot_index,
-                                                 const MLoop **r_mlfan_curr,
-                                                 int *r_mlfan_curr_index,
-                                                 int *r_mlfan_vert_index,
-                                                 int *r_mpfan_curr_index)
+void loop_manifold_fan_around_vert_next(const MLoop *mloops,
+                                        const MPoly *mpolys,
+                                        const int *loop_to_poly,
+                                        const int *e2lfan_curr,
+                                        const uint mv_pivot_index,
+                                        const MLoop **r_mlfan_curr,
+                                        int *r_mlfan_curr_index,
+                                        int *r_mlfan_vert_index,
+                                        int *r_mpfan_curr_index)
 {
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
@@ -1214,15 +1214,15 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
     copy_v3_v3(vec_prev, vec_curr);
 
     /* Find next loop of the smooth fan. */
-    BKE_mesh_loop_manifold_fan_around_vert_next(loops.data(),
-                                                polys.data(),
-                                                loop_to_poly.data(),
-                                                e2lfan_curr,
-                                                mv_pivot_index,
-                                                &mlfan_curr,
-                                                &mlfan_curr_index,
-                                                &mlfan_vert_index,
-                                                &mpfan_curr_index);
+    loop_manifold_fan_around_vert_next(loops.data(),
+                                       polys.data(),
+                                       loop_to_poly.data(),
+                                       e2lfan_curr,
+                                       mv_pivot_index,
+                                       &mlfan_curr,
+                                       &mlfan_curr_index,
+                                       &mlfan_vert_index,
+                                       &mpfan_curr_index);
 
     e2lfan_curr = edge_to_loops[mlfan_curr->e];
   }
@@ -1369,15 +1369,15 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
 
   while (true) {
     /* Find next loop of the smooth fan. */
-    BKE_mesh_loop_manifold_fan_around_vert_next(mloops.data(),
-                                                mpolys.data(),
-                                                loop_to_poly.data(),
-                                                e2lfan_curr,
-                                                mv_pivot_index,
-                                                &mlfan_curr,
-                                                &mlfan_curr_index,
-                                                &mlfan_vert_index,
-                                                &mpfan_curr_index);
+    loop_manifold_fan_around_vert_next(mloops.data(),
+                                       mpolys.data(),
+                                       loop_to_poly.data(),
+                                       e2lfan_curr,
+                                       mv_pivot_index,
+                                       &mlfan_curr,
+                                       &mlfan_curr_index,
+                                       &mlfan_vert_index,
+                                       &mpfan_curr_index);
 
     e2lfan_curr = edge_to_loops[mlfan_curr->e];
 
