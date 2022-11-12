@@ -527,7 +527,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
     debug_name_ = "Viewer";
     Vector<const bNodeSocket *> dummy_used_outputs;
     lazy_function_interface_from_node(bnode, r_used_inputs, dummy_used_outputs, inputs_, outputs_);
-    if (!r_used_inputs[1]->is_directly_linked()) {
+    const Span<const bNodeLink *> links = r_used_inputs[1]->directly_linked_links();
+    if (links.is_empty() || nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
       use_field_input_ = false;
       r_used_inputs.pop_last();
       inputs_.pop_last();
