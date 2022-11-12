@@ -106,6 +106,8 @@ struct GWL_Window {
   WGL_XDG_Decor_Window *xdg_decor = nullptr;
 
   wl_egl_window *egl_window = nullptr;
+
+  std::string title;
   bool is_maximised = false;
   bool is_fullscreen = false;
   bool is_active = false;
@@ -128,6 +130,8 @@ static void gwl_window_title_set(GWL_Window *win, const char *title)
     WGL_XDG_Decor_Window &decor = *win->xdg_decor;
     xdg_toplevel_set_title(decor.toplevel, title);
   }
+
+  win->title = title;
 }
 
 static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
@@ -664,7 +668,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   gwl_window_title_set(window_, title);
-  title_ = title;
 
   wl_surface_set_user_data(window_->wl_surface, this);
 
@@ -754,13 +757,11 @@ GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 void GHOST_WindowWayland::setTitle(const char *title)
 {
   gwl_window_title_set(window_, title);
-
-  title_ = title;
 }
 
 std::string GHOST_WindowWayland::getTitle() const
 {
-  return title_.empty() ? "untitled" : title_;
+  return window_->title.empty() ? "untitled" : window_->title;
 }
 
 void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const

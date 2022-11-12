@@ -119,7 +119,6 @@ class GHOST_WindowWayland : public GHOST_Window {
  private:
   GHOST_SystemWayland *system_;
   struct GWL_Window *window_;
-  std::string title_;
 
   /**
    * \param type: The type of rendering context create.
