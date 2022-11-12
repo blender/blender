@@ -2091,6 +2091,8 @@ void ED_operatortypes_uvedit(void)
 
   WM_operatortype_append(UV_OT_reveal);
   WM_operatortype_append(UV_OT_hide);
+  WM_operatortype_append(UV_OT_copy);
+  WM_operatortype_append(UV_OT_paste);
 
   WM_operatortype_append(UV_OT_cursor_set);
 }

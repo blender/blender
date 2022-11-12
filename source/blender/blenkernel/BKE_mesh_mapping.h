@@ -343,6 +343,9 @@ int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
 #endif
 
 #ifdef __cplusplus
+
+#  include "DNA_meshdata_types.h" /* MPoly */
+
 namespace blender::bke::mesh_topology {
 
 Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);
