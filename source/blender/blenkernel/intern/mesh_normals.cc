@@ -976,9 +976,6 @@ void BKE_mesh_loop_manifold_fan_around_vert_next(const MLoop *mloops,
                                                  int *r_mlfan_vert_index,
                                                  int *r_mpfan_curr_index)
 {
-  const MLoop *mlfan_next;
-  const MPoly *mpfan_next;
-
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
    * First we find the next loop, which is either previous or next to mlfan_curr_index, depending
@@ -992,20 +989,20 @@ void BKE_mesh_loop_manifold_fan_around_vert_next(const MLoop *mloops,
   BLI_assert(*r_mlfan_curr_index >= 0);
   BLI_assert(*r_mpfan_curr_index >= 0);
 
-  mlfan_next = &mloops[*r_mlfan_curr_index];
-  mpfan_next = &mpolys[*r_mpfan_curr_index];
-  if (((*r_mlfan_curr)->v == mlfan_next->v && (*r_mlfan_curr)->v == mv_pivot_index) ||
-      ((*r_mlfan_curr)->v != mlfan_next->v && (*r_mlfan_curr)->v != mv_pivot_index)) {
+  const MLoop &mlfan_next = mloops[*r_mlfan_curr_index];
+  const MPoly &mpfan_next = mpolys[*r_mpfan_curr_index];
+  if (((*r_mlfan_curr)->v == mlfan_next.v && (*r_mlfan_curr)->v == mv_pivot_index) ||
+      ((*r_mlfan_curr)->v != mlfan_next.v && (*r_mlfan_curr)->v != mv_pivot_index)) {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
-    if (--(*r_mlfan_curr_index) < mpfan_next->loopstart) {
-      *r_mlfan_curr_index = mpfan_next->loopstart + mpfan_next->totloop - 1;
+    if (--(*r_mlfan_curr_index) < mpfan_next.loopstart) {
+      *r_mlfan_curr_index = mpfan_next.loopstart + mpfan_next.totloop - 1;
     }
   }
   else {
     /* We need the next loop, which is also our vertex's loop. */
-    if (++(*r_mlfan_curr_index) >= mpfan_next->loopstart + mpfan_next->totloop) {
-      *r_mlfan_curr_index = mpfan_next->loopstart;
+    if (++(*r_mlfan_curr_index) >= mpfan_next.loopstart + mpfan_next.totloop) {
+      *r_mlfan_curr_index = mpfan_next.loopstart;
     }
     *r_mlfan_vert_index = *r_mlfan_curr_index;
   }
@@ -1113,13 +1110,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
   /* `ml_curr` would be mlfan_prev if we needed that one. */
   const MEdge *me_org = &edges[ml_curr->e];
 
-  const int *e2lfan_curr;
   float vec_curr[3], vec_prev[3], vec_org[3];
-  const MLoop *mlfan_curr;
   float lnor[3] = {0.0f, 0.0f, 0.0f};
-  /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
-   */
-  int mlfan_curr_index, mlfan_vert_index, mpfan_curr_index;
 
   /* We validate clnors data on the fly - cheapest way to do! */
   int clnors_avg[2] = {0, 0};
@@ -1132,11 +1124,13 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
   /* Temp clnors stack. */
   BLI_SMALLSTACK_DECLARE(clnors, short *);
 
-  e2lfan_curr = e2l_prev;
-  mlfan_curr = ml_prev;
-  mlfan_curr_index = ml_prev_index;
-  mlfan_vert_index = ml_curr_index;
-  mpfan_curr_index = mp_index;
+  const int *e2lfan_curr = e2l_prev;
+  const MLoop *mlfan_curr = ml_prev;
+  /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
+   */
+  int mlfan_curr_index = ml_prev_index;
+  int mlfan_vert_index = ml_curr_index;
+  int mpfan_curr_index = mp_index;
 
   BLI_assert(mlfan_curr_index >= 0);
   BLI_assert(mlfan_vert_index >= 0);
@@ -1352,22 +1346,19 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
                                                          const int mp_curr_index)
 {
   const uint mv_pivot_index = ml_curr->v; /* The vertex we are "fanning" around! */
-  const int *e2lfan_curr;
-  const MLoop *mlfan_curr;
-  /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
-   */
-  int mlfan_curr_index, mlfan_vert_index, mpfan_curr_index;
 
-  e2lfan_curr = e2l_prev;
+  const int *e2lfan_curr = e2l_prev;
   if (IS_EDGE_SHARP(e2lfan_curr)) {
     /* Sharp loop, so not a cyclic smooth fan. */
     return false;
   }
 
-  mlfan_curr = ml_prev;
-  mlfan_curr_index = ml_prev_index;
-  mlfan_vert_index = ml_curr_index;
-  mpfan_curr_index = mp_curr_index;
+  /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
+   */
+  const MLoop *mlfan_curr = ml_prev;
+  int mlfan_curr_index = ml_prev_index;
+  int mlfan_vert_index = ml_curr_index;
+  int mpfan_curr_index = mp_curr_index;
 
   BLI_assert(mlfan_curr_index >= 0);
   BLI_assert(mlfan_vert_index >= 0);
@@ -1420,11 +1411,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
   const Span<int> loop_to_poly = common_data->loop_to_poly;
   const int(*edge_to_loops)[2] = common_data->edge_to_loops;
 
-  const MLoop *ml_curr;
-  const MLoop *ml_prev;
-  int ml_curr_index;
-  int ml_prev_index;
-
   BitVector<> skip_loops(loops.size(), false);
 
   LoopSplitTaskData *data_buff = nullptr;
@@ -1450,11 +1436,11 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
   for (const int mp_index : polys.index_range()) {
     const MPoly &poly = polys[mp_index];
     const int ml_last_index = (poly.loopstart + poly.totloop) - 1;
-    ml_curr_index = poly.loopstart;
-    ml_prev_index = ml_last_index;
+    int ml_curr_index = poly.loopstart;
+    int ml_prev_index = ml_last_index;
 
-    ml_curr = &loops[ml_curr_index];
-    ml_prev = &loops[ml_prev_index];
+    const MLoop *ml_curr = &loops[ml_curr_index];
+    const MLoop *ml_prev = &loops[ml_prev_index];
     float3 *lnors = &loopnors[ml_curr_index];
 
     for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++, lnors++) {
