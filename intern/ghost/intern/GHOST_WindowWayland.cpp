@@ -363,6 +363,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   int size_next[2];
   enum libdecor_window_state window_state;
   struct libdecor_state *state;
+  bool do_redraw = false;
 
   if (!libdecor_configuration_get_content_size(
           configuration, frame, &size_next[0], &size_next[1])) {
@@ -387,13 +388,33 @@ static void frame_handle_configure(struct libdecor_frame *frame,
 
   win->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
   win->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
-  win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
 
-  win->is_active ? win->ghost_window->activate() : win->ghost_window->deactivate();
+  GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
+  const bool is_active_prev_ghost = (win->ghost_window ==
+                                     system->getWindowManager()->getActiveWindow());
+  win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
+  if (is_active_prev_ghost != win->is_active) {
+    if (win->is_active) {
+      win->ghost_window->activate();
+    }
+    else {
+      win->ghost_window->deactivate();
+    }
+  }
+
+  const bool is_active_prev_decor = win->is_active;
+  if (is_active_prev_decor) {
+    /* Without this, activating another window doesn't refresh the title-bar as inactive. */
+    do_redraw = true;
+  }
 
   state = libdecor_state_new(UNPACK2(size_next));
   libdecor_frame_commit(frame, state, configuration);
   libdecor_state_free(state);
+
+  if (do_redraw) {
+    win->ghost_window->swapBuffers();
+  }
 
   win->libdecor->configured = true;
 }
@@ -479,11 +500,16 @@ static void xdg_surface_handle_configure(void *data,
     win->ghost_window->notify_size();
   }
 
-  if (win->is_active) {
-    win->ghost_window->activate();
-  }
-  else {
-    win->ghost_window->deactivate();
+  GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
+  const bool is_active_prev_ghost = (win->ghost_window ==
+                                     system->getWindowManager()->getActiveWindow());
+  if (is_active_prev_ghost != win->is_active) {
+    if (win->is_active) {
+      win->ghost_window->activate();
+    }
+    else {
+      win->ghost_window->deactivate();
+    }
   }
 
   xdg_surface_ack_configure(xdg_surface, serial);
