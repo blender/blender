@@ -324,8 +324,6 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                     (draw_ctx->object_mode & OB_MODE_SCULPT_CURVES);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != nullptr) &&
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);
-  const bool in_curves_sculpt_mode = (ob == draw_ctx->obact) &&
-                                     (ob->mode == OB_MODE_SCULPT_CURVES);
   const bool has_surface = ELEM(ob->type,
                                 OB_MESH,
                                 OB_CURVES_LEGACY,
@@ -449,7 +447,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   if (in_sculpt_mode) {
     OVERLAY_sculpt_cache_populate(data, ob);
   }
-  else if (in_curves_sculpt_mode) {
+  else if (in_sculpt_curve_mode) {
     OVERLAY_sculpt_curves_cache_populate(data, ob);
   }
 
