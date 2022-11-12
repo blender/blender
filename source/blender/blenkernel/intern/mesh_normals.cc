@@ -33,6 +33,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "atomic_ops.h"
 
@@ -816,7 +817,7 @@ struct LoopSplitTaskDataCommon {
   Span<MLoop> loops;
   Span<MPoly> polys;
   int (*edge_to_loops)[2];
-  MutableSpan<int> loop_to_poly;
+  Span<int> loop_to_poly;
   Span<float3> polynors;
   Span<float3> vert_normals;
 };
@@ -834,12 +835,12 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   MutableSpan<MEdge> edges = data->edges;
   const Span<MPoly> polys = data->polys;
   const Span<MLoop> loops = data->loops;
+  const Span<int> loop_to_poly = data->loop_to_poly;
 
   MutableSpan<float3> loopnors = data->loopnors; /* NOTE: loopnors may be empty here. */
   const Span<float3> polynors = data->polynors;
 
   int(*edge_to_loops)[2] = data->edge_to_loops;
-  MutableSpan<int> loop_to_poly = data->loop_to_poly;
 
   BitVector sharp_edges;
   if (do_sharp_edges_tag) {
@@ -858,8 +859,6 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
 
     for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
       e2l = edge_to_loops[ml_curr->e];
-
-      loop_to_poly[ml_curr_index] = mp_index;
 
       /* Pre-populate all loop normals as if their verts were all-smooth,
        * this way we don't have to compute those later!
@@ -935,6 +934,8 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
                                     const int numPolys,
                                     const float split_angle)
 {
+  using namespace blender;
+  using namespace blender::bke;
   if (split_angle >= float(M_PI)) {
     /* Nothing to do! */
     return;
@@ -945,7 +946,8 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
       size_t(numEdges), sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
-  int *loop_to_poly = (int *)MEM_malloc_arrayN(size_t(numLoops), sizeof(*loop_to_poly), __func__);
+  const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map({mpolys, numPolys},
+                                                                        numLoops);
 
   LoopSplitTaskDataCommon common_data = {};
   common_data.verts = {mverts, numVerts};
@@ -953,13 +955,12 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   common_data.polys = {mpolys, numPolys};
   common_data.loops = {mloops, numLoops};
   common_data.edge_to_loops = edge_to_loops;
-  common_data.loop_to_poly = {loop_to_poly, numLoops};
+  common_data.loop_to_poly = loop_to_poly;
   common_data.polynors = {reinterpret_cast<const float3 *>(polynors), numPolys};
 
   mesh_edges_sharp_tag(&common_data, true, split_angle, true);
 
   MEM_freeN(edge_to_loops);
-  MEM_freeN(loop_to_poly);
 }
 
 static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
@@ -1564,10 +1565,12 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
                                  const int numPolys,
                                  const bool use_split_normals,
                                  const float split_angle,
+                                 const int *loop_to_poly_map,
                                  MLoopNorSpaceArray *r_lnors_spacearr,
-                                 short (*clnors_data)[2],
-                                 int *r_loop_to_poly)
+                                 short (*clnors_data)[2])
 {
+  using namespace blender;
+  using namespace blender::bke;
   /* For now this is not supported.
    * If we do not use split normals, we do not generate anything fancy! */
   BLI_assert(use_split_normals || !(r_lnors_spacearr));
@@ -1588,9 +1591,6 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
       const bool is_poly_flat = ((mp->flag & ME_SMOOTH) == 0);
 
       for (; ml_index < ml_index_end; ml_index++) {
-        if (r_loop_to_poly) {
-          r_loop_to_poly[ml_index] = mp_index;
-        }
         if (is_poly_flat) {
           copy_v3_v3(r_loopnors[ml_index], polynors[mp_index]);
         }
@@ -1620,9 +1620,15 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
       size_t(numEdges), sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
-  int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly :
-                                       (int *)MEM_malloc_arrayN(
-                                           size_t(numLoops), sizeof(*loop_to_poly), __func__);
+  Span<int> loop_to_poly;
+  Array<int> local_loop_to_poly_map;
+  if (loop_to_poly_map) {
+    loop_to_poly = {loop_to_poly_map, numLoops};
+  }
+  else {
+    local_loop_to_poly_map = mesh_topology::build_loop_to_poly_map({mpolys, numPolys}, numLoops);
+    loop_to_poly = local_loop_to_poly_map;
+  }
 
   /* When using custom loop normals, disable the angle feature! */
   const bool check_angle = (split_angle < float(M_PI)) && (clnors_data == nullptr);
@@ -1651,7 +1657,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
   common_data.polys = {mpolys, numPolys};
   common_data.loops = {mloops, numLoops};
   common_data.edge_to_loops = edge_to_loops;
-  common_data.loop_to_poly = {loop_to_poly, numLoops};
+  common_data.loop_to_poly = loop_to_poly;
   common_data.polynors = {reinterpret_cast<const float3 *>(polynors), numPolys};
   common_data.vert_normals = {reinterpret_cast<const float3 *>(vert_normals), numVerts};
 
@@ -1673,9 +1679,6 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
   }
 
   MEM_freeN(edge_to_loops);
-  if (!r_loop_to_poly) {
-    MEM_freeN(loop_to_poly);
-  }
 
   if (r_lnors_spacearr) {
     if (r_lnors_spacearr == &_lnors_spacearr) {
@@ -1711,6 +1714,8 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                                          short (*r_clnors_data)[2],
                                          const bool use_vertices)
 {
+  using namespace blender;
+  using namespace blender::bke;
   /* We *may* make that poor #BKE_mesh_normals_loop_split() even more complex by making it handling
    * that feature too, would probably be more efficient in absolute.
    * However, this function *is not* performance-critical, since it is mostly expected to be called
@@ -1720,7 +1725,8 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
   MLoopNorSpaceArray lnors_spacearr = {nullptr};
   BitVector<> done_loops(numLoops, false);
   float(*lnors)[3] = (float(*)[3])MEM_calloc_arrayN(size_t(numLoops), sizeof(*lnors), __func__);
-  int *loop_to_poly = (int *)MEM_malloc_arrayN(size_t(numLoops), sizeof(int), __func__);
+  const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map({mpolys, numPolys},
+                                                                        numLoops);
   /* In this case we always consider split nors as ON,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;
@@ -1742,9 +1748,9 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                               numPolys,
                               use_split_normals,
                               split_angle,
+                              loop_to_poly.data(),
                               &lnors_spacearr,
-                              nullptr,
-                              loop_to_poly);
+                              nullptr);
 
   /* Set all given zero vectors to their default value. */
   if (use_vertices) {
@@ -1865,9 +1871,9 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                                 numPolys,
                                 use_split_normals,
                                 split_angle,
+                                loop_to_poly.data(),
                                 &lnors_spacearr,
-                                nullptr,
-                                loop_to_poly);
+                                nullptr);
   }
   else {
     done_loops.fill(true);
@@ -1929,7 +1935,6 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
   }
 
   MEM_freeN(lnors);
-  MEM_freeN(loop_to_poly);
   BKE_lnor_spacearr_free(&lnors_spacearr);
 }
 

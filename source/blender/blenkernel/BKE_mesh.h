@@ -621,6 +621,8 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
  * (splitting edges).
+ *
+ * \param loop_to_poly_map: Optional pre-created map from loops to their polygon.
  */
 void BKE_mesh_normals_loop_split(const struct MVert *mverts,
                                  const float (*vert_normals)[3],
@@ -635,9 +637,9 @@ void BKE_mesh_normals_loop_split(const struct MVert *mverts,
                                  int numPolys,
                                  bool use_split_normals,
                                  float split_angle,
+                                 const int *loop_to_poly_map,
                                  MLoopNorSpaceArray *r_lnors_spacearr,
-                                 short (*clnors_data)[2],
-                                 int *r_loop_to_poly);
+                                 short (*clnors_data)[2]);
 
 void BKE_mesh_normals_loop_custom_set(const struct MVert *mverts,
                                       const float (*vert_normals)[3],

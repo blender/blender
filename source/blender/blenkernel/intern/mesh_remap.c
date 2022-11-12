@@ -1372,8 +1372,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                       use_split_nors_dst,
                                       split_angle_dst,
                                       NULL,
-                                      custom_nors_dst,
-                                      NULL);
+                                      NULL,
+                                      custom_nors_dst);
         }
       }
       if (need_pnors_src || need_lnors_src) {

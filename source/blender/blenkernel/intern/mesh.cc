@@ -1829,9 +1829,9 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               polys.size(),
                               use_split_normals,
                               split_angle,
+                              nullptr,
                               r_lnors_spacearr,
-                              clnors,
-                              nullptr);
+                              clnors);
 
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
