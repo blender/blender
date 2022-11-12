@@ -502,7 +502,7 @@ class TriangleMesh {
   Vert *add_vert(const float3 co)
   {
     Vert *vert = new Vert(co);
-    int v = verts_.append_and_get_index(vert);
+    int v = int(verts_.append_and_get_index(vert));
     vert->id = v;
     return vert;
   }
@@ -515,7 +515,7 @@ class TriangleMesh {
   Triangle *add_triangle(Vert *v0, Vert *v1, Vert *v2)
   {
     Triangle *tri = new Triangle(v0, v1, v2);
-    int t = triangles_.append_and_get_index(tri);
+    int t = int(triangles_.append_and_get_index(tri));
     tri->set_id(t);
     return tri;
   }
@@ -523,7 +523,7 @@ class TriangleMesh {
   /** Add pointer to already allocated Triangle \a tri. Takes ownership of memory.*/
   void add_allocated_triangle(Triangle *tri)
   {
-    int t = triangles_.append_and_get_index(tri);
+    int t = int(triangles_.append_and_get_index(tri));
     tri->set_id(t);
   }
 
@@ -683,7 +683,7 @@ static void trimesh_draw(const std::string &label, const TriangleMesh &trimesh)
   axis_dominant_v3_to_m3(axis_mat, avg_normal);
 
   Array<float2> proj_vertco(verts.size());
-  for (int i : verts.index_range()) {
+  for (int64_t i : verts.index_range()) {
     mul_v2_m3v3(proj_vertco[i], axis_mat, verts[i]->co);
   }
 
@@ -750,7 +750,7 @@ static void trimesh_draw(const std::string &label, const TriangleMesh &trimesh)
     }
     else {
       float2 center(0.0f, 0.0f);
-      for (int i : IndexRange(3)) {
+      for (int i = 0; i < 3; ++i) {
         float2 p0 = mapxy(proj_vertco[tri->vert(i)->id]);
         float2 p1 = mapxy(proj_vertco[tri->vert(succ_index(i))->id]);
         /* Make spokes and boundary between in-region and out-region bolder. */
@@ -867,7 +867,7 @@ Vert *TriangleMesh::split_vert(Vert *v, Edge e1, Edge e2)
   v->e = null_edge;
   Triangle *tri_new_first = nullptr;
   Triangle *tri_new_last = nullptr;
-  for (int i : fan.index_range()) {
+  for (int64_t i : fan.index_range()) {
     ecur = fan[i];
     if (ecur == e2) {
       break;
@@ -1064,9 +1064,9 @@ static Vector<Vector<Edge>> init_contour_inset(TriangleMesh &trimesh, Span<Vecto
   ans.reserve(contours.size());
   for (const Vector<int> &cont : contours) {
     /* Find the edges that make up the contour. */
-    int n = cont.size();
+    int n = int(cont.size());
     Array<Edge> cont_edges(n);
-    for (int i : cont.index_range()) {
+    for (int i = 0; i < n; ++i) {
       int v_index = cont[i];
       int v_next_index = cont[(i + 1) % n];
       Vert *v = trimesh.get_vert_by_index(v_index);
@@ -1080,7 +1080,7 @@ static Vector<Vector<Edge>> init_contour_inset(TriangleMesh &trimesh, Span<Vecto
 
     Vector<Vert *> split_verts;
     split_verts.reserve(n);
-    for (int i : cont.index_range()) {
+    for (int i = 0; i < n; ++i) {
       Vert *v = trimesh.get_vert_by_index(cont[i]);
       Edge e = cont_edges[i];
       Edge e_prev_reverse = neighbor_edge(cont_edges[(i + n - 1) % n]);
@@ -1093,7 +1093,7 @@ static Vector<Vector<Edge>> init_contour_inset(TriangleMesh &trimesh, Span<Vecto
     ans.append(Vector<Edge>());
     Vector<Edge> &contour_edges = ans.last();
     contour_edges.reserve(n);
-    for (int i : split_verts.index_range()) {
+    for (int i = 0; i < int(split_verts.size()); ++i) {
       Vert *v0 = split_verts[i];
       Vert *v1 = split_verts[(i + 1) % n];
       Edge e = edge_between(v0, v1);
@@ -1487,7 +1487,8 @@ void StraightSkeleton::dump_state() const
   dump_event_queue();
   std::cout << trimesh_;
   trimesh_draw("dump_state", trimesh_);
-  for (int i : IndexRange(trimesh_.all_tris().size())) {
+  int num_t = int(trimesh_.all_tris().size());
+  for (int i = 0; i < num_t; ++i) {
     SkeletonVertex *skv = skel_vertex_map_.lookup_default(i, nullptr);
     if (skv != nullptr) {
       std::cout << "skv[" << i << "] = " << *skv << "\n";
@@ -1522,7 +1523,7 @@ void StraightSkeleton::calculate_contour_and_region_data()
     stack.append(seed_tri);
     while (!stack.is_empty()) {
       Triangle *tri = stack.pop_last();
-      for (int i : IndexRange(3)) {
+      for (int i = 0; i < 3; ++i) {
         Edge e = tri->edge(i);
         /* Cannot cross over contour edges. */
         if (!contour_edge_set_.contains(e)) {
@@ -1914,7 +1915,7 @@ void StraightSkeleton::add_triangle(Edge edge, float min_height)
   float res1, res2;
   int nroots = solve_quadratic(a, b, c, &res1, &res2);
   float height = inf;
-  for (int i : IndexRange(nroots)) {
+  for (int i = 0; i < nroots; ++i) {
     float h = i == 1 ? res1 : res2;
     if (0.0f <= h && h < height) {
       height = h;
@@ -2242,8 +2243,8 @@ void StraightSkeleton::compute()
   /* Create the skeleton vertices, first for the contours. */
   int count_non_zero = 0;
   for (Vector<Edge> &contour : contour_edges_) {
-    int n = contour.size();
-    for (int i : contour.index_range()) {
+    int n = int(contour.size());
+    for (int i = 0; i < n; ++i) {
       Edge e = contour[i];
       Edge e_prev = contour[(i + n - 1) % n];
       float e_weight = 1.0f;
@@ -2276,7 +2277,7 @@ void StraightSkeleton::compute()
       continue;
     }
     Edge e = tri->edge(0);
-    for (int i : IndexRange(3)) {
+    for (int i = 0; i < 3; ++i) {
       Vert *v = tri->vert(i);
       float3 vnormal = vertex_normal(v);
       if (!skel_vertex_map_has_id(v->id)) {
@@ -2619,7 +2620,7 @@ void StraightSkeleton::compute()
     }
     Triangle *tri = event.edge().tri();
     remaining_triangles_set.add(tri);
-    for (int i : IndexRange(3)) {
+    for (int i = 0; i < 3; ++i) {
       Vert *vert = tri->vert(i);
       SkeletonVertex *skv = skel_vertex_map(vert->id);
       if (skv != nullptr) {
@@ -2640,7 +2641,7 @@ void StraightSkeleton::compute()
 static float3 poly_normal(Span<Vert *> verts)
 {
   Array<float3> poly(verts.size());
-  for (const int i : verts.index_range()) {
+  for (const int64_t i : verts.index_range()) {
     poly[i] = verts[i]->co;
   }
   float3 n = math::cross_poly(poly.as_span());
@@ -2660,7 +2661,7 @@ static int edgepos_by_canon_pair(const Triangle *tri, const std::pair<int, int> 
 {
   int a = vert_id_pair.first;
   int b = vert_id_pair.second;
-  for (const int i : IndexRange(3)) {
+  for (int i = 0; i < 3; ++i) {
     if ((tri->vert(i)->id == a && tri->vert(succ_index(i))->id == b) ||
         (tri->vert(i)->id == b && tri->vert(succ_index(i))->id == a)) {
       return i;
@@ -2676,9 +2677,9 @@ static void connect_neighbors(Span<Triangle *> tris)
   /* Map from canonicalized vert ids pairs to triangles. */
   Map<std::pair<int, int>, std::pair<Triangle *, Triangle *>> map;
   map.reserve(tris.size() * 2);
-  for (const int t : tris.index_range()) {
+  for (const int64_t t : tris.index_range()) {
     Triangle *tri = tris[t];
-    for (const int i : IndexRange(3)) {
+    for (int i = 0; i < 3; ++i) {
       std::pair<int, int> vpair = canon_pair(tri->vert(i)->id, tri->vert(succ_index(i))->id);
       if (!map.contains(vpair)) {
         map.add_new(vpair, std::pair<Triangle *, Triangle *>(tri, nullptr));
@@ -2731,13 +2732,13 @@ static Vector<Triangle *> triangulate_face(int f,
 {
   Vector<Triangle *> ans;
   Span<int> face = input.face[f].as_span();
-  int flen = face.size();
+  int flen = int(face.size());
   if (flen <= 2) {
     return ans;
   }
   ans.reserve(flen - 2);
   Array<Vert *> fvert(flen);
-  for (const int i : face.index_range()) {
+  for (int i = 0; i < flen; ++i) {
     fvert[i] = base_trimesh.get_vert_by_index(face[i]);
     BLI_assert(fvert[i] != nullptr);
   }
@@ -2790,7 +2791,7 @@ static Vector<Triangle *> triangulate_face(int f,
     projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
     axis_dominant_v3_to_m3_negate(axis_mat, norm);
     Map<int, int> vert_index_to_facepos;
-    for (int j : IndexRange(flen)) {
+    for (int j = 0; j < flen; ++j) {
       mul_v2_m3v3(projverts[j], axis_mat, base_trimesh.get_vert_by_index(face[j])->co);
       vert_index_to_facepos.add(face[j], j);
     }
@@ -2800,7 +2801,7 @@ static Vector<Triangle *> triangulate_face(int f,
     BLI_polyfill_beautify(projverts, flen, tris, pf_arena, pf_heap);
 
     /* First add the triangles, without setting neighbors yet. */
-    for (int t : IndexRange(totfilltri)) {
+    for (int t = 0; t < totfilltri; ++t) {
       unsigned int *tri = tris[t];
       Vert *v[3];
       for (int k = 0; k < 3; k++) {
@@ -2892,13 +2893,14 @@ static TriangleMesh triangulate_input(const MeshInset_Input &input)
 {
   TriangleMesh trimesh;
   /* First populate the verts_ array with original vertices. */
-  for (const int v : input.vert.index_range()) {
+  for (const int64_t v : input.vert.index_range()) {
     /* We will need to add representative edges later. */
     trimesh.add_vert(input.vert[v]);
   }
   /* Triangulate each face. */
   /* TODO: perhaps parallelize the following loop. */
-  for (const int f : input.face.index_range()) {
+  int flen = int(input.face.size());
+  for (int f = 0; f < flen; ++f) {
     Vector<Triangle *> face_tris = triangulate_face(f, input, trimesh);
     for (Triangle *tri : face_tris) {
       trimesh.add_allocated_triangle(tri);
@@ -2927,7 +2929,7 @@ static Vector<int> get_face_from_contour_edge(Edge e_contour,
   /* We should always find a spoke coming back to e_contour, but
    * just in case, provide an emergency out. */
   int count = 0;
-  int limit = trimesh.all_verts().size() * 3;
+  int limit = int(trimesh.all_verts().size()) * 3;
   do {
     face.append(v_dst(e)->id);
     e = find_cw_spoke_or_wavefront_edge(neighbor_edge(e));
@@ -2959,8 +2961,9 @@ static Vector<Vector<Edge>> find_cycle_partition(const Vector<Edge> &edges)
    * of the current cycle by finding the (should-be-unique) edge whose
    * source is that current tail's destination. */
   Map<int, int> src_to_edge;
-  src_to_edge.reserve(edges.size());
-  for (int ei : edges.index_range()) {
+  const int num_e = int(edges.size());
+  src_to_edge.reserve(num_e);
+  for (int ei = 0; ei < num_e; ++ei) {
     Edge e = edges[ei];
     Vert *vs = v_src(e);
     src_to_edge.add_new(vs->id, ei);
@@ -3083,10 +3086,10 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
   MeshInset_Result result;
   /* Put the non-deleted vertices into result.vert, and keep track
    * of how to map a trimesh vertex index to an output vertex index. */
-  int tot_all_verts = trimesh.all_verts().size();
+  int tot_all_verts = int(trimesh.all_verts().size());
   Array<int> vert_index_to_output_index(tot_all_verts);
   int totv = 0;
-  for (int i : IndexRange(tot_all_verts)) {
+  for (int i = 0; i < tot_all_verts; ++i) {
     const Vert *v = trimesh.get_vert_by_index(i);
     vert_index_to_output_index[i] = totv;
     if (!v->is_deleted()) {
@@ -3096,7 +3099,7 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
   result.vert = Array<float3>(totv);
   result.orig_vert = Array<int>(totv, -1);
   int out_v_index = 0;
-  for (int i : IndexRange(tot_all_verts)) {
+  for (int i = 0; i < tot_all_verts; ++i) {
     const Vert *v = trimesh.get_vert_by_index(i);
     if (!v->is_deleted()) {
       if (i < input.vert.size()) {
@@ -3109,10 +3112,11 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
    * with that edge and some spokes and wavefront edges. */
   Vector<Vector<int>> out_faces;
   Vector<Edge> wavefront_edges;
-  for (int contour_index : input.contour.index_range()) {
+  int num_contours = int(input.contour.size());
+  for (int contour_index = 0; contour_index < num_contours; ++contour_index) {
     const Vector<int> &contour = input.contour[contour_index];
-    int n = contour.size();
-    for (int ci : contour.index_range()) {
+    int n = int(contour.size());
+    for (int ci = 0; ci < n; ++ci) {
       const Vert *v_ci = trimesh.get_vert_by_index(contour[ci]);
       const Vert *v_ci1 = trimesh.get_vert_by_index(contour[(ci + 1) % n]);
       Edge e_contour = edge_between(v_ci, v_ci1);
@@ -3141,14 +3145,14 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
     }
   }
   /* Change indices in faces to output vertex numbers, */
-  for (int fi : out_faces.index_range()) {
+  for (int64_t fi : out_faces.index_range()) {
     Vector<int> &face = out_faces[fi];
-    for (int i : face.index_range()) {
+    for (int64_t i : face.index_range()) {
       face[i] = vert_index_to_output_index[face[i]];
     }
   }
   result.face = Array<Vector<int>>(out_faces.size());
-  for (int fi : out_faces.index_range()) {
+  for (int64_t fi : out_faces.index_range()) {
     result.face[fi] = out_faces[fi];
   }
   if (dbg_level > 0) {
@@ -3206,8 +3210,8 @@ MeshInset_Result mesh_inset_calc(const MeshInset_Input &input)
     /* Gather all the deltas before applying, as changing height changes the vertex normals. */
     Array<float3> vco_delta(trimesh.all_verts().size(), float3(0.0f, 0.0f, 0.0f));
     trimesh.calculate_all_tri_normals();
-    for (int v_index : trimesh.all_verts().index_range()) {
-      Vert *v = trimesh.get_vert_by_index(v_index);
+    for (int64_t v_index : trimesh.all_verts().index_range()) {
+      Vert *v = trimesh.get_vert_by_index(int(v_index));
       if (!v->is_deleted()) {
         if (ss.vertex_height_map.contains(v->id)) {
           float h = ss.vertex_height_map.lookup(v->id);
@@ -3218,8 +3222,8 @@ MeshInset_Result mesh_inset_calc(const MeshInset_Input &input)
         }
       }
     }
-    for (int v_index : trimesh.all_verts().index_range()) {
-      Vert *v = trimesh.get_vert_by_index(v_index);
+    for (int64_t v_index : trimesh.all_verts().index_range()) {
+      Vert *v = trimesh.get_vert_by_index(int(v_index));
       v->co += vco_delta[v->id];
     }
   }
