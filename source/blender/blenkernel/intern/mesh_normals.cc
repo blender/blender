@@ -442,7 +442,7 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
       BKE_mesh_poly_normals_ensure(mesh);
       break;
     case ME_WRAPPER_TYPE_BMESH: {
-      struct BMEditMesh *em = mesh->edit_mesh;
+      BMEditMesh *em = mesh->edit_mesh;
       EditMeshData *emd = mesh->runtime->edit_data;
       if (emd->vertexCos) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
@@ -939,13 +939,13 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   }
 }
 
-void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
+void BKE_edges_sharp_from_angle_set(const MVert *mverts,
                                     const int /*numVerts*/,
-                                    struct MEdge *medges,
+                                    MEdge *medges,
                                     const int numEdges,
-                                    const struct MLoop *mloops,
+                                    const MLoop *mloops,
                                     const int numLoops,
-                                    const struct MPoly *mpolys,
+                                    const MPoly *mpolys,
                                     const float (*polynors)[3],
                                     const int numPolys,
                                     const float split_angle)
