@@ -77,6 +77,10 @@ static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
   delete decor;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_Window
+ * \{ */
+
 struct GWL_Window {
   GHOST_WindowWayland *ghost_window = nullptr;
   struct wl_surface *wl_surface = nullptr;
@@ -110,6 +114,113 @@ struct GWL_Window {
   int32_t size[2] = {0, 0};
   int32_t size_pending[2] = {0, 0};
 };
+
+static void gwl_window_title_set(GWL_Window *win, const char *title)
+{
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    WGL_LibDecor_Window &decor = *win->libdecor;
+    libdecor_frame_set_title(decor.frame, title);
+  }
+  else
+#endif
+  {
+    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
+    xdg_toplevel_set_title(decor.toplevel, title);
+  }
+}
+
+static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
+{
+  if (win->is_fullscreen) {
+    return GHOST_kWindowStateFullScreen;
+  }
+  if (win->is_maximised) {
+    return GHOST_kWindowStateMaximized;
+  }
+  return GHOST_kWindowStateNormal;
+}
+
+static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state)
+{
+  const GHOST_TWindowState state_current = gwl_window_state_get(win);
+  switch (state) {
+    case GHOST_kWindowStateNormal:
+      /* Unset states. */
+      switch (state_current) {
+        case GHOST_kWindowStateMaximized: {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+          if (use_libdecor) {
+            libdecor_frame_unset_maximized(win->libdecor->frame);
+          }
+          else
+#endif
+          {
+            xdg_toplevel_unset_maximized(win->xdg_decor->toplevel);
+          }
+          break;
+        }
+        case GHOST_kWindowStateFullScreen: {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+          if (use_libdecor) {
+            libdecor_frame_unset_fullscreen(win->libdecor->frame);
+          }
+          else
+#endif
+          {
+            xdg_toplevel_unset_fullscreen(win->xdg_decor->toplevel);
+          }
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+      break;
+    case GHOST_kWindowStateMaximized: {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      if (use_libdecor) {
+        libdecor_frame_set_maximized(win->libdecor->frame);
+      }
+      else
+#endif
+      {
+        xdg_toplevel_set_maximized(win->xdg_decor->toplevel);
+      }
+      break;
+    }
+    case GHOST_kWindowStateMinimized: {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      if (use_libdecor) {
+        libdecor_frame_set_minimized(win->libdecor->frame);
+      }
+      else
+#endif
+      {
+        xdg_toplevel_set_minimized(win->xdg_decor->toplevel);
+      }
+      break;
+    }
+    case GHOST_kWindowStateFullScreen: {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      if (use_libdecor) {
+        libdecor_frame_set_fullscreen(win->libdecor->frame, nullptr);
+      }
+      else
+#endif
+      {
+        xdg_toplevel_set_fullscreen(win->xdg_decor->toplevel, nullptr);
+      }
+      break;
+    }
+    case GHOST_kWindowStateEmbedded: {
+      return GHOST_kFailure;
+    }
+  }
+  return GHOST_kSuccess;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -552,7 +663,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     }
   }
 
-  setTitle(title);
+  gwl_window_title_set(window_, title);
+  title_ = title;
 
   wl_surface_set_user_data(window_->wl_surface, this);
 
@@ -582,7 +694,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   if (use_libdecor == false)
 #endif
   {
-    setState(state);
+    gwl_window_state_set(window_, state);
   }
 
   /* EGL context. */
@@ -641,17 +753,7 @@ GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 
 void GHOST_WindowWayland::setTitle(const char *title)
 {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *window_->libdecor;
-    libdecor_frame_set_title(decor.frame, title);
-  }
-  else
-#endif
-  {
-    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
-    xdg_toplevel_set_title(decor.toplevel, title);
-  }
+  gwl_window_title_set(window_, title);
 
   title_ = title;
 }
@@ -759,91 +861,12 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
 
 GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
 {
-  switch (state) {
-    case GHOST_kWindowStateNormal:
-      /* Unset states. */
-      switch (getState()) {
-        case GHOST_kWindowStateMaximized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-          if (use_libdecor) {
-            libdecor_frame_unset_maximized(window_->libdecor->frame);
-          }
-          else
-#endif
-          {
-            xdg_toplevel_unset_maximized(window_->xdg_decor->toplevel);
-          }
-          break;
-        }
-        case GHOST_kWindowStateFullScreen: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-          if (use_libdecor) {
-            libdecor_frame_unset_fullscreen(window_->libdecor->frame);
-          }
-          else
-#endif
-          {
-            xdg_toplevel_unset_fullscreen(window_->xdg_decor->toplevel);
-          }
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-      break;
-    case GHOST_kWindowStateMaximized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_maximized(window_->libdecor->frame);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_maximized(window_->xdg_decor->toplevel);
-      }
-      break;
-    }
-    case GHOST_kWindowStateMinimized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_minimized(window_->libdecor->frame);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_minimized(window_->xdg_decor->toplevel);
-      }
-      break;
-    }
-    case GHOST_kWindowStateFullScreen: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_fullscreen(window_->libdecor->frame, nullptr);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_fullscreen(window_->xdg_decor->toplevel, nullptr);
-      }
-      break;
-    }
-    case GHOST_kWindowStateEmbedded: {
-      return GHOST_kFailure;
-    }
-  }
-  return GHOST_kSuccess;
+  return gwl_window_state_set(window_, state) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TWindowState GHOST_WindowWayland::getState() const
 {
-  if (window_->is_fullscreen) {
-    return GHOST_kWindowStateFullScreen;
-  }
-  if (window_->is_maximised) {
-    return GHOST_kWindowStateMaximized;
-  }
-  return GHOST_kWindowStateNormal;
+  return gwl_window_state_get(window_);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::invalidate()
