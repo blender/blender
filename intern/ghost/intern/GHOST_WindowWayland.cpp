@@ -83,6 +83,7 @@ static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 
 struct GWL_Window {
   GHOST_WindowWayland *ghost_window = nullptr;
+  GHOST_SystemWayland *ghost_system = nullptr;
   struct wl_surface *wl_surface = nullptr;
   /**
    * Outputs on which the window is currently shown on.
@@ -389,7 +390,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   win->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
   win->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
 
-  GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
+  GHOST_SystemWayland *system = win->ghost_system;
   const bool is_active_prev_ghost = (win->ghost_window ==
                                      system->getWindowManager()->getActiveWindow());
   win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
@@ -500,7 +501,7 @@ static void xdg_surface_handle_configure(void *data,
     win->ghost_window->notify_size();
   }
 
-  GHOST_SystemWayland *system = static_cast<GHOST_SystemWayland *>(GHOST_ISystem::getSystem());
+  GHOST_SystemWayland *system = win->ghost_system;
   const bool is_active_prev_ghost = (win->ghost_window ==
                                      system->getWindowManager()->getActiveWindow());
   if (is_active_prev_ghost != win->is_active) {
@@ -606,6 +607,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   window_->ghost_window = this;
+  window_->ghost_system = system;
 
   window_->size[0] = int32_t(width);
   window_->size[1] = int32_t(height);
@@ -1125,7 +1127,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
     /* As this is a low-level function, we might want adding this event to be optional,
      * always add the event unless it causes issues. */
-    GHOST_System *system = (GHOST_System *)GHOST_ISystem::getSystem();
+    GHOST_SystemWayland *system = window_->ghost_system;
     system->pushEvent(
         new GHOST_Event(system->getMilliSeconds(), GHOST_kEventWindowDPIHintChanged, this));
   }
