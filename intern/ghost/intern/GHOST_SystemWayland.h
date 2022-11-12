@@ -137,26 +137,28 @@ class GHOST_SystemWayland : public GHOST_System {
                               const bool is_dialog,
                               const GHOST_IWindow *parentWindow) override;
 
-  GHOST_TSuccess setCursorShape(GHOST_TStandardCursor shape);
-
-  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursorShape);
-
-  GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
-                                      uint8_t *mask,
-                                      int sizex,
-                                      int sizey,
-                                      int hotX,
-                                      int hotY,
-                                      bool canInvertColor);
-
-  GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap);
-
-  GHOST_TSuccess setCursorVisibility(bool visible);
-
   bool supportsCursorWarp() override;
   bool supportsWindowPosition() override;
 
-  bool getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode);
+  /* WAYLAND utility functions (share window/system logic). */
+
+  GHOST_TSuccess cursor_shape_set(GHOST_TStandardCursor shape);
+
+  GHOST_TSuccess cursor_shape_check(GHOST_TStandardCursor cursorShape);
+
+  GHOST_TSuccess cursor_shape_custom_set(uint8_t *bitmap,
+                                         uint8_t *mask,
+                                         int sizex,
+                                         int sizey,
+                                         int hotX,
+                                         int hotY,
+                                         bool canInvertColor);
+
+  GHOST_TSuccess cursor_bitmap_get(GHOST_CursorBitmapRef *bitmap);
+
+  GHOST_TSuccess cursor_visibility_set(bool visible);
+
+  bool cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode);
 
   /* WAYLAND direct-data access. */
 
