@@ -42,11 +42,10 @@ using blender::MutableSpan;
 using blender::short2;
 using blender::Span;
 
-// #define DEBUG_TIME
+#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "PIL_time.h"
-#  include "PIL_time_utildefines.h"
+#  include "BLI_timeit.hh"
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -458,12 +457,9 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
 void BKE_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef DEBUG_TIME
-  TIMEIT_START_AVERAGED(BKE_mesh_calc_normals);
+  SCOPED_TIMER_AVERAGED(__func__);
 #endif
   BKE_mesh_vertex_normals_ensure(mesh);
-#ifdef DEBUG_TIME
-  TIMEIT_END_AVERAGED(BKE_mesh_calc_normals);
-#endif
 }
 
 void BKE_mesh_calc_normals_looptri(const MVert *mverts,
@@ -944,7 +940,7 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
     return;
   }
 
-  /* Mapping edge -> loops. See BKE_mesh_normals_loop_split() for details. */
+  /* Mapping edge -> loops. See #BKE_mesh_normals_loop_split for details. */
   int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
       size_t(numEdges), sizeof(*edge_to_loops), __func__);
 
@@ -966,15 +962,15 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   MEM_freeN(loop_to_poly);
 }
 
-void loop_manifold_fan_around_vert_next(const MLoop *mloops,
-                                        const MPoly *mpolys,
-                                        const int *loop_to_poly,
-                                        const int *e2lfan_curr,
-                                        const uint mv_pivot_index,
-                                        const MLoop **r_mlfan_curr,
-                                        int *r_mlfan_curr_index,
-                                        int *r_mlfan_vert_index,
-                                        int *r_mpfan_curr_index)
+static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
+                                               const Span<MPoly> polys,
+                                               const Span<int> loop_to_poly,
+                                               const int *e2lfan_curr,
+                                               const uint mv_pivot_index,
+                                               const MLoop **r_mlfan_curr,
+                                               int *r_mlfan_curr_index,
+                                               int *r_mlfan_vert_index,
+                                               int *r_mpfan_curr_index)
 {
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
@@ -989,8 +985,8 @@ void loop_manifold_fan_around_vert_next(const MLoop *mloops,
   BLI_assert(*r_mlfan_curr_index >= 0);
   BLI_assert(*r_mpfan_curr_index >= 0);
 
-  const MLoop &mlfan_next = mloops[*r_mlfan_curr_index];
-  const MPoly &mpfan_next = mpolys[*r_mpfan_curr_index];
+  const MLoop &mlfan_next = loops[*r_mlfan_curr_index];
+  const MPoly &mpfan_next = polys[*r_mpfan_curr_index];
   if (((*r_mlfan_curr)->v == mlfan_next.v && (*r_mlfan_curr)->v == mv_pivot_index) ||
       ((*r_mlfan_curr)->v != mlfan_next.v && (*r_mlfan_curr)->v != mv_pivot_index)) {
     /* We need the previous loop, but current one is our vertex's loop. */
@@ -1006,7 +1002,7 @@ void loop_manifold_fan_around_vert_next(const MLoop *mloops,
     }
     *r_mlfan_vert_index = *r_mlfan_curr_index;
   }
-  *r_mlfan_curr = &mloops[*r_mlfan_curr_index];
+  *r_mlfan_curr = &loops[*r_mlfan_curr_index];
   /* And now we are back in sync, mlfan_curr_index is the index of `mlfan_curr`! Pff! */
 }
 
@@ -1214,9 +1210,9 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
     copy_v3_v3(vec_prev, vec_curr);
 
     /* Find next loop of the smooth fan. */
-    loop_manifold_fan_around_vert_next(loops.data(),
-                                       polys.data(),
-                                       loop_to_poly.data(),
+    loop_manifold_fan_around_vert_next(loops,
+                                       polys,
+                                       loop_to_poly,
                                        e2lfan_curr,
                                        mv_pivot_index,
                                        &mlfan_curr,
@@ -1306,10 +1302,6 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
                                 BLI_stack_new(sizeof(float[3]), __func__) :
                                 nullptr;
 
-#ifdef DEBUG_TIME
-  TIMEIT_START_AVERAGED(loop_split_worker);
-#endif
-
   for (int i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
     /* A nullptr ml_curr is used to tag ended data! */
     if (data->ml_curr == nullptr) {
@@ -1322,10 +1314,6 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
   if (edge_vectors) {
     BLI_stack_free(edge_vectors);
   }
-
-#ifdef DEBUG_TIME
-  TIMEIT_END_AVERAGED(loop_split_worker);
-#endif
 }
 
 /**
@@ -1369,9 +1357,9 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
 
   while (true) {
     /* Find next loop of the smooth fan. */
-    loop_manifold_fan_around_vert_next(mloops.data(),
-                                       mpolys.data(),
-                                       loop_to_poly.data(),
+    loop_manifold_fan_around_vert_next(mloops,
+                                       mpolys,
+                                       loop_to_poly,
                                        e2lfan_curr,
                                        mv_pivot_index,
                                        &mlfan_curr,
@@ -1421,7 +1409,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
   BLI_Stack *edge_vectors = nullptr;
 
 #ifdef DEBUG_TIME
-  TIMEIT_START_AVERAGED(loop_split_generator);
+  SCOPED_TIMER_AVERAGED(__func__);
 #endif
 
   if (!pool) {
@@ -1561,10 +1549,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
   if (edge_vectors) {
     BLI_stack_free(edge_vectors);
   }
-
-#ifdef DEBUG_TIME
-  TIMEIT_END_AVERAGED(loop_split_generator);
-#endif
 }
 
 void BKE_mesh_normals_loop_split(const MVert *mverts,
@@ -1646,7 +1630,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
   MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
 #ifdef DEBUG_TIME
-  TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
+  SCOPED_TIMER_AVERAGED(__func__);
 #endif
 
   if (!r_lnors_spacearr && clnors_data) {
@@ -1698,10 +1682,6 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
       BKE_lnor_spacearr_free(r_lnors_spacearr);
     }
   }
-
-#ifdef DEBUG_TIME
-  TIMEIT_END_AVERAGED(BKE_mesh_normals_loop_split);
-#endif
 }
 
 #undef INDEX_UNSET
