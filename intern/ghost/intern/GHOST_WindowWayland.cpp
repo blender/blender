@@ -435,7 +435,7 @@ static const struct wl_surface_listener wl_surface_listener = {
 
 GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
 {
-  return system_->hasCursorShape(cursorShape);
+  return system_->cursor_shape_check(cursorShape);
 }
 
 GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
@@ -618,25 +618,25 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
-  const GHOST_TSuccess ok = system_->setCursorShape(shape);
+  const GHOST_TSuccess ok = system_->cursor_shape_set(shape);
   m_cursorShape = (ok == GHOST_kSuccess) ? shape : GHOST_kStandardCursorDefault;
   return ok;
 }
 
 bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
 {
-  return system_->getCursorGrabUseSoftwareDisplay(m_cursorGrab);
+  return system_->cursor_grab_use_software_display_get(m_cursorGrab);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
     uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
-  return system_->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
+  return system_->cursor_shape_custom_set(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
 {
-  return system_->getCursorBitmap(bitmap);
+  return system_->cursor_bitmap_get(bitmap);
 }
 
 void GHOST_WindowWayland::setTitle(const char *title)
@@ -754,7 +754,7 @@ uint16_t GHOST_WindowWayland::getDPIHint()
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
 {
-  return system_->setCursorVisibility(visible);
+  return system_->cursor_visibility_set(visible);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
