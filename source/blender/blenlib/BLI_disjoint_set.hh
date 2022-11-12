@@ -9,23 +9,24 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_index_range.hh"
 
 namespace blender {
 
-class DisjointSet {
+template<typename T = int64_t> class DisjointSet {
  private:
-  Array<int64_t> parents_;
-  Array<int64_t> ranks_;
+  Array<T> parents_;
+  Array<T> ranks_;
 
  public:
   /**
    * Create a new disjoint set with the given size. Initially, every element is in a separate set.
    */
-  DisjointSet(int64_t size) : parents_(size), ranks_(size, 0)
+  DisjointSet(const int64_t size) : parents_(size), ranks_(size, 0)
   {
     BLI_assert(size >= 0);
-    for (int64_t i = 0; i < size; i++) {
-      parents_[i] = i;
+    for (const int64_t i : IndexRange(size)) {
+      parents_[i] = T(i);
     }
   }
 
@@ -33,10 +34,10 @@ class DisjointSet {
    * Join the sets containing elements x and y. Nothing happens when they have been in the same set
    * before.
    */
-  void join(int64_t x, int64_t y)
+  void join(const T x, const T y)
   {
-    int64_t root1 = this->find_root(x);
-    int64_t root2 = this->find_root(y);
+    T root1 = this->find_root(x);
+    T root2 = this->find_root(y);
 
     /* x and y are in the same set already. */
     if (root1 == root2) {
@@ -57,29 +58,30 @@ class DisjointSet {
   /**
    * Return true when x and y are in the same set.
    */
-  bool in_same_set(int64_t x, int64_t y)
+  bool in_same_set(const T x, const T y)
   {
-    int64_t root1 = this->find_root(x);
-    int64_t root2 = this->find_root(y);
+    T root1 = this->find_root(x);
+    T root2 = this->find_root(y);
     return root1 == root2;
   }
 
   /**
    * Find the element that represents the set containing x currently.
    */
-  int64_t find_root(int64_t x)
+  T find_root(const T x)
   {
     /* Find root by following parents. */
-    int64_t root = x;
+    T root = x;
     while (parents_[root] != root) {
       root = parents_[root];
     }
 
     /* Compress path. */
-    while (parents_[x] != root) {
-      int64_t parent = parents_[x];
-      parents_[x] = root;
-      x = parent;
+    T to_root = x;
+    while (parents_[to_root] != root) {
+      const T parent = parents_[to_root];
+      parents_[to_root] = root;
+      to_root = parent;
     }
 
     return root;
