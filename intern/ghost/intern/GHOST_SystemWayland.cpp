@@ -1522,6 +1522,10 @@ static int ghost_wl_display_event_pump(struct wl_display *wl_display)
 {
   /* Based on SDL's `Wayland_PumpEvents`. */
   int err;
+
+  /* NOTE: Without this, interactions with window borders via LIBDECOR doesn't function. */
+  wl_display_flush(wl_display);
+
   if (wl_display_prepare_read(wl_display) == 0) {
     /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
     if (file_descriptor_is_io_ready(
