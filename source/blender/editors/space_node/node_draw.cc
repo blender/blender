@@ -854,6 +854,11 @@ static void create_inspection_string_for_generic_value(const GPointer value, std
   else if (type.is<blender::float3>()) {
     ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
   }
+  else if (type.is<blender::ColorGeometry4f>()) {
+    const blender::ColorGeometry4f &color = *(blender::ColorGeometry4f *)buffer;
+    ss << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")"
+       << TIP_(" (Color)");
+  }
   else if (type.is<bool>()) {
     ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
   }
