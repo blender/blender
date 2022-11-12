@@ -94,7 +94,7 @@ set(SRC
   intern/callbacks.c
   intern/camera.c
   intern/cdderivedmesh.c
-  intern/cloth.c
+  intern/cloth.cc
   intern/collection.c
   intern/collision.c
   intern/colorband.c

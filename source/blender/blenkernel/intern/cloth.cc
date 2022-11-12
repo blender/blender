@@ -49,11 +49,11 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh);
 static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh);
 static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh);
 
-typedef struct BendSpringRef {
+struct BendSpringRef {
   int index;
   int polys;
   ClothSpring *spring;
-} BendSpringRef;
+};
 
 /******************************************************************************
  *
@@ -64,13 +64,13 @@ typedef struct BendSpringRef {
 static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
 {
   if (!clmd) {
-    return NULL;
+    return nullptr;
   }
 
   Cloth *cloth = clmd->clothObject;
 
   if (!cloth) {
-    return NULL;
+    return nullptr;
   }
 
   ClothVertex *verts = cloth->verts;
@@ -78,14 +78,14 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
 
   /* in the moment, return zero if no faces there */
   if (!cloth->primitive_num) {
-    return NULL;
+    return nullptr;
   }
 
   /* Create quad-tree with k=26. */
   BVHTree *bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
 
   /* fill tree */
-  if (clmd->hairdata == NULL) {
+  if (clmd->hairdata == nullptr) {
     for (int i = 0; i < cloth->primitive_num; i++, vt++) {
       float co[3][3];
 
@@ -123,7 +123,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   ClothVertex *verts = cloth->verts;
   const MVertTri *vt;
 
-  BLI_assert(!(clmd->hairdata != NULL && self));
+  BLI_assert(!(clmd->hairdata != nullptr && self));
 
   if (self) {
     bvhtree = cloth->bvhselftree;
@@ -139,7 +139,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   vt = cloth->tri;
 
   /* update vertex position in bvh tree */
-  if (clmd->hairdata == NULL) {
+  if (clmd->hairdata == nullptr) {
     if (verts && vt) {
       for (i = 0; i < cloth->primitive_num; i++, vt++) {
         float co[3][3], co_moving[3][3];
@@ -163,7 +163,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
           copy_v3_v3(co[1], verts[vt->tri[1]].tx);
           copy_v3_v3(co[2], verts[vt->tri[2]].tx);
 
-          ret = BLI_bvhtree_update_node(bvhtree, i, co[0], NULL, 3);
+          ret = BLI_bvhtree_update_node(bvhtree, i, co[0], nullptr, 3);
         }
 
         /* check if tree is already full */
@@ -185,7 +185,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
         copy_v3_v3(co[0], verts[edges[i].v1].tx);
         copy_v3_v3(co[1], verts[edges[i].v2].tx);
 
-        if (!BLI_bvhtree_update_node(bvhtree, i, co[0], NULL, 2)) {
+        if (!BLI_bvhtree_update_node(bvhtree, i, co[0], nullptr, 2)) {
           break;
         }
       }
@@ -216,14 +216,14 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
   cache = clmd->point_cache;
 
   /* initialize simulation data if it didn't exist already */
-  if (clmd->clothObject == NULL) {
+  if (clmd->clothObject == nullptr) {
     if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
       BKE_ptcache_invalidate(cache);
       BKE_modifier_set_error(ob, &(clmd->modifier), "Can't initialize cloth");
       return false;
     }
 
-    if (clmd->clothObject == NULL) {
+    if (clmd->clothObject == nullptr) {
       BKE_ptcache_invalidate(cache);
       BKE_modifier_set_error(ob, &(clmd->modifier), "Null cloth object");
       return false;
@@ -248,9 +248,9 @@ static int do_step_cloth(
     Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
   /* simulate 1 frame forward */
-  ClothVertex *verts = NULL;
+  ClothVertex *verts = nullptr;
   Cloth *cloth;
-  ListBase *effectors = NULL;
+  ListBase *effectors = nullptr;
   MVert *mvert;
   uint i = 0;
   int ret = 0;
@@ -277,7 +277,8 @@ static int do_step_cloth(
     }
   }
 
-  effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights, false);
+  effectors = BKE_effectors_create(
+      depsgraph, ob, nullptr, clmd->sim_parms->effector_weights, false);
 
   if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) {
     cloth_update_verts(ob, clmd, result);
@@ -368,7 +369,7 @@ void clothModifier_do(ClothModifierData *clmd,
   bool can_simulate = (framenr == clmd->clothObject->last_frame + 1) &&
                       !(cache->flag & PTCACHE_BAKED);
 
-  cache_result = BKE_ptcache_read(&pid, (float)framenr + scene->r.subframe, can_simulate);
+  cache_result = BKE_ptcache_read(&pid, float(framenr) + scene->r.subframe, can_simulate);
 
   if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
       (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
@@ -420,7 +421,7 @@ void clothModifier_do(ClothModifierData *clmd,
 
 void cloth_free_modifier(ClothModifierData *clmd)
 {
-  Cloth *cloth = NULL;
+  Cloth *cloth = nullptr;
 
   if (!clmd) {
     return;
@@ -436,10 +437,10 @@ void cloth_free_modifier(ClothModifierData *clmd)
     cloth->mvert_num = 0;
 
     /* Free the springs. */
-    if (cloth->springs != NULL) {
+    if (cloth->springs != nullptr) {
       LinkNode *search = cloth->springs;
       while (search) {
-        ClothSpring *spring = search->link;
+        ClothSpring *spring = static_cast<ClothSpring *>(search->link);
 
         MEM_SAFE_FREE(spring->pa);
         MEM_SAFE_FREE(spring->pb);
@@ -447,12 +448,12 @@ void cloth_free_modifier(ClothModifierData *clmd)
         MEM_freeN(spring);
         search = search->next;
       }
-      BLI_linklist_free(cloth->springs, NULL);
+      BLI_linklist_free(cloth->springs, nullptr);
 
-      cloth->springs = NULL;
+      cloth->springs = nullptr;
     }
 
-    cloth->springs = NULL;
+    cloth->springs = nullptr;
     cloth->numsprings = 0;
 
     /* free BVH collision tree */
@@ -475,7 +476,7 @@ void cloth_free_modifier(ClothModifierData *clmd)
 
     if (cloth->sew_edge_graph) {
       BLI_edgeset_free(cloth->sew_edge_graph);
-      cloth->sew_edge_graph = NULL;
+      cloth->sew_edge_graph = nullptr;
     }
 
 #if 0
@@ -484,13 +485,13 @@ void cloth_free_modifier(ClothModifierData *clmd)
     }
 #endif
     MEM_freeN(cloth);
-    clmd->clothObject = NULL;
+    clmd->clothObject = nullptr;
   }
 }
 
 void cloth_free_modifier_extern(ClothModifierData *clmd)
 {
-  Cloth *cloth = NULL;
+  Cloth *cloth = nullptr;
   if (G.debug & G_DEBUG_SIMDATA) {
     printf("cloth_free_modifier_extern\n");
   }
@@ -513,10 +514,10 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     cloth->mvert_num = 0;
 
     /* Free the springs. */
-    if (cloth->springs != NULL) {
+    if (cloth->springs != nullptr) {
       LinkNode *search = cloth->springs;
       while (search) {
-        ClothSpring *spring = search->link;
+        ClothSpring *spring = static_cast<ClothSpring *>(search->link);
 
         MEM_SAFE_FREE(spring->pa);
         MEM_SAFE_FREE(spring->pb);
@@ -524,12 +525,12 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
         MEM_freeN(spring);
         search = search->next;
       }
-      BLI_linklist_free(cloth->springs, NULL);
+      BLI_linklist_free(cloth->springs, nullptr);
 
-      cloth->springs = NULL;
+      cloth->springs = nullptr;
     }
 
-    cloth->springs = NULL;
+    cloth->springs = nullptr;
     cloth->numsprings = 0;
 
     /* free BVH collision tree */
@@ -552,7 +553,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
 
     if (cloth->sew_edge_graph) {
       BLI_edgeset_free(cloth->sew_edge_graph);
-      cloth->sew_edge_graph = NULL;
+      cloth->sew_edge_graph = nullptr;
     }
 
 #if 0
@@ -561,7 +562,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     }
 #endif
     MEM_freeN(cloth);
-    clmd->clothObject = NULL;
+    clmd->clothObject = nullptr;
   }
 }
 
@@ -614,6 +615,8 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
 
   ClothVertex *verts = clmd->clothObject->verts;
 
+  const blender::Span<MDeformVert> dverts = mesh->deform_verts();
+
   if (cloth_uses_vgroup(clmd)) {
     for (int i = 0; i < mvert_num; i++, verts++) {
 
@@ -632,8 +635,8 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
       verts->flags &= ~(CLOTH_VERT_FLAG_PINNED | CLOTH_VERT_FLAG_NOSELFCOLL |
                         CLOTH_VERT_FLAG_NOOBJCOLL);
 
-      const MDeformVert *dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
-      if (dvert) {
+      if (!dverts.is_empty()) {
+        const MDeformVert *dvert = &dverts[i];
         for (int j = 0; j < dvert->totweight; j++) {
           if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass - 1)) {
             verts->goal = dvert->dw[j].weight;
@@ -713,12 +716,12 @@ static bool cloth_from_object(
     Object *ob, ClothModifierData *clmd, Mesh *mesh, float UNUSED(framenr), int first)
 {
   int i = 0;
-  ClothVertex *verts = NULL;
-  const float(*shapekey_rest)[3] = NULL;
+  ClothVertex *verts = nullptr;
+  const float(*shapekey_rest)[3] = nullptr;
   const float tnull[3] = {0, 0, 0};
 
   /* If we have a clothObject, free it. */
-  if (clmd->clothObject != NULL) {
+  if (clmd->clothObject != nullptr) {
     cloth_free_modifier(clmd);
     if (G.debug & G_DEBUG_SIMDATA) {
       printf("cloth_free_modifier cloth_from_object\n");
@@ -726,10 +729,10 @@ static bool cloth_from_object(
   }
 
   /* Allocate a new cloth object. */
-  clmd->clothObject = MEM_callocN(sizeof(Cloth), "cloth");
+  clmd->clothObject = MEM_cnew<Cloth>(__func__);
   if (clmd->clothObject) {
     clmd->clothObject->old_solver_type = 255;
-    clmd->clothObject->edgeset = NULL;
+    clmd->clothObject->edgeset = nullptr;
   }
   else {
     BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject");
@@ -744,14 +747,15 @@ static bool cloth_from_object(
   cloth_from_mesh(clmd, ob, mesh);
 
   /* create springs */
-  clmd->clothObject->springs = NULL;
+  clmd->clothObject->springs = nullptr;
   clmd->clothObject->numsprings = -1;
 
-  clmd->clothObject->sew_edge_graph = NULL;
+  clmd->clothObject->sew_edge_graph = nullptr;
 
   if (clmd->sim_parms->shapekey_rest &&
       !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
-    shapekey_rest = CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO);
+    shapekey_rest = static_cast<const float(*)[3]>(
+        CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO));
   }
 
   MVert *mvert = BKE_mesh_verts_for_write(mesh);
@@ -830,9 +834,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
-  clmd->clothObject->verts = MEM_callocN(sizeof(ClothVertex) * clmd->clothObject->mvert_num,
-                                         "clothVertex");
-  if (clmd->clothObject->verts == NULL) {
+  clmd->clothObject->verts = MEM_cnew_array<ClothVertex>(clmd->clothObject->mvert_num, __func__);
+  if (clmd->clothObject->verts == nullptr) {
     cloth_free_modifier(clmd);
     BKE_modifier_set_error(
         ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
@@ -841,15 +844,16 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   }
 
   /* save face information */
-  if (clmd->hairdata == NULL) {
+  if (clmd->hairdata == nullptr) {
     clmd->clothObject->primitive_num = looptri_num;
   }
   else {
     clmd->clothObject->primitive_num = mesh->totedge;
   }
 
-  clmd->clothObject->tri = MEM_mallocN(sizeof(MVertTri) * looptri_num, "clothLoopTris");
-  if (clmd->clothObject->tri == NULL) {
+  clmd->clothObject->tri = static_cast<MVertTri *>(
+      MEM_malloc_arrayN(looptri_num, sizeof(MVertTri), __func__));
+  if (clmd->clothObject->tri == nullptr) {
     cloth_free_modifier(clmd);
     BKE_modifier_set_error(
         ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->looptri");
@@ -863,7 +867,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   /* Free the springs since they can't be correct if the vertices
    * changed.
    */
-  if (clmd->clothObject->springs != NULL) {
+  if (clmd->clothObject->springs != nullptr) {
     MEM_freeN(clmd->clothObject->springs);
   }
 }
@@ -888,7 +892,7 @@ static void cloth_free_edgelist(LinkNodePair *edgelist, uint mvert_num)
 {
   if (edgelist) {
     for (uint i = 0; i < mvert_num; i++) {
-      BLI_linklist_free(edgelist[i].list, NULL);
+      BLI_linklist_free(edgelist[i].list, nullptr);
     }
 
     MEM_freeN(edgelist);
@@ -899,10 +903,10 @@ static void cloth_free_errorsprings(Cloth *cloth,
                                     LinkNodePair *edgelist,
                                     BendSpringRef *spring_ref)
 {
-  if (cloth->springs != NULL) {
+  if (cloth->springs != nullptr) {
     LinkNode *search = cloth->springs;
     while (search) {
-      ClothSpring *spring = search->link;
+      ClothSpring *spring = static_cast<ClothSpring *>(search->link);
 
       MEM_SAFE_FREE(spring->pa);
       MEM_SAFE_FREE(spring->pb);
@@ -910,9 +914,9 @@ static void cloth_free_errorsprings(Cloth *cloth,
       MEM_freeN(spring);
       search = search->next;
     }
-    BLI_linklist_free(cloth->springs, NULL);
+    BLI_linklist_free(cloth->springs, nullptr);
 
-    cloth->springs = NULL;
+    cloth->springs = nullptr;
   }
 
   cloth_free_edgelist(edgelist, cloth->mvert_num);
@@ -921,7 +925,7 @@ static void cloth_free_errorsprings(Cloth *cloth,
 
   if (cloth->edgeset) {
     BLI_edgeset_free(cloth->edgeset);
-    cloth->edgeset = NULL;
+    cloth->edgeset = nullptr;
   }
 }
 
@@ -965,7 +969,7 @@ static float cloth_spring_angle(
 static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
-  LinkNode *search = NULL;
+  LinkNode *search = nullptr;
   float hair_frame[3][3], dir_old[3], dir_new[3];
   int prev_mn; /* to find hair chains */
 
@@ -983,7 +987,7 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
 
   prev_mn = -1;
   for (search = cloth->springs; search; search = search->next) {
-    ClothSpring *spring = search->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(search->link);
     ClothHairData *hair_ij, *hair_kl;
     bool is_root = spring->kl != prev_mn;
 
@@ -1023,7 +1027,7 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
 static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
-  LinkNode *search = NULL;
+  LinkNode *search = nullptr;
   float hair_frame[3][3], dir_old[3], dir_new[3];
   int prev_mn; /* to find hair roots */
 
@@ -1041,7 +1045,7 @@ static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
 
   prev_mn = -1;
   for (search = cloth->springs; search; search = search->next) {
-    ClothSpring *spring = search->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(search->link);
     ClothHairData *hair_ij, *hair_kl;
     bool is_root = spring->kl != prev_mn;
 
@@ -1079,11 +1083,11 @@ static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
 static void cloth_update_springs(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
-  LinkNode *search = NULL;
+  LinkNode *search = nullptr;
 
   search = cloth->springs;
   while (search) {
-    ClothSpring *spring = search->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(search->link);
 
     spring->lin_stiffness = 0.0f;
 
@@ -1192,7 +1196,7 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
   }
 
   while (search) {
-    ClothSpring *spring = search->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(search->link);
 
     if (spring->type != CLOTH_SPRING_TYPE_SEWING) {
       if (spring->type & (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SHEAR |
@@ -1229,7 +1233,7 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
   for (i = 0; i < mvert_num; i++) {
     if (cloth->verts[i].spring_count > 0) {
       cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f /
-                                       ((float)cloth->verts[i].spring_count);
+                                       float(cloth->verts[i].spring_count);
     }
   }
 }
@@ -1316,12 +1320,12 @@ static bool cloth_add_shear_bend_spring(ClothModifierData *clmd,
     spring->la = k - j + 1;
     spring->lb = mpoly[i].totloop - k + j + 1;
 
-    spring->pa = MEM_mallocN(sizeof(*spring->pa) * spring->la, "spring poly");
+    spring->pa = static_cast<int *>(MEM_mallocN(sizeof(*spring->pa) * spring->la, "spring poly"));
     if (!spring->pa) {
       return false;
     }
 
-    spring->pb = MEM_mallocN(sizeof(*spring->pb) * spring->lb, "spring poly");
+    spring->pb = static_cast<int *>(MEM_mallocN(sizeof(*spring->pb) * spring->lb, "spring poly"));
     if (!spring->pb) {
       return false;
     }
@@ -1357,7 +1361,7 @@ static bool cloth_add_shear_bend_spring(ClothModifierData *clmd,
 
 BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const MLoop *mloop)
 {
-  int *p = MEM_mallocN(sizeof(int) * len, "spring poly");
+  int *p = static_cast<int *>(MEM_mallocN(sizeof(int) * len, "spring poly"));
 
   if (!p) {
     return false;
@@ -1417,7 +1421,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
 
   uint vert_idx = -1;
   const MLoop *mloop = treedata->loop;
-  const MLoopTri *lt = NULL;
+  const MLoopTri *lt = nullptr;
 
   if (rayhit.index != -1 && rayhit.dist <= max_length) {
     if (check_normal && dot_v3v3(rayhit.no, no) < 0.0f) {
@@ -1452,7 +1456,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
 static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 {
   Cloth *cloth = clmd->clothObject;
-  ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
+  ClothSpring *spring = nullptr, *tspring = nullptr, *tspring2 = nullptr;
   uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
   uint mvert_num = (uint)mesh->totvert;
   uint numedges = (uint)mesh->totedge;
@@ -1462,10 +1466,10 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   int index2 = 0; /* our second vertex index */
-  LinkNodePair *edgelist = NULL;
-  EdgeSet *edgeset = NULL;
-  LinkNode *search = NULL, *search2 = NULL;
-  BendSpringRef *spring_ref = NULL;
+  LinkNodePair *edgelist = nullptr;
+  EdgeSet *edgeset = nullptr;
+  LinkNode *search = nullptr, *search2 = nullptr;
+  BendSpringRef *spring_ref = nullptr;
 
   /* error handling */
   if (numedges == 0) {
@@ -1474,21 +1478,22 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   /* NOTE: handling ownership of springs and edgeset is quite sloppy
    * currently they are never initialized but assert just to be sure */
-  BLI_assert(cloth->springs == NULL);
-  BLI_assert(cloth->edgeset == NULL);
+  BLI_assert(cloth->springs == nullptr);
+  BLI_assert(cloth->edgeset == nullptr);
 
-  cloth->springs = NULL;
-  cloth->edgeset = NULL;
+  cloth->springs = nullptr;
+  cloth->edgeset = nullptr;
 
   if (clmd->sim_parms->bending_model == CLOTH_BENDING_ANGULAR) {
-    spring_ref = MEM_callocN(sizeof(*spring_ref) * numedges, "temp bend spring reference");
+    spring_ref = static_cast<BendSpringRef *>(
+        MEM_callocN(sizeof(*spring_ref) * numedges, __func__));
 
     if (!spring_ref) {
       return false;
     }
   }
   else {
-    edgelist = MEM_callocN(sizeof(*edgelist) * mvert_num, "cloth_edgelist_alloc");
+    edgelist = static_cast<LinkNodePair *>(MEM_callocN(sizeof(*edgelist) * mvert_num, __func__));
 
     if (!edgelist) {
       return false;
@@ -1498,9 +1503,9 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   bool use_internal_springs = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS);
 
   if (use_internal_springs && numpolys > 0) {
-    BVHTreeFromMesh treedata = {NULL};
+    BVHTreeFromMesh treedata = {nullptr};
     uint tar_v_idx;
-    Mesh *tmp_mesh = NULL;
+    Mesh *tmp_mesh = nullptr;
     RNG *rng;
 
     /* If using the rest shape key, it's necessary to make a copy of the mesh. */
@@ -1556,7 +1561,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
-            BKE_id_free(NULL, &tmp_mesh->id);
+            BKE_id_free(nullptr, &tmp_mesh->id);
           }
           return false;
         }
@@ -1565,7 +1570,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BLI_edgeset_free(existing_vert_pairs);
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
-      BKE_id_free(NULL, &tmp_mesh->id);
+      BKE_id_free(nullptr, &tmp_mesh->id);
     }
     BLI_rng_free(rng);
   }
@@ -1577,7 +1582,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW) {
     /* cloth->sew_edge_graph should not exist before this */
-    BLI_assert(cloth->sew_edge_graph == NULL);
+    BLI_assert(cloth->sew_edge_graph == nullptr);
     cloth->sew_edge_graph = BLI_edgeset_new("cloth_sewing_edges_graph");
   }
 
@@ -1730,8 +1735,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
             spring->type &= ~CLOTH_SPRING_TYPE_BENDING;
             MEM_freeN(spring->pa);
             MEM_freeN(spring->pb);
-            spring->pa = NULL;
-            spring->pb = NULL;
+            spring->pa = nullptr;
+            spring->pb = nullptr;
 
             bend_springs--;
           }
@@ -1748,11 +1753,11 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           break;
         }
 
-        tspring2 = search2->link;
+        tspring2 = static_cast<ClothSpring *>(search2->link);
         search = edgelist[tspring2->kl].list;
 
         while (search) {
-          tspring = search->link;
+          tspring = static_cast<ClothSpring *>(search->link);
           index2 = ((tspring->ij == tspring2->kl) ? (tspring->kl) : (tspring->ij));
 
           /* Check for existing spring. */
@@ -1792,8 +1797,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
       search = cloth->springs;
       search2 = search->next;
       while (search && search2) {
-        tspring = search->link;
-        tspring2 = search2->link;
+        tspring = static_cast<ClothSpring *>(search->link);
+        tspring2 = static_cast<ClothSpring *>(search2->link);
 
         if (tspring->ij == tspring2->kl) {
           spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
@@ -1832,8 +1837,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
       search = cloth->springs;
       search2 = search->next;
       while (search && search2) {
-        tspring = search->link;
-        tspring2 = search2->link;
+        tspring = static_cast<ClothSpring *>(search->link);
+        tspring2 = static_cast<ClothSpring *>(search2->link);
 
         if (tspring->ij == tspring2->kl) {
           spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
