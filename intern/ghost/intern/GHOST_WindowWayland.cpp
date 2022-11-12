@@ -370,11 +370,16 @@ static void frame_handle_configure(struct libdecor_frame *frame,
     size_next[1] = win->size[1] / win->scale;
   }
 
+  const int size_prev[2] = {UNPACK2(win->size)};
   win->size[0] = win->scale * size_next[0];
   win->size[1] = win->scale * size_next[1];
 
-  wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
-  win->ghost_window->notify_size();
+  const bool do_resize = (size_prev[0] != win->size[0]) || (size_prev[1] != win->size[1]);
+
+  if (do_resize) {
+    wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
+    win->ghost_window->notify_size();
+  }
 
   if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
     window_state = LIBDECOR_WINDOW_STATE_NONE;
