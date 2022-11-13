@@ -309,9 +309,11 @@ static void maximum_common_subgraph_internal(
 {
   int min = std::min(n0, n1);
 
-  uint8_t cur[min][2];
-  uint8_t domains[min * min][BDS];
-  uint8_t left[n0], right[n1];
+  uint8_t(*cur)[2] = (uint8_t(*)[2])MEM_mallocN(min * sizeof(*cur), __func__);
+  uint8_t(*domains)[BDS] = (uint8_t(*)[8])MEM_mallocN(min * min * sizeof(*domains), __func__);
+  uint8_t *left = static_cast<uint8_t *>(MEM_mallocN(n0 * sizeof *left, __func__));
+  uint8_t *right = static_cast<uint8_t *>(MEM_mallocN(n1 * sizeof *right, __func__));
+
   uint8_t v, w, *bd;
   int bd_pos = 0;
   for (int i = 0; i < n0; i++) {
@@ -330,7 +332,8 @@ static void maximum_common_subgraph_internal(
        * Can occur with moderate sized inputs where the graph has lots of symmetry, e.g. a cube
        * subdivided 3x times.
        */
-      return;
+      *inc_pos = 0;
+      break;
     }
     bd = &domains[bd_pos - 1][L];
     if (calc_bound(domains, bd_pos, bd[P]) + bd[P] <= *inc_pos ||
@@ -354,6 +357,11 @@ static void maximum_common_subgraph_internal(
       }
     }
   }
+
+  MEM_freeN(cur);
+  MEM_freeN(domains);
+  MEM_freeN(right);
+  MEM_freeN(left);
 }
 
 static bool check_automorphism(const GraphISO *g0,
