@@ -1056,7 +1056,13 @@ template<typename T, int64_t len> class SwapChain {
   void swap()
   {
     for (auto i : IndexRange(len - 1)) {
-      T::swap(chain_[i], chain_[(i + 1) % len]);
+      auto i_next = (i + 1) % len;
+      if constexpr (std::is_trivial_v<T>) {
+        SWAP(T, chain_[i], chain_[i_next]);
+      }
+      else {
+        T::swap(chain_[i], chain_[i_next]);
+      }
     }
   }
 
