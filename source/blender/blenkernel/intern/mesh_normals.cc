@@ -43,7 +43,7 @@ using blender::MutableSpan;
 using blender::short2;
 using blender::Span;
 
-#define DEBUG_TIME
+// #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
 #  include "BLI_timeit.hh"
