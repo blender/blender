@@ -137,7 +137,7 @@ uniform int drw_ResourceID;
 
 #  elif defined(GPU_VERTEX_SHADER)
 #    if defined(UNIFORM_RESOURCE_ID_NEW)
-#      define resource_id drw_ResourceID
+#      define resource_id (drw_ResourceID >> DRW_VIEW_SHIFT)
 #    else
 #      define resource_id gpu_InstanceIndex
 #    endif

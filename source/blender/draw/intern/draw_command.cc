@@ -567,7 +567,9 @@ void DrawCommandBuf::bind(RecordingState &state,
 void DrawMultiBuf::bind(RecordingState &state,
                         Vector<Header, 0> &headers,
                         Vector<Undetermined, 0> &commands,
-                        VisibilityBuf &visibility_buf)
+                        VisibilityBuf &visibility_buf,
+                        int visibility_word_per_draw,
+                        int view_len)
 {
   UNUSED_VARS(headers, commands);
 
@@ -607,6 +609,8 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPUShader *shader = DRW_shader_draw_command_generate_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
+    GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
+    GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
     GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo(shader, "group_buf"));
     GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo(shader, "visibility_buf"));
     GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo(shader, "prototype_buf"));
