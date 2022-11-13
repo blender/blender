@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <sys/types.h>
+#include "BLI_sys_types.h"
 
 /* A thin representation of a "Graph" in graph theory. */
 class GraphISO {

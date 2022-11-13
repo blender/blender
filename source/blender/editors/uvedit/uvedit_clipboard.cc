@@ -114,7 +114,9 @@ static void add_iso_edge(
 
 /* Build an `iso_graph` representation of an island of a `UvElementMap`.
  */
-GraphISO *build_iso_graph(UvElementMap *element_map, const int island_index, int cd_loop_uv_offset)
+static GraphISO *build_iso_graph(UvElementMap *element_map,
+                                 const int island_index,
+                                 int /*cd_loop_uv_offset*/)
 {
   GraphISO *g = new GraphISO(element_map->island_total_unique_uvs[island_index]);
   for (int i = 0; i < g->n; i++) {
@@ -260,7 +262,7 @@ bool UV_ClipboardBuffer::find_isomorphism(UvElementMap *dest_element_map,
   return false;
 }
 
-static int uv_copy_exec(bContext *C, wmOperator *op)
+static int uv_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   UV_clipboard_free();
   uv_clipboard = new UV_ClipboardBuffer();
@@ -292,7 +294,7 @@ static int uv_copy_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_paste_exec(bContext *C, wmOperator *op)
+static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
 {
   /* TODO: Restore `UvClipboard` from system clipboard. */
   if (!uv_clipboard) {
