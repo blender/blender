@@ -1029,6 +1029,11 @@ class Framebuffer : NonCopyable {
     return fb_;
   }
 
+  GPUFrameBuffer **operator&()
+  {
+    return &fb_;
+  }
+
   /**
    * Swap the content of the two framebuffer.
    */
