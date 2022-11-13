@@ -279,8 +279,12 @@ class PassBase {
   void bind_image(int slot, GPUTexture **image);
   void bind_texture(const char *name, GPUTexture *texture, eGPUSamplerState state = sampler_auto);
   void bind_texture(const char *name, GPUTexture **texture, eGPUSamplerState state = sampler_auto);
+  void bind_texture(const char *name, GPUVertBuf *buffer);
+  void bind_texture(const char *name, GPUVertBuf **buffer);
   void bind_texture(int slot, GPUTexture *texture, eGPUSamplerState state = sampler_auto);
   void bind_texture(int slot, GPUTexture **texture, eGPUSamplerState state = sampler_auto);
+  void bind_texture(int slot, GPUVertBuf *buffer);
+  void bind_texture(int slot, GPUVertBuf **buffer);
   void bind_ssbo(const char *name, GPUStorageBuf *buffer);
   void bind_ssbo(const char *name, GPUStorageBuf **buffer);
   void bind_ssbo(int slot, GPUStorageBuf *buffer);
@@ -849,6 +853,16 @@ inline void PassBase<T>::bind_texture(const char *name,
   this->bind_texture(GPU_shader_get_texture_binding(shader_, name), texture, state);
 }
 
+template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf *buffer)
+{
+  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), buffer);
+}
+
+template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf **buffer)
+{
+  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), buffer);
+}
+
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture *image)
 {
   this->bind_image(GPU_shader_get_texture_binding(shader_, name), image);
@@ -868,6 +882,16 @@ template<class T>
 inline void PassBase<T>::bind_texture(int slot, GPUTexture *texture, eGPUSamplerState state)
 {
   create_command(Type::ResourceBind).resource_bind = {slot, texture, state};
+}
+
+template<class T> inline void PassBase<T>::bind_texture(int slot, GPUVertBuf *buffer)
+{
+  create_command(Type::ResourceBind).resource_bind = {slot, buffer};
+}
+
+template<class T> inline void PassBase<T>::bind_texture(int slot, GPUVertBuf **buffer)
+{
+  create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T> inline void PassBase<T>::bind_image(int slot, GPUTexture *image)

@@ -134,6 +134,7 @@ struct ResourceBind {
 
   enum class Type : uint8_t {
     Sampler = 0,
+    BufferSampler,
     Image,
     UniformBuf,
     StorageBuf,
@@ -149,6 +150,8 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
+    GPUVertBuf *vertex_buf;
+    GPUVertBuf **vertex_buf_ref;
   };
 
   ResourceBind() = default;
@@ -169,6 +172,10 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, eGPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res)
+      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res)
+      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;
   std::string serialize() const;

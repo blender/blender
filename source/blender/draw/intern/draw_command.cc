@@ -44,6 +44,9 @@ void ResourceBind::execute() const
     case ResourceBind::Type::Sampler:
       GPU_texture_bind_ex(is_reference ? *texture_ref : texture, sampler, slot, false);
       break;
+    case ResourceBind::Type::BufferSampler:
+      GPU_vertbuf_bind_as_texture(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
     case ResourceBind::Type::Image:
       GPU_texture_image_bind(is_reference ? *texture_ref : texture, slot);
       break;
@@ -251,6 +254,9 @@ std::string ResourceBind::serialize() const
       return std::string(".bind_texture") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) +
              (sampler != GPU_SAMPLER_MAX ? ", sampler=" + std::to_string(sampler) : "") + ")";
+    case Type::BufferSampler:
+      return std::string(".bind_vertbuf_as_texture") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
     case Type::Image:
       return std::string(".bind_image") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
