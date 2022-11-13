@@ -120,7 +120,7 @@ struct ShaderBind {
 };
 
 struct FramebufferBind {
-  GPUFrameBuffer *framebuffer;
+  GPUFrameBuffer **framebuffer;
 
   void execute() const;
   std::string serialize() const;
@@ -343,6 +343,7 @@ struct StencilSet {
 union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
+  FramebufferBind framebuffer_bind;
   PushConstant push_constant;
   Draw draw;
   DrawMulti draw_multi;

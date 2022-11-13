@@ -195,8 +195,9 @@ class PassBase {
   /**
    * Bind a framebuffer. This is equivalent to a deferred GPU_framebuffer_bind() call.
    * \note Changes the global GPU state (outside of DRW).
+   * \note Capture reference to the framebuffer so it can be initialized later.
    */
-  void framebuffer_set(GPUFrameBuffer *framebuffer);
+  void framebuffer_set(GPUFrameBuffer **framebuffer);
 
   /**
    * Bind a material shader along with its associated resources. Any following bind() or
@@ -506,6 +507,9 @@ template<class T> void PassBase<T>::submit(command::RecordingState &state) const
       case Type::SubPass:
         sub_passes_[header.index].submit(state);
         break;
+      case command::Type::FramebufferBind:
+        commands_[header.index].framebuffer_bind.execute();
+        break;
       case command::Type::ShaderBind:
         commands_[header.index].shader_bind.execute(state);
         break;
@@ -560,6 +564,9 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
         break;
       case Type::SubPass:
         ss << sub_passes_[header.index].serialize(line_prefix);
+        break;
+      case Type::FramebufferBind:
+        ss << line_prefix << commands_[header.index].framebuffer_bind.serialize() << std::endl;
         break;
       case Type::ShaderBind:
         ss << line_prefix << commands_[header.index].shader_bind.serialize() << std::endl;
@@ -754,7 +761,7 @@ template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)
   create_command(Type::ShaderBind).shader_bind = {shader};
 }
 
-template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer *framebuffer)
+template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer **framebuffer)
 {
   create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
 }

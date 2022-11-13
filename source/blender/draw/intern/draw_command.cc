@@ -32,7 +32,7 @@ void ShaderBind::execute(RecordingState &state) const
 
 void FramebufferBind::execute() const
 {
-  GPU_framebuffer_bind(framebuffer);
+  GPU_framebuffer_bind(*framebuffer);
 }
 
 void ResourceBind::execute() const
@@ -234,7 +234,8 @@ std::string ShaderBind::serialize() const
 
 std::string FramebufferBind::serialize() const
 {
-  return std::string(".framebuffer_bind(") + GPU_framebuffer_get_name(framebuffer) + ")";
+  return std::string(".framebuffer_bind(") +
+         (*framebuffer == nullptr ? "nullptr" : GPU_framebuffer_get_name(*framebuffer)) + ")";
 }
 
 std::string ResourceBind::serialize() const
