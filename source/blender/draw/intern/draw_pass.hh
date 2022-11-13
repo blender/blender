@@ -480,7 +480,7 @@ inline void PassBase<T>::clear(eGPUFrameBufferBits planes,
 
 template<class T> inline void PassBase<T>::clear_multi(Span<float4> colors)
 {
-  create_command(command::Type::ClearMulti).clear_multi = {colors};
+  create_command(command::Type::ClearMulti).clear_multi = {colors.data(), colors.size()};
 }
 
 template<class T> inline GPUBatch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)

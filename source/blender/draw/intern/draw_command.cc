@@ -164,7 +164,7 @@ void Clear::execute() const
 void ClearMulti::execute() const
 {
   GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors.data());
+  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
 }
 
 void StateSet::execute(RecordingState &recording_state) const
@@ -486,7 +486,7 @@ std::string Clear::serialize() const
 std::string ClearMulti::serialize() const
 {
   std::stringstream ss;
-  for (float4 color : colors) {
+  for (float4 color : Span<float4>(colors, colors_len)) {
     ss << color << ", ";
   }
   return std::string(".clear_multi(colors={") + ss.str() + "})";

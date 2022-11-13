@@ -332,7 +332,9 @@ struct Clear {
 };
 
 struct ClearMulti {
-  Span<float4> colors;
+  /** \note This should be a Span<float4> but we need have to only have trivial types here. */
+  const float4 *colors;
+  int colors_len;
 
   void execute() const;
   std::string serialize() const;
