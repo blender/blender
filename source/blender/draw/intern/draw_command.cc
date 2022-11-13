@@ -158,6 +158,12 @@ void Clear::execute() const
   GPU_framebuffer_clear(fb, (eGPUFrameBufferBits)clear_channels, color, depth, stencil);
 }
 
+void ClearMulti::execute() const
+{
+  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors.data());
+}
+
 void StateSet::execute(RecordingState &recording_state) const
 {
   /**
@@ -469,6 +475,15 @@ std::string Clear::serialize() const
     ss << "stencil=0b" << std::bitset<8>(stencil) << ")";
   }
   return std::string(".clear(") + ss.str() + ")";
+}
+
+std::string ClearMulti::serialize() const
+{
+  std::stringstream ss;
+  for (float4 color : colors) {
+    ss << color << ", ";
+  }
+  return std::string(".clear_multi(colors={") + ss.str() + "})";
 }
 
 std::string StateSet::serialize() const

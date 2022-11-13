@@ -84,6 +84,7 @@ enum class Type : uint8_t {
   /** Commands stored as Undetermined in regular command buffer. */
   Barrier,
   Clear,
+  ClearMulti,
   Dispatch,
   DispatchIndirect,
   Draw,
@@ -323,6 +324,13 @@ struct Clear {
   std::string serialize() const;
 };
 
+struct ClearMulti {
+  Span<float4> colors;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 struct StateSet {
   DRWState new_state;
   int clip_plane_count;
@@ -352,6 +360,7 @@ union Undetermined {
   DispatchIndirect dispatch_indirect;
   Barrier barrier;
   Clear clear;
+  ClearMulti clear_multi;
   StateSet state_set;
   StencilSet stencil_set;
 };

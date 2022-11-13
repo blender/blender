@@ -172,6 +172,11 @@ class PassBase {
   void clear_stencil(uint8_t stencil);
   void clear_depth_stencil(float depth, uint8_t stencil);
   void clear_color_depth_stencil(float4 color, float depth, uint8_t stencil);
+  /**
+   * Clear each color attachment with different values. Span needs to be appropriately sized.
+   * IMPORTANT: The source is dereference on pass submission.
+   */
+  void clear_multi(Span<float4> colors);
 
   /**
    * Reminders:
@@ -469,6 +474,11 @@ inline void PassBase<T>::clear(eGPUFrameBufferBits planes,
   create_command(command::Type::Clear).clear = {uint8_t(planes), stencil, depth, color};
 }
 
+template<class T> inline void PassBase<T>::clear_multi(Span<float4> colors)
+{
+  create_command(command::Type::ClearMulti).clear_multi = {colors};
+}
+
 template<class T> inline GPUBatch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
 {
   switch (primitive) {
@@ -540,6 +550,9 @@ template<class T> void PassBase<T>::submit(command::RecordingState &state) const
       case command::Type::Clear:
         commands_[header.index].clear.execute();
         break;
+      case command::Type::ClearMulti:
+        commands_[header.index].clear_multi.execute();
+        break;
       case command::Type::StateSet:
         commands_[header.index].state_set.execute(state);
         break;
@@ -597,6 +610,9 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
         break;
       case Type::Clear:
         ss << line_prefix << commands_[header.index].clear.serialize() << std::endl;
+        break;
+      case Type::ClearMulti:
+        ss << line_prefix << commands_[header.index].clear_multi.serialize() << std::endl;
         break;
       case Type::StateSet:
         ss << line_prefix << commands_[header.index].state_set.serialize() << std::endl;
