@@ -66,6 +66,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <cstdlib> /* For `exit`. */
 #include <cstring>
 #include <mutex>
 
@@ -1171,6 +1172,19 @@ static void ghost_wl_display_report_error(struct wl_display *display)
   else {
     fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
   }
+
+  /* NOTE(@campbellbarton): The application is running,
+   * however an error closes all windows and most importantly:
+   * shuts down the GPU context (loosing all GPU state - shaders, bind codes etc),
+   * so recovering from this effectively involves restarting.
+   *
+   * Keeping the GPU state alive doesn't seem to be supported as windows EGL context must use the
+   * same connection as the used for all other WAYLAND interactions (see #wl_display_connect).
+   * So in practice re-connecting to the display server isn't an option.
+   *
+   * Exit since leaving the process open will simply flood the output and do nothing.
+   * Although as the process is in a valid state, auto-save for e.g. is possible, see: T100855. */
+  ::exit(-1);
 }
 
 /**
