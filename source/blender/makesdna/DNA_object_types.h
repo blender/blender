@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "DNA_object_enums.h"
 
 #include "DNA_customdata_types.h"
@@ -233,6 +235,7 @@ enum eObjectLineArt_Usage {
   OBJECT_LRT_NO_INTERSECTION = (1 << 4),
   OBJECT_LRT_FORCE_INTERSECTION = (1 << 5),
 };
+ENUM_OPERATORS(eObjectLineArt_Usage, OBJECT_LRT_FORCE_INTERSECTION);
 
 enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_CREASE = (1 << 0),
