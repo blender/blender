@@ -890,7 +890,7 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
 
 /* Prune Unused Nodes */
 
-static void gpu_nodes_tag(GPUNodeLink *link, eGPUNodeTag tag)
+void gpu_nodes_tag(GPUNodeLink *link, eGPUNodeTag tag)
 {
   GPUNode *node;
 
