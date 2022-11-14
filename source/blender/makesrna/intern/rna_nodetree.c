@@ -9456,7 +9456,7 @@ static void def_geo_curve_sample(StructRNA *srna)
   prop = RNA_def_property(srna, "use_all_curves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "All Curves",
-                           "Sample lengths based on the total lengh of all curves, rather than "
+                           "Sample lengths based on the total length of all curves, rather than "
                            "using a length inside each selected curve");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
