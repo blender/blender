@@ -209,7 +209,7 @@ set(SRC
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
-  intern/mesh_remap.c
+  intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
