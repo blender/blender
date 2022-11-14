@@ -274,12 +274,9 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
   /* metalrt options */
   request.pipeline->use_metalrt = device->use_metalrt;
-  request.pipeline->metalrt_hair = device->use_metalrt &&
-                                   (device->kernel_features & KERNEL_FEATURE_HAIR);
-  request.pipeline->metalrt_hair_thick = device->use_metalrt &&
-                                         (device->kernel_features & KERNEL_FEATURE_HAIR_THICK);
-  request.pipeline->metalrt_pointcloud = device->use_metalrt &&
-                                         (device->kernel_features & KERNEL_FEATURE_POINTCLOUD);
+  request.pipeline->metalrt_features = device->use_metalrt ?
+                                           (device->kernel_features & METALRT_FEATURE_MASK) :
+                                           0;
 
   {
     thread_scoped_lock lock(cache_mutex);
@@ -316,9 +313,13 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
 
   /* metalrt options */
   bool use_metalrt = device->use_metalrt;
-  bool metalrt_hair = use_metalrt && (device->kernel_features & KERNEL_FEATURE_HAIR);
-  bool metalrt_hair_thick = use_metalrt && (device->kernel_features & KERNEL_FEATURE_HAIR_THICK);
-  bool metalrt_pointcloud = use_metalrt && (device->kernel_features & KERNEL_FEATURE_POINTCLOUD);
+  bool device_metalrt_hair = use_metalrt && device->kernel_features & KERNEL_FEATURE_HAIR;
+  bool device_metalrt_hair_thick = use_metalrt &&
+                                   device->kernel_features & KERNEL_FEATURE_HAIR_THICK;
+  bool device_metalrt_pointcloud = use_metalrt &&
+                                   device->kernel_features & KERNEL_FEATURE_POINTCLOUD;
+  bool device_metalrt_motion = use_metalrt &&
+                               device->kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   MetalKernelPipeline *best_pipeline = nullptr;
   for (auto &pipeline : collection) {
@@ -327,9 +328,16 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
       continue;
     }
 
-    if (pipeline->use_metalrt != use_metalrt || pipeline->metalrt_hair != metalrt_hair ||
-        pipeline->metalrt_hair_thick != metalrt_hair_thick ||
-        pipeline->metalrt_pointcloud != metalrt_pointcloud) {
+    bool pipeline_metalrt_hair = pipeline->metalrt_features & KERNEL_FEATURE_HAIR;
+    bool pipeline_metalrt_hair_thick = pipeline->metalrt_features & KERNEL_FEATURE_HAIR_THICK;
+    bool pipeline_metalrt_pointcloud = pipeline->metalrt_features & KERNEL_FEATURE_POINTCLOUD;
+    bool pipeline_metalrt_motion = use_metalrt &&
+                                   pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
+
+    if (pipeline->use_metalrt != use_metalrt || pipeline_metalrt_hair != device_metalrt_hair ||
+        pipeline_metalrt_hair_thick != device_metalrt_hair_thick ||
+        pipeline_metalrt_pointcloud != device_metalrt_pointcloud ||
+        pipeline_metalrt_motion != device_metalrt_motion) {
       /* wrong combination of metalrt options */
       continue;
     }
@@ -400,6 +408,8 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
   if (!data) {
     data = &zero_data;
   }
+  int zero_int = 0;
+  [constant_values setConstantValue:&zero_int type:MTLDataType_int atIndex:Kernel_DummyConstant];
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
     [constant_values setConstantValue:&data->parent.name \
@@ -423,10 +433,7 @@ void MetalKernelPipeline::compile()
     MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
     func_desc.name = entryPoint;
 
-    if (pso_type == PSO_SPECIALIZED_SHADE) {
-      func_desc.constantValues = GetConstantValues(&kernel_data_);
-    }
-    else if (pso_type == PSO_SPECIALIZED_INTERSECT) {
+    if (pso_type != PSO_GENERIC) {
       func_desc.constantValues = GetConstantValues(&kernel_data_);
     }
     else {
@@ -471,6 +478,13 @@ void MetalKernelPipeline::compile()
         const char *function_name = function_names[i];
         desc.name = [@(function_name) copy];
 
+        if (pso_type != PSO_GENERIC) {
+          desc.constantValues = GetConstantValues(&kernel_data_);
+        }
+        else {
+          desc.constantValues = GetConstantValues();
+        }
+
         NSError *error = NULL;
         rt_intersection_function[i] = [mtlLibrary newFunctionWithDescriptor:desc error:&error];
 
@@ -490,6 +504,10 @@ void MetalKernelPipeline::compile()
 
   NSArray *table_functions[METALRT_TABLE_NUM] = {nil};
   NSArray *linked_functions = nil;
+
+  bool metalrt_hair = use_metalrt && (metalrt_features & KERNEL_FEATURE_HAIR);
+  bool metalrt_hair_thick = use_metalrt && (metalrt_features & KERNEL_FEATURE_HAIR_THICK);
+  bool metalrt_pointcloud = use_metalrt && (metalrt_features & KERNEL_FEATURE_POINTCLOUD);
 
   if (use_metalrt) {
     id<MTLFunction> curve_intersect_default = nil;
@@ -735,7 +753,8 @@ void MetalKernelPipeline::compile()
             newIntersectionFunctionTableWithDescriptor:ift_desc];
 
         /* Finally write the function handles into this pipeline's table */
-        for (int i = 0; i < 2; i++) {
+        int size = (int)[table_functions[table] count];
+        for (int i = 0; i < size; i++) {
           id<MTLFunctionHandle> handle = [pipeline
               functionHandleWithFunction:table_functions[table][i]];
           [intersection_func_table[table] setFunction:handle atIndex:i];
