@@ -318,7 +318,7 @@ template<
     /** Type of the values stored in this uniform buffer. */
     typename T,
     /** The number of values that can be stored in this storage buffer at creation. */
-    int64_t len = max_ii(1u, 512u / sizeof(T)),
+    int64_t len = (512u + (sizeof(T) - 1)) / sizeof(T),
     /** True if created on device and no memory host memory is allocated. */
     bool device_only = false>
 class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
@@ -372,7 +372,7 @@ template<
     /** Type of the values stored in this uniform buffer. */
     typename T,
     /** The number of values that can be stored in this storage buffer at creation. */
-    int64_t len = max_ii(1u, 512u / sizeof(T))>
+    int64_t len = (512u + (sizeof(T) - 1)) / sizeof(T)>
 class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
  private:
   /* Number of items, not the allocated length. */
@@ -957,8 +957,7 @@ class TextureRef : public Texture {
  * Dummy type to bind texture as image.
  * It is just a GPUTexture in disguise.
  */
-class Image {
-};
+class Image {};
 
 static inline Image *as_image(GPUTexture *tex)
 {
