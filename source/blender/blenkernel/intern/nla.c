@@ -1360,6 +1360,17 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
   return true;
 }
 
+float BKE_nlastrip_distance_to_frame(const NlaStrip *strip, const float timeline_frame)
+{
+  if (timeline_frame < strip->start) {
+    return strip->start - timeline_frame;
+  }
+  if (strip->end < timeline_frame) {
+    return timeline_frame - strip->end;
+  }
+  return 0.0f;
+}
+
 /* Ensure that strip doesn't overlap those around it after resizing
  * by offsetting those which follow. */
 static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
