@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #pragma once
@@ -14,7 +14,7 @@
 struct AssetMetaData;
 struct ID;
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 /**
  * \brief Abstraction to reference an asset, with necessary data for display & interaction.
@@ -61,4 +61,4 @@ class AssetRepresentation {
   bool is_local_id() const;
 };
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

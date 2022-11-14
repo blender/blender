@@ -1,14 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #pragma once
-
-#ifndef __cplusplus
-#  error This is a C++ header.
-#endif
 
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
@@ -16,7 +12,7 @@
 
 #include <string>
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 /**
  * Location of an Asset Catalog in the catalog tree, denoted by slash-separated path components.
@@ -129,4 +125,4 @@ class AssetCatalogPath {
 /** Output the path as string. */
 std::ostream &operator<<(std::ostream &stream, const AssetCatalogPath &path_to_append);
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

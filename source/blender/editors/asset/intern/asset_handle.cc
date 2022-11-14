@@ -6,10 +6,9 @@
 
 #include <string>
 
-#include "DNA_space_types.h"
+#include "AS_asset_representation.h"
 
-#include "BKE_asset.h"
-#include "BKE_asset_representation.hh"
+#include "DNA_space_types.h"
 
 #include "BLO_readfile.h"
 
@@ -20,12 +19,12 @@
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
-  return BKE_asset_representation_name_get(asset->file_data->asset);
+  return AS_asset_representation_name_get(asset->file_data->asset);
 }
 
 AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset_handle)
 {
-  return BKE_asset_representation_metadata_get(asset_handle->file_data->asset);
+  return AS_asset_representation_metadata_get(asset_handle->file_data->asset);
 }
 
 ID *ED_asset_handle_get_local_id(const AssetHandle *asset)

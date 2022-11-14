@@ -5,6 +5,7 @@ set(INC
   .
   gizmo
   gizmo/intern
+  ../asset_system
   ../blenfont
   ../blenkernel
   ../blenlib

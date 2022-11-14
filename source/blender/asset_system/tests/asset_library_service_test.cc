@@ -16,7 +16,7 @@
 
 #include "testing/testing.h"
 
-namespace blender::bke::tests {
+namespace blender::asset_system::tests {
 
 const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
 
@@ -219,4 +219,4 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
   EXPECT_FALSE(cat->flags.has_unsaved_changes);
 }
 
-}  // namespace blender::bke::tests
+}  // namespace blender::asset_system::tests

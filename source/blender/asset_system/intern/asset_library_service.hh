@@ -1,16 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #pragma once
 
-#ifndef __cplusplus
-#  error This is a C++-only header file.
-#endif
-
-#include "BKE_asset_library.hh"
+#include "AS_asset_library.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
@@ -19,7 +15,7 @@
 
 struct AssetLibraryReference;
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 /**
  * Global singleton-ish that provides access to individual #AssetLibrary instances.
@@ -87,4 +83,4 @@ class AssetLibraryService {
   void app_handler_unregister();
 };
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

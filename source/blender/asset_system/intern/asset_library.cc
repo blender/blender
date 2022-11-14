@@ -1,13 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #include <memory>
 
-#include "BKE_asset_library.hh"
-#include "BKE_asset_representation.hh"
+#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
+
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
@@ -21,12 +23,15 @@
 
 #include "asset_library_service.hh"
 
-bool blender::bke::AssetLibrary::save_catalogs_when_file_is_saved = true;
+using namespace blender;
+using namespace blender::asset_system;
 
-blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
-                                                   const AssetLibraryReference &library_reference)
+bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
+
+asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
+                                                  const AssetLibraryReference &library_reference)
 {
-  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  AssetLibraryService *service = AssetLibraryService::get();
   return service->get_asset_library(bmain, library_reference);
 }
 
@@ -34,26 +39,26 @@ blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
  * Loading an asset library at this point only means loading the catalogs. Later on this should
  * invoke reading of asset representations too.
  */
-struct AssetLibrary *BKE_asset_library_load(const char *library_path)
+struct ::AssetLibrary *AS_asset_library_load(const char *library_path)
 {
-  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
-  blender::bke::AssetLibrary *lib;
+  AssetLibraryService *service = AssetLibraryService::get();
+  asset_system::AssetLibrary *lib;
   if (library_path == nullptr || library_path[0] == '\0') {
     lib = service->get_asset_library_current_file();
   }
   else {
     lib = service->get_asset_library_on_disk(library_path);
   }
-  return reinterpret_cast<struct AssetLibrary *>(lib);
+  return reinterpret_cast<struct ::AssetLibrary *>(lib);
 }
 
-bool BKE_asset_library_has_any_unsaved_catalogs()
+bool AS_asset_library_has_any_unsaved_catalogs()
 {
-  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  AssetLibraryService *service = AssetLibraryService::get();
   return service->has_any_unsaved_catalogs();
 }
 
-std::string BKE_asset_library_find_suitable_root_path_from_path(
+std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
@@ -66,27 +71,25 @@ std::string BKE_asset_library_find_suitable_root_path_from_path(
   return buffer;
 }
 
-std::string BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain)
+std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain)
 {
-  return BKE_asset_library_find_suitable_root_path_from_path(bmain->filepath);
+  return AS_asset_library_find_suitable_root_path_from_path(bmain->filepath);
 }
 
-blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
-    const ::AssetLibrary *library_c)
+AssetCatalogService *AS_asset_library_get_catalog_service(const ::AssetLibrary *library_c)
 {
   if (library_c == nullptr) {
     return nullptr;
   }
 
-  const blender::bke::AssetLibrary &library = reinterpret_cast<const blender::bke::AssetLibrary &>(
+  const asset_system::AssetLibrary &library = reinterpret_cast<const asset_system::AssetLibrary &>(
       *library_c);
   return library.catalog_service.get();
 }
 
-blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::AssetLibrary *library)
+AssetCatalogTree *AS_asset_library_get_catalog_tree(const ::AssetLibrary *library)
 {
-  blender::bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
-      library);
+  AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(library);
   if (catalog_service == nullptr) {
     return nullptr;
   }
@@ -94,21 +97,21 @@ blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::Asset
   return catalog_service->get_catalog_tree();
 }
 
-void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_library,
-                                                  struct AssetMetaData *asset_data)
+void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_library,
+                                                 struct AssetMetaData *asset_data)
 {
-  blender::bke::AssetLibrary *lib = reinterpret_cast<blender::bke::AssetLibrary *>(asset_library);
+  asset_system::AssetLibrary *lib = reinterpret_cast<asset_system::AssetLibrary *>(asset_library);
   lib->refresh_catalog_simplename(asset_data);
 }
 
-void BKE_asset_library_remap_ids(IDRemapper *mappings)
+void AS_asset_library_remap_ids(IDRemapper *mappings)
 {
-  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  AssetLibraryService *service = AssetLibraryService::get();
   service->foreach_loaded_asset_library(
-      [mappings](blender::bke::AssetLibrary &library) { library.remap_ids(*mappings); });
+      [mappings](asset_system::AssetLibrary &library) { library.remap_ids(*mappings); });
 }
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 AssetLibrary::AssetLibrary() : catalog_service(std::make_unique<AssetCatalogService>())
 {
@@ -272,4 +275,4 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   return result;
 }
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

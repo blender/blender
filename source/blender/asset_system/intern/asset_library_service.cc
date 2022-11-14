@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #include "asset_library_service.hh"
+#include "AS_asset_library.hh"
 
-#include "BKE_asset_library.hh"
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
@@ -19,9 +19,9 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.asset_service"};
+static CLG_LogRef LOG = {"asset_system.asset_library_service"};
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 std::unique_ptr<AssetLibraryService> AssetLibraryService::instance_;
 bool AssetLibraryService::atexit_handler_registered_ = false;
@@ -48,8 +48,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 {
   if (library_reference.type == ASSET_LIBRARY_LOCAL) {
     /* For the "Current File" library  we get the asset library root path based on main. */
-    std::string root_path = bmain ? BKE_asset_library_find_suitable_root_path_from_main(bmain) :
-                                    "";
+    std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) : "";
 
     if (root_path.empty()) {
       /* File wasn't saved yet. */
@@ -187,4 +186,4 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
   }
 }
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

@@ -1,15 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #include <fstream>
 #include <set>
 
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.h"
-#include "BKE_asset_library.hh"
+#include "AS_asset_catalog.hh"
+#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
@@ -21,9 +21,9 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.asset_service"};
+static CLG_LogRef LOG = {"asset_system.asset_catalog_service"};
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
@@ -508,7 +508,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
                  "catalog definition file should be put");
 
   /* Ask the asset library API for an appropriate location. */
-  const std::string suitable_root_path = BKE_asset_library_find_suitable_root_path_from_path(
+  const std::string suitable_root_path = AS_asset_library_find_suitable_root_path_from_path(
       blend_file_path);
   if (!suitable_root_path.empty()) {
     char asset_lib_cdf_path[PATH_MAX];
@@ -1132,4 +1132,4 @@ bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
   return known_catalog_ids.contains(asset_catalog_id);
 }
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

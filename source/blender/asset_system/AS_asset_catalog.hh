@@ -1,14 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #pragma once
-
-#ifndef __cplusplus
-#  error This is a C++ header. The C interface is yet to be implemented/designed.
-#endif
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
@@ -17,14 +13,14 @@
 #include "BLI_uuid.h"
 #include "BLI_vector.hh"
 
-#include "BKE_asset_catalog_path.hh"
+#include "AS_asset_catalog_path.hh"
 
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 class AssetCatalog;
 class AssetCatalogCollection;
@@ -521,4 +517,4 @@ class AssetCatalogFilter {
                               Set<CatalogID> &&known_catalog_ids);
 };
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

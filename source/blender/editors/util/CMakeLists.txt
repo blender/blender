@@ -3,6 +3,7 @@
 set(INC
   ../include
   ../space_sequencer
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib

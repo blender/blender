@@ -1,31 +1,27 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #pragma once
-
-#ifndef __cplusplus
-#  error This is a C++-only header file. Use BKE_asset_library.h instead.
-#endif
 
 #include "DNA_asset_types.h"
 
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_asset_library.h"
-
-#include "BKE_asset_catalog.hh"
+#include "AS_asset_catalog.hh"
 #include "BKE_callbacks.h"
 
 #include <memory>
 
+struct AssetLibrary;
 struct AssetLibraryReference;
+struct AssetMetaData;
 struct Main;
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 class AssetRepresentation;
 
@@ -101,10 +97,10 @@ struct AssetLibrary {
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system
 
-blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
-                                                   const AssetLibraryReference &library_reference);
+blender::asset_system::AssetLibrary *AS_asset_library_load(
+    const Main *bmain, const AssetLibraryReference &library_reference);
 
 /**
  * Try to find an appropriate location for an asset library root from a file or directory path.
@@ -127,19 +123,20 @@ blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
  * \return True if the function could find a valid, that is, a non-empty path to return in \a
  *         r_library_path.
  */
-std::string BKE_asset_library_find_suitable_root_path_from_path(blender::StringRefNull input_path);
+std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRefNull input_path);
 
 /**
  * Uses the current location on disk of the file represented by \a bmain as input to
- * #BKE_asset_library_find_suitable_root_path_from_path(). Refer to it for a design
+ * #AS_asset_library_find_suitable_root_path_from_path(). Refer to it for a design
  * description.
  *
  * \return True if the function could find a valid, that is, a non-empty path to return in \a
  *         r_library_path. If \a bmain wasn't saved into a file yet, the return value will be
  *         false.
  */
-std::string BKE_asset_library_find_suitable_root_path_from_main(const struct Main *bmain);
+std::string AS_asset_library_find_suitable_root_path_from_main(const struct Main *bmain);
 
-blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
+blender::asset_system::AssetCatalogService *AS_asset_library_get_catalog_service(
     const ::AssetLibrary *library);
-blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::AssetLibrary *library);
+blender::asset_system::AssetCatalogTree *AS_asset_library_get_catalog_tree(
+    const ::AssetLibrary *library);

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
 #include <stdexcept>
@@ -9,10 +9,12 @@
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
-#include "BKE_asset.h"
-#include "BKE_asset_representation.hh"
+#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
-namespace blender::bke {
+#include "BKE_asset.h"
+
+namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(StringRef name, std::unique_ptr<AssetMetaData> metadata)
     : is_local_id_(false), external_asset_()
@@ -66,7 +68,7 @@ bool AssetRepresentation::is_local_id() const
   return is_local_id_;
 }
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system
 
 /* ---------------------------------------------------------------------- */
 /** \name C-API
@@ -74,24 +76,24 @@ bool AssetRepresentation::is_local_id() const
 
 using namespace blender;
 
-const char *BKE_asset_representation_name_get(const AssetRepresentation *asset_handle)
+const char *AS_asset_representation_name_get(const AssetRepresentation *asset_handle)
 {
-  const bke::AssetRepresentation *asset = reinterpret_cast<const bke::AssetRepresentation *>(
-      asset_handle);
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->get_name().c_str();
 }
 
-AssetMetaData *BKE_asset_representation_metadata_get(const AssetRepresentation *asset_handle)
+AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset_handle)
 {
-  const bke::AssetRepresentation *asset = reinterpret_cast<const bke::AssetRepresentation *>(
-      asset_handle);
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return &asset->get_metadata();
 }
 
-bool BKE_asset_representation_is_local_id(const AssetRepresentation *asset_handle)
+bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle)
 {
-  const bke::AssetRepresentation *asset = reinterpret_cast<const bke::AssetRepresentation *>(
-      asset_handle);
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->is_local_id();
 }
 

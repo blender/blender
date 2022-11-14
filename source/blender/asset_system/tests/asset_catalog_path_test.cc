@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2020 Blender Foundation. All rights reserved. */
 
-#include "BKE_asset_catalog_path.hh"
+#include "AS_asset_catalog_path.hh"
 
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -11,7 +11,7 @@
 
 #include "testing/testing.h"
 
-namespace blender::bke::tests {
+namespace blender::asset_system::tests {
 
 TEST(AssetCatalogPathTest, construction)
 {
@@ -265,4 +265,4 @@ TEST(AssetCatalogPathTest, parent)
   EXPECT_EQ(empty.parent(), "");
 }
 
-}  // namespace blender::bke::tests
+}  // namespace blender::asset_system::tests

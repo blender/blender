@@ -225,7 +225,7 @@ void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_li
 
 #ifdef __cplusplus
 
-namespace blender::bke {
+namespace blender::asset_system {
 struct AssetLibrary;
 }
 
@@ -242,7 +242,7 @@ bool file_set_asset_catalog_filter_settings(
     bUUID catalog_id);
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const blender::bke::AssetLibrary *asset_library);
+    const blender::asset_system::AssetLibrary *asset_library);
 bool file_is_asset_visible_in_catalog_filter_settings(
     const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const AssetMetaData *asset_data);

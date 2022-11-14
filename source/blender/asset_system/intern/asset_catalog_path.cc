@@ -1,14 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup asset_system
  */
 
-#include "BKE_asset_catalog_path.hh"
+#include "AS_asset_catalog_path.hh"
 
 #include "BLI_path_util.h"
 
-namespace blender::bke {
+namespace blender::asset_system {
 
 const char AssetCatalogPath::SEPARATOR = '/';
 
@@ -221,4 +221,4 @@ AssetCatalogPath AssetCatalogPath::rebase(const AssetCatalogPath &from_path,
   return to_path / path_suffix;
 }
 
-}  // namespace blender::bke
+}  // namespace blender::asset_system

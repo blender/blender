@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2020 Blender Foundation. All rights reserved. */
 
+#include "AS_asset_catalog.hh"
+
 #include "BKE_appdir.h"
-#include "BKE_asset_catalog.hh"
 #include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
@@ -15,7 +16,7 @@
 
 #include "testing/testing.h"
 
-namespace blender::bke::tests {
+namespace blender::asset_system::tests {
 
 /* UUIDs from lib/tests/asset_library/blender_assets.cats.txt */
 const bUUID UUID_ID_WITHOUT_PATH("e34dd2c5-5d2e-4668-9794-1db5de2a4f71");
@@ -1538,4 +1539,4 @@ TEST_F(AssetCatalogTest, undo_redo_more_complex)
   EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE)->path, "character/Ellie/poselib"); /* Undone. */
 }
 
-}  // namespace blender::bke::tests
+}  // namespace blender::asset_system::tests

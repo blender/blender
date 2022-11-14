@@ -7,9 +7,10 @@
 
 #include "DNA_space_types.h"
 
+#include "AS_asset_library.hh"
+
+#include "AS_asset_catalog.hh"
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 
 #include "BLI_string_ref.hh"
 
@@ -33,7 +34,7 @@
 #include "filelist.h"
 
 using namespace blender;
-using namespace blender::bke;
+using namespace blender::asset_system;
 
 namespace blender::ed::asset_browser {
 
@@ -42,7 +43,7 @@ class AssetCatalogTreeViewAllItem;
 class AssetCatalogTreeView : public ui::AbstractTreeView {
   ::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
-  bke::AssetCatalogTree *catalog_tree_;
+  asset_system::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
   SpaceFile &space_file_;
 
@@ -173,7 +174,7 @@ AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
     : asset_library_(library),
-      catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
+      catalog_tree_(AS_asset_library_get_catalog_tree(library)),
       params_(params),
       space_file_(space_file)
 {
@@ -486,7 +487,7 @@ AssetCatalog *AssetCatalogDropController::get_drag_catalog(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
   }
-  const bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+  const AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       &asset_library);
   const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
 
@@ -708,7 +709,7 @@ bool file_set_asset_catalog_filter_settings(
 
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const bke::AssetLibrary *asset_library)
+    const asset_system::AssetLibrary *asset_library)
 {
   AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);

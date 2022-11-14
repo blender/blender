@@ -22,9 +22,9 @@
 #include "BLI_string_ref.hh"
 #include "BLI_uuid.h"
 
+#include "AS_asset_catalog.hh"
 #include "BKE_appdir.h"
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
 #include "BKE_idprop.hh"
 #include "BKE_preferences.h"
 
@@ -34,8 +34,8 @@ static CLG_LogRef LOG = {"ed.asset"};
 
 namespace blender::ed::asset::index {
 
+using namespace blender::asset_system;
 using namespace blender::io::serialize;
-using namespace blender::bke;
 using namespace blender::bke::idprop;
 
 /**

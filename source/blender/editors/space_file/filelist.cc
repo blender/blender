@@ -19,6 +19,11 @@
 #  include <direct.h>
 #  include <io.h>
 #endif
+
+#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLF_api.h"
@@ -42,9 +47,6 @@
 #endif
 
 #include "BKE_asset.h"
-#include "BKE_asset_library.h"
-#include "BKE_asset_library.hh"
-#include "BKE_asset_representation.hh"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -117,7 +119,7 @@ struct FileListInternEntry {
   } local_data;
 
   /* References an asset in the asset library storage. */
-  bke::AssetRepresentation *asset; /* Non-owning. */
+  asset_system::AssetRepresentation *asset; /* Non-owning. */
 
   /* See #FILE_ENTRY_BLENDERLIB_NO_PREVIEW. */
   bool blenderlib_has_no_preview;
@@ -213,7 +215,7 @@ struct FileList {
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
   AssetLibraryReference *asset_library_ref;
-  bke::AssetLibrary *asset_library; /* Non-owning. */
+  asset_system::AssetLibrary *asset_library; /* Non-owning. */
 
   short flags;
 
@@ -3672,8 +3674,8 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
 
   /* Load asset catalogs, into the temp filelist for thread-safety.
    * #filelist_readjob_endjob() will move it into the real filelist. */
-  tmp_filelist->asset_library = BKE_asset_library_load(job_params->current_main,
-                                                       *job_params->filelist->asset_library_ref);
+  tmp_filelist->asset_library = AS_asset_library_load(job_params->current_main,
+                                                      *job_params->filelist->asset_library_ref);
   *do_update = true;
 }
 
