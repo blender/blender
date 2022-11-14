@@ -85,6 +85,7 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
   }
 
   metadata.colorspace_file_format = in->format_name();
+  metadata.colorspace_file_hint = spec.get_string_attribute("oiio:ColorSpace");
 
   in->close();
 
