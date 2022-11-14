@@ -310,6 +310,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DHAVE_MEMFD_CREATE)
     endif()
 
+    check_symbol_exists(poll "poll.h" HAVE_POLL)
+    if(HAVE_POLL)
+      add_definitions(-DHAVE_POLL)
+    endif()
+
     list(APPEND SRC
       intern/GHOST_SystemWayland.cpp
       intern/GHOST_WindowWayland.cpp

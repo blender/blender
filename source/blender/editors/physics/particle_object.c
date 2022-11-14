@@ -726,8 +726,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
   edit_point = target_edit ? target_edit->points : NULL;
 
-  invert_m4_m4(from_ob_imat, ob->obmat);
-  invert_m4_m4(to_ob_imat, target_ob->obmat);
+  invert_m4_m4(from_ob_imat, ob->object_to_world);
+  invert_m4_m4(to_ob_imat, target_ob->object_to_world);
   invert_m4_m4(from_imat, from_mat);
   invert_m4_m4(to_imat, to_mat);
 
@@ -843,7 +843,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       float offset[3];
 
       if (to_global) {
-        copy_m4_m4(imat, target_ob->obmat);
+        copy_m4_m4(imat, target_ob->object_to_world);
       }
       else {
         /* NOTE: using target_dm here, which is in target_ob object space and has full modifiers.
@@ -923,8 +923,8 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
                           ob,
                           psys,
                           psys->edit,
-                          ob->obmat,
-                          ob->obmat,
+                          ob->object_to_world,
+                          ob->object_to_world,
                           psys->flag & PSYS_GLOBAL_HAIR,
                           false);
   if (ok) {
@@ -1174,8 +1174,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
         to_mat = I;
         break;
       case PAR_COPY_SPACE_WORLD:
-        from_mat = ob_from->obmat;
-        to_mat = ob_to->obmat;
+        from_mat = ob_from->object_to_world;
+        to_mat = ob_to->object_to_world;
         break;
       default:
         /* should not happen */

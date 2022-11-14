@@ -81,6 +81,7 @@ class MESH_MT_color_attribute_context_menu(Menu):
             "geometry.color_attribute_duplicate",
             icon='DUPLICATE',
         )
+        layout.operator("geometry.color_attribute_convert")
 
 
 class MESH_MT_attribute_context_menu(Menu):

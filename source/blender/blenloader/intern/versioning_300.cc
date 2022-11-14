@@ -3653,6 +3653,25 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 6)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_SAMPLE_CURVE) {
+          continue;
+        }
+        static_cast<NodeGeometryCurveSample *>(node->storage)->use_all_curves = true;
+        static_cast<NodeGeometryCurveSample *>(node->storage)->data_type = CD_PROP_FLOAT;
+        bNodeSocket *curve_socket = nodeFindSocket(node, SOCK_IN, "Curve");
+        BLI_assert(curve_socket != nullptr);
+        STRNCPY(curve_socket->name, "Curves");
+        STRNCPY(curve_socket->identifier, "Curves");
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -272,7 +272,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.obmat);
+          invert_m4_m4(ob->parentinv, workob.object_to_world);
         }
         else {
           ob->partype = PARVERT1;
@@ -280,7 +280,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.obmat);
+          invert_m4_m4(ob->parentinv, workob.object_to_world);
         }
       }
     }
@@ -401,7 +401,7 @@ void ED_object_parent_clear(Object *ob, const int type)
       /* remove parent, and apply the parented transform
        * result as object's local transforms */
       ob->parent = NULL;
-      BKE_object_apply_mat4(ob, ob->obmat, true, false);
+      BKE_object_apply_mat4(ob, ob->object_to_world, true, false);
       break;
     }
     case CLEAR_PARENT_INVERSE: {
@@ -584,7 +584,7 @@ bool ED_object_parent_set(ReportList *reports,
   if (keep_transform) {
     /* Was removed because of bug T23577,
      * but this can be handy in some cases too T32616, so make optional. */
-    BKE_object_apply_mat4(ob, ob->obmat, false, false);
+    BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
   }
 
   /* Set the parent (except for follow-path constraint option). */
@@ -706,7 +706,7 @@ bool ED_object_parent_set(ReportList *reports,
 
     BKE_constraint_target_matrix_get(
         depsgraph, scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
-    sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
+    sub_v3_v3v3(vec, ob->object_to_world[3], cmat[3]);
 
     copy_v3_v3(ob->loc, vec);
   }
@@ -729,7 +729,7 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.obmat);
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else if (is_armature_parent && (ob->type == OB_GPENCIL) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE) {
@@ -747,7 +747,7 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.obmat);
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else if ((ob->type == OB_GPENCIL) && (par->type == OB_LATTICE)) {
     /* Add Lattice modifier */
@@ -758,12 +758,12 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.obmat);
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else {
     /* calculate inverse parent matrix */
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-    invert_m4_m4(ob->parentinv, workob.obmat);
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -772,7 +772,7 @@ bool ED_object_parent_set(ReportList *reports,
 
 static void parent_set_vert_find(KDTree_3d *tree, Object *child, int vert_par[3], bool is_tri)
 {
-  const float *co_find = child->obmat[3];
+  const float *co_find = child->object_to_world[3];
   if (is_tri) {
     KDTreeNearest_3d nearest[3];
     int tot;
@@ -1186,7 +1186,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
     }
 
     if (type == CLEAR_TRACK_KEEP_TRANSFORM) {
-      BKE_object_apply_mat4(ob, ob->obmat, true, true);
+      BKE_object_apply_mat4(ob, ob->object_to_world, true, true);
     }
   }
   CTX_DATA_END;

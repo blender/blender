@@ -1201,7 +1201,7 @@ void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
   }
   else {
-    copy_v3_v3(stroke, ob->obmat[3]);
+    copy_v3_v3(stroke, ob->object_to_world[3]);
   }
 }
 

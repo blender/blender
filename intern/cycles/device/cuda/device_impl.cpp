@@ -232,7 +232,7 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string CUDADevice::compile_kernel(const uint kernel_features,
+string CUDADevice::compile_kernel(const string &common_cflags,
                                   const char *name,
                                   const char *base,
                                   bool force_ptx)
@@ -281,7 +281,6 @@ string CUDADevice::compile_kernel(const uint kernel_features,
   /* We include cflags into md5 so changing cuda toolkit or changing other
    * compiler command line arguments makes sure cubin gets re-built.
    */
-  string common_cflags = compile_kernel_get_common_cflags(kernel_features);
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const char *const kernel_ext = force_ptx ? "ptx" : "cubin";
@@ -417,7 +416,8 @@ bool CUDADevice::load_kernels(const uint kernel_features)
 
   /* get kernel */
   const char *kernel_name = "kernel";
-  string cubin = compile_kernel(kernel_features, kernel_name);
+  string cflags = compile_kernel_get_common_cflags(kernel_features);
+  string cubin = compile_kernel(cflags, kernel_name);
   if (cubin.empty())
     return false;
 

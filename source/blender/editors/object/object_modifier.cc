@@ -614,7 +614,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
         medge++;
       }
       else {
@@ -633,7 +633,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
         medge++;
       }
       else {
@@ -942,31 +942,56 @@ bool ED_object_modifier_apply(Main *bmain,
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findby_name(ob_eval, md->name) : md;
 
-  /* Allow apply of a non-real-time modifier, by first re-enabling real-time. */
-  int prev_mode = md_eval->mode;
-  md_eval->mode |= eModifierMode_Realtime;
+  Depsgraph *apply_depsgraph = depsgraph;
+  Depsgraph *local_depsgraph = nullptr;
 
+  /* If the object is hidden or the modifier is not enabled for the viewport is disabled a special
+   * handling is required. This is because the viewport dependency graph optimizes out evaluation
+   * of objects which are used by hidden objects and disabled modifiers.
+   *
+   * The idea is to create a dependency graph which does not perform those optimizations. */
+  if ((ob_eval->base_flag & BASE_ENABLED_VIEWPORT) == 0 ||
+      (md_eval->mode & eModifierMode_Realtime) == 0) {
+    ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+
+    local_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+    DEG_disable_visibility_optimization(local_depsgraph);
+
+    ID *ids[] = {&ob->id};
+
+    DEG_graph_build_from_ids(local_depsgraph, ids, 1);
+    DEG_evaluate_on_refresh(local_depsgraph);
+
+    apply_depsgraph = local_depsgraph;
+
+    /* The evaluated object and modifier are now from the different dependency graph. */
+    ob_eval = DEG_get_evaluated_object(local_depsgraph, ob);
+    md_eval = BKE_modifiers_findby_name(ob_eval, md->name);
+
+    /* Force mode on the evaluated modifier, enforcing the modifier evaluation in the apply()
+     * functions. */
+    md_eval->mode |= eModifierMode_Realtime;
+  }
+
+  bool did_apply = false;
   if (mode == MODIFIER_APPLY_SHAPE) {
-    if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md_eval)) {
-      md_eval->mode = prev_mode;
-      return false;
-    }
+    did_apply = modifier_apply_shape(bmain, reports, apply_depsgraph, scene, ob, md_eval);
   }
   else {
-    if (!modifier_apply_obdata(reports, depsgraph, scene, ob, md_eval)) {
-      md_eval->mode = prev_mode;
-      return false;
+    did_apply = modifier_apply_obdata(reports, apply_depsgraph, scene, ob, md_eval);
+  }
+
+  if (did_apply) {
+    if (!keep_modifier) {
+      BKE_modifier_remove_from_list(ob, md);
+      BKE_modifier_free(md);
     }
+    BKE_object_free_derived_caches(ob);
   }
 
-  md_eval->mode = prev_mode;
-
-  if (!keep_modifier) {
-    BKE_modifier_remove_from_list(ob, md);
-    BKE_modifier_free(md);
+  if (local_depsgraph != nullptr) {
+    DEG_graph_free(local_depsgraph);
   }
-
-  BKE_object_free_derived_caches(ob);
 
   return true;
 }
@@ -3023,7 +3048,7 @@ static bool ocean_bake_poll(bContext *C)
 struct OceanBakeJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
   int current_frame;
   struct OceanCache *och;
@@ -3062,7 +3087,7 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
   *(oj->progress) = progress;
 }
 
-static void oceanbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void oceanbake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   OceanBakeJob *oj = static_cast<OceanBakeJob *>(customdata);
 
@@ -3075,7 +3100,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
   BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void oceanbake_endjob(void *customdata)

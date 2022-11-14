@@ -87,9 +87,9 @@ void register_node_type_sh_subsurface_scattering()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
+  ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
+  ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
+  ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;
 
   nodeRegisterType(&ntype);
 }

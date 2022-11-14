@@ -38,6 +38,8 @@ extern const char *node_context_dir[];
 
 namespace blender::ed::space_node {
 
+struct AssetItemTree;
+
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
@@ -96,6 +98,15 @@ struct SpaceNode_Runtime {
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
   struct NodeInsertOfsData *iofsd;
+
+  /**
+   * Temporary data for node add menu in order to provide longer-term storage for context pointers.
+   * Recreated every time the root menu is opened. In the future this will be replaced with an "all
+   * libraries" cache in the asset system itself.
+   *
+   * Stored with a shared pointer so that it can be forward declared.
+   */
+  std::shared_ptr<AssetItemTree> assets_for_menu;
 };
 
 enum NodeResizeDirection {
@@ -253,6 +264,7 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location);
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_search(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
+void NODE_OT_add_group_asset(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
 void NODE_OT_add_collection(wmOperatorType *ot);
 void NODE_OT_add_file(wmOperatorType *ot);
@@ -382,5 +394,10 @@ void invoke_node_link_drag_add_menu(bContext &C,
 /* add_node_search.cc */
 
 void invoke_add_node_search_menu(bContext &C, const float2 &cursor, bool use_transform);
+
+/* add_menu_assets.cc */
+
+MenuType add_catalog_assets_menu_type();
+MenuType add_root_catalogs_menu_type();
 
 }  // namespace blender::ed::space_node

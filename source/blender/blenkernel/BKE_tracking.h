@@ -657,8 +657,8 @@ void BKE_tracking_reconstruction_context_free(struct MovieReconstructContext *co
  * callback in libmv side and passing to an interface.
  */
 void BKE_tracking_reconstruction_solve(struct MovieReconstructContext *context,
-                                       short *stop,
-                                       short *do_update,
+                                       bool *stop,
+                                       bool *do_update,
                                        float *progress,
                                        char *stats_message,
                                        int message_size);

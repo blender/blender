@@ -530,7 +530,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
       thumb = IMB_thumb_manage(filepath, THB_LARGE, (ThumbSource)source);
 
       if (thumb) {
-        /* PreviewImage assumes premultiplied alhpa... */
+        /* #PreviewImage assumes pre-multiplied alpha. */
         IMB_premultiply_alpha(thumb);
 
         if (do_preview) {

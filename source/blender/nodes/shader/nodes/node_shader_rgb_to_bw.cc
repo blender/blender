@@ -36,7 +36,7 @@ void register_node_type_sh_rgbtobw()
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_rgbtobw_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_rgbtobw);
+  ntype.gpu_fn = file_ns::gpu_shader_rgbtobw;
 
   nodeRegisterType(&ntype);
 }

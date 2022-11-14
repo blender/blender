@@ -516,10 +516,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
     MEM_freeN(ctx->vg_twist);
   }
 
-  if (ctx->sim.psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(ctx->sim.psys->lattice_deform_data);
-    ctx->sim.psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&ctx->sim);
 
   /* distribution */
   if (ctx->jit) {
@@ -750,10 +747,10 @@ void psys_get_birth_coords(
   /* particles live in global space so    */
   /* let's convert:                       */
   /* -location                            */
-  mul_m4_v3(ob->obmat, loc);
+  mul_m4_v3(ob->object_to_world, loc);
 
   /* -normal                              */
-  mul_mat3_m4_v3(ob->obmat, nor);
+  mul_mat3_m4_v3(ob->object_to_world, nor);
   normalize_v3(nor);
 
   /* -tangent                             */
@@ -771,7 +768,7 @@ void psys_get_birth_coords(
     fac = -sinf((float)M_PI * (part->tanphase + phase));
     madd_v3_v3fl(vtan, utan, fac);
 
-    mul_mat3_m4_v3(ob->obmat, vtan);
+    mul_mat3_m4_v3(ob->object_to_world, vtan);
 
     copy_v3_v3(utan, nor);
     mul_v3_fl(utan, dot_v3v3(vtan, nor));
@@ -786,7 +783,7 @@ void psys_get_birth_coords(
     r_vel[1] = 2.0f * (psys_frand(psys, p + 11) - 0.5f);
     r_vel[2] = 2.0f * (psys_frand(psys, p + 12) - 0.5f);
 
-    mul_mat3_m4_v3(ob->obmat, r_vel);
+    mul_mat3_m4_v3(ob->object_to_world, r_vel);
     normalize_v3(r_vel);
   }
 
@@ -796,7 +793,7 @@ void psys_get_birth_coords(
     r_ave[1] = 2.0f * (psys_frand(psys, p + 14) - 0.5f);
     r_ave[2] = 2.0f * (psys_frand(psys, p + 15) - 0.5f);
 
-    mul_mat3_m4_v3(ob->obmat, r_ave);
+    mul_mat3_m4_v3(ob->object_to_world, r_ave);
     normalize_v3(r_ave);
   }
 
@@ -808,7 +805,7 @@ void psys_get_birth_coords(
     r_rot[3] = 2.0f * (psys_frand(psys, p + 19) - 0.5f);
     normalize_qt(r_rot);
 
-    mat4_to_quat(rot, ob->obmat);
+    mat4_to_quat(rot, ob->object_to_world);
     mul_qt_qtqt(r_rot, r_rot, rot);
   }
 
@@ -822,7 +819,7 @@ void psys_get_birth_coords(
 
     /* boids store direction in ave */
     if (fabsf(nor[2]) == 1.0f) {
-      sub_v3_v3v3(state->ave, loc, ob->obmat[3]);
+      sub_v3_v3v3(state->ave, loc, ob->object_to_world[3]);
       normalize_v3(state->ave);
     }
     else {
@@ -868,15 +865,15 @@ void psys_get_birth_coords(
 
     /*      *emitter object orientation     */
     if (part->ob_vel[0] != 0.0f) {
-      normalize_v3_v3(vec, ob->obmat[0]);
+      normalize_v3_v3(vec, ob->object_to_world[0]);
       madd_v3_v3fl(vel, vec, part->ob_vel[0]);
     }
     if (part->ob_vel[1] != 0.0f) {
-      normalize_v3_v3(vec, ob->obmat[1]);
+      normalize_v3_v3(vec, ob->object_to_world[1]);
       madd_v3_v3fl(vel, vec, part->ob_vel[1]);
     }
     if (part->ob_vel[2] != 0.0f) {
-      normalize_v3_v3(vec, ob->obmat[2]);
+      normalize_v3_v3(vec, ob->object_to_world[2]);
       madd_v3_v3fl(vel, vec, part->ob_vel[2]);
     }
 
@@ -924,7 +921,7 @@ void psys_get_birth_coords(
         case PART_ROT_OB_X:
         case PART_ROT_OB_Y:
         case PART_ROT_OB_Z:
-          copy_v3_v3(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
+          copy_v3_v3(rot_vec, ob->object_to_world[part->rotmode - PART_ROT_OB_X]);
           use_global_space = false;
           break;
         default:
@@ -951,7 +948,7 @@ void psys_get_birth_coords(
         float q_obmat[4];
         float q_imat[4];
 
-        mat4_to_quat(q_obmat, ob->obmat);
+        mat4_to_quat(q_obmat, ob->object_to_world);
         invert_qt_qt_normalized(q_imat, q_obmat);
 
         if (part->rotmode != PART_ROT_NOR_TAN) {
@@ -1639,7 +1636,7 @@ static void sph_springs_modify(ParticleSystem *psys, float dtime)
     }
   }
 
-  /* Loop through springs backwaqrds - for efficient delete function */
+  /* Loop through springs backwards - for efficient delete function. */
   for (i = psys->tot_fluidsprings - 1; i >= 0; i--) {
     if (psys->fluid_springs[i].delete_flag) {
       sph_spring_delete(psys, i);
@@ -3364,7 +3361,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
       use_hair = psys_hair_use_simulation(pa, max_length);
 
       psys_mat_hair_to_object(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
-      mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
+      mul_m4_m4m4(root_mat, sim->ob->object_to_world, hairmat);
       normalize_m4(root_mat);
 
       bending_stiffness = CLAMPIS(
@@ -3555,13 +3552,13 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
   HairKey *key, *root;
   PARTICLE_P;
 
-  invert_m4_m4(ob->imat, ob->obmat);
-
-  psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
   if (psys->totpart == 0) {
     return;
   }
+
+  psys_sim_data_init(sim);
 
   /* save new keys for elements if needed */
   LOOP_PARTICLES
@@ -3577,7 +3574,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
     /* convert from global to geometry space */
     copy_v3_v3(key->co, pa->state.co);
-    mul_m4_v3(ob->imat, key->co);
+    mul_m4_v3(ob->world_to_object, key->co);
 
     if (pa->totkey) {
       sub_v3_v3(key->co, root->co);
@@ -3596,6 +3593,8 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
       zero_v3(root->co);
     }
   }
+
+  psys_sim_data_free(sim);
 }
 
 /* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
@@ -4099,6 +4098,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 
   disp = psys_get_current_display_percentage(psys, use_render_params);
 
+  psys_sim_data_init(sim);
+
   LOOP_PARTICLES
   {
     psys_get_texture(sim, pa, &ptex, PAMAP_SIZE, cfra);
@@ -4106,8 +4107,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
     if (part->randsize > 0.0f) {
       pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
     }
-
-    psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
 
     dietime = pa->dietime;
 
@@ -4125,11 +4124,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
       pa->alive = PARS_ALIVE;
     }
 
-    if (psys->lattice_deform_data) {
-      BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-      psys->lattice_deform_data = NULL;
-    }
-
     if (psys_frand(psys, p) > disp) {
       pa->flag |= PARS_NO_DISP;
     }
@@ -4137,6 +4131,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
       pa->flag &= ~PARS_NO_DISP;
     }
   }
+
+  psys_sim_data_free(sim);
 }
 
 static bool particles_has_flip(short parttype)
@@ -4380,7 +4376,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           mul_v3_v3(pa->state.co, scaleAbs);
 
           /* Match domain scale. */
-          mul_m4_v3(ob->obmat, pa->state.co);
+          mul_m4_v3(ob->object_to_world, pa->state.co);
 
           /* Add origin offset to particle position. */
           zero_v3(tmp);
@@ -4609,10 +4605,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
   update_children(sim, use_render_params);
 
   /* cleanup */
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(sim);
 }
 
 void psys_changed_type(Object *ob, ParticleSystem *psys)
@@ -4764,7 +4757,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
   float cfra;
   ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 
-  /* drawdata is outdated after ANY change */
+  /* Draw data is outdated after ANY change. */
   if (psys->pdd) {
     psys->pdd->flag &= ~PARTICLE_DRAW_DATA_UPDATED;
   }
@@ -4963,7 +4956,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
 
   /* Save matrix for duplicators,
    * at render-time the actual dupli-object's matrix is used so don't update! */
-  invert_m4_m4(psys->imat, ob->obmat);
+  invert_m4_m4(psys->imat, ob->object_to_world);
 
   BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 }

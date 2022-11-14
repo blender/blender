@@ -412,8 +412,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
         }
       }
       /* calc new matrix and apply */
-      mul_m4_m4m4(obn->obmat, obn->obmat, mat);
-      BKE_object_apply_mat4(obn, obn->obmat, false, false);
+      mul_m4_m4m4(obn->object_to_world, obn->object_to_world, mat);
+      BKE_object_apply_mat4(obn, obn->object_to_world, false, false);
     }
   }
   else {

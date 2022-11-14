@@ -376,8 +376,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                   is_auto_smooth,
                                   split_angle,
                                   nullptr,
-                                  clnors,
-                                  nullptr);
+                                  nullptr,
+                                  clnors);
     }
   }
   else {

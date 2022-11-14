@@ -59,6 +59,14 @@ def draw_node_group_add_menu(context, layout):
                 ops.value = "bpy.data.node_groups[%r]" % group.name
 
 
+def draw_assets_for_catalog(layout, catalog_path):
+    layout.template_node_asset_menu_items(catalog_path=catalog_path)
+
+
+def draw_root_assets(layout):
+    layout.menu_contents("NODE_MT_node_add_root_catalogs")
+
+
 classes = (
 )
 

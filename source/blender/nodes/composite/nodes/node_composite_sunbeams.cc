@@ -68,7 +68,7 @@ void register_node_type_cmp_sunbeams()
   cmp_node_type_base(&ntype, CMP_NODE_SUNBEAMS, "Sun Beams", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_sunbeams_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_sunbeams;
-  node_type_init(&ntype, file_ns::init);
+  ntype.initfunc = file_ns::init;
   node_type_storage(
       &ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

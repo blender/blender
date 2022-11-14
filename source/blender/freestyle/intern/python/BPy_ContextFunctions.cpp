@@ -280,10 +280,14 @@ static PyMethodDef module_functions[] = {
 
 static PyModuleDef module_definition = {
     PyModuleDef_HEAD_INIT,
-    "Freestyle.ContextFunctions",
-    module_docstring,
-    -1,
-    module_functions,
+    /*m_name*/ "Freestyle.ContextFunctions",
+    /*m_doc*/ module_docstring,
+    /*m_size*/ -1,
+    /*m_methods*/ module_functions,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 //------------------- MODULE INITIALIZATION --------------------------------

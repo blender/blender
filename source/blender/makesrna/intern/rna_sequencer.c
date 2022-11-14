@@ -330,7 +330,6 @@ static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
   Scene *scene = (Scene *)ptr->owner_id;
 
   SEQ_time_left_handle_frame_set(scene, seq, value);
-  SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -341,7 +340,6 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   Scene *scene = (Scene *)ptr->owner_id;
 
   SEQ_time_right_handle_frame_set(scene, seq, value);
-  SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }

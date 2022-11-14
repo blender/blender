@@ -132,8 +132,8 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
 }
 
 static void thumbnail_start_job(void *data,
-                                short *stop,
-                                short *UNUSED(do_update),
+                                bool *stop,
+                                bool *UNUSED(do_update),
                                 float *UNUSED(progress))
 {
   ThumbnailDrawJob *tj = data;

@@ -433,7 +433,7 @@ static void foreach_geometry_in_reference(
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix * object->obmat;
+        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world;
         const int sub_id = noise::hash(id, index);
         fn(object_geometry_set, matrix, sub_id);
         index++;

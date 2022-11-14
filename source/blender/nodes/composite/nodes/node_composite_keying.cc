@@ -95,7 +95,7 @@ void register_node_type_cmp_keying()
   cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_keying_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keying;
-  node_type_init(&ntype, file_ns::node_composit_init_keying);
+  ntype.initfunc = file_ns::node_composit_init_keying;
   node_type_storage(
       &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

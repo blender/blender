@@ -76,7 +76,7 @@ namespace blender::ed::sculpt_paint {
 using blender::bke::CurvesGeometry;
 
 /* -------------------------------------------------------------------- */
-/** \name * SCULPT_CURVES_OT_brush_stroke
+/** \name Brush Stroke Operator
  * \{ */
 
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension)
@@ -220,8 +220,10 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   int return_value = op->type->modal(C, op, event);
   if (return_value == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op, op_data->stroke);
-    MEM_delete(op_data);
+    if (op->customdata != nullptr) {
+      paint_stroke_free(C, op, op_data->stroke);
+      MEM_delete(op_data);
+    }
     return OPERATOR_FINISHED;
   }
 
@@ -236,16 +238,19 @@ static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent
   int return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
   if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
+    op->customdata = nullptr;
   }
   return return_value;
 }
 
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
 {
-  SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-      op->customdata);
-  paint_stroke_cancel(C, op, op_data->stroke);
-  MEM_delete(op_data);
+  if (op->customdata != nullptr) {
+    SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
+        op->customdata);
+    paint_stroke_cancel(C, op, op_data->stroke);
+    MEM_delete(op_data);
+  }
 }
 
 static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
@@ -266,7 +271,7 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name * CURVES_OT_sculptmode_toggle
+/** \name Toggle Sculpt Mode
  * \{ */
 
 static void curves_sculptmode_enter(bContext *C)
@@ -587,8 +592,8 @@ namespace select_grow {
 
 struct GrowOperatorDataPerCurve : NonCopyable, NonMovable {
   Curves *curves_id;
-  Vector<int> selected_point_indices;
-  Vector<int> unselected_point_indices;
+  Vector<int> selected_points;
+  Vector<int> unselected_points;
   Array<float> distances_to_selected;
   Array<float> distances_to_unselected;
 
@@ -607,34 +612,32 @@ static void update_points_selection(const GrowOperatorDataPerCurve &data,
 {
   if (distance > 0.0f) {
     threading::parallel_for(
-        data.unselected_point_indices.index_range(), 256, [&](const IndexRange range) {
+        data.unselected_points.index_range(), 256, [&](const IndexRange range) {
           for (const int i : range) {
-            const int point_i = data.unselected_point_indices[i];
+            const int point_i = data.unselected_points[i];
             const float distance_to_selected = data.distances_to_selected[i];
             const float selection = distance_to_selected <= distance ? 1.0f : 0.0f;
             points_selection[point_i] = selection;
           }
         });
-    threading::parallel_for(
-        data.selected_point_indices.index_range(), 512, [&](const IndexRange range) {
-          for (const int point_i : data.selected_point_indices.as_span().slice(range)) {
-            points_selection[point_i] = 1.0f;
-          }
-        });
+    threading::parallel_for(data.selected_points.index_range(), 512, [&](const IndexRange range) {
+      for (const int point_i : data.selected_points.as_span().slice(range)) {
+        points_selection[point_i] = 1.0f;
+      }
+    });
   }
   else {
+    threading::parallel_for(data.selected_points.index_range(), 256, [&](const IndexRange range) {
+      for (const int i : range) {
+        const int point_i = data.selected_points[i];
+        const float distance_to_unselected = data.distances_to_unselected[i];
+        const float selection = distance_to_unselected <= -distance ? 0.0f : 1.0f;
+        points_selection[point_i] = selection;
+      }
+    });
     threading::parallel_for(
-        data.selected_point_indices.index_range(), 256, [&](const IndexRange range) {
-          for (const int i : range) {
-            const int point_i = data.selected_point_indices[i];
-            const float distance_to_unselected = data.distances_to_unselected[i];
-            const float selection = distance_to_unselected <= -distance ? 0.0f : 1.0f;
-            points_selection[point_i] = selection;
-          }
-        });
-    threading::parallel_for(
-        data.unselected_point_indices.index_range(), 512, [&](const IndexRange range) {
-          for (const int point_i : data.unselected_point_indices.as_span().slice(range)) {
+        data.unselected_points.index_range(), 512, [&](const IndexRange range) {
+          for (const int point_i : data.unselected_points.as_span().slice(range)) {
             points_selection[point_i] = 0.0f;
           }
         });
@@ -702,10 +705,10 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
       for (const int point_i : points_selection.index_range()) {
         const float point_selection = points_selection[point_i];
         if (point_selection > 0.0f) {
-          curve_op_data.selected_point_indices.append(point_i);
+          curve_op_data.selected_points.append(point_i);
         }
         else {
-          curve_op_data.unselected_point_indices.append(point_i);
+          curve_op_data.unselected_points.append(point_i);
         }
       }
 
@@ -720,12 +723,12 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
         const IndexRange points = curves.points_for_curve(curve_i);
         if (curve_selection > 0.0f) {
           for (const int point_i : points) {
-            curve_op_data.selected_point_indices.append(point_i);
+            curve_op_data.selected_points.append(point_i);
           }
         }
         else {
           for (const int point_i : points) {
-            curve_op_data.unselected_point_indices.append(point_i);
+            curve_op_data.unselected_points.append(point_i);
           }
         }
       }
@@ -734,50 +737,46 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
   }
 
   threading::parallel_invoke(
-      1024 < curve_op_data.selected_point_indices.size() +
-                 curve_op_data.unselected_point_indices.size(),
+      1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
       [&]() {
         /* Build KD-tree for the selected points. */
-        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_point_indices.size());
+        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_points.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
-        for (const int point_i : curve_op_data.selected_point_indices) {
+        for (const int point_i : curve_op_data.selected_points) {
           const float3 &position = positions[point_i];
           BLI_kdtree_3d_insert(kdtree, point_i, position);
         }
         BLI_kdtree_3d_balance(kdtree);
 
         /* For each unselected point, compute the distance to the closest selected point. */
-        curve_op_data.distances_to_selected.reinitialize(
-            curve_op_data.unselected_point_indices.size());
-        threading::parallel_for(curve_op_data.unselected_point_indices.index_range(),
-                                256,
-                                [&](const IndexRange range) {
-                                  for (const int i : range) {
-                                    const int point_i = curve_op_data.unselected_point_indices[i];
-                                    const float3 &position = positions[point_i];
-                                    KDTreeNearest_3d nearest;
-                                    BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
-                                    curve_op_data.distances_to_selected[i] = nearest.dist;
-                                  }
-                                });
+        curve_op_data.distances_to_selected.reinitialize(curve_op_data.unselected_points.size());
+        threading::parallel_for(
+            curve_op_data.unselected_points.index_range(), 256, [&](const IndexRange range) {
+              for (const int i : range) {
+                const int point_i = curve_op_data.unselected_points[i];
+                const float3 &position = positions[point_i];
+                KDTreeNearest_3d nearest;
+                BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
+                curve_op_data.distances_to_selected[i] = nearest.dist;
+              }
+            });
       },
       [&]() {
         /* Build KD-tree for the unselected points. */
-        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.unselected_point_indices.size());
+        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.unselected_points.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
-        for (const int point_i : curve_op_data.unselected_point_indices) {
+        for (const int point_i : curve_op_data.unselected_points) {
           const float3 &position = positions[point_i];
           BLI_kdtree_3d_insert(kdtree, point_i, position);
         }
         BLI_kdtree_3d_balance(kdtree);
 
         /* For each selected point, compute the distance to the closest unselected point. */
-        curve_op_data.distances_to_unselected.reinitialize(
-            curve_op_data.selected_point_indices.size());
+        curve_op_data.distances_to_unselected.reinitialize(curve_op_data.selected_points.size());
         threading::parallel_for(
-            curve_op_data.selected_point_indices.index_range(), 256, [&](const IndexRange range) {
+            curve_op_data.selected_points.index_range(), 256, [&](const IndexRange range) {
               for (const int i : range) {
-                const int point_i = curve_op_data.selected_point_indices[i];
+                const int point_i = curve_op_data.selected_points[i];
                 const float3 &position = positions[point_i];
                 KDTreeNearest_3d nearest;
                 BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
@@ -786,7 +785,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.obmat;
+  float4x4 curves_to_world_mat = curves_ob.object_to_world;
   float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   float4x4 projection;
@@ -795,12 +794,12 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
   /* Compute how mouse movements in screen space are converted into grow/shrink distances in
    * object space. */
   curve_op_data.pixel_to_distance_factor = threading::parallel_reduce(
-      curve_op_data.selected_point_indices.index_range(),
+      curve_op_data.selected_points.index_range(),
       256,
       FLT_MAX,
       [&](const IndexRange range, float pixel_to_distance_factor) {
         for (const int i : range) {
-          const int point_i = curve_op_data.selected_point_indices[i];
+          const int point_i = curve_op_data.selected_points[i];
           const float3 &pos_cu = positions[point_i];
 
           float2 pos_re;
@@ -1264,7 +1263,7 @@ static void SCULPT_CURVES_OT_min_distance_edit(wmOperatorType *ot)
 }  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
-/** \name * Registration
+/** \name Registration
  * \{ */
 
 void ED_operatortypes_sculpt_curves()

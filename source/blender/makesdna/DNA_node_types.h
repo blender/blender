@@ -613,7 +613,7 @@ typedef struct bNodeTree {
   void (*progress)(void *, float progress);
   /** \warning may be called by different threads */
   void (*stats_draw)(void *, const char *str);
-  int (*test_break)(void *);
+  bool (*test_break)(void *);
   void (*update_draw)(void *);
   void *tbh, *prh, *sdh, *udh;
 
@@ -1497,6 +1497,10 @@ typedef struct NodeGeometryCurveToPoints {
 typedef struct NodeGeometryCurveSample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
+  int8_t use_all_curves;
+  /* eCustomDataType. */
+  int8_t data_type;
+  char _pad[1];
 } NodeGeometryCurveSample;
 
 typedef struct NodeGeometryTransferAttribute {

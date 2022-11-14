@@ -151,7 +151,7 @@ if(WITH_PYTHON)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
     if(EXISTS ${LIBDIR})
-      cmake_path(IS_PREFIX LIBDIR "${PYTHON_SITE_PACKAGES}" NORMALIZE _is_prefix)
+      path_is_prefix(LIBDIR PYTHON_SITE_PACKAGES _is_prefix)
       if(_is_prefix)
         message(WARNING "
 Building Blender with the following configuration:

@@ -185,7 +185,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
       copy_v3_v3(lastofs, stroke);
     }
     else {
-      copy_v3_v3(lastofs, ob_act_eval->obmat[3]);
+      copy_v3_v3(lastofs, ob_act_eval->object_to_world[3]);
     }
     is_set = true;
   }
@@ -199,7 +199,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     }
     mul_v2_fl(lastofs, 1.0f / 4.0f);
 
-    mul_m4_v3(ob_act_eval->obmat, lastofs);
+    mul_m4_v3(ob_act_eval->object_to_world, lastofs);
 
     is_set = true;
   }
@@ -219,11 +219,11 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
           BKE_boundbox_calc_center_aabb(ob_eval->runtime.bb, cent);
 
-          mul_m4_v3(ob_eval->obmat, cent);
+          mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
         }
         else {
-          add_v3_v3(select_center, ob_eval->obmat[3]);
+          add_v3_v3(select_center, ob_eval->object_to_world[3]);
         }
         tot++;
       }
@@ -626,7 +626,7 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
   if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
     /* Use if duplis aren't found. */
     if (only_center) {
-      minmax_v3v3_v3(min, max, ob_eval->obmat[3]);
+      minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
     }
     else {
       BKE_object_minmax(ob_eval, min, max, false);
@@ -934,8 +934,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
 
     if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->obmat, min);
-      mul_m4_v3(ob_eval->obmat, max);
+      mul_m4_v3(ob_eval->object_to_world, min);
+      mul_m4_v3(ob_eval->object_to_world, max);
     }
   }
   else if (is_face_map) {

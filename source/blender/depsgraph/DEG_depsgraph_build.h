@@ -56,6 +56,9 @@ void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph);
  */
 void DEG_graph_build_for_compositor_preview(struct Depsgraph *graph, struct bNodeTree *nodetree);
 
+/**
+ * Builds the minimal dependency graph needed for evaluation of the given IDs.
+ */
 void DEG_graph_build_from_ids(struct Depsgraph *graph, struct ID **ids, int num_ids);
 
 /** Tag relations from the given graph for update. */

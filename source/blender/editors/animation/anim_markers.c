@@ -663,11 +663,16 @@ static bool ed_markers_poll_selected_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
 
   if (!ED_operator_markers_region_active(C)) {
-    return 0;
+    return false;
   }
 
   /* check if some marker is selected */
-  return ED_markers_get_first_selected(markers) != NULL;
+  if (ED_markers_get_first_selected(markers) == NULL) {
+    CTX_wm_operator_poll_msg_set(C, "No markers are selected");
+    return false;
+  }
+
+  return true;
 }
 
 static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
@@ -675,12 +680,22 @@ static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers || !ED_operator_markers_region_active(C)) {
-    return 0;
+  if (!ED_operator_markers_region_active(C)) {
+    return false;
+  }
+
+  if (ts->lock_markers) {
+    CTX_wm_operator_poll_msg_set(C, "Markers are locked");
+    return false;
   }
 
   /* check if some marker is selected */
-  return ED_markers_get_first_selected(markers) != NULL;
+  if (ED_markers_get_first_selected(markers) == NULL) {
+    CTX_wm_operator_poll_msg_set(C, "No markers are selected");
+    return false;
+  }
+
+  return true;
 }
 
 /* special poll() which checks if there are any markers at all first */

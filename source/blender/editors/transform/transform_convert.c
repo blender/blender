@@ -981,7 +981,7 @@ static void init_TransDataContainers(TransInfo *t,
 
       if (tc->use_local_mat) {
         BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->obmat);
+        copy_m4_m4(tc->mat, objects[i]->object_to_world);
         copy_m3_m4(tc->mat3, tc->mat);
         /* for non-invertible scale matrices, invert_m4_m4_fallback()
          * can still provide a valid pivot */
@@ -1109,7 +1109,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
       PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
     return &TransConvertType_Particle;
   }
-  if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+  if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
       return &TransConvertType_PaintCurve;
     }
@@ -1235,8 +1235,8 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
           if (mmd->mirror_ob) {
             float obinv[4][4];
 
-            invert_m4_m4(obinv, mmd->mirror_ob->obmat);
-            mul_m4_m4m4(mtx, obinv, ob->obmat);
+            invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
+            mul_m4_m4m4(mtx, obinv, ob->object_to_world);
             invert_m4_m4(imtx, mtx);
           }
 

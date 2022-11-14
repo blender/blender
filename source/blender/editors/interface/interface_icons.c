@@ -1309,8 +1309,8 @@ static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
 static void ui_studiolight_icon_job_exec(void *customdata,
-                                         short *UNUSED(stop),
-                                         short *UNUSED(do_update),
+                                         bool *UNUSED(stop),
+                                         bool *UNUSED(do_update),
                                          float *UNUSED(progress))
 {
   Icon **tmp = (Icon **)customdata;

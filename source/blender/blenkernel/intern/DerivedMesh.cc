@@ -747,7 +747,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     MutableAttributeAccessor attributes = mesh_final->attributes_for_write();
     SpanAttributeWriter<float3> rest_positions =
         attributes.lookup_or_add_for_write_only_span<float3>("rest_position", ATTR_DOMAIN_POINT);
-    if (rest_positions) {
+    if (rest_positions && attributes.domain_size(ATTR_DOMAIN_POINT) > 0) {
       attributes.lookup<float3>("position").materialize(rest_positions.span);
       rest_positions.finish();
     }
@@ -1647,6 +1647,12 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
 
   const bool is_mesh_eval_owned = (me_final != mesh->runtime->mesh_eval);
   BKE_object_eval_assign_data(obedit, &me_final->id, is_mesh_eval_owned);
+
+  /* Make sure that drivers can target shapekey properties.
+   * Note that this causes a potential inconsistency, as the shapekey may have a
+   * different topology than the evaluated mesh. */
+  BLI_assert(mesh->key == nullptr || DEG_is_evaluated_id(&mesh->key->id));
+  me_final->key = mesh->key;
 
   obedit->runtime.editmesh_eval_cage = me_cage;
 

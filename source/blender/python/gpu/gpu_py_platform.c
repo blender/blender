@@ -141,9 +141,14 @@ static struct PyMethodDef pygpu_platform__tp_methods[] = {
 PyDoc_STRVAR(pygpu_platform__tp_doc, "This module provides access to GPU Platform definitions.");
 static PyModuleDef pygpu_platform_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.platform",
-    .m_doc = pygpu_platform__tp_doc,
-    .m_methods = pygpu_platform__tp_methods,
+    /*m_name*/ "gpu.platform",
+    /*m_doc*/ pygpu_platform__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_platform__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_platform_init(void)

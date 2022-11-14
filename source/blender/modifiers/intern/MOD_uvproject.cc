@@ -132,7 +132,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     float offsetmat[4][4];
     Camera *cam = nullptr;
     /* calculate projection matrix */
-    invert_m4_m4(projectors[i].projmat, projectors[i].ob->obmat);
+    invert_m4_m4(projectors[i].projmat, projectors[i].ob->object_to_world);
 
     projectors[i].uci = nullptr;
 
@@ -178,7 +178,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     projectors[i].normal[0] = 0;
     projectors[i].normal[1] = 0;
     projectors[i].normal[2] = 1;
-    mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
+    mul_mat3_m4_v3(projectors[i].ob->object_to_world, projectors[i].normal);
   }
 
   polys_num = mesh->totpoly;
@@ -192,7 +192,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   /* Convert coords to world-space. */
   for (i = 0, co = coords; i < verts_num; i++, co++) {
-    mul_m4_v3(ob->obmat, *co);
+    mul_m4_v3(ob->object_to_world, *co);
   }
 
   /* if only one projector, project coords to UVs */

@@ -794,7 +794,7 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
     /* TODO: Ensure crease layer isn't copied to result. */
     subdiv_edge->flag = 0;
     if (!ctx->settings->use_optimal_display) {
-      subdiv_edge->flag |= ME_EDGERENDER;
+      subdiv_edge->flag |= ME_EDGEDRAW;
     }
     if (ctx->edge_origindex != nullptr) {
       ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
@@ -804,7 +804,7 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
   const int coarse_edge_index = coarse_edge - ctx->coarse_edges;
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
-  subdiv_edge->flag |= ME_EDGERENDER;
+  subdiv_edge->flag |= ME_EDGEDRAW;
 }
 
 static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,

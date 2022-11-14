@@ -3610,12 +3610,12 @@ void BKE_image_set_filepath_from_tile_number(char *filepath,
   }
 
   if (tile_format == UDIM_TILE_FORMAT_UDIM) {
-    sprintf(filepath, pattern, tile_number);
+    BLI_sprintf(filepath, pattern, tile_number);
   }
   else if (tile_format == UDIM_TILE_FORMAT_UVTILE) {
     int u = ((tile_number - 1001) % 10);
     int v = ((tile_number - 1001) / 10);
-    sprintf(filepath, pattern, u + 1, v + 1);
+    BLI_sprintf(filepath, pattern, u + 1, v + 1);
   }
 }
 

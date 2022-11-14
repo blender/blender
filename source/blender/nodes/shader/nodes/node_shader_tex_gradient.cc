@@ -157,10 +157,10 @@ void register_node_type_sh_tex_gradient()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_gradient_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gradient;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_gradient);
+  ntype.initfunc = file_ns::node_shader_init_tex_gradient;
   node_type_storage(
       &ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_gradient);
+  ntype.gpu_fn = file_ns::node_shader_gpu_tex_gradient;
   ntype.build_multi_function = file_ns::sh_node_gradient_tex_build_multi_function;
 
   nodeRegisterType(&ntype);

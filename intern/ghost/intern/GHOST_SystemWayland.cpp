@@ -66,8 +66,13 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <cstdlib> /* For `exit`. */
 #include <cstring>
 #include <mutex>
+
+#ifdef HAVE_POLL
+#  include <poll.h>
+#endif
 
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
@@ -101,7 +106,7 @@ static const struct GWL_RegistryHandler *gwl_registry_handler_from_interface_slo
     int interface_slot);
 
 /* -------------------------------------------------------------------- */
-/** \name Workaround Compositor Sprsific Bugs
+/** \name Workaround Compositor Specific Bugs
  * \{ */
 
 /**
@@ -1157,6 +1162,31 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 /** \name Private Utility Functions
  * \{ */
 
+static void ghost_wl_display_report_error(struct wl_display *display)
+{
+  int ecode = wl_display_get_error(display);
+  GHOST_ASSERT(ecode, "Error not set!");
+  if ((ecode == EPIPE || ecode == ECONNRESET)) {
+    fprintf(stderr, "The Wayland connection broke. Did the Wayland compositor die?\n");
+  }
+  else {
+    fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
+  }
+
+  /* NOTE(@campbellbarton): The application is running,
+   * however an error closes all windows and most importantly:
+   * shuts down the GPU context (loosing all GPU state - shaders, bind codes etc),
+   * so recovering from this effectively involves restarting.
+   *
+   * Keeping the GPU state alive doesn't seem to be supported as windows EGL context must use the
+   * same connection as the used for all other WAYLAND interactions (see #wl_display_connect).
+   * So in practice re-connecting to the display server isn't an option.
+   *
+   * Exit since leaving the process open will simply flood the output and do nothing.
+   * Although as the process is in a valid state, auto-save for e.g. is possible, see: T100855. */
+  ::exit(-1);
+}
+
 /**
  * Callback for WAYLAND to run when there is an error.
  *
@@ -1264,6 +1294,12 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
       GXMAP(gkey, XKB_KEY_XF86AudioStop, GHOST_kKeyMediaStop);
       GXMAP(gkey, XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst);
       GXMAP(gkey, XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast);
+
+      /* Additional keys for non US layouts. */
+
+      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: T102287. */
+      GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
+
       default:
         /* Rely on #xkb_map_gkey_or_scan_code to report when no key can be found. */
         gkey = GHOST_kKeyUnknown;
@@ -1436,6 +1472,89 @@ static int memfd_create_sealed(const char *name)
   free(tmpname);
   return fd;
 #endif /* !HAVE_MEMFD_CREATE */
+}
+
+enum {
+  GWL_IOR_READ = 1 << 0,
+  GWL_IOR_WRITE = 1 << 1,
+  GWL_IOR_NO_RETRY = 1 << 2,
+};
+
+static int file_descriptor_is_io_ready(int fd, const int flags, const int timeout_ms)
+{
+  int result;
+
+  GHOST_ASSERT(flags & (GWL_IOR_READ | GWL_IOR_WRITE), "X");
+
+  /* Note: We don't bother to account for elapsed time if we get EINTR */
+  do {
+#ifdef HAVE_POLL
+    struct pollfd info;
+
+    info.fd = fd;
+    info.events = 0;
+    if (flags & GWL_IOR_READ) {
+      info.events |= POLLIN | POLLPRI;
+    }
+    if (flags & GWL_IOR_WRITE) {
+      info.events |= POLLOUT;
+    }
+    result = poll(&info, 1, timeout_ms);
+#else
+    fd_set rfdset, *rfdp = nullptr;
+    fd_set wfdset, *wfdp = nullptr;
+    struct timeval tv, *tvp = nullptr;
+
+    /* If this assert triggers we'll corrupt memory here */
+    GHOST_ASSERT(fd >= 0 && fd < FD_SETSIZE, "X");
+
+    if (flags & GWL_IOR_READ) {
+      FD_ZERO(&rfdset);
+      FD_SET(fd, &rfdset);
+      rfdp = &rfdset;
+    }
+    if (flags & GWL_IOR_WRITE) {
+      FD_ZERO(&wfdset);
+      FD_SET(fd, &wfdset);
+      wfdp = &wfdset;
+    }
+
+    if (timeout_ms >= 0) {
+      tv.tv_sec = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      tvp = &tv;
+    }
+
+    result = select(fd + 1, rfdp, wfdp, nullptr, tvp);
+#endif /* !HAVE_POLL */
+  } while (result < 0 && errno == EINTR && !(flags & GWL_IOR_NO_RETRY));
+
+  return result;
+}
+
+static int ghost_wl_display_event_pump(struct wl_display *wl_display)
+{
+  /* Based on SDL's `Wayland_PumpEvents`. */
+  int err;
+
+  /* NOTE: Without this, interactions with window borders via LIBDECOR doesn't function. */
+  wl_display_flush(wl_display);
+
+  if (wl_display_prepare_read(wl_display) == 0) {
+    /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
+    if (file_descriptor_is_io_ready(
+            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0) {
+      err = wl_display_read_events(wl_display);
+    }
+    else {
+      wl_display_cancel_read(wl_display);
+      err = 0;
+    }
+  }
+  else {
+    err = wl_display_dispatch_pending(wl_display);
+  }
+  return err;
 }
 
 static size_t ghost_wl_shm_format_as_size(enum wl_shm_format format)
@@ -4013,7 +4132,8 @@ static void gwl_seat_capability_touch_disable(GWL_Seat *seat)
 }
 
 static void seat_handle_capabilities(void *data,
-                                     struct wl_seat *wl_seat,
+                                     /* Only used in an assert. */
+                                     [[maybe_unused]] struct wl_seat *wl_seat,
                                      const uint32_t capabilities)
 {
   CLOG_INFO(LOG,
@@ -5058,6 +5178,8 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     }
   }
   else
+#else
+  (void)background;
 #endif
   {
     GWL_XDG_Decor_System &decor = *display_->xdg_decor;
@@ -5105,10 +5227,14 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 #endif /* WITH_INPUT_NDOF */
 
   if (waitForEvent) {
-    wl_display_dispatch(display_->wl_display);
+    if (wl_display_dispatch(display_->wl_display) == -1) {
+      ghost_wl_display_report_error(display_->wl_display);
+    }
   }
   else {
-    wl_display_roundtrip(display_->wl_display);
+    if (ghost_wl_display_event_pump(display_->wl_display) == -1) {
+      ghost_wl_display_report_error(display_->wl_display);
+    }
   }
 
   if (getEventManager()->getNumEvents() > 0) {
@@ -5844,7 +5970,7 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
   return false;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor shape)
+GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
@@ -5886,7 +6012,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor s
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::hasCursorShape(const GHOST_TStandardCursor cursorShape)
+GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCursor cursorShape)
 {
   auto cursor_find = ghost_wl_cursors.find(cursorShape);
   if (cursor_find == ghost_wl_cursors.end()) {
@@ -5899,13 +6025,13 @@ GHOST_TSuccess GHOST_SystemWayland::hasCursorShape(const GHOST_TStandardCursor c
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
-                                                         uint8_t *mask,
-                                                         const int sizex,
-                                                         const int sizey,
-                                                         const int hotX,
-                                                         const int hotY,
-                                                         const bool /*canInvertColor*/)
+GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(uint8_t *bitmap,
+                                                            uint8_t *mask,
+                                                            const int sizex,
+                                                            const int sizey,
+                                                            const int hotX,
+                                                            const int hotY,
+                                                            const bool /*canInvertColor*/)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
@@ -5975,7 +6101,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
+GHOST_TSuccess GHOST_SystemWayland::cursor_bitmap_get(GHOST_CursorBitmapRef *bitmap)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
@@ -6001,7 +6127,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(const bool visible)
+GHOST_TSuccess GHOST_SystemWayland::cursor_visibility_set(const bool visible)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
@@ -6025,7 +6151,7 @@ bool GHOST_SystemWayland::supportsWindowPosition()
   return false;
 }
 
-bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode)
+bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {

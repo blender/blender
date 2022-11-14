@@ -931,7 +931,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
   return (IndexBuildContext *)context;
 }
 
-static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, int stop)
+static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, const bool stop)
 {
   int i;
 
@@ -1012,8 +1012,8 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
 }
 
 static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
-                                const short *stop,
-                                short *do_update,
+                                const bool *stop,
+                                bool *do_update,
                                 float *progress)
 {
   AVFrame *in_frame = av_frame_alloc();
@@ -1303,7 +1303,7 @@ static IndexBuildContext *index_fallback_create_context(struct anim *anim,
   return (IndexBuildContext *)context;
 }
 
-static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, int stop)
+static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, const bool stop)
 {
   struct anim *anim = context->anim;
   char filepath[FILE_MAX];
@@ -1330,8 +1330,8 @@ static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, 
 }
 
 static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
-                                   const short *stop,
-                                   short *do_update,
+                                   const bool *stop,
+                                   bool *do_update,
                                    float *progress)
 {
   int count = IMB_anim_get_duration(context->anim, IMB_TC_NONE);
@@ -1470,9 +1470,9 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
 
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
                             /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                            short *stop,
+                            bool *stop,
                             /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                            short *do_update,
+                            bool *do_update,
                             /* NOLINTNEXTLINE: readability-non-const-parameter. */
                             float *progress)
 {
@@ -1494,7 +1494,7 @@ void IMB_anim_index_rebuild(struct IndexBuildContext *context,
   UNUSED_VARS(stop, do_update, progress);
 }
 
-void IMB_anim_index_rebuild_finish(IndexBuildContext *context, short stop)
+void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
 {
   switch (context->anim_type) {
 #ifdef WITH_FFMPEG

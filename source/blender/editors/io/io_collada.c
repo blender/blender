@@ -219,7 +219,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   }
 
   char buff[100];
-  sprintf(buff, "Exported %d Objects", export_count);
+  BLI_snprintf(buff, sizeof(buff), "Exported %d Objects", export_count);
   BKE_report(op->reports, RPT_INFO, buff);
   return OPERATOR_FINISHED;
 }

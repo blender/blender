@@ -312,16 +312,34 @@ OptiXDevice::~OptiXDevice()
   if (optix_module != NULL) {
     optixModuleDestroy(optix_module);
   }
-  for (unsigned int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; ++i) {
     if (builtin_modules[i] != NULL) {
       optixModuleDestroy(builtin_modules[i]);
     }
   }
-  for (unsigned int i = 0; i < NUM_PIPELINES; ++i) {
+  for (int i = 0; i < NUM_PIPELINES; ++i) {
     if (pipelines[i] != NULL) {
       optixPipelineDestroy(pipelines[i]);
     }
   }
+  for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
+    if (groups[i] != NULL) {
+      optixProgramGroupDestroy(groups[i]);
+    }
+  }
+
+#  ifdef WITH_OSL
+  for (const OptixModule &module : osl_modules) {
+    if (module != NULL) {
+      optixModuleDestroy(module);
+    }
+  }
+  for (const OptixProgramGroup &group : osl_groups) {
+    if (group != NULL) {
+      optixProgramGroupDestroy(group);
+    }
+  }
+#  endif
 
   /* Make sure denoiser is destroyed before device context! */
   if (denoiser_.optix_denoiser != nullptr) {
@@ -381,13 +399,51 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     return false;
   }
 
+#  ifdef WITH_OSL
+  const bool use_osl = (kernel_features & KERNEL_FEATURE_OSL);
+#  else
+  const bool use_osl = false;
+#  endif
+
+  /* Skip creating OptiX module if only doing denoising. */
+  const bool need_optix_kernels = (kernel_features &
+                                   (KERNEL_FEATURE_PATH_TRACING | KERNEL_FEATURE_BAKING));
+
+  /* Detect existence of OptiX kernel and SDK here early. So we can error out
+   * before compiling the CUDA kernels, to avoid failing right after when
+   * compiling the OptiX kernel. */
+  string suffix = use_osl ? "_osl" :
+                  (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+                            "_shader_raytrace" :
+                            "";
+  string ptx_filename;
+  if (need_optix_kernels) {
+    ptx_filename = path_get("lib/kernel_optix" + suffix + ".ptx");
+    if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
+      std::string optix_include_dir = get_optix_include_dir();
+      if (optix_include_dir.empty()) {
+        set_error(
+            "Unable to compile OptiX kernels at runtime. Set OPTIX_ROOT_DIR environment variable "
+            "to a directory containing the OptiX SDK.");
+        return false;
+      }
+      else if (!path_is_directory(optix_include_dir)) {
+        set_error(string_printf(
+            "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
+            "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
+            "directory containing the OptiX SDK.",
+            optix_include_dir.c_str()));
+        return false;
+      }
+    }
+  }
+
   /* Load CUDA modules because we need some of the utility kernels. */
   if (!CUDADevice::load_kernels(kernel_features)) {
     return false;
   }
 
-  /* Skip creating OptiX module if only doing denoising. */
-  if (!(kernel_features & (KERNEL_FEATURE_PATH_TRACING | KERNEL_FEATURE_BAKING))) {
+  if (!need_optix_kernels) {
     return true;
   }
 
@@ -398,18 +454,41 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     optixModuleDestroy(optix_module);
     optix_module = NULL;
   }
-  for (unsigned int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; ++i) {
     if (builtin_modules[i] != NULL) {
       optixModuleDestroy(builtin_modules[i]);
       builtin_modules[i] = NULL;
     }
   }
-  for (unsigned int i = 0; i < NUM_PIPELINES; ++i) {
+  for (int i = 0; i < NUM_PIPELINES; ++i) {
     if (pipelines[i] != NULL) {
       optixPipelineDestroy(pipelines[i]);
       pipelines[i] = NULL;
     }
   }
+  for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
+    if (groups[i] != NULL) {
+      optixProgramGroupDestroy(groups[i]);
+      groups[i] = NULL;
+    }
+  }
+
+#  ifdef WITH_OSL
+  /* Recreating base OptiX module invalidates all OSL modules too, since they link against it. */
+  for (const OptixModule &module : osl_modules) {
+    if (module != NULL) {
+      optixModuleDestroy(module);
+    }
+  }
+  osl_modules.clear();
+
+  for (const OptixProgramGroup &group : osl_groups) {
+    if (group != NULL) {
+      optixProgramGroupDestroy(group);
+    }
+  }
+  osl_groups.clear();
+#  endif
 
   OptixModuleCompileOptions module_options = {};
   module_options.maxRegisterCount = 0; /* Do not set an explicit register limit. */
@@ -430,7 +509,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   module_options.numPayloadTypes = 0;
 #  endif
 
-  OptixPipelineCompileOptions pipeline_options = {};
   /* Default to no motion blur and two-level graph, since it is the fastest option. */
   pipeline_options.usesMotionBlur = false;
   pipeline_options.traversableGraphFlags =
@@ -459,9 +537,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   /* Keep track of whether motion blur is enabled, so to enable/disable motion in BVH builds
    * This is necessary since objects may be reported to have motion if the Vector pass is
    * active, but may still need to be rendered without motion blur if that isn't active as well. */
-  motion_blur = (kernel_features & KERNEL_FEATURE_OBJECT_MOTION) != 0;
-
-  if (motion_blur) {
+  if (kernel_features & KERNEL_FEATURE_OBJECT_MOTION) {
     pipeline_options.usesMotionBlur = true;
     /* Motion blur can insert motion transforms into the traversal graph.
      * It is no longer a two-level graph then, so need to set flags to allow any configuration. */
@@ -469,33 +545,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   { /* Load and compile PTX module with OptiX kernels. */
-    string ptx_data, ptx_filename = path_get(
-                         (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
-                             "lib/kernel_optix_shader_raytrace.ptx" :
-                             "lib/kernel_optix.ptx");
+    string ptx_data;
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
-      std::string optix_include_dir = get_optix_include_dir();
-      if (optix_include_dir.empty()) {
-        set_error(
-            "Unable to compile OptiX kernels at runtime. Set OPTIX_ROOT_DIR environment variable "
-            "to a directory containing the OptiX SDK.");
-        return false;
-      }
-      else if (!path_is_directory(optix_include_dir)) {
-        set_error(string_printf(
-            "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
-            "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
-            "directory containing the OptiX SDK.",
-            optix_include_dir.c_str()));
-        return false;
-      }
-      ptx_filename = compile_kernel(
-          kernel_features,
-          (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
-              "kernel_shader_raytrace" :
-              "kernel",
-          "optix",
-          true);
+      string cflags = compile_kernel_get_common_cflags(kernel_features);
+      ptx_filename = compile_kernel(cflags, ("kernel" + suffix).c_str(), "optix", true);
     }
     if (ptx_filename.empty() || !path_read_text(ptx_filename, ptx_data)) {
       set_error(string_printf("Failed to load OptiX kernel from '%s'", ptx_filename.c_str()));
@@ -537,7 +590,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   /* Create program groups. */
-  OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
   OptixProgramGroupDesc group_descs[NUM_PROGRAM_GROUPS] = {};
   OptixProgramGroupOptions group_options = {}; /* There are no options currently. */
   group_descs[PG_RGEN_INTERSECT_CLOSEST].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
@@ -595,7 +647,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       group_descs[PG_HITS].hitgroup.moduleIS = builtin_modules[0];
       group_descs[PG_HITS].hitgroup.entryFunctionNameIS = nullptr;
 
-      if (motion_blur) {
+      if (pipeline_options.usesMotionBlur) {
         builtin_options.usesMotionBlur = true;
 
         optix_assert(optixBuiltinISModuleGet(
@@ -616,7 +668,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     }
   }
 
-  /* Pointclouds */
   if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
     group_descs[PG_HITD_POINTCLOUD] = group_descs[PG_HITD];
     group_descs[PG_HITD_POINTCLOUD].kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
@@ -628,8 +679,8 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_HITS_POINTCLOUD].hitgroup.entryFunctionNameIS = "__intersection__point";
   }
 
+  /* Add hit group for local intersections. */
   if (kernel_features & (KERNEL_FEATURE_SUBSURFACE | KERNEL_FEATURE_NODE_RAYTRACE)) {
-    /* Add hit group for local intersections. */
     group_descs[PG_HITL].kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
     group_descs[PG_HITL].hitgroup.moduleAH = optix_module;
     group_descs[PG_HITL].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_local_hit";
@@ -641,21 +692,60 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_surface_raytrace";
-    group_descs[PG_CALL_SVM_AO].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[PG_CALL_SVM_AO].callables.moduleDC = optix_module;
-    group_descs[PG_CALL_SVM_AO].callables.entryFunctionNameDC = "__direct_callable__svm_node_ao";
-    group_descs[PG_CALL_SVM_BEVEL].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
-    group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
-        "__direct_callable__svm_node_bevel";
+
+    /* Kernels with OSL support are built without SVM, so can skip those direct callables there. */
+    if (!use_osl) {
+      group_descs[PG_CALL_SVM_AO].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_descs[PG_CALL_SVM_AO].callables.moduleDC = optix_module;
+      group_descs[PG_CALL_SVM_AO].callables.entryFunctionNameDC = "__direct_callable__svm_node_ao";
+      group_descs[PG_CALL_SVM_BEVEL].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
+      group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
+          "__direct_callable__svm_node_bevel";
+    }
   }
 
-  /* MNEE. */
   if (kernel_features & KERNEL_FEATURE_MNEE) {
     group_descs[PG_RGEN_SHADE_SURFACE_MNEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_surface_mnee";
+  }
+
+  /* OSL uses direct callables to execute, so shading needs to be done in OptiX if OSL is used. */
+  if (use_osl) {
+    group_descs[PG_RGEN_SHADE_BACKGROUND].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_background";
+    group_descs[PG_RGEN_SHADE_LIGHT].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_LIGHT].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_LIGHT].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_light";
+    group_descs[PG_RGEN_SHADE_SURFACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_SURFACE].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_SURFACE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_surface";
+    group_descs[PG_RGEN_SHADE_VOLUME].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_VOLUME].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_VOLUME].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_volume";
+    group_descs[PG_RGEN_SHADE_SHADOW].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_SHADOW].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_SHADOW].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_shadow";
+    group_descs[PG_RGEN_EVAL_DISPLACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_EVAL_DISPLACE].raygen.module = optix_module;
+    group_descs[PG_RGEN_EVAL_DISPLACE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_shader_eval_displace";
+    group_descs[PG_RGEN_EVAL_BACKGROUND].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_EVAL_BACKGROUND].raygen.module = optix_module;
+    group_descs[PG_RGEN_EVAL_BACKGROUND].raygen.entryFunctionName =
+        "__raygen__kernel_optix_shader_eval_background";
+    group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.module = optix_module;
+    group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.entryFunctionName =
+        "__raygen__kernel_optix_shader_eval_curve_shadow_transparency";
   }
 
   optix_assert(optixProgramGroupCreate(
@@ -666,7 +756,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   /* Set up SBT, which in this case is used only to select between different programs. */
   sbt_data.alloc(NUM_PROGRAM_GROUPS);
   memset(sbt_data.host_pointer, 0, sizeof(SbtRecord) * NUM_PROGRAM_GROUPS);
-  for (unsigned int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
+  for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
     optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
   }
@@ -690,25 +780,26 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 1;
+  link_options.debugLevel = module_options.debugLevel;
 
-  if (DebugFlags().optix.use_debug) {
-    link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
-  }
-  else {
-    link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
-  }
-
-  if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
-    /* Create shader raytracing pipeline. */
+  if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE) && !use_osl) {
+    /* Create shader raytracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
-    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
+    if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+      pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
+      pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
+      pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
+    }
+    if (kernel_features & KERNEL_FEATURE_MNEE) {
+      pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+    }
     pipeline_groups.push_back(groups[PG_MISS]);
     pipeline_groups.push_back(groups[PG_HITD]);
     pipeline_groups.push_back(groups[PG_HITS]);
     pipeline_groups.push_back(groups[PG_HITL]);
     pipeline_groups.push_back(groups[PG_HITV]);
-    if (motion_blur) {
+    if (pipeline_options.usesMotionBlur) {
       pipeline_groups.push_back(groups[PG_HITD_MOTION]);
       pipeline_groups.push_back(groups[PG_HITS_MOTION]);
     }
@@ -716,8 +807,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       pipeline_groups.push_back(groups[PG_HITD_POINTCLOUD]);
       pipeline_groups.push_back(groups[PG_HITS_POINTCLOUD]);
     }
-    pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
-    pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
 
     optix_assert(optixPipelineCreate(context,
                                      &pipeline_options,
@@ -726,57 +815,18 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                      pipeline_groups.size(),
                                      nullptr,
                                      0,
-                                     &pipelines[PIP_SHADE_RAYTRACE]));
+                                     &pipelines[PIP_SHADE]));
 
     /* Combine ray generation and trace continuation stack size. */
-    const unsigned int css = stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG +
+    const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
+                                      stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG) +
                              link_options.maxTraceDepth * trace_css;
     const unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
                                       stack_size[PG_CALL_SVM_BEVEL].dssDC);
 
     /* Set stack size depending on pipeline options. */
     optix_assert(optixPipelineSetStackSize(
-        pipelines[PIP_SHADE_RAYTRACE], 0, dss, css, motion_blur ? 3 : 2));
-  }
-
-  if (kernel_features & KERNEL_FEATURE_MNEE) {
-    /* Create MNEE pipeline. */
-    vector<OptixProgramGroup> pipeline_groups;
-    pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
-    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
-    pipeline_groups.push_back(groups[PG_MISS]);
-    pipeline_groups.push_back(groups[PG_HITD]);
-    pipeline_groups.push_back(groups[PG_HITS]);
-    pipeline_groups.push_back(groups[PG_HITL]);
-    pipeline_groups.push_back(groups[PG_HITV]);
-    if (motion_blur) {
-      pipeline_groups.push_back(groups[PG_HITD_MOTION]);
-      pipeline_groups.push_back(groups[PG_HITS_MOTION]);
-    }
-    if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
-      pipeline_groups.push_back(groups[PG_HITD_POINTCLOUD]);
-      pipeline_groups.push_back(groups[PG_HITS_POINTCLOUD]);
-    }
-    pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
-    pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
-
-    optix_assert(optixPipelineCreate(context,
-                                     &pipeline_options,
-                                     &link_options,
-                                     pipeline_groups.data(),
-                                     pipeline_groups.size(),
-                                     nullptr,
-                                     0,
-                                     &pipelines[PIP_SHADE_MNEE]));
-
-    /* Combine ray generation and trace continuation stack size. */
-    const unsigned int css = stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG +
-                             link_options.maxTraceDepth * trace_css;
-    const unsigned int dss = 0;
-
-    /* Set stack size depending on pipeline options. */
-    optix_assert(
-        optixPipelineSetStackSize(pipelines[PIP_SHADE_MNEE], 0, dss, css, motion_blur ? 3 : 2));
+        pipelines[PIP_SHADE], 0, dss, css, pipeline_options.usesMotionBlur ? 3 : 2));
   }
 
   { /* Create intersection-only pipeline. */
@@ -791,7 +841,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     pipeline_groups.push_back(groups[PG_HITS]);
     pipeline_groups.push_back(groups[PG_HITL]);
     pipeline_groups.push_back(groups[PG_HITV]);
-    if (motion_blur) {
+    if (pipeline_options.usesMotionBlur) {
       pipeline_groups.push_back(groups[PG_HITD_MOTION]);
       pipeline_groups.push_back(groups[PG_HITS_MOTION]);
     }
@@ -817,16 +867,257 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                    stack_size[PG_RGEN_INTERSECT_VOLUME_STACK].cssRG))) +
         link_options.maxTraceDepth * trace_css;
 
-    optix_assert(
-        optixPipelineSetStackSize(pipelines[PIP_INTERSECT], 0, 0, css, motion_blur ? 3 : 2));
+    optix_assert(optixPipelineSetStackSize(
+        pipelines[PIP_INTERSECT], 0, 0, css, pipeline_options.usesMotionBlur ? 3 : 2));
   }
 
-  /* Clean up program group objects. */
-  for (unsigned int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
-    optixProgramGroupDestroy(groups[i]);
+  return !have_error();
+}
+
+bool OptiXDevice::load_osl_kernels()
+{
+#  ifdef WITH_OSL
+  if (have_error()) {
+    return false;
   }
 
-  return true;
+  struct OSLKernel {
+    string ptx;
+    string init_entry;
+    string exec_entry;
+  };
+
+  /* This has to be in the same order as the ShaderType enum, so that the index calculation in
+   * osl_eval_nodes checks out */
+  vector<OSLKernel> osl_kernels;
+
+  for (ShaderType type = SHADER_TYPE_SURFACE; type <= SHADER_TYPE_BUMP;
+       type = static_cast<ShaderType>(type + 1)) {
+    const vector<OSL::ShaderGroupRef> &groups = (type == SHADER_TYPE_SURFACE ?
+                                                     osl_globals.surface_state :
+                                                 type == SHADER_TYPE_VOLUME ?
+                                                     osl_globals.volume_state :
+                                                 type == SHADER_TYPE_DISPLACEMENT ?
+                                                     osl_globals.displacement_state :
+                                                     osl_globals.bump_state);
+    for (const OSL::ShaderGroupRef &group : groups) {
+      if (group) {
+        string osl_ptx, init_name, entry_name;
+        osl_globals.ss->getattribute(group.get(), "group_init_name", init_name);
+        osl_globals.ss->getattribute(group.get(), "group_entry_name", entry_name);
+        osl_globals.ss->getattribute(
+            group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);
+
+        int groupdata_size = 0;
+        osl_globals.ss->getattribute(group.get(), "groupdata_size", groupdata_size);
+        if (groupdata_size > 2048) { /* See 'group_data' array in kernel/osl/osl.h */
+          set_error(
+              string_printf("Requested OSL group data size (%d) is greater than the maximum "
+                            "supported with OptiX (2048)",
+                            groupdata_size));
+          return false;
+        }
+
+        osl_kernels.push_back({std::move(osl_ptx), std::move(init_name), std::move(entry_name)});
+      }
+      else {
+        /* Add empty entry for non-existent shader groups, so that the index stays stable. */
+        osl_kernels.emplace_back();
+      }
+    }
+  }
+
+  const CUDAContextScope scope(this);
+
+  if (pipelines[PIP_SHADE]) {
+    optixPipelineDestroy(pipelines[PIP_SHADE]);
+  }
+
+  for (OptixModule &module : osl_modules) {
+    if (module != NULL) {
+      optixModuleDestroy(module);
+      module = NULL;
+    }
+  }
+  for (OptixProgramGroup &group : osl_groups) {
+    if (group != NULL) {
+      optixProgramGroupDestroy(group);
+      group = NULL;
+    }
+  }
+
+  OptixProgramGroupOptions group_options = {}; /* There are no options currently. */
+  OptixModuleCompileOptions module_options = {};
+  module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+  module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+
+  osl_groups.resize(osl_kernels.size() * 2 + 1);
+  osl_modules.resize(osl_kernels.size() + 1);
+
+  { /* Load and compile PTX module with OSL services. */
+    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx");
+    if (!path_read_text(ptx_filename, ptx_data)) {
+      set_error(string_printf("Failed to load OptiX OSL services kernel from '%s'",
+                              ptx_filename.c_str()));
+      return false;
+    }
+
+    const OptixResult result = optixModuleCreateFromPTX(context,
+                                                        &module_options,
+                                                        &pipeline_options,
+                                                        ptx_data.data(),
+                                                        ptx_data.size(),
+                                                        nullptr,
+                                                        0,
+                                                        &osl_modules.back());
+    if (result != OPTIX_SUCCESS) {
+      set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
+                              ptx_filename.c_str(),
+                              optixGetErrorName(result)));
+      return false;
+    }
+
+    OptixProgramGroupDesc group_desc = {};
+    group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+    group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_services";
+    group_desc.callables.moduleDC = osl_modules.back();
+
+    optix_assert(optixProgramGroupCreate(
+        context, &group_desc, 1, &group_options, nullptr, 0, &osl_groups.back()));
+  }
+
+  TaskPool pool;
+  vector<OptixResult> results(osl_kernels.size(), OPTIX_SUCCESS);
+
+  for (size_t i = 0; i < osl_kernels.size(); ++i) {
+    if (osl_kernels[i].ptx.empty()) {
+      continue;
+    }
+
+#    if OPTIX_ABI_VERSION >= 55
+    OptixTask task = nullptr;
+    results[i] = optixModuleCreateFromPTXWithTasks(context,
+                                                   &module_options,
+                                                   &pipeline_options,
+                                                   osl_kernels[i].ptx.data(),
+                                                   osl_kernels[i].ptx.size(),
+                                                   nullptr,
+                                                   nullptr,
+                                                   &osl_modules[i],
+                                                   &task);
+    if (results[i] == OPTIX_SUCCESS) {
+      execute_optix_task(pool, task, results[i]);
+    }
+#    else
+    pool.push([this, &results, i, &module_options, &osl_kernels]() {
+      results[i] = optixModuleCreateFromPTX(context,
+                                            &module_options,
+                                            &pipeline_options,
+                                            osl_kernels[i].ptx.data(),
+                                            osl_kernels[i].ptx.size(),
+                                            nullptr,
+                                            0,
+                                            &osl_modules[i]);
+    });
+#    endif
+  }
+
+  pool.wait_work();
+
+  for (size_t i = 0; i < osl_kernels.size(); ++i) {
+    if (osl_kernels[i].ptx.empty()) {
+      continue;
+    }
+
+    if (results[i] != OPTIX_SUCCESS) {
+      set_error(string_printf("Failed to load OptiX OSL kernel for %s (%s)",
+                              osl_kernels[i].init_entry.c_str(),
+                              optixGetErrorName(results[i])));
+      return false;
+    }
+
+    OptixProgramGroupDesc group_descs[2] = {};
+    group_descs[0].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+    group_descs[0].callables.entryFunctionNameDC = osl_kernels[i].init_entry.c_str();
+    group_descs[0].callables.moduleDC = osl_modules[i];
+    group_descs[1].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+    group_descs[1].callables.entryFunctionNameDC = osl_kernels[i].exec_entry.c_str();
+    group_descs[1].callables.moduleDC = osl_modules[i];
+
+    optix_assert(optixProgramGroupCreate(
+        context, group_descs, 2, &group_options, nullptr, 0, &osl_groups[i * 2]));
+  }
+
+  vector<OptixStackSizes> osl_stack_size(osl_groups.size());
+
+  /* Update SBT with new entries. */
+  sbt_data.alloc(NUM_PROGRAM_GROUPS + osl_groups.size());
+  for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
+    optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+  }
+  for (size_t i = 0; i < osl_groups.size(); ++i) {
+    if (osl_groups[i] != NULL) {
+      optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
+      optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
+    }
+  }
+  sbt_data.copy_to_device(); /* Upload updated SBT to device. */
+
+  OptixPipelineLinkOptions link_options = {};
+  link_options.maxTraceDepth = 0;
+  link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+
+  {
+    vector<OptixProgramGroup> pipeline_groups;
+    pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_BACKGROUND]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_LIGHT]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_VOLUME]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SHADOW]);
+    pipeline_groups.push_back(groups[PG_RGEN_EVAL_DISPLACE]);
+    pipeline_groups.push_back(groups[PG_RGEN_EVAL_BACKGROUND]);
+    pipeline_groups.push_back(groups[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY]);
+
+    for (const OptixProgramGroup &group : osl_groups) {
+      if (group != NULL) {
+        pipeline_groups.push_back(group);
+      }
+    }
+
+    optix_assert(optixPipelineCreate(context,
+                                     &pipeline_options,
+                                     &link_options,
+                                     pipeline_groups.data(),
+                                     pipeline_groups.size(),
+                                     nullptr,
+                                     0,
+                                     &pipelines[PIP_SHADE]));
+
+    unsigned int dss = 0;
+    for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
+      dss = std::max(dss, osl_stack_size[i].dssDC);
+    }
+
+    optix_assert(optixPipelineSetStackSize(
+        pipelines[PIP_SHADE], 0, dss, 0, pipeline_options.usesMotionBlur ? 3 : 2));
+  }
+
+  return !have_error();
+#  else
+  return false;
+#  endif
+}
+
+void *OptiXDevice::get_cpu_osl_memory()
+{
+#  ifdef WITH_OSL
+  return &osl_globals;
+#  else
+  return NULL;
+#  endif
 }
 
 /* --------------------------------------------------------------------
@@ -1553,7 +1844,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       size_t num_motion_steps = 1;
       Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (motion_blur && hair->get_use_motion_blur() && motion_keys) {
+      if (pipeline_options.usesMotionBlur && hair->get_use_motion_blur() && motion_keys) {
         num_motion_steps = hair->get_motion_steps();
       }
 
@@ -1707,7 +1998,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       size_t num_motion_steps = 1;
       Attribute *motion_keys = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (motion_blur && mesh->get_use_motion_blur() && motion_keys) {
+      if (pipeline_options.usesMotionBlur && mesh->get_use_motion_blur() && motion_keys) {
         num_motion_steps = mesh->get_motion_steps();
       }
 
@@ -1774,7 +2065,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       size_t num_motion_steps = 1;
       Attribute *motion_points = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (motion_blur && pointcloud->get_use_motion_blur() && motion_points) {
+      if (pipeline_options.usesMotionBlur && pointcloud->get_use_motion_blur() && motion_points) {
         num_motion_steps = pointcloud->get_motion_steps();
       }
 
@@ -1871,7 +2162,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
     /* Calculate total motion transform size and allocate memory for them. */
     size_t motion_transform_offset = 0;
-    if (motion_blur) {
+    if (pipeline_options.usesMotionBlur) {
       size_t total_motion_transform_size = 0;
       for (Object *const ob : bvh->objects) {
         if (ob->is_traceable() && ob->use_motion()) {
@@ -1922,7 +2213,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       if (ob->get_geometry()->geometry_type == Geometry::HAIR &&
           static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
-        if (motion_blur && ob->get_geometry()->has_motion_blur()) {
+        if (pipeline_options.usesMotionBlur && ob->get_geometry()->has_motion_blur()) {
           /* Select between motion blur and non-motion blur built-in intersection module. */
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;
         }
@@ -1950,7 +2241,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
 
       /* Insert motion traversable if object has motion. */
-      if (motion_blur && ob->use_motion()) {
+      if (pipeline_options.usesMotionBlur && ob->use_motion()) {
         size_t motion_keys = max(ob->get_motion().size(), (size_t)2) - 2;
         size_t motion_transform_size = sizeof(OptixSRTMotionTransform) +
                                        motion_keys * sizeof(OptixSRTData);

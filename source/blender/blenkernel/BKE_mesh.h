@@ -307,8 +307,6 @@ void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
-
 void BKE_mesh_mselect_clear(struct Mesh *me);
 void BKE_mesh_mselect_validate(struct Mesh *me);
 /**
@@ -496,15 +494,6 @@ void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
                                    const struct MLoopTri *looptri,
                                    int looptri_num,
                                    float (*r_tri_nors)[3]);
-void BKE_mesh_loop_manifold_fan_around_vert_next(const struct MLoop *mloops,
-                                                 const struct MPoly *mpolys,
-                                                 const int *loop_to_poly,
-                                                 const int *e2lfan_curr,
-                                                 uint mv_pivot_index,
-                                                 const struct MLoop **r_mlfan_curr,
-                                                 int *r_mlfan_curr_index,
-                                                 int *r_mlfan_vert_index,
-                                                 int *r_mpfan_curr_index);
 
 /**
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
@@ -632,6 +621,8 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
  * (splitting edges).
+ *
+ * \param loop_to_poly_map: Optional pre-created map from loops to their polygon.
  */
 void BKE_mesh_normals_loop_split(const struct MVert *mverts,
                                  const float (*vert_normals)[3],
@@ -646,9 +637,9 @@ void BKE_mesh_normals_loop_split(const struct MVert *mverts,
                                  int numPolys,
                                  bool use_split_normals,
                                  float split_angle,
+                                 const int *loop_to_poly_map,
                                  MLoopNorSpaceArray *r_lnors_spacearr,
-                                 short (*clnors_data)[2],
-                                 int *r_loop_to_poly);
+                                 short (*clnors_data)[2]);
 
 void BKE_mesh_normals_loop_custom_set(const struct MVert *mverts,
                                       const float (*vert_normals)[3],
@@ -974,11 +965,6 @@ void BKE_mesh_strip_loose_faces(struct Mesh *me);
 void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
-/**
- * If the mesh is from a very old blender version,
- * convert #MFace.edcode to edge #ME_EDGEDRAW.
- */
-void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 /**
  * Calculate edges from polygons.

@@ -167,7 +167,7 @@ void set_active_fmodifier(ListBase *modifiers, struct FModifier *fcm);
  * \param mtype: Type of modifier (if 0, doesn't matter).
  * \param acttype: Type of action to perform (if -1, doesn't matter).
  */
-bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
+bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short acttype);
 
 typedef struct FModifiersStackStorage {
   uint modifier_count;
@@ -369,12 +369,12 @@ int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
  * Calculate the extents of F-Curve's keyframes.
  */
 bool BKE_fcurve_calc_range(
-    struct FCurve *fcu, float *min, float *max, bool do_sel_only, bool do_min_length);
+    const struct FCurve *fcu, float *min, float *max, bool do_sel_only, bool do_min_length);
 
 /**
  * Calculate the extents of F-Curve's data.
  */
-bool BKE_fcurve_calc_bounds(struct FCurve *fcu,
+bool BKE_fcurve_calc_bounds(const struct FCurve *fcu,
                             float *xmin,
                             float *xmax,
                             float *ymin,
@@ -421,20 +421,25 @@ void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, flo
  * Usability of keyframes refers to whether they should be displayed,
  * and also whether they will have any influence on the final result.
  */
-bool BKE_fcurve_are_keyframes_usable(struct FCurve *fcu);
+bool BKE_fcurve_are_keyframes_usable(const struct FCurve *fcu);
 
 /**
  * Can keyframes be added to F-Curve?
  * Keyframes can only be added if they are already visible.
  */
-bool BKE_fcurve_is_keyframable(struct FCurve *fcu);
-bool BKE_fcurve_is_protected(struct FCurve *fcu);
+bool BKE_fcurve_is_keyframable(const struct FCurve *fcu);
+bool BKE_fcurve_is_protected(const struct FCurve *fcu);
+
+/**
+ * Are any of the keyframe control points selected on the F-Curve?
+ */
+bool BKE_fcurve_has_selected_control_points(const struct FCurve *fcu);
 
 /**
  * Checks if the F-Curve has a Cycles modifier with simple settings
  * that warrant transition smoothing.
  */
-bool BKE_fcurve_is_cyclic(struct FCurve *fcu);
+bool BKE_fcurve_is_cyclic(const struct FCurve *fcu);
 
 /* Type of infinite cycle for a curve. */
 typedef enum eFCU_Cycle_Type {
@@ -448,7 +453,7 @@ typedef enum eFCU_Cycle_Type {
 /**
  * Checks if the F-Curve has a Cycles modifier, and returns the type of the cycle behavior.
  */
-eFCU_Cycle_Type BKE_fcurve_get_cycle_type(struct FCurve *fcu);
+eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const struct FCurve *fcu);
 
 /**
  * Recompute bezier handles of all three given BezTriples, so that `bezt` can be inserted between
@@ -539,7 +544,7 @@ float evaluate_fcurve_driver(struct PathResolvedRNA *anim_rna,
 /**
  * Checks if the curve has valid keys, drivers or modifiers that produce an actual curve.
  */
-bool BKE_fcurve_is_empty(struct FCurve *fcu);
+bool BKE_fcurve_is_empty(const struct FCurve *fcu);
 /**
  * Calculate the value of the given F-Curve at the given frame,
  * and store it's value in #FCurve.curval.

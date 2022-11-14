@@ -7,6 +7,7 @@
 
 #include "BLI_math.h"
 #include "BLI_sort.h"
+#include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -3118,7 +3119,7 @@ static Py_ssize_t bpy_bmelemseq_length(BPy_BMElemSeq *self)
   }
 }
 
-static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, int keynum)
+static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, Py_ssize_t keynum)
 {
   BPY_BM_CHECK_OBJ(self);
 
@@ -3313,31 +3314,30 @@ static int bpy_bmelem_ass_subscript(BPy_BMElem *self, BPy_BMLayerItem *key, PyOb
 }
 
 static PySequenceMethods bpy_bmelemseq_as_sequence = {
-    (lenfunc)bpy_bmelemseq_length, /* sq_length */
-    NULL,                          /* sq_concat */
-    NULL,                          /* sq_repeat */
-    (ssizeargfunc)bpy_bmelemseq_subscript_int,
-    /* sq_item */                       /* Only set this so PySequence_Check() returns True */
-    NULL,                               /* sq_slice */
-    (ssizeobjargproc)NULL,              /* sq_ass_item */
-    NULL,                               /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmelemseq_contains, /* sq_contains */
-    (binaryfunc)NULL,                   /* sq_inplace_concat */
-    (ssizeargfunc)NULL,                 /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)bpy_bmelemseq_length,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /* Only set this so `PySequence_Check()` returns True. */
+    /*sq_item*/ (ssizeargfunc)bpy_bmelemseq_subscript_int,
+    /*was_sq_slice*/ NULL,
+    /*sq_ass_item*/ NULL,
+    /*was_sq_ass_slice*/ NULL,
+    /*sq_contains*/ (objobjproc)bpy_bmelemseq_contains,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    (lenfunc)bpy_bmelemseq_length,       /* mp_length */
-    (binaryfunc)bpy_bmelemseq_subscript, /* mp_subscript */
-    (objobjargproc)NULL,                 /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)bpy_bmelemseq_length,
+    /*mp_subscript*/ (binaryfunc)bpy_bmelemseq_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* for customdata access */
 static PyMappingMethods bpy_bm_elem_as_mapping = {
-    (lenfunc)NULL,
-    /* mp_length */                          /* keep this empty, messes up 'if elem: ...' test */
-    (binaryfunc)bpy_bmelem_subscript,        /* mp_subscript */
-    (objobjargproc)bpy_bmelem_ass_subscript, /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
+    /*mp_subscript*/ (binaryfunc)bpy_bmelem_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)bpy_bmelem_ass_subscript,
 };
 
 /* Iterator
@@ -3736,14 +3736,14 @@ void BPy_BM_init_types(void)
 
 static struct PyModuleDef BPy_BM_types_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bmesh.types", /* m_name */
-    NULL,          /* m_doc */
-    0,             /* m_size */
-    NULL,          /* m_methods */
-    NULL,          /* m_slots */
-    NULL,          /* m_traverse */
-    NULL,          /* m_clear */
-    NULL,          /* m_free */
+    /*m_name*/ "bmesh.types",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_bmesh_types(void)
@@ -4247,16 +4247,16 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
   /* zero to ensure string is always NULL terminated */
   char *ret_ptr = ret;
   if (htype & BM_VERT) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
   }
   if (htype & BM_EDGE) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
   }
   if (htype & BM_FACE) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
   }
   if (htype & BM_LOOP) {
-    ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
+    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
   }
   ret[0] = '(';
   *ret_ptr++ = ')';

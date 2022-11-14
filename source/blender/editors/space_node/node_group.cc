@@ -14,6 +14,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 #include "BLI_vector.hh"
@@ -735,6 +736,74 @@ static int node_get_selected_minmax(
   return totselect;
 }
 
+/**
+ * Redirect a link that are connecting a non-selected node to selected one.
+ * Create new socket or reuse an existing one that was connected from the same input.
+ * The output sockets of group nodes usually have consciously given names so they have
+ * precedence over socket names the link points to.
+ *
+ * \param ntree: The node tree that the node group is being created from.
+ * \param ngroup: The node tree of the new node group.
+ * \param gnode: The new group node in the original tree.
+ * \param input_node: The input node of the new node group.
+ * \param link: The incoming link that needs to be altered.
+ * \param reusable_sockets: Map for input socket interface lookup.
+ */
+static void node_group_make_redirect_incoming_link(
+    bNodeTree &ntree,
+    bNodeTree *ngroup,
+    bNode *gnode,
+    bNode *input_node,
+    bNodeLink *link,
+    Map<bNodeSocket *, bNodeSocket *> &reusable_sockets)
+{
+  bNodeSocket *input_socket = reusable_sockets.lookup_default(link->fromsock, nullptr);
+  if (input_socket) {
+    /* The incoming link is from a socket that has already been linked to
+     * a socket interface of the input node.
+     * Change the source of the link to the previously created socket interface.
+     * Move the link into the node tree of the new group. */
+    link->fromnode = input_node;
+    link->fromsock = input_socket;
+    BLI_remlink(&ntree.links, link);
+    BLI_addtail(&ngroup->links, link);
+  }
+  else {
+    bNode *node_for_typeinfo = nullptr;
+    bNodeSocket *socket_for_typeinfo = nullptr;
+    /* Find a socket where typeinfo and name may come from. */
+    node_socket_skip_reroutes(
+        &ntree.links, link->tonode, link->tosock, &node_for_typeinfo, &socket_for_typeinfo);
+    bNodeSocket *socket_for_naming = socket_for_typeinfo;
+
+    /* Use the name of group node output sockets. */
+    if (ELEM(link->fromnode->type, NODE_GROUP_INPUT, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+      socket_for_naming = link->fromsock;
+    }
+
+    bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocketWithName(ngroup,
+                                                                    node_for_typeinfo,
+                                                                    socket_for_typeinfo,
+                                                                    socket_for_naming->idname,
+                                                                    socket_for_naming->name);
+
+    /* Update the group node and interface sockets so the new interface socket can be linked. */
+    node_group_update(&ntree, gnode);
+    node_group_input_update(ngroup, input_node);
+
+    /* Create new internal link. */
+    bNodeSocket *input_sock = node_group_input_find_socket(input_node, iosock->identifier);
+    nodeAddLink(ngroup, input_node, input_sock, link->tonode, link->tosock);
+
+    /* Redirect external link. */
+    link->tonode = gnode;
+    link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
+
+    /* Remember which interface socket the link has been redirected to. */
+    reusable_sockets.add_new(link->fromsock, input_sock);
+  }
+}
+
 static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree, bNode *gnode)
 {
   Main *bmain = CTX_data_main(&C);
@@ -834,6 +903,10 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
   output_node->locy = -offsety;
 
   /* relink external sockets */
+
+  /* A map from link sources to input sockets already connected. */
+  Map<bNodeSocket *, bNodeSocket *> reusable_sockets;
+
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
     const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
     const bool toselect = node_group_make_use_node(*link->tonode, gnode);
@@ -851,24 +924,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
         continue;
       }
 
-      bNodeSocket *link_sock;
-      bNode *link_node;
-      node_socket_skip_reroutes(&ntree.links, link->tonode, link->tosock, &link_node, &link_sock);
-      bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
-
-      /* update the group node and interface node sockets,
-       * so the new interface socket can be linked.
-       */
-      node_group_update(&ntree, gnode);
-      node_group_input_update(ngroup, input_node);
-
-      /* create new internal link */
-      bNodeSocket *input_sock = node_group_input_find_socket(input_node, iosock->identifier);
-      nodeAddLink(ngroup, input_node, input_sock, link->tonode, link->tosock);
-
-      /* redirect external link */
-      link->tonode = gnode;
-      link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
+      node_group_make_redirect_incoming_link(
+          ntree, ngroup, gnode, input_node, link, reusable_sockets);
     }
     else if (fromselect && !toselect) {
       /* Remove hidden links to not create unconnected sockets in the interface. */

@@ -206,7 +206,9 @@ template<typename T> uint64_t hash_cb(const void *value)
 namespace blender {
 
 template<typename T, CPPTypeFlags Flags>
-CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
+CPPType::CPPType(TypeTag<T> /*type*/,
+                 TypeForValue<CPPTypeFlags, Flags> /*flags*/,
+                 const StringRef debug_name)
 {
   using namespace cpp_type_util;
 
@@ -278,9 +280,15 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
 
 }  // namespace blender
 
-#define BLI_CPP_TYPE_MAKE(IDENTIFIER, TYPE_NAME, FLAGS) \
+/** Create a new #CPPType that can be accessed through `CPPType::get<T>()`. */
+#define BLI_CPP_TYPE_MAKE(TYPE_NAME, FLAGS) \
   template<> const blender::CPPType &blender::CPPType::get_impl<TYPE_NAME>() \
   { \
-    static CPPType cpp_type{blender::CPPTypeParam<TYPE_NAME, FLAGS>(), STRINGIFY(IDENTIFIER)}; \
-    return cpp_type; \
+    static CPPType type{blender::TypeTag<TYPE_NAME>(), \
+                        TypeForValue<CPPTypeFlags, FLAGS>(), \
+                        STRINGIFY(TYPE_NAME)}; \
+    return type; \
   }
+
+/** Register a #CPPType created with #BLI_CPP_TYPE_MAKE. */
+#define BLI_CPP_TYPE_REGISTER(TYPE_NAME) blender::CPPType::get<TYPE_NAME>()
