@@ -80,6 +80,7 @@ class View {
   bool is_inverted(int view_id = 0) const
   {
     BLI_assert(view_id < view_len_);
+    UNUSED_VARS_NDEBUG(view_id);
     return is_inverted_;
   }
 
