@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 #include "BKE_nla.h"
@@ -286,20 +287,35 @@ static void nlaedit_strip_at_region_position(
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
    * (that is the size of keyframe icons, so user should be expecting similar tolerances)
    */
-  float xmin = UI_view2d_region_to_view_x(v2d, region_x - 7);
-  float xmax = UI_view2d_region_to_view_x(v2d, region_x + 7);
+  const float mouse_x = UI_view2d_region_to_view_x(v2d, region_x);
+  const float xmin = UI_view2d_region_to_view_x(v2d, region_x - 7);
+  const float xmax = UI_view2d_region_to_view_x(v2d, region_x + 7);
 
   bAnimListElem *ale = BLI_findlink(&anim_data, channel_index);
   if (ale != NULL) {
     if (ale->type == ANIMTYPE_NLATRACK) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
+      float best_distance = MAXFRAMEF;
 
       LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
+          const float distance = BKE_nlastrip_distance_to_frame(strip, mouse_x);
+
+          /* Skip if strip is further away from mouse cursor than any previous strip. */
+          if (distance > best_distance) {
+            continue;
+          }
+
           *r_ale = ale;
           *r_strip = strip;
+          best_distance = distance;
 
           BLI_remlink(&anim_data, ale);
+
+          /* Mouse cursor was directly on strip, no need to check other strips. */
+          if (distance == 0.0f) {
+            break;
+          }
         }
       }
     }
