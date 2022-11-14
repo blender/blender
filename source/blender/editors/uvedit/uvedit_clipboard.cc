@@ -281,9 +281,10 @@ static int uv_copy_exec(bContext *C, wmOperator * /*op*/)
     const bool use_seams = false;
     UvElementMap *element_map = BM_uv_element_map_create(
         em->bm, scene, true, false, use_seams, true);
-
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-    uv_clipboard->append(element_map, cd_loop_uv_offset);
+    if (element_map) {
+      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+      uv_clipboard->append(element_map, cd_loop_uv_offset);
+    }
     BM_uv_element_map_free(element_map);
   }
 
@@ -316,6 +317,10 @@ static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
 
     UvElementMap *dest_element_map = BM_uv_element_map_create(
         em->bm, scene, true, false, use_seams, true);
+
+    if (!dest_element_map) {
+      continue;
+    }
 
     for (int i = 0; i < dest_element_map->total_islands; i++) {
       blender::Vector<int> label;
