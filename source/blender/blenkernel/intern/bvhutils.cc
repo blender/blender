@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 using blender::BitVector;
+using blender::IndexRange;
 using blender::Span;
 using blender::VArray;
 
@@ -1134,23 +1135,21 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
   return tree;
 }
 
-static BitVector<> loose_verts_map_get(const MEdge *medge,
-                                       int edges_num,
-                                       const MVert * /*mvert*/,
+static BitVector<> loose_verts_map_get(const Span<MEdge> edges,
                                        int verts_num,
                                        int *r_loose_vert_num)
 {
   BitVector<> loose_verts_mask(verts_num, true);
 
-  const MEdge *e = medge;
   int num_linked_verts = 0;
-  for (; edges_num--; e++) {
-    if (loose_verts_mask[e->v1]) {
-      loose_verts_mask[e->v1].reset();
+  for (const int64_t i : edges.index_range()) {
+    const MEdge &edge = edges[i];
+    if (loose_verts_mask[edge.v1]) {
+      loose_verts_mask[edge.v1].reset();
       num_linked_verts++;
     }
-    if (loose_verts_mask[e->v2]) {
-      loose_verts_mask[e->v2].reset();
+    if (loose_verts_mask[edge.v2]) {
+      loose_verts_mask[edge.v2].reset();
       num_linked_verts++;
     }
   }
@@ -1160,16 +1159,14 @@ static BitVector<> loose_verts_map_get(const MEdge *medge,
   return loose_verts_mask;
 }
 
-static BitVector<> loose_edges_map_get(const MEdge *medge,
-                                       const int edges_len,
-                                       int *r_loose_edge_len)
+static BitVector<> loose_edges_map_get(const Span<MEdge> edges, int *r_loose_edge_len)
 {
-  BitVector<> loose_edges_mask(edges_len);
+  BitVector<> loose_edges_mask(edges.size());
 
   int loose_edges_len = 0;
-  const MEdge *e = medge;
-  for (int i = 0; i < edges_len; i++, e++) {
-    if (e->flag & ME_LOOSEEDGE) {
+  for (const int64_t i : edges.index_range()) {
+    const MEdge &edge = edges[i];
+    if (edge.flag & ME_LOOSEEDGE) {
       loose_edges_mask[i].set();
       loose_edges_len++;
     }
@@ -1180,7 +1177,7 @@ static BitVector<> loose_edges_map_get(const MEdge *medge,
   return loose_edges_mask;
 }
 
-static BitVector<> looptri_no_hidden_map_get(const MPoly *mpoly,
+static BitVector<> looptri_no_hidden_map_get(const Span<MPoly> polys,
                                              const VArray<bool> &hide_poly,
                                              const int looptri_len,
                                              int *r_looptri_active_len)
@@ -1191,21 +1188,19 @@ static BitVector<> looptri_no_hidden_map_get(const MPoly *mpoly,
   BitVector<> looptri_mask(looptri_len);
 
   int looptri_no_hidden_len = 0;
-  int looptri_iter = 0;
-  int i_poly = 0;
-  while (looptri_iter != looptri_len) {
-    int mp_totlooptri = mpoly[i_poly].totloop - 2;
-    if (hide_poly[i_poly]) {
-      looptri_iter += mp_totlooptri;
+  int looptri_index = 0;
+  for (const int64_t i : polys.index_range()) {
+    const int triangles_num = ME_POLY_TRI_TOT(&polys[i]);
+    if (hide_poly[i]) {
+      looptri_index += triangles_num;
     }
     else {
-      while (mp_totlooptri--) {
-        looptri_mask[looptri_iter].set();
-        looptri_iter++;
+      for (const int i : IndexRange(triangles_num)) {
+        looptri_mask[looptri_index].set();
+        looptri_index++;
         looptri_no_hidden_len++;
       }
     }
-    i_poly++;
   }
 
   *r_looptri_active_len = looptri_no_hidden_len;
@@ -1231,17 +1226,15 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   const Span<MLoop> loops = mesh->loops();
 
   /* Setup BVHTreeFromMesh */
-  {
-    SCOPED_TIMER_AVERAGED(__func__);
-    bvhtree_from_mesh_setup_data(nullptr,
-                                 bvh_cache_type,
-                                 verts.data(),
-                                 edges.data(),
-                                 (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
-                                 loops.data(),
-                                 looptri,
-                                 data);
-  }
+  bvhtree_from_mesh_setup_data(nullptr,
+                               bvh_cache_type,
+                               verts.data(),
+                               edges.data(),
+                               (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
+                               loops.data(),
+                               looptri,
+                               data);
+
   bool lock_started = false;
   data->cached = bvhcache_find(
       bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, &mesh->runtime->eval_mutex);
@@ -1259,8 +1252,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_LOOSEVERTS:
-      mask = loose_verts_map_get(
-          edges.data(), mesh->totedge, verts.data(), mesh->totvert, &mask_bits_act_len);
+      mask = loose_verts_map_get(edges, mesh->totvert, &mask_bits_act_len);
       ATTR_FALLTHROUGH;
     case BVHTREE_FROM_VERTS:
       data->tree = bvhtree_from_mesh_verts_create_tree(
@@ -1268,7 +1260,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       break;
 
     case BVHTREE_FROM_LOOSEEDGES:
-      mask = loose_edges_map_get(edges.data(), mesh->totedge, &mask_bits_act_len);
+      mask = loose_edges_map_get(edges, &mask_bits_act_len);
       ATTR_FALLTHROUGH;
     case BVHTREE_FROM_EDGES:
       data->tree = bvhtree_from_mesh_edges_create_tree(
@@ -1291,7 +1283,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
     case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
       blender::bke::AttributeAccessor attributes = mesh->attributes();
       mask = looptri_no_hidden_map_get(
-          mesh->polys().data(),
+          mesh->polys(),
           attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
           looptri_len,
           &mask_bits_act_len);
