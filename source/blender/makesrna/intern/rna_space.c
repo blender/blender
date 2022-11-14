@@ -7764,6 +7764,17 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, pivot_items);
   RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+  /* Gizmo Toggles. */
+  prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCLIP_GIZMO_HIDE);
+  RNA_def_property_ui_text(prop, "Show Gizmo", "Show gizmos of all types");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+  prop = RNA_def_property(srna, "show_gizmo_navigate", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCLIP_GIZMO_HIDE_NAVIGATE);
+  RNA_def_property_ui_text(prop, "Navigate Gizmo", "Viewport navigation gizmo");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 }
 
 static void rna_def_spreadsheet_column_id(BlenderRNA *brna)
