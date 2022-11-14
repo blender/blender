@@ -620,11 +620,21 @@ void GPUCodegen::generate_graphs()
     std::stringstream eval_ss;
     eval_ss << "\n/* Generated Functions */\n\n";
     LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, func_link, &graph.material_functions) {
+      /* Untag every node in the graph to avoid serializing nodes from other functions */
+      LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
+        node->tag &= ~GPU_NODE_TAG_FUNCTION;
+      }
+      /* Tag only the nodes needed for the current function */
+      gpu_nodes_tag(func_link->outlink, GPU_NODE_TAG_FUNCTION);
       char *fn = graph_serialize(GPU_NODE_TAG_FUNCTION, func_link->outlink);
       eval_ss << "float " << func_link->name << "() {\n" << fn << "}\n\n";
       MEM_SAFE_FREE(fn);
     }
     output.material_functions = extract_c_str(eval_ss);
+    /* Leave the function tags as they were before serialization */
+    LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, funclink, &graph.material_functions) {
+      gpu_nodes_tag(funclink->outlink, GPU_NODE_TAG_FUNCTION);
+    }
   }
 
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
