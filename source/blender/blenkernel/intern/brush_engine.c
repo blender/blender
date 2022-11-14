@@ -638,71 +638,23 @@ void BKE_brush_channelset_free(BrushChannelSet *chset)
 
 static int _rng_seed = 0;
 
-void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch)
-{
-  BrushChannel *ch2;
-  int i = 1;
-  char idname[512];
-
-  strcpy(idname, ch->idname);
-  bool bad = true;
-
-  RNG *rng = BLI_rng_new(_rng_seed++);
-
-  while (bad) {
-    bad = false;
-
-    for (ch2 = chset->channels.first; ch2; ch2 = ch2->next) {
-      if (ch2 != ch && STREQ(ch2->idname, ch->idname)) {
-        bad = true;
-        sprintf(idname, "%s %d", ch->idname, i);
-
-        printf("%s: name collision: %s\n", __func__, idname);
-
-        if (strlen(idname) > sizeof(ch->idname) - 1) {
-          // we've hit the limit of idname;
-          // start randomizing characters
-          printf(
-              "Cannot build unique name for brush channel; will have to randomize a few "
-              "characters\n");
-          printf("  requested idname: %s, ran out of buffer space at: %s\n", ch->idname, idname);
-
-          int j = BLI_rng_get_int(rng) % strlen(ch->idname);
-          int chr = (BLI_rng_get_int(rng) % ('a' - 'A')) + 'A';
-
-          i = 0;
-          ch->idname[j] = chr;
-          strcpy(idname, ch->idname);
-        }
-
-        i++;
-        break;
-      }
-    }
-  }
-
-  BLI_strncpy(ch->idname, idname, sizeof(ch->idname));
-
-  // BLI_strncpy
-  BLI_rng_free(rng);
-}
-
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
 {
-  BKE_brush_channel_ensure_unque_name(chset, ch);
+  BrushChannel *existing = BKE_brush_channelset_lookup(chset, ch->idname);
+
+  if (existing) {
+    printf("%s: channel %s already exists; removing existing.\n", __func__, ch->idname);
+
+    BLI_remlink(&chset->channels, existing);
+    BLI_ghash_remove(chset->channelmap, existing->idname, NULL, NULL);
+
+    BKE_brush_channel_free(existing);
+  }
 
   BLI_addtail(&chset->channels, ch);
   BLI_ghash_insert(chset->channelmap, ch->idname, ch);
 
   chset->totchannel++;
-}
-
-void BKE_brush_channel_rename(BrushChannelSet *chset, BrushChannel *ch, const char *newname)
-{
-  BLI_ghash_remove(chset->channelmap, ch->idname, NULL, NULL);
-  BLI_strncpy(ch->idname, newname, sizeof(ch->idname));
-  BKE_brush_channel_ensure_unque_name(chset, ch);
-  BLI_ghash_insert(chset->channelmap, ch->idname, ch);
 }
 
 void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch)
@@ -1117,7 +1069,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
           f2 = factor - f2;
           break;
         case MA_RAMP_DIFF:
-          f2 = fabsf(factor - f2);
+          f2 = fabs(factor - f2);
           break;
         default:
           printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",

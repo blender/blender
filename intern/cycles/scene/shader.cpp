@@ -395,15 +395,16 @@ ShaderManager::~ShaderManager()
 {
 }
 
-ShaderManager *ShaderManager::create(int shadingsystem)
+ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
 {
   ShaderManager *manager;
 
   (void)shadingsystem; /* Ignored when built without OSL. */
+  (void)device;
 
 #ifdef WITH_OSL
   if (shadingsystem == SHADINGSYSTEM_OSL) {
-    manager = new OSLShaderManager();
+    manager = new OSLShaderManager(device);
   }
   else
 #endif
@@ -720,6 +721,10 @@ uint ShaderManager::get_kernel_features(Scene *scene)
     if (shader->has_volume_connected) {
       kernel_features |= KERNEL_FEATURE_VOLUME;
     }
+  }
+
+  if (use_osl()) {
+    kernel_features |= KERNEL_FEATURE_OSL;
   }
 
   return kernel_features;

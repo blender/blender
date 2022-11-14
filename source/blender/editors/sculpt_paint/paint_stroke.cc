@@ -133,14 +133,14 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
     mval[2] = 0.0f;
 
     float3 loc(0.0, 0.0, 0.0);
-    mul_v3_m4v3(loc, ob->obmat, loc);
+    mul_v3_m4v3(loc, ob->object_to_world, loc);
 
     ED_view3d_win_to_3d(CTX_wm_view3d(C), CTX_wm_region(C), loc, mval, co);
 #  else
     float3 co = stroke->world_spline->evaluate(s);
 #  endif
 
-    mul_v3_m4v3(co, ob->obmat, co);
+    mul_v3_m4v3(co, ob->object_to_world, co);
     immVertex3fv(pos, co);
   }
   immEnd();
@@ -155,7 +155,7 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   immBegin(GPU_PRIM_POINTS, steps);
   for (int i = 0; i < steps; i++, s += ds) {
     float3 co = stroke->world_spline->evaluate(s);
-    mul_v3_m4v3(co, ob->obmat, co);
+    mul_v3_m4v3(co, ob->object_to_world, co);
 
     immVertex3fv(pos, co);
   }
@@ -169,7 +169,7 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
     float3 co = stroke->world_spline->evaluate(s);
     float3 dv2 = stroke->world_spline->derivative2(s);
 
-    mul_v3_m4v3(co, ob->obmat, co);
+    mul_v3_m4v3(co, ob->object_to_world, co);
 
     immVertex3fv(pos, co);
 
@@ -187,7 +187,7 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
     for (int i = 0; i < stroke->num_points; i++) {
       int idx = (i + stroke->cur_point) % stroke->num_points;
       float3 co = stroke->points[idx].location;
-      mul_v3_m4v3(co, ob->obmat, co);
+      mul_v3_m4v3(co, ob->object_to_world, co);
 
       immVertex3fv(pos, co);
     }
@@ -336,7 +336,7 @@ static bool paint_stroke_use_scene_spacing(ToolSettings *ts, Brush *brush, ePain
 
 static bool paint_tool_raycast_original(Brush *brush, ePaintMode UNUSED(mode))
 {
-  return brush->flag & BRUSH_ANCHORED;
+  return brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
 }
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
@@ -531,7 +531,7 @@ void paint_project_spline(bContext *C, StrokeCache *cache, PaintStroke *stroke)
       if (!SCULPT_stroke_get_location(C, bezier.ps[i], mvals[i], true)) {
         float loc[3];
 
-        mul_v3_m4v3(loc, ob->obmat, cache->true_location);
+        mul_v3_m4v3(loc, ob->object_to_world, cache->true_location);
 
         ED_view3d_win_to_3d(
             CTX_wm_view3d(C), CTX_wm_region(C), cache->true_location, mvals[i], bezier.ps[i]);
@@ -883,7 +883,7 @@ static void paint_brush_stroke_add_step(
     if (SCULPT_stroke_get_location(
             C, world_space_position, stroke->last_mouse_position, stroke->original)) {
       copy_v3_v3(stroke->last_world_space_position, world_space_position);
-      mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
+      mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
     }
     else {
       add_v3_v3(stroke->last_world_space_position, stroke->last_scene_spacing_delta);
@@ -1063,8 +1063,9 @@ static float paint_space_stroke_spacing(bContext *C,
   if (paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
-      mul_v3_m4v3(
-          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+      mul_v3_m4v3(last_object_space_position,
+                  stroke->vc.obact->world_to_object,
+                  stroke->last_world_space_position);
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
@@ -1187,7 +1188,7 @@ static float paint_space_get_final_size_intern(
     if (!BKE_brush_use_locked_size(scene, stroke->brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
       mul_v3_m4v3(
-          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+          last_object_space_position, stroke->vc.obact->world_to_object, stroke->last_world_space_position);
       size = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
@@ -1303,7 +1304,7 @@ static int paint_space_stroke(bContext *C,
   if (use_scene_spacing) {
     float world_space_position[3];
     bool hit = SCULPT_stroke_get_location(C, world_space_position, final_mouse, stroke->original);
-    mul_m4_v3(stroke->vc.obact->obmat, world_space_position);
+    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position);
     if (hit && stroke->stroke_over_mesh) {
       sub_v3_v3v3(d_world_space_position, world_space_position, stroke->last_world_space_position);
       length = len_v3(d_world_space_position);
@@ -1745,8 +1746,8 @@ static void paint_line_strokes_spacing(bContext *C,
         C, world_space_position_old, old_pos, stroke->original);
     bool hit_new = SCULPT_stroke_get_location(
         C, world_space_position_new, new_pos, stroke->original);
-    mul_m4_v3(stroke->vc.obact->obmat, world_space_position_old);
-    mul_m4_v3(stroke->vc.obact->obmat, world_space_position_new);
+    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position_old);
+    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position_new);
     if (hit_old && hit_new && stroke->stroke_over_mesh) {
       sub_v3_v3v3(d_world_space_position, world_space_position_new, world_space_position_old);
       length = len_v3(d_world_space_position);
@@ -1894,7 +1895,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
                   scene->toolsettings, br, BKE_paintmode_get_active_from_context(C))) {
             stroke->stroke_over_mesh = SCULPT_stroke_get_location(
                 C, stroke->last_world_space_position, data + 2 * j, stroke->original);
-            mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
+            mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
           }
 
           stroke->stroke_started = stroke->test_start(C, op, stroke->last_mouse_position);
@@ -2049,7 +2050,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     if (paint_stroke_use_scene_spacing(CTX_data_scene(C)->toolsettings, br, mode)) {
       stroke->stroke_over_mesh = SCULPT_stroke_get_location(
           C, stroke->last_world_space_position, sample_average.mouse, stroke->original);
-      mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
+      mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
     }
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
     BLI_assert((stroke->stroke_started & ~1) == 0); /* 0/1 */

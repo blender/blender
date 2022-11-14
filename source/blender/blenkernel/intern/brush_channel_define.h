@@ -178,10 +178,12 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
 
   MAKE_FLOAT(automasking_view_normal_limit, "View Limit", "", M_PI*0.5f, 0.0001f, M_PI)
   MAKE_FLOAT(automasking_view_normal_falloff, "View Falloff", "", 0.1, 0.0, 1.0)
+  MAKE_BOOL_EX(use_automasking_view_occlusion, "Occlusion", "Use ray casting for view automasking", false, BRUSH_CHANNEL_NO_MAPPINGS)
 
   MAKE_CURVE_EX(automasking_cavity_curve,"Cavity Curve","Falloff curve",BRUSH_CURVE_LIN, 0, true)
 
   MAKE_BOOL_EX(automasking_use_original_normal, "Original Normal", "Use original normal for automasking", true, BRUSH_CHANNEL_NO_MAPPINGS)
+  MAKE_BOOL_EX(use_automasking_custom_cavity_curve, "Custom Curve", "Use custom curve for cavity masking", false, BRUSH_CHANNEL_NO_MAPPINGS)
 
   MAKE_BOOL_EX(dyntopo_disabled,"Disable Dyntopo","",false,BRUSH_CHANNEL_NO_MAPPINGS)
   MAKE_FLAGS_EX(dyntopo_mode,"Dyntopo Operators","",DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP | DYNTOPO_SUBDIVIDE,BRUSH_CHANNEL_INHERIT,{\

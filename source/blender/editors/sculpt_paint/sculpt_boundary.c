@@ -1207,7 +1207,7 @@ Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, char *name)
 
   copy_v3_v3(ob->loc, actob->loc);
   copy_v3_v3(ob->rot, actob->rot);
-  BKE_object_to_mat4(ob, ob->obmat);
+  BKE_object_to_mat4(ob, ob->object_to_world);
 
   DEG_id_type_tag(bmain, ID_OB);
   DEG_relations_tag_update(bmain);

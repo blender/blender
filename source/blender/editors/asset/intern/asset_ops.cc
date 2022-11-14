@@ -860,7 +860,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
   }
 
   char file_path[PATH_MAX];
-  BLI_join_dirfile(file_path, sizeof(file_path), lib->path, blend_filename);
+  BLI_path_join(file_path, sizeof(file_path), lib->path, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 
   return true;

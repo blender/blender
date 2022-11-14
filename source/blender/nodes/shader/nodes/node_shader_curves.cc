@@ -12,7 +12,12 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Fac"))
+      .no_muted_links()
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Vector")).min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>(N_("Vector"));
 }
@@ -111,10 +116,10 @@ void register_node_type_sh_curve_vec()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_curve_vec_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_vec);
+  ntype.initfunc = file_ns::node_shader_init_curve_vec;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_vec);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_vec;
   ntype.build_multi_function = file_ns::sh_node_curve_vec_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -127,7 +132,12 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Fac"))
+      .no_muted_links()
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
 }
@@ -253,10 +263,10 @@ void register_node_type_sh_curve_rgb()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_curve_rgb_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_rgb);
+  ntype.initfunc = file_ns::node_shader_init_curve_rgb;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_rgb);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_rgb;
   ntype.build_multi_function = file_ns::sh_node_curve_rgb_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -270,6 +280,7 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("Factor"))
+      .no_muted_links()
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
@@ -372,10 +383,10 @@ void register_node_type_sh_curve_float()
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_curve_float_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_curve_float);
+  ntype.initfunc = file_ns::node_shader_init_curve_float;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_gpu(&ntype, file_ns::gpu_shader_curve_float);
+  ntype.gpu_fn = file_ns::gpu_shader_curve_float;
   ntype.build_multi_function = file_ns::sh_node_curve_float_build_multi_function;
 
   nodeRegisterType(&ntype);

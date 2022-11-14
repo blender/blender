@@ -62,7 +62,7 @@ static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 
     td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransCrease");
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* create data we need */
@@ -125,5 +125,5 @@ TransConvertTypeInfo TransConvertType_MeshEdge = {
     /* flags */ T_EDIT,
     /* createTransData */ createTransEdge,
     /* recalcData */ recalcData_mesh_edge,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /* special_aftertrans_update */ NULL,
 };

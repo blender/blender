@@ -139,6 +139,9 @@ static void gather_point_attributes_to_interpolate(
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           return true;
         }
+        if (meta_data.data_type == CD_PROP_STRING) {
+          return true;
+        }
         if (!interpolate_attribute_to_curves(id, dst_curves.curve_type_counts())) {
           return true;
         }

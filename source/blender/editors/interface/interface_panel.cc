@@ -1112,7 +1112,8 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
                     0.7f,
                     0.0f,
                     title_color,
-                    false);
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 
@@ -1140,7 +1141,8 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
                     1.0f,
                     0.0f,
                     title_color,
-                    false);
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 
@@ -2024,7 +2026,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
                           ui_panel_drag_collapse_handler,
                           ui_panel_drag_collapse_handler_remove,
                           dragcol_data,
-                          0);
+                          eWM_EventHandlerFlag(0));
 }
 
 /**
@@ -2508,8 +2510,12 @@ static void panel_handle_data_ensure(const bContext *C,
 {
   if (panel->activedata == nullptr) {
     panel->activedata = MEM_callocN(sizeof(uiHandlePanelData), __func__);
-    WM_event_add_ui_handler(
-        C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, 0);
+    WM_event_add_ui_handler(C,
+                            &win->modalhandlers,
+                            ui_handler_panel,
+                            ui_handler_remove_panel,
+                            panel,
+                            eWM_EventHandlerFlag(0));
   }
 
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);

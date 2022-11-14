@@ -89,14 +89,16 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
   AutomaskingNodeData automask_data;
 
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
-  SCULPT_automasking_node_begin(data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float fade = vd.mask ? *vd.mask : 0.0f;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
+    fade *= SCULPT_automasking_factor_get(
+        ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -108,7 +110,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
     float symm_co[3];
     copy_v3_v3(symm_co, vd.co);
 
-    mul_v3_m4v3(world_co, data->ob->obmat, symm_co);
+    mul_v3_m4v3(world_co, data->ob->object_to_world, symm_co);
     /* TOOD: Implement this again. */
     /* ED_view3d_project(gcontext->vc.region, world_co, projected_co); */
 

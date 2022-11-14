@@ -89,8 +89,8 @@ struct CompoJob {
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
   /* Jon system integration. */
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 };
 
@@ -166,7 +166,7 @@ static int compo_get_recalc_flags(const bContext *C)
 }
 
 /* called by compo, only to check job 'stop' value */
-static int compo_breakjob(void *cjv)
+static bool compo_breakjob(void *cjv)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
@@ -250,8 +250,8 @@ static void compo_progressjob(void *cjv, float progress)
 static void compo_startjob(void *cjv,
                            /* Cannot be const, this function implements wm_jobs_start_callback.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   CompoJob *cj = (CompoJob *)cjv;
@@ -502,6 +502,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
     }
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ma->nodetree->owner_id = &ma->id;
     BKE_ntree_update_main_tree(bmain, ma->nodetree, nullptr);
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
@@ -736,26 +737,7 @@ void ED_node_set_active(
          * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
         if (node->id != nullptr && GS(node->id->name) == ID_IM) {
           Image *image = (Image *)node->id;
-          wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-          LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-            const bScreen *screen = WM_window_get_active_screen(win);
-            LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-              LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-                if (sl->spacetype != SPACE_IMAGE) {
-                  continue;
-                }
-                SpaceImage *sima = (SpaceImage *)sl;
-                if (sima->pin) {
-                  continue;
-                }
-                if (sima->image &&
-                    ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-                  continue;
-                }
-                ED_space_image_set(bmain, sima, image, true);
-              }
-            }
-          }
+          ED_space_image_sync(bmain, image, true);
         }
 
         if (r_active_texture_changed) {
@@ -1361,12 +1343,15 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+  bool linked = RNA_boolean_get(op->ptr, "linked") || ((U.dupflag & USER_DUP_NTREE) == 0);
+  const bool dupli_node_tree = !linked;
   bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
+  Map<const ID *, ID *> duplicated_node_groups;
 
   bNode *lastnode = (bNode *)ntree->nodes.last;
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1374,6 +1359,18 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       bNode *new_node = bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
+
+      if (node->id && dupli_node_tree) {
+        ID *new_group = duplicated_node_groups.lookup_or_add_cb(node->id, [&]() {
+          ID *new_group = BKE_id_copy(bmain, node->id);
+          /* Remove user added by copying. */
+          id_us_min(new_group);
+          return new_group;
+        });
+        id_us_plus(new_group);
+        id_us_min(new_node->id);
+        new_node->id = new_group;
+      }
       changed = true;
     }
 
@@ -1462,6 +1459,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Duplicate Nodes";
   ot->description = "Duplicate selected nodes";
@@ -1476,6 +1475,13 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
+
+  prop = RNA_def_boolean(ot->srna,
+                         "linked",
+                         true,
+                         "Linked",
+                         "Duplicate node but not node trees, linking to the original data");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* XXX: some code needing updating to operators. */
@@ -2275,6 +2281,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
       newlink->tosock = socket_map.lookup(link->tosock);
       newlink->fromnode = node_map.lookup(link->fromnode);
       newlink->fromsock = socket_map.lookup(link->fromsock);
+      newlink->multi_input_socket_index = link->multi_input_socket_index;
 
       BKE_node_clipboard_add_link(newlink);
     }
@@ -2396,11 +2403,19 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, clipboard_links_lb) {
-    nodeAddLink(ntree,
-                node_map.lookup(link->fromnode),
-                socket_map.lookup(link->fromsock),
-                node_map.lookup(link->tonode),
-                socket_map.lookup(link->tosock));
+    bNodeLink *new_link = nodeAddLink(ntree,
+                                      node_map.lookup(link->fromnode),
+                                      socket_map.lookup(link->fromsock),
+                                      node_map.lookup(link->tonode),
+                                      socket_map.lookup(link->tosock));
+    new_link->multi_input_socket_index = link->multi_input_socket_index;
+  }
+
+  ntree->ensure_topology_cache();
+
+  for (bNode *new_node : node_map.values()) {
+    /* Update multi input socket indices in case all connected nodes weren't copied. */
+    update_multi_input_indices_for_removed_links(*new_node);
   }
 
   Main *bmain = CTX_data_main(C);

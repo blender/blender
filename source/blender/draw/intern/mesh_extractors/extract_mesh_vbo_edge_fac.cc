@@ -66,7 +66,7 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
      * We could have a flag in the mesh instead or check the modifier stack. */
     const MEdge *med = mr->medge;
     for (int e_index = 0; e_index < mr->edge_len; e_index++, med++) {
-      if ((med->flag & ME_EDGERENDER) == 0) {
+      if ((med->flag & ME_EDGEDRAW) == 0) {
         data->use_edge_render = true;
         break;
       }
@@ -118,7 +118,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
 
     if (data->use_edge_render) {
       const MEdge *med = &mr->medge[ml->e];
-      data->vbo_data[ml_index] = (med->flag & ME_EDGERENDER) ? 255 : 0;
+      data->vbo_data[ml_index] = (med->flag & ME_EDGEDRAW) ? 255 : 0;
     }
     else {
 

@@ -10,6 +10,7 @@
 #include "COM_MultilayerImageOperation.h"
 #include "COM_RenderLayersProg.h"
 #include "COM_SetAlphaMultiplyOperation.h"
+#include "COM_SetAlphaReplaceOperation.h"
 #include "COM_SetColorOperation.h"
 
 namespace blender::compositor {
@@ -48,7 +49,7 @@ void CryptomatteBaseNode::convert_to_operations(NodeConverter &converter,
   converter.map_output_socket(output_image_socket, apply_mask_operation->get_output_socket(0));
 
   NodeOutput *output_pick_socket = this->get_output_socket(2);
-  SetAlphaMultiplyOperation *extract_pick_operation = new SetAlphaMultiplyOperation();
+  SetAlphaReplaceOperation *extract_pick_operation = new SetAlphaReplaceOperation();
   converter.add_operation(extract_pick_operation);
   converter.add_input_value(extract_pick_operation->get_input_socket(1), 1.0f);
   converter.add_link(cryptomatte_operation->get_output_socket(0),

@@ -176,6 +176,8 @@ typedef enum {
   SCULPT_UNDO_COLOR = 1 << 8,
 } SculptUndoType;
 
+ENUM_OPERATORS(SculptUndoType, SCULPT_UNDO_COLOR);
+
 /* Storage of geometry for the undo node.
  * Is used as a storage for either original or modified geometry. */
 typedef struct SculptUndoNodeGeometry {
@@ -409,6 +411,7 @@ typedef struct SculptThreadedTaskData {
   bool use_curvature;
   float vel_smooth_fac;
   int iterations;
+  int iteration;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -417,7 +420,7 @@ typedef struct SculptBrushTest {
   float radius;
   float location[3];
   float dist;
-  int mirror_symmetry_pass;
+  ePaintSymmetryFlags mirror_symmetry_pass;
 
   int radial_symmetry_pass;
   float symm_rot_mat_inv[4][4];
@@ -488,7 +491,7 @@ typedef struct AutomaskingSettings {
 
   float cavity_factor;
   int cavity_blur_steps;
-  struct CurveMapping *cavity_curve;
+  struct BrushCurve *cavity_curve;
 
   float start_normal_limit, start_normal_falloff;
   float view_normal_limit, view_normal_falloff;
@@ -719,8 +722,9 @@ typedef struct StrokeCache {
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
-  int boundary_symmetry;    // controls splitting face sets by mirror axis
-  int mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
+  ePaintSymmetryFlags boundary_symmetry;  // controls splitting face sets by mirror axis
+  ePaintSymmetryFlags
+      mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
   float true_view_normal[3];
   float view_normal[3];
 
@@ -1039,6 +1043,7 @@ typedef struct SculptFaceSetDrawData {
   float *stroke_direction;
   float *next_stroke_direction;
   struct BrushChannel *curve_ch;
+  int iteration;
 } SculptFaceSetDrawData;
 
 enum eDynTopoWarnFlag {
@@ -1915,14 +1920,10 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
  * Used to calculate multiple modifications to the mesh when symmetry is enabled.
  */
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
-                                      const char symm,
+                                      ePaintSymmetryFlags symm,
                                       const char axis,
                                       const float angle);
 void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache);
-
-/* -------------------------------------------------------------------- */
-/** \name Sculpt Undo
- * \{ */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Undo

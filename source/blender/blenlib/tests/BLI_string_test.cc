@@ -515,6 +515,103 @@ TEST(string, StrFormatDecimalUnits)
   EXPECT_STREQ("-2.1B", size_str);
 }
 
+/* BLI_str_format_integer_unit */
+TEST(string, StrFormatIntegerUnits)
+{
+  char size_str[7];
+  int size;
+
+  BLI_str_format_integer_unit(size_str, size = 0);
+  EXPECT_STREQ("0", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1);
+  EXPECT_STREQ("1", size_str);
+  BLI_str_format_integer_unit(size_str, size = 10);
+  EXPECT_STREQ("10", size_str);
+  BLI_str_format_integer_unit(size_str, size = 15);
+  EXPECT_STREQ("15", size_str);
+  BLI_str_format_integer_unit(size_str, size = 100);
+  EXPECT_STREQ("100", size_str);
+  BLI_str_format_integer_unit(size_str, size = 155);
+  EXPECT_STREQ("155", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1000);
+  EXPECT_STREQ("1K", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1555);
+  EXPECT_STREQ("1K", size_str);
+  BLI_str_format_integer_unit(size_str, size = 10000);
+  EXPECT_STREQ("10K", size_str);
+  BLI_str_format_integer_unit(size_str, size = 15555);
+  EXPECT_STREQ("15K", size_str);
+  BLI_str_format_integer_unit(size_str, size = 100000);
+  EXPECT_STREQ(".1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 155555);
+  EXPECT_STREQ(".1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1000000);
+  EXPECT_STREQ("1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1555555);
+  EXPECT_STREQ("1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 2555555);
+  EXPECT_STREQ("2M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 10000000);
+  EXPECT_STREQ("10M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 15555555);
+  EXPECT_STREQ("15M", size_str);
+  BLI_str_format_integer_unit(size_str, size = 100000000);
+  EXPECT_STREQ(".1B", size_str);
+  BLI_str_format_integer_unit(size_str, size = 155555555);
+  EXPECT_STREQ(".1B", size_str);
+  BLI_str_format_integer_unit(size_str, size = 255555555);
+  EXPECT_STREQ(".2B", size_str);
+  BLI_str_format_integer_unit(size_str, size = 1000000000);
+  EXPECT_STREQ("1B", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_integer_unit(size_str, size = INT32_MAX);
+  EXPECT_STREQ("2B", size_str);
+
+  BLI_str_format_integer_unit(size_str, size = -0);
+  EXPECT_STREQ("0", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1);
+  EXPECT_STREQ("-1", size_str);
+  BLI_str_format_integer_unit(size_str, size = -10);
+  EXPECT_STREQ("-10", size_str);
+  BLI_str_format_integer_unit(size_str, size = -15);
+  EXPECT_STREQ("-15", size_str);
+  BLI_str_format_integer_unit(size_str, size = -100);
+  EXPECT_STREQ("-100", size_str);
+  BLI_str_format_integer_unit(size_str, size = -155);
+  EXPECT_STREQ("-155", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1000);
+  EXPECT_STREQ("-1K", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1555);
+  EXPECT_STREQ("-1K", size_str);
+  BLI_str_format_integer_unit(size_str, size = -10000);
+  EXPECT_STREQ("-10K", size_str);
+  BLI_str_format_integer_unit(size_str, size = -15555);
+  EXPECT_STREQ("-15K", size_str);
+  BLI_str_format_integer_unit(size_str, size = -100000);
+  EXPECT_STREQ("-.1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -155555);
+  EXPECT_STREQ("-.1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1000000);
+  EXPECT_STREQ("-1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1555555);
+  EXPECT_STREQ("-1M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -10000000);
+  EXPECT_STREQ("-10M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -15555555);
+  EXPECT_STREQ("-15M", size_str);
+  BLI_str_format_integer_unit(size_str, size = -100000000);
+  EXPECT_STREQ("-.1B", size_str);
+  BLI_str_format_integer_unit(size_str, size = -155555555);
+  EXPECT_STREQ("-.1B", size_str);
+  BLI_str_format_integer_unit(size_str, size = -1000000000);
+  EXPECT_STREQ("-1B", size_str);
+
+  /* Smallest possible value. */
+  BLI_str_format_integer_unit(size_str, size = -INT32_MAX);
+  EXPECT_STREQ("-2B", size_str);
+}
+
 struct WordInfo {
   WordInfo() = default;
   WordInfo(int start, int end) : start(start), end(end)

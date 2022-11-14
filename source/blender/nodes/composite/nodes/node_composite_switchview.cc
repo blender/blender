@@ -173,7 +173,7 @@ void register_node_type_cmp_switch_view()
   node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
   ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
-  node_type_update(&ntype, file_ns::cmp_node_switch_view_update);
+  ntype.updatefunc = file_ns::cmp_node_switch_view_update;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);

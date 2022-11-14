@@ -80,6 +80,7 @@ void DRW_batch_cache_free_old(struct Object *ob, int ctime);
  */
 void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
 void DRW_curves_batch_cache_free_old(struct Curves *curves, int ctime);
+void DRW_pointcloud_batch_cache_free_old(struct PointCloud *pointcloud, int ctime);
 
 /** \} */
 
@@ -131,7 +132,7 @@ int DRW_curves_material_count_get(struct Curves *curves);
  * \return A pointer to location where the texture will be
  * stored, which will be filled by #DRW_shgroup_curves_create_sub.
  */
-struct GPUTexture **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
+struct GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
                                                                const char *name,
                                                                bool *r_is_point_domain);
 
@@ -147,12 +148,11 @@ void DRW_curves_batch_cache_create_requested(struct Object *ob);
 
 int DRW_pointcloud_material_count_get(struct PointCloud *pointcloud);
 
+struct GPUVertBuf **DRW_pointcloud_evaluated_attribute(struct PointCloud *pointcloud,
+                                                       const char *name);
 struct GPUBatch *DRW_pointcloud_batch_cache_get_dots(struct Object *ob);
-struct GPUBatch *DRW_pointcloud_batch_cache_get_surface(struct Object *ob);
-struct GPUBatch *DRW_pointcloud_batch_cache_get_surface_viewer_attribute(struct Object *ob);
-struct GPUBatch **DRW_cache_pointcloud_surface_shaded_get(struct Object *ob,
-                                                          struct GPUMaterial **gpumat_array,
-                                                          uint gpumat_array_len);
+
+void DRW_pointcloud_batch_cache_create_requested(struct Object *ob);
 
 /** \} */
 

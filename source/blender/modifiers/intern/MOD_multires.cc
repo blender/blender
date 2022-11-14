@@ -230,7 +230,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if ((ctx->object->mode & OB_MODE_SCULPT) && !for_orco && !for_render && !sculpt_base_mesh) {
     /* NOTE: CCG takes ownership over Subdiv. */
     result = multires_as_ccg(mmd, ctx, mesh, subdiv);
-    result->runtime.subdiv_ccg_tot_level = mmd->totlvl;
+    result->runtime->subdiv_ccg_tot_level = mmd->totlvl;
     /* TODO(sergey): Usually it is sculpt stroke's update variants which
      * takes care of this, but is possible that we need this before the
      * stroke: i.e. when exiting blender right after stroke is done.
@@ -238,7 +238,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * surely there is a better way of solving this. */
     if (ctx->object->sculpt != nullptr) {
       SculptSession *sculpt_session = ctx->object->sculpt;
-      sculpt_session->subdiv_ccg = result->runtime.subdiv_ccg;
+      sculpt_session->subdiv_ccg = result->runtime->subdiv_ccg;
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
@@ -343,7 +343,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -406,7 +406,7 @@ static void subdivisions_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
 }
 
-static void shape_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -421,7 +421,7 @@ static void shape_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
 }
 
-static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col, *row;
   uiLayout *layout = panel->layout;
@@ -449,7 +449,7 @@ static void generate_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;

@@ -589,15 +589,27 @@ void ED_space_image_grid_steps(SpaceImage *sima,
                                float grid_steps_y[SI_GRID_STEPS_LEN],
                                const int grid_dimension)
 {
-  const int flag = sima->flag;
+  const eSpaceImage_GridShapeSource grid_shape_source = sima->grid_shape_source;
   for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-    if (flag & SI_CUSTOM_GRID) {
-      grid_steps_x[step] = 1.0f / sima->custom_grid_subdiv[0];
-      grid_steps_y[step] = 1.0f / sima->custom_grid_subdiv[1];
-    }
-    else {
-      grid_steps_x[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
-      grid_steps_y[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+    switch (grid_shape_source) {
+      case SI_GRID_SHAPE_DYNAMIC:
+        grid_steps_x[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+        grid_steps_y[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+        break;
+      case SI_GRID_SHAPE_FIXED:
+        grid_steps_x[step] = 1.0f / sima->custom_grid_subdiv[0];
+        grid_steps_y[step] = 1.0f / sima->custom_grid_subdiv[1];
+        break;
+      case SI_GRID_SHAPE_PIXEL: {
+        int pixel_width = IMG_SIZE_FALLBACK;
+        int pixel_height = IMG_SIZE_FALLBACK;
+        ED_space_image_get_size(sima, &pixel_width, &pixel_height);
+        BLI_assert(pixel_width > 0 && pixel_height > 0);
+        grid_steps_x[step] = 1.0f / pixel_width;
+        grid_steps_y[step] = 1.0f / pixel_height;
+      } break;
+      default:
+        BLI_assert_unreachable();
     }
   }
 }

@@ -8,9 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_array.h"
 #include "BLI_alloca.h"
+#include "BLI_array.h"
+#include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -24,6 +24,7 @@
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -331,15 +332,17 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
   ot->exec = sculpt_symmetrize_exec;
   ot->poll = sculpt_no_multires_poll;
 
-  RNA_def_float(ot->srna,
-                "merge_tolerance",
-                0.0002f,
-                0.0f,
-                FLT_MAX,
-                "Merge Distance",
-                "Distance within which symmetrical vertices are merged",
-                0.0f,
-                1.0f);
+  PropertyRNA *prop = RNA_def_float(ot->srna,
+                                    "merge_tolerance",
+                                    0.0005f,
+                                    0.0f,
+                                    FLT_MAX,
+                                    "Merge Distance",
+                                    "Distance within which symmetrical vertices are merged",
+                                    0.0f,
+                                    1.0f);
+
+  RNA_def_property_ui_range(prop, 0.0, FLT_MAX, 0.001, 5);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -424,11 +427,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     BKE_report(
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
-  else if (is_negative_m4(ob->obmat)) {
-    BKE_report(reports,
-               RPT_ERROR,
-               "Object has negative scale. \nSculpting may be unpredictable.\nApply scale in "
-               "object mode with Ctrl A->Scale.");
+  else if (is_negative_m4(ob->object_to_world)) {
+    BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);
@@ -790,7 +790,7 @@ static bool sculpt_sample_color_update_from_base(bContext *C,
   }
 
   float object_loc[3];
-  mul_v3_m4v3(object_loc, ob_eval->imat, global_loc);
+  mul_v3_m4v3(object_loc, ob_eval->world_to_object, global_loc);
 
   BVHTreeFromMesh bvh;
   BKE_bvhtree_from_mesh_get(&bvh, me_eval, BVHTREE_FROM_VERTS, 2);
@@ -1123,8 +1123,6 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
 {
   SculptSession *ss = object->sculpt;
 
-  BKE_sculpt_mask_layers_ensure(object, ss->multires.modifier);
-
   int totnode;
   PBVHNode **nodes;
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
@@ -1181,6 +1179,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   if (SCULPT_has_loop_colors(ob)) {
     BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
+
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, ss->multires.modifier);
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
@@ -1397,7 +1397,8 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
       int *boundflag = (int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
 
-      if (*boundflag & (SCULPT_CORNER_MESH, SCULPT_CORNER_FACE_SET, SCULPT_CORNER_SHARP, SCULPT_CORNER_SEAM)) {
+      if (*boundflag &
+          (SCULPT_CORNER_MESH, SCULPT_CORNER_FACE_SET, SCULPT_CORNER_SHARP, SCULPT_CORNER_SEAM)) {
         continue;
       }
 
@@ -1681,11 +1682,11 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
-
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
-  BKE_sculpt_mask_layers_ensure(ob, mmd);
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -1756,10 +1757,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-
-  /* Unlike other operators we do not tag the ID for update here;
-   * it triggers a PBVH rebuild which is too slow and ruins
-   * the interactivity of the tool. */
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1856,7 +1854,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "use_automask_settings",
                   false,
-                  "Use Automask Settings",
+                  "Automask Settings",
                   "Use default settings from Options panel in sculpt mode");
 
   RNA_def_float(ot->srna,
@@ -1864,7 +1862,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
                 0.5f,
                 0.0f,
                 5.0f,
-                "Cavity Factor",
+                "Factor",
                 "The contrast of the cavity mask",
                 0.0f,
                 1.0f);
@@ -1873,11 +1871,11 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
               2,
               0,
               25,
-              "Cavity Blur",
+              "Blur",
               "The number of times the cavity mask is blurred",
               0,
               25);
-  RNA_def_boolean(ot->srna, "use_curve", false, "Use Curve", "");
+  RNA_def_boolean(ot->srna, "use_curve", false, "Custom Curve", "");
 
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }

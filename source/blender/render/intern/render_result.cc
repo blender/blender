@@ -262,7 +262,7 @@ RenderResult *render_result_new(Render *re,
 
   render_result_views_new(rr, &re->r);
 
-  /* check renderdata for amount of layers */
+  /* Check render-data for amount of layers. */
   FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer) {
     if (layername && layername[0]) {
       if (!STREQ(view_layer->name, layername)) {
@@ -290,90 +290,8 @@ RenderResult *render_result_new(Render *re,
         }
       }
 
-#define RENDER_LAYER_ADD_PASS_SAFE(rr, rl, channels, name, viewname, chan_id) \
-  do { \
-    if (render_layer_add_pass(rr, rl, channels, name, viewname, chan_id, false) == nullptr) { \
-      render_result_free(rr); \
-      return nullptr; \
-    } \
-  } while (false)
-
       /* A render-layer should always have a "Combined" pass. */
       render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA", false);
-
-      if (view_layer->passflag & SCE_PASS_Z) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_Z, view, "Z");
-      }
-      if (view_layer->passflag & SCE_PASS_VECTOR) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_VECTOR, view, "XYZW");
-      }
-      if (view_layer->passflag & SCE_PASS_NORMAL) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_NORMAL, view, "XYZ");
-      }
-      if (view_layer->passflag & SCE_PASS_POSITION) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_POSITION, view, "XYZ");
-      }
-      if (view_layer->passflag & SCE_PASS_UV) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_UV, view, "UVA");
-      }
-      if (view_layer->passflag & SCE_PASS_EMIT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_EMIT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_AO) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_AO, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_ENVIRONMENT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_ENVIRONMENT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_SHADOW) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SHADOW, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_INDEXOB) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_INDEXOB, view, "X");
-      }
-      if (view_layer->passflag & SCE_PASS_INDEXMA) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_INDEXMA, view, "X");
-      }
-      if (view_layer->passflag & SCE_PASS_MIST) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_MIST, view, "Z");
-      }
-      if (view_layer->passflag & SCE_PASS_DIFFUSE_DIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_DIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_DIFFUSE_INDIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_INDIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_DIFFUSE_COLOR) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_COLOR, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_GLOSSY_DIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_DIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_GLOSSY_INDIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_INDIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_GLOSSY_COLOR) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_COLOR, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_TRANSM_DIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_DIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_TRANSM_INDIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_INDIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_TRANSM_COLOR) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_COLOR, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_SUBSURFACE_DIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_DIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_SUBSURFACE_INDIRECT) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_INDIRECT, view, "RGB");
-      }
-      if (view_layer->passflag & SCE_PASS_SUBSURFACE_COLOR) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_COLOR, view, "RGB");
-      }
-#undef RENDER_LAYER_ADD_PASS_SAFE
     }
   }
   FOREACH_VIEW_LAYER_TO_RENDER_END;
@@ -403,18 +321,13 @@ RenderResult *render_result_new(Render *re,
     rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 
-    re->active_view_layer = 0;
+    re->single_view_layer[0] = '\0';
   }
 
   /* Border render; calculate offset for use in compositor. compo is centralized coords. */
   /* XXX(ton): obsolete? I now use it for drawing border render offset. */
   rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
-
-  /* Preview does not support deferred render result allocation. */
-  if (re->r.scemode & R_BUTS_PREVIEW) {
-    render_result_passes_allocated_ensure(rr);
-  }
 
   return rr;
 }
@@ -855,8 +768,8 @@ void render_result_single_layer_end(Render *re)
 
     /* reconstruct render result layers */
     int nr = 0;
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->view_layers) {
-      if (nr == re->active_view_layer) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
+      if (STREQ(view_layer->name, re->single_view_layer)) {
         BLI_addtail(&re->result->layers, rl);
       }
       else {
@@ -962,7 +875,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
                sce->id.name + 2,
                path_hexdigest);
 
-  BLI_join_dirfile(r_path, FILE_CACHE_MAX, root, filename_full);
+  BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
   if (BLI_path_is_rel(r_path)) {
     BLI_path_abs(r_path, dirname);
   }

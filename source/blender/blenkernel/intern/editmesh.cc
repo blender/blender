@@ -189,7 +189,7 @@ struct CageUserData {
 static void cage_mapped_verts_callback(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no[3]))
+                                       const float /*no*/[3])
 {
   CageUserData *data = static_cast<CageUserData *>(userData);
 
@@ -240,12 +240,12 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
 
-  if ((me->runtime.edit_data != nullptr) && (me->runtime.edit_data->vertexCos != nullptr)) {
+  if ((me->runtime->edit_data != nullptr) && (me->runtime->edit_data->vertexCos != nullptr)) {
     /* Deformed, and we have deformed coords already. */
-    coords = me->runtime.edit_data->vertexCos;
+    coords = me->runtime->edit_data->vertexCos;
   }
   else if ((editmesh_eval_final != nullptr) &&
-           (editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
+           (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
     /* If this is an edit-mesh type, leave nullptr as we can use the vertex coords. */
   }
   else {

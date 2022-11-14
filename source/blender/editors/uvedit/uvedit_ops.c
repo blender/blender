@@ -37,6 +37,7 @@
 #include "BKE_node.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -110,10 +111,11 @@ bool ED_object_get_active_image(Object *ob,
                                 int mat_nr,
                                 Image **r_ima,
                                 ImageUser **r_iuser,
-                                bNode **r_node,
-                                bNodeTree **r_ntree)
+                                const bNode **r_node,
+                                const bNodeTree **r_ntree)
 {
-  Material *ma = BKE_object_material_get(ob, mat_nr);
+  Material *ma = DEG_is_evaluated_object(ob) ? BKE_object_material_get_eval(ob, mat_nr) :
+                                               BKE_object_material_get(ob, mat_nr);
   bNodeTree *ntree = (ma && ma->use_nodes) ? ma->nodetree : NULL;
   bNode *node = (ntree) ? nodeGetActiveTexture(ntree) : NULL;
 
@@ -2089,6 +2091,8 @@ void ED_operatortypes_uvedit(void)
 
   WM_operatortype_append(UV_OT_reveal);
   WM_operatortype_append(UV_OT_hide);
+  WM_operatortype_append(UV_OT_copy);
+  WM_operatortype_append(UV_OT_paste);
 
   WM_operatortype_append(UV_OT_cursor_set);
 }

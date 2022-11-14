@@ -41,6 +41,9 @@ enum gpLightType {
   GP_LIGHT_TYPE_AMBIENT = 3u,
 };
 
+#define GP_IS_STROKE_VERTEX_BIT (1 << 30)
+#define GP_VERTEX_ID_SHIFT 2
+
 /* Avoid compiler funkiness with enum types not being strongly typed in C. */
 #ifndef GPU_SHADER
 #  define gpMaterialFlag uint

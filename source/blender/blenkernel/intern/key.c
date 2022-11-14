@@ -2296,8 +2296,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                 (mesh->flag & ME_AUTOSMOOTH) != 0,
                                 mesh->smoothresh,
                                 NULL,
-                                clnors,
-                                NULL);
+                                NULL,
+                                clnors);
   }
 
   if (free_vert_normals) {

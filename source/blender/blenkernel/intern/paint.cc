@@ -59,6 +59,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
@@ -626,7 +627,7 @@ ePaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
 
 Brush *BKE_paint_brush(Paint *p)
 {
-  return p ? (p->brush_eval ? p->brush_eval : p->brush) : NULL;
+  return p ? (p->brush_eval ? p->brush_eval : p->brush) : nullptr;
 }
 
 const Brush *BKE_paint_brush_for_read(const Paint *p)
@@ -1055,6 +1056,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_TEXTURE_PAINT;
     case PAINT_MODE_SCULPT_UV:
       return OB_MODE_EDIT;
+    case PAINT_MODE_SCULPT_CURVES:
+      return OB_MODE_SCULPT_CURVES;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;
@@ -1218,7 +1221,7 @@ void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
   }
   else {
-    copy_v3_v3(stroke, ob->obmat[3]);
+    copy_v3_v3(stroke, ob->object_to_world[3]);
   }
 }
 
@@ -1508,7 +1511,7 @@ static void sculptsession_free_pbvh(Object *object)
     if (ss->needs_pbvh_rebuild) {
       if (ss->pmap) {
         BKE_pbvh_pmap_release(ss->pmap);
-        ss->pmap = NULL;
+        ss->pmap = nullptr;
       }
 
       BKE_pbvh_cache_remove(ss->pbvh);
@@ -1520,13 +1523,13 @@ static void sculptsession_free_pbvh(Object *object)
 #else
     if (ss->pmap) {
       BKE_pbvh_pmap_release(ss->pmap);
-      ss->pmap = NULL;
+      ss->pmap = nullptr;
     }
 
     BKE_pbvh_free(ss->pbvh);
 #endif
     ss->needs_pbvh_rebuild = false;
-    ss->pbvh = NULL;
+    ss->pbvh = nullptr;
   }
 
   MEM_SAFE_FREE(ss->epmap);
@@ -1573,11 +1576,11 @@ void BKE_sculptsession_free(Object *ob)
     SculptSession *ss = ob->sculpt;
 
     if (ss->msculptverts) {
-      ss->msculptverts = NULL;
+      ss->msculptverts = nullptr;
     }
 
     if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
-      ss->bm_log = NULL;
+      ss->bm_log = nullptr;
     }
 
     /*try to save current mesh*/
@@ -1587,7 +1590,7 @@ void BKE_sculptsession_free(Object *ob)
       SCULPT_on_sculptsession_bmesh_free(ss);
 
       BKE_sculptsession_bm_to_me(ob, true);
-      ss->bm = NULL;
+      ss->bm = nullptr;
       // BM_mesh_free(ss->bm);
     }
 
@@ -1596,7 +1599,7 @@ void BKE_sculptsession_free(Object *ob)
 
     if (!ss->pbvh) {
       BKE_pbvh_pmap_release(ss->pmap);
-      ss->pmap = NULL;
+      ss->pmap = nullptr;
     }
 
     sculptsession_free_pbvh(ob);
@@ -1896,7 +1899,7 @@ static void sculpt_update_object(
 
   ss->hide_poly = (bool *)CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly");
 
-  ss->subdiv_ccg = me_eval->runtime.subdiv_ccg;
+  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg;
   ss->fast_draw = (scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0;
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
@@ -1910,7 +1913,7 @@ static void sculpt_update_object(
     ss->vert_normals = BKE_pbvh_get_vert_normals(ss->pbvh);
   }
   else {
-    ss->vert_normals = NULL;
+    ss->vert_normals = nullptr;
   }
 
   BLI_assert(pbvh == ss->pbvh);
@@ -1958,8 +1961,8 @@ static void sculpt_update_object(
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
-      if (me_eval_deform->polys().data() == me_eval->polys().data() &&
-          me_eval_deform->loops().data() == me_eval->loops().data() &&
+      if (me_eval_deform->totpoly == me_eval->totpoly &&
+          me_eval_deform->totloop == me_eval->totloop &&
           me_eval_deform->totvert == me_eval->totvert) {
         BKE_sculptsession_free_deformMats(ss);
 
@@ -2177,7 +2180,7 @@ static void sculpt_update_object(
        */
       if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
         char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-        if (ss->last_paint_canvas_key == NULL ||
+        if (ss->last_paint_canvas_key == nullptr ||
             !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
           MEM_SAFE_FREE(ss->last_paint_canvas_key);
           ss->last_paint_canvas_key = paint_canvas_key;
@@ -2349,7 +2352,10 @@ bool *BKE_sculpt_hide_poly_ensure(Object *ob)
   return ob->sculpt->hide_poly = static_cast<bool *>(ob->sculpt->attrs.hide_poly->data);
 }
 
-int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                  Main *bmain,
+                                  Object *ob,
+                                  MultiresModifierData *mmd)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
   const Span<MPoly> polys = me->polys();
@@ -2408,6 +2414,9 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
     }
     /* The evaluated multires CCG must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    if (depsgraph) {
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+    }
 
     ret |= SCULPT_MASK_LAYER_CALC_LOOP;
   }
@@ -2724,7 +2733,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                          subdiv_ccg->grid_hidden,
                          ob->sculpt->fast_draw,
                          (float *)ss->attrs.face_areas->data,
-                         base_mesh);
+                         base_mesh,
+                         subdiv_ccg);
   }
   else {
     BKE_pbvh_subdiv_ccg_set(pbvh, subdiv_ccg);
@@ -2864,7 +2874,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-      SubdivCCG *subdiv_ccg = mesh_eval->runtime.subdiv_ccg;
+      SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
       if (subdiv_ccg != nullptr) {
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
@@ -2896,7 +2906,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = nullptr;
 #  endif
 
-      BMesh *bm = NULL;
+      BMesh *bm = nullptr;
 
       if (pbvh) {
         bm = BKE_pbvh_get_bmesh(pbvh);
@@ -2915,7 +2925,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
         params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
-        BM_mesh_bm_from_me(NULL, bm, mesh_orig, &params);
+        BM_mesh_bm_from_me(nullptr, bm, mesh_orig, &params);
       }
 
       ob->sculpt->bm = bm;
@@ -2930,8 +2940,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     else {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-      if (mesh_eval->runtime.subdiv_ccg != NULL) {
-        pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg, respect_hide);
+      if (mesh_eval->runtime->subdiv_ccg != nullptr) {
+        pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg, respect_hide);
       }
       else if (ob->type == OB_MESH) {
         Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
@@ -2941,8 +2951,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 #else
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-    if (mesh_eval->runtime.subdiv_ccg != nullptr) {
-      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg, respect_hide);
+    if (mesh_eval->runtime->subdiv_ccg != nullptr) {
+      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg, respect_hide);
     }
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
@@ -2972,14 +2982,18 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
+  CCGKey key;
+  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+
   BKE_pbvh_grids_update(pbvh,
                         subdiv_ccg->grids,
                         (void **)subdiv_ccg->grid_faces,
                         subdiv_ccg->grid_flag_mats,
-                        subdiv_ccg->grid_hidden);
+                        subdiv_ccg->grid_hidden,
+                        &key);
 }
 
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 {
   SculptSession *ss = ob->sculpt;
   if (ss == nullptr || ss->pbvh == nullptr || ss->mode_type != OB_MODE_SCULPT) {
@@ -2993,9 +3007,10 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D * /*v3d*/)
 #endif
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    /* Regular mesh only draws from PBVH without modifiers and shape keys. */
-
-    return !(ss->shapekey_active || ss->deform_modifiers_active);
+    /* Regular mesh only draws from PBVH without modifiers and shape keys, or for
+     * external engines that do not have access to the PBVH like Eevee does. */
+    const bool external_engine = rv3d && rv3d->render_engine != nullptr;
+    return !(ss->shapekey_active || ss->deform_modifiers_active || external_engine);
   }
 
   /* Multires and dyntopo always draw directly from the PBVH. */
@@ -3064,7 +3079,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
     CustomData *data2 = cd2[i];
 
     if (!data1->layers) {
-      modified |= data2->layers != NULL;
+      modified |= data2->layers != nullptr;
       continue;
     }
 

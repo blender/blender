@@ -849,7 +849,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 
     if (me->edit_mesh) {
       /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve autosmooth shading. */
+       * to preserve auto-smooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
         BM_edges_sharp_from_angle_set(me->edit_mesh->bm, me->smoothresh);
       }
@@ -858,7 +858,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     }
     else {
       /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve autosmooth shading. */
+       * to preserve auto-smooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
         const Span<MVert> verts = me->verts();
         MutableSpan<MEdge> edges = me->edges_for_write();
@@ -1253,7 +1253,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   for (MEdge &edge : edges.take_back(len)) {
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edge.flag = ME_EDGEDRAW;
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();

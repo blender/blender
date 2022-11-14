@@ -336,14 +336,14 @@ PyDoc_STRVAR(bpyunits_doc, "This module contains some data/methods regarding uni
 
 static struct PyModuleDef bpyunits_module = {
     PyModuleDef_HEAD_INIT,
-    "bpy.utils.units",
-    bpyunits_doc,
-    -1, /* multiple "initialization" just copies the module dict. */
-    bpyunits_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_name*/ "bpy.utils.units",
+    /*m_doc*/ bpyunits_doc,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ bpyunits_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_utils_units(void)

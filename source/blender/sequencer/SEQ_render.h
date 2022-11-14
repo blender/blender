@@ -66,8 +66,8 @@ void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            struct Sequence *seq,
                            struct Sequence *seq_orig,
                            float frame_step,
-                           rctf *view_area,
-                           const short *stop);
+                           const struct rctf *view_area,
+                           const bool *stop);
 /**
  * Get cached thumbnails.
  */
@@ -82,7 +82,7 @@ struct ImBuf *SEQ_get_thumbnail(const struct SeqRenderData *context,
 float SEQ_render_thumbnail_first_frame_get(const struct Scene *scene,
                                            struct Sequence *seq,
                                            float frame_step,
-                                           struct rctf *view_area);
+                                           const struct rctf *view_area);
 /**
  * Get frame for first thumbnail.
  */
@@ -102,8 +102,8 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const struct Scene *scen
 void SEQ_render_thumbnails_base_set(const struct SeqRenderData *context,
                                     struct Sequence *seq,
                                     struct Sequence *seq_orig,
-                                    rctf *view_area,
-                                    const short *stop);
+                                    const struct rctf *view_area,
+                                    const bool *stop);
 
 void SEQ_render_init_colorspace(struct Sequence *seq);
 void SEQ_render_new_render_data(struct Main *bmain,

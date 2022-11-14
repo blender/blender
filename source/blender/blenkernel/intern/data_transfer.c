@@ -300,8 +300,8 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
                                   use_split_nors_dst,
                                   split_angle_dst,
                                   NULL,
-                                  custom_nors_dst,
-                                  NULL);
+                                  NULL,
+                                  custom_nors_dst);
     }
   }
 }

@@ -72,10 +72,10 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
-    mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
+    mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
   }
   else {
-    copy_m4_m4(mat, ob->obmat);
+    copy_m4_m4(mat, ob->object_to_world);
   }
 }
 
@@ -94,7 +94,7 @@ struct UVWarpData {
 
 static void uv_warp_compute(void *__restrict userdata,
                             const int i,
-                            const TaskParallelTLS *__restrict UNUSED(tls))
+                            const TaskParallelTLS *__restrict /*tls*/)
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
 
@@ -231,7 +231,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   settings.use_threading = (polys_num > 1000);
   BLI_task_parallel_range(0, polys_num, &data, uv_warp_compute, &settings);
 
-  mesh->runtime.is_original_bmesh = false;
+  mesh->runtime->is_original_bmesh = false;
 
   return mesh;
 }
@@ -256,7 +256,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_depends_on_transform_relation(ctx->node, "UVWarp Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -299,7 +299,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void transform_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 

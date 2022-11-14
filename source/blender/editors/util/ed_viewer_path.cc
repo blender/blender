@@ -249,6 +249,9 @@ bool is_active_geometry_nodes_viewer(const bContext &C,
     if (md->type != eModifierType_Nodes) {
       return false;
     }
+    if ((md->mode & eModifierMode_Realtime) == 0) {
+      return false;
+    }
     modifier = reinterpret_cast<const NodesModifierData *>(md);
     break;
   }

@@ -129,14 +129,14 @@ static PyMethodDef M_bl_math_methods[] = {
 
 static struct PyModuleDef M_bl_math_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bl_math",         /* m_name */
-    M_bl_math_doc,     /* m_doc */
-    0,                 /* m_size */
-    M_bl_math_methods, /* m_methods */
-    NULL,              /* m_slots */
-    NULL,              /* m_traverse */
-    NULL,              /* m_clear */
-    NULL,              /* m_free */
+    /*m_name*/ "bl_math",
+    /*m_doc*/ M_bl_math_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ M_bl_math_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyMODINIT_FUNC BPyInit_bl_math(void)

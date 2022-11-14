@@ -27,6 +27,7 @@ ExternalProject_Add(external_gmp
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${GMP_HASH_TYPE}=${GMP_HASH}
   PREFIX ${BUILD_DIR}/gmp
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/gmp/src/external_gmp < ${PATCH_DIR}/gmp.diff
   CONFIGURE_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/gmp ${GMP_OPTIONS} ${GMP_EXTRA_ARGS}
   BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && make install

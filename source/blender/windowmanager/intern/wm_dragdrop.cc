@@ -556,15 +556,12 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
   return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
-wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
-                                       AssetMetaData *metadata,
-                                       const char *path,
-                                       int import_type)
+wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset, const char *path, int import_type)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
-  asset_drag->metadata = metadata;
+  asset_drag->metadata = ED_asset_handle_get_metadata(asset);
   asset_drag->path = path;
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
@@ -733,12 +730,11 @@ void WM_drag_add_asset_list_item(
     drag_asset->asset_data.local_id = local_id;
   }
   else {
-    AssetMetaData *metadata = ED_asset_handle_get_metadata(asset);
     char asset_blend_path[FILE_MAX_LIBEXTRA];
     ED_asset_handle_get_full_library_path(C, asset_library_ref, asset, asset_blend_path);
     drag_asset->is_external = true;
     drag_asset->asset_data.external_info = WM_drag_create_asset_data(
-        asset, metadata, BLI_strdup(asset_blend_path), FILE_ASSET_IMPORT_APPEND);
+        asset, BLI_strdup(asset_blend_path), FILE_ASSET_IMPORT_APPEND);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }
@@ -853,7 +849,8 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     y = xy[1] - 2 * UI_DPI_FAC;
 
     const uchar text_col[] = {255, 255, 255, 255};
-    UI_icon_draw_ex(x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false);
+    UI_icon_draw_ex(
+        x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
 

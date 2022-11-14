@@ -75,19 +75,23 @@ CCL_NAMESPACE_BEGIN
 #define __VOLUME__
 
 /* Device specific features */
-#ifndef __KERNEL_GPU__
-#  ifdef WITH_OSL
-#    define __OSL__
+#ifdef WITH_OSL
+#  define __OSL__
+#  ifdef __KERNEL_OPTIX__
+/* Kernels with OSL support are built separately in OptiX and don't need SVM. */
+#    undef __SVM__
 #  endif
+#endif
+#ifndef __KERNEL_GPU__
 #  ifdef WITH_PATH_GUIDING
 #    define __PATH_GUIDING__
 #  endif
 #  define __VOLUME_RECORD_ALL__
 #endif /* !__KERNEL_GPU__ */
 
-/* MNEE currently causes "Compute function exceeds available temporary registers"
- * on Metal, disabled for now. */
-#ifndef __KERNEL_METAL__
+/* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a bug
+ * in spill buffer allocation sizing. */
+#if !defined(__KERNEL_METAL__) || (__KERNEL_METAL_MACOS__ >= 13)
 #  define __MNEE__
 #endif
 
@@ -490,6 +494,7 @@ enum PanoramaType {
   PANORAMA_FISHEYE_EQUISOLID = 2,
   PANORAMA_MIRRORBALL = 3,
   PANORAMA_FISHEYE_LENS_POLYNOMIAL = 4,
+  PANORAMA_EQUIANGULAR_CUBEMAP_FACE = 5,
 
   PANORAMA_NUM_TYPES,
 };
@@ -916,9 +921,13 @@ typedef struct ccl_align(16) ShaderData
   float ray_dP;
 
 #ifdef __OSL__
+#  ifdef __KERNEL_GPU__
+  ccl_private uint8_t *osl_closure_pool;
+#  else
   const struct KernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
   const struct IntegratorShadowStateCPU *osl_shadow_path_state;
+#  endif
 #endif
 
   /* LCG state for closures that require additional random numbers. */
@@ -1528,6 +1537,9 @@ enum KernelFeatureFlag : uint32_t {
 
   /* Path guiding. */
   KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+
+  /* OSL. */
+  KERNEL_FEATURE_OSL = (1U << 27U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

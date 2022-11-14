@@ -427,8 +427,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < files_len; i++) {
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
-      BLI_join_dirfile(
-          import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
+      BLI_path_join(import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
       import_params.clear_selection = (i == 0);
       OBJ_import(C, &import_params);
     }

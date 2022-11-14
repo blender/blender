@@ -412,8 +412,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
         }
       }
       /* calc new matrix and apply */
-      mul_m4_m4m4(obn->obmat, obn->obmat, mat);
-      BKE_object_apply_mat4(obn, obn->obmat, false, false);
+      mul_m4_m4m4(obn->object_to_world, obn->object_to_world, mat);
+      BKE_object_apply_mat4(obn, obn->object_to_world, false, false);
     }
   }
   else {
@@ -937,7 +937,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
   const char *workpath;
 
   BLI_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
-  BLI_join_dirfile(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
+  BLI_path_join(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
   if (BLI_exists(absolute_path)) {
     workpath = absolute_path;
   }

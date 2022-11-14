@@ -2073,6 +2073,8 @@ def km_node_editor(params):
         op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
+        ("node.duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True},
+         {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.duplicate_move_keep_inputs", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -3967,6 +3969,9 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'I', "value": 'PRESS'}),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
+        # Automasking Pie menu
+        op_menu_pie("VIEW3D_MT_sculpt_gpencil_automasking_pie", {
+                    "type": 'A', "shift": True, "alt": True, "value": 'PRESS'}),
     ])
 
     return keymap

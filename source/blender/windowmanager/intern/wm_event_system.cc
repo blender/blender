@@ -4535,7 +4535,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
                                            wmUIHandlerFunc handle_fn,
                                            wmUIHandlerRemoveFunc remove_fn,
                                            void *user_data,
-                                           const char flag)
+                                           const eWM_EventHandlerFlag flag)
 {
   wmEventHandler_UI *handler = MEM_cnew<wmEventHandler_UI>(__func__);
   handler->head.type = WM_HANDLER_TYPE_UI;
@@ -5620,7 +5620,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventNDOFButton: {
       GHOST_TEventNDOFButtonData *e = static_cast<GHOST_TEventNDOFButtonData *>(customdata);
 
-      event.type = NDOF_BUTTON_NONE + e->button;
+      event.type = NDOF_BUTTON_INDEX_AS_EVENT(e->button);
 
       switch (e->action) {
         case GHOST_kPress:

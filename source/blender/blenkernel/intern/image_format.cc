@@ -201,6 +201,7 @@ bool BKE_imtype_is_movie(const char imtype)
     case R_IMF_IMTYPE_H264:
     case R_IMF_IMTYPE_THEORA:
     case R_IMF_IMTYPE_XVID:
+    case R_IMF_IMTYPE_AV1:
       return true;
   }
   return false;
@@ -433,7 +434,8 @@ static bool do_add_image_extension(char *string,
                 R_IMF_IMTYPE_FFMPEG,
                 R_IMF_IMTYPE_H264,
                 R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID)) {
+                R_IMF_IMTYPE_XVID,
+                R_IMF_IMTYPE_AV1)) {
     if (!BLI_path_extension_check(string, extension_test = ".png")) {
       extension = extension_test;
     }
@@ -627,7 +629,8 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
                 R_IMF_IMTYPE_FFMPEG,
                 R_IMF_IMTYPE_H264,
                 R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID)) {
+                R_IMF_IMTYPE_XVID,
+                R_IMF_IMTYPE_AV1)) {
     ibuf->ftype = IMB_FTYPE_PNG;
 
     if (imtype == R_IMF_IMTYPE_PNG) {

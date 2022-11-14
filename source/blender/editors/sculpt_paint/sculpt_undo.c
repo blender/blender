@@ -1227,7 +1227,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
@@ -1285,7 +1285,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-      if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+      if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
 
@@ -1446,7 +1446,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
 
-    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d) ||
+    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, rv3d) ||
                   ss->shapekey_active || ss->deform_modifiers_active;
 
     if (tag_update) {
@@ -2547,9 +2547,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
   if (!layer) {
     layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (layer) {
-      const eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
-      if (ED_geometry_attribute_convert(
-              me, attr->name, layer->type, domain, attr->type, attr->domain)) {
+      if (ED_geometry_attribute_convert(me, attr->name, attr->type, attr->domain, NULL)) {
         layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
       }
     }
@@ -2576,7 +2574,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     }
   }
   else if (layer) {
-    BKE_id_attributes_active_set(&me->id, layer);
+    BKE_id_attributes_active_set(&me->id, layer->name);
   }
 }
 
@@ -2991,10 +2989,10 @@ static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
     }
   }
 }
+
 void sculpt_undo_print_nodes(void *active)
 {
 #if 0
-
   printf("=================== sculpt undo steps ==============\n");
 
   UndoStack *ustack = ED_undo_stack_get();

@@ -161,11 +161,11 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
       }
 
       /* Result must be in world-space. */
-      mul_m4_v3(ob_eval->obmat, mpv->co);
+      mul_m4_v3(ob_eval->object_to_world, mpv->co);
     }
     else {
       /* World-space object location. */
-      copy_v3_v3(mpv->co, ob_eval->obmat[3]);
+      copy_v3_v3(mpv->co, ob_eval->object_to_world[3]);
     }
 
     float mframe = (float)(cframe);

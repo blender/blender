@@ -74,11 +74,8 @@ class AbstractPaintMode {
 
 class ImagePaintMode : public AbstractPaintMode {
  public:
-  void *paint_new_stroke(bContext *C,
-                         wmOperator *op,
-                         Object * /*ob*/,
-                         const float UNUSED(mouse[2]),
-                         int mode) override
+  void *paint_new_stroke(
+      bContext *C, wmOperator *op, Object * /*ob*/, const float /*mouse*/[2], int mode) override
   {
     return paint_2d_new_stroke(C, op, mode);
   }

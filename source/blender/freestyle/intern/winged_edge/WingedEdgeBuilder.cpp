@@ -14,6 +14,8 @@
 
 #include "../scene_graph/NodeShape.h"
 
+#include "BLI_sys_types.h"
+
 using namespace std;
 
 namespace Freestyle {

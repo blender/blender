@@ -302,7 +302,8 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh)
   SculptSession *ss = ob->sculpt;
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(final_mesh, NULL, sculpt_mesh);
-  result->runtime.vert_normals_dirty = true;
+
+  BKE_mesh_normals_tag_dirty(result);
   BKE_mesh_nomain_to_mesh(result, ob->data, ob);
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 

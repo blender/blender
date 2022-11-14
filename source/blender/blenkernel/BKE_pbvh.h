@@ -413,7 +413,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           unsigned int **grid_hidden,
                           bool fast_draw,
                           float *face_areas,
-                          struct Mesh *me);
+                          struct Mesh *me,
+                          struct SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -607,6 +608,8 @@ typedef enum {
   PBVH_LocalCollapse = 1 << 4
 } PBVHTopologyUpdateMode;
 
+ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_LocalCollapse);
+
 typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
 
 bool BKE_pbvh_bmesh_update_topology(
@@ -734,7 +737,8 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            struct CCGElem **grids,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
-                           unsigned int **grid_hidden);
+                           unsigned int **grid_hidden,
+                           struct CCGKey *key);
 void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 

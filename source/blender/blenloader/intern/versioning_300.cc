@@ -4175,6 +4175,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             v3d->overlay.flag |= V3D_OVERLAY_VIEWER_ATTRIBUTE;
             v3d->overlay.viewer_attribute_opacity = 1.0f;
           }
+          if (sl->spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = (SpaceImage *)sl;
+            if (sima->flag & SI_FLAG_UNUSED_18) { /* Was #SI_CUSTOM_GRID. */
+              sima->grid_shape_source = SI_GRID_SHAPE_FIXED;
+              sima->flag &= ~SI_FLAG_UNUSED_18;
+            }
+          }
         }
       }
     }
@@ -4184,6 +4191,55 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       version_node_id(ntree, GEO_NODE_OFFSET_POINT_IN_CURVE, "GeometryNodeOffsetPointInCurve");
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 4)) {
+    /* Update brush sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_cavity_factor = 1.0f;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 5)) {
+    /* Fix for T101622 - update flags of sequence editor regions that were not initialized
+     * properly. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          if (sl->spacetype == SPACE_SEQ) {
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_TOOLS) {
+                region->v2d.flag &= ~V2D_VIEWSYNC_AREA_VERTICAL;
+              }
+              if (region->regiontype == RGN_TYPE_CHANNELS) {
+                region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 6)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_SAMPLE_CURVE) {
+          continue;
+        }
+        static_cast<NodeGeometryCurveSample *>(node->storage)->use_all_curves = true;
+        static_cast<NodeGeometryCurveSample *>(node->storage)->data_type = CD_PROP_FLOAT;
+        bNodeSocket *curve_socket = nodeFindSocket(node, SOCK_IN, "Curve");
+        BLI_assert(curve_socket != nullptr);
+        STRNCPY(curve_socket->name, "Curves");
+        STRNCPY(curve_socket->identifier, "Curves");
+      }
     }
   }
 

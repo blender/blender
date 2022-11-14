@@ -134,7 +134,7 @@ void register_node_type_cmp_valtorgb()
   cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_valtorgb_declare;
   node_type_size(&ntype, 240, 200, 320);
-  node_type_init(&ntype, file_ns::node_composit_init_valtorgb);
+  ntype.initfunc = file_ns::node_composit_init_valtorgb;
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 

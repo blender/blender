@@ -493,14 +493,14 @@ static struct PyMethodDef bpy_ops_methods[] = {
 
 static struct PyModuleDef bpy_ops_module = {
     PyModuleDef_HEAD_INIT,
-    "_bpy.ops",
-    NULL,
-    -1, /* multiple "initialization" just copies the module dict. */
-    bpy_ops_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_name*/ "_bpy.ops",
+    /*m_doc*/ NULL,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ bpy_ops_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_operator_module(void)

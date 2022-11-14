@@ -19,7 +19,14 @@
 
 static struct PyModuleDef pygpu_types_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.types",
+    /*m_name*/ "gpu.types",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_types_init(void)

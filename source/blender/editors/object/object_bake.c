@@ -461,7 +461,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   CTX_DATA_END;
 }
 
-static void multiresbake_startjob(void *bkv, short *stop, short *do_update, float *progress)
+static void multiresbake_startjob(void *bkv, bool *stop, bool *do_update, float *progress)
 {
   MultiresBakerJobData *data;
   MultiresBakeJob *bkj = bkv;

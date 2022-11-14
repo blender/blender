@@ -3,6 +3,7 @@
 #include "BLI_math_matrix.h"
 
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_instances.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -44,8 +45,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 &object_matrix = object->obmat;
-  const float4x4 transform = float4x4(self_object->imat) * object_matrix;
+  const float4x4 &object_matrix = object->object_to_world;
+  const float4x4 transform = float4x4(self_object->world_to_object) * object_matrix;
 
   if (transform_space_relative) {
     params.set_output("Location", transform.translation());
@@ -68,14 +69,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     GeometrySet geometry_set;
     if (params.get_input<bool>("As Instance")) {
-      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-      const int handle = instances.add_reference(*object);
+      std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+      const int handle = instances->add_reference(*object);
       if (transform_space_relative) {
-        instances.add_instance(handle, transform);
+        instances->add_instance(handle, transform);
       }
       else {
-        instances.add_instance(handle, float4x4::identity());
+        instances->add_instance(handle, float4x4::identity());
       }
+      geometry_set = GeometrySet::create_with_instances(instances.release());
     }
     else {
       geometry_set = bke::object_get_evaluated_geometry_set(*object);
@@ -104,7 +106,7 @@ void register_node_type_geo_object_info()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT);
-  node_type_init(&ntype, file_ns::node_node_init);
+  ntype.initfunc = file_ns::node_node_init;
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

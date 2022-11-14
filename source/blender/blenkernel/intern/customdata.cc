@@ -2667,16 +2667,21 @@ static bool attribute_stored_in_bmesh_flag(const StringRef name)
               "material_index");
 }
 
-static CustomData shallow_copy_remove_non_bmesh_attributes(const CustomData &src)
+CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
+                                                               const eCustomDataMask mask)
 {
   Vector<CustomDataLayer> dst_layers;
-  for (const CustomDataLayer &layer : Span<CustomDataLayer>{src.layers, src.totlayer}) {
-    if (!attribute_stored_in_bmesh_flag(layer.name)) {
-      dst_layers.append(layer);
+  for (const CustomDataLayer &layer : Span<CustomDataLayer>{src->layers, src->totlayer}) {
+    if (attribute_stored_in_bmesh_flag(layer.name)) {
+      continue;
     }
+    if (!(mask & CD_TYPE_AS_MASK(layer.type))) {
+      continue;
+    }
+    dst_layers.append(layer);
   }
 
-  CustomData dst = src;
+  CustomData dst = *src;
   dst.layers = static_cast<CustomDataLayer *>(
       MEM_calloc_arrayN(dst_layers.size(), sizeof(CustomDataLayer), __func__));
   dst.totlayer = dst_layers.size();
@@ -2685,18 +2690,6 @@ static CustomData shallow_copy_remove_non_bmesh_attributes(const CustomData &src
   CustomData_update_typemap(&dst);
 
   return dst;
-}
-
-bool CustomData_merge_mesh_to_bmesh(const CustomData *source,
-                                    CustomData *dest,
-                                    const eCustomDataMask mask,
-                                    const eCDAllocType alloctype,
-                                    const int totelem)
-{
-  CustomData source_copy = shallow_copy_remove_non_bmesh_attributes(*source);
-  const bool result = CustomData_merge(&source_copy, dest, mask, alloctype, totelem);
-  MEM_SAFE_FREE(source_copy.layers);
-  return result;
 }
 
 void CustomData_realloc(CustomData *data, const int old_size, const int new_size)
@@ -2746,17 +2739,6 @@ void CustomData_copy(const CustomData *source,
   }
 
   CustomData_merge(source, dest, mask, alloctype, totelem);
-}
-
-void CustomData_copy_mesh_to_bmesh(const CustomData *source,
-                                   CustomData *dest,
-                                   const eCustomDataMask mask,
-                                   const eCDAllocType alloctype,
-                                   const int totelem)
-{
-  CustomData source_copy = shallow_copy_remove_non_bmesh_attributes(*source);
-  CustomData_copy(&source_copy, dest, mask, alloctype, totelem);
-  MEM_SAFE_FREE(source_copy.layers);
 }
 
 static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
@@ -3214,7 +3196,11 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   int flag = 0;
 
+  /* Some layer types only support a single layer. */
   if (!typeInfo->defaultname && CustomData_has_layer(data, type)) {
+    /* This function doesn't support dealing with existing layer data for these layer types when
+     * the layer already exists. */
+    BLI_assert(layerdata == nullptr);
     return &data->layers[CustomData_get_layer_index(data, type)];
   }
 
@@ -4164,7 +4150,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
     destold.layers = static_cast<CustomDataLayer *>(MEM_dupallocN(destold.layers));
   }
 
-  if (CustomData_merge_mesh_to_bmesh(source, dest, mask, alloctype, 0) == false) {
+  if (CustomData_merge(source, dest, mask, alloctype, 0) == false) {
     if (destold.layers) {
       MEM_freeN(destold.layers);
     }
@@ -6132,6 +6118,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<int8_t>();
     case CD_PROP_BYTE_COLOR:
       return &CPPType::get<ColorGeometry4b>();
+    case CD_PROP_STRING:
+      return &CPPType::get<MStringProperty>();
     default:
       return nullptr;
   }
@@ -6163,6 +6151,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<ColorGeometry4b>()) {
     return CD_PROP_BYTE_COLOR;
+  }
+  if (type.is<MStringProperty>()) {
+    return CD_PROP_STRING;
   }
   return static_cast<eCustomDataType>(-1);
 }

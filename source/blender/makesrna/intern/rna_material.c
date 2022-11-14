@@ -139,11 +139,10 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
       iter, (void *)ma->texpaintslot, sizeof(TexPaintSlot), ma->tot_slots, 0, NULL);
 }
 
-static void rna_Material_active_paint_texture_index_update(Main *bmain,
-                                                           Scene *UNUSED(scene),
-                                                           PointerRNA *ptr)
+static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
   bScreen *screen;
+  Main *bmain = CTX_data_main(C);
   Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
@@ -155,25 +154,10 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
   }
 
   if (ma->texpaintslot) {
-    Image *image = ma->texpaintslot[ma->paint_active_slot].ima;
-    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-      wmWindow *win = ED_screen_window_find(screen, bmain->wm.first);
-      if (win == NULL) {
-        continue;
-      }
-
-      ScrArea *area;
-      for (area = screen->areabase.first; area; area = area->next) {
-        SpaceLink *sl;
-        for (sl = area->spacedata.first; sl; sl = sl->next) {
-          if (sl->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)sl;
-            if (!sima->pin) {
-              ED_space_image_set(bmain, sima, image, true);
-            }
-          }
-        }
-      }
+    TexPaintSlot *slot = &ma->texpaintslot[ma->paint_active_slot];
+    Image *image = slot->ima;
+    if (image) {
+      ED_space_image_sync(bmain, image, false);
     }
   }
 

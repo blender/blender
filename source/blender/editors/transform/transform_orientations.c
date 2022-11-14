@@ -126,7 +126,7 @@ static TransformOrientation *createObjectSpace(bContext *C,
 
   ob = base->object;
 
-  copy_m3_m4(mat, ob->obmat);
+  copy_m3_m4(mat, ob->object_to_world);
   normalize_m3(mat);
 
   /* use object name if no name is given */
@@ -532,7 +532,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
         }
         else {
-          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->obmat));
+          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
         }
         break;
       }
@@ -764,7 +764,7 @@ int getTransformOrientation_ex(const Scene *scene,
     float imat[3][3], mat[3][3];
 
     /* we need the transpose of the inverse for a normal... */
-    copy_m3_m4(imat, ob->obmat);
+    copy_m3_m4(imat, ob->object_to_world);
 
     invert_m3_m3(mat, imat);
     transpose_m3(mat);
@@ -1192,8 +1192,8 @@ int getTransformOrientation_ex(const Scene *scene,
     if (result == ORIENTATION_EDGE) {
       float tvec[3];
 
-      mul_mat3_m4_v3(ob->obmat, normal);
-      mul_mat3_m4_v3(ob->obmat, plane);
+      mul_mat3_m4_v3(ob->object_to_world, normal);
+      mul_mat3_m4_v3(ob->object_to_world, plane);
 
       /* align normal to edge direction (so normal is perpendicular to the plane).
        * 'ORIENTATION_EDGE' will do the other way around.
@@ -1235,7 +1235,7 @@ int getTransformOrientation_ex(const Scene *scene,
     /* use for both active & all */
     if (ok) {
       /* we need the transpose of the inverse for a normal... */
-      copy_m3_m4(imat, ob->obmat);
+      copy_m3_m4(imat, ob->object_to_world);
 
       invert_m3_m3(mat, imat);
       transpose_m3(mat);
@@ -1267,8 +1267,8 @@ int getTransformOrientation_ex(const Scene *scene,
       }
 
       if (ok) {
-        copy_v3_v3(normal, ob->obmat[2]);
-        copy_v3_v3(plane, ob->obmat[1]);
+        copy_v3_v3(normal, ob->object_to_world[2]);
+        copy_v3_v3(plane, ob->object_to_world[1]);
       }
     }
     result = ORIENTATION_NORMAL;

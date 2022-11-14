@@ -8,11 +8,8 @@
 
 #include "GHOST_System.h"
 
-// #define DEBUG_NDOF_MOTION
-// #define DEBUG_NDOF_BUTTONS
-
 typedef enum {
-  NDOF_UnknownDevice,
+  NDOF_UnknownDevice = 0,
 
   /* Current devices. */
   NDOF_SpaceNavigator,
@@ -32,8 +29,8 @@ typedef enum {
 
 /* NDOF device button event types */
 typedef enum {
-  /* Used internally, never sent. */
-  NDOF_BUTTON_NONE,
+  /* Used internally, never sent or used as an index. */
+  NDOF_BUTTON_NONE = -1,
   /* These two are available from any 3Dconnexion device. */
   NDOF_BUTTON_MENU,
   NDOF_BUTTON_FIT,
@@ -61,11 +58,6 @@ typedef enum {
   NDOF_BUTTON_DOMINANT,
   NDOF_BUTTON_PLUS,
   NDOF_BUTTON_MINUS,
-  /* Keyboard emulation. */
-  NDOF_BUTTON_ESC,
-  NDOF_BUTTON_ALT,
-  NDOF_BUTTON_SHIFT,
-  NDOF_BUTTON_CTRL,
   /* General-purpose buttons.
    * Users can assign functions via keymap editor. */
   NDOF_BUTTON_1,
@@ -82,8 +74,20 @@ typedef enum {
   NDOF_BUTTON_A,
   NDOF_BUTTON_B,
   NDOF_BUTTON_C,
-  /* The end. */
-  NDOF_BUTTON_LAST
+  /* Store Views. */
+  NDOF_BUTTON_V1,
+  NDOF_BUTTON_V2,
+  NDOF_BUTTON_V3,
+  /* Keyboard emulation. */
+  NDOF_BUTTON_ESC,
+  NDOF_BUTTON_ENTER,
+  NDOF_BUTTON_DELETE,
+  NDOF_BUTTON_TAB,
+  NDOF_BUTTON_SPACE,
+  NDOF_BUTTON_ALT,
+  NDOF_BUTTON_SHIFT,
+  NDOF_BUTTON_CTRL,
+#define NDOF_BUTTON_NUM (NDOF_BUTTON_CTRL + 1)
 } NDOF_ButtonT;
 
 class GHOST_NDOFManager {
@@ -143,25 +147,25 @@ class GHOST_NDOFManager {
   bool sendMotionEvent();
 
  protected:
-  GHOST_System &m_system;
+  GHOST_System &system_;
 
  private:
   void sendButtonEvent(NDOF_ButtonT, bool press, uint64_t time, GHOST_IWindow *);
   void sendKeyEvent(GHOST_TKey, bool press, uint64_t time, GHOST_IWindow *);
 
-  NDOF_DeviceT m_deviceType;
-  int m_buttonCount;
-  int m_buttonMask;
-  const NDOF_ButtonT *m_hidMap;
+  NDOF_DeviceT device_type_;
+  int hid_map_button_num_;
+  int hid_map_button_mask_;
+  const NDOF_ButtonT *hid_map_;
 
-  int m_translation[3];
-  int m_rotation[3];
-  int m_buttons; /* Bit field. */
+  int translation_[3];
+  int rotation_[3];
+  int button_depressed_; /* Bit field. */
 
-  uint64_t m_motionTime;     /* In milliseconds. */
-  uint64_t m_prevMotionTime; /* Time of most recent motion event sent. */
+  uint64_t motion_time_;      /* In milliseconds. */
+  uint64_t motion_time_prev_; /* Time of most recent motion event sent. */
 
-  GHOST_TProgress m_motionState;
-  bool m_motionEventPending;
-  float m_deadZone; /* Discard motion with each component < this. */
+  GHOST_TProgress motion_state_;
+  bool motion_event_pending_;
+  float motion_dead_zone_; /* Discard motion with each component < this. */
 };

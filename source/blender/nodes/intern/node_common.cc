@@ -22,6 +22,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_types.h"
@@ -86,8 +87,6 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
                    const bNodeTree *grouptree,
                    const char **r_disabled_hint)
 {
-  bool valid = true;
-
   /* unspecified node group, generally allowed
    * (if anything, should be avoided on operator level)
    */
@@ -106,11 +105,10 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
     if (node->typeinfo->poll_instance &&
         !node->typeinfo->poll_instance(
             const_cast<bNode *>(node), const_cast<bNodeTree *>(nodetree), r_disabled_hint)) {
-      valid = false;
-      break;
+      return false;
     }
   }
-  return valid;
+  return true;
 }
 
 static void add_new_socket_from_interface(bNodeTree &node_tree,
@@ -255,7 +253,7 @@ void register_node_type_frame()
   ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
-  node_type_init(ntype, node_frame_init);
+  ntype->initfunc = node_frame_init;
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
@@ -285,7 +283,7 @@ void register_node_type_reroute()
   ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
-  node_type_init(ntype, node_reroute_init);
+  ntype->initfunc = node_reroute_init;
 
   nodeRegisterType(ntype);
 }
@@ -381,53 +379,29 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 }
 
-static bool node_is_connected_to_output_recursive(bNodeTree *ntree, bNode *node)
+bool BKE_node_is_connected_to_output(const bNodeTree *ntree, const bNode *node)
 {
-  bNodeLink *link;
-
-  /* avoid redundant checks, and infinite loops in case of cyclic node links */
-  if (node->done) {
-    return false;
+  ntree->ensure_topology_cache();
+  Stack<const bNode *> nodes_to_check;
+  for (const bNodeSocket *socket : node->output_sockets()) {
+    for (const bNodeLink *link : socket->directly_linked_links()) {
+      nodes_to_check.push(link->tonode);
+    }
   }
-  node->done = 1;
-
-  /* main test, done before child loop so it catches output nodes themselves as well */
-  if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->flag & NODE_DO_OUTPUT) {
-    return true;
-  }
-
-  /* test all connected nodes, first positive find is sufficient to return true */
-  for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-    if (link->fromnode == node) {
-      if (node_is_connected_to_output_recursive(ntree, link->tonode)) {
-        return true;
+  while (!nodes_to_check.is_empty()) {
+    const bNode *next_node = nodes_to_check.pop();
+    for (const bNodeSocket *socket : next_node->output_sockets()) {
+      for (const bNodeLink *link : socket->directly_linked_links()) {
+        if (link->tonode->typeinfo->nclass == NODE_CLASS_OUTPUT &&
+            link->tonode->flag & NODE_DO_OUTPUT) {
+          return true;
+        }
+        nodes_to_check.push(link->tonode);
       }
     }
   }
+
   return false;
-}
-
-bool BKE_node_is_connected_to_output(bNodeTree *ntree, bNode *node)
-{
-  bNode *tnode;
-
-  /* clear flags */
-  for (tnode = (bNode *)ntree->nodes.first; tnode; tnode = tnode->next) {
-    tnode->done = 0;
-  }
-
-  return node_is_connected_to_output_recursive(ntree, node);
-}
-
-void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree)
-{
-  bNode *node;
-
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
-    if (node->id == id) {
-      node->id = nullptr;
-    }
-  }
 }
 
 /** \} */
@@ -460,62 +434,53 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 void node_group_input_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = (bNodeSocket *)node->outputs.last;
-  bNodeLink *link, *linknext, *exposelink;
   /* Adding a tree socket and verifying will remove the extension socket!
    * This list caches the existing links from the extension socket
-   * so they can be recreated after verification.
-   */
-  ListBase tmplinks;
+   * so they can be recreated after verification. */
+  Vector<bNodeLink> temp_links;
 
   /* find links from the extension socket and store them */
-  BLI_listbase_clear(&tmplinks);
-  for (link = (bNodeLink *)ntree->links.first; link; link = linknext) {
-    linknext = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (nodeLinkIsHidden(link)) {
       continue;
     }
 
     if (link->fromsock == extsock) {
-      bNodeLink *tlink = MEM_cnew<bNodeLink>("temporary link");
-      *tlink = *link;
-      BLI_addtail(&tmplinks, tlink);
-
+      temp_links.append(*link);
       nodeRemLink(ntree, link);
     }
   }
 
   /* find valid link to expose */
-  exposelink = nullptr;
-  for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
+  bNodeLink *exposelink = nullptr;
+  for (bNodeLink &link : temp_links) {
     /* XXX Multiple sockets can be connected to the extension socket at once,
      * in that case the arbitrary first link determines name and type.
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (!is_group_extension_socket(link->tonode, link->tosock)) {
-      exposelink = link;
+    if (!is_group_extension_socket(link.tonode, link.tosock)) {
+      exposelink = &link;
       break;
     }
   }
 
   if (exposelink) {
-    bNodeSocket *gsock, *newsock;
-
-    gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->tonode, exposelink->tosock);
+    bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(
+        ntree, exposelink->tonode, exposelink->tosock);
 
     node_group_input_update(ntree, node);
-    newsock = node_group_input_find_socket(node, gsock->identifier);
+    bNodeSocket *newsock = node_group_input_find_socket(node, gsock->identifier);
 
     /* redirect links from the extension socket */
-    for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
-      bNodeLink *newlink = nodeAddLink(ntree, node, newsock, link->tonode, link->tosock);
+    for (bNodeLink &link : temp_links) {
+      bNodeLink *newlink = nodeAddLink(ntree, node, newsock, link.tonode, link.tosock);
       if (newlink->tosock->flag & SOCK_MULTI_INPUT) {
-        newlink->multi_input_socket_index = link->multi_input_socket_index;
+        newlink->multi_input_socket_index = link.multi_input_socket_index;
       }
     }
   }
 
-  BLI_freelistN(&tmplinks);
   group_verify_socket_list(*ntree, *node, ntree->inputs, node->outputs, SOCK_OUT, true);
 }
 
@@ -527,8 +492,8 @@ void register_node_type_group_input()
 
   node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
-  node_type_init(ntype, node_group_input_init);
-  node_type_update(ntype, node_group_input_update);
+  ntype->initfunc = node_group_input_init;
+  ntype->updatefunc = node_group_input_update;
 
   nodeRegisterType(ntype);
 }
@@ -552,60 +517,51 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
 void node_group_output_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = (bNodeSocket *)node->inputs.last;
-  bNodeLink *link, *linknext, *exposelink;
   /* Adding a tree socket and verifying will remove the extension socket!
    * This list caches the existing links to the extension socket
-   * so they can be recreated after verification.
-   */
-  ListBase tmplinks;
+   * so they can be recreated after verification. */
+  Vector<bNodeLink> temp_links;
 
   /* find links to the extension socket and store them */
-  BLI_listbase_clear(&tmplinks);
-  for (link = (bNodeLink *)ntree->links.first; link; link = linknext) {
-    linknext = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (nodeLinkIsHidden(link)) {
       continue;
     }
 
     if (link->tosock == extsock) {
-      bNodeLink *tlink = MEM_cnew<bNodeLink>("temporary link");
-      *tlink = *link;
-      BLI_addtail(&tmplinks, tlink);
-
+      temp_links.append(*link);
       nodeRemLink(ntree, link);
     }
   }
 
   /* find valid link to expose */
-  exposelink = nullptr;
-  for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
+  bNodeLink *exposelink = nullptr;
+  for (bNodeLink &link : temp_links) {
     /* XXX Multiple sockets can be connected to the extension socket at once,
      * in that case the arbitrary first link determines name and type.
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (!is_group_extension_socket(link->fromnode, link->fromsock)) {
-      exposelink = link;
+    if (!is_group_extension_socket(link.fromnode, link.fromsock)) {
+      exposelink = &link;
       break;
     }
   }
 
   if (exposelink) {
-    bNodeSocket *gsock, *newsock;
-
     /* XXX what if connecting virtual to virtual socket?? */
-    gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->fromnode, exposelink->fromsock);
+    bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(
+        ntree, exposelink->fromnode, exposelink->fromsock);
 
     node_group_output_update(ntree, node);
-    newsock = node_group_output_find_socket(node, gsock->identifier);
+    bNodeSocket *newsock = node_group_output_find_socket(node, gsock->identifier);
 
     /* redirect links to the extension socket */
-    for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
-      nodeAddLink(ntree, link->fromnode, link->fromsock, node, newsock);
+    for (bNodeLink &link : temp_links) {
+      nodeAddLink(ntree, link.fromnode, link.fromsock, node, newsock);
     }
   }
 
-  BLI_freelistN(&tmplinks);
   group_verify_socket_list(*ntree, *node, ntree->outputs, node->inputs, SOCK_IN, true);
 }
 
@@ -617,8 +573,8 @@ void register_node_type_group_output()
 
   node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
-  node_type_init(ntype, node_group_output_init);
-  node_type_update(ntype, node_group_output_update);
+  ntype->initfunc = node_group_output_init;
+  ntype->updatefunc = node_group_output_update;
 
   ntype->no_muting = true;
 

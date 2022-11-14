@@ -159,7 +159,7 @@ static void deformVerts(ModifierData *md,
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
 
-  if (!psmd->mesh_final->runtime.deformed_only) {
+  if (!psmd->mesh_final->runtime->deformed_only) {
     /* Get the original mesh from the object, this is what the particles
      * are attached to so in case of non-deform modifiers we need to remap
      * them to the final mesh (typically subdivision surfaces). */

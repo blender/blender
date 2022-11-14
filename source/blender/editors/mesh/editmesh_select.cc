@@ -22,7 +22,9 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
+#include "BKE_mesh.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -1058,15 +1060,15 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       float imat3[3][3];
 
       ED_view3d_viewcontext_init_object(vc, obedit);
-      copy_m3_m4(imat3, obedit->obmat);
+      copy_m3_m4(imat3, obedit->object_to_world);
       invert_m3(imat3);
 
       const float(*coords)[3] = nullptr;
       {
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph,
                                                      static_cast<ID *>(obedit->data));
-        if (me_eval->runtime.edit_data) {
-          coords = me_eval->runtime.edit_data->vertexCos;
+        if (me_eval->runtime->edit_data) {
+          coords = me_eval->runtime->edit_data->vertexCos;
         }
       }
 
@@ -1083,7 +1085,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               for (uint j = 0; j < 2; j++) {
                 BMVert *v = *((&e->v1) + j);
                 float point[3];
-                mul_v3_m4v3(point, obedit->obmat, coords ? coords[BM_elem_index_get(v)] : v->co);
+                mul_v3_m4v3(
+                    point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
                 const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                     ray_origin, ray_direction, point);
                 if (dist_sq_test < dist_sq_best_vert) {
@@ -1112,7 +1115,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               else {
                 mid_v3_v3v3(point, e->v1->co, e->v2->co);
               }
-              mul_m4_v3(obedit->obmat, point);
+              mul_m4_v3(obedit->object_to_world, point);
               const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                   ray_origin, ray_direction, point);
               if (dist_sq_test < dist_sq_best_edge) {
@@ -1137,7 +1140,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
           if (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == false) {
             float point[3];
-            mul_v3_m4v3(point, obedit->obmat, coords ? coords[BM_elem_index_get(v)] : v->co);
+            mul_v3_m4v3(
+                point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_vert) {
@@ -1167,7 +1171,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               mid_v3_v3v3(point, e->v1->co, e->v2->co);
             }
-            mul_m4_v3(obedit->obmat, point);
+            mul_m4_v3(obedit->object_to_world, point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_edge) {
@@ -1196,7 +1200,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               BM_face_calc_center_median(f, point);
             }
-            mul_m4_v3(obedit->obmat, point);
+            mul_m4_v3(obedit->object_to_world, point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_face) {
@@ -4945,7 +4949,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 
   {
     float vertex_world[3];
-    mul_v3_m4v3(vertex_world, obedit->obmat, v_act->co);
+    mul_v3_m4v3(vertex_world, obedit->object_to_world, v_act->co);
     value = dot_v3v3(axis_vector, vertex_world);
   }
 
@@ -4975,7 +4979,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
         float v_iter_world[3];
-        mul_v3_m4v3(v_iter_world, obedit_iter->obmat, v->co);
+        mul_v3_m4v3(v_iter_world, obedit_iter->object_to_world, v->co);
         const float value_iter = dot_v3v3(axis_vector, v_iter_world);
         switch (sign) {
           case SELECT_AXIS_ALIGN:

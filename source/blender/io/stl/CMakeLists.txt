@@ -2,7 +2,7 @@
 
 set(INC
   .
-  ./importer
+  importer
   ../common
   ../../blenkernel
   ../../blenlib

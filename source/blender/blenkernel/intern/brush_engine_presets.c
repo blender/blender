@@ -261,7 +261,7 @@ static bool check_builtin_init()
   SUBTYPE_SET(smooth_stroke_radius, BRUSH_CHANNEL_PIXEL);
   SUBTYPE_SET(automasking_start_normal_limit, BRUSH_CHANNEL_ANGLE);
   SUBTYPE_SET(automasking_view_normal_limit, BRUSH_CHANNEL_ANGLE);
-
+  
   SUBTYPE_SET(jitter_absolute, BRUSH_CHANNEL_PIXEL);
 
   SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
@@ -302,6 +302,9 @@ static bool check_builtin_init()
   // SETCAT(enhance_detail_presteps, "Enhancement");
   SETCAT(automasking_cavity_factor, "Automasking");
   SETCAT(automasking_cavity_blur_steps, "Automasking");
+  SETCAT(use_automasking_custom_cavity_curve, "Automasking");
+  SETCAT(automasking_cavity_curve, "Automasking");
+  SETCAT(use_automasking_custom_cavity_curve, "Automasking");
 
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
@@ -627,6 +630,8 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, use_smooth_stroke, BRUSH_SMOOTH_STROKE)
   DEFBIT(flag, jitter_unit, BRUSH_ABSOLUTE_JITTER, BRUSH_ABSOLUTE_JITTER)
   DEF(flag, use_scene_spacing, BRUSH_SCENE_SPACING)
+  DEF(automasking_flags, use_automasking_custom_cavity_curve, BRUSH_AUTOMASKING_CAVITY_USE_CURVE)
+  DEF(automasking_flags, use_automasking_view_occlusion, BRUSH_AUTOMASKING_VIEW_OCCLUSION)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -862,6 +867,39 @@ void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
   }
 }
 
+static void brush_curve_to_curvemapping(BrushCurve *curve, CurveMapping *dest)
+{
+  if (curve->preset == BRUSH_CURVE_CUSTOM) {
+    BKE_curvemapping_copy_data(dest, curve->curve);
+  }
+  else {
+    const int steps = 5;
+    float t = 0.0f, dt = 1.0 / (float)(steps - 1);
+
+    BKE_curvemap_reset(dest->cm,
+                       &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                       CURVE_PRESET_LINE,
+                       CURVEMAP_SLOPE_POSITIVE);
+
+    dest->cm->totpoint = steps;
+
+    MEM_SAFE_FREE(dest->cm->table);
+    MEM_SAFE_FREE(dest->cm->premultable);
+    MEM_SAFE_FREE(dest->cm->curve);
+
+    dest->cm->curve = MEM_calloc_arrayN(steps, sizeof(CurveMapPoint), "curve points 2");
+
+    for (int i = 0; i < steps; i++, t += dt) {
+      CurveMapPoint *p = dest->cm->curve + i;
+
+      p->x = t;
+      p->y = BKE_brush_curve_strength_ex(curve->preset, curve->curve, t, 1.0f, false);
+    }
+  }
+
+  BKE_curvemapping_init(dest);
+}
+
 void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool brush_to_channels)
 {
   if (brush_to_channels) {
@@ -1028,6 +1066,18 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
         BKE_curvemapping_init(brush->curve);
       }
     }
+
+    if (!brush->automasking_cavity_curve) {
+      brush->automasking_cavity_curve = MEM_callocN(sizeof(*brush->automasking_cavity_curve),
+                                                    "automasking_cavity_curve");
+      BKE_curvemap_reset(brush->automasking_cavity_curve->cm,
+                         &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                         CURVE_PRESET_SMOOTH,
+                         CURVEMAP_SLOPE_NEGATIVE);
+    }
+
+    brush_curve_to_curvemapping(&BRUSHSET_LOOKUP(chset, automasking_cavity_curve)->curve,
+                                brush->automasking_cavity_curve);
   }
 #endif
 }
@@ -1218,11 +1268,14 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(automasking_cavity_factor);
   ADDCH(automasking_cavity_blur_steps);
+  ADDCH(automasking_cavity_curve);
+  ADDCH(use_automasking_custom_cavity_curve);
   ADDCH(automasking_start_normal_limit);
   ADDCH(automasking_use_original_normal);
   ADDCH(automasking_view_normal_limit);
   ADDCH(automasking_start_normal_falloff);
   ADDCH(automasking_view_normal_falloff);
+  ADDCH(use_automasking_view_occlusion);
 
   ADDCH(dyntopo_disabled);
   ADDCH(dyntopo_disable_smooth);
@@ -2162,6 +2215,9 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(automasking_view_normal_limit);
   ADDCH(automasking_start_normal_falloff);
   ADDCH(automasking_view_normal_falloff);
+  ADDCH(use_automasking_custom_cavity_curve);
+  ADDCH(automasking_cavity_curve);
+  ADDCH(use_automasking_view_occlusion);
 
   ADDCH(topology_rake_mode);
 

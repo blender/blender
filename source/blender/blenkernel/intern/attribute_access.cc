@@ -247,11 +247,8 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
     }
     case AttributeInit::Type::MoveArray: {
       void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      void *data = add_generic_custom_data_layer(
+      add_generic_custom_data_layer(
           custom_data, data_type, CD_ASSIGN, source_data, domain_num, attribute_id);
-      if (source_data != nullptr && data == nullptr) {
-        MEM_freeN(source_data);
-      }
       break;
     }
   }
@@ -642,15 +639,26 @@ CustomDataAttributes::CustomDataAttributes(CustomDataAttributes &&other)
   size_ = other.size_;
   data = other.data;
   CustomData_reset(&other.data);
+  other.size_ = 0;
 }
 
 CustomDataAttributes &CustomDataAttributes::operator=(const CustomDataAttributes &other)
 {
-  if (this != &other) {
-    CustomData_copy(&other.data, &data, CD_MASK_ALL, CD_DUPLICATE, other.size_);
-    size_ = other.size_;
+  if (this == &other) {
+    return *this;
   }
+  this->~CustomDataAttributes();
+  new (this) CustomDataAttributes(other);
+  return *this;
+}
 
+CustomDataAttributes &CustomDataAttributes::operator=(CustomDataAttributes &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  this->~CustomDataAttributes();
+  new (this) CustomDataAttributes(std::move(other));
   return *this;
 }
 

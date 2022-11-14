@@ -111,7 +111,7 @@ void register_node_type_cmp_defocus()
   cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_defocus_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_defocus;
-  node_type_init(&ntype, file_ns::node_composit_init_defocus);
+  ntype.initfunc = file_ns::node_composit_init_defocus;
   node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

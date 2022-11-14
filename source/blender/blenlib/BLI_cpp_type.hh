@@ -74,6 +74,7 @@
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
+#include "BLI_parameter_pack_utils.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 
@@ -93,10 +94,6 @@ enum class CPPTypeFlags {
 ENUM_OPERATORS(CPPTypeFlags, CPPTypeFlags::EqualityComparable)
 
 namespace blender {
-
-/** Utility class to pass template parameters to constructor of `CPPType`. */
-template<typename T, CPPTypeFlags Flags> struct CPPTypeParam {
-};
 
 class CPPType : NonCopyable, NonMovable {
  private:
@@ -148,7 +145,8 @@ class CPPType : NonCopyable, NonMovable {
   std::string debug_name_;
 
  public:
-  template<typename T, CPPTypeFlags Flags> CPPType(CPPTypeParam<T, Flags>, StringRef debug_name);
+  template<typename T, CPPTypeFlags Flags>
+  CPPType(TypeTag<T> /*type*/, TypeForValue<CPPTypeFlags, Flags> /*flags*/, StringRef debug_name);
   virtual ~CPPType() = default;
 
   /**
@@ -173,7 +171,7 @@ class CPPType : NonCopyable, NonMovable {
   template<typename T> static const CPPType &get()
   {
     /* Store the #CPPType locally to avoid making the function call in most cases. */
-    static const CPPType &type = CPPType::get_impl<std::remove_cv_t<T>>();
+    static const CPPType &type = CPPType::get_impl<std::decay_t<T>>();
     return type;
   }
   template<typename T> static const CPPType &get_impl();
@@ -745,30 +743,26 @@ class CPPType : NonCopyable, NonMovable {
     }
   }
 
-  template<typename T> struct type_tag {
-    using type = T;
-  };
-
  private:
   template<typename Fn> struct TypeTagExecutor {
     const Fn &fn;
 
     template<typename T> void operator()() const
     {
-      fn(type_tag<T>{});
+      fn(TypeTag<T>{});
     }
 
     void operator()() const
     {
-      fn(type_tag<void>{});
+      fn(TypeTag<void>{});
     }
   };
 
  public:
   /**
    * Similar to #to_static_type but is easier to use with a lambda function. The function is
-   * expected to take a single `auto type_tag` parameter. To extract the static type, use:
-   * `using T = typename decltype(type_tag)::type;`
+   * expected to take a single `auto TypeTag` parameter. To extract the static type, use:
+   * `using T = typename decltype(TypeTag)::type;`
    *
    * If the current #CPPType is not in #Types, the type tag is `void`.
    */
@@ -778,6 +772,11 @@ class CPPType : NonCopyable, NonMovable {
     this->to_static_type<Types...>(executor);
   }
 };
+
+/**
+ * Initialize and register basic cpp types.
+ */
+void register_cpp_types();
 
 }  // namespace blender
 

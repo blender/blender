@@ -126,8 +126,8 @@ struct ImportJobData {
 
   USDStageReader *archive;
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 
   char error_code;
@@ -144,7 +144,7 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void import_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   ImportJobData *data = static_cast<ImportJobData *>(customdata);
 
@@ -430,7 +430,7 @@ bool USD_import(struct bContext *C,
   }
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
-    short stop = 0, do_update = 0;
+    bool stop = false, do_update = false;
     float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);

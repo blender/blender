@@ -660,10 +660,10 @@ void register_node_type_cmp_image()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
-  node_type_init(&ntype, file_ns::node_composit_init_image);
+  ntype.initfunc = file_ns::node_composit_init_image;
   node_type_storage(
       &ntype, "ImageUser", file_ns::node_composit_free_image, file_ns::node_composit_copy_image);
-  node_type_update(&ntype, file_ns::cmp_node_image_update);
+  ntype.updatefunc = file_ns::cmp_node_image_update;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
@@ -879,8 +879,8 @@ void register_node_type_cmp_rlayers()
   ntype.flag |= NODE_PREVIEW;
   node_type_storage(
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
-  node_type_update(&ntype, file_ns::cmp_node_rlayers_update);
-  node_type_init(&ntype, node_cmp_rlayers_outputs);
+  ntype.updatefunc = file_ns::cmp_node_rlayers_update;
+  ntype.initfunc = node_cmp_rlayers_outputs;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
   nodeRegisterType(&ntype);

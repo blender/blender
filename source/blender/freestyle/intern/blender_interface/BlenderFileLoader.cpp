@@ -73,7 +73,8 @@ NodeGroup *BlenderFileLoader::Load()
       break;
     }
 
-    if (ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) {
+    if ((ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) ||
+        (ob->visibility_flag & OB_HOLDOUT)) {
       continue;
     }
 
@@ -430,7 +431,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   // Compute matrix including camera transform
   float obmat[4][4], nmat[4][4];
-  mul_m4_m4m4(obmat, viewmat, ob->obmat);
+  mul_m4_m4m4(obmat, viewmat, ob->object_to_world);
   invert_m4_m4(nmat, obmat);
   transpose_m4(nmat);
 

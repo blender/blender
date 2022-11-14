@@ -614,7 +614,7 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
     return true;
   }
 
-  /* Check visiblilty restriction flags */
+  /* Check visibility restriction flags */
   if (lc->flag & LAYER_COLLECTION_HIDE || lc->collection->flag & COLLECTION_HIDE_VIEWPORT) {
     return true;
   }
@@ -1049,7 +1049,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
     }
 
     /* Holdout and indirect only */
-    if ((layer->flag & LAYER_COLLECTION_HOLDOUT) || (base->object->visibility_flag & OB_HOLDOUT)) {
+    if ((layer->flag & LAYER_COLLECTION_HOLDOUT)) {
       base->flag_from_collection |= BASE_HOLDOUT;
     }
     if (layer->flag & LAYER_COLLECTION_INDIRECT_ONLY) {

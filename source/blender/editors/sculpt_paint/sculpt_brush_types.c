@@ -1809,6 +1809,8 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float vec[3], rot[3][3];
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -3044,14 +3046,14 @@ static void sculpt_scene_project_view_ray_init(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   float world_space_vertex_co[3];
-  mul_v3_m4v3(world_space_vertex_co, ob->obmat, SCULPT_vertex_co_get(ss, vertex));
+  mul_v3_m4v3(world_space_vertex_co, ob->object_to_world, SCULPT_vertex_co_get(ss, vertex));
   if (ss->cache->vc->rv3d->is_persp) {
     sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
     normalize_v3(r_ray_normal);
     copy_v3_v3(r_ray_origin, ss->cache->view_origin);
   }
   else {
-    mul_v3_mat3_m4v3(r_ray_normal, ob->obmat, ss->cache->view_normal);
+    mul_v3_mat3_m4v3(r_ray_normal, ob->object_to_world, ss->cache->view_normal);
     sub_v3_v3v3(r_ray_origin, world_space_vertex_co, r_ray_normal);
   }
 }
@@ -3063,10 +3065,10 @@ static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
                                                         float r_ray_origin[3])
 {
   SculptSession *ss = ob->sculpt;
-  mul_v3_m4v3(r_ray_normal, ob->obmat, original_normal);
+  mul_v3_m4v3(r_ray_normal, ob->object_to_world, original_normal);
   normalize_v3(r_ray_normal);
 
-  mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex));
+  mul_v3_m4v3(r_ray_origin, ob->object_to_world, SCULPT_vertex_co_get(ss, vertex));
 }
 
 static void sculpt_scene_project_brush_normal_ray_init(Object *ob,
@@ -3075,8 +3077,8 @@ static void sculpt_scene_project_brush_normal_ray_init(Object *ob,
                                                        float r_ray_origin[3])
 {
   SculptSession *ss = ob->sculpt;
-  mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex));
-  mul_v3_m4v3(r_ray_normal, ob->obmat, ss->cache->sculpt_normal);
+  mul_v3_m4v3(r_ray_origin, ob->object_to_world, SCULPT_vertex_co_get(ss, vertex));
+  mul_v3_m4v3(r_ray_normal, ob->object_to_world, ss->cache->sculpt_normal);
   normalize_v3(r_ray_normal);
 }
 
@@ -3219,7 +3221,7 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    mul_v3_m4v3(hit_co, data->ob->imat, world_space_hit_co);
+    mul_v3_m4v3(hit_co, data->ob->world_to_object, world_space_hit_co);
 
     float disp[3];
     sub_v3_v3v3(disp, hit_co, vd.co);

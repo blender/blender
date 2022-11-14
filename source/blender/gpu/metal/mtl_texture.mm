@@ -337,20 +337,6 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
 
   GPU_batch_draw(quad);
 
-  /* TMP draw with IMM TODO(Metal): Remove this once GPUBatch is supported. */
-  GPUVertFormat *imm_format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  immBindShader(shader);
-  immBegin(GPU_PRIM_TRI_STRIP, 4);
-  immVertex2f(pos, 1, 0);
-  immVertex2f(pos, 0, 0);
-  immVertex2f(pos, 1, 1);
-  immVertex2f(pos, 0, 1);
-  immEnd();
-  immUnbindProgram();
-  /**********************/
-
   /* restoring old pipeline state. */
   GPU_depth_mask(depth_write_prev);
   GPU_stencil_write_mask_set(stencil_mask_prev);
@@ -1472,10 +1458,82 @@ bool gpu::MTLTexture::init_internal()
 
 bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 {
-  /* Not a valid vertex buffer format, though verifying texture is not set as such
-   * as this is not supported on Apple Silicon. */
-  BLI_assert_msg(this->format_ != GPU_DEPTH24_STENCIL8,
-                 "Apple silicon does not support GPU_DEPTH24_S8");
+  if (this->format_ == GPU_DEPTH24_STENCIL8) {
+    /* Apple Silicon requires GPU_DEPTH32F_STENCIL8 instead of GPU_DEPTH24_STENCIL8. */
+    this->format_ = GPU_DEPTH32F_STENCIL8;
+  }
+
+  MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
+  mtl_max_mips_ = 1;
+  mipmaps_ = 0;
+  this->mip_range_set(0, 0);
+
+  /* Create texture from GPUVertBuf's buffer. */
+  MTLVertBuf *mtl_vbo = static_cast<MTLVertBuf *>(unwrap(vbo));
+  mtl_vbo->bind();
+  mtl_vbo->flag_used();
+
+  /* Get Metal Buffer. */
+  id<MTLBuffer> source_buffer = mtl_vbo->get_metal_buffer();
+  BLI_assert(source_buffer);
+
+  /* Verify size. */
+  if (w_ <= 0) {
+    MTL_LOG_WARNING("Allocating texture buffer of width 0!\n");
+    w_ = 1;
+  }
+
+  /* Verify Texture and vertex buffer alignment. */
+  int bytes_per_pixel = get_mtl_format_bytesize(mtl_format);
+  int bytes_per_row = bytes_per_pixel * w_;
+
+  MTLContext *mtl_ctx = MTLContext::get();
+  uint32_t align_requirement = static_cast<uint32_t>(
+      [mtl_ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
+
+  /* Verify per-vertex size aligns with texture size. */
+  const GPUVertFormat *format = GPU_vertbuf_get_format(vbo);
+  BLI_assert(bytes_per_pixel == format->stride &&
+             "Pixel format stride MUST match the texture format stride -- These being different "
+             "is likely caused by Metal's VBO padding to a minimum of 4-bytes per-vertex");
+  UNUSED_VARS_NDEBUG(format);
+
+  /* Create texture descriptor. */
+  BLI_assert(type_ == GPU_TEXTURE_BUFFER);
+  texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+  texture_descriptor_.pixelFormat = mtl_format;
+  texture_descriptor_.textureType = MTLTextureTypeTextureBuffer;
+  texture_descriptor_.width = w_;
+  texture_descriptor_.height = 1;
+  texture_descriptor_.depth = 1;
+  texture_descriptor_.arrayLength = 1;
+  texture_descriptor_.mipmapLevelCount = mtl_max_mips_;
+  texture_descriptor_.usage =
+      MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
+      MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
+  texture_descriptor_.storageMode = [source_buffer storageMode];
+  texture_descriptor_.sampleCount = 1;
+  texture_descriptor_.cpuCacheMode = [source_buffer cpuCacheMode];
+  texture_descriptor_.hazardTrackingMode = [source_buffer hazardTrackingMode];
+
+  texture_ = [source_buffer
+      newTextureWithDescriptor:texture_descriptor_
+                        offset:0
+                   bytesPerRow:ceil_to_multiple_u(bytes_per_row, align_requirement)];
+  aligned_w_ = bytes_per_row / bytes_per_pixel;
+
+  BLI_assert(texture_);
+  texture_.label = [NSString stringWithUTF8String:this->get_name()];
+  is_baked_ = true;
+  is_dirty_ = false;
+  resource_mode_ = MTL_TEXTURE_MODE_VBO;
+
+  /* Track Status. */
+  vert_buffer_ = mtl_vbo;
+  vert_buffer_mtl_ = source_buffer;
+  /* Cleanup. */
+  [texture_descriptor_ release];
+  texture_descriptor_ = nullptr;
 
   return true;
 }
@@ -1522,7 +1580,6 @@ bool gpu::MTLTexture::texture_is_baked()
 /* Prepare texture parameters after initialization, but before baking. */
 void gpu::MTLTexture::prepare_internal()
 {
-
   /* Derive implicit usage flags for Depth/Stencil attachments. */
   if (format_flag_ & GPU_FORMAT_DEPTH || format_flag_ & GPU_FORMAT_STENCIL) {
     gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
@@ -1687,7 +1744,7 @@ void gpu::MTLTexture::ensure_baked()
     /* Determine Resource Mode. */
     resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
 
-    /* Create texture. */
+    /* Standard texture allocation. */
     texture_ = [ctx->device newTextureWithDescriptor:texture_descriptor_];
 
     [texture_descriptor_ release];

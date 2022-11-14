@@ -793,7 +793,9 @@ class CustomDataAttributes {
   ~CustomDataAttributes();
   CustomDataAttributes(const CustomDataAttributes &other);
   CustomDataAttributes(CustomDataAttributes &&other);
+
   CustomDataAttributes &operator=(const CustomDataAttributes &other);
+  CustomDataAttributes &operator=(CustomDataAttributes &&other);
 
   void reallocate(int size);
 

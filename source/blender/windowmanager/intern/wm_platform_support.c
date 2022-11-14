@@ -42,7 +42,7 @@ static bool wm_platform_support_check_approval(const char *platform_support_key,
 
   bool result = false;
   char filepath[FILE_MAX];
-  BLI_join_dirfile(filepath, sizeof(filepath), cfgdir, BLENDER_PLATFORM_SUPPORT_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_PLATFORM_SUPPORT_FILE);
   LinkNode *lines = BLI_file_read_as_lines(filepath);
   for (LinkNode *line_node = lines; line_node; line_node = line_node->next) {
     char *line = line_node->link;

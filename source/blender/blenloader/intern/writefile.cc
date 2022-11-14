@@ -1048,7 +1048,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   if (fileflags & G_FILE_RECOVER_WRITE) {
     STRNCPY(fg.filepath, mainvar->filepath);
   }
-  sprintf(subvstr, "%4d", BLENDER_FILE_SUBVERSION);
+  BLI_snprintf(subvstr, sizeof(subvstr), "%4d", BLENDER_FILE_SUBVERSION);
   memcpy(fg.subvstr, subvstr, 4);
 
   fg.subversion = BLENDER_FILE_SUBVERSION;
@@ -1102,11 +1102,12 @@ static bool write_file_handle(Main *mainvar,
   wd = mywrite_begin(ww, compare, current);
   BlendWriter writer = {wd};
 
-  sprintf(buf,
-          "BLENDER%c%c%.3d",
-          (sizeof(void *) == 8) ? '-' : '_',
-          (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
-          BLENDER_FILE_VERSION);
+  BLI_snprintf(buf,
+               sizeof(buf),
+               "BLENDER%c%c%.3d",
+               (sizeof(void *) == 8) ? '-' : '_',
+               (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+               BLENDER_FILE_VERSION);
 
   mywrite(wd, buf, 12);
 

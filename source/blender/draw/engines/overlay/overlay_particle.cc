@@ -181,14 +181,14 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
         default:
         case PART_DRAW_DOT:
           grp = DRW_shgroup_create_sub(pd->particle_dots_grp);
-          DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+          DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
           DRW_shgroup_call(grp, geom, nullptr);
           break;
         case PART_DRAW_AXIS:
         case PART_DRAW_CIRC:
         case PART_DRAW_CROSS:
           grp = DRW_shgroup_create_sub(pd->particle_shapes_grp);
-          DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+          DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
           shape = DRW_cache_particles_get_prim(draw_as);
           DRW_shgroup_call_instances_with_attrs(grp, nullptr, shape, geom);
           break;

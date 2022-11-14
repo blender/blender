@@ -456,13 +456,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     float result_mat[4][4];
 
     if (ctx->object) {
-      invert_m4_m4(obinv, ctx->object->obmat);
+      invert_m4_m4(obinv, ctx->object->object_to_world);
     }
     else {
       unit_m4(obinv);
     }
 
-    mul_m4_series(result_mat, offset, obinv, amd->offset_ob->obmat);
+    mul_m4_series(result_mat, offset, obinv, amd->offset_ob->object_to_world);
     copy_m4_m4(offset, result_mat);
   }
 
@@ -474,7 +474,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     Object *curve_ob = amd->curve_ob;
     CurveCache *curve_cache = curve_ob->runtime.curve_cache;
     if (curve_cache != NULL && curve_cache->anim_path_accum_length != NULL) {
-      float scale_fac = mat4_to_scale(curve_ob->obmat);
+      float scale_fac = mat4_to_scale(curve_ob->object_to_world);
       length = scale_fac * BKE_anim_path_get_length(curve_cache);
     }
   }

@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
@@ -217,7 +218,7 @@ ModifierData *ED_object_modifier_add(
 
       if (ob->mode & OB_MODE_SCULPT) {
         /* ensure that grid paint mask layer is created */
-        BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+        BKE_sculpt_mask_layers_ensure(nullptr, nullptr, ob, (MultiresModifierData *)new_md);
       }
     }
     else if (type == eModifierType_Skin) {
@@ -613,7 +614,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
         medge++;
       }
       else {
@@ -632,7 +633,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
         medge++;
       }
       else {
@@ -788,7 +789,9 @@ static bool modifier_apply_obdata(
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
-          reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
+          reports,
+          RPT_ERROR,
+          "Cannot apply constructive modifiers on curve. Convert curve to mesh in order to apply");
       return false;
     }
 
@@ -855,8 +858,38 @@ static bool modifier_apply_obdata(
     Main *bmain = DEG_get_bmain(depsgraph);
     BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }
+  else if (ob->type == OB_POINTCLOUD) {
+    PointCloud &points = *static_cast<PointCloud *>(ob->data);
+    if (mti->modifyGeometrySet == nullptr) {
+      BLI_assert_unreachable();
+      return false;
+    }
+
+    /* Create a temporary geometry set and component. */
+    GeometrySet geometry_set;
+    geometry_set.get_component_for_write<PointCloudComponent>().replace(
+        &points, GeometryOwnershipType::ReadOnly);
+
+    ModifierEvalContext mectx = {depsgraph, ob, (ModifierApplyFlag)0};
+    mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
+    if (!geometry_set.has_pointcloud()) {
+      BKE_report(
+          reports, RPT_ERROR, "Evaluated geometry from modifier does not contain a point cloud");
+      return false;
+    }
+    PointCloud *pointcloud_eval =
+        geometry_set.get_component_for_write<PointCloudComponent>().release();
+
+    /* Anonymous attributes shouldn't be available on the applied geometry. */
+    pointcloud_eval->attributes_for_write().remove_anonymous();
+
+    /* Copy the relevant information to the original. */
+    Main *bmain = DEG_get_bmain(depsgraph);
+    BKE_object_material_from_eval_data(bmain, ob, &pointcloud_eval->id);
+    BKE_pointcloud_nomain_to_pointcloud(pointcloud_eval, &points, true);
+  }
   else {
-    /* TODO: implement for point clouds and volumes. */
+    /* TODO: implement for volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return false;
   }
@@ -919,31 +952,56 @@ bool ED_object_modifier_apply(Main *bmain,
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findby_name(ob_eval, md->name) : md;
 
-  /* Allow apply of a non-real-time modifier, by first re-enabling real-time. */
-  int prev_mode = md_eval->mode;
-  md_eval->mode |= eModifierMode_Realtime;
+  Depsgraph *apply_depsgraph = depsgraph;
+  Depsgraph *local_depsgraph = nullptr;
 
+  /* If the object is hidden or the modifier is not enabled for the viewport is disabled a special
+   * handling is required. This is because the viewport dependency graph optimizes out evaluation
+   * of objects which are used by hidden objects and disabled modifiers.
+   *
+   * The idea is to create a dependency graph which does not perform those optimizations. */
+  if ((ob_eval->base_flag & BASE_ENABLED_VIEWPORT) == 0 ||
+      (md_eval->mode & eModifierMode_Realtime) == 0) {
+    ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+
+    local_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+    DEG_disable_visibility_optimization(local_depsgraph);
+
+    ID *ids[] = {&ob->id};
+
+    DEG_graph_build_from_ids(local_depsgraph, ids, 1);
+    DEG_evaluate_on_refresh(local_depsgraph);
+
+    apply_depsgraph = local_depsgraph;
+
+    /* The evaluated object and modifier are now from the different dependency graph. */
+    ob_eval = DEG_get_evaluated_object(local_depsgraph, ob);
+    md_eval = BKE_modifiers_findby_name(ob_eval, md->name);
+
+    /* Force mode on the evaluated modifier, enforcing the modifier evaluation in the apply()
+     * functions. */
+    md_eval->mode |= eModifierMode_Realtime;
+  }
+
+  bool did_apply = false;
   if (mode == MODIFIER_APPLY_SHAPE) {
-    if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md_eval)) {
-      md_eval->mode = prev_mode;
-      return false;
-    }
+    did_apply = modifier_apply_shape(bmain, reports, apply_depsgraph, scene, ob, md_eval);
   }
   else {
-    if (!modifier_apply_obdata(reports, depsgraph, scene, ob, md_eval)) {
-      md_eval->mode = prev_mode;
-      return false;
+    did_apply = modifier_apply_obdata(reports, apply_depsgraph, scene, ob, md_eval);
+  }
+
+  if (did_apply) {
+    if (!keep_modifier) {
+      BKE_modifier_remove_from_list(ob, md);
+      BKE_modifier_free(md);
     }
+    BKE_object_free_derived_caches(ob);
   }
 
-  md_eval->mode = prev_mode;
-
-  if (!keep_modifier) {
-    BKE_modifier_remove_from_list(ob, md);
-    BKE_modifier_free(md);
+  if (local_depsgraph != nullptr) {
+    DEG_graph_free(local_depsgraph);
   }
-
-  BKE_object_free_derived_caches(ob);
 
   return true;
 }
@@ -2018,7 +2076,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
   if (object->mode & OB_MODE_SCULPT) {
     /* ensure that grid paint mask layer is created */
-    BKE_sculpt_mask_layers_ensure(object, mmd);
+    BKE_sculpt_mask_layers_ensure(
+        CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C), object, mmd);
   }
 
   return OPERATOR_FINISHED;
@@ -3000,7 +3059,7 @@ static bool ocean_bake_poll(bContext *C)
 struct OceanBakeJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
   int current_frame;
   struct OceanCache *och;
@@ -3039,7 +3098,7 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
   *(oj->progress) = progress;
 }
 
-static void oceanbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void oceanbake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   OceanBakeJob *oj = static_cast<OceanBakeJob *>(customdata);
 
@@ -3052,7 +3111,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
   BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void oceanbake_endjob(void *customdata)

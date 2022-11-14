@@ -126,6 +126,7 @@ typedef enum ePaintSymmetryAreas {
   PAINT_SYMM_AREA_Y = (1 << 1),
   PAINT_SYMM_AREA_Z = (1 << 2),
 } ePaintSymmetryAreas;
+ENUM_OPERATORS(ePaintSymmetryAreas, PAINT_SYMM_AREA_Z);
 
 #define PAINT_SYMM_AREAS 8
 
@@ -1019,6 +1020,7 @@ typedef enum eSculptBoundary {
   SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
 } eSculptBoundary;
 
+ENUM_OPERATORS(eSculptBoundary, SCULPT_BOUNDARY_NEEDS_UPDATE);
 
 /* Note: This is stored in a single attribute with boundary flags */
 typedef enum eSculptCorner {
@@ -1029,6 +1031,8 @@ typedef enum eSculptCorner {
   SCULPT_CORNER_SHARP = 1 << 9,
   SCULPT_CORNER_UV = 1 << 10,
 } eSculptCorner;
+
+ENUM_OPERATORS(eSculptCorner, SCULPT_CORNER_UV);
 
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
@@ -1165,7 +1169,19 @@ int *BKE_sculpt_face_sets_ensure(struct Object *ob);
  * (see #SCULPT_visibility_sync_all_from_faces).
  */
 bool *BKE_sculpt_hide_poly_ensure(struct Object *ob);
-int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
+
+/**
+ * Ensures a mask layer exists. If depsgraph and bmain are non-null,
+ * a mask doesn't exist and the object has a multi-resolution modifier
+ * then the scene depsgraph will be evaluated to update the runtime
+ * subdivision data.
+ *
+ * \note always call *before* #BKE_sculpt_update_object_for_edit.
+ */
+int BKE_sculpt_mask_layers_ensure(struct Depsgraph *depsgraph,
+                                  struct Main *bmain,
+                                  struct Object *ob,
+                                  struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
 struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct Object *ob);
@@ -1179,7 +1195,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(struct Mesh *mesh, struct SubdivCC
  * Test if PBVH can be used directly for drawing, which is faster than
  * drawing the mesh and all updates that come with it.
  */
-bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
+bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct RegionView3D *rv3d);
 
 char BKE_get_fset_boundary_symflag(struct Object *object);
 

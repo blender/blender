@@ -39,7 +39,8 @@ struct Render {
   int slot;
 
   /* state settings */
-  short flag, ok, result_ok;
+  short flag;
+  bool ok, result_ok;
 
   /* result of rendering */
   RenderResult *result;
@@ -76,8 +77,7 @@ struct Render {
   struct Main *main;
   Scene *scene;
   RenderData r;
-  ListBase view_layers;
-  int active_view_layer;
+  char single_view_layer[MAX_NAME];
   struct Object *camera_override;
 
   ThreadMutex highlighted_tiles_mutex;
@@ -108,7 +108,7 @@ struct Render {
 
   void (*draw_lock)(void *handle, bool lock);
   void *dlh;
-  int (*test_break)(void *handle);
+  bool (*test_break)(void *handle);
   void *tbh;
 
   RenderStats i;

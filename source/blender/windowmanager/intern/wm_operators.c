@@ -107,19 +107,32 @@
 /** \name Operator API
  * \{ */
 
+#define OP_BL_SEP_STRING "_OT_"
+#define OP_BL_SEP_LEN 4
+
+#define OP_PY_SEP_CHAR '.'
+#define OP_PY_SEP_LEN 1
+
+/* Difference between python 'identifier' and BL/C code one ("." separator replaced by "_OT_"),
+ * and final `\0` char. */
+#define OP_MAX_PY_IDNAME (OP_MAX_TYPENAME - OP_BL_SEP_LEN + OP_PY_SEP_LEN - 1)
+
 size_t WM_operator_py_idname(char *dst, const char *src)
 {
-  const char *sep = strstr(src, "_OT_");
+  const char *sep = strstr(src, OP_BL_SEP_STRING);
   if (sep) {
-    int ofs = (sep - src);
+    const size_t sep_offset = (size_t)(sep - src);
 
     /* NOTE: we use ascii `tolower` instead of system `tolower`, because the
      * latter depends on the locale, and can lead to `idname` mismatch. */
-    memcpy(dst, src, sizeof(char) * ofs);
-    BLI_str_tolower_ascii(dst, ofs);
+    memcpy(dst, src, sep_offset);
+    BLI_str_tolower_ascii(dst, sep_offset);
 
-    dst[ofs] = '.';
-    return BLI_strncpy_rlen(dst + (ofs + 1), sep + 4, OP_MAX_TYPENAME - (ofs + 1)) + (ofs + 1);
+    dst[sep_offset] = OP_PY_SEP_CHAR;
+    return BLI_strncpy_rlen(dst + (sep_offset + OP_PY_SEP_LEN),
+                            sep + OP_BL_SEP_LEN,
+                            OP_MAX_TYPENAME - sep_offset - OP_PY_SEP_LEN) +
+           (sep_offset + OP_PY_SEP_LEN);
   }
   /* Should not happen but support just in case. */
   return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
@@ -127,15 +140,19 @@ size_t WM_operator_py_idname(char *dst, const char *src)
 
 size_t WM_operator_bl_idname(char *dst, const char *src)
 {
-  const char *sep = strchr(src, '.');
-  int from_len;
-  if (sep && (from_len = strlen(src)) < OP_MAX_TYPENAME - 3) {
-    const int ofs = (sep - src);
-    memcpy(dst, src, sizeof(char) * ofs);
-    BLI_str_toupper_ascii(dst, ofs);
-    memcpy(dst + ofs, "_OT_", 4);
-    memcpy(dst + (ofs + 4), sep + 1, (from_len - ofs));
-    return (from_len - ofs) - 1;
+  const size_t from_len = (size_t)strlen(src);
+
+  const char *sep = strchr(src, OP_PY_SEP_CHAR);
+  if (sep && (from_len <= OP_MAX_PY_IDNAME)) {
+    const size_t sep_offset = (size_t)(sep - src);
+    memcpy(dst, src, sep_offset);
+    BLI_str_toupper_ascii(dst, sep_offset);
+
+    memcpy(dst + sep_offset, OP_BL_SEP_STRING, OP_BL_SEP_LEN);
+    BLI_strncpy(dst + sep_offset + OP_BL_SEP_LEN,
+                sep + OP_PY_SEP_LEN,
+                from_len - sep_offset - OP_PY_SEP_LEN + 1);
+    return from_len + OP_BL_SEP_LEN - OP_PY_SEP_LEN;
   }
   /* Should not happen but support just in case. */
   return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
@@ -166,14 +183,14 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
     }
   }
 
-  if (i > (MAX_NAME - 3)) {
+  if (i > OP_MAX_PY_IDNAME) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Registering operator class: '%s', invalid bl_idname '%s', "
                 "is too long, maximum length is %d",
                 classname,
                 idname,
-                MAX_NAME - 3);
+                OP_MAX_PY_IDNAME);
     return false;
   }
 

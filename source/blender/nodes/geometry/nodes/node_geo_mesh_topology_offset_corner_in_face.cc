@@ -52,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
+    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
 
     Array<int> offset_corners(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {
@@ -85,6 +85,11 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
       return other_field->corner_index_ == corner_index_ && other_field->offset_ == offset_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_CORNER;
   }
 };
 

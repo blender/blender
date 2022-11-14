@@ -93,8 +93,8 @@ void register_node_type_sh_group()
 
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  node_type_group_update(&ntype, node_group_update);
-  node_type_gpu(&ntype, gpu_group_execute);
+  ntype.group_update_func = node_group_update;
+  ntype.gpu_fn = gpu_group_execute;
 
   nodeRegisterType(&ntype);
 }
@@ -109,5 +109,5 @@ void register_node_type_sh_custom_group(bNodeType *ntype)
     ntype->insert_link = node_insert_link_default;
   }
 
-  node_type_gpu(ntype, gpu_group_execute);
+  ntype->gpu_fn = gpu_group_execute;
 }

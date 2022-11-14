@@ -1077,6 +1077,13 @@ elseif(WIN32)
     )
   endif()
 
+  if(WITH_PYTHON_MODULE AND TARGETDIR_BPY)
+    install(
+      TARGETS blender
+      LIBRARY DESTINATION ${TARGETDIR_BPY}
+    )
+  endif()
+
   if(PLATFORM_BUNDLED_LIBRARIES)
     install(
       FILES ${PLATFORM_BUNDLED_LIBRARIES}

@@ -10,6 +10,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_global.h"
+#include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -143,29 +144,31 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   }
 
   if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
-    const InstancesComponent &instances = static_cast<const InstancesComponent &>(*component_);
-    if (STREQ(column_id.name, "Name")) {
-      Span<int> reference_handles = instances.instance_reference_handles();
-      Span<InstanceReference> references = instances.references();
-      return std::make_unique<ColumnValues>(
-          column_id.name,
-          VArray<InstanceReference>::ForFunc(domain_num,
-                                             [reference_handles, references](int64_t index) {
-                                               return references[reference_handles[index]];
-                                             }));
-    }
-    Span<float4x4> transforms = instances.instance_transforms();
-    if (STREQ(column_id.name, "Rotation")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].to_euler();
-          }));
-    }
-    if (STREQ(column_id.name, "Scale")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].scale();
-          }));
+    if (const bke::Instances *instances =
+            static_cast<const InstancesComponent &>(*component_).get_for_read()) {
+      if (STREQ(column_id.name, "Name")) {
+        Span<int> reference_handles = instances->reference_handles();
+        Span<bke::InstanceReference> references = instances->references();
+        return std::make_unique<ColumnValues>(
+            column_id.name,
+            VArray<bke::InstanceReference>::ForFunc(
+                domain_num, [reference_handles, references](int64_t index) {
+                  return references[reference_handles[index]];
+                }));
+      }
+      Span<float4x4> transforms = instances->transforms();
+      if (STREQ(column_id.name, "Rotation")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].to_euler();
+            }));
+      }
+      if (STREQ(column_id.name, "Scale")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].scale();
+            }));
+      }
     }
   }
   else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
@@ -486,37 +489,6 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
   }
   return geometry_set;
 }
-
-class GeometryComponentCacheKey : public SpreadsheetCache::Key {
- public:
-  /* Use the pointer to the geometry component as a key to detect when the geometry changed. */
-  const GeometryComponent *component;
-
-  GeometryComponentCacheKey(const GeometryComponent &component) : component(&component)
-  {
-  }
-
-  uint64_t hash() const override
-  {
-    return get_default_hash(this->component);
-  }
-
-  bool is_equal_to(const Key &other) const override
-  {
-    if (const GeometryComponentCacheKey *other_geo =
-            dynamic_cast<const GeometryComponentCacheKey *>(&other)) {
-      return this->component == other_geo->component;
-    }
-    return false;
-  }
-};
-
-class GeometryComponentCacheValue : public SpreadsheetCache::Value {
- public:
-  /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
-   * to be reevaluated on every redraw. */
-  Map<std::pair<eAttrDomain, GField>, GArray<>> arrays;
-};
 
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {

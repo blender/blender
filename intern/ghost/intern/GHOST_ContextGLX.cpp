@@ -140,7 +140,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
   /* End Inline GLEW. */
   /* -------------------------------------------------------------------- */
 #else
-  /* Important to initialize only glxew (_not_ GLEW),
+  /* Important to initialize only GLXEW (_not_ GLEW),
    * since this breaks w/ Mesa's `swrast`, see: T46431. */
   glxewInit();
 #endif /* USE_GLXEW_INIT_WORKAROUND */
@@ -306,7 +306,7 @@ GHOST_TSuccess GHOST_ContextGLX::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 {
-  if (!epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
+  if (epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
     ::glXSwapIntervalEXT(m_display, m_window, interval);
     return GHOST_kSuccess;
   }

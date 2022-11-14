@@ -21,6 +21,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
@@ -151,8 +152,8 @@ static void waveModifier_do(WaveModifierData *md,
   if (wmd->objectcenter != nullptr) {
     float mat[4][4];
     /* get the control object's location in local coordinates */
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_m4_m4m4(mat, ob->imat, wmd->objectcenter->obmat);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_m4_m4m4(mat, ob->world_to_object, wmd->objectcenter->object_to_world);
 
     wmd->startx = mat[3][0];
     wmd->starty = mat[3][1];
@@ -337,7 +338,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (!ELEM(mesh_src, nullptr, mesh)) {
     /* Important not to free `vertexCos` owned by the caller. */
-    EditMeshData *edit_data = mesh_src->runtime.edit_data;
+    EditMeshData *edit_data = mesh_src->runtime->edit_data;
     if (edit_data->vertexCos == vertexCos) {
       edit_data->vertexCos = nullptr;
     }

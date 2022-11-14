@@ -380,7 +380,14 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         layout = self.layout
         ffmpeg = context.scene.render.ffmpeg
 
-        needs_codec = ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4', 'WEBM'}
+        needs_codec = ffmpeg.format in {
+            'AVI',
+            'QUICKTIME',
+            'MKV',
+            'OGG',
+            'MPEG4',
+            'WEBM'
+        }
         if needs_codec:
             layout.prop(ffmpeg, "codec")
 
@@ -391,7 +398,12 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
             layout.prop(ffmpeg, "use_lossless_output")
 
         # Output quality
-        use_crf = needs_codec and ffmpeg.codec in {'H264', 'MPEG4', 'WEBM'}
+        use_crf = needs_codec and ffmpeg.codec in {
+            'H264',
+            'MPEG4',
+            'WEBM',
+            'AV1'
+        }
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 

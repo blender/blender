@@ -18,3 +18,6 @@ GPU_SHADER_INTERFACE_INFO(smooth_radii_outline_iface, "").smooth(Type::VEC4, "ra
 GPU_SHADER_INTERFACE_INFO(flat_color_smooth_tex_coord_interp_iface, "")
     .flat(Type::VEC4, "finalColor")
     .smooth(Type::VEC2, "texCoord_interp");
+GPU_SHADER_INTERFACE_INFO(smooth_icon_interp_iface, "")
+    .smooth(Type::VEC2, "texCoord_interp")
+    .smooth(Type::VEC2, "mask_coord_interp");

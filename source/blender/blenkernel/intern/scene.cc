@@ -281,6 +281,9 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   }
 
   /* View Layers */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_src->view_layers) {
+    BKE_view_layer_synced_ensure(scene_src, view_layer);
+  }
   BLI_duplicatelist(&scene_dst->view_layers, &scene_src->view_layers);
   for (ViewLayer *view_layer_src = static_cast<ViewLayer *>(scene_src->view_layers.first),
                  *view_layer_dst = static_cast<ViewLayer *>(scene_dst->view_layers.first);
@@ -2314,13 +2317,13 @@ int BKE_scene_base_iter_next(
           if (iter->dupli_refob != *ob) {
             if (iter->dupli_refob) {
               /* Restore previous object's real matrix. */
-              copy_m4_m4(iter->dupli_refob->obmat, iter->omat);
+              copy_m4_m4(iter->dupli_refob->object_to_world, iter->omat);
             }
             /* Backup new object's real matrix. */
             iter->dupli_refob = *ob;
-            copy_m4_m4(iter->omat, iter->dupli_refob->obmat);
+            copy_m4_m4(iter->omat, iter->dupli_refob->object_to_world);
           }
-          copy_m4_m4((*ob)->obmat, iter->dupob->mat);
+          copy_m4_m4((*ob)->object_to_world, iter->dupob->mat);
 
           iter->dupob = iter->dupob->next;
         }
@@ -2330,7 +2333,7 @@ int BKE_scene_base_iter_next(
 
           if (iter->dupli_refob) {
             /* Restore last object's real matrix. */
-            copy_m4_m4(iter->dupli_refob->obmat, iter->omat);
+            copy_m4_m4(iter->dupli_refob->object_to_world, iter->omat);
             iter->dupli_refob = nullptr;
           }
 

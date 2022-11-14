@@ -196,7 +196,7 @@ typedef struct LatticeModifierData {
   ModifierData modifier;
 
   struct Object *object;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char name[64];
   float strength;
   short flag;
@@ -213,7 +213,7 @@ typedef struct CurveModifierData {
   ModifierData modifier;
 
   struct Object *object;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char name[64];
   /** Axis along which curve deforms. */
   short defaxis;
@@ -263,7 +263,7 @@ typedef struct MaskModifierData {
 
   /** Armature to use to in place of hardcoded vgroup. */
   struct Object *ob_arm;
-  /** Name of vertex group to use to mask, MAX_VGROUP_NAME. */
+  /** Name of vertex group to use to mask, #MAX_VGROUP_NAME. */
   char vgroup[64];
 
   /** Using armature or hardcoded vgroup. */
@@ -448,7 +448,7 @@ typedef struct BevelModifierData {
   float bevel_angle;
   float spread;
   /** if the MOD_BEVEL_VWEIGHT option is set,
-   * this will be the name of the vert group, MAX_VGROUP_NAME */
+   * this will be the name of the vert group, #MAX_VGROUP_NAME */
   char defgrp_name[64];
 
   char _pad1[4];
@@ -566,7 +566,7 @@ typedef struct DisplaceModifierData {
 
   float strength;
   int direction;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   float midlevel;
   int space;
@@ -636,7 +636,7 @@ typedef struct DecimateModifierData {
   /** (mode == MOD_DECIM_MODE_DISSOLVE). */
   float angle;
 
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   float defgrp_factor;
   short flag, mode;
@@ -664,7 +664,7 @@ enum {
 typedef struct SmoothModifierData {
   ModifierData modifier;
   float fac;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   short flag, repeat;
 
@@ -685,7 +685,7 @@ typedef struct CastModifierData {
   float fac;
   float radius;
   float size;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   short flag;
   /** Cast modifier projection type. */
@@ -726,7 +726,7 @@ typedef struct WaveModifierData {
   /* End MappingInfoModifierData. */
 
   struct Object *objectcenter;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   short flag;
@@ -761,7 +761,7 @@ typedef struct ArmatureModifierData {
   struct Object *object;
   /** Stored input of previous modifier, for vertex-group blending. */
   float (*vert_coords_prev)[3];
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 } ArmatureModifierData;
 
@@ -804,11 +804,11 @@ typedef struct HookModifierData {
 
   struct CurveMapping *curfalloff;
 
-  /** If NULL, it's using vertexgroup. */
+  /** If NULL, it's using vertex-group. */
   int *indexar;
   int indexar_num;
   float force;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char name[64];
   void *_pad1;
 } HookModifierData;
@@ -947,7 +947,7 @@ typedef struct MeshDeformModifierData {
 
   /** Mesh object. */
   struct Object *object;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   short gridsize, flag;
@@ -1125,7 +1125,7 @@ typedef struct ShrinkwrapModifierData {
   struct Object *target;
   /** Additional shrink target. */
   struct Object *auxTarget;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char vgroup_name[64];
   /** Distance offset to keep from mesh/projection point. */
   float keepDist;
@@ -1181,9 +1181,9 @@ enum {
 
 /** #ShrinkwrapModifierData.shrinkOpts */
 enum {
-  /** allow shrinkwrap to move the vertex in the positive direction of axis */
+  /** Allow shrink-wrap to move the vertex in the positive direction of axis. */
   MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR = (1 << 0),
-  /** allow shrinkwrap to move the vertex in the negative direction of axis */
+  /** Allow shrink-wrap to move the vertex in the negative direction of axis. */
   MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR = (1 << 1),
 
   /** ignore vertex moves if a vertex ends projected on a front face of the target */
@@ -1276,7 +1276,7 @@ typedef struct SimpleDeformModifierData {
 
   /** Object to control the origin of modifier space coordinates. */
   struct Object *origin;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char vgroup_name[64];
   /** Factors to control simple deforms. */
   float factor;
@@ -1319,7 +1319,7 @@ typedef struct ShapeKeyModifierData {
 typedef struct SolidifyModifierData {
   ModifierData modifier;
 
-  /** Name of vertex group to use, MAX_VGROUP_NAME. */
+  /** Name of vertex group to use, #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   char shell_defgrp_name[64];
   char rim_defgrp_name[64];
@@ -1520,7 +1520,7 @@ typedef struct WarpModifierData {
   char bone_to[64];
 
   struct CurveMapping *curfalloff;
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   float strength;
   float falloff_radius;
@@ -1553,7 +1553,7 @@ typedef enum {
 typedef struct WeightVGEditModifierData {
   ModifierData modifier;
 
-  /** Name of vertex group to edit. MAX_VGROUP_NAME. */
+  /** Name of vertex group to edit. #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   /** Using MOD_WVG_EDIT_* flags. */
@@ -1573,7 +1573,7 @@ typedef struct WeightVGEditModifierData {
   /* Masking options. */
   /** The global "influence", if no vgroup nor tex is used as mask. */
   float mask_constant;
-  /** Name of mask vertex group from which to get weight factors. MAX_VGROUP_NAME. */
+  /** Name of mask vertex group from which to get weight factors. #MAX_VGROUP_NAME. */
   char mask_defgrp_name[64];
 
   /* Texture masking. */
@@ -1609,9 +1609,9 @@ enum {
 typedef struct WeightVGMixModifierData {
   ModifierData modifier;
 
-  /** Name of vertex group to modify/weight. MAX_VGROUP_NAME. */
+  /** Name of vertex group to modify/weight. #MAX_VGROUP_NAME. */
   char defgrp_name_a[64];
-  /** Name of other vertex group to mix in. MAX_VGROUP_NAME. */
+  /** Name of other vertex group to mix in. #MAX_VGROUP_NAME. */
   char defgrp_name_b[64];
   /** Default weight value for first vgroup. */
   float default_weight_a;
@@ -1627,7 +1627,7 @@ typedef struct WeightVGMixModifierData {
   /* Masking options. */
   /** The global "influence", if no vgroup nor tex is used as mask. */
   float mask_constant;
-  /** Name of mask vertex group from which to get weight factors. MAX_VGROUP_NAME. */
+  /** Name of mask vertex group from which to get weight factors. #MAX_VGROUP_NAME. */
   char mask_defgrp_name[64];
 
   /* Texture masking. */
@@ -1697,7 +1697,7 @@ enum {
 typedef struct WeightVGProximityModifierData {
   ModifierData modifier;
 
-  /** Name of vertex group to modify/weight. MAX_VGROUP_NAME. */
+  /** Name of vertex group to modify/weight. #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   /* Mapping stuff. */
@@ -1715,7 +1715,7 @@ typedef struct WeightVGProximityModifierData {
   /* Masking options. */
   /** The global "influence", if no vgroup nor tex is used as mask. */
   float mask_constant;
-  /** Name of mask vertex group from which to get weight factors. MAX_VGROUP_NAME. */
+  /** Name of mask vertex group from which to get weight factors. #MAX_VGROUP_NAME. */
   char mask_defgrp_name[64];
 
   /* Texture masking. */
@@ -1909,7 +1909,7 @@ typedef struct LaplacianSmoothModifierData {
 
   float lambda, lambda_border;
   char _pad1[4];
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   short flag, repeat;
 } LaplacianSmoothModifierData;
@@ -1956,7 +1956,7 @@ typedef struct CorrectiveSmoothModifierData {
   char smooth_type, rest_source;
   char _pad[2];
 
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   /* runtime-only cache */
@@ -2001,7 +2001,7 @@ typedef struct UVWarpModifierData {
   /** Optional name of bone target, MAX_ID_NAME-2. */
   char bone_dst[64];
 
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char vgroup_name[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
@@ -2080,7 +2080,7 @@ enum {
 
 typedef struct LaplacianDeformModifierData {
   ModifierData modifier;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char anchor_grp_name[64];
   int verts_num, repeat;
   float *vertexco;
@@ -2102,7 +2102,7 @@ enum {
  */
 typedef struct WireframeModifierData {
   ModifierData modifier;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   float offset;
   float offset_fac;
@@ -2126,7 +2126,7 @@ typedef struct WeldModifierData {
 
   /* The limit below which to merge vertices. */
   float merge_dist;
-  /* Name of vertex group to use to mask, MAX_VGROUP_NAME. */
+  /** Name of vertex group to use to mask, #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   char mode;
@@ -2174,7 +2174,7 @@ typedef struct DataTransferModifierData {
   /** See CDT_MIX_ enum in BKE_customdata.h. */
   int mix_mode;
   float mix_factor;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   int flags;
@@ -2197,7 +2197,7 @@ enum {
 /** Set Split Normals modifier. */
 typedef struct NormalEditModifierData {
   ModifierData modifier;
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   /** Source of normals, or center of ellipsoid. */
   struct Object *target;
@@ -2320,7 +2320,7 @@ enum {
 typedef struct WeightedNormalModifierData {
   ModifierData modifier;
 
-  /** MAX_VGROUP_NAME. */
+  /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
   char mode, flag;
   short weight;

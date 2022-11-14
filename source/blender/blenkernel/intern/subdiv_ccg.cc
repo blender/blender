@@ -130,7 +130,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   subdiv_ccg->num_grids = num_grids;
   subdiv_ccg->grids = static_cast<CCGElem **>(
       MEM_calloc_arrayN(num_grids, sizeof(CCGElem *), "subdiv ccg grids"));
-  subdiv_ccg->grids_storage = static_cast<unsigned char *>(
+  subdiv_ccg->grids_storage = static_cast<uchar *>(
       MEM_calloc_arrayN(num_grids, size_t(grid_area) * element_size, "subdiv ccg grids storage"));
   const size_t grid_size_in_bytes = size_t(grid_area) * element_size;
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
@@ -288,7 +288,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
 
 static void subdiv_ccg_eval_grids_task(void *__restrict userdata_v,
                                        const int face_index,
-                                       const TaskParallelTLS *__restrict UNUSED(tls))
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   CCGEvalGridsData *data = static_cast<CCGEvalGridsData *>(userdata_v);
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
@@ -617,7 +617,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv *subdiv,
     return nullptr;
   }
   Mesh *result = BKE_mesh_new_nomain_from_template(coarse_mesh, 0, 0, 0, 0, 0);
-  result->runtime.subdiv_ccg = subdiv_ccg;
+  result->runtime->subdiv_ccg = subdiv_ccg;
   return result;
 }
 
@@ -781,7 +781,7 @@ static void subdiv_ccg_recalc_inner_normal_task(void *__restrict userdata_v,
   subdiv_ccg_average_inner_face_normals(data->subdiv_ccg, data->key, tls, grid_index);
 }
 
-static void subdiv_ccg_recalc_inner_normal_free(const void *__restrict UNUSED(userdata),
+static void subdiv_ccg_recalc_inner_normal_free(const void *__restrict /*userdata*/,
                                                 void *__restrict tls_v)
 {
   RecalcInnerNormalsTLSData *tls = static_cast<RecalcInnerNormalsTLSData *>(tls_v);
@@ -844,7 +844,7 @@ static void subdiv_ccg_recalc_modified_inner_normal_task(void *__restrict userda
   subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
 }
 
-static void subdiv_ccg_recalc_modified_inner_normal_free(const void *__restrict UNUSED(userdata),
+static void subdiv_ccg_recalc_modified_inner_normal_free(const void *__restrict /*userdata*/,
                                                          void *__restrict tls_v)
 {
   RecalcInnerNormalsTLSData *tls = static_cast<RecalcInnerNormalsTLSData *>(tls_v);
@@ -1018,7 +1018,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
 
 static void subdiv_ccg_average_inner_grids_task(void *__restrict userdata_v,
                                                 const int face_index,
-                                                const TaskParallelTLS *__restrict UNUSED(tls_v))
+                                                const TaskParallelTLS *__restrict /*tls_v*/)
 {
   AverageInnerGridsData *data = static_cast<AverageInnerGridsData *>(userdata_v);
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
@@ -1097,7 +1097,7 @@ static void subdiv_ccg_average_grids_boundaries_task(void *__restrict userdata_v
   subdiv_ccg_average_grids_boundary(subdiv_ccg, key, adjacent_edge, tls);
 }
 
-static void subdiv_ccg_average_grids_boundaries_free(const void *__restrict UNUSED(userdata),
+static void subdiv_ccg_average_grids_boundaries_free(const void *__restrict /*userdata*/,
                                                      void *__restrict tls_v)
 {
   AverageGridsBoundariesTLSData *tls = static_cast<AverageGridsBoundariesTLSData *>(tls_v);
@@ -1139,7 +1139,7 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
 
 static void subdiv_ccg_average_grids_corners_task(void *__restrict userdata_v,
                                                   const int n,
-                                                  const TaskParallelTLS *__restrict UNUSED(tls_v))
+                                                  const TaskParallelTLS *__restrict /*tls_v*/)
 {
   AverageGridsCornerData *data = static_cast<AverageGridsCornerData *>(userdata_v);
   const int adjacent_vertex_index = data->adjacent_vert_index_map ?
@@ -1325,10 +1325,9 @@ struct StitchFacesInnerGridsData {
   CCGFace **effected_ccg_faces;
 };
 
-static void subdiv_ccg_stitch_face_inner_grids_task(
-    void *__restrict userdata_v,
-    const int face_index,
-    const TaskParallelTLS *__restrict UNUSED(tls_v))
+static void subdiv_ccg_stitch_face_inner_grids_task(void *__restrict userdata_v,
+                                                    const int face_index,
+                                                    const TaskParallelTLS *__restrict /*tls_v*/)
 {
   StitchFacesInnerGridsData *data = static_cast<StitchFacesInnerGridsData *>(userdata_v);
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
@@ -1449,7 +1448,7 @@ BLI_INLINE bool is_inner_edge_grid_coordinate(const SubdivCCG *subdiv_ccg,
   return false;
 }
 
-BLI_INLINE SubdivCCGCoord coord_at_prev_row(const SubdivCCG *UNUSED(subdiv_ccg),
+BLI_INLINE SubdivCCGCoord coord_at_prev_row(const SubdivCCG * /*subdiv_ccg*/,
                                             const SubdivCCGCoord *coord)
 {
   BLI_assert(coord->y > 0);
@@ -1467,7 +1466,7 @@ BLI_INLINE SubdivCCGCoord coord_at_next_row(const SubdivCCG *subdiv_ccg,
   return result;
 }
 
-BLI_INLINE SubdivCCGCoord coord_at_prev_col(const SubdivCCG *UNUSED(subdiv_ccg),
+BLI_INLINE SubdivCCGCoord coord_at_prev_col(const SubdivCCG * /*subdiv_ccg*/,
                                             const SubdivCCGCoord *coord)
 {
   BLI_assert(coord->x > 0);

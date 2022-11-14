@@ -274,7 +274,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
         BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
-        BLI_join_dirfile(load_data->path, sizeof(load_data->path), directory, filename);
+        BLI_path_join(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
         break;
       }
@@ -834,7 +834,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     char file_only[FILE_MAX];
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
-    BLI_join_dirfile(load_data->path, sizeof(load_data->path), dir_only, file_only);
+    BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq_movie = NULL;
     Sequence *seq_sound = NULL;
@@ -1082,7 +1082,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     char file_only[FILE_MAX];
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
-    BLI_join_dirfile(load_data->path, sizeof(load_data->path), dir_only, file_only);
+    BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
     if (seq == NULL) {

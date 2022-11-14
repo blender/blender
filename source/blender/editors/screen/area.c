@@ -147,7 +147,7 @@ void ED_region_do_listen(wmRegionListenerParams *params)
   }
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    UI_block_views_listen(block, params);
+    UI_block_listen(block, params);
   }
 
   LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
@@ -187,7 +187,8 @@ static void area_draw_azone_fullscreen(
                   min_ff(alpha, 0.75f),
                   0.0f,
                   NULL,
-                  false);
+                  false,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 /**

@@ -789,7 +789,10 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
 /** \name Stroke Trim
  * \{ */
 
-bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const int index_to)
+bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps,
+                                    const int index_from,
+                                    const int index_to,
+                                    const bool keep_point)
 {
   bGPDspoint *pt = gps->points, *new_pt;
   MDeformVert *dv, *new_dv;
@@ -800,7 +803,7 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
     return false;
   }
 
-  if (new_count == 1) {
+  if ((!keep_point) && (new_count == 1)) {
     if (gps->dvert) {
       BKE_gpencil_free_stroke_weights(gps);
       MEM_freeN(gps->dvert);
@@ -894,7 +897,7 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
   /* Trim the original stroke into a shorter one.
    * Keep the end point. */
 
-  BKE_gpencil_stroke_trim_points(gps, 0, old_count);
+  BKE_gpencil_stroke_trim_points(gps, 0, old_count, false);
   BKE_gpencil_stroke_geometry_update(gpd, gps);
   return true;
 }
@@ -917,7 +920,7 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
     if (gps->totpoints == 1) {
       second_last = &pt[1];
       if (len_v3v3(&second_last->x, &pt->x) < dist) {
-        BKE_gpencil_stroke_trim_points(gps, 0, 0);
+        BKE_gpencil_stroke_trim_points(gps, 0, 0, false);
         return true;
       }
     }
@@ -969,7 +972,7 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
     index_start = index_end = 0; /* no length left to cut */
   }
 
-  BKE_gpencil_stroke_trim_points(gps, index_start, index_end);
+  BKE_gpencil_stroke_trim_points(gps, index_start, index_end, false);
 
   if (gps->totpoints == 0) {
     return false;
@@ -1856,6 +1859,10 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
     pt->strength = interpf(pt2->strength, pt1->strength, step);
     pt->flag = 0;
     interp_v4_v4v4(pt->vert_color, pt1->vert_color, pt2->vert_color, step);
+    /* Set point as selected. */
+    if (gps->flag & GP_STROKE_SELECT) {
+      pt->flag |= GP_SPOINT_SELECT;
+    }
 
     /* Set weights. */
     if (gps->dvert != nullptr) {
@@ -3558,8 +3565,8 @@ void BKE_gpencil_stroke_start_set(bGPDstroke *gps, int start_idx)
   }
 
   bGPDstroke *gps_b = BKE_gpencil_stroke_duplicate(gps, true, false);
-  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx - 1);
-  BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1);
+  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx - 1, true);
+  BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1, true);
 
   /* Join both strokes. */
   BKE_gpencil_stroke_join(gps, gps_b, false, false, false, false);

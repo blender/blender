@@ -811,7 +811,7 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
   }
 }
 
-/* Multilayer Blender files have the view name in all the passes (even the default view one) */
+/* Multi-layer Blender files have the view name in all the passes (even the default view one). */
 static void imb_exr_insert_view_name(char *name_full, const char *passname, const char *viewname)
 {
   BLI_assert(!ELEM(name_full, passname, viewname));

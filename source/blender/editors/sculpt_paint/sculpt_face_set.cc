@@ -14,6 +14,7 @@
 #include "BLI_smallhash.h"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
+#include "BLI_task.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -611,8 +612,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const bool relax_face_sets = !(ss->cache->iteration_count % 3 == 0);
   /* This operations needs a strength tweak as the relax deformation is too weak by default. */
-  if (relax_face_sets) {
-    bstrength *= 2.0f;
+  if (relax_face_sets && data->iteration < 2) {
+    bstrength *= 1.5f;
   }
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
@@ -721,6 +722,7 @@ ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
+      data.iteration = i;
       BLI_task_parallel_range(0, totnode, &data, do_relax_face_sets_brush_task_cb_ex, &settings);
     }
   }
@@ -772,6 +774,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
 
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -1459,7 +1462,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
     copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
-    mul_m4_v3(ob->obmat, location);
+    mul_m4_v3(ob->object_to_world, location);
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
     ups->last_stroke_valid = true;
@@ -2834,7 +2837,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   float depth_world_space[3];
   float new_pos[3];
 
-  mul_v3_m4v3(depth_world_space, ob->obmat, fsecd->cursor_location);
+  mul_v3_m4v3(depth_world_space, ob->object_to_world, fsecd->cursor_location);
 
   float fmval[2] = {(float)event->mval[0], (float)event->mval[1]};
 
@@ -2850,7 +2853,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     SCULPT_face_normal_get(ss, ss->active_face, fno);
     fno[3] = 0.0f;
 
-    mul_v4_m4v4(fno, ob->obmat, fno);
+    mul_v4_m4v4(fno, ob->object_to_world, fno);
     copy_v3_v3(fsecd->start_no, fno);
     // extrude_disp *= -1.0f;
   }

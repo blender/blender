@@ -2112,6 +2112,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
     use_frontface = False
 
     if mode == 'SCULPT':
+        sculpt = context.tool_settings.sculpt
         capabilities = brush.sculpt_capabilities
         use_accumulate = capabilities.has_accumulate
         use_frontface = True
@@ -2126,41 +2127,8 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             "automasking_boundary_edges_propagation_steps")
 
         flags = UnifiedPaintPanel.get_channel_value(context, brush, "automasking")
-
-        if "CONCAVITY" in flags:
-            UnifiedPaintPanel.channel_unified(layout.column(),
-                context,
-                brush,
-                "concave_mask_factor",
-                slider=True)
-
-        enable_orig_normal = False
         
-        if "BRUSH_NORMAL" in flags:
-            UnifiedPaintPanel.channel_unified(layout.column(),
-                context,
-                brush,
-                "normal_mask_limit",
-                slider=True)
-            UnifiedPaintPanel.channel_unified(layout.column(),
-                context,
-                brush,
-                "normal_mask_falloff",
-                slider=True)
-            enable_orig_normal = True
-
-        if "VIEW_NORMAL" in flags:
-            UnifiedPaintPanel.channel_unified(layout.column(),
-                context,
-                brush,
-                "view_normal_mask_limit",
-                slider=True)
-            UnifiedPaintPanel.channel_unified(layout.column(),
-                context,
-                brush,
-                "view_normal_mask_falloff",
-                slider=True)
-            enable_orig_normal = True
+        enable_orig_normal = False
 
         sub = layout.row()
         sub.enabled = enable_orig_normal
@@ -2169,60 +2137,93 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             context,
             brush,
             "automasking_use_original_normal")
+        
+        if "BOUNDARY_EDGE" in flags or "BOUNDARY_FACE_SETS" in flags:
+            col = layout.column()
+            col.use_property_split = False
+            split = col.split(factor=0.4)
+            col = split.column()
 
-        """
-        col = layout.column(heading="Auto-Masking", align=True)
+            UnifiedPaintPanel.channel_unified(split,
+                context,
+                brush,
+                "automasking_boundary_edges_propagation_steps")
 
-        # topology automasking
-        col.prop(brush, "use_automasking_topology", text="Topology")
+        layout.separator()
 
-        col.prop(brush, "use_automasking_concave")
+        #col = layout.column(align=True)
+        #row = col.row()
+        #row.prop(brush, "use_automasking_cavity", text="Cavity")
 
-        col2 = col.column()
-        col2.enabled = brush.use_automasking_concave
+        is_cavity_active = "CAVITY" in flags or "CAVITY_INVERTED" in flags
 
-        col2.prop(brush, "concave_mask_factor", text="Cavity Factor")
-        col2.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask")
+        if is_cavity_active:
+            layout.operator("sculpt.mask_from_cavity", text="Create Mask")
 
-        # face masks automasking
-        col.prop(brush, "use_automasking_face_sets", text="Face Sets")
+        if is_cavity_active:
+            col = layout.column(align=True)
 
-        # boundary edges/face sets automasking
-        col.prop(brush, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(brush, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
-        col.prop(brush, "use_automasking_cavity", text="Cavity")
-        col.prop(brush, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
-        col.prop(brush, "use_automasking_start_normal", text="Area Normal")
-        col.prop(brush, "use_automasking_view_normal", text="View Normal")
+            UnifiedPaintPanel.channel_unified(col,
+                context,
+                brush,
+                "automasking_cavity_factor",
+                text="Factor")
+            UnifiedPaintPanel.channel_unified(col,
+                context,
+                brush,
+                "automasking_cavity_blur_steps",
+                text="Blur")
 
-        col.separator()
-        col.prop(brush, "automasking_boundary_edges_propagation_steps")
-        """
+            col = layout.column()
+            UnifiedPaintPanel.channel_unified(col,
+                context,
+                brush,
+                "use_automasking_custom_cavity_curve",
+                text="Custom Curve")
 
-        sculpt = context.tool_settings.sculpt
+            if UnifiedPaintPanel.get_channel_value(context, brush, "use_automasking_custom_cavity_curve"):
+                UnifiedPaintPanel.channel_unified(col,
+                    context,
+                    brush,
+                    "automasking_cavity_curve")
 
-        if brush.use_automasking_start_normal:
-            col.separator()
+        layout.separator()
 
-            col.prop(sculpt, "automasking_start_normal_limit")
-            col.prop(sculpt, "automasking_start_normal_falloff")
+        if "VIEW_NORMAL" in flags:
+            col = layout.column()
 
-        if brush.use_automasking_view_normal:
-            col.separator()
+            UnifiedPaintPanel.channel_unified(col,
+                context,
+                brush,
+                "use_automasking_view_occlusion",
+                text="Occlusion")
 
-            col.prop(brush, "use_automasking_view_occlusion", text="Occlusion")
-            col.prop(sculpt, "automasking_view_normal_limit")
-            col.prop(sculpt, "automasking_view_normal_falloff")
+            subcol = col.column(align=True)
+            subcol.active = not UnifiedPaintPanel.get_channel_value(context, brush, "use_automasking_view_occlusion")
 
-        if brush.use_automasking_cavity or brush.use_automasking_cavity_inverted:
-            col.separator()
+            UnifiedPaintPanel.channel_unified(subcol,
+                context,
+                brush,
+                "automasking_view_normal_limit",
+                text="Limit")
+            UnifiedPaintPanel.channel_unified(subcol,
+                context,
+                brush,
+                "automasking_view_normal_falloff",
+                text="Falloff")
 
-            col.prop(brush, "automasking_cavity_factor", text="Cavity Factor")
-            col.prop(brush, "automasking_cavity_blur_steps", text="Cavity Blur")
-            col.prop(brush, "use_automasking_custom_cavity_curve", text="Use Curve")
-
-            if brush.use_automasking_custom_cavity_curve:
-                col.template_curve_mapping(brush, "automasking_cavity_curve")
+        if "BRUSH_NORMAL" in flags:
+            col = layout.column(align=True)
+            UnifiedPaintPanel.channel_unified(subcol,
+                context,
+                brush,
+                "automasking_start_normal_limit",
+                text="Limit")
+            UnifiedPaintPanel.channel_unified(subcol,
+                context,
+                brush,
+                "automasking_start_normal_falloff",
+                text="Falloff")
 
         layout.separator()
 
@@ -2230,7 +2231,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")
 
-            col = layout.column(heading="Use Original", align=False)
+            col = layout.column(heading="Original", align=False)
             col = col.column()
 
             UnifiedPaintPanel.channel_unified(col,

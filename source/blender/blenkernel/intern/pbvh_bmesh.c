@@ -901,95 +901,75 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
                              float *depth,
                              float *back_depth,
                              bool use_original,
-                             PBVHVertRef *r_active_vertex_index,
-                             PBVHFaceRef *r_active_face_index,
+                             PBVHVertRef *r_active_vertex,
+                             PBVHFaceRef *r_active_face,
                              float *r_face_normal,
                              int stroke_id)
 {
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
-  float nearest_vertex_dist = 1e17;
+
+  GSetIterator gs_iter;
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
 
-  PBVHTriBuf *tribuf = node->tribuf;
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
-
   for (int i = 0; i < node->tribuf->tottri; i++) {
-    PBVHTri *tri = tribuf->tris + i;
+    PBVHTri *tri = node->tribuf->tris + i;
+    BMVert *verts[3] = {
+        (BMVert *)node->tribuf->verts[tri->v[0]].i,
+        (BMVert *)node->tribuf->verts[tri->v[1]].i,
+        (BMVert *)node->tribuf->verts[tri->v[2]].i,
+    };
 
-    BMVert *v1 = (BMVert *)tribuf->verts[tri->v[0]].i;
-    BMVert *v2 = (BMVert *)tribuf->verts[tri->v[1]].i;
-    BMVert *v3 = (BMVert *)tribuf->verts[tri->v[2]].i;
-
-    BMFace *f = (BMFace *)tri->f.i;
-
-    if (pbvh_poly_hidden(pbvh, f)) {
-      continue;
-    }
-
-    float *co1, *co2, *co3;
+    float *cos[3];
+    float *nos[3];
 
     if (use_original) {
-      BKE_pbvh_bmesh_check_origdata(pbvh, v1, stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, v2, stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, v3, stroke_id);
+      BKE_pbvh_bmesh_check_origdata(pbvh, verts[0], stroke_id);
+      BKE_pbvh_bmesh_check_origdata(pbvh, verts[1], stroke_id);
+      BKE_pbvh_bmesh_check_origdata(pbvh, verts[2], stroke_id);
 
-      co1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v1)->origco;
-      co2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2)->origco;
-      co3 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v3)->origco;
+      MSculptVert *mv1 = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(verts[0], pbvh->cd_sculpt_vert);
+      MSculptVert *mv2 = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(verts[1], pbvh->cd_sculpt_vert);
+      MSculptVert *mv3 = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(verts[2], pbvh->cd_sculpt_vert);
+
+      cos[0] = mv1->origco;
+      cos[1] = mv2->origco;
+      cos[2] = mv3->origco;
+
+      nos[0] = mv1->origno;
+      nos[1] = mv2->origno;
+      nos[2] = mv3->origno;
     }
     else {
-      co1 = v1->co;
-      co2 = v2->co;
-      co3 = v3->co;
+      for (int j = 0; j < 3; j++) {
+        cos[j] = verts[j]->co;
+        nos[j] = verts[j]->no;
+      }
     }
 
-    bool hit2 = ray_face_intersection_depth_tri(
-        ray_start, isect_precalc, co1, co2, co3, depth, back_depth, hit_count);
+    if (ray_face_intersection_depth_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count)) {
+      hit = true;
 
-    // bool hit2 = ray_face_intersection_tri(ray_start, isect_precalc, co1, co2, co3, depth);
+      if (r_face_normal) {
+        normal_tri_v3(r_face_normal, cos[0], cos[1], cos[2]);
+      }
 
-    if (hit2) {
-      // ensure sculpt active vertex is set r_active_vertex_index
-
-      for (int j = 0; j < 3; j++) {
-        BMVert *v = (BMVert *)tribuf->verts[tri->v[j]].i;
-        float *co = use_original ? BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v)->origco : v->co;
-
-        float dist = len_squared_v3v3(co, ray_start);
-        if (dist < nearest_vertex_dist) {
-          nearest_vertex_dist = dist;
-          copy_v3_v3(nearest_vertex_co, co);
-
-          hit = true;
-          if (r_active_vertex_index) {
-            *r_active_vertex_index = tribuf->verts[tri->v[j]];
-          }
-
-          if (r_active_face_index) {
-            *r_active_face_index = tri->f;
-          }
-
-          if (r_face_normal) {
-            float no[3];
-
-            if (use_original) {
-              copy_v3_v3(no, BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v1)->origno);
-              add_v3_v3(no, BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2)->origno);
-              add_v3_v3(no, BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v3)->origno);
-              normalize_v3(no);
-            }
-            else {
-              copy_v3_v3(no, tri->no);
-            }
-
-            copy_v3_v3(r_face_normal, no);
+      if (r_active_vertex) {
+        float location[3] = {0.0f};
+        madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+        for (int j = 0; j < 3; j++) {
+          if (j == 0 ||
+              len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
+            copy_v3_v3(nearest_vertex_co, cos[j]);
+            r_active_vertex->i = (intptr_t)verts[j];
           }
         }
       }
 
-      hit = true;
+      if (r_active_face) {
+        *r_active_face = tri->f;
+      }
     }
   }
 

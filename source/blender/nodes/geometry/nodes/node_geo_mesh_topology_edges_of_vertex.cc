@@ -60,8 +60,8 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
   {
     const IndexRange vert_range(mesh.totvert);
     const Span<MEdge> edges = mesh.edges();
-    Array<Vector<int>> vert_to_edge_map = mesh_topology::build_vert_to_edge_map(edges,
-                                                                                mesh.totvert);
+    Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(edges,
+                                                                                     mesh.totvert);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -93,6 +93,10 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
         }
 
         const Span<int> edges = vert_to_edge_map[vert_i];
+        if (edges.is_empty()) {
+          edge_of_vertex[selection_i] = 0;
+          continue;
+        }
 
         /* Retrieve the connected edge indices as 64 bit integers for #materialize_compressed. */
         edge_indices.reinitialize(edges.size());
@@ -134,6 +138,11 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 class EdgesOfVertCountInput final : public bke::MeshFieldInput {
@@ -170,6 +179,11 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
       return true;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

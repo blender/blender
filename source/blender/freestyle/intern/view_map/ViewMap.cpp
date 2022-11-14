@@ -13,6 +13,8 @@
 
 #include "../geometry/GeomUtils.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 /**********************************/

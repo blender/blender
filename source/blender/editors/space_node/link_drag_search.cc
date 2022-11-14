@@ -274,7 +274,9 @@ static void gather_socket_link_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
-
+    if (StringRefNull(node_type->ui_name).endswith("(Legacy)")) {
+      continue;
+    }
     if (node_type->gather_link_search_ops) {
       nodes::GatherLinkSearchOpParams params{*node_type, node_tree, socket, search_link_ops};
       node_type->gather_link_search_ops(params);

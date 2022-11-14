@@ -119,7 +119,7 @@ struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings 
 int dynamicPaint_createUVSurface(struct Scene *scene,
                                  struct DynamicPaintSurface *surface,
                                  float *progress,
-                                 short *do_update);
+                                 bool *do_update);
 /**
  * Calculate a single frame and included sub-frames for surface.
  */

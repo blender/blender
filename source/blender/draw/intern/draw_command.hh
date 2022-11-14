@@ -39,7 +39,7 @@ struct RecordingState {
   bool front_facing = true;
   bool inverted_view = false;
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
-  int view_clip_plane_count = 0;
+  int clip_plane_count = 0;
   /** Used for gl_BaseInstance workaround. */
   GPUStorageBuf *resource_id_buf = nullptr;
 
@@ -84,10 +84,12 @@ enum class Type : uint8_t {
   /** Commands stored as Undetermined in regular command buffer. */
   Barrier,
   Clear,
+  ClearMulti,
   Dispatch,
   DispatchIndirect,
   Draw,
   DrawIndirect,
+  FramebufferBind,
   PushConstant,
   ResourceBind,
   ShaderBind,
@@ -118,6 +120,13 @@ struct ShaderBind {
   std::string serialize() const;
 };
 
+struct FramebufferBind {
+  GPUFrameBuffer **framebuffer;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 struct ResourceBind {
   eGPUSamplerState sampler;
   int slot;
@@ -125,6 +134,7 @@ struct ResourceBind {
 
   enum class Type : uint8_t {
     Sampler = 0,
+    BufferSampler,
     Image,
     UniformBuf,
     StorageBuf,
@@ -140,6 +150,8 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
+    GPUVertBuf *vertex_buf;
+    GPUVertBuf **vertex_buf_ref;
   };
 
   ResourceBind() = default;
@@ -160,6 +172,10 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, eGPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res)
+      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res)
+      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;
   std::string serialize() const;
@@ -315,8 +331,18 @@ struct Clear {
   std::string serialize() const;
 };
 
+struct ClearMulti {
+  /** \note This should be a Span<float4> but we need have to only have trivial types here. */
+  const float4 *colors;
+  int colors_len;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 struct StateSet {
   DRWState new_state;
+  int clip_plane_count;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -334,6 +360,7 @@ struct StencilSet {
 union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
+  FramebufferBind framebuffer_bind;
   PushConstant push_constant;
   Draw draw;
   DrawMulti draw_multi;
@@ -342,6 +369,7 @@ union Undetermined {
   DispatchIndirect dispatch_indirect;
   Barrier barrier;
   Clear clear;
+  ClearMulti clear_multi;
   StateSet state_set;
   StencilSet stencil_set;
 };
@@ -473,10 +501,8 @@ class DrawMultiBuf {
                    uint vertex_first,
                    ResourceHandle handle)
   {
-    /* Unsupported for now. Use PassSimple. */
-    BLI_assert(vertex_first == 0 || vertex_first == -1);
-    BLI_assert(vertex_len == -1);
-    UNUSED_VARS_NDEBUG(vertex_len, vertex_first);
+    /* Custom draw-calls cannot be batched and will produce one group per draw. */
+    const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
 
     instance_len = instance_len != -1 ? instance_len : 1;
 
@@ -493,8 +519,14 @@ class DrawMultiBuf {
 
     bool inverted = handle.has_inverted_handedness();
 
-    if (group_id == uint(-1)) {
+    DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
+    draw.resource_handle = handle.raw;
+    draw.instance_len = instance_len;
+    draw.group_id = group_id;
+
+    if (group_id == uint(-1) || custom_group) {
       uint new_group_id = group_count_++;
+      draw.group_id = new_group_id;
 
       DrawGroup &group = group_buf_.get_or_resize(new_group_id);
       group.next = cmd.group_first;
@@ -503,11 +535,16 @@ class DrawMultiBuf {
       group.gpu_batch = batch;
       group.front_proto_len = 0;
       group.back_proto_len = 0;
+      group.vertex_len = vertex_len;
+      group.vertex_first = vertex_first;
+      /* Custom group are not to be registered in the group_ids_. */
+      if (!custom_group) {
+        group_id = new_group_id;
+      }
       /* For serialization only. */
       (inverted ? group.back_proto_len : group.front_proto_len)++;
       /* Append to list. */
       cmd.group_first = new_group_id;
-      group_id = new_group_id;
     }
     else {
       DrawGroup &group = group_buf_[group_id];
@@ -516,11 +553,6 @@ class DrawMultiBuf {
       /* For serialization only. */
       (inverted ? group.back_proto_len : group.front_proto_len)++;
     }
-
-    DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
-    draw.group_id = group_id;
-    draw.resource_handle = handle.raw;
-    draw.instance_len = instance_len;
   }
 
   void bind(RecordingState &state,

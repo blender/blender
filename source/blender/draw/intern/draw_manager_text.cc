@@ -15,6 +15,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_unit.h"
 
 #include "DNA_mesh_types.h"
@@ -233,8 +234,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = (me->runtime.edit_data ? me->runtime.edit_data->vertexCos :
-                                                          nullptr);
+  const float(*vert_coords)[3] = (me->runtime->edit_data ? me->runtime->edit_data->vertexCos :
+                                                           nullptr);
   const bool use_coords = (vert_coords != nullptr);
 
   /* when 2 or more edge-info options are enabled, space apart */
@@ -304,11 +305,11 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 
           mid_v3_v3v3(vmid, v1_clip, v2_clip);
-          mul_m4_v3(ob->obmat, vmid);
+          mul_m4_v3(ob->object_to_world, vmid);
 
           if (do_global) {
-            mul_mat3_m4_v3(ob->obmat, v1);
-            mul_mat3_m4_v3(ob->obmat, v2);
+            mul_mat3_m4_v3(ob->object_to_world, v1);
+            mul_mat3_m4_v3(ob->object_to_world, v2);
           }
 
           if (unit->system) {
@@ -339,8 +340,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     const float(*poly_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      BKE_editmesh_cache_ensure_poly_normals(em, me->runtime.edit_data);
-      poly_normals = me->runtime.edit_data->polyNos;
+      BKE_editmesh_cache_ensure_poly_normals(em, me->runtime->edit_data);
+      poly_normals = me->runtime->edit_data->polyNos;
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -372,7 +373,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             float angle;
 
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
-            mul_m4_v3(ob->obmat, vmid);
+            mul_m4_v3(ob->object_to_world, vmid);
 
             if (use_coords) {
               copy_v3_v3(no_a, poly_normals[BM_elem_index_get(l_a->f)]);
@@ -384,8 +385,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             }
 
             if (do_global) {
-              mul_mat3_m4_v3(ob->imat, no_a);
-              mul_mat3_m4_v3(ob->imat, no_b);
+              mul_mat3_m4_v3(ob->world_to_object, no_a);
+              mul_mat3_m4_v3(ob->world_to_object, no_b);
               normalize_v3(no_a);
               normalize_v3(no_b);
             }
@@ -442,16 +443,16 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
           n += 3;
 
           if (do_global) {
-            mul_mat3_m4_v3(ob->obmat, v1);
-            mul_mat3_m4_v3(ob->obmat, v2);
-            mul_mat3_m4_v3(ob->obmat, v3);
+            mul_mat3_m4_v3(ob->object_to_world, v1);
+            mul_mat3_m4_v3(ob->object_to_world, v2);
+            mul_mat3_m4_v3(ob->object_to_world, v3);
           }
 
           area += area_tri_v3(v1, v2, v3);
         }
 
         mul_v3_fl(vmid, 1.0f / float(n));
-        mul_m4_v3(ob->obmat, vmid);
+        mul_m4_v3(ob->object_to_world, vmid);
 
         if (unit->system) {
           numstr_len = BKE_unit_value_as_string(
@@ -521,9 +522,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             copy_v3_v3(v2_local, v2);
 
             if (do_global) {
-              mul_mat3_m4_v3(ob->obmat, v1);
-              mul_mat3_m4_v3(ob->obmat, v2);
-              mul_mat3_m4_v3(ob->obmat, v3);
+              mul_mat3_m4_v3(ob->object_to_world, v1);
+              mul_mat3_m4_v3(ob->object_to_world, v2);
+              mul_mat3_m4_v3(ob->object_to_world, v3);
             }
 
             float angle = angle_v3v3v3(v1, v2, v3);
@@ -534,7 +535,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                            (is_rad) ? angle : RAD2DEGF(angle),
                                            (is_rad) ? "r" : "°");
             interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
-            mul_m4_v3(ob->obmat, fvec);
+            mul_m4_v3(ob->object_to_world, fvec);
             DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);
           }
         }
@@ -565,7 +566,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             copy_v3_v3(v1, v->co);
           }
 
-          mul_m4_v3(ob->obmat, v1);
+          mul_m4_v3(ob->object_to_world, v1);
 
           numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
@@ -594,7 +595,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
           if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
-            mul_m4_v3(ob->obmat, vmid);
+            mul_m4_v3(ob->object_to_world, vmid);
 
             numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
             DRW_text_cache_add(
@@ -628,7 +629,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             BM_face_calc_center_median(f, v1);
           }
 
-          mul_m4_v3(ob->obmat, v1);
+          mul_m4_v3(ob->object_to_world, v1);
 
           numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);

@@ -854,6 +854,11 @@ static void create_inspection_string_for_generic_value(const GPointer value, std
   else if (type.is<blender::float3>()) {
     ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
   }
+  else if (type.is<blender::ColorGeometry4f>()) {
+    const blender::ColorGeometry4f &color = *(blender::ColorGeometry4f *)buffer;
+    ss << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")"
+       << TIP_(" (Color)");
+  }
   else if (type.is<bool>()) {
     ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
   }
@@ -2145,6 +2150,9 @@ static void node_draw_basis(const bContext &C,
                               0,
                               "");
     UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_group_edit");
+    if (node.id) {
+      UI_but_icon_indicator_number_set(but, ID_REAL_USERS(node.id));
+    }
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
   if (node.type == NODE_CUSTOM && node.typeinfo->ui_icon != ICON_NONE) {
@@ -3011,7 +3019,7 @@ static void node_draw_nodetree(const bContext &C,
   }
 }
 
-/* Draw the breadcrumb on the bottom of the editor. */
+/* Draw the breadcrumb on the top of the editor. */
 static void draw_tree_path(const bContext &C, ARegion &region)
 {
   using namespace blender;

@@ -426,7 +426,11 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
     {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Attribute", "Show active color attribute"},
-    {V3D_SHADING_TEXTURE_COLOR, "TEXTURE", 0, "Texture", "Show texture"},
+    {V3D_SHADING_TEXTURE_COLOR,
+     "TEXTURE",
+     0,
+     "Texture",
+     "Show the texture from the active image texture node using the active UV map coordinates"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -537,6 +541,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BLI_string.h"
 
 #  include "BKE_anim_data.h"
+#  include "BKE_asset.h"
 #  include "BKE_brush.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"
@@ -985,6 +990,13 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   }
 
   return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
+}
+
+static void rna_SpaceView3D_object_type_visibility_update(Main *UNUSED(bmain),
+                                                          Scene *scene,
+                                                          PointerRNA *UNUSED(ptr))
+{
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
 static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter,
@@ -2751,18 +2763,24 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
 {
   const FileDirEntry *entry = ptr->data;
 
+  if (!entry->asset) {
+    return PointerRNA_NULL;
+  }
+
+  AssetMetaData *asset_data = BKE_asset_representation_metadata_get(entry->asset);
+
   /* Note that the owning ID of the RNA pointer (`ptr->owner_id`) has to be set carefully:
    * Local IDs (`entry->id`) own their asset metadata themselves. Asset metadata from other blend
    * files are owned by the file browser (`entry`). Only if this is set correctly, we can tell from
    * the metadata RNA pointer if the metadata is stored locally and can thus be edited or not. */
 
-  if (entry->id) {
+  if (BKE_asset_representation_is_local_id(entry->asset)) {
     PointerRNA id_ptr;
     RNA_id_pointer_create(entry->id, &id_ptr);
-    return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, entry->asset_data);
+    return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, asset_data);
   }
 
-  return rna_pointer_inherit_refine(ptr, &RNA_AssetMetaData, entry->asset_data);
+  return rna_pointer_inherit_refine(ptr, &RNA_AssetMetaData, asset_data);
 }
 
 static int rna_FileBrowser_FileSelectEntry_name_editable(PointerRNA *ptr, const char **r_info)
@@ -2772,7 +2790,7 @@ static int rna_FileBrowser_FileSelectEntry_name_editable(PointerRNA *ptr, const 
   /* This actually always returns 0 (the name is never editable) but we want to get a disabled
    * message returned to `r_info` in some cases. */
 
-  if (entry->asset_data) {
+  if (entry->asset) {
     PointerRNA asset_data_ptr = rna_FileBrowser_FileSelectEntry_asset_data_get(ptr);
     /* Get disabled hint from asset metadata polling. */
     rna_AssetMetaData_editable(&asset_data_ptr, r_info);
@@ -3512,6 +3530,13 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem grid_shape_source_items[] = {
+      {SI_GRID_SHAPE_DYNAMIC, "DYNAMIC", 0, "Dynamic", "Dynamic grid"},
+      {SI_GRID_SHAPE_FIXED, "FIXED", 0, "Fixed", "Manually set grid divisions"},
+      {SI_GRID_SHAPE_PIXEL, "PIXEL", 0, "Pixel", "Grid aligns with pixels from image"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SpaceUVEditor", NULL);
   RNA_def_struct_sdna(srna, "SpaceImage");
   RNA_def_struct_nested(brna, srna, "SpaceImageEditor");
@@ -3585,10 +3610,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Grid Over Image", "Show the grid over the image");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-  prop = RNA_def_property(srna, "use_custom_grid", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_CUSTOM_GRID);
-  RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Custom Grid", "Use a grid with a user-defined number of steps");
+  prop = RNA_def_property(srna, "grid_shape_source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, grid_shape_source_items);
+  RNA_def_property_ui_text(prop, "Grid Shape Source", "Specify source for the grid shape");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "custom_grid_subdivisions", PROP_INT, PROP_XYZ);
@@ -5095,7 +5119,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_mirror_xr_session_update");
 
   rna_def_object_type_visibility_flags_common(srna,
-                                              NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING);
+                                              NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING,
+                                              "rna_SpaceView3D_object_type_visibility_update");
 
   /* Helper for drawing the icon. */
   prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);

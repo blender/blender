@@ -568,33 +568,38 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       GPU_matrix_push();
 
+      float center[2] = {
+          ups->draw_anchored ? ups->anchored_initial_mouse[0] : x,
+          ups->draw_anchored ? ups->anchored_initial_mouse[1] : y,
+      };
+
       /* Brush rotation. */
-      GPU_matrix_translate_2f(x, y);
+      GPU_matrix_translate_2fv(center);
       GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
-      GPU_matrix_translate_2f(-x, -y);
+      GPU_matrix_translate_2f(-center[0], -center[1]);
 
       /* Scale based on tablet pressure. */
       if (primary && ups->stroke_active &&
           BKE_brush_use_size_pressure(
               CTX_data_scene(vc->C)->toolsettings, brush, use_brush_channels)) {
         const float scale = ups->size_pressure_value;
-        GPU_matrix_translate_2f(x, y);
+        GPU_matrix_translate_2fv(center);
         GPU_matrix_scale_2f(scale, scale);
-        GPU_matrix_translate_2f(-x, -y);
+        GPU_matrix_translate_2f(-center[0], -center[1]);
       }
 
       if (ups->draw_anchored) {
-        quad.xmin = ups->anchored_initial_mouse[0] - ups->anchored_size;
-        quad.ymin = ups->anchored_initial_mouse[1] - ups->anchored_size;
-        quad.xmax = ups->anchored_initial_mouse[0] + ups->anchored_size;
-        quad.ymax = ups->anchored_initial_mouse[1] + ups->anchored_size;
+        quad.xmin = center[0] - ups->anchored_size;
+        quad.ymin = center[1] - ups->anchored_size;
+        quad.xmax = center[0] + ups->anchored_size;
+        quad.ymax = center[1] + ups->anchored_size;
       }
       else {
         const int radius = BKE_brush_size_get(vc->scene, brush, use_brush_channels) * zoom;
-        quad.xmin = x - radius;
-        quad.ymin = y - radius;
-        quad.xmax = x + radius;
-        quad.ymax = y + radius;
+        quad.xmin = center[0] - radius;
+        quad.ymin = center[1] - radius;
+        quad.xmax = center[0] + radius;
+        quad.ymax = center[1] + radius;
       }
     }
     else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
@@ -1087,7 +1092,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
         for (int dim = 0; dim < 3; dim++) {
           location[dim] = cur[dim] * step[dim] + orgLoc[dim];
         }
-        cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+        cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
       }
     }
   }
@@ -1108,7 +1113,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
 
       /* Axis Symmetry. */
       flip_v3_v3(location, true_location, (char)i);
-      cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+      cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
 
       /* Tiling. */
       cursor_draw_tiling_preview(gpuattr, region, location, sd, ob, radius);
@@ -1123,7 +1128,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
           mul_m4_v3(symm_rot_mat, location);
 
           cursor_draw_tiling_preview(gpuattr, region, location, sd, ob, radius);
-          cursor_draw_point_screen_space(gpuattr, region, location, ob->obmat, 3);
+          cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
         }
       }
     }
@@ -1355,7 +1360,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext *pcontext)
     }
 
     copy_v3_v3(pcontext->scene_space_location, pcontext->location);
-    mul_m4_v3(pcontext->vc.obact->obmat, pcontext->scene_space_location);
+    mul_m4_v3(pcontext->vc.obact->object_to_world, pcontext->scene_space_location);
   }
   else {
     Sculpt *sd = CTX_data_tool_settings(pcontext->C)->sculpt;
@@ -1588,7 +1593,7 @@ static void paint_cursor_drawing_setup_cursor_space(PaintCursorContext *pcontext
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, pcontext->vc.obact->obmat);
+  copy_m4_m4(cursor_trans, pcontext->vc.obact->object_to_world);
   translate_m4(cursor_trans, pcontext->location[0], pcontext->location[1], pcontext->location[2]);
   rotation_between_vecs_to_quat(quat, z_axis, pcontext->normal);
   quat_to_mat4(cursor_rot, quat);
@@ -1632,7 +1637,7 @@ static void paint_cursor_pose_brush_origins_draw(PaintCursorContext *pcontext)
     cursor_draw_point_screen_space(pcontext->pos,
                                    pcontext->region,
                                    ss->pose_ik_chain_preview->segments[i].initial_orig,
-                                   pcontext->vc.obact->obmat,
+                                   pcontext->vc.obact->object_to_world,
                                    3);
   }
 }
@@ -1650,7 +1655,7 @@ static void paint_cursor_preview_boundary_data_pivot_draw(PaintCursorContext *pc
       pcontext->pos,
       pcontext->region,
       SCULPT_vertex_co_get(pcontext->ss, pcontext->ss->boundary_preview->pivot_vertex),
-      pcontext->vc.obact->obmat,
+      pcontext->vc.obact->object_to_world,
       3);
 }
 
@@ -1759,14 +1764,14 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         pcontext->pos,
         pcontext->region,
         SCULPT_vertex_co_get(pcontext->ss, pcontext->ss->expand_cache->initial_active_vertex),
-        pcontext->vc.obact->obmat,
+        pcontext->vc.obact->object_to_world,
         2);
   }
 
   /* Transform Pivot. */
   if (pcontext->paint && pcontext->paint->flags & PAINT_SCULPT_SHOW_PIVOT) {
     cursor_draw_point_screen_space(
-        pcontext->pos, pcontext->region, pcontext->ss->pivot_pos, pcontext->vc.obact->obmat, 2);
+        pcontext->pos, pcontext->region, pcontext->ss->pivot_pos, pcontext->vc.obact->object_to_world, 2);
   }
 
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
@@ -1787,7 +1792,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                             NULL);
 
   GPU_matrix_push();
-  GPU_matrix_mul(pcontext->vc.obact->obmat);
+  GPU_matrix_mul(pcontext->vc.obact->object_to_world);
 
   /* Drawing Cursor overlays in 3D object space. */
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_GRAB &&
@@ -1889,7 +1894,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
                             NULL,
                             NULL);
   GPU_matrix_push();
-  GPU_matrix_mul(pcontext->vc.obact->obmat);
+  GPU_matrix_mul(pcontext->vc.obact->object_to_world);
 
   /* Draw the special active cursors different tools may have. */
 

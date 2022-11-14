@@ -213,7 +213,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                   dtmd->defgrp_name,
                                   invert_vgroup,
                                   &reports)) {
-    result->runtime.is_original_bmesh = false;
+    result->runtime->is_original_bmesh = false;
   }
 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {

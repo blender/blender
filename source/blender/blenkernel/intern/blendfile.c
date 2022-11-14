@@ -186,7 +186,7 @@ static void setup_app_data(bContext *C,
     clean_paths(bfd->main);
   }
 
-  /* XXX here the complex windowmanager matching */
+  /* The following code blocks performs complex window-manager matching. */
 
   /* no load screens? */
   if (mode != LOAD_UI) {
@@ -737,7 +737,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
 
   if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL))) {
     bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
     printf("Writing userprefs: '%s' ", filepath);
     if (use_template_userpref) {
@@ -764,7 +764,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   if (use_template_userpref) {
     if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
       /* Also save app-template prefs */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
       printf("Writing userprefs app-template: '%s' ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {

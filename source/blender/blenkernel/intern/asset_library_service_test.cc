@@ -8,6 +8,9 @@
 
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"
+#include "BKE_main.h"
+
+#include "DNA_asset_types.h"
 
 #include "CLG_log.h"
 
@@ -39,7 +42,7 @@ class AssetLibraryServiceTest : public testing::Test {
     if (test_files_dir.empty()) {
       FAIL();
     }
-    asset_library_root_ = test_files_dir + "/" + "asset_library";
+    asset_library_root_ = test_files_dir + SEP_STR + "asset_library";
     temp_library_path_ = "";
   }
 
@@ -59,7 +62,7 @@ class AssetLibraryServiceTest : public testing::Test {
   {
     BKE_tempdir_init("");
     const CatalogFilePath tempdir = BKE_tempdir_session();
-    temp_library_path_ = tempdir + "test-temporary-path/";
+    temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
     return temp_library_path_;
   }
 
@@ -102,6 +105,26 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
    * cannot be reliably tested by just pointer comparison, though. */
 }
 
+TEST_F(AssetLibraryServiceTest, library_from_reference)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+  AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
+
+  AssetLibraryReference ref{};
+  ref.type = ASSET_LIBRARY_LOCAL;
+  EXPECT_EQ(curfile_lib, service->get_asset_library(nullptr, ref))
+      << "Getting the local (current file) reference without a main saved on disk should return "
+         "the current file library";
+
+  Main dummy_main{};
+  std::string dummy_filepath = asset_library_root_ + SEP + "dummy.blend";
+  BLI_strncpy(dummy_main.filepath, dummy_filepath.c_str(), sizeof(dummy_main.filepath));
+  EXPECT_EQ(lib, service->get_asset_library(&dummy_main, ref))
+      << "Getting the local (current file) reference with a main saved on disk should return "
+         "the an asset library for this directory";
+}
+
 TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
 {
   AssetLibraryService *service = AssetLibraryService::get();
@@ -118,7 +141,7 @@ TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
     asset_lib_no_slash[strlen(asset_lib_no_slash) - 1] = '\0';
   }
 
-  BLI_path_slash_ensure(asset_lib_with_slash);
+  BLI_path_slash_ensure(asset_lib_with_slash, PATH_MAX);
 
   AssetLibrary *const lib_no_slash = service->get_asset_library_on_disk(asset_lib_no_slash);
 
@@ -168,7 +191,8 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
 TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
 {
   const CatalogFilePath writable_dir = create_temp_path(); /* Has trailing slash. */
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath original_cdf_file = asset_library_root_ + SEP_STR +
+                                            "blender_assets.cats.txt";
   CatalogFilePath writable_cdf_file = writable_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   BLI_path_slash_native(writable_cdf_file.data());
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));

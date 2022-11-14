@@ -75,14 +75,14 @@ class PointCloudFieldContext : public fn::FieldContext {
 
 class InstancesFieldContext : public fn::FieldContext {
  private:
-  const InstancesComponent &instances_;
+  const Instances &instances_;
 
  public:
-  InstancesFieldContext(const InstancesComponent &instances) : instances_(instances)
+  InstancesFieldContext(const Instances &instances) : instances_(instances)
   {
   }
 
-  const InstancesComponent &instances() const
+  const Instances &instances() const
   {
     return instances_;
   }
@@ -128,13 +128,13 @@ class GeometryFieldContext : public fn::FieldContext {
   const Mesh *mesh() const;
   const CurvesGeometry *curves() const;
   const PointCloud *pointcloud() const;
-  const InstancesComponent *instances() const;
+  const Instances *instances() const;
 
  private:
   GeometryFieldContext(const Mesh &mesh, eAttrDomain domain);
   GeometryFieldContext(const CurvesGeometry &curves, eAttrDomain domain);
   GeometryFieldContext(const PointCloud &points);
-  GeometryFieldContext(const InstancesComponent &instances);
+  GeometryFieldContext(const Instances &instances);
 };
 
 class GeometryFieldInput : public fn::FieldInput {
@@ -187,8 +187,7 @@ class InstancesFieldInput : public fn::FieldInput {
   GVArray get_varray_for_context(const fn::FieldContext &context,
                                  IndexMask mask,
                                  ResourceScope &scope) const override;
-  virtual GVArray get_varray_for_context(const InstancesComponent &instances,
-                                         IndexMask mask) const = 0;
+  virtual GVArray get_varray_for_context(const Instances &instances, IndexMask mask) const = 0;
 };
 
 class AttributeFieldInput : public GeometryFieldInput {
@@ -307,6 +306,7 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
                                  IndexMask mask) const final;
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry &curves) const final;
 };
 
 bool try_capture_field_on_geometry(GeometryComponent &component,

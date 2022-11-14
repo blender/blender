@@ -43,7 +43,7 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
   add_v3_fl(size, 1e-8f);
   rescale_m4(mat, size);
   /* BBox space to World. */
-  mul_m4_m4m4(mat, ob->obmat, mat);
+  mul_m4_m4m4(mat, ob->object_to_world, mat);
   /* BBox center in world space. */
   copy_v3_v3(center, mat[3]);
   /* View Vector. */
@@ -138,6 +138,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
     GPUShader *sh_curves = OVERLAY_shader_outline_prepass_curves();
+
     pd->outlines_curves_grp = grp = DRW_shgroup_create(sh_curves, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -172,7 +173,6 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 typedef struct iterData {
   Object *ob;
   DRWShadingGroup *stroke_grp;
-  DRWShadingGroup *fill_grp;
   int cfra;
   float plane[4];
 } iterData;
@@ -188,10 +188,13 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   const bool is_screenspace = (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0;
   const bool is_stroke_order_3d = (gpd->draw_mode == GP_DRAWMODE_3D);
 
-  float object_scale = mat4_to_scale(iter->ob->obmat);
+  float object_scale = mat4_to_scale(iter->ob->object_to_world);
   /* Negate thickness sign to tag that strokes are in screen space.
    * Convert to world units (by default, 1 meter = 2000 pixels). */
   float thickness_scale = (is_screenspace) ? -1.0f : (gpd->pixfactor / 2000.0f);
+
+  GPUVertBuf *position_tx = DRW_cache_gpencil_position_buffer_get(iter->ob, iter->cfra);
+  GPUVertBuf *color_tx = DRW_cache_gpencil_color_buffer_get(iter->ob, iter->cfra);
 
   DRWShadingGroup *grp = iter->stroke_grp = DRW_shgroup_create_sub(iter->stroke_grp);
   DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", is_stroke_order_3d);
@@ -199,6 +202,8 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", float(gpl->line_change));
   DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
   DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
+  DRW_shgroup_buffer_texture(grp, "gp_pos_tx", position_tx);
+  DRW_shgroup_buffer_texture(grp, "gp_col_tx", color_tx);
 }
 
 static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
@@ -219,20 +224,19 @@ static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
     return;
   }
 
+  struct GPUBatch *geom = DRW_cache_gpencil_get(iter->ob, iter->cfra);
+
   if (show_fill) {
-    struct GPUBatch *geom = DRW_cache_gpencil_fills_get(iter->ob, iter->cfra);
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
-    DRW_shgroup_call_range(iter->fill_grp, iter->ob, geom, vfirst, vcount);
+    DRW_shgroup_call_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
   }
 
   if (show_stroke) {
-    struct GPUBatch *geom = DRW_cache_gpencil_strokes_get(iter->ob, iter->cfra);
-    /* Start one vert before to have gl_InstanceID > 0 (see shader). */
-    int vfirst = gps->runtime.stroke_start - 1;
-    /* Include "potential" cyclic vertex and start adj vertex (see shader). */
-    int vcount = gps->totpoints + 1 + 1;
-    DRW_shgroup_call_instance_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
+    int vfirst = gps->runtime.stroke_start * 3;
+    bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
+    int vcount = (gps->totpoints + (int)is_cyclic) * 2 * 3;
+    DRW_shgroup_call_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
   }
 }
 
@@ -247,7 +251,6 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
   iterData iter{};
   iter.ob = ob;
   iter.stroke_grp = pd->outlines_gpencil_grp;
-  iter.fill_grp = DRW_shgroup_create_sub(pd->outlines_gpencil_grp);
   iter.cfra = pd->cfra;
 
   if (gpd->draw_mode == GP_DRAWMODE_2D) {
@@ -278,6 +281,18 @@ static void OVERLAY_outline_curves(OVERLAY_PrivateData *pd, Object *ob)
 {
   DRWShadingGroup *shgroup = pd->outlines_curves_grp;
   DRW_shgroup_curves_create_sub(ob, shgroup, nullptr);
+}
+
+static void OVERLAY_outline_pointcloud(OVERLAY_PrivateData *pd, Object *ob)
+{
+  if (pd->wireframe_mode) {
+    /* Looks bad in this case. Could be relaxed if we draw a
+     * wireframe of some sort in the future. */
+    return;
+  }
+
+  DRWShadingGroup *shgroup = pd->outlines_ptcloud_grp;
+  DRW_shgroup_pointcloud_create_sub(ob, shgroup, nullptr);
 }
 
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
@@ -311,9 +326,8 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     return;
   }
 
-  if (ob->type == OB_POINTCLOUD && pd->wireframe_mode) {
-    /* Looks bad in this case. Could be relaxed if we draw a
-     * wireframe of some sort in the future. */
+  if (ob->type == OB_POINTCLOUD) {
+    OVERLAY_outline_pointcloud(pd, ob);
     return;
   }
 
@@ -336,18 +350,12 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     }
 
     if (geom) {
-      shgroup = (ob->type == OB_POINTCLOUD) ? pd->outlines_ptcloud_grp : pd->outlines_grp;
+      shgroup = pd->outlines_grp;
     }
   }
 
   if (shgroup && geom) {
-    if (ob->type == OB_POINTCLOUD) {
-      /* Draw range to avoid drawcall batching messing up the instance attribute. */
-      DRW_shgroup_call_instance_range(shgroup, ob, geom, 0, 0);
-    }
-    else {
-      DRW_shgroup_call(shgroup, geom, ob);
-    }
+    DRW_shgroup_call(shgroup, geom, ob);
   }
 
   if (init_dupli) {

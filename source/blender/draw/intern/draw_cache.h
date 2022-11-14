@@ -13,6 +13,7 @@ extern "C" {
 
 struct GPUBatch;
 struct GPUMaterial;
+struct GPUVertBuf;
 struct ModifierData;
 struct Object;
 struct PTCacheEdit;
@@ -224,12 +225,6 @@ struct GPUBatch **DRW_cache_curves_surface_shaded_get(struct Object *ob,
 struct GPUBatch *DRW_cache_curves_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curves_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
-/* PointCloud */
-
-struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
-struct GPUBatch *DRW_cache_pointcloud_surface_get(struct Object *obj);
-struct GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(struct Object *obj);
-
 /* Volume */
 
 typedef struct DRWVolumeGrid {
@@ -257,14 +252,17 @@ struct GPUBatch *DRW_cache_volume_selection_surface_get(struct Object *ob);
 
 /* GPencil */
 
-struct GPUBatch *DRW_cache_gpencil_strokes_get(struct Object *ob, int cfra);
-struct GPUBatch *DRW_cache_gpencil_fills_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_gpencil_get(struct Object *ob, int cfra);
+struct GPUVertBuf *DRW_cache_gpencil_position_buffer_get(struct Object *ob, int cfra);
+struct GPUVertBuf *DRW_cache_gpencil_color_buffer_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_edit_lines_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_edit_points_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_edit_curve_handles_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_edit_curve_points_get(struct Object *ob, int cfra);
-struct GPUBatch *DRW_cache_gpencil_sbuffer_stroke_get(struct Object *ob);
-struct GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(struct Object *ob);
+struct GPUBatch *DRW_cache_gpencil_sbuffer_get(struct Object *ob, bool show_fill);
+struct GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(struct Object *ob,
+                                                                 bool show_fill);
+struct GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(struct Object *ob, bool show_fill);
 int DRW_gpencil_material_count_get(struct bGPdata *gpd);
 
 struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);

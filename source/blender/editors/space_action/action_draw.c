@@ -104,7 +104,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
     UI_block_draw(C, block);
   }
 
-  /* free tempolary channels */
+  /* Free temporary channels. */
   ANIM_animdata_freelist(&anim_data);
 }
 

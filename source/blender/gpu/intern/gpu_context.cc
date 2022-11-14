@@ -33,6 +33,9 @@
 #  include "gl_backend.hh"
 #  include "gl_context.hh"
 #endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backend.hh"
+#endif
 #ifdef WITH_METAL_BACKEND
 #  include "mtl_backend.hh"
 #endif
@@ -223,14 +226,30 @@ void GPU_render_step()
 /* NOTE: To enable Metal API, we need to temporarily change this to `GPU_BACKEND_METAL`.
  * Until a global switch is added, Metal also needs to be enabled in GHOST_ContextCGL:
  * `m_useMetalForRendering = true`. */
-static const eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
+static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static GPUBackend *g_backend = nullptr;
+
+void GPU_backend_type_selection_set(const eGPUBackendType backend)
+{
+  g_backend_type = backend;
+}
+
+eGPUBackendType GPU_backend_type_selection_get()
+{
+  return g_backend_type;
+}
 
 bool GPU_backend_supported(void)
 {
   switch (g_backend_type) {
     case GPU_BACKEND_OPENGL:
 #ifdef WITH_OPENGL_BACKEND
+      return true;
+#else
+      return false;
+#endif
+    case GPU_BACKEND_VULKAN:
+#ifdef WITH_VULKAN_BACKEND
       return true;
 #else
       return false;
@@ -256,6 +275,11 @@ static void gpu_backend_create()
 #ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       g_backend = new GLBackend;
+      break;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    case GPU_BACKEND_VULKAN:
+      g_backend = new VKBackend;
       break;
 #endif
 #ifdef WITH_METAL_BACKEND

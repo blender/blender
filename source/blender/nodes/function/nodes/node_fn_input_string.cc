@@ -65,7 +65,7 @@ void register_node_type_fn_input_string()
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_STRING, "String", NODE_CLASS_INPUT);
   ntype.declare = file_ns::fn_node_input_string_declare;
-  node_type_init(&ntype, file_ns::fn_node_input_string_init);
+  ntype.initfunc = file_ns::fn_node_input_string_init;
   node_type_storage(
       &ntype, "NodeInputString", file_ns::fn_node_input_string_free, file_ns::fn_node_string_copy);
   ntype.build_multi_function = file_ns::fn_node_input_string_build_multi_function;

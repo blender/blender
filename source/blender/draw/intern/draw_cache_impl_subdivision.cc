@@ -2036,7 +2036,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfRuntimeData *runtime_data = mesh->runtime.subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
   BLI_assert(runtime_data && runtime_data->has_gpu_subdiv);
 
   if (runtime_data->settings.level == 0) {

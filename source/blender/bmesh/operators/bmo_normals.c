@@ -3,7 +3,7 @@
 /** \file
  * \ingroup bmesh
  *
- * normal recalculation.
+ * Functionality for flipping faces to make normals consistent.
  */
 
 #include "MEM_guardedalloc.h"
@@ -47,7 +47,7 @@ static bool bmo_recalc_normal_loop_filter_cb(const BMLoop *l, void *UNUSED(user_
  *        +------------+
  * </pre>
  *
- * In the example above, the a\ face can point towards the \a center
+ * In the example above, the \a face can point towards the \a center
  * which would end up flipping the normals inwards.
  *
  * To take these spikes into account, find the furthest face-loop-vertex.

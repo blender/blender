@@ -429,6 +429,8 @@ void wm_exit_schedule_delayed(const bContext *C)
   WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
+void UV_clipboard_free(void);
+
 void WM_exit_ex(bContext *C, const bool do_python)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
@@ -448,7 +450,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
         bool has_edited;
         const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
-        BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+        BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
         has_edited = ED_editors_flush_edits(bmain);
 
@@ -537,6 +539,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
   BKE_node_clipboard_free();
+  UV_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();

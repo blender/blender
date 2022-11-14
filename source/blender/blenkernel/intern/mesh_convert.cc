@@ -119,7 +119,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
 
-      medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
+      medge->flag = ME_EDGEDRAW;
     }
     BLI_edgehashIterator_free(ehi);
 
@@ -223,7 +223,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         for (b = 1; b < dl->nr; b++) {
           medge->v1 = startvert + ofs + b - 1;
           medge->v2 = startvert + ofs + b;
-          medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
+          medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
 
           medge++;
         }
@@ -251,7 +251,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
             else {
               medge->v2 = startvert + ofs + b + 1;
             }
-            medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
+            medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
             medge++;
           }
         }
@@ -706,7 +706,7 @@ void BKE_mesh_edges_set_draw_render(Mesh *mesh)
 {
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   for (int i = 0; i < mesh->totedge; i++) {
-    edges[i].flag |= ME_EDGEDRAW | ME_EDGERENDER;
+    edges[i].flag |= ME_EDGEDRAW;
   }
 }
 
@@ -903,7 +903,7 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
 {
   /* While we could copy this into the new mesh,
    * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
-  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     BKE_mesh_wrapper_ensure_mdata(mesh);
   }
   else {
@@ -1313,6 +1313,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
   CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
 
+  const bool verts_num_changed = mesh_dst->totvert != mesh_src->totvert;
   mesh_dst->totvert = mesh_src->totvert;
   mesh_dst->totedge = mesh_src->totedge;
   mesh_dst->totpoly = mesh_src->totpoly;
@@ -1339,11 +1340,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
       const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
       move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vdata, *key_dst, uid_active);
     }
-    else if (mesh_src->totvert != mesh_dst->totvert) {
-      CLOG_ERROR(&LOG, "Mesh in Main '%s' lost shape keys", mesh_src->id.name);
-      if (mesh_src->key) {
-        id_us_min(&mesh_src->key->id);
-      }
+    else if (verts_num_changed) {
+      CLOG_WARN(&LOG, "Shape key data lost when replacing mesh '%s' in Main", mesh_src->id.name);
+      id_us_min(&mesh_dst->key->id);
+      mesh_dst->key = nullptr;
     }
   }
 

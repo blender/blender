@@ -41,9 +41,9 @@ char *BKE_mesh_debug_info(const Mesh *me)
   BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me->totface);
   BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me->totpoly);
 
-  BLI_dynstr_appendf(dynstr, "    'runtime.deformed_only': %d,\n", me->runtime.deformed_only);
+  BLI_dynstr_appendf(dynstr, "    'runtime.deformed_only': %d,\n", me->runtime->deformed_only);
   BLI_dynstr_appendf(
-      dynstr, "    'runtime.is_original_bmesh': %d,\n", me->runtime.is_original_bmesh);
+      dynstr, "    'runtime->is_original_bmesh': %d,\n", me->runtime->is_original_bmesh);
 
   BLI_dynstr_append(dynstr, "    'vert_layers': (\n");
   CustomData_debug_info_from_layers(&me->vdata, indent8, dynstr);

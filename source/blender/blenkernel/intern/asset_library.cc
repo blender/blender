@@ -7,10 +7,14 @@
 #include <memory>
 
 #include "BKE_asset_library.hh"
+#include "BKE_asset_representation.hh"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
@@ -18,6 +22,13 @@
 #include "asset_library_service.hh"
 
 bool blender::bke::AssetLibrary::save_catalogs_when_file_is_saved = true;
+
+blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
+                                                   const AssetLibraryReference &library_reference)
+{
+  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  return service->get_asset_library(bmain, library_reference);
+}
 
 /**
  * Loading an asset library at this point only means loading the catalogs. Later on this should
@@ -42,22 +53,22 @@ bool BKE_asset_library_has_any_unsaved_catalogs()
   return service->has_any_unsaved_catalogs();
 }
 
-bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
-                                                         char *r_library_path)
+std::string BKE_asset_library_find_suitable_root_path_from_path(
+    const blender::StringRefNull input_path)
 {
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
-          &U, input_path)) {
-    BLI_strncpy(r_library_path, preferences_lib->path, FILE_MAXDIR);
-    return true;
+          &U, input_path.c_str())) {
+    return preferences_lib->path;
   }
 
-  BLI_split_dir_part(input_path, r_library_path, FILE_MAXDIR);
-  return r_library_path[0] != '\0';
+  char buffer[FILE_MAXDIR];
+  BLI_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
+  return buffer;
 }
 
-bool BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain, char *r_library_path)
+std::string BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain)
 {
-  return BKE_asset_library_find_suitable_root_path_from_path(bmain->filepath, r_library_path);
+  return BKE_asset_library_find_suitable_root_path_from_path(bmain->filepath);
 }
 
 blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
@@ -90,6 +101,13 @@ void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_lib
   lib->refresh_catalog_simplename(asset_data);
 }
 
+void BKE_asset_library_remap_ids(IDRemapper *mappings)
+{
+  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  service->foreach_loaded_asset_library(
+      [mappings](blender::bke::AssetLibrary &library) { library.remap_ids(*mappings); });
+}
+
 namespace blender::bke {
 
 AssetLibrary::AssetLibrary() : catalog_service(std::make_unique<AssetCatalogService>())
@@ -103,7 +121,7 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
-void AssetLibrary::load(StringRefNull library_root_directory)
+void AssetLibrary::load_catalogs(StringRefNull library_root_directory)
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
   catalog_service->load_from_disk();
@@ -113,6 +131,44 @@ void AssetLibrary::load(StringRefNull library_root_directory)
 void AssetLibrary::refresh()
 {
   this->catalog_service->reload_catalogs();
+}
+
+AssetRepresentation &AssetLibrary::add_external_asset(StringRef name,
+                                                      std::unique_ptr<AssetMetaData> metadata)
+{
+  asset_storage_.append(std::make_unique<AssetRepresentation>(name, std::move(metadata)));
+  return *asset_storage_.last();
+}
+
+AssetRepresentation &AssetLibrary::add_local_id_asset(ID &id)
+{
+  asset_storage_.append(std::make_unique<AssetRepresentation>(id));
+  return *asset_storage_.last();
+}
+
+std::optional<int> AssetLibrary::find_asset_index(const AssetRepresentation &asset)
+{
+  int index = 0;
+  /* Find index of asset. */
+  for (auto &asset_uptr : asset_storage_) {
+    if (&asset == asset_uptr.get()) {
+      return index;
+    }
+    index++;
+  }
+
+  return {};
+}
+
+bool AssetLibrary::remove_asset(AssetRepresentation &asset)
+{
+  std::optional<int> asset_index = find_asset_index(asset);
+  if (!asset_index) {
+    return false;
+  }
+
+  asset_storage_.remove_and_reorder(*asset_index);
+  return true;
 }
 
 namespace {
@@ -158,6 +214,28 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   }
 }
 
+void AssetLibrary::remap_ids(IDRemapper &mappings)
+{
+  Set<AssetRepresentation *> removed_id_assets;
+
+  for (auto &asset_uptr : asset_storage_) {
+    if (!asset_uptr->is_local_id()) {
+      continue;
+    }
+
+    IDRemapperApplyResult result = BKE_id_remapper_apply(
+        &mappings, &asset_uptr->local_asset_id_, ID_REMAP_APPLY_DEFAULT);
+    if (result == ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+      removed_id_assets.add(asset_uptr.get());
+    }
+  }
+
+  /* Remove the assets from storage. */
+  for (AssetRepresentation *asset : removed_id_assets) {
+    remove_asset(*asset);
+  }
+}
+
 void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
@@ -172,4 +250,26 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
 }
+
+Vector<AssetLibraryReference> all_valid_asset_library_refs()
+{
+  Vector<AssetLibraryReference> result;
+  int i;
+  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+    if (!BLI_is_dir(asset_library->path)) {
+      continue;
+    }
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = i;
+    library_ref.type = ASSET_LIBRARY_CUSTOM;
+    result.append(library_ref);
+  }
+
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_LOCAL;
+  result.append(library_ref);
+  return result;
+}
+
 }  // namespace blender::bke

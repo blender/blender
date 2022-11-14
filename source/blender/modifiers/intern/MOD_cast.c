@@ -23,6 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -125,13 +126,13 @@ static void sphere_do(CastModifierData *cmd,
    * we use its location, transformed to ob's local space */
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->obmat);
-      mul_m4_m4m4(mat, imat, ob->obmat);
+      invert_m4_m4(imat, ctrl_ob->object_to_world);
+      mul_m4_m4m4(mat, imat, ob->object_to_world);
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_v3_m4v3(center, ob->imat, ctrl_ob->obmat[3]);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
   }
 
   /* now we check which options the user wants */
@@ -274,13 +275,13 @@ static void cuboid_do(CastModifierData *cmd,
 
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->obmat);
-      mul_m4_m4m4(mat, imat, ob->obmat);
+      invert_m4_m4(imat, ctrl_ob->object_to_world);
+      mul_m4_m4m4(mat, imat, ob->object_to_world);
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_v3_m4v3(center, ob->imat, ctrl_ob->obmat[3]);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
   }
 
   if ((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
@@ -494,7 +495,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  if (mesh && BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh->totvert == verts_num);
   }
 

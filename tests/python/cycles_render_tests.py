@@ -33,7 +33,7 @@ BLACKLIST_OPTIX = [
 ]
 
 BLACKLIST_METAL = [
-    # No MNEE for Metal currently
+    # MNEE only works on Metal with macOS >= 13
     "underwater_caustics.blend",
 ]
 

@@ -60,10 +60,10 @@ set(SRC
   paint_vertex_proj.c
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c
-  sculpt.c
 
   sculpt_array.c
   sculpt_curvature.c
+  sculpt.cc
   sculpt_automasking.cc
   sculpt_boundary.c
   sculpt_brush_types.c

@@ -50,7 +50,7 @@ void register_node_type_sh_tex_ies()
   sh_node_type_base(&ntype, SH_NODE_TEX_IES, "IES Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ies;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_ies);
+  ntype.initfunc = file_ns::node_shader_init_tex_ies;
   node_type_storage(
       &ntype, "NodeShaderTexIES", node_free_standard_storage, node_copy_standard_storage);
 

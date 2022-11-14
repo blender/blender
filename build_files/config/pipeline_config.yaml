@@ -58,6 +58,8 @@ buildbot:
         version: '5.2.21440'
     optix:
         version: '7.3.0'
+    ocloc:
+        version: '101.3430'
     cmake:
         default:
             version: any

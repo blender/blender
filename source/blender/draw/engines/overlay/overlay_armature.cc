@@ -441,7 +441,7 @@ static void drw_shgroup_bone_octahedral(ArmatureDrawContext *ctx,
                                         const float outline_color[4])
 {
   BoneInstanceData inst_data;
-  mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   if (ctx->solid) {
     OVERLAY_bone_instance_data_set_color(&inst_data, bone_color);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_color);
@@ -461,7 +461,7 @@ static void drw_shgroup_bone_box(ArmatureDrawContext *ctx,
                                  const float outline_color[4])
 {
   BoneInstanceData inst_data;
-  mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   if (ctx->solid) {
     OVERLAY_bone_instance_data_set_color(&inst_data, bone_color);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_color);
@@ -479,9 +479,9 @@ static void drw_shgroup_bone_wire(ArmatureDrawContext *ctx,
                                   const float color[4])
 {
   float head[3], tail[3];
-  mul_v3_m4v3(head, ctx->ob->obmat, bone_mat[3]);
+  mul_v3_m4v3(head, ctx->ob->object_to_world, bone_mat[3]);
   add_v3_v3v3(tail, bone_mat[3], bone_mat[1]);
-  mul_m4_v3(ctx->ob->obmat, tail);
+  mul_m4_v3(ctx->ob->object_to_world, tail);
 
   DRW_buffer_add_entry(ctx->wire, head, color);
   DRW_buffer_add_entry(ctx->wire, tail, color);
@@ -496,9 +496,9 @@ static void drw_shgroup_bone_stick(ArmatureDrawContext *ctx,
                                    const float col_tail[4])
 {
   float head[3], tail[3];
-  mul_v3_m4v3(head, ctx->ob->obmat, bone_mat[3]);
+  mul_v3_m4v3(head, ctx->ob->object_to_world, bone_mat[3]);
   add_v3_v3v3(tail, bone_mat[3], bone_mat[1]);
-  mul_m4_v3(ctx->ob->obmat, tail);
+  mul_m4_v3(ctx->ob->object_to_world, tail);
 
   DRW_buffer_add_entry(ctx->stick, head, tail, col_wire, col_bone, col_head, col_tail);
 }
@@ -517,11 +517,11 @@ static void drw_shgroup_bone_envelope_distance(ArmatureDrawContext *ctx,
     mul_m4_v4(bone_mat, head_sph);
     mul_m4_v4(bone_mat, tail_sph);
     mul_m4_v4(bone_mat, xaxis);
-    mul_m4_v4(ctx->ob->obmat, head_sph);
-    mul_m4_v4(ctx->ob->obmat, tail_sph);
-    mul_m4_v4(ctx->ob->obmat, xaxis);
+    mul_m4_v4(ctx->ob->object_to_world, head_sph);
+    mul_m4_v4(ctx->ob->object_to_world, tail_sph);
+    mul_m4_v4(ctx->ob->object_to_world, xaxis);
     sub_v3_v3(xaxis, head_sph);
-    float obscale = mat4_to_scale(ctx->ob->obmat);
+    float obscale = mat4_to_scale(ctx->ob->object_to_world);
     head_sph[3] = *radius_head * obscale;
     head_sph[3] += *distance * obscale;
     tail_sph[3] = *radius_tail * obscale;
@@ -544,10 +544,10 @@ static void drw_shgroup_bone_envelope(ArmatureDrawContext *ctx,
   mul_m4_v4(bone_mat, head_sph);
   mul_m4_v4(bone_mat, tail_sph);
   mul_m4_v4(bone_mat, xaxis);
-  mul_m4_v4(ctx->ob->obmat, head_sph);
-  mul_m4_v4(ctx->ob->obmat, tail_sph);
-  mul_m4_v4(ctx->ob->obmat, xaxis);
-  float obscale = mat4_to_scale(ctx->ob->obmat);
+  mul_m4_v4(ctx->ob->object_to_world, head_sph);
+  mul_m4_v4(ctx->ob->object_to_world, tail_sph);
+  mul_m4_v4(ctx->ob->object_to_world, xaxis);
+  float obscale = mat4_to_scale(ctx->ob->object_to_world);
   head_sph[3] = *radius_head * obscale;
   tail_sph[3] = *radius_tail * obscale;
 
@@ -651,7 +651,7 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
   DRWCallBuffer *buf;
 
   if (surf || edges || ledges) {
-    mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   }
 
   if (surf && ctx->custom_solid) {
@@ -692,7 +692,7 @@ static void drw_shgroup_bone_custom_mesh_wire(ArmatureDrawContext *ctx,
   if (geom) {
     DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, geom);
     BoneInstanceData inst_data;
-    mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, color);
     OVERLAY_bone_instance_data_set_color(&inst_data, color);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
@@ -724,7 +724,7 @@ static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
 
   if (ledges) {
     BoneInstanceData inst_data;
-    mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
 
     DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
@@ -785,7 +785,7 @@ static void drw_shgroup_bone_custom_empty(ArmatureDrawContext *ctx,
 {
   const float final_color[4] = {color[0], color[1], color[2], 1.0f};
   float mat[4][4];
-  mul_m4_m4m4(mat, ctx->ob->obmat, bone_mat);
+  mul_m4_m4m4(mat, ctx->ob->object_to_world, bone_mat);
 
   switch (custom->empty_drawtype) {
     case OB_PLAINAXES:
@@ -811,7 +811,7 @@ static void drw_shgroup_bone_point(ArmatureDrawContext *ctx,
                                    const float outline_color[4])
 {
   BoneInstanceData inst_data;
-  mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   if (ctx->point_solid) {
     OVERLAY_bone_instance_data_set_color(&inst_data, bone_color);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_color);
@@ -829,7 +829,7 @@ static void drw_shgroup_bone_axes(ArmatureDrawContext *ctx,
                                   const float color[4])
 {
   float mat[4][4];
-  mul_m4_m4m4(mat, ctx->ob->obmat, bone_mat);
+  mul_m4_m4m4(mat, ctx->ob->object_to_world, bone_mat);
   /* Move to bone tail. */
   add_v3_v3(mat[3], mat[1]);
   OVERLAY_empty_shape(ctx->extras, mat, 0.25f, OB_ARROWS, color);
@@ -842,8 +842,8 @@ static void drw_shgroup_bone_relationship_lines_ex(ArmatureDrawContext *ctx,
                                                    const float color[4])
 {
   float s[3], e[3];
-  mul_v3_m4v3(s, ctx->ob->obmat, start);
-  mul_v3_m4v3(e, ctx->ob->obmat, end);
+  mul_v3_m4v3(s, ctx->ob->object_to_world, start);
+  mul_v3_m4v3(e, ctx->ob->object_to_world, end);
   /* reverse order to have less stipple overlap */
   OVERLAY_extra_line_dashed(ctx->extras, s, e, color);
 }
@@ -1909,7 +1909,7 @@ static void draw_bone_degrees_of_freedom(ArmatureDrawContext *ctx, bPoseChannel 
   mul_m4_m4m4(posetrans, posetrans, tmp);
 
   /* into world space. */
-  mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, posetrans);
+  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, posetrans);
 
   if ((pchan->ikflag & BONE_IK_XLIMIT) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
     bone_instance_data_set_angle_minmax(
@@ -2079,7 +2079,7 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
   float *head = pchan ? pchan->pose_head : eBone->head;
   float *tail = pchan ? pchan->pose_tail : eBone->tail;
   mid_v3_v3v3(vec, head, tail);
-  mul_m4_v3(ctx->ob->obmat, vec);
+  mul_m4_v3(ctx->ob->object_to_world, vec);
 
   DRW_text_cache_add(dt,
                      vec,
@@ -2177,7 +2177,8 @@ static bool pchan_culling_test_envelope(const DRWView *view,
   BoundSphere bsphere;
   pchan_culling_calc_bsphere(ob, pchan, &bsphere);
   bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
-                    mat4_to_size_max_axis(ob->obmat) * mat4_to_size_max_axis(pchan->disp_mat);
+                    mat4_to_size_max_axis(ob->object_to_world) *
+                    mat4_to_size_max_axis(pchan->disp_mat);
   return DRW_culling_sphere_test(view, &bsphere);
 }
 
@@ -2188,13 +2189,13 @@ static bool pchan_culling_test_bbone(const DRWView *view,
   const bArmature *arm = static_cast<bArmature *>(ob->data);
   BLI_assert(arm->drawtype == ARM_B_BONE);
   UNUSED_VARS_NDEBUG(arm);
-  const float ob_scale = mat4_to_size_max_axis(ob->obmat);
+  const float ob_scale = mat4_to_size_max_axis(ob->object_to_world);
   const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
   for (int i = pchan->bone->segments; i--; bbones_mat++) {
     BoundSphere bsphere;
     float size[3];
     mat4_to_size(size, bbones_mat->mat);
-    mul_v3_m4v3(bsphere.center, ob->obmat, bbones_mat->mat[3]);
+    mul_v3_m4v3(bsphere.center, ob->object_to_world, bbones_mat->mat[3]);
     bsphere.radius = len_v3(size) * ob_scale;
     if (DRW_culling_sphere_test(view, &bsphere)) {
       return true;

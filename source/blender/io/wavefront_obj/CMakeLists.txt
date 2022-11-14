@@ -2,8 +2,8 @@
 
 set(INC
   .
-  ./exporter
-  ./importer
+  exporter
+  importer
   ../common
   ../../blenkernel
   ../../blenlib

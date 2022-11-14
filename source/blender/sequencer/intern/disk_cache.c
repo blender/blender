@@ -182,7 +182,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
       char subpath[FILE_MAX];
       BLI_strncpy(subpath, fl->path, sizeof(subpath));
-      BLI_path_slash_ensure(subpath);
+      BLI_path_slash_ensure(subpath, sizeof(sizeof(subpath)));
       seq_disk_cache_get_files(disk_cache, subpath);
     }
 
@@ -291,8 +291,8 @@ static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache, char *path,
   /* Use suffix, so that the cache directory name does not conflict with the bmain's blend file. */
   const char *suffix = "_seq_cache";
   strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir) - 1);
-  BLI_strncpy(path, seq_disk_cache_base_dir(), path_len);
-  BLI_path_append(path, path_len, cache_dir);
+
+  BLI_path_join(path, path_len, seq_disk_cache_base_dir(), cache_dir);
 }
 
 static void seq_disk_cache_get_dir(
@@ -303,13 +303,13 @@ static void seq_disk_cache_get_dir(
   char project_dir[FILE_MAX];
 
   seq_disk_cache_get_project_dir(disk_cache, project_dir, sizeof(project_dir));
-  sprintf(scene_name, "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
+  BLI_snprintf(
+      scene_name, sizeof(scene_name), "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
   BLI_strncpy(seq_name, seq->name, sizeof(seq_name));
   BLI_filename_make_safe(scene_name);
   BLI_filename_make_safe(seq_name);
-  BLI_strncpy(path, project_dir, path_len);
-  BLI_path_append(path, path_len, scene_name);
-  BLI_path_append(path, path_len, seq_name);
+
+  BLI_path_join(path, path_len, project_dir, scene_name, seq_name);
 }
 
 static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
@@ -320,14 +320,15 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   seq_disk_cache_get_dir(disk_cache, key->context.scene, key->seq, path, path_len);
   int frameno = (int)key->frame_index / DCACHE_IMAGES_PER_FILE;
   char cache_filename[FILE_MAXFILE];
-  sprintf(cache_filename,
-          DCACHE_FNAME_FORMAT,
-          key->type,
-          key->context.rectx,
-          key->context.recty,
-          key->context.preview_render_size,
-          key->context.view_id,
-          frameno);
+  BLI_snprintf(cache_filename,
+               sizeof(cache_filename),
+               DCACHE_FNAME_FORMAT,
+               key->type,
+               key->context.rectx,
+               key->context.recty,
+               key->context.preview_render_size,
+               key->context.view_id,
+               frameno);
 
   BLI_path_append(path, path_len, cache_filename);
 }
@@ -350,8 +351,7 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
   int version = 0;
 
   seq_disk_cache_get_project_dir(disk_cache, filepath, sizeof(filepath));
-  BLI_strncpy(path_version_file, filepath, sizeof(path_version_file));
-  BLI_path_append(path_version_file, sizeof(path_version_file), "cache_version");
+  BLI_path_join(path_version_file, sizeof(path_version_file), filepath, "cache_version");
 
   if (BLI_exists(filepath) && BLI_is_dir(filepath)) {
     FILE *file = BLI_fopen(path_version_file, "r");
@@ -384,7 +384,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
   DiskCacheFile *next_file, *cache_file = disk_cache->files.first;
   char cache_dir[FILE_MAX];
   seq_disk_cache_get_dir(disk_cache, scene, seq, cache_dir, sizeof(cache_dir));
-  BLI_path_slash_ensure(cache_dir);
+  BLI_path_slash_ensure(cache_dir, sizeof(cache_dir));
 
   while (cache_file) {
     next_file = cache_file->next;

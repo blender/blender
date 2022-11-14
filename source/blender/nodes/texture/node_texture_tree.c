@@ -308,7 +308,8 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
     bNodeTree *ntree = exec->nodetree;
     ntreeTexEndExecTree_internal(exec);
 
-    /* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
+    /* XXX: clear node-tree back-pointer to exec data,
+     * same problem as noted in #ntreeBeginExecTree. */
     ntree->execdata = NULL;
   }
 }

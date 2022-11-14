@@ -14,6 +14,7 @@
 #include "BLI_alloca.h"
 
 #include "BKE_editmesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -26,6 +27,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "ED_paint.h"
 
@@ -231,7 +233,7 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
 
 static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
 {
-  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_BMESH) {
     BLI_assert(mesh->edit_mesh != NULL);
     BLI_assert(mesh->edit_mesh->bm != NULL);
     return &mesh->edit_mesh->bm->ldata;
@@ -241,7 +243,7 @@ static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
 
 static const CustomData *workbench_mesh_get_vert_custom_data(const Mesh *mesh)
 {
-  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_BMESH) {
     BLI_assert(mesh->edit_mesh != NULL);
     BLI_assert(mesh->edit_mesh->bm != NULL);
     return &mesh->edit_mesh->bm->vdata;
@@ -265,7 +267,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
-  const bool is_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+  const bool is_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                               !DRW_state_is_image_render();
   const bool is_render = DRW_state_is_image_render() && (draw_ctx->v3d == NULL);
   const bool is_texpaint_mode = is_active && (wpd->ctx_mode == CTX_MODE_PAINT_TEXTURE);
@@ -417,7 +419,7 @@ void workbench_cache_populate(void *ved, Object *ob)
     return;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
+  if (ob->type == OB_MESH) {
     bool use_sculpt_pbvh, use_texpaint_mode, draw_shadow, has_transp_mat = false;
     eV3DShadingColorType color_type = workbench_color_type_get(
         wpd, ob, &use_sculpt_pbvh, &use_texpaint_mode, &draw_shadow);
@@ -440,6 +442,12 @@ void workbench_cache_populate(void *ved, Object *ob)
     int color_type = workbench_color_type_get(wpd, ob, NULL, NULL, NULL);
     DRWShadingGroup *grp = workbench_material_hair_setup(wpd, ob, CURVES_MATERIAL_NR, color_type);
     DRW_shgroup_curves_create_sub(ob, grp, NULL);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    int color_type = workbench_color_type_get(wpd, ob, NULL, NULL, NULL);
+    DRWShadingGroup *grp = workbench_material_ptcloud_setup(
+        wpd, ob, POINTCLOUD_MATERIAL_NR, color_type);
+    DRW_shgroup_pointcloud_create_sub(ob, grp, NULL);
   }
   else if (ob->type == OB_VOLUME) {
     if (wpd->shading.type != OB_WIRE) {

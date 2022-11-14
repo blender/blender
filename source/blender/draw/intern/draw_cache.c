@@ -940,8 +940,6 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_get(ob);
-    case OB_POINTCLOUD:
-      return DRW_cache_pointcloud_surface_get(ob);
     default:
       return NULL;
   }
@@ -1000,8 +998,6 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
-    case OB_POINTCLOUD:
-      return DRW_cache_pointcloud_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
     default:
       return NULL;
   }
@@ -3047,24 +3043,6 @@ GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 /** \name PointCloud
  * \{ */
 
-GPUBatch *DRW_cache_pointcloud_get_dots(Object *object)
-{
-  BLI_assert(object->type == OB_POINTCLOUD);
-  return DRW_pointcloud_batch_cache_get_dots(object);
-}
-
-GPUBatch *DRW_cache_pointcloud_surface_get(Object *object)
-{
-  BLI_assert(object->type == OB_POINTCLOUD);
-  return DRW_pointcloud_batch_cache_get_surface(object);
-}
-
-GPUBatch *DRW_cache_pointcloud_surface_viewer_attribute_get(Object *object)
-{
-  BLI_assert(object->type == OB_POINTCLOUD);
-  return DRW_pointcloud_batch_cache_get_surface_viewer_attribute(object);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3349,6 +3327,9 @@ void drw_batch_cache_generate_requested(Object *ob)
     case OB_CURVES:
       DRW_curves_batch_cache_create_requested(ob);
       break;
+    case OB_POINTCLOUD:
+      DRW_pointcloud_batch_cache_create_requested(ob);
+      break;
     /* TODO: all cases. */
     default:
       break;
@@ -3399,7 +3380,9 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
     case OB_CURVES:
       DRW_curves_batch_cache_free_old((Curves *)ob->data, ctime);
       break;
-    /* TODO: all cases. */
+    case OB_POINTCLOUD:
+      DRW_pointcloud_batch_cache_free_old((PointCloud *)ob->data, ctime);
+      break;
     default:
       break;
   }

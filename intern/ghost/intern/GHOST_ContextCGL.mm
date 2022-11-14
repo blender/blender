@@ -46,8 +46,10 @@ int GHOST_ContextCGL::s_sharedCount = 0;
 GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
                                    NSView *metalView,
                                    CAMetalLayer *metalLayer,
-                                   NSOpenGLView *openGLView)
+                                   NSOpenGLView *openGLView,
+                                   GHOST_TDrawingContextType type)
     : GHOST_Context(stereoVisual),
+      m_useMetalForRendering(type == GHOST_kDrawingContextTypeMetal),
       m_metalView(metalView),
       m_metalLayer(metalLayer),
       m_metalCmdQueue(nil),
