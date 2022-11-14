@@ -234,6 +234,11 @@ static void image_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(Image, cache);
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
+  key.offset_in_ID = offsetof(Image, anims.first);
+  function_callback(id, &key, (void **)&image->anims.first, 0, user_data);
+  key.offset_in_ID = offsetof(Image, anims.last);
+  function_callback(id, &key, (void **)&image->anims.last, 0, user_data);
+
   auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
     struct GPUTexture **first = &image->gputexture[0][0];
