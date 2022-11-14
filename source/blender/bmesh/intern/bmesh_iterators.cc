@@ -154,13 +154,13 @@ void *BM_iter_as_arrayN(BMesh *bm,
   if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
     BMElem *ele;
     BMElem **array = iter.count > stack_array_size ?
-                         MEM_mallocN(sizeof(ele) * iter.count, __func__) :
-                         stack_array;
+                         static_cast<BMElem **>(MEM_mallocN(sizeof(ele) * iter.count, __func__)) :
+                         reinterpret_cast<BMElem **>(stack_array);
     int i = 0;
 
     *r_len = iter.count; /* set before iterating */
 
-    while ((ele = BM_iter_step(&iter))) {
+    while ((ele = static_cast<BMElem *>(BM_iter_step(&iter)))) {
       array[i++] = ele;
     }
     return array;
@@ -184,19 +184,21 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 
   BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
 
-  if ((ele = BMO_iter_new(&iter, slot_args, slot_name, restrictmask)) && slot_len > 0) {
-    BMElem **array = slot_len > stack_array_size ? MEM_mallocN(sizeof(ele) * slot_len, __func__) :
-                                                   stack_array;
+  if ((ele = static_cast<BMElem *>(BMO_iter_new(&iter, slot_args, slot_name, restrictmask))) &&
+      slot_len > 0) {
+    BMElem **array = slot_len > stack_array_size ?
+                         static_cast<BMElem **>(MEM_mallocN(sizeof(ele) * slot_len, __func__)) :
+                         reinterpret_cast<BMElem **>(stack_array);
     int i = 0;
 
     do {
       array[i++] = ele;
-    } while ((ele = BMO_iter_step(&iter)));
+    } while ((ele = static_cast<BMElem *>(BMO_iter_step(&iter))));
     BLI_assert(i <= slot_len);
 
     if (i != slot_len) {
       if ((void **)array != stack_array) {
-        array = MEM_reallocN(array, sizeof(ele) * i);
+        array = static_cast<BMElem **>(MEM_reallocN(array, sizeof(ele) * i));
       }
     }
     *r_len = i;

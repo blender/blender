@@ -73,7 +73,7 @@ set(SRC
   intern/bmesh_inline.h
   intern/bmesh_interp.c
   intern/bmesh_interp.h
-  intern/bmesh_iterators.c
+  intern/bmesh_iterators.cc
   intern/bmesh_iterators.h
   intern/bmesh_iterators_inline.h
   intern/bmesh_log.c
