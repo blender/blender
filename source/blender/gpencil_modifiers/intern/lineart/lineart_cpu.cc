@@ -2433,7 +2433,7 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
   float mesh_min[3], mesh_max[3];
   INIT_MINMAX(mesh_min, mesh_max);
   BKE_mesh_minmax(use_mesh, mesh_min, mesh_max);
-  BoundBox bb = {0};
+  BoundBox bb;
   BKE_boundbox_init_from_minmax(&bb, mesh_min, mesh_max);
 
   double co[8][4];
