@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_float4x4.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
@@ -360,7 +361,7 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
       BMesh *bm = em->bm;
       BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em->tottri);
 
-      BLI_bitmap *elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
+      blender::BitVector<> elem_mask(em->tottri);
       int looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
           bm,
           elem_mask,
@@ -368,8 +369,6 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
           sctx->callbacks.edit_mesh.user_data);
 
       bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6);
-
-      MEM_freeN(elem_mask);
     }
     else {
       /* Only cache if BVH-tree is created without a mask.
@@ -2736,11 +2735,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
     treedata.tree = sod->bvhtree[0];
 
     if (treedata.tree == nullptr) {
-      BLI_bitmap *verts_mask = nullptr;
-      int verts_num_active = -1;
       if (sctx->callbacks.edit_mesh.test_vert_fn) {
-        verts_mask = BLI_BITMAP_NEW(em->bm->totvert, __func__);
-        verts_num_active = BM_iter_mesh_bitmap_from_filter(
+        blender::BitVector<> verts_mask(em->bm->totvert);
+        const int verts_num_active = BM_iter_mesh_bitmap_from_filter(
             BM_VERTS_OF_MESH,
             em->bm,
             verts_mask,
@@ -2748,7 +2745,6 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6);
-        MEM_freeN(verts_mask);
       }
       else {
         BKE_bvhtree_from_editmesh_get(&treedata,
@@ -2768,11 +2764,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
     treedata.tree = sod->bvhtree[1];
 
     if (treedata.tree == nullptr) {
-      BLI_bitmap *edges_mask = nullptr;
-      int edges_num_active = -1;
       if (sctx->callbacks.edit_mesh.test_edge_fn) {
-        edges_mask = BLI_BITMAP_NEW(em->bm->totedge, __func__);
-        edges_num_active = BM_iter_mesh_bitmap_from_filter(
+        blender::BitVector<> edges_mask(em->bm->totedge);
+        const int edges_num_active = BM_iter_mesh_bitmap_from_filter(
             BM_EDGES_OF_MESH,
             em->bm,
             edges_mask,
@@ -2780,7 +2774,6 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_edges_ex(&treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6);
-        MEM_freeN(edges_mask);
       }
       else {
         BKE_bvhtree_from_editmesh_get(&treedata,

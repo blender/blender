@@ -303,6 +303,11 @@ class BitVector {
     return size_in_bits_;
   }
 
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
   /**
    * Get a read-only reference to a specific bit.
    */

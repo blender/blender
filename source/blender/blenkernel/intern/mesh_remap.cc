@@ -17,7 +17,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_astar.h"
-#include "BLI_bitmap.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
@@ -1502,19 +1502,19 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* Build our BVHtrees, either from verts or tessfaces. */
     if (use_from_vert) {
       if (use_islands) {
-        BLI_bitmap *verts_active = BLI_BITMAP_NEW((size_t)num_verts_src, __func__);
+        blender::BitVector<> verts_active(num_verts_src);
 
         for (tindex = 0; tindex < num_trees; tindex++) {
           MeshElemMap *isld = island_store.islands[tindex];
           int num_verts_active = 0;
-          BLI_bitmap_set_all(verts_active, false, (size_t)num_verts_src);
+          verts_active.fill(false);
           for (i = 0; i < isld->count; i++) {
             mp_src = &polys_src[isld->indices[i]];
             for (lidx_src = mp_src->loopstart; lidx_src < mp_src->loopstart + mp_src->totloop;
                  lidx_src++) {
               const uint vidx_src = loops_src[lidx_src].v;
-              if (!BLI_BITMAP_TEST(verts_active, vidx_src)) {
-                BLI_BITMAP_ENABLE(verts_active, loops_src[lidx_src].v);
+              if (!verts_active[vidx_src]) {
+                verts_active[vidx_src].set();
                 num_verts_active++;
               }
             }
@@ -1528,8 +1528,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                      2,
                                      6);
         }
-
-        MEM_freeN(verts_active);
       }
       else {
         BLI_assert(num_trees == 1);
@@ -1539,19 +1537,17 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     else { /* We use polygons. */
       if (use_islands) {
         /* bvhtree here uses looptri faces... */
-        BLI_bitmap *looptri_active;
-
         looptri_src = BKE_mesh_runtime_looptri_ensure(me_src);
         num_looptri_src = BKE_mesh_runtime_looptri_len(me_src);
-        looptri_active = BLI_BITMAP_NEW((size_t)num_looptri_src, __func__);
+        blender::BitVector<> looptri_active(num_looptri_src);
 
         for (tindex = 0; tindex < num_trees; tindex++) {
           int num_looptri_active = 0;
-          BLI_bitmap_set_all(looptri_active, false, (size_t)num_looptri_src);
+          looptri_active.fill(false);
           for (i = 0; i < num_looptri_src; i++) {
             mp_src = &polys_src[looptri_src[i].poly];
             if (island_store.items_to_islands[mp_src->loopstart] == tindex) {
-              BLI_BITMAP_ENABLE(looptri_active, i);
+              looptri_active[i].set();
               num_looptri_active++;
             }
           }
@@ -1566,8 +1562,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                        2,
                                        6);
         }
-
-        MEM_freeN(looptri_active);
       }
       else {
         BLI_assert(num_trees == 1);
