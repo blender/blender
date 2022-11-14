@@ -255,7 +255,6 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
       r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI, 4);
 
   BLI_assert(r_treedata->vert == verts.data());
-  BLI_assert(!verts.data() || r_treedata->vert_normals);
   BLI_assert(r_treedata->loop == loops.data());
   BLI_assert(!polys.data() || r_treedata->looptri);
   BLI_assert(!r_treedata->tree || r_treedata->looptri);

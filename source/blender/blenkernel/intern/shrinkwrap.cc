@@ -115,6 +115,7 @@ bool BKE_shrinkwrap_init_tree(
 
   data->mesh = mesh;
   data->polys = BKE_mesh_polys(mesh);
+  data->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -993,8 +994,8 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
         CLAMP(x, 0, 1);
 
         float vedge_no[2][3];
-        copy_v3_v3(vedge_no[0], data->vert_normals[edge->v1]);
-        copy_v3_v3(vedge_no[1], data->vert_normals[edge->v2]);
+        copy_v3_v3(vedge_no[0], tree->vert_normals[edge->v1]);
+        copy_v3_v3(vedge_no[1], tree->vert_normals[edge->v2]);
 
         interp_v3_v3v3(hit_co, vedge_co[0], vedge_co[1], x);
         interp_v3_v3v3(hit_no, vedge_no[0], vedge_no[1], x);
@@ -1040,9 +1041,9 @@ static void mesh_looptri_target_project(void *userdata,
   }
 
   /* Decode normals */
-  copy_v3_v3(vtri_no[0], tree->treeData.vert_normals[loop[0]->v]);
-  copy_v3_v3(vtri_no[1], tree->treeData.vert_normals[loop[1]->v]);
-  copy_v3_v3(vtri_no[2], tree->treeData.vert_normals[loop[2]->v]);
+  copy_v3_v3(vtri_no[0], tree->vert_normals[loop[0]->v]);
+  copy_v3_v3(vtri_no[1], tree->vert_normals[loop[1]->v]);
+  copy_v3_v3(vtri_no[2], tree->vert_normals[loop[2]->v]);
 
   /* Solve the equations for the triangle */
   if (target_project_solve_point_tri(vtri_co, vtri_no, co, raw_hit_co, dist_sq, hit_co, hit_no)) {
@@ -1176,7 +1177,7 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
 {
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
-  const float(*vert_normals)[3] = tree->treeData.vert_normals;
+  const float(*vert_normals)[3] = tree->vert_normals;
 
   /* Interpolate smooth normals if enabled. */
   if ((tree->polys[tri->poly].flag & ME_SMOOTH) != 0) {

@@ -578,7 +578,6 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
                                          const MFace *face,
                                          const MLoop *loop,
                                          const MLoopTri *looptri,
-                                         const float (*vert_normals)[3],
                                          BVHTreeFromMesh *r_data)
 {
   memset(r_data, 0, sizeof(*r_data));
@@ -590,7 +589,6 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
   r_data->face = face;
   r_data->loop = loop;
   r_data->looptri = looptri;
-  r_data->vert_normals = vert_normals;
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_VERTS:
@@ -778,7 +776,7 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
   if (data) {
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_VERTS, vert, nullptr, nullptr, nullptr, nullptr, nullptr, data);
+        tree, BVHTREE_FROM_VERTS, vert, nullptr, nullptr, nullptr, nullptr, data);
   }
 
   return tree;
@@ -913,7 +911,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
   if (data) {
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_EDGES, vert, edge, nullptr, nullptr, nullptr, nullptr, data);
+        tree, BVHTREE_FROM_EDGES, vert, edge, nullptr, nullptr, nullptr, data);
   }
 
   return tree;
@@ -1130,7 +1128,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
   if (data) {
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_LOOPTRI, vert, nullptr, nullptr, mloop, looptri, nullptr, data);
+        tree, BVHTREE_FROM_LOOPTRI, vert, nullptr, nullptr, mloop, looptri, data);
   }
 
   return tree;
@@ -1233,16 +1231,17 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   const Span<MLoop> loops = mesh->loops();
 
   /* Setup BVHTreeFromMesh */
-  bvhtree_from_mesh_setup_data(nullptr,
-                               bvh_cache_type,
-                               verts.data(),
-                               edges.data(),
-                               (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
-                               loops.data(),
-                               looptri,
-                               BKE_mesh_vertex_normals_ensure(mesh),
-                               data);
-
+  {
+    SCOPED_TIMER_AVERAGED(__func__);
+    bvhtree_from_mesh_setup_data(nullptr,
+                                 bvh_cache_type,
+                                 verts.data(),
+                                 edges.data(),
+                                 (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
+                                 loops.data(),
+                                 looptri,
+                                 data);
+  }
   bool lock_started = false;
   data->cached = bvhcache_find(
       bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, &mesh->runtime->eval_mutex);

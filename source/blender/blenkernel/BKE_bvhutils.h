@@ -60,7 +60,6 @@ typedef struct BVHTreeFromMesh {
 
   /* Vertex array, so that callbacks have instant access to data. */
   const struct MVert *vert;
-  const float (*vert_normals)[3];
   const struct MEdge *edge;
   const struct MFace *face;
   const struct MLoop *loop;
