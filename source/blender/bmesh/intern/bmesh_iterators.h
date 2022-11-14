@@ -20,6 +20,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_mempool.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* these iterator over all elements of a specific
  * type in the mesh.
  *
@@ -282,3 +286,7 @@ BMITER_CB_DEF(loop_of_face);
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_new(iter, bm, itype, data))
 #define BM_iter_init(iter, bm, itype, data) \
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_init(iter, bm, itype, data))
+
+#ifdef __cplusplus
+}
+#endif

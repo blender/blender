@@ -14,6 +14,10 @@ struct RangeTreeUInt;
 typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Allocate, initialize, and assign a new BMLog.
  */
@@ -208,3 +212,7 @@ BMLogEntry *BM_log_current_entry(BMLog *log);
 struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
 
 void BM_log_print_entry(BMesh *bm, BMLogEntry *entry);
+
+#ifdef __cplusplus
+}
+#endif

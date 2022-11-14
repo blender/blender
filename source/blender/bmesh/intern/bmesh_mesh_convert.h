@@ -9,6 +9,10 @@
 
 #include "bmesh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;
@@ -87,3 +91,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
                                const struct CustomData_MeshMasks *cd_mask_extra)
     ATTR_NONNULL(1, 2);
+
+#ifdef __cplusplus
+}
+#endif
