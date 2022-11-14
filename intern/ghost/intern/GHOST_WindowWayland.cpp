@@ -953,9 +953,9 @@ void GHOST_WindowWayland::setOpaque() const
   struct wl_region *region;
 
   /* Make the window opaque. */
-  region = wl_compositor_create_region(system_->compositor());
+  region = wl_compositor_create_region(system_->wl_compositor());
   wl_region_add(region, 0, 0, UNPACK2(window_->size));
-  wl_surface_set_opaque_region(window_->surface, region);
+  wl_surface_set_opaque_region(window_->wl_surface, region);
   wl_region_destroy(region);
 }
 #endif
