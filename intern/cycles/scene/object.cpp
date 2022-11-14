@@ -57,7 +57,8 @@ struct UpdateObjectTransformState {
   /* Flags which will be synchronized to Integrator. */
   bool have_motion;
   bool have_curves;
-  // bool have_points;
+  bool have_points;
+  bool have_volumes;
 
   /* ** Scheduling queue. ** */
   Scene *scene;
@@ -545,6 +546,12 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   if (geom->geometry_type == Geometry::HAIR) {
     state->have_curves = true;
   }
+  if (geom->geometry_type == Geometry::POINTCLOUD) {
+    state->have_points = true;
+  }
+  if (geom->geometry_type == Geometry::VOLUME) {
+    state->have_volumes = true;
+  }
 
   /* Light group. */
   auto it = scene->lightgroups.find(ob->lightgroup);
@@ -591,6 +598,8 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
   state.need_motion = scene->need_motion();
   state.have_motion = false;
   state.have_curves = false;
+  state.have_points = false;
+  state.have_volumes = false;
   state.scene = scene;
   state.queue_start_object = 0;
 
@@ -658,6 +667,8 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
 
   dscene->data.bvh.have_motion = state.have_motion;
   dscene->data.bvh.have_curves = state.have_curves;
+  dscene->data.bvh.have_points = state.have_points;
+  dscene->data.bvh.have_volumes = state.have_volumes;
 
   dscene->objects.clear_modified();
   dscene->object_motion_pass.clear_modified();

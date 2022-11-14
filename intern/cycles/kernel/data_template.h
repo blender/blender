@@ -49,11 +49,11 @@ KERNEL_STRUCT_BEGIN(KernelBVH, bvh)
 KERNEL_STRUCT_MEMBER(bvh, int, root)
 KERNEL_STRUCT_MEMBER(bvh, int, have_motion)
 KERNEL_STRUCT_MEMBER(bvh, int, have_curves)
+KERNEL_STRUCT_MEMBER(bvh, int, have_points)
+KERNEL_STRUCT_MEMBER(bvh, int, have_volumes)
 KERNEL_STRUCT_MEMBER(bvh, int, bvh_layout)
 KERNEL_STRUCT_MEMBER(bvh, int, use_bvh_steps)
 KERNEL_STRUCT_MEMBER(bvh, int, curve_subdivisions)
-KERNEL_STRUCT_MEMBER(bvh, int, pad1)
-KERNEL_STRUCT_MEMBER(bvh, int, pad2)
 KERNEL_STRUCT_END(KernelBVH)
 
 /* Film. */
