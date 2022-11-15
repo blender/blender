@@ -3927,9 +3927,8 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
                                   const bool *pin,
                                   const bool *select)
 {
-  param_assert(phash_lookup(phandle->hash_faces, key) == nullptr);
+  BLI_assert(nverts >= 3);
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
-  param_assert(ELEM(nverts, 3, 4));
 
   if (nverts > 4) {
     /* ngon */
