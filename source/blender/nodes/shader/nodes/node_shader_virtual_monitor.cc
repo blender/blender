@@ -46,7 +46,7 @@ void register_node_type_sh_virtual_camera()
 
   sh_node_type_base(&ntype, SH_NODE_VIRTUAL_MONITOR, "Virtual Monitor", NODE_CLASS_INPUT);
   ntype.declare = file_ns::sh_node_virtual_monitor_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_virtual_monitor);
+  ntype.gpu_fn = file_ns::node_shader_gpu_virtual_monitor;
 
   nodeRegisterType(&ntype);
 }
