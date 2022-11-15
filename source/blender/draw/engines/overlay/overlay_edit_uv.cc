@@ -139,6 +139,8 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                      ((is_paint_mode && do_tex_paint_shadows &&
                                        ((draw_ctx->object_mode &
                                          (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) ||
+                                      (is_uv_editor && do_tex_paint_shadows &&
+                                       ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
                                       (is_view_mode && do_tex_paint_shadows &&
                                        ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
                                       (do_uv_overlay && (show_modified_uvs)));
