@@ -686,7 +686,7 @@ ID *ui_template_id_liboverride_hierarchy_make(
    * NOTE: do not attempt to perform such hierarchy override at all cost, if there is not enough
    * context, better to abort than create random overrides all over the place. */
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id)) {
-    RNA_warning("The data-block %s is not overridable", id->name);
+    WM_reportf(RPT_ERROR, "The data-block %s is not overridable", id->name);
     return NULL;
   }
 
@@ -838,22 +838,27 @@ ID *ui_template_id_liboverride_hierarchy_make(
               bmain, scene, view_layer, NULL, id, &object_active->id, NULL, &id_override, false);
         }
       }
+      else {
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, id, NULL, &id_override, false);
+      }
       break;
     case ID_MA:
     case ID_TE:
     case ID_IM:
-      RNA_warning("The type of data-block %s could not yet implemented", id->name);
+      WM_reportf(RPT_WARNING, "The type of data-block %s is not yet implemented", id->name);
       break;
     case ID_WO:
-      RNA_warning("The type of data-block %s could not yet implemented", id->name);
+      WM_reportf(RPT_WARNING, "The type of data-block %s is not yet implemented", id->name);
       break;
     case ID_PA:
-      RNA_warning("The type of data-block %s could not yet implemented", id->name);
+      WM_reportf(RPT_WARNING, "The type of data-block %s is not yet implemented", id->name);
       break;
     default:
-      RNA_warning("The type of data-block %s could not yet implemented", id->name);
+      WM_reportf(RPT_WARNING, "The type of data-block %s is not yet implemented", id->name);
       break;
   }
+
   if (id_override != NULL) {
     id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
     *r_undo_push_label = "Make Library Override Hierarchy";
@@ -897,7 +902,7 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
     }
   }
   else {
-    RNA_warning("The data-block %s could not be overridden", id->name);
+    WM_reportf(RPT_ERROR, "The data-block %s could not be overridden", id->name);
   }
 }
 
