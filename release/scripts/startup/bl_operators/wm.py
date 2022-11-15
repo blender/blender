@@ -203,9 +203,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := rna_prop.description)
+            (description := iface_(rna_prop.description))
     ):
-        description = "%s: %s" % (prefix, description)
+        description = iface_("%s: %s") % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
         return description
@@ -305,7 +305,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -406,7 +406,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
