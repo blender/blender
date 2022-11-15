@@ -92,8 +92,6 @@ static bool has_libdecor = true;
 
 /* -------------------------------------------------------------------- */
 /** \name Forward Declarations
- *
- * Control local functionality, compositors specific workarounds.
  * \{ */
 
 static void keyboard_handle_key_repeat_cancel(struct GWL_Seat *seat);
@@ -120,6 +118,10 @@ static void gwl_display_event_thread_destroy(GWL_Display *display);
 
 static void ghost_wl_display_lock_without_input(struct wl_display *wl_display,
                                                 std::mutex *server_mutex);
+
+/** Default size for pending event vector. */
+constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
+
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
 /** In nearly all cases use `pushEvent_maybe_pending`
@@ -5255,6 +5257,7 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
 static void gwl_display_event_thread_create(GWL_Display *display)
 {
   GHOST_ASSERT(display->events_pthread == 0, "Only call once");
+  display->events_pending.reserve(events_pending_default_size);
   display->events_pthread_is_active = true;
   pthread_create(&display->events_pthread, nullptr, gwl_display_event_thread_fn, display);
   pthread_detach(display->events_pthread);
@@ -5433,6 +5436,13 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
       pushEvent(event);
     }
     display_->events_pending.clear();
+
+    if (UNLIKELY(display_->events_pending.capacity() > events_pending_default_size)) {
+      /* Avoid over allocation in the case of occasional delay between processing events
+       * causing many events to be collected and making this into a large array. */
+      display_->events_pending.shrink_to_fit();
+      display_->events_pending.reserve(events_pending_default_size);
+    }
   }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
