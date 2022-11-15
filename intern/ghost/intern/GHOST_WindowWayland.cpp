@@ -913,13 +913,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   setSwapInterval(0);
 }
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
 GHOST_TSuccess GHOST_WindowWayland::swapBuffers()
 {
-#ifdef USE_EVENT_BACKGROUND_THREAD
   GHOST_ASSERT(system_->main_thread_id == std::this_thread::get_id(), "Only from main thread!");
-#endif
   return GHOST_Window::swapBuffers();
 }
+#endif /* USE_EVENT_BACKGROUND_THREAD */
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
