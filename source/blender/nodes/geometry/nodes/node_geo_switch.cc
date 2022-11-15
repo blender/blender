@@ -123,7 +123,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     if (params.other_socket().type == SOCK_BOOLEAN) {
       params.add_item(IFACE_("Switch"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSwitch");
-        params.connect_available_socket(node, "Start");
+        params.update_and_connect_available_socket(node, "Switch");
       });
     }
     params.add_item(IFACE_("False"), [](LinkSearchOpParams &params) {
