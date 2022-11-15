@@ -232,7 +232,7 @@ static int64_t copy_point_data_between_endpoints(const Span<T> src_data,
     dst_index += increment;
   }
   else {
-    increment = src_range.one_after_last() - src_range.first();
+    increment = src_range.one_after_last() - int64_t(src_range.first());
     dst_data.slice(dst_index, increment).copy_from(src_data.slice(src_range.first(), increment));
     dst_index += increment;
   }
@@ -464,37 +464,98 @@ static void sample_interval_bezier(const Span<float3> src_positions,
 
   if (start_point_trimmed) {
     dst_handles_l[dst_range.first() + 1] = start_point_insert.handle_next;
-    /* No need to set handle type (remains the same)! */
+    /* No need to change handle type (remains the same). */
   }
 
   /* Handle 'end_point' */
   bke::curves::bezier::Insertion end_point_insert;
-  if (end_point.is_controlpoint()) {
-    /* Do nothing, the 'end_point' control point is included in the copy iteration. */
+  if (end_point.parameter == 0.0f) {
+    if (end_point.index == start_point.index) {
+      /* Start point is same point or in the same segment. */
+      if (start_point.parameter == 0.0f) {
+        /* Same point. */
+        BLI_assert(dst_range.size() == 1LL + src_range.size_range());
+        dst_handles_l[dst_range.first()] = dst_positions[dst_range.first()];
+        dst_handles_r[dst_range.last()] = dst_positions[dst_range.first()];
+      }
+      else if (start_point.parameter == 1.0f) {
+        /* Start is next controlpoint, do nothing. */
+      }
+      else {
+        /* Within the segment. */
+        BLI_assert(dst_range.size() == 1LL + src_range.size_range() || dst_range.size() == 2);
+        dst_handles_r[dst_range.last()] = start_point_insert.handle_prev;
+      }
+    }
+    /* Start point is considered 'before' the endpoint and ignored. */
+  }
+  else if (end_point.parameter == 1.0f) {
+    if (end_point.next_index == start_point.index) {
+      /* Start point is same or in 'next' segment. */
+      if (start_point.parameter == 0.0f) {
+        /* Same point */
+        BLI_assert(dst_range.size() == 1LL + src_range.size_range());
+        dst_handles_l[dst_range.first()] = dst_positions[dst_range.first()];
+        dst_handles_r[dst_range.last()] = dst_positions[dst_range.first()];
+      }
+      else if (start_point.parameter == 1.0f) {
+        /* Start is next controlpoint, do nothing. */
+      }
+      else {
+        /* In next segment. */
+        BLI_assert(dst_range.size() == 1LL + src_range.size_range() || dst_range.size() == 2);
+        dst_handles_r[dst_range.last()] = start_point_insert.handle_prev;
+      }
+    }
   }
   else {
     /* Trimmed in both ends within the same (and only) segment! Ensure both end points is not a
      * loop. */
-    if (start_point_trimmed && start_point.index == end_point.index &&
-        start_point.parameter <= end_point.parameter) {
+    if (start_point.index == end_point.index && start_point.parameter < 1.0f) {
+      BLI_assert(dst_range.size() == 2 || dst_range.size() == 2ll + src_range.size_range() ||
+                 dst_range.size() == 1LL + src_range.size_range());
 
-      /* Copy following segment control point. */
-      dst_positions[dst_index] = src_positions[end_point.next_index];
-      dst_handles_r[dst_index] = src_handles_r[end_point.next_index];
+      if (start_point.parameter > end_point.parameter && start_point.parameter < 1.0f) {
+        /* Start point comes after the endpoint within the segment. */
+        BLI_assert(end_point.parameter >= 0.0f);
 
-      /* Compute interpolation in the result curve. */
-      const float parameter = (end_point.parameter - start_point.parameter) /
-                              (1.0f - start_point.parameter);
-      end_point_insert = knot_insert_bezier(
-          dst_positions,
-          dst_handles_l,
-          dst_handles_r,
-          {{int(dst_range.first()), int(dst_range.first() + 1)}, parameter});
+        const float parameter = end_point.parameter / start_point.parameter;
+        end_point_insert = bke::curves::bezier::insert(dst_positions[dst_index - 1],
+                                                       start_point_insert.handle_prev,
+                                                       start_point_insert.left_handle,
+                                                       start_point_insert.position,
+                                                       parameter);
+
+        /* Update startpoint handle. */
+        dst_handles_l[dst_range.first()] = end_point_insert.handle_next;
+      }
+      else {
+        /* Start point lies before the endpoint within the segment. */
+
+        const float parameter = (end_point.parameter - start_point.parameter) /
+                                (1.0f - start_point.parameter);
+        /* Unused only when parameter == 0.0f! */
+        const float3 handle_next = start_point.parameter == 0.0f ?
+                                       src_handles_l[end_point.next_index] :
+                                       start_point_insert.handle_next;
+        end_point_insert = bke::curves::bezier::insert(dst_positions[dst_index - 1],
+                                                       dst_handles_r[dst_index - 1],
+                                                       handle_next,
+                                                       src_positions[end_point.next_index],
+                                                       parameter);
+      }
     }
     else {
       /* General case, compute the insertion point.  */
       end_point_insert = knot_insert_bezier(
           src_positions, src_handles_l, src_handles_r, end_point);
+
+      if ((start_point.parameter >= end_point.parameter && end_point.index == start_point.index) ||
+          (start_point.parameter == 0.0f && end_point.next_index == start_point.index)) {
+        /* Start point is next controlpoint. */
+        dst_handles_l[dst_range.first()] = end_point_insert.handle_next;
+        /* No need to change handle type (remains the same). */
+      }
     }
 
     dst_handles_r[dst_index - 1] = end_point_insert.handle_prev;
