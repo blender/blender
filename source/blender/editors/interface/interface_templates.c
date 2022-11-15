@@ -5098,7 +5098,8 @@ static uiBlock *CurveProfile_buttons_tools(bContext *C, ARegion *region, void *p
 
 static bool CurveProfile_can_zoom_in(CurveProfile *profile)
 {
-  return BLI_rctf_size_x(&profile->view_rect) > CURVE_ZOOM_MAX * BLI_rctf_size_x(&profile->clip_rect);
+  return BLI_rctf_size_x(&profile->view_rect) >
+         CURVE_ZOOM_MAX * BLI_rctf_size_x(&profile->clip_rect);
 }
 
 static bool CurveProfile_can_zoom_out(CurveProfile *profile)

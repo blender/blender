@@ -76,7 +76,8 @@ ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
   float error_normalize;
   if (intensity < 1.0f) {
     error_normalize = sqrtf(intensity);
-  } else {
+  }
+  else {
     error_normalize = intensity;
   }
 

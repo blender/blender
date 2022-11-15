@@ -260,6 +260,7 @@ class CLIP_HT_header(Header):
         sub.active = sc.show_gizmo
         sub.popover(panel="CLIP_PT_gizmo_display", text="")
 
+
 class CLIP_MT_tracking_editor_menus(Menu):
     bl_idname = "CLIP_MT_tracking_editor_menus"
     bl_label = ""
@@ -1902,6 +1903,7 @@ class CLIP_MT_view_pie(Menu):
             pie.operator("clip.graph_view_all")
             pie.separator()
             pie.operator("clip.graph_center_current_frame")
+
 
 class CLIP_PT_gizmo_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
