@@ -17,8 +17,11 @@ from bpy.props import (
     IntVectorProperty,
     FloatVectorProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -200,9 +203,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := rna_prop.description)
+            (description := iface_(rna_prop.description))
     ):
-        description = "%s: %s" % (prefix, description)
+        description = iface_("%s: %s") % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
         return description
@@ -302,7 +305,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -403,7 +406,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -2402,7 +2405,9 @@ class WM_OT_toolbar_prompt(Operator):
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
             for _, name, item in status_items:
                 row = flow.row(align=True)
-                row.template_event_from_keymap_item(item, text=name)
+                row.template_event_from_keymap_item(
+                    item, text=name, text_ctxt=i18n_contexts.operator_default
+                )
 
         self._keymap = keymap
 
