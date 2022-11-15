@@ -893,7 +893,8 @@ static void wm_add_reports(ReportList *reports)
 void WM_report(eReportType type, const char *message)
 {
   ReportList reports;
-  BKE_reports_init(&reports, RPT_STORE);
+  BKE_reports_init(&reports, RPT_STORE | RPT_PRINT);
+  BKE_report_print_level_set(&reports, RPT_WARNING);
   BKE_report(&reports, type, message);
 
   wm_add_reports(&reports);
