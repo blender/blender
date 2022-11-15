@@ -1305,7 +1305,7 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
       return SCE_SNAP_MODE_NONE;
     }
   }
-  else if (GS(ob_data) != ID_ME) {
+  else if (GS(ob_data->name) != ID_ME) {
     return SCE_SNAP_MODE_NONE;
   }
   else if (is_object_active && ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
