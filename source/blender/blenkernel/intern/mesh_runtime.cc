@@ -222,6 +222,7 @@ void BKE_mesh_tag_coords_changed(Mesh *mesh)
     bvhcache_free(mesh->runtime->bvh_cache);
     mesh->runtime->bvh_cache = nullptr;
   }
+  mesh->runtime->bounds_cache.tag_dirty();
 }
 
 void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)

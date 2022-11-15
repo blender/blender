@@ -11,6 +11,7 @@
 
 #include <mutex>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_cache_mutex.hh"
 #include "BLI_float3x3.hh"
 #include "BLI_float4x4.hh"
@@ -21,6 +22,7 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
+#include "BLI_shared_cache.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
@@ -94,6 +96,13 @@ class CurvesGeometryRuntime {
    * in which case a separate array of evaluated positions is unnecessary.
    */
   mutable Span<float3> evaluated_positions_span;
+
+  /**
+   * A cache of bounds shared between data-blocks with unchanged positions and radii.
+   * When data changes affect the bounds, the cache is "un-shared" with other geometries.
+   * See #SharedCache comments.
+   */
+  mutable SharedCache<Bounds<float3>> bounds_cache;
 
   /**
    * Cache of lengths along each evaluated curve for each evaluated point. If a curve is
@@ -391,6 +400,11 @@ class CurvesGeometry : public ::CurvesGeometry {
   void tag_topology_changed();
   /** Call after changing the "tilt" or "up" attributes. */
   void tag_normals_changed();
+  /**
+   * Call when making manual changes to the "radius" attribute. The attribute API will also call
+   * this in #finish() calls.
+   */
+  void tag_radii_changed();
 
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);

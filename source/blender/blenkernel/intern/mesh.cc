@@ -128,6 +128,11 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
+  /* Share the bounding box cache between the source and destination mesh for improved performance
+   * when the source is persistent and edits to the destination don't change the bounds. It will be
+   * "un-shared" as necessary when the positions are changed. */
+  mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
+
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
 
@@ -1523,29 +1528,27 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
     return false;
   }
 
-  struct Result {
-    float3 min;
-    float3 max;
-  };
-  const Span<MVert> verts = me->verts();
+  me->runtime->bounds_cache.ensure([me](Bounds<float3> &r_bounds) {
+    const Span<MVert> verts = me->verts();
+    r_bounds = threading::parallel_reduce(
+        verts.index_range(),
+        1024,
+        Bounds<float3>{float3(FLT_MAX), float3(-FLT_MAX)},
+        [verts](IndexRange range, const Bounds<float3> &init) {
+          Bounds<float3> result = init;
+          for (const int i : range) {
+            math::min_max(float3(verts[i].co), result.min, result.max);
+          }
+          return result;
+        },
+        [](const Bounds<float3> &a, const Bounds<float3> &b) {
+          return Bounds<float3>{math::min(a.min, b.min), math::max(a.max, b.max)};
+        });
+  });
 
-  const Result minmax = threading::parallel_reduce(
-      verts.index_range(),
-      1024,
-      Result{float3(FLT_MAX), float3(-FLT_MAX)},
-      [verts](IndexRange range, const Result &init) {
-        Result result = init;
-        for (const int i : range) {
-          math::min_max(float3(verts[i].co), result.min, result.max);
-        }
-        return result;
-      },
-      [](const Result &a, const Result &b) {
-        return Result{math::min(a.min, b.min), math::max(a.max, b.max)};
-      });
-
-  copy_v3_v3(r_min, math::min(minmax.min, float3(r_min)));
-  copy_v3_v3(r_max, math::max(minmax.max, float3(r_max)));
+  const Bounds<float3> &bounds = me->runtime->bounds_cache.data();
+  copy_v3_v3(r_min, math::min(bounds.min, float3(r_min)));
+  copy_v3_v3(r_max, math::max(bounds.max, float3(r_max)));
 
   return true;
 }

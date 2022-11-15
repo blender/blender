@@ -95,6 +95,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 
   /* Though type counts are a cache, they must be copied because they are calculated eagerly. */
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->bounds_cache = src.runtime->bounds_cache;
 }
 
 CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
@@ -918,19 +919,21 @@ void CurvesGeometry::tag_positions_changed()
   this->runtime->tangent_cache_mutex.tag_dirty();
   this->runtime->normal_cache_mutex.tag_dirty();
   this->runtime->length_cache_mutex.tag_dirty();
+  this->runtime->bounds_cache.tag_dirty();
 }
 void CurvesGeometry::tag_topology_changed()
 {
-  this->runtime->position_cache_mutex.tag_dirty();
-  this->runtime->tangent_cache_mutex.tag_dirty();
-  this->runtime->normal_cache_mutex.tag_dirty();
+  this->tag_positions_changed();
   this->runtime->offsets_cache_mutex.tag_dirty();
   this->runtime->nurbs_basis_cache_mutex.tag_dirty();
-  this->runtime->length_cache_mutex.tag_dirty();
 }
 void CurvesGeometry::tag_normals_changed()
 {
   this->runtime->normal_cache_mutex.tag_dirty();
+}
+void CurvesGeometry::tag_radii_changed()
+{
+  this->runtime->bounds_cache.tag_dirty();
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
@@ -1006,25 +1009,28 @@ void CurvesGeometry::transform(const float4x4 &matrix)
   this->tag_positions_changed();
 }
 
-static std::optional<bounds::MinMaxResult<float3>> curves_bounds(const CurvesGeometry &curves)
-{
-  const Span<float3> positions = curves.positions();
-  const VArray<float> radii = curves.attributes().lookup_or_default<float>(
-      ATTR_RADIUS, ATTR_DOMAIN_POINT, 0.0f);
-  if (!(radii.is_single() && radii.get_internal_single() == 0.0f)) {
-    return bounds::min_max_with_radii(positions, radii.get_internal_span());
-  }
-  return bounds::min_max(positions);
-}
-
 bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
 {
-  const std::optional<bounds::MinMaxResult<float3>> bounds = curves_bounds(*this);
-  if (!bounds) {
+  if (this->points_num() == 0) {
     return false;
   }
-  min = math::min(bounds->min, min);
-  max = math::max(bounds->max, max);
+
+  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
+    const Span<float3> positions = this->evaluated_positions();
+    if (this->attributes().contains("radius")) {
+      const VArraySpan<float> radii = this->attributes().lookup<float>("radius");
+      Array<float> evaluated_radii(this->evaluated_points_num());
+      this->interpolate_to_evaluated(radii, evaluated_radii.as_mutable_span());
+      r_bounds = *bounds::min_max_with_radii(positions, evaluated_radii.as_span());
+    }
+    else {
+      r_bounds = *bounds::min_max(positions);
+    }
+  });
+
+  const Bounds<float3> &bounds = this->runtime->bounds_cache.data();
+  min = math::min(bounds.min, min);
+  max = math::max(bounds.max, max);
   return true;
 }
 

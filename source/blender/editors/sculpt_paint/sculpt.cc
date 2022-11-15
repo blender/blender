@@ -5240,12 +5240,14 @@ void SCULPT_update_object_bounding_box(Object *ob)
 
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   ARegion *region = CTX_wm_region(C);
   MultiresModifierData *mmd = ss->multires.modifier;
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   if (rv3d) {
     /* Mark for faster 3D viewport redraws. */
@@ -5302,6 +5304,17 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       r.ymin += region->winrct.ymin - 2;
       r.ymax += region->winrct.ymin + 2;
       ED_region_tag_redraw_partial(region, &r, true);
+    }
+  }
+
+  if (update_flags & SCULPT_UPDATE_COORDS && !ss->shapekey_active) {
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+      /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
+      BKE_mesh_tag_coords_changed(mesh);
+      /* Update the mesh's bounds eagerly since the PBVH already has that information. */
+      mesh->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
+        BKE_pbvh_bounding_box(ob->sculpt->pbvh, r_bounds.min, r_bounds.max);
+      });
     }
   }
 }

@@ -14,7 +14,6 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bounds.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -94,6 +93,7 @@ static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->bounds_cache = src.runtime->bounds_cache;
 
   curves_dst->batch_cache = nullptr;
 }
