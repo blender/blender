@@ -73,7 +73,7 @@ struct AssetLibrary {
 
   void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
 
-  void remap_ids(struct IDRemapper &mappings);
+  void remap_ids(const struct IDRemapper &mappings);
 
  private:
   bCallbackFuncStore on_save_callback_store_{};

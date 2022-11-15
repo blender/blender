@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "AS_asset_library.h"
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -393,6 +395,8 @@ void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
   if (wm && wm->message_bus) {
     BKE_id_remapper_iter(mappings, wm_main_remap_msgbus_notify, wm->message_bus);
   }
+
+  AS_asset_library_remap_ids(mappings);
 }
 
 static void wm_notifier_clear(wmNotifier *note)

@@ -104,7 +104,7 @@ void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_li
   lib->refresh_catalog_simplename(asset_data);
 }
 
-void AS_asset_library_remap_ids(IDRemapper *mappings)
+void AS_asset_library_remap_ids(const IDRemapper *mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
   service->foreach_loaded_asset_library(
@@ -203,7 +203,7 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   }
 }
 
-void AssetLibrary::remap_ids(IDRemapper &mappings)
+void AssetLibrary::remap_ids(const IDRemapper &mappings)
 {
   Set<AssetRepresentation *> removed_id_assets;
 
