@@ -3306,7 +3306,7 @@ class VIEW3D_MT_mask(Menu):
         layout.separator()
 
         props = layout.operator("sculpt.mask_from_cavity", text="Mask From Cavity")
-        props.use_automask_settings = False
+        props.settings_source = "OPERATOR"
 
         layout.separator()
 
@@ -7723,7 +7723,8 @@ class VIEW3D_PT_sculpt_automasking(Panel):
         is_cavity_active = sculpt.use_automasking_cavity or sculpt.use_automasking_cavity_inverted
 
         if is_cavity_active:
-            row.operator("sculpt.mask_from_cavity", text="Create Mask")
+            props = row.operator("sculpt.mask_from_cavity", text="Create Mask")
+            props.settings_source = "SCENE"
 
         col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (inverted)")
 

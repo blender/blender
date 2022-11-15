@@ -972,6 +972,12 @@ typedef enum {
   AUTOMASK_BAKE_SUBTRACT,
 } CavityBakeMixMode;
 
+typedef enum {
+  AUTOMASK_SETTINGS_OPERATOR,
+  AUTOMASK_SETTINGS_SCENE,
+  AUTOMASK_SETTINGS_BRUSH
+} CavityBakeSettingsSource;
+
 typedef struct AutomaskBakeTaskData {
   SculptSession *ss;
   AutomaskingCache *automasking;
@@ -1064,31 +1070,53 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
    */
   Sculpt sd2 = *sd;
 
-  /* Override cavity mask settings if use_automask_settings is false. */
-  if (!RNA_boolean_get(op->ptr, "use_automask_settings")) {
-    if (RNA_boolean_get(op->ptr, "invert")) {
-      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
-    }
-    else {
-      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_NORMAL;
-    }
+  CavityBakeSettingsSource source = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
+                                                                           "settings_source");
+  switch (source) {
+    case AUTOMASK_SETTINGS_OPERATOR:
+      if (RNA_boolean_get(op->ptr, "invert")) {
+        sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
+      }
+      else {
+        sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_NORMAL;
+      }
 
-    if (RNA_boolean_get(op->ptr, "use_curve")) {
-      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
-    }
+      if (RNA_boolean_get(op->ptr, "use_curve")) {
+        sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      }
 
-    sd2.automasking_cavity_blur_steps = RNA_int_get(op->ptr, "blur_steps");
-    sd2.automasking_cavity_factor = RNA_float_get(op->ptr, "factor");
+      sd2.automasking_cavity_blur_steps = RNA_int_get(op->ptr, "blur_steps");
+      sd2.automasking_cavity_factor = RNA_float_get(op->ptr, "factor");
 
-    sd2.automasking_cavity_curve = sd->automasking_cavity_curve_op;
+      sd2.automasking_cavity_curve = sd->automasking_cavity_curve_op;
+      break;
+    case AUTOMASK_SETTINGS_BRUSH:
+      if (brush) {
+        sd2.automasking_flags = brush->automasking_flags;
+        sd2.automasking_cavity_factor = brush->automasking_cavity_factor;
+        sd2.automasking_cavity_curve = brush->automasking_cavity_curve;
+        sd2.automasking_cavity_blur_steps = brush->automasking_cavity_blur_steps;
+
+        /* Ensure only cavity masking is enabled. */
+        sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      }
+      else {
+        sd2.automasking_flags = 0;
+        BKE_report(op->reports, RPT_WARNING, "No active brush");
+
+        return OPERATOR_CANCELLED;
+      }
+
+      break;
+    case AUTOMASK_SETTINGS_SCENE:
+      /* Ensure only cavity masking is enabled. */
+      sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      break;
   }
-  else {
-    sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
 
-    /* Ensure cavity mask is actually enabled. */
-    if (!(sd2.automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
-      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
-    }
+  /* Ensure cavity mask is actually enabled. */
+  if (!(sd2.automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
   }
 
   /* Create copy of brush with cleared automasking settings. */
@@ -1130,46 +1158,39 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  bool use_curve = false;
+  CavityBakeSettingsSource source = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
+                                                                           "settings_source");
 
-  if (!sd || !RNA_boolean_get(op->ptr, "use_automask_settings")) {
-    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
-
-    use_curve = RNA_boolean_get(op->ptr, "use_curve");
-  }
-  else {
-    PointerRNA sculpt_ptr;
-
-    RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
-    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
-
-    use_curve = false;
+  if (!sd) {
+    source = AUTOMASK_SETTINGS_OPERATOR;
   }
 
-  if (use_curve) {
-    PointerRNA sculpt_ptr;
+  switch (source) {
+    case AUTOMASK_SETTINGS_OPERATOR: {
+      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
 
-    const char *curve_prop;
+      if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
+        PointerRNA sculpt_ptr;
 
-    if (RNA_boolean_get(op->ptr, "use_automask_settings")) {
-      curve_prop = "automasking_cavity_curve";
+        RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
+        uiTemplateCurveMapping(
+            layout, &sculpt_ptr, "automasking_cavity_curve_op", 'v', false, false, false, false);
+      }
+      break;
     }
-    else {
-      curve_prop = "automasking_cavity_curve_op";
-    }
+    case AUTOMASK_SETTINGS_BRUSH:
+    case AUTOMASK_SETTINGS_SCENE:
+      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
 
-    if (scene->toolsettings && scene->toolsettings->sculpt) {
-      RNA_pointer_create(&scene->id, &RNA_Sculpt, scene->toolsettings->sculpt, &sculpt_ptr);
-      uiTemplateCurveMapping(layout, &sculpt_ptr, curve_prop, 'v', false, false, false, false);
-    }
+      break;
   }
 }
 
@@ -1199,11 +1220,22 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "mix_mode", mix_modes, AUTOMASK_BAKE_MIX, "Mode", "Mix mode");
   RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 5.0f, "Mix Factor", "", 0.0f, 1.0f);
 
-  RNA_def_boolean(ot->srna,
-                  "use_automask_settings",
-                  false,
-                  "Use Automask Settings",
-                  "Use default settings from Options panel in sculpt mode");
+  static EnumPropertyItem settings_sources[] = {
+      {AUTOMASK_SETTINGS_OPERATOR,
+       "OPERATOR",
+       ICON_NONE,
+       "Operator",
+       "Use settings from operator properties"},
+      {AUTOMASK_SETTINGS_BRUSH, "BRUSH", ICON_NONE, "Brush", "Use settings from brush"},
+      {AUTOMASK_SETTINGS_SCENE, "SCENE", ICON_NONE, "Scene", "Use settings from scene"},
+      {0, NULL, 0, NULL, NULL}};
+
+  RNA_def_enum(ot->srna,
+               "settings_source",
+               settings_sources,
+               AUTOMASK_SETTINGS_OPERATOR,
+               "Settings",
+               "Use settings from here");
 
   RNA_def_float(ot->srna,
                 "factor",
