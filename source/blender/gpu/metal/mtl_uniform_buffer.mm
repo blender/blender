@@ -81,6 +81,14 @@ void MTLUniformBuf::update(const void *data)
   }
 }
 
+void MTLUniformBuf::clear_to_zero()
+{
+  /* TODO(fclem): Avoid another allocation and just do the clear on the GPU if possible. */
+  void *clear_data = calloc(size_in_bytes_);
+  this->update(clear_data);
+  free(clear_data);
+}
+
 void MTLUniformBuf::bind(int slot)
 {
   if (slot < 0) {

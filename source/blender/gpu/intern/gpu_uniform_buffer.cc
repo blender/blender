@@ -233,4 +233,9 @@ void GPU_uniformbuf_unbind_all()
   /* FIXME */
 }
 
+void GPU_uniformbuf_clear_to_zero(GPUUniformBuf *ubo)
+{
+  unwrap(ubo)->clear_to_zero();
+}
+
 /** \} */

@@ -13,6 +13,10 @@ void VKUniformBuffer::update(const void * /*data*/)
 {
 }
 
+void VKUniformBuffer::clear_to_zero()
+{
+}
+
 void VKUniformBuffer::bind(int /*slot*/)
 {
 }

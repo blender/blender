@@ -38,6 +38,7 @@ class UniformBuf {
   virtual ~UniformBuf();
 
   virtual void update(const void *data) = 0;
+  virtual void clear_to_zero() = 0;
   virtual void bind(int slot) = 0;
   virtual void bind_as_ssbo(int slot) = 0;
   virtual void unbind() = 0;

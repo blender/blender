@@ -10,6 +10,7 @@
 #include "gpu_context_private.hh"
 
 #include "gl_debug.hh"
+#include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
 
 namespace blender::gpu {
@@ -54,6 +55,35 @@ void GLUniformBuf::update(const void *data)
   glBindBuffer(GL_UNIFORM_BUFFER, ubo_id_);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, size_in_bytes_, data);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void GLUniformBuf::clear_to_zero()
+{
+  if (ubo_id_ == 0) {
+    this->init();
+  }
+
+  uint32_t data = 0;
+  eGPUTextureFormat internal_format = GPU_R32UI;
+  eGPUDataFormat data_format = GPU_DATA_UINT;
+
+  if (GLContext::direct_state_access_support) {
+    glClearNamedBufferData(ubo_id_,
+                           to_gl_internal_format(internal_format),
+                           to_gl_data_format(internal_format),
+                           to_gl(data_format),
+                           &data);
+  }
+  else {
+    /* WATCH(@fclem): This should be ok since we only use clear outside of drawing functions. */
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo_id_);
+    glClearBufferData(GL_UNIFORM_BUFFER,
+                      to_gl_internal_format(internal_format),
+                      to_gl_data_format(internal_format),
+                      to_gl(data_format),
+                      &data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
 }
 
 /** \} */

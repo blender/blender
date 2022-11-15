@@ -18,6 +18,7 @@ class VKUniformBuffer : public UniformBuf {
   }
 
   void update(const void *data) override;
+  void clear_to_zero() override;
   void bind(int slot) override;
   void bind_as_ssbo(int slot) override;
   void unbind() override;
