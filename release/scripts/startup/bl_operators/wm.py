@@ -17,8 +17,11 @@ from bpy.props import (
     IntVectorProperty,
     FloatVectorProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -2402,7 +2405,9 @@ class WM_OT_toolbar_prompt(Operator):
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
             for _, name, item in status_items:
                 row = flow.row(align=True)
-                row.template_event_from_keymap_item(item, text=name)
+                row.template_event_from_keymap_item(
+                    item, text=name, text_ctxt=i18n_contexts.operator_default
+                )
 
         self._keymap = keymap
 
