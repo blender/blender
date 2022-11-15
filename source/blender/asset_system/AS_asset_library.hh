@@ -8,6 +8,7 @@
 
 #include "DNA_asset_types.h"
 
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -90,7 +91,7 @@ struct AssetLibrary {
    * already in memory and which not. Neither do we keep track of how many parts of Blender are
    * using an asset or an asset library, which is needed to know when assets can be freed.
    */
-  Vector<std::unique_ptr<AssetRepresentation>> asset_storage_;
+  Set<std::unique_ptr<AssetRepresentation>> asset_storage_;
 
   std::optional<int> find_asset_index(const AssetRepresentation &asset);
 };

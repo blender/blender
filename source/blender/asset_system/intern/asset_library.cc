@@ -139,39 +139,25 @@ void AssetLibrary::refresh()
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef name,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
-  asset_storage_.append(std::make_unique<AssetRepresentation>(name, std::move(metadata)));
-  return *asset_storage_.last();
+  return *asset_storage_.lookup_key_or_add(
+      std::make_unique<AssetRepresentation>(name, std::move(metadata)));
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(ID &id)
 {
-  asset_storage_.append(std::make_unique<AssetRepresentation>(id));
-  return *asset_storage_.last();
-}
-
-std::optional<int> AssetLibrary::find_asset_index(const AssetRepresentation &asset)
-{
-  int index = 0;
-  /* Find index of asset. */
-  for (auto &asset_uptr : asset_storage_) {
-    if (&asset == asset_uptr.get()) {
-      return index;
-    }
-    index++;
-  }
-
-  return {};
+  return *asset_storage_.lookup_key_or_add(std::make_unique<AssetRepresentation>(id));
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
-  std::optional<int> asset_index = find_asset_index(asset);
-  if (!asset_index) {
-    return false;
-  }
+  /* Create a "fake" unique_ptr to figure out the hash for the pointed to asset representation. The
+   * standard requires that this is the same for all unique_ptr's wrapping the same address. */
+  std::unique_ptr<AssetRepresentation> fake_asset_ptr{&asset};
 
-  asset_storage_.remove_and_reorder(*asset_index);
-  return true;
+  const bool was_removed = asset_storage_.remove_as(fake_asset_ptr);
+  /* Make sure the contained storage is not destructed. */
+  fake_asset_ptr.release();
+  return was_removed;
 }
 
 namespace {
