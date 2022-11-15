@@ -3,6 +3,7 @@
 set(INC
   ../asset
   ../include
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib
@@ -45,6 +46,10 @@ set(SRC
 set(LIB
   bf_blenkernel
 )
+
+if(WIN32)
+  add_definitions(-DNOMINMAX)
+endif()
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)

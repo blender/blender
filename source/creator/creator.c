@@ -37,6 +37,7 @@
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
+#include "BKE_cpp_types.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
@@ -425,6 +426,7 @@ int main(int argc,
 
   BKE_blender_globals_init(); /* blender.c */
 
+  BKE_cpp_types_init();
   BKE_idtype_init();
   BKE_cachefiles_init();
   BKE_modifier_init();

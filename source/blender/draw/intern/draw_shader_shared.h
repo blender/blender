@@ -54,6 +54,45 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
  * This should be kept in sync with `GPU_ATTR_MAX` */
 #define DRW_ATTRIBUTE_PER_CURVES_MAX 15
 
+/* -------------------------------------------------------------------- */
+/** \name Views
+ * \{ */
+
+/**
+ * The maximum of indexable views is dictated by:
+ * - The UBO limit (16KiB) of the ViewMatrices container.
+ * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
+ */
+#define DRW_VIEW_MAX 64
+
+#ifndef DRW_VIEW_LEN
+/* Single-view case (default). */
+#  define drw_view_id 0
+#  define DRW_VIEW_LEN 1
+#  define DRW_VIEW_SHIFT 0
+#else
+
+/* Multi-view case. */
+/** This should be already defined at shaderCreateInfo level. */
+// #  define DRW_VIEW_LEN 64
+/** Global that needs to be set correctly in each shader stage. */
+uint drw_view_id = 0;
+/**
+ * In order to reduce the memory requirements, the view id is merged with resource id to avoid
+ * doubling the memory required only for view indexing.
+ */
+/** \note This is simply log2(DRW_VIEW_LEN) but making sure it is optimized out. */
+#  define DRW_VIEW_SHIFT \
+    ((DRW_VIEW_LEN > 32) ? 6 : \
+     (DRW_VIEW_LEN > 16) ? 5 : \
+     (DRW_VIEW_LEN > 8)  ? 4 : \
+     (DRW_VIEW_LEN > 4)  ? 3 : \
+     (DRW_VIEW_LEN > 2)  ? 2 : \
+                           1)
+#  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
+#  define DRW_VIEW_FROM_RESOURCE_ID (drw_ResourceID & DRW_VIEW_MASK)
+#endif
+
 struct ViewCullingData {
   /** \note vec3 array padded to vec4. */
   /** Frustum corners. */

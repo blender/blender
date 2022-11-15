@@ -216,11 +216,6 @@ class OBJMesh : NonCopyable {
   const char *get_poly_deform_group_name(int16_t def_group_index) const;
 
   /**
-   * Calculate vertex indices of an edge's corners if it is a loose edge.
-   */
-  std::optional<std::array<int, 2>> calc_loose_edge_vert_indices(int edge_index) const;
-
-  /**
    * Calculate the order in which the polygons should be written into the file (sorted by material
    * index).
    */

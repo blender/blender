@@ -25,7 +25,8 @@ set(MANTAVERSION "0.13")
 add_definitions(-DWITH_FLUID=1)
 
 # Compile Mantaflow dependencies too (e.g. cnpy for numpy file IO).
-# Make sure that dependencies exist before enabling this option by updating the source files in extern/
+# Make sure that dependencies exist before enabling this option
+# by updating the source files in `extern/`.
 set(WITH_MANTA_DEPENDENCIES 0)
 
 # Enable Mantaflow numpy support

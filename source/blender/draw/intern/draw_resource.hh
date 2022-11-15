@@ -32,7 +32,7 @@
 inline void ObjectMatrices::sync(const Object &object)
 {
   model = object.object_to_world;
-  model_inverse = object.imat;
+  model_inverse = object.world_to_object;
 }
 
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)

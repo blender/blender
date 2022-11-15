@@ -202,7 +202,10 @@ const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_
  * - 1 or -2: `path`
  * - 2 or -1: `file.txt`
  *
- * Ignores multiple slashes at any point in the path (including start/end).
+ * Ignored elements in the path:
+ * - Multiple slashes at any point in the path (including start/end).
+ * - Single '.' in the path: `/./` except for the beginning of the path
+ *   where it's used to signify a $PWD relative path.
  */
 bool BLI_path_name_at_index(const char *__restrict path,
                             int index,

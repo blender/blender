@@ -1441,6 +1441,9 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     float vec[3], rot[3][3];
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,

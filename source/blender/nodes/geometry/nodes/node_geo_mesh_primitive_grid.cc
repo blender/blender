@@ -76,8 +76,7 @@ Mesh *create_grid_mesh(const int verts_x,
 
   const int y_edges_start = 0;
   const int x_edges_start = verts_x * edges_y;
-  const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE :
-                                                           ME_EDGEDRAW | ME_EDGERENDER;
+  const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE : ME_EDGEDRAW;
 
   /* Build the horizontal edges in the X direction. */
   threading::parallel_for(IndexRange(verts_x), 512, [&](IndexRange x_range) {

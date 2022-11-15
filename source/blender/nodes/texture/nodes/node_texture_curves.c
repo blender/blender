@@ -52,9 +52,10 @@ void register_node_type_tex_curve_time(void)
   tex_node_type_base(&ntype, TEX_NODE_CURVE_TIME, "Time", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, NULL, time_outputs);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, time_init);
+  ntype.initfunc = time_init;
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, time_exec);
+  ntype.init_exec_fn = node_initexec_curves;
+  ntype.exec_fn = time_exec;
 
   nodeRegisterType(&ntype);
 }
@@ -101,9 +102,10 @@ void register_node_type_tex_curve_rgb(void)
   tex_node_type_base(&ntype, TEX_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, rgb_inputs, rgb_outputs);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, rgb_init);
+  ntype.initfunc = rgb_init;
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, rgb_exec);
+  ntype.init_exec_fn = node_initexec_curves;
+  ntype.exec_fn = rgb_exec;
 
   nodeRegisterType(&ntype);
 }

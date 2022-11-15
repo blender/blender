@@ -253,6 +253,13 @@ class CLIP_HT_header(Header):
         else:
             self._draw_masking(context)
 
+        # Gizmo toggle & popover.
+        row = layout.row(align=True)
+        row.prop(sc, "show_gizmo", icon='GIZMO', text="")
+        sub = row.row(align=True)
+        sub.active = sc.show_gizmo
+        sub.popover(panel="CLIP_PT_gizmo_display", text="")
+
 
 class CLIP_MT_tracking_editor_menus(Menu):
     bl_idname = "CLIP_MT_tracking_editor_menus"
@@ -1898,6 +1905,26 @@ class CLIP_MT_view_pie(Menu):
             pie.operator("clip.graph_center_current_frame")
 
 
+class CLIP_PT_gizmo_display(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Gizmos"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+
+        col = layout.column()
+        col.label(text="Viewport Gizmos")
+        col.separator()
+
+        col.active = view.show_gizmo
+        colsub = col.column()
+        colsub.prop(view, "show_gizmo_navigate", text="Navigate")
+
+
 classes = (
     CLIP_UL_tracking_objects,
     CLIP_HT_header,
@@ -1967,6 +1994,7 @@ classes = (
     CLIP_MT_reconstruction_pie,
     CLIP_MT_solving_pie,
     CLIP_MT_view_pie,
+    CLIP_PT_gizmo_display,
 )
 
 if __name__ == "__main__":  # only for live edit.

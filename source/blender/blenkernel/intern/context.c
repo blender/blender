@@ -1495,7 +1495,7 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
    * require returning a non-owning pointer, which we don't have in the Asset Browser (yet). */
   FileDirEntry *file =
       (FileDirEntry *)CTX_data_pointer_get_type(C, "active_file", &RNA_FileSelectEntry).data;
-  if (file && file->asset_data) {
+  if (file && file->asset) {
     *r_is_valid = true;
     return (AssetHandle){.file_data = file};
   }

@@ -57,9 +57,10 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
+#include "AS_asset_library.h"
+
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
-#include "BKE_asset_library.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
@@ -159,7 +160,7 @@ void WM_file_tag_modified(void)
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
   return !wm->file_saved || ED_image_should_save_modified(bmain) ||
-         BKE_asset_library_has_any_unsaved_catalogs();
+         AS_asset_library_has_any_unsaved_catalogs();
 }
 
 /** \} */
@@ -3746,7 +3747,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     has_extra_checkboxes = true;
   }
 
-  if (BKE_asset_library_has_any_unsaved_catalogs()) {
+  if (AS_asset_library_has_any_unsaved_catalogs()) {
     static char save_catalogs_when_file_is_closed;
 
     save_catalogs_when_file_is_closed = ED_asset_catalogs_get_save_catalogs_when_file_is_saved();

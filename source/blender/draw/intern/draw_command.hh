@@ -39,7 +39,7 @@ struct RecordingState {
   bool front_facing = true;
   bool inverted_view = false;
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
-  int view_clip_plane_count = 0;
+  int clip_plane_count = 0;
   /** Used for gl_BaseInstance workaround. */
   GPUStorageBuf *resource_id_buf = nullptr;
 
@@ -84,6 +84,7 @@ enum class Type : uint8_t {
   /** Commands stored as Undetermined in regular command buffer. */
   Barrier,
   Clear,
+  ClearMulti,
   Dispatch,
   DispatchIndirect,
   Draw,
@@ -120,7 +121,7 @@ struct ShaderBind {
 };
 
 struct FramebufferBind {
-  GPUFrameBuffer *framebuffer;
+  GPUFrameBuffer **framebuffer;
 
   void execute() const;
   std::string serialize() const;
@@ -133,6 +134,7 @@ struct ResourceBind {
 
   enum class Type : uint8_t {
     Sampler = 0,
+    BufferSampler,
     Image,
     UniformBuf,
     StorageBuf,
@@ -148,6 +150,8 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
+    GPUVertBuf *vertex_buf;
+    GPUVertBuf **vertex_buf_ref;
   };
 
   ResourceBind() = default;
@@ -168,6 +172,10 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, eGPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res)
+      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res)
+      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;
   std::string serialize() const;
@@ -323,8 +331,18 @@ struct Clear {
   std::string serialize() const;
 };
 
+struct ClearMulti {
+  /** \note This should be a Span<float4> but we need have to only have trivial types here. */
+  const float4 *colors;
+  int colors_len;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 struct StateSet {
   DRWState new_state;
+  int clip_plane_count;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -342,6 +360,7 @@ struct StencilSet {
 union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
+  FramebufferBind framebuffer_bind;
   PushConstant push_constant;
   Draw draw;
   DrawMulti draw_multi;
@@ -350,6 +369,7 @@ union Undetermined {
   DispatchIndirect dispatch_indirect;
   Barrier barrier;
   Clear clear;
+  ClearMulti clear_multi;
   StateSet state_set;
   StencilSet stencil_set;
 };
@@ -482,7 +502,7 @@ class DrawMultiBuf {
                    ResourceHandle handle)
   {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
-    const bool custom_group = (vertex_first != 0 || vertex_first != -1 || vertex_len != -1);
+    const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
 
     instance_len = instance_len != -1 ? instance_len : 1;
 
@@ -538,7 +558,9 @@ class DrawMultiBuf {
   void bind(RecordingState &state,
             Vector<Header, 0> &headers,
             Vector<Undetermined, 0> &commands,
-            VisibilityBuf &visibility_buf);
+            VisibilityBuf &visibility_buf,
+            int visibility_word_per_draw,
+            int view_len);
 };
 
 /** \} */

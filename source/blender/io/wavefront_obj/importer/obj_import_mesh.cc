@@ -254,7 +254,6 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
     dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
     dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
     BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
-    dst_edge.flag = ME_LOOSEEDGE;
   }
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged

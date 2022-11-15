@@ -86,7 +86,7 @@ void register_node_type_sh_script()
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT);
   ntype.draw_buttons = file_ns::node_shader_buts_script;
   ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
-  node_type_init(&ntype, file_ns::init);
+  ntype.initfunc = file_ns::init;
   node_type_storage(
       &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 

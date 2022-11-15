@@ -74,6 +74,7 @@ typedef struct ShrinkwrapTreeData {
   BVHTreeFromMesh treeData;
 
   const struct MPoly *polys;
+  const float (*vert_normals)[3];
   const float (*pnors)[3];
   const float (*clnors)[3];
   ShrinkwrapBoundaryData *boundary;

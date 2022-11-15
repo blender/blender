@@ -341,7 +341,7 @@ typedef struct SculptBrushTest {
   float radius;
   float location[3];
   float dist;
-  int mirror_symmetry_pass;
+  ePaintSymmetryFlags mirror_symmetry_pass;
 
   int radial_symmetry_pass;
   float symm_rot_mat_inv[4][4];
@@ -556,7 +556,8 @@ typedef struct StrokeCache {
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
-  int mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
+  ePaintSymmetryFlags
+      mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
   float true_view_normal[3];
   float view_normal[3];
 
@@ -1526,7 +1527,10 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
  * Flip all the edit-data across the axis/axes specified by \a symm.
  * Used to calculate multiple modifications to the mesh when symmetry is enabled.
  */
-void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache, char symm, char axis, float angle);
+void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
+                                      ePaintSymmetryFlags symm,
+                                      char axis,
+                                      float angle);
 void SCULPT_cache_free(StrokeCache *cache);
 
 /* -------------------------------------------------------------------- */

@@ -14,6 +14,10 @@
 
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct LineartStaticMemPoolNode {
   Link item;
   size_t size;
@@ -74,6 +78,7 @@ typedef enum eLineArtElementNodeFlag {
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
   LRT_ELEMENT_INTERSECTION_DATA = (1 << 3),
 } eLineArtElementNodeFlag;
+ENUM_OPERATORS(eLineArtElementNodeFlag, LRT_ELEMENT_INTERSECTION_DATA);
 
 typedef struct LineartElementLinkNode {
   struct LineartElementLinkNode *next, *prev;
@@ -929,3 +934,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 void ED_operatortypes_lineart(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -62,14 +62,14 @@ PyDoc_STRVAR(BPy_BM_utils_doc,
              "This module provides access to bmesh geometry evaluation functions.");
 static struct PyModuleDef BPy_BM_geometry_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bmesh.geometry",        /* m_name */
-    BPy_BM_utils_doc,        /* m_doc */
-    0,                       /* m_size */
-    BPy_BM_geometry_methods, /* m_methods */
-    NULL,                    /* m_slots */
-    NULL,                    /* m_traverse */
-    NULL,                    /* m_clear */
-    NULL,                    /* m_free */
+    /*m_name*/ "bmesh.geometry",
+    /*m_doc*/ BPy_BM_utils_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ BPy_BM_geometry_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_bmesh_geometry(void)

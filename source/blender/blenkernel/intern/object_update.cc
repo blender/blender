@@ -121,7 +121,7 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
   /* Make sure inverse matrix is always up to date. This way users of it
    * do not need to worry about recalculating it. */
-  invert_m4_m4_safe(ob->imat, ob->object_to_world);
+  invert_m4_m4_safe(ob->world_to_object, ob->object_to_world);
   /* Set negative scale flag in object. */
   if (is_negative_m4(ob->object_to_world)) {
     ob->transflag |= OB_NEG_SCALE;
@@ -258,7 +258,7 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_orig->base_flag = object->base_flag;
   /* Transformation flags. */
   copy_m4_m4(object_orig->object_to_world, object->object_to_world);
-  copy_m4_m4(object_orig->imat, object->imat);
+  copy_m4_m4(object_orig->world_to_object, object->world_to_object);
   copy_m4_m4(object_orig->constinv, object->constinv);
   object_orig->transflag = object->transflag;
   object_orig->flag = object->flag;

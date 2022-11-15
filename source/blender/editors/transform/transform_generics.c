@@ -309,7 +309,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->flag |= T_V3D_ALIGN;
     }
 
-    if (object_mode & OB_MODE_ALL_PAINT) {
+    if ((object_mode & OB_MODE_ALL_PAINT) || (object_mode & OB_MODE_SCULPT_CURVES)) {
       Paint *p = BKE_paint_get_active_from_context(C);
       if (p && p->brush && (p->brush->flag & BRUSH_CURVE)) {
         t->options |= CTX_PAINT_CURVE;

@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * NOTE: do NOT modify topology while walking a mesh!
  */
@@ -168,3 +172,7 @@ enum {
 
 /* use with BMW_init, so as not to confuse with restrict flags */
 #define BMW_NIL_LAY 0
+
+#ifdef __cplusplus
+}
+#endif

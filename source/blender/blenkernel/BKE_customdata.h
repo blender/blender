@@ -552,7 +552,6 @@ bool CustomData_verify_versions(struct CustomData *data, int index);
 
 /* BMesh specific custom-data stuff. */
 
-void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype);
 
 /**

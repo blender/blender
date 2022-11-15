@@ -290,7 +290,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
     shading_system: BoolProperty(
         name="Open Shading Language",
-        description="Use Open Shading Language (CPU rendering only)",
+        description="Use Open Shading Language",
     )
 
     preview_pause: BoolProperty(

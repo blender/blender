@@ -1107,7 +1107,7 @@ typedef struct FileDirEntry {
   uint32_t uid; /* FileUID */
   /* Name needs freeing if FILE_ENTRY_NAME_FREE is set. Otherwise this is a direct pointer to a
    * name buffer. */
-  char *name;
+  const char *name;
 
   uint64_t size;
   int64_t time;
@@ -1134,7 +1134,7 @@ typedef struct FileDirEntry {
   /** If this file represents an asset, its asset data is here. Note that we may show assets of
    * external files in which case this is set but not the id above.
    * Note comment for FileListInternEntry.local_data, the same applies here! */
-  struct AssetMetaData *asset_data;
+  struct AssetRepresentation *asset;
 
   /* The icon_id for the preview image. */
   int preview_icon_id;
@@ -1735,7 +1735,8 @@ typedef struct SpaceClip {
   char _pad0[6];
   /* End 'SpaceLink' header. */
 
-  char _pad1[4];
+  char gizmo_flag;
+  char _pad1[3];
 
   /** User defined offset, image is centered. */
   float xof, yof;
@@ -1835,6 +1836,13 @@ typedef enum eSpaceClip_GPencil_Source {
   SC_GPENCIL_SRC_CLIP = 0,
   SC_GPENCIL_SRC_TRACK = 1,
 } eSpaceClip_GPencil_Source;
+
+/** #SpaceClip.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SCLIP_GIZMO_HIDE = (1 << 0),
+  SCLIP_GIZMO_HIDE_NAVIGATE = (1 << 1),
+};
 
 /** \} */
 

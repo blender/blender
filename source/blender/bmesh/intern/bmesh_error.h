@@ -8,6 +8,10 @@
 
 #include "bmesh_operator_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*----------- bmop error system ----------*/
 
 /**
@@ -87,3 +91,7 @@ void BMO_error_clear(BMesh *bm);
                     _BMESH_DUMMY_ABORT(), \
                     NULL)) : \
                   NULL)
+
+#ifdef __cplusplus
+}
+#endif

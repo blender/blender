@@ -3673,13 +3673,9 @@ static void colorband_buttons_layout(uiLayout *layout,
 
       row = uiLayoutRow(split, false);
       uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
       row = uiLayoutRow(layout, false);
       uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
     }
     else {
       split = uiLayoutSplit(layout, 0.5f, false);
@@ -3704,13 +3700,28 @@ static void colorband_buttons_layout(uiLayout *layout,
 
       row = uiLayoutRow(subsplit, false);
       uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
       row = uiLayoutRow(split, false);
       uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
-      bt = block->buttons.last;
-      UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+    }
+
+    /* Some special (rather awkward) treatment to update UI state on certain property changes. */
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
+      if (but->rnapoin.data != ptr.data) {
+        continue;
+      }
+      if (!but->rnaprop) {
+        continue;
+      }
+
+      const char *prop_identifier = RNA_property_identifier(but->rnaprop);
+      if (STREQ(prop_identifier, "position")) {
+        UI_but_func_set(but, colorband_update_cb, but, coba);
+      }
+
+      if (STREQ(prop_identifier, "color")) {
+        UI_but_funcN_set(but, rna_update_cb, MEM_dupallocN(cb), NULL);
+      }
     }
   }
 }
@@ -4111,12 +4122,23 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 /** \name CurveMapping Template
  * \{ */
 
+#define CURVE_ZOOM_MAX (1.0f / 25.0f)
+
+static bool curvemap_can_zoom_out(CurveMapping *cumap)
+{
+  return BLI_rctf_size_x(&cumap->curr) < BLI_rctf_size_x(&cumap->clipr);
+}
+
+static bool curvemap_can_zoom_in(CurveMapping *cumap)
+{
+  return BLI_rctf_size_x(&cumap->curr) > CURVE_ZOOM_MAX * BLI_rctf_size_x(&cumap->clipr);
+}
+
 static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *UNUSED(arg))
 {
   CurveMapping *cumap = cumap_v;
 
-  /* we allow 20 times zoom */
-  if (BLI_rctf_size_x(&cumap->curr) > 0.04f * BLI_rctf_size_x(&cumap->clipr)) {
+  if (curvemap_can_zoom_in(cumap)) {
     const float dx = 0.1154f * BLI_rctf_size_x(&cumap->curr);
     cumap->curr.xmin += dx;
     cumap->curr.xmax -= dx;
@@ -4133,8 +4155,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
   CurveMapping *cumap = cumap_v;
   float d, d1;
 
-  /* we allow 20 times zoom, but don't view outside clip */
-  if (BLI_rctf_size_x(&cumap->curr) < 20.0f * BLI_rctf_size_x(&cumap->clipr)) {
+  if (curvemap_can_zoom_out(cumap)) {
     d = d1 = 0.15f * BLI_rctf_size_x(&cumap->curr);
 
     if (cumap->flag & CUMA_DO_CLIP) {
@@ -4622,6 +4643,9 @@ static void curvemap_buttons_layout(uiLayout *layout,
                     0.0,
                     TIP_("Zoom in"));
   UI_but_func_set(bt, curvemap_buttons_zoom_in, cumap, NULL);
+  if (!curvemap_can_zoom_in(cumap)) {
+    UI_but_disable(bt, "");
+  }
 
   /* Zoom out */
   bt = uiDefIconBut(block,
@@ -4639,8 +4663,11 @@ static void curvemap_buttons_layout(uiLayout *layout,
                     0.0,
                     TIP_("Zoom out"));
   UI_but_func_set(bt, curvemap_buttons_zoom_out, cumap, NULL);
+  if (!curvemap_can_zoom_out(cumap)) {
+    UI_but_disable(bt, "");
+  }
 
-  /* Clippoing button. */
+  /* Clipping button. */
   const int icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
   bt = uiDefIconBlockBut(
       block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
@@ -5069,12 +5096,22 @@ static uiBlock *CurveProfile_buttons_tools(bContext *C, ARegion *region, void *p
   return CurveProfile_tools_func(C, region, (CurveProfile *)profile_v);
 }
 
+static bool CurveProfile_can_zoom_in(CurveProfile *profile)
+{
+  return BLI_rctf_size_x(&profile->view_rect) >
+         CURVE_ZOOM_MAX * BLI_rctf_size_x(&profile->clip_rect);
+}
+
+static bool CurveProfile_can_zoom_out(CurveProfile *profile)
+{
+  return BLI_rctf_size_x(&profile->view_rect) < BLI_rctf_size_x(&profile->clip_rect);
+}
+
 static void CurveProfile_buttons_zoom_in(bContext *C, void *profile_v, void *UNUSED(arg))
 {
   CurveProfile *profile = profile_v;
 
-  /* Allow a 20x zoom. */
-  if (BLI_rctf_size_x(&profile->view_rect) > 0.04f * BLI_rctf_size_x(&profile->clip_rect)) {
+  if (CurveProfile_can_zoom_in(profile)) {
     const float dx = 0.1154f * BLI_rctf_size_x(&profile->view_rect);
     profile->view_rect.xmin += dx;
     profile->view_rect.xmax -= dx;
@@ -5090,8 +5127,7 @@ static void CurveProfile_buttons_zoom_out(bContext *C, void *profile_v, void *UN
 {
   CurveProfile *profile = profile_v;
 
-  /* Allow 20 times zoom, but don't view outside clip */
-  if (BLI_rctf_size_x(&profile->view_rect) < 20.0f * BLI_rctf_size_x(&profile->clip_rect)) {
+  if (CurveProfile_can_zoom_out(profile)) {
     float d = 0.15f * BLI_rctf_size_x(&profile->view_rect);
     float d1 = d;
 
@@ -5239,6 +5275,9 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                     0.0,
                     TIP_("Zoom in"));
   UI_but_func_set(bt, CurveProfile_buttons_zoom_in, profile, NULL);
+  if (!CurveProfile_can_zoom_in(profile)) {
+    UI_but_disable(bt, "");
+  }
 
   /* Zoom out */
   bt = uiDefIconBut(block,
@@ -5256,6 +5295,9 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                     0.0,
                     TIP_("Zoom out"));
   UI_but_func_set(bt, CurveProfile_buttons_zoom_out, profile, NULL);
+  if (!CurveProfile_can_zoom_out(profile)) {
+    UI_but_disable(bt, "");
+  }
 
   /* (Right aligned) */
   sub = uiLayoutRow(row, true);

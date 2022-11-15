@@ -24,6 +24,13 @@ template<typename T, T Element> struct TypeForValue {
 };
 
 /**
+ * A struct that allows passing in a type as a function parameter.
+ */
+template<typename T> struct TypeTag {
+  using type = T;
+};
+
+/**
  * A type that encodes a list of values of the same type.
  * This is similar to #std::integer_sequence, but a bit more general. It's main purpose it to also
  * support enums instead of just ints.

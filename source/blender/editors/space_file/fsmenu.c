@@ -1147,8 +1147,8 @@ static void fsmenu_bookmark_validate_job_startjob(
     void *fsmenuv,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
-    short *stop,
-    short *do_update,
+    bool *stop,
+    bool *do_update,
     float *UNUSED(progress))
 {
   FSMenu *fsmenu = fsmenuv;

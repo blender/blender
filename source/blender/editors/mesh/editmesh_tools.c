@@ -3356,8 +3356,8 @@ static bool merge_target(BMEditMesh *em,
   if (use_cursor) {
     vco = scene->cursor.location;
     copy_v3_v3(co, vco);
-    invert_m4_m4(ob->imat, ob->object_to_world);
-    mul_m4_v3(ob->imat, co);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_m4_v3(ob->world_to_object, co);
   }
   else {
     float fac;

@@ -950,7 +950,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
     for (int file_index = 0; file_index < num_files_filtered; file_index++) {
       if (filelist_entry_is_selected(sfile->files, file_index)) {
         FileDirEntry *entry = filelist_file(sfile->files, file_index);
-        if (entry->asset_data) {
+        if (entry->asset) {
           CTX_data_list_add(result, &screen->id, &RNA_FileSelectEntry, entry);
         }
       }

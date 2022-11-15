@@ -247,11 +247,8 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
     }
     case AttributeInit::Type::MoveArray: {
       void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      void *data = add_generic_custom_data_layer(
+      add_generic_custom_data_layer(
           custom_data, data_type, CD_ASSIGN, source_data, domain_num, attribute_id);
-      if (source_data != nullptr && data == nullptr) {
-        MEM_freeN(source_data);
-      }
       break;
     }
   }

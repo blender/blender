@@ -127,7 +127,7 @@ static Mesh *create_circle_mesh(const float radius,
   /* Create outer edges. */
   const short edge_flag = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ?
                               ME_LOOSEEDGE :
-                              (ME_EDGEDRAW | ME_EDGERENDER); /* NGON or TRIANGLE_FAN */
+                              ME_EDGEDRAW; /* NGON or TRIANGLE_FAN */
   for (const int i : IndexRange(verts_num)) {
     MEdge &edge = edges[i];
     edge.v1 = i;
@@ -141,7 +141,7 @@ static Mesh *create_circle_mesh(const float radius,
       MEdge &edge = edges[verts_num + i];
       edge.v1 = verts_num;
       edge.v2 = i;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -205,7 +205,7 @@ void register_node_type_geo_mesh_primitive_circle()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Mesh Circle", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeGeometryMeshCircle", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

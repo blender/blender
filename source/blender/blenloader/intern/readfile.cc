@@ -3111,7 +3111,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
       SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
       allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
-      char *allocname_buf = malloc(allocname_size);
+      char *allocname_buf = static_cast<char *>(malloc(allocname_size));
       memcpy(allocname_buf, allocname, allocname_size);
       allocname = allocname_buf;
     }

@@ -329,6 +329,121 @@ short ANIM_get_normalization_flags(bAnimContext *ac)
   return 0;
 }
 
+static void fcurve_scene_coord_range_get(Scene *scene,
+                                         FCurve *fcu,
+                                         float *r_min_coord,
+                                         float *r_max_coord)
+{
+  float min_coord = FLT_MAX;
+  float max_coord = -FLT_MAX;
+  const bool use_preview_only = PRVRANGEON;
+
+  if (fcu->bezt || fcu->fpt) {
+    int start = 0;
+    int end = fcu->totvert;
+
+    if (use_preview_only) {
+      start = scene->r.psfra;
+      end = min_ii(scene->r.pefra + 1, fcu->totvert);
+    }
+
+    if (fcu->bezt) {
+      const BezTriple *bezt = fcu->bezt + start;
+      for (int i = start; i < end; i++, bezt++) {
+
+        if (i == 0) {
+          /* We ignore extrapolation flags and handle here, and use the
+           * control point position only. so we normalize "interesting"
+           * part of the curve.
+           *
+           * Here we handle left extrapolation.
+           */
+          max_coord = max_ff(max_coord, bezt->vec[1][1]);
+          min_coord = min_ff(min_coord, bezt->vec[1][1]);
+        }
+        else {
+          const BezTriple *prev_bezt = bezt - 1;
+          if (!ELEM(prev_bezt->ipo, BEZT_IPO_BEZ, BEZT_IPO_BACK, BEZT_IPO_ELASTIC)) {
+            /* The points on the curve will lie inside the start and end points.
+             * Calculate min/max using both previous and current CV.
+             */
+            max_coord = max_ff(max_coord, bezt->vec[1][1]);
+            min_coord = min_ff(min_coord, bezt->vec[1][1]);
+            max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
+            min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
+          }
+          else {
+            const int resol = fcu->driver ?
+                                  32 :
+                                  min_ii((int)(5.0f * len_v2v2(bezt->vec[1], prev_bezt->vec[1])),
+                                         32);
+            if (resol < 2) {
+              max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
+              min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
+            }
+            else {
+              if (!ELEM(prev_bezt->ipo, BEZT_IPO_BACK, BEZT_IPO_ELASTIC)) {
+                /* Calculate min/max using bezier forward differencing. */
+                float data[120];
+                float v1[2], v2[2], v3[2], v4[2];
+
+                v1[0] = prev_bezt->vec[1][0];
+                v1[1] = prev_bezt->vec[1][1];
+                v2[0] = prev_bezt->vec[2][0];
+                v2[1] = prev_bezt->vec[2][1];
+
+                v3[0] = bezt->vec[0][0];
+                v3[1] = bezt->vec[0][1];
+                v4[0] = bezt->vec[1][0];
+                v4[1] = bezt->vec[1][1];
+
+                BKE_fcurve_correct_bezpart(v1, v2, v3, v4);
+
+                BKE_curve_forward_diff_bezier(
+                    v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float[3]));
+                BKE_curve_forward_diff_bezier(
+                    v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float[3]));
+
+                for (int j = 0; j <= resol; ++j) {
+                  const float *fp = &data[j * 3];
+                  max_coord = max_ff(max_coord, fp[1]);
+                  min_coord = min_ff(min_coord, fp[1]);
+                }
+              }
+              else {
+                /* Calculate min/max using full fcurve evaluation.
+                 * [slower than bezier forward differencing but evaluates Back/Elastic
+                 * interpolation as well]. */
+                float step_size = (bezt->vec[1][0] - prev_bezt->vec[1][0]) / resol;
+                for (int j = 0; j <= resol; j++) {
+                  float eval_time = prev_bezt->vec[1][0] + step_size * j;
+                  float eval_value = evaluate_fcurve_only_curve(fcu, eval_time);
+                  max_coord = max_ff(max_coord, eval_value);
+                  min_coord = min_ff(min_coord, eval_value);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    else if (fcu->fpt) {
+      const FPoint *fpt = fcu->fpt + start;
+      for (int i = start; i < end; ++i, ++fpt) {
+        min_coord = min_ff(min_coord, fpt->vec[1]);
+        max_coord = max_ff(max_coord, fpt->vec[1]);
+      }
+    }
+  }
+
+  if (r_min_coord) {
+    *r_min_coord = min_coord;
+  }
+  if (r_max_coord) {
+    *r_max_coord = max_coord;
+  }
+}
+
 static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, float *r_offset)
 {
   float factor = 1.0f, offset = 0.0f;
@@ -366,112 +481,23 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   }
 
   fcu->prev_norm_factor = 1.0f;
-  if (fcu->bezt) {
-    const bool use_preview_only = PRVRANGEON;
-    const BezTriple *bezt;
-    int i;
-    float max_coord = -FLT_MAX;
-    float min_coord = FLT_MAX;
-    float range;
 
-    if (fcu->totvert < 1) {
-      return 1.0f;
+  float max_coord = -FLT_MAX;
+  float min_coord = FLT_MAX;
+  fcurve_scene_coord_range_get(scene, fcu, &min_coord, &max_coord);
+
+  if (max_coord > min_coord) {
+    const float range = max_coord - min_coord;
+    if (range > FLT_EPSILON) {
+      factor = 2.0f / range;
     }
-
-    for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-      if (use_preview_only && !IN_RANGE_INCL(bezt->vec[1][0], scene->r.psfra, scene->r.pefra)) {
-        continue;
-      }
-
-      if (i == 0) {
-        /* We ignore extrapolation flags and handle here, and use the
-         * control point position only. so we normalize "interesting"
-         * part of the curve.
-         *
-         * Here we handle left extrapolation.
-         */
-        max_coord = max_ff(max_coord, bezt->vec[1][1]);
-
-        min_coord = min_ff(min_coord, bezt->vec[1][1]);
-      }
-      else {
-        const BezTriple *prev_bezt = bezt - 1;
-        if (!ELEM(prev_bezt->ipo, BEZT_IPO_BEZ, BEZT_IPO_BACK, BEZT_IPO_ELASTIC)) {
-          /* The points on the curve will lie inside the start and end points.
-           * Calculate min/max using both previous and current CV.
-           */
-          max_coord = max_ff(max_coord, bezt->vec[1][1]);
-          min_coord = min_ff(min_coord, bezt->vec[1][1]);
-          max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
-          min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
-        }
-        else {
-          const int resol = fcu->driver ?
-                                32 :
-                                min_ii((int)(5.0f * len_v2v2(bezt->vec[1], prev_bezt->vec[1])),
-                                       32);
-          if (resol < 2) {
-            max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
-            min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
-          }
-          else {
-            if (!ELEM(prev_bezt->ipo, BEZT_IPO_BACK, BEZT_IPO_ELASTIC)) {
-              /* Calculate min/max using bezier forward differencing. */
-              float data[120];
-              float v1[2], v2[2], v3[2], v4[2];
-
-              v1[0] = prev_bezt->vec[1][0];
-              v1[1] = prev_bezt->vec[1][1];
-              v2[0] = prev_bezt->vec[2][0];
-              v2[1] = prev_bezt->vec[2][1];
-
-              v3[0] = bezt->vec[0][0];
-              v3[1] = bezt->vec[0][1];
-              v4[0] = bezt->vec[1][0];
-              v4[1] = bezt->vec[1][1];
-
-              BKE_fcurve_correct_bezpart(v1, v2, v3, v4);
-
-              BKE_curve_forward_diff_bezier(
-                  v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float[3]));
-              BKE_curve_forward_diff_bezier(
-                  v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float[3]));
-
-              for (int j = 0; j <= resol; ++j) {
-                const float *fp = &data[j * 3];
-                max_coord = max_ff(max_coord, fp[1]);
-                min_coord = min_ff(min_coord, fp[1]);
-              }
-            }
-            else {
-              /* Calculate min/max using full fcurve evaluation.
-               * [slower than bezier forward differencing but evaluates Back/Elastic interpolation
-               * as well]. */
-              float step_size = (bezt->vec[1][0] - prev_bezt->vec[1][0]) / resol;
-              for (int j = 0; j <= resol; j++) {
-                float eval_time = prev_bezt->vec[1][0] + step_size * j;
-                float eval_value = evaluate_fcurve_only_curve(fcu, eval_time);
-                max_coord = max_ff(max_coord, eval_value);
-                min_coord = min_ff(min_coord, eval_value);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (max_coord > min_coord) {
-      range = max_coord - min_coord;
-      if (range > FLT_EPSILON) {
-        factor = 2.0f / range;
-      }
-      offset = -min_coord - range / 2.0f;
-    }
-    else if (max_coord == min_coord) {
-      factor = 1.0f;
-      offset = -min_coord;
-    }
+    offset = -min_coord - range / 2.0f;
   }
+  else if (max_coord == min_coord) {
+    factor = 1.0f;
+    offset = -min_coord;
+  }
+
   BLI_assert(factor != 0.0f);
   if (r_offset) {
     *r_offset = offset;

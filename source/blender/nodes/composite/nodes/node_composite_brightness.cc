@@ -81,7 +81,7 @@ void register_node_type_cmp_brightcontrast()
   cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_brightcontrast_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_brightcontrast;
-  node_type_init(&ntype, file_ns::node_composit_init_brightcontrast);
+  ntype.initfunc = file_ns::node_composit_init_brightcontrast;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

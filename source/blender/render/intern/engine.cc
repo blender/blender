@@ -1036,12 +1036,6 @@ bool RE_engine_render(Render *re, bool do_all)
     return true;
   }
 
-  /* update animation here so any render layer animation is applied before
-   * creating the render result */
-  if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0) {
-    render_update_anim_renderdata(re, &re->scene->r, &re->scene->view_layers);
-  }
-
   /* Create engine. */
   RenderEngine *engine = re->engine;
 

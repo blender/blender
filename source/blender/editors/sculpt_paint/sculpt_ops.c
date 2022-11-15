@@ -246,15 +246,17 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
   ot->exec = sculpt_symmetrize_exec;
   ot->poll = sculpt_no_multires_poll;
 
-  RNA_def_float(ot->srna,
-                "merge_tolerance",
-                0.001f,
-                0.0f,
-                FLT_MAX,
-                "Merge Distance",
-                "Distance within which symmetrical vertices are merged",
-                0.0f,
-                1.0f);
+  PropertyRNA *prop = RNA_def_float(ot->srna,
+                                    "merge_tolerance",
+                                    0.0005f,
+                                    0.0f,
+                                    FLT_MAX,
+                                    "Merge Distance",
+                                    "Distance within which symmetrical vertices are merged",
+                                    0.0f,
+                                    1.0f);
+
+  RNA_def_property_ui_range(prop, 0.0, FLT_MAX, 0.001, 5);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -1202,7 +1204,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "use_automask_settings",
                   false,
-                  "Use Automask Settings",
+                  "Automask Settings",
                   "Use default settings from Options panel in sculpt mode");
 
   RNA_def_float(ot->srna,
@@ -1210,7 +1212,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
                 0.5f,
                 0.0f,
                 5.0f,
-                "Cavity Factor",
+                "Factor",
                 "The contrast of the cavity mask",
                 0.0f,
                 1.0f);
@@ -1219,11 +1221,11 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
               2,
               0,
               25,
-              "Cavity Blur",
+              "Blur",
               "The number of times the cavity mask is blurred",
               0,
               25);
-  RNA_def_boolean(ot->srna, "use_curve", false, "Use Curve", "");
+  RNA_def_boolean(ot->srna, "use_curve", false, "Custom Curve", "");
 
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }

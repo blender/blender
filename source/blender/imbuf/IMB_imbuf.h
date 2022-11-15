@@ -358,14 +358,14 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
  * Will rebuild all used indices and proxies at once.
  */
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
-                            short *stop,
-                            short *do_update,
+                            bool *stop,
+                            bool *do_update,
                             float *progress);
 
 /**
  * Finish rebuilding proxies/time-codes and free temporary contexts used.
  */
-void IMB_anim_index_rebuild_finish(struct IndexBuildContext *context, short stop);
+void IMB_anim_index_rebuild_finish(struct IndexBuildContext *context, bool stop);
 
 /**
  * Return the length (in frames) of the given \a anim.

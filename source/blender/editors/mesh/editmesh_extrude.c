@@ -761,11 +761,11 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       continue;
     }
 
-    invert_m4_m4(vc.obedit->imat, vc.obedit->object_to_world);
+    invert_m4_m4(vc.obedit->world_to_object, vc.obedit->object_to_world);
     ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
     float local_center[3];
-    mul_v3_m4v3(local_center, vc.obedit->imat, center);
+    mul_v3_m4v3(local_center, vc.obedit->world_to_object, center);
 
     /* call extrude? */
     if (verts_len != 0) {
@@ -810,11 +810,11 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
         float view_vec[3], cross[3];
 
         /* convert the 2D normal into 3D */
-        mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* World-space. */
-        mul_mat3_m4_v3(vc.obedit->imat, nor);  /* Local-space. */
+        mul_mat3_m4_v3(vc.rv3d->viewinv, nor);           /* World-space. */
+        mul_mat3_m4_v3(vc.obedit->world_to_object, nor); /* Local-space. */
 
         /* correct the normal to be aligned on the view plane */
-        mul_v3_mat3_m4v3(view_vec, vc.obedit->imat, vc.rv3d->viewinv[2]);
+        mul_v3_mat3_m4v3(view_vec, vc.obedit->world_to_object, vc.rv3d->viewinv[2]);
         cross_v3_v3v3(cross, nor, view_vec);
         cross_v3_v3v3(nor, view_vec, cross);
         normalize_v3(nor);
@@ -825,7 +825,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
       mul_m4_v3(vc.obedit->object_to_world, ofs); /* view space */
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, ofs, event->mval, ofs);
-      mul_m4_v3(vc.obedit->imat, ofs); /* back in object space */
+      mul_m4_v3(vc.obedit->world_to_object, ofs); /* back in object space */
 
       sub_v3_v3(ofs, local_center);
 
@@ -876,7 +876,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       copy_v3_v3(local_center, cursor);
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, local_center, event->mval, local_center);
 
-      mul_m4_v3(vc.obedit->imat, local_center); /* back in object space */
+      mul_m4_v3(vc.obedit->world_to_object, local_center); /* back in object space */
 
       EDBM_op_init(vc.em, &bmop, op, "create_vert co=%v", local_center);
       BMO_op_exec(vc.em->bm, &bmop);

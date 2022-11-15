@@ -563,8 +563,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                 true,
                                 result->smoothresh,
                                 nullptr,
-                                clnors,
-                                nullptr);
+                                nullptr,
+                                clnors);
   }
 
   if (clnors == nullptr) {

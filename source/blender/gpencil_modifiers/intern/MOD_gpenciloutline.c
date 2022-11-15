@@ -287,7 +287,7 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Outline Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -301,6 +301,11 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "sample_length", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "outline_material", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+
+  Scene *scene = CTX_data_scene(C);
+  if (scene->camera == NULL) {
+    uiItemL(layout, IFACE_("Outline requires an active camera"), ICON_ERROR);
+  }
 
   gpencil_modifier_panel_end(layout, ptr);
 }

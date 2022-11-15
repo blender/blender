@@ -766,14 +766,14 @@ static struct PyMethodDef M_Mathutils_methods[] = {
 
 static struct PyModuleDef M_Mathutils_module_def = {
     PyModuleDef_HEAD_INIT,
-    "mathutils",         /* m_name */
-    M_Mathutils_doc,     /* m_doc */
-    0,                   /* m_size */
-    M_Mathutils_methods, /* m_methods */
-    NULL,                /* m_slots */
-    NULL,                /* m_traverse */
-    NULL,                /* m_clear */
-    NULL,                /* m_free */
+    /*m_name*/ "mathutils",
+    /*m_doc*/ M_Mathutils_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ M_Mathutils_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /* submodules only */

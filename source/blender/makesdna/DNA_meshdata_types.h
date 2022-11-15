@@ -73,7 +73,6 @@ enum {
   ME_SEAM = (1 << 2),
   /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
   /*  ME_HIDE = (1 << 4), */
-  ME_EDGERENDER = (1 << 5),
   ME_LOOSEEDGE = (1 << 7),
   ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };

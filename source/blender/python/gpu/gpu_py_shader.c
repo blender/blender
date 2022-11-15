@@ -923,9 +923,14 @@ PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              "\n" PYDOC_BUILTIN_SHADER_DESCRIPTION);
 static PyModuleDef pygpu_shader_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.shader",
-    .m_doc = pygpu_shader_module__tp_doc,
-    .m_methods = pygpu_shader_module__tp_methods,
+    /*m_name*/ "gpu.shader",
+    /*m_doc*/ pygpu_shader_module__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_shader_module__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /** \} */

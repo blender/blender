@@ -106,7 +106,6 @@ struct NavigateWidgetGroup {
       char viewlock;
     } rv3d;
   } state;
-  int region_size[2];
 };
 
 static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
@@ -123,9 +122,6 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
 static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
-
-  navgroup->region_size[0] = -1;
-  navgroup->region_size[1] = -1;
 
   wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
   wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);

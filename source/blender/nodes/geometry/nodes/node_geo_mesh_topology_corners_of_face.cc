@@ -117,6 +117,11 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_FACE;
+  }
 };
 
 static int get_poly_totloop(const MPoly &poly)
@@ -152,6 +157,11 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
       return true;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_FACE;
   }
 };
 

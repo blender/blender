@@ -4,8 +4,9 @@
  * \ingroup edasset
  */
 
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
+#include "AS_asset_library.hh"
+
+#include "AS_asset_catalog.hh"
 #include "BKE_main.h"
 
 #include "BLI_string_utils.h"
@@ -16,7 +17,7 @@
 #include "WM_api.h"
 
 using namespace blender;
-using namespace blender::bke;
+using namespace blender::asset_system;
 
 struct CatalogUniqueNameFnData {
   const AssetCatalogService &catalog_service;
@@ -43,11 +44,12 @@ static std::string catalog_name_ensure_unique(AssetCatalogService &catalog_servi
   return unique_name;
 }
 
-AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
-                                   StringRefNull name,
-                                   StringRef parent_path)
+asset_system::AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
+                                                 StringRefNull name,
+                                                 StringRef parent_path)
 {
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     return nullptr;
   }
@@ -56,7 +58,7 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   AssetCatalogPath fullpath = AssetCatalogPath(parent_path) / unique_name;
 
   catalog_service->undo_push();
-  bke::AssetCatalog *new_catalog = catalog_service->create_catalog(fullpath);
+  asset_system::AssetCatalog *new_catalog = catalog_service->create_catalog(fullpath);
   if (!new_catalog) {
     return nullptr;
   }
@@ -68,7 +70,8 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
 
 void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_id)
 {
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
@@ -84,7 +87,8 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
                              const CatalogID catalog_id,
                              const StringRefNull new_name)
 {
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
@@ -110,7 +114,8 @@ void ED_asset_catalog_move(::AssetLibrary *library,
                            const CatalogID src_catalog_id,
                            const std::optional<CatalogID> dst_parent_catalog_id)
 {
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
@@ -150,7 +155,8 @@ void ED_asset_catalog_move(::AssetLibrary *library,
 
 void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *bmain)
 {
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
@@ -164,10 +170,10 @@ void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *
 
 void ED_asset_catalogs_set_save_catalogs_when_file_is_saved(const bool should_save)
 {
-  bke::AssetLibrary::save_catalogs_when_file_is_saved = should_save;
+  asset_system::AssetLibrary::save_catalogs_when_file_is_saved = should_save;
 }
 
 bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved()
 {
-  return bke::AssetLibrary::save_catalogs_when_file_is_saved;
+  return asset_system::AssetLibrary::save_catalogs_when_file_is_saved;
 }

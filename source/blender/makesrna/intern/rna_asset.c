@@ -17,8 +17,9 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_asset_library.h"
+
 #  include "BKE_asset.h"
-#  include "BKE_asset_library.h"
 #  include "BKE_context.h"
 #  include "BKE_idprop.h"
 
@@ -251,7 +252,7 @@ void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *
   }
 
   AssetMetaData *asset_data = ptr->data;
-  BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+  AS_asset_library_refresh_catalog_simplename(asset_library, asset_data);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)

@@ -303,7 +303,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     maxedge += totedge;
   }
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
     float min[3], max[3];
@@ -514,10 +514,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     p_skip++;
   }
 
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 
   if (size) {
     MEM_freeN(size);

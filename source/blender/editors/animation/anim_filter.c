@@ -2826,7 +2826,7 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* object data */
-    if (ob->data) {
+    if ((ob->data) && (ob->type != OB_GPENCIL)) {
       tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
     }
 

@@ -4535,7 +4535,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
                                            wmUIHandlerFunc handle_fn,
                                            wmUIHandlerRemoveFunc remove_fn,
                                            void *user_data,
-                                           const char flag)
+                                           const eWM_EventHandlerFlag flag)
 {
   wmEventHandler_UI *handler = MEM_cnew<wmEventHandler_UI>(__func__);
   handler->head.type = WM_HANDLER_TYPE_UI;

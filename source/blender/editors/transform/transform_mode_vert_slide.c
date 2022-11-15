@@ -444,9 +444,9 @@ void drawVertSlide(TransInfo *t)
 
         ED_view3d_win_to_delta(t->region, xy_delta, zfac, co_dest_3d);
 
-        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->imat,
+        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object,
                      TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
-        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->imat, co_dest_3d);
+        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object, co_dest_3d);
 
         add_v3_v3(co_dest_3d, curr_sv->co_orig_3d);
 

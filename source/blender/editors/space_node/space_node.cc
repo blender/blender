@@ -5,6 +5,7 @@
  * \ingroup spnode
  */
 
+#include "DNA_ID.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
@@ -27,6 +28,8 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BLO_read_write.h"
 
@@ -181,7 +184,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
       value += strlen(path->display_name);
     }
     else {
-      sprintf(value, "/%s", path->display_name);
+      BLI_sprintf(value, "/%s", path->display_name);
       value += strlen(path->display_name) + 1;
     }
   }
@@ -191,6 +194,13 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
 {
   bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
   if (snode->nodetree && path) {
+    /* A change in active viewer may result in the change of the output node used by the
+     * compositor, so we need to get notified about such changes. */
+    if (snode->nodetree->active_viewer_key.value != path->parent_key.value) {
+      DEG_id_tag_update(&snode->nodetree->id, ID_RECALC_NTREE_OUTPUT);
+      WM_main_add_notifier(NC_NODE, nullptr);
+    }
+
     snode->nodetree->active_viewer_key = path->parent_key;
   }
 }

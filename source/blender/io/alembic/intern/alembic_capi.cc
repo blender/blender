@@ -427,8 +427,8 @@ struct ImportJobData {
   ArchiveReader *archive;
   std::vector<AbcObjectReader *> readers;
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 
   char error_code;
@@ -446,7 +446,7 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
+static void import_startjob(void *user_data, bool *stop, bool *do_update, float *progress)
 {
   SCOPE_TIMER("Alembic import, objects reading and creation");
 
@@ -715,7 +715,7 @@ bool ABC_import(bContext *C,
   }
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
-    short stop = 0, do_update = 0;
+    bool stop = false, do_update = false;
     float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);

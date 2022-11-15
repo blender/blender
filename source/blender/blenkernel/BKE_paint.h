@@ -119,6 +119,7 @@ typedef enum ePaintSymmetryAreas {
   PAINT_SYMM_AREA_Y = (1 << 1),
   PAINT_SYMM_AREA_Z = (1 << 2),
 } ePaintSymmetryAreas;
+ENUM_OPERATORS(ePaintSymmetryAreas, PAINT_SYMM_AREA_Z);
 
 #define PAINT_SYMM_AREAS 8
 

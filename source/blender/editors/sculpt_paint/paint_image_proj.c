@@ -74,6 +74,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "ED_image.h"
 #include "ED_node.h"
 #include "ED_object.h"
 #include "ED_paint.h"
@@ -6704,6 +6705,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       BKE_texpaint_slot_refresh_cache(scene, ma, ob);
       BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
       WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+      ED_space_image_sync(bmain, ima, false);
     }
     if (layer) {
       BKE_texpaint_slot_refresh_cache(scene, ma, ob);

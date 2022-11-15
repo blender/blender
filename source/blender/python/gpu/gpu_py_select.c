@@ -58,9 +58,14 @@ static struct PyMethodDef pygpu_select__tp_methods[] = {
 PyDoc_STRVAR(pygpu_select__tp_doc, "This module provides access to selection.");
 static PyModuleDef pygpu_select_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.select",
-    .m_doc = pygpu_select__tp_doc,
-    .m_methods = pygpu_select__tp_methods,
+    /*m_name*/ "gpu.select",
+    /*m_doc*/ pygpu_select__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_select__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_select_init(void)

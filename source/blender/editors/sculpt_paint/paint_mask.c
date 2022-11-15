@@ -348,7 +348,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
   copy_m3_m4(mat, sgcontext->vc.rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->world_space_view_normal, view_dir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->true_view_normal, view_dir);
 
@@ -460,12 +460,12 @@ static void sculpt_gesture_line_plane_from_tri(float *r_plane,
 {
   float normal[3];
   normal_tri_v3(normal, p1, p2, p3);
-  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
+  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->world_to_object, normal);
   if (flip) {
     mul_v3_fl(normal, -1.0f);
   }
   float plane_point_object_space[3];
-  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, p1);
+  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->world_to_object, p1);
   plane_from_point_normal_v3(r_plane, plane_point_object_space, normal);
 }
 
@@ -1134,7 +1134,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   sculpt_gesture_trim_shape_origin_normal_get(sgcontext, shape_origin, shape_normal);
   plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
-  const float(*ob_imat)[4] = vc->obact->imat;
+  const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinates for the front face. */
   MVert *verts = BKE_mesh_verts_for_write(trim_operation->mesh);

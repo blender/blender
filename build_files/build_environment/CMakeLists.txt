@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-####################################################################################################
+##################################################################################################
 #
 # This is a build system used by platform maintainers to build library dependencies on
 # Windows, macOS and Linux.
@@ -22,7 +22,7 @@
 #   Install compiler cmake autoconf automake libtool yasm tcl
 #   Run "make deps" from main Blender directory
 #
-####################################################################################################
+##################################################################################################
 
 project("BlenderDependencies")
 cmake_minimum_required(VERSION 3.5)
@@ -30,7 +30,8 @@ cmake_minimum_required(VERSION 3.5)
 include(ExternalProject)
 include(cmake/check_software.cmake)
 include(cmake/options.cmake)
-# versions.cmake needs to be included after options.cmake due to the BLENDER_PLATFORM_ARM variable being needed.
+# `versions.cmake` needs to be included after `options.cmake`
+# due to the `BLENDER_PLATFORM_ARM` variable being needed.
 include(cmake/versions.cmake)
 include(cmake/boost_build_options.cmake)
 include(cmake/download.cmake)
@@ -88,7 +89,7 @@ include(cmake/package_python.cmake)
 include(cmake/usd.cmake)
 include(cmake/potrace.cmake)
 include(cmake/haru.cmake)
-# Boost needs to be included after python.cmake due to the PYTHON_BINARY variable being needed.
+# Boost needs to be included after `python.cmake` due to the PYTHON_BINARY variable being needed.
 include(cmake/boost.cmake)
 include(cmake/pugixml.cmake)
 include(cmake/ispc.cmake)

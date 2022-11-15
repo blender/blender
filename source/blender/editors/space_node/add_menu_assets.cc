@@ -1,13 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_library.hh"
+
 #include "BLI_multi_value_map.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
@@ -48,19 +49,20 @@ struct LibraryAsset {
 };
 
 struct LibraryCatalog {
-  bke::AssetLibrary *library;
-  const bke::AssetCatalog *catalog;
+  asset_system::AssetLibrary *library;
+  const asset_system::AssetCatalog *catalog;
 };
 
 struct AssetItemTree {
-  bke::AssetCatalogTree catalogs;
-  MultiValueMap<bke::AssetCatalogPath, LibraryAsset> assets_per_path;
-  Map<const bke::AssetCatalogTreeItem *, bke::AssetCatalogPath> full_catalog_per_tree_item;
+  asset_system::AssetCatalogTree catalogs;
+  MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
+  Map<const asset_system::AssetCatalogTreeItem *, asset_system::AssetCatalogPath>
+      full_catalog_per_tree_item;
 };
 
 static bool all_loading_finished()
 {
-  for (const AssetLibraryReference &library : bke::all_valid_asset_library_refs()) {
+  for (const AssetLibraryReference &library : asset_system::all_valid_asset_library_refs()) {
     if (!ED_assetlist_is_loaded(&library)) {
       return false;
     }
@@ -74,19 +76,19 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     return {};
   }
   const Main &bmain = *CTX_data_main(&C);
-  const Vector<AssetLibraryReference> all_libraries = bke::all_valid_asset_library_refs();
+  const Vector<AssetLibraryReference> all_libraries = asset_system::all_valid_asset_library_refs();
 
   /* Merge catalogs from all libraries to deduplicate menu items. Also store the catalog and
    * library for each asset ID in order to use them later when retrieving assets and removing
    * empty catalogs.  */
-  Map<bke::CatalogID, LibraryCatalog> id_to_catalog_map;
-  bke::AssetCatalogTree catalogs_from_all_libraries;
+  Map<asset_system::CatalogID, LibraryCatalog> id_to_catalog_map;
+  asset_system::AssetCatalogTree catalogs_from_all_libraries;
   for (const AssetLibraryReference &library_ref : all_libraries) {
-    if (bke::AssetLibrary *library = BKE_asset_library_load(&bmain, library_ref)) {
-      if (bke::AssetCatalogTree *tree = library->catalog_service->get_catalog_tree()) {
-        tree->foreach_item([&](bke::AssetCatalogTreeItem &item) {
-          const bke::CatalogID &id = item.get_catalog_id();
-          bke::AssetCatalog *catalog = library->catalog_service->find_catalog(id);
+    if (asset_system::AssetLibrary *library = AS_asset_library_load(&bmain, library_ref)) {
+      if (asset_system::AssetCatalogTree *tree = library->catalog_service->get_catalog_tree()) {
+        tree->foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
+          const asset_system::CatalogID &id = item.get_catalog_id();
+          asset_system::AssetCatalog *catalog = library->catalog_service->find_catalog(id);
           catalogs_from_all_libraries.insert_item(*catalog);
           id_to_catalog_map.add(item.get_catalog_id(), LibraryCatalog{library, catalog});
         });
@@ -95,7 +97,7 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   }
 
   /* Find all the matching node group assets for every catalog path. */
-  MultiValueMap<bke::AssetCatalogPath, LibraryAsset> assets_per_path;
+  MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
   for (const AssetLibraryReference &library_ref : all_libraries) {
     AssetFilterSettings type_filter{};
     type_filter.id_types = FILTER_ID_NT;
@@ -114,28 +116,33 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
       if (BLI_uuid_is_nil(meta_data.catalog_id)) {
         return true;
       }
-      const LibraryCatalog &library_catalog = id_to_catalog_map.lookup(meta_data.catalog_id);
-      assets_per_path.add(library_catalog.catalog->path, LibraryAsset{library_ref, asset});
+      const LibraryCatalog *library_catalog = id_to_catalog_map.lookup_ptr(meta_data.catalog_id);
+      if (library_catalog == nullptr) {
+        return true;
+      }
+      assets_per_path.add(library_catalog->catalog->path, LibraryAsset{library_ref, asset});
       return true;
     });
   }
 
   /* Build the final tree without any of the catalogs that don't have proper node group assets. */
-  bke::AssetCatalogTree catalogs_with_node_assets;
-  catalogs_from_all_libraries.foreach_item([&](bke::AssetCatalogTreeItem &item) {
+  asset_system::AssetCatalogTree catalogs_with_node_assets;
+  catalogs_from_all_libraries.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
     if (!assets_per_path.lookup(item.catalog_path()).is_empty()) {
-      const bke::CatalogID &id = item.get_catalog_id();
+      const asset_system::CatalogID &id = item.get_catalog_id();
       const LibraryCatalog &library_catalog = id_to_catalog_map.lookup(id);
-      bke::AssetCatalog *catalog = library_catalog.library->catalog_service->find_catalog(id);
+      asset_system::AssetCatalog *catalog = library_catalog.library->catalog_service->find_catalog(
+          id);
       catalogs_with_node_assets.insert_item(*catalog);
     }
   });
 
   /* Build another map storing full asset paths for each tree item, in order to have stable
    * pointers to asset catalog paths to use for context pointers. This is necessary because
-   * #bke::AssetCatalogTreeItem doesn't store its full path directly. */
-  Map<const bke::AssetCatalogTreeItem *, bke::AssetCatalogPath> full_catalog_per_tree_item;
-  catalogs_with_node_assets.foreach_item([&](bke::AssetCatalogTreeItem &item) {
+   * #asset_system::AssetCatalogTreeItem doesn't store its full path directly. */
+  Map<const asset_system::AssetCatalogTreeItem *, asset_system::AssetCatalogPath>
+      full_catalog_per_tree_item;
+  catalogs_with_node_assets.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
     full_catalog_per_tree_item.add_new(&item, item.catalog_path());
   });
 
@@ -162,11 +169,11 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   if (RNA_pointer_is_null(&menu_path_ptr)) {
     return;
   }
-  const bke::AssetCatalogPath &menu_path = *static_cast<const bke::AssetCatalogPath *>(
-      menu_path_ptr.data);
+  const asset_system::AssetCatalogPath &menu_path =
+      *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
 
   const Span<LibraryAsset> asset_items = tree.assets_per_path.lookup(menu_path);
-  bke::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
   if (asset_items.is_empty() && !catalog_item->has_children()) {
@@ -190,10 +197,11 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     uiItemO(col, ED_asset_handle_get_name(&item.handle), ICON_NONE, "NODE_OT_add_group_asset");
   }
 
-  catalog_item->foreach_child([&](bke::AssetCatalogTreeItem &child_item) {
-    const bke::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(&child_item);
+  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {
+    const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(
+        &child_item);
     PointerRNA path_ptr{
-        &screen.id, &RNA_AssetCatalogPath, const_cast<bke::AssetCatalogPath *>(&path)};
+        &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
     uiItemM(col, "NODE_MT_node_add_catalog_assets", path.name().c_str(), ICON_NONE);
@@ -257,13 +265,13 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     return menus;
   }();
 
-  tree.catalogs.foreach_root_item([&](bke::AssetCatalogTreeItem &item) {
+  tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
     if (all_builtin_menus.contains(item.get_name())) {
       return;
     }
-    const bke::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(&item);
+    const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(&item);
     PointerRNA path_ptr{
-        &screen.id, &RNA_AssetCatalogPath, const_cast<bke::AssetCatalogPath *>(&path)};
+        &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
     uiItemM(col, "NODE_MT_node_add_catalog_assets", path.name().c_str(), ICON_NONE);
@@ -300,13 +308,13 @@ void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *cat
   bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   AssetItemTree &tree = *snode.runtime->assets_for_menu;
-  const bke::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
+  const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
   if (!item) {
     return;
   }
-  const bke::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(item);
+  const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(item);
   PointerRNA path_ptr{
-      &screen.id, &RNA_AssetCatalogPath, const_cast<bke::AssetCatalogPath *>(&path)};
+      &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
   uiItemS(layout);
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);

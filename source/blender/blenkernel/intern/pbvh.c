@@ -833,7 +833,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+
+  /* Ensure leaf limit is at least 4 so there's room
+   * to split at original face boundaries.
+   * Fixes T102209.
+   */
+  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 4);
 
   /* We need the base mesh attribute layout for PBVH draw. */
   pbvh->vdata = &me->vdata;

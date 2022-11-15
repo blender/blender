@@ -418,9 +418,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 totpoly,
                                 true,
                                 mesh->smoothresh,
+                                NULL,
                                 &lnors_spacearr,
-                                clnors,
-                                NULL);
+                                clnors);
 
     /* mirroring has to account for loops being reversed in polys in second half */
     MPoly *result_polys = BKE_mesh_polys_for_write(result);

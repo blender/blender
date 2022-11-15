@@ -632,6 +632,7 @@ using uint2 = vec_base<uint32_t, 2>;
 using uint3 = vec_base<uint32_t, 3>;
 using uint4 = vec_base<uint32_t, 4>;
 
+using short2 = blender::vec_base<int16_t, 2>;
 using short3 = blender::vec_base<int16_t, 3>;
 
 using ushort2 = vec_base<uint16_t, 2>;

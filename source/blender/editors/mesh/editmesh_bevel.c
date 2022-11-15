@@ -170,7 +170,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                sizeof(status_text),
                TIP_("%s: Confirm, "
                     "%s: Cancel, "
-                    "%s: Mode (%s), "
+                    "%s: Width Type (%s), "
                     "%s: Width (%s), "
                     "%s: Segments (%d), "
                     "%s: Profile (%.3f), "

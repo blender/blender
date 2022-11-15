@@ -131,8 +131,8 @@ static void sphere_do(CastModifierData *cmd,
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->imat, ob->object_to_world);
-    mul_v3_m4v3(center, ob->imat, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
   }
 
   /* now we check which options the user wants */
@@ -280,8 +280,8 @@ static void cuboid_do(CastModifierData *cmd,
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->imat, ob->object_to_world);
-    mul_v3_m4v3(center, ob->imat, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
   }
 
   if ((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {

@@ -95,8 +95,6 @@ void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 
-void BKE_mesh_add_mface_layers(struct CustomData *fdata, struct CustomData *ldata, int total);
-
 /**
  * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
  * this is necessary to make the if #MFace.v4 check for quads work.
@@ -122,6 +120,13 @@ void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
  * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.
  */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(struct Mesh *mesh);
+
+/**
+ * Convert legacy #MFace.edcode to edge #ME_EDGEDRAW.
+ */
+void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
+
+void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
 
 /* Inlines */
 

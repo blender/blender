@@ -275,64 +275,83 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
   /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
   BLI_assert(!is_negative_m3(mat));
 
-  /* Check the trace of the matrix - bad precision if close to -1. */
-  const float trace = mat[0][0] + mat[1][1] + mat[2][2];
+  /* Method outlined by Mike Day, ref: https://math.stackexchange.com/a/3183435/220949
+   * with an additional `sqrtf(..)` for higher precision result.
+   * Removing the `sqrt` causes tests to fail unless the precision is set to 1e-6 or larger. */
 
-  if (trace > 0) {
-    float s = 2.0f * sqrtf(1.0f + trace);
-
-    q[0] = 0.25f * s;
-
-    s = 1.0f / s;
-
-    q[1] = (mat[1][2] - mat[2][1]) * s;
-    q[2] = (mat[2][0] - mat[0][2]) * s;
-    q[3] = (mat[0][1] - mat[1][0]) * s;
-  }
-  else {
-    /* Find the biggest diagonal element to choose the best formula.
-     * Here trace should also be always >= 0, avoiding bad precision. */
-    if (mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
-      float s = 2.0f * sqrtf(1.0f + mat[0][0] - mat[1][1] - mat[2][2]);
-
+  if (mat[2][2] < 0.0f) {
+    if (mat[0][0] > mat[1][1]) {
+      const float trace = 1.0f + mat[0][0] - mat[1][1] - mat[2][2];
+      float s = 2.0f * sqrtf(trace);
+      if (mat[1][2] < mat[2][1]) {
+        /* Ensure W is non-negative for a canonical result. */
+        s = -s;
+      }
       q[1] = 0.25f * s;
-
       s = 1.0f / s;
-
       q[0] = (mat[1][2] - mat[2][1]) * s;
-      q[2] = (mat[1][0] + mat[0][1]) * s;
+      q[2] = (mat[0][1] + mat[1][0]) * s;
       q[3] = (mat[2][0] + mat[0][2]) * s;
-    }
-    else if (mat[1][1] > mat[2][2]) {
-      float s = 2.0f * sqrtf(1.0f + mat[1][1] - mat[0][0] - mat[2][2]);
-
-      q[2] = 0.25f * s;
-
-      s = 1.0f / s;
-
-      q[0] = (mat[2][0] - mat[0][2]) * s;
-      q[1] = (mat[1][0] + mat[0][1]) * s;
-      q[3] = (mat[2][1] + mat[1][2]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[1] = 1.0f;
+      }
     }
     else {
-      float s = 2.0f * sqrtf(1.0f + mat[2][2] - mat[0][0] - mat[1][1]);
-
-      q[3] = 0.25f * s;
-
+      const float trace = 1.0f - mat[0][0] + mat[1][1] - mat[2][2];
+      float s = 2.0f * sqrtf(trace);
+      if (mat[2][0] < mat[0][2]) {
+        /* Ensure W is non-negative for a canonical result. */
+        s = -s;
+      }
+      q[2] = 0.25f * s;
       s = 1.0f / s;
-
+      q[0] = (mat[2][0] - mat[0][2]) * s;
+      q[1] = (mat[0][1] + mat[1][0]) * s;
+      q[3] = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[2] = 1.0f;
+      }
+    }
+  }
+  else {
+    if (mat[0][0] < -mat[1][1]) {
+      const float trace = 1.0f - mat[0][0] - mat[1][1] + mat[2][2];
+      float s = 2.0f * sqrtf(trace);
+      if (mat[0][1] < mat[1][0]) {
+        /* Ensure W is non-negative for a canonical result. */
+        s = -s;
+      }
+      q[3] = 0.25f * s;
+      s = 1.0f / s;
       q[0] = (mat[0][1] - mat[1][0]) * s;
       q[1] = (mat[2][0] + mat[0][2]) * s;
-      q[2] = (mat[2][1] + mat[1][2]) * s;
+      q[2] = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[2] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[3] = 1.0f;
+      }
     }
-
-    /* Make sure W is non-negative for a canonical result. */
-    if (q[0] < 0) {
-      negate_v4(q);
+    else {
+      /* NOTE(@campbellbarton): A zero matrix will fall through to this block,
+       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848. */
+      const float trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
+      float s = 2.0f * sqrtf(trace);
+      q[0] = 0.25f * s;
+      s = 1.0f / s;
+      q[1] = (mat[1][2] - mat[2][1]) * s;
+      q[2] = (mat[2][0] - mat[0][2]) * s;
+      q[3] = (mat[0][1] - mat[1][0]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q[1] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+        /* Avoids the need to normalize the degenerate case. */
+        q[0] = 1.0f;
+      }
     }
   }
 
-  normalize_qt(q);
+  BLI_assert(!(q[0] < 0.0f));
+  BLI_ASSERT_UNIT_QUAT(q);
 }
 
 static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])

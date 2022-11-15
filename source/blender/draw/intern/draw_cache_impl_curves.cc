@@ -252,7 +252,7 @@ static void curves_batch_cache_fill_segments_proc_pos(
 
 static void curves_batch_cache_ensure_procedural_pos(const Curves &curves,
                                                      CurvesEvalCache &cache,
-                                                     GPUMaterial *gpu_material)
+                                                     GPUMaterial *UNUSED(gpu_material))
 {
   if (cache.proc_point_buf == nullptr || DRW_vbo_requested(cache.proc_point_buf)) {
     /* Initialize vertex format. */
@@ -331,7 +331,7 @@ static void curves_batch_cache_ensure_procedural_final_attr(CurvesEvalCache &cac
                                                             const GPUVertFormat *format,
                                                             const int subdiv,
                                                             const int index,
-                                                            const char *name)
+                                                            const char *UNUSED(name))
 {
   CurvesEvalFinalCache &final_cache = cache.final[subdiv];
   final_cache.attributes_buf[index] = GPU_vertbuf_create_with_format_ex(

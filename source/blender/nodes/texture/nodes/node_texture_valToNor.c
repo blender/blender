@@ -66,7 +66,7 @@ void register_node_type_tex_valtonor(void)
 
   tex_node_type_base(&ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_exec(&ntype, NULL, NULL, exec);
+  ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);
 }

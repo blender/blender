@@ -228,28 +228,27 @@ ccl_device float3 xyY_to_xyz(float x, float y, float Y)
  * exp = exponent, encoded as uint32_t
  * e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent), encoded as uint32_t
  */
-template<unsigned exp, unsigned e2coeff> ccl_device_inline ssef fastpow(const ssef &arg)
+template<unsigned exp, unsigned e2coeff> ccl_device_inline float4 fastpow(const float4 &arg)
 {
-  ssef ret;
-  ret = arg * cast(ssei(e2coeff));
-  ret = ssef(cast(ret));
-  ret = ret * cast(ssei(exp));
-  ret = cast(ssei(ret));
+  float4 ret = arg * cast(make_int4(e2coeff));
+  ret = make_float4(cast(ret));
+  ret = ret * cast(make_int4(exp));
+  ret = cast(make_int4(ret));
   return ret;
 }
 
 /* Improve x ^ 1.0f/5.0f solution with Newton-Raphson method */
-ccl_device_inline ssef improve_5throot_solution(const ssef &old_result, const ssef &x)
+ccl_device_inline float4 improve_5throot_solution(const float4 &old_result, const float4 &x)
 {
-  ssef approx2 = old_result * old_result;
-  ssef approx4 = approx2 * approx2;
-  ssef t = x / approx4;
-  ssef summ = madd(ssef(4.0f), old_result, t);
-  return summ * ssef(1.0f / 5.0f);
+  float4 approx2 = old_result * old_result;
+  float4 approx4 = approx2 * approx2;
+  float4 t = x / approx4;
+  float4 summ = madd(make_float4(4.0f), old_result, t);
+  return summ * make_float4(1.0f / 5.0f);
 }
 
 /* Calculate powf(x, 2.4). Working domain: 1e-10 < x < 1e+10 */
-ccl_device_inline ssef fastpow24(const ssef &arg)
+ccl_device_inline float4 fastpow24(const float4 &arg)
 {
   /* max, avg and |avg| errors were calculated in gcc without FMA instructions
    * The final precision should be better than powf in glibc */
@@ -257,9 +256,10 @@ ccl_device_inline ssef fastpow24(const ssef &arg)
   /* Calculate x^4/5, coefficient 0.994 was constructed manually to minimize avg error */
   /* 0x3F4CCCCD = 4/5 */
   /* 0x4F55A7FB = 2^(127/(4/5) - 127) * 0.994^(1/(4/5)) */
-  ssef x = fastpow<0x3F4CCCCD, 0x4F55A7FB>(arg);  // error max = 0.17  avg = 0.0018    |avg| = 0.05
-  ssef arg2 = arg * arg;
-  ssef arg4 = arg2 * arg2;
+  float4 x = fastpow<0x3F4CCCCD, 0x4F55A7FB>(
+      arg);  // error max = 0.17  avg = 0.0018    |avg| = 0.05
+  float4 arg2 = arg * arg;
+  float4 arg4 = arg2 * arg2;
 
   /* error max = 0.018     avg = 0.0031    |avg| = 0.0031 */
   x = improve_5throot_solution(x, arg4);
@@ -271,12 +271,12 @@ ccl_device_inline ssef fastpow24(const ssef &arg)
   return x * (x * x);
 }
 
-ccl_device ssef color_srgb_to_linear(const ssef &c)
+ccl_device float4 color_srgb_to_linear(const float4 &c)
 {
-  sseb cmp = c < ssef(0.04045f);
-  ssef lt = max(c * ssef(1.0f / 12.92f), ssef(0.0f));
-  ssef gtebase = (c + ssef(0.055f)) * ssef(1.0f / 1.055f); /* fma */
-  ssef gte = fastpow24(gtebase);
+  int4 cmp = c < make_float4(0.04045f);
+  float4 lt = max(c * make_float4(1.0f / 12.92f), make_float4(0.0f));
+  float4 gtebase = (c + make_float4(0.055f)) * make_float4(1.0f / 1.055f); /* fma */
+  float4 gte = fastpow24(gtebase);
   return select(cmp, lt, gte);
 }
 #endif /* __KERNEL_SSE2__ */
@@ -302,10 +302,8 @@ ccl_device float4 color_linear_to_srgb_v4(float4 c)
 ccl_device float4 color_srgb_to_linear_v4(float4 c)
 {
 #ifdef __KERNEL_SSE2__
-  ssef r_ssef;
-  float4 &r = (float4 &)r_ssef;
-  r = c;
-  r_ssef = color_srgb_to_linear(r_ssef);
+  float4 r = c;
+  r = color_srgb_to_linear(r);
   r.w = c.w;
   return r;
 #else

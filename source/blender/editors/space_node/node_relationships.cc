@@ -1678,6 +1678,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   const Set<bNode *> selected_nodes = get_selected_nodes(ntree);
 
   bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
+  nodeSetActive(&ntree, frame_node);
 
   /* reset tags */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
