@@ -169,14 +169,22 @@ static bool gpu_pass_is_valid(GPUPass *pass)
 /** \name Type > string conversion
  * \{ */
 
+#ifdef DEBUG
+#  define SRC_NAME(io, link, list, type) \
+    link->node->name << "_" << io << BLI_findindex(&link->node->list, (const void *)link) << "_" \
+                     << type
+#else
+#  define SRC_NAME(io, list, link, type) type
+#endif
+
 static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
 {
   switch (input->source) {
     case GPU_SOURCE_FUNCTION_CALL:
     case GPU_SOURCE_OUTPUT:
-      return stream << "tmp" << input->id;
+      return stream << SRC_NAME("in", input, inputs, "tmp") << input->id;
     case GPU_SOURCE_CONSTANT:
-      return stream << "cons" << input->id;
+      return stream << SRC_NAME("in", input, inputs, "cons") << input->id;
     case GPU_SOURCE_UNIFORM:
       return stream << "node_tree.u" << input->id;
     case GPU_SOURCE_ATTR:
@@ -199,7 +207,7 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
 
 static std::ostream &operator<<(std::ostream &stream, const GPUOutput *output)
 {
-  return stream << "tmp" << output->id;
+  return stream << SRC_NAME("out", output, outputs, "tmp") << output->id;
 }
 
 /* Trick type to change overload and keep a somewhat nice syntax. */
