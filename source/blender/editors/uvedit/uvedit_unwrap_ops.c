@@ -30,7 +30,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -42,7 +41,9 @@
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -569,6 +570,29 @@ static void texface_from_original_index(const Scene *scene,
   }
 }
 
+static Mesh *subdivide_edit_mesh(const Object *object,
+                                 const BMEditMesh *em,
+                                 const SubsurfModifierData *smd)
+{
+  Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, object->data);
+  BKE_mesh_ensure_default_orig_index_customdata(me_from_em);
+
+  SubdivSettings settings = BKE_subsurf_modifier_settings_init(smd, false);
+  if (settings.level == 1) {
+    return me_from_em;
+  }
+
+  SubdivToMeshSettings mesh_settings;
+  mesh_settings.resolution = (1 << smd->levels) + 1;
+  mesh_settings.use_optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
+
+  Subdiv *subdiv = BKE_subdiv_update_from_mesh(NULL, &settings, me_from_em);
+  Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me_from_em);
+  BKE_id_free(NULL, me_from_em);
+  BKE_subdiv_free(subdiv);
+  return result;
+}
+
 /**
  * Unwrap handle initialization for subsurf aware-unwrapper.
  * The many modifications required to make the original function(see above)
@@ -580,28 +604,11 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                                      const UnwrapOptions *options,
                                                      UnwrapResultInfo *result_info)
 {
-  /* index pointers */
-  MPoly *mpoly;
-  MLoop *mloop;
-  MEdge *edge;
-  int i;
-
   /* pointers to modifier data for unwrap control */
   ModifierData *md;
   SubsurfModifierData *smd_real;
   /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{NULL}};
-  /* Used to hold subsurfed Mesh */
-  DerivedMesh *derivedMesh, *initialDerived;
-  /* holds original indices for subsurfed mesh */
-  const int *origVertIndices, *origEdgeIndices, *origPolyIndices;
-  /* Holds vertices of subsurfed mesh */
-  MVert *subsurfedVerts;
-  MEdge *subsurfedEdges;
-  MPoly *subsurfedPolys;
-  MLoop *subsurfedLoops;
-  /* Number of vertices and faces for subsurfed mesh. */
-  int numOfEdges, numOfFaces;
 
   /* holds a map to editfaces for every subsurfed MFace.
    * These will be used to get hidden/ selected flags etc. */
@@ -629,44 +636,34 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   smd.levels = smd_real->levels;
   smd.subdivType = smd_real->subdivType;
+  smd.flags = smd_real->flags;
+  smd.quality = smd_real->quality;
 
-  {
-    Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, ob->data);
-    initialDerived = CDDM_from_mesh(me_from_em);
-    derivedMesh = subsurf_make_derived_from_derived(
-        initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
+  Mesh *subdiv_mesh = subdivide_edit_mesh(ob, em, &smd);
 
-    initialDerived->release(initialDerived);
-    BKE_id_free(NULL, me_from_em);
-  }
+  const MVert *subsurfedVerts = BKE_mesh_verts(subdiv_mesh);
+  const MEdge *subsurfedEdges = BKE_mesh_edges(subdiv_mesh);
+  const MPoly *subsurfedPolys = BKE_mesh_polys(subdiv_mesh);
+  const MLoop *subsurfedLoops = BKE_mesh_loops(subdiv_mesh);
 
-  /* get the derived data */
-  subsurfedVerts = derivedMesh->getVertArray(derivedMesh);
-  subsurfedEdges = derivedMesh->getEdgeArray(derivedMesh);
-  subsurfedPolys = derivedMesh->getPolyArray(derivedMesh);
-  subsurfedLoops = derivedMesh->getLoopArray(derivedMesh);
+  const int *origVertIndices = CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX);
+  const int *origEdgeIndices = CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX);
+  const int *origPolyIndices = CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX);
 
-  origVertIndices = derivedMesh->getVertDataArray(derivedMesh, CD_ORIGINDEX);
-  origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
-  origPolyIndices = derivedMesh->getPolyDataArray(derivedMesh, CD_ORIGINDEX);
-
-  numOfEdges = derivedMesh->getNumEdges(derivedMesh);
-  numOfFaces = derivedMesh->getNumPolys(derivedMesh);
-
-  faceMap = MEM_mallocN(numOfFaces * sizeof(BMFace *), "unwrap_edit_face_map");
+  faceMap = MEM_mallocN(subdiv_mesh->totpoly * sizeof(BMFace *), "unwrap_edit_face_map");
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
   BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_FACE);
 
   /* map subsurfed faces to original editFaces */
-  for (i = 0; i < numOfFaces; i++) {
+  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
     faceMap[i] = BM_face_at_index(em->bm, origPolyIndices[i]);
   }
 
-  edgeMap = MEM_mallocN(numOfEdges * sizeof(BMEdge *), "unwrap_edit_edge_map");
+  edgeMap = MEM_mallocN(subdiv_mesh->totedge * sizeof(BMEdge *), "unwrap_edit_edge_map");
 
   /* map subsurfed edges to original editEdges */
-  for (i = 0; i < numOfEdges; i++) {
+  for (int i = 0; i < subdiv_mesh->totedge; i++) {
     /* not all edges correspond to an old edge */
     edgeMap[i] = (origEdgeIndices[i] != ORIGINDEX_NONE) ?
                      BM_edge_at_index(em->bm, origEdgeIndices[i]) :
@@ -674,7 +671,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver */
-  for (i = 0, mpoly = subsurfedPolys; i < numOfFaces; i++, mpoly++) {
+  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
+    const MPoly *mpoly = &subsurfedPolys[i];
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -693,7 +691,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    mloop = &subsurfedLoops[mpoly->loopstart];
+    const MLoop *mloop = &subsurfedLoops[mpoly->loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(mpoly->totloop == 4);
@@ -744,8 +742,9 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* these are calculated from original mesh too */
-  for (edge = subsurfedEdges, i = 0; i < numOfEdges; i++, edge++) {
+  for (int i = 0; i < subdiv_mesh->totedge; i++) {
     if ((edgeMap[i] != NULL) && BM_elem_flag_test(edgeMap[i], BM_ELEM_SEAM)) {
+      const MEdge *edge = &subsurfedEdges[i];
       ParamKey vkeys[2];
       vkeys[0] = (ParamKey)edge->v1;
       vkeys[1] = (ParamKey)edge->v2;
@@ -761,7 +760,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* cleanup */
   MEM_freeN(faceMap);
   MEM_freeN(edgeMap);
-  derivedMesh->release(derivedMesh);
+  BKE_id_free(NULL, subdiv_mesh);
 
   return handle;
 }
