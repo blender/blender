@@ -39,6 +39,7 @@ class UniformBuf {
 
   virtual void update(const void *data) = 0;
   virtual void bind(int slot) = 0;
+  virtual void bind_as_ssbo(int slot) = 0;
   virtual void unbind() = 0;
 
   /** Used to defer data upload at drawing time.

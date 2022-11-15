@@ -113,6 +113,16 @@ void MTLUniformBuf::bind(int slot)
   }
 }
 
+void MTLUniformBuf::bind_as_ssbo(int slot)
+{
+  if (slot < 0) {
+    MTL_LOG_WARNING("Failed to bind UBO %p as SSBO. uniform location %d invalid.\n", this, slot);
+    return;
+  }
+
+  BLI_assert_msg(0, "Not implemented yet");
+}
+
 void MTLUniformBuf::unbind()
 {
   /* Unbind in debug mode to validate missing binds.
