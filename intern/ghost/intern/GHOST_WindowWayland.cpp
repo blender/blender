@@ -332,7 +332,10 @@ static void xdg_toplevel_handle_configure(void *data,
 static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
   CLOG_INFO(LOG, 2, "close");
-  static_cast<GWL_Window *>(data)->ghost_window->close();
+
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+
+  win->ghost_window->close();
 }
 
 static const xdg_toplevel_listener xdg_toplevel_listener = {
@@ -424,16 +427,18 @@ static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
-  static_cast<GWL_Window *>(data)->ghost_window->close();
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+
+  win->ghost_window->close();
 }
 
 static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
-  /* We have to swap twice to keep any pop-up menus alive. */
-  static_cast<GWL_Window *>(data)->ghost_window->swapBuffers();
-  static_cast<GWL_Window *>(data)->ghost_window->swapBuffers();
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+
+  win->ghost_window->swapBuffers();
 }
 
 static struct libdecor_frame_interface libdecor_frame_iface = {
@@ -461,7 +466,10 @@ static void xdg_toplevel_decoration_handle_configure(
     const uint32_t mode)
 {
   CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
-  static_cast<GWL_Window *>(data)->xdg_decor->mode = (zxdg_toplevel_decoration_v1_mode)mode;
+
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+
+  win->xdg_decor->mode = (zxdg_toplevel_decoration_v1_mode)mode;
 }
 
 static const zxdg_toplevel_decoration_v1_listener xdg_toplevel_decoration_v1_listener = {
