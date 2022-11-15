@@ -606,6 +606,12 @@ void wm_file_read_report(bContext *C, Main *bmain)
 static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef))
 {
   if (use_data) {
+    /* XXX Do before executing the callbacks below, otherwise the asset list refers to storage in
+     * the asset library that's destructed through a callback below.
+     * Asset list is weak design and mixes asset representation lifetime management with UI
+     * lifetime. The asset system needs a better defined ownership model. */
+    ED_assetlist_storage_exit();
+
     BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
     BLI_timer_on_file_load();
   }
