@@ -1196,6 +1196,7 @@ static BitVector<> looptri_no_hidden_map_get(const Span<MPoly> polys,
     }
     else {
       for (const int i : IndexRange(triangles_num)) {
+        UNUSED_VARS(i);
         looptri_mask[looptri_index].set();
         looptri_index++;
         looptri_no_hidden_len++;
