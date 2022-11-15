@@ -17,6 +17,10 @@ void VKUniformBuffer::bind(int /*slot*/)
 {
 }
 
+void VKUniformBuffer::bind_as_ssbo(int /*slot*/)
+{
+}
+
 void VKUniformBuffer::unbind()
 {
 }
