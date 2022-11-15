@@ -115,7 +115,10 @@ struct GWL_Window {
 #endif
   WGL_XDG_Decor_Window *xdg_decor = nullptr;
 
-  /** The current value of frame, copied from `frame_pending` when applying updates. */
+  /**
+   * The current value of frame, copied from `frame_pending` when applying updates.
+   * This avoids the need for locking when reading from `frame`.
+   */
   GWL_WindowFrame frame;
   GWL_WindowFrame frame_pending;
 
@@ -543,14 +546,13 @@ static void frame_handle_configure(struct libdecor_frame *frame,
     win->libdecor->configured = true;
   }
 
+  /* Apply the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
 #  ifdef USE_EVENT_BACKGROUND_THREAD
     GHOST_SystemWayland *system = win->ghost_system;
     const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
     if (!is_main_thread) {
-      /* NOTE(@campbellbarton): this only gets one redraw,
-       * I could not find a case where this causes problems. */
       gwl_window_pending_actions_tag(win, PENDING_FRAME_CONFIGURE);
     }
     else
