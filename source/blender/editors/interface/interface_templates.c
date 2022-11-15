@@ -838,6 +838,10 @@ ID *ui_template_id_liboverride_hierarchy_make(
               bmain, scene, view_layer, NULL, id, &object_active->id, NULL, &id_override, false);
         }
       }
+      else {
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, id, NULL, &id_override, false);
+      }
       break;
     case ID_MA:
     case ID_TE:
@@ -897,7 +901,7 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
     }
   }
   else {
-    RNA_warning("The data-block %s could not be overridden", id->name);
+    WM_reportf(RPT_WARNING, "The data-block %s could not be overridden", id->name);
   }
 }
 
