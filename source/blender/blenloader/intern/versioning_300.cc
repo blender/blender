@@ -2931,6 +2931,21 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_v(nurb);
+        }
+      }
+    }
+
     /* Initialize the bone wireframe opacity setting. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -3006,32 +3021,35 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Alter NURBS knot mode flags to fit new modes. */
     LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
       LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagu & CU_NURB_CYCLIC) {
-          nurb->flagu = CU_NURB_CYCLIC;
-        }
         /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
-        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+        if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
           nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_u(nurb);
         }
+        else if (nurb->flagu & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagu = CU_NURB_CYCLIC | (nurb->flagu & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_u(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+        if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
           nurb->flagu |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_u(nurb);
         }
-
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagv & CU_NURB_CYCLIC) {
-          nurb->flagv = CU_NURB_CYCLIC;
-        }
-        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
-        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
           nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_v(nurb);
         }
+        else if (nurb->flagv & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagv = CU_NURB_CYCLIC | (nurb->flagv & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_v(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+        if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
           nurb->flagv |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_v(nurb);
         }
       }
     }
