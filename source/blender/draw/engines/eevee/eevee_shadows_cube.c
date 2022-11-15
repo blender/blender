@@ -38,7 +38,7 @@ void EEVEE_shadows_cube_add(EEVEE_LightsInfo *linfo, EEVEE_Light *evli, Object *
   /* Saving light bounds for later. */
   BoundSphere *cube_bound = linfo->shadow_bounds + linfo->cube_len;
   copy_v3_v3(cube_bound->center, evli->position);
-  cube_bound->radius = sqrt(1.0f / evli->invsqrdist);
+  cube_bound->radius = sqrt(1.0f / min_ff(evli->invsqrdist, evli->invsqrdist_volume));
 
   linfo->shadow_cube_light_indices[linfo->cube_len] = linfo->num_light;
   evli->shadow_id = linfo->shadow_len++;
@@ -87,7 +87,7 @@ bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, 
 
   eevee_light_matrix_get(evli, cube_data->shadowmat);
 
-  shdw_data->far = max_ff(sqrt(1.0f / evli->invsqrdist), 3e-4);
+  shdw_data->far = max_ff(sqrt(1.0f / min_ff(evli->invsqrdist, evli->invsqrdist_volume)), 3e-4);
   shdw_data->near = min_ff(shdw_data->near, shdw_data->far - 1e-4);
 
   bool update = false;
