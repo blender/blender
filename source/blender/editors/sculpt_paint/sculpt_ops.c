@@ -1242,7 +1242,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
                 0.5f,
                 0.0f,
                 5.0f,
-                "Cavity Factor",
+                "Factor",
                 "The contrast of the cavity mask",
                 0.0f,
                 1.0f);
@@ -1251,11 +1251,11 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
               2,
               0,
               25,
-              "Cavity Blur",
+              "Blur",
               "The number of times the cavity mask is blurred",
               0,
               25);
-  RNA_def_boolean(ot->srna, "use_curve", false, "Use Curve", "");
+  RNA_def_boolean(ot->srna, "use_curve", false, "Custom Curve", "");
 
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }
