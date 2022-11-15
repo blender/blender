@@ -56,6 +56,12 @@ void ResourceBind::execute() const
     case ResourceBind::Type::StorageBuf:
       GPU_storagebuf_bind(is_reference ? *storage_buf_ref : storage_buf, slot);
       break;
+    case ResourceBind::Type::UniformAsStorageBuf:
+      GPU_uniformbuf_bind_as_ssbo(is_reference ? *uniform_buf_ref : uniform_buf, slot);
+      break;
+    case ResourceBind::Type::VertexAsStorageBuf:
+      GPU_vertbuf_bind_as_ssbo(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
   }
 }
 
@@ -265,6 +271,12 @@ std::string ResourceBind::serialize() const
              std::to_string(slot) + ")";
     case Type::StorageBuf:
       return std::string(".bind_storage_buf") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::UniformAsStorageBuf:
+      return std::string(".bind_uniform_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::VertexAsStorageBuf:
+      return std::string(".bind_vertbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
     default:
       BLI_assert_unreachable();
