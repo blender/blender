@@ -72,6 +72,7 @@ set(SRC
   nodes/node_geo_field_at_index.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc

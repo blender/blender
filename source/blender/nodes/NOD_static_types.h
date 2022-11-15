@@ -319,6 +319,7 @@ DefNode(GeometryNode, GEO_NODE_FILL_CURVE, def_geo_curve_fill, "FILL_CURVE", Fil
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, def_geo_curve_fillet, "FILLET_CURVE", FilletCurve, "Fillet Curve", "Round corners by generating circular arcs on each control point")
 DefNode(GeometryNode, GEO_NODE_FLIP_FACES, 0, "FLIP_FACES", FlipFaces, "Flip Faces", "Reverse the order of the vertices and edges of selected faces, flipping their normal direction")
 DefNode(GeometryNode, GEO_NODE_GEOMETRY_TO_INSTANCE, 0, "GEOMETRY_TO_INSTANCE", GeometryToInstance, "Geometry to Instance", "Convert each input geometry into an instance, which can be much faster than the Join Geometry node when the inputs are large")
+DefNode(GeometryNode, GEO_NODE_IMAGE_INFO, 0, "IMAGE_INFO", ImageInfo, "Image Info", "Retrieve information about an image")
 DefNode(GeometryNode, GEO_NODE_IMAGE_TEXTURE, def_geo_image_texture, "IMAGE_TEXTURE", ImageTexture, "Image Texture", "Sample values from an image texture")
 DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_HANDLES, 0, "INPUT_CURVE_HANDLES", InputCurveHandlePositions,"Curve Handle Positions", "Retrieve the position of each Bézier control point's handles")
 DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_TILT, 0, "INPUT_CURVE_TILT", InputCurveTilt, "Curve Tilt", "Retrieve the angle at each control point used to twist the curve's normal around its tangent")
