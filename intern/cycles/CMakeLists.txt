@@ -253,6 +253,33 @@ if(WITH_CYCLES_OSL)
   )
 endif()
 
+if(WITH_CYCLES_DEVICE_CUDA OR WITH_CYCLES_DEVICE_OPTIX)
+  add_definitions(-DWITH_CUDA)
+
+  if(WITH_CUDA_DYNLOAD)
+    include_directories(
+      ../../extern/cuew/include
+    )
+    add_definitions(-DWITH_CUDA_DYNLOAD)
+  else()
+    include_directories(
+      SYSTEM
+      ${CUDA_TOOLKIT_INCLUDE}
+    )
+  endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_HIP)
+  add_definitions(-DWITH_HIP)
+
+  if(WITH_HIP_DYNLOAD)
+    include_directories(
+      ../../extern/hipew/include
+    )
+    add_definitions(-DWITH_HIP_DYNLOAD)
+  endif()
+endif()
+
 if(WITH_CYCLES_DEVICE_OPTIX)
   find_package(OptiX 7.3.0)
 
@@ -261,10 +288,14 @@ if(WITH_CYCLES_DEVICE_OPTIX)
     include_directories(
       SYSTEM
       ${OPTIX_INCLUDE_DIR}
-      )
+    )
   else()
     set_and_warn_library_found("OptiX" OPTIX_FOUND WITH_CYCLES_DEVICE_OPTIX)
   endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_METAL)
+  add_definitions(-DWITH_METAL)
 endif()
 
 if (WITH_CYCLES_DEVICE_ONEAPI)

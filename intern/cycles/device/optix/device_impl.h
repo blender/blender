@@ -1,17 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0
- * Copyright 2019, NVIDIA Corporation.
- * Copyright 2019-2022 Blender Foundation. */
+ * Copyright 2019, NVIDIA Corporation
+ * Copyright 2019-2022 Blender Foundation */
 
 #pragma once
 
 #ifdef WITH_OPTIX
 
 #  include "device/cuda/device_impl.h"
-#  include "device/optix/queue.h"
 #  include "device/optix/util.h"
 #  include "kernel/osl/globals.h"
-#  include "kernel/types.h"
-#  include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -87,32 +84,6 @@ class OptiXDevice : public CUDADevice {
   vector<unique_ptr<device_only_memory<char>>> delayed_free_bvh_memory;
   thread_mutex delayed_free_bvh_mutex;
 
-  class Denoiser {
-   public:
-    explicit Denoiser(OptiXDevice *device);
-
-    OptiXDevice *device;
-    OptiXDeviceQueue queue;
-
-    OptixDenoiser optix_denoiser = nullptr;
-
-    /* Configuration size, as provided to `optixDenoiserSetup`.
-     * If the `optixDenoiserSetup()` was never used on the current `optix_denoiser` the
-     * `is_configured` will be false. */
-    bool is_configured = false;
-    int2 configured_size = make_int2(0, 0);
-
-    /* OptiX denoiser state and scratch buffers, stored in a single memory buffer.
-     * The memory layout goes as following: [denoiser state][scratch buffer]. */
-    device_only_memory<unsigned char> state;
-    OptixDenoiserSizes sizes = {};
-
-    bool use_pass_albedo = false;
-    bool use_pass_normal = false;
-    bool use_pass_flow = false;
-  };
-  Denoiser denoiser_;
-
  public:
   OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
   ~OptiXDevice();
@@ -142,53 +113,6 @@ class OptiXDevice : public CUDADevice {
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
 
   void *get_cpu_osl_memory() override;
-
-  /* --------------------------------------------------------------------
-   * Denoising.
-   */
-
-  class DenoiseContext;
-  class DenoisePass;
-
-  virtual bool denoise_buffer(const DeviceDenoiseTask &task) override;
-  virtual DeviceQueue *get_denoise_queue() override;
-
-  /* Read guiding passes from the render buffers, preprocess them in a way which is expected by
-   * OptiX and store in the guiding passes memory within the given context.
-   *
-   * Pre=-processing of the guiding passes is to only happen once per context lifetime. DO not
-   * preprocess them for every pass which is being denoised. */
-  bool denoise_filter_guiding_preprocess(DenoiseContext &context);
-
-  /* Set fake albedo pixels in the albedo guiding pass storage.
-   * After this point only passes which do not need albedo for denoising can be processed. */
-  bool denoise_filter_guiding_set_fake_albedo(DenoiseContext &context);
-
-  void denoise_pass(DenoiseContext &context, PassType pass_type);
-
-  /* Read input color pass from the render buffer into the memory which corresponds to the noisy
-   * input within the given context. Pixels are scaled to the number of samples, but are not
-   * preprocessed yet. */
-  void denoise_color_read(DenoiseContext &context, const DenoisePass &pass);
-
-  /* Run corresponding filter kernels, preparing data for the denoiser or copying data from the
-   * denoiser result to the render buffer. */
-  bool denoise_filter_color_preprocess(DenoiseContext &context, const DenoisePass &pass);
-  bool denoise_filter_color_postprocess(DenoiseContext &context, const DenoisePass &pass);
-
-  /* Make sure the OptiX denoiser is created and configured. */
-  bool denoise_ensure(DenoiseContext &context);
-
-  /* Create OptiX denoiser descriptor if needed.
-   * Will do nothing if the current OptiX descriptor is usable for the given parameters.
-   * If the OptiX denoiser descriptor did re-allocate here it is left unconfigured. */
-  bool denoise_create_if_needed(DenoiseContext &context);
-
-  /* Configure existing OptiX denoiser descriptor for the use for the given task. */
-  bool denoise_configure_if_needed(DenoiseContext &context);
-
-  /* Run configured denoiser. */
-  bool denoise_run(DenoiseContext &context, const DenoisePass &pass);
 };
 
 CCL_NAMESPACE_END

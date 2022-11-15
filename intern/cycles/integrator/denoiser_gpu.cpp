@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#include "integrator/denoiser_device.h"
+#include "integrator/denoiser_gpu.h"
 
 #include "device/denoise.h"
 #include "device/device.h"
@@ -13,17 +13,17 @@
 
 CCL_NAMESPACE_BEGIN
 
-DeviceDenoiser::DeviceDenoiser(Device *path_trace_device, const DenoiseParams &params)
+DenoiserGPU::DenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
     : Denoiser(path_trace_device, params)
 {
 }
 
-DeviceDenoiser::~DeviceDenoiser()
+DenoiserGPU::~DenoiserGPU()
 {
   /* Explicit implementation, to allow forward declaration of Device in the header. */
 }
 
-bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
+bool DenoiserGPU::denoise_buffer(const BufferParams &buffer_params,
                                     RenderBuffers *render_buffers,
                                     const int num_samples,
                                     bool allow_inplace_modification)
@@ -33,7 +33,7 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
     return false;
   }
 
-  DeviceDenoiseTask task;
+  DenoiseTask task;
   task.params = params_;
   task.num_samples = num_samples;
   task.buffer_params = buffer_params;
@@ -49,8 +49,6 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
   }
   else {
     VLOG_WORK << "Creating temporary buffer on denoiser device.";
-
-    DeviceQueue *queue = denoiser_device->get_denoise_queue();
 
     /* Create buffer which is available by the device used by denoiser. */
 
@@ -70,13 +68,13 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
            render_buffers->buffer.data(),
            sizeof(float) * local_render_buffers.buffer.size());
 
-    queue->copy_to_device(local_render_buffers.buffer);
+    denoiser_queue_->copy_to_device(local_render_buffers.buffer);
 
     task.render_buffers = &local_render_buffers;
     task.allow_inplace_modification = true;
   }
 
-  const bool denoise_result = denoiser_device->denoise_buffer(task);
+  const bool denoise_result = denoise_buffer(task);
 
   if (local_buffer_used) {
     local_render_buffers.copy_from_device();
@@ -88,6 +86,23 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
   }
 
   return denoise_result;
+}
+
+Device *DenoiserGPU::ensure_denoiser_device(Progress *progress)
+{
+  Device *denoiser_device = Denoiser::ensure_denoiser_device(progress);
+  if (!denoiser_device) {
+    return nullptr;
+  }
+
+  if (!denoiser_queue_) {
+    denoiser_queue_ = denoiser_device->gpu_queue_create();
+    if (!denoiser_queue_) {
+      return nullptr;
+    }
+  }
+
+  return denoiser_device;
 }
 
 CCL_NAMESPACE_END
