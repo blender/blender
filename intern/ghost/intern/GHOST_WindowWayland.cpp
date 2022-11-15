@@ -81,6 +81,13 @@ static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 /** \name Internal #GWL_Window
  * \{ */
 
+struct GWL_WindowFrame {
+  int32_t size[2] = {0, 0};
+  bool is_maximised = false;
+  bool is_fullscreen = false;
+  bool is_active = false;
+};
+
 struct GWL_Window {
   GHOST_WindowWayland *ghost_window = nullptr;
   GHOST_SystemWayland *ghost_system = nullptr;
@@ -106,16 +113,15 @@ struct GWL_Window {
 #endif
   WGL_XDG_Decor_Window *xdg_decor = nullptr;
 
+  /** The current value of frame, copied from `frame_pending` when applying updates. */
+  GWL_WindowFrame frame;
+  GWL_WindowFrame frame_pending;
+
   wl_egl_window *egl_window = nullptr;
 
   std::string title;
-  bool is_maximised = false;
-  bool is_fullscreen = false;
-  bool is_active = false;
-  bool is_dialog = false;
 
-  int32_t size[2] = {0, 0};
-  int32_t size_pending[2] = {0, 0};
+  bool is_dialog = false;
 };
 
 static void gwl_window_title_set(GWL_Window *win, const char *title)
@@ -137,10 +143,10 @@ static void gwl_window_title_set(GWL_Window *win, const char *title)
 
 static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
 {
-  if (win->is_fullscreen) {
+  if (win->frame.is_fullscreen) {
     return GHOST_kWindowStateFullScreen;
   }
-  if (win->is_maximised) {
+  if (win->frame.is_maximised) {
     return GHOST_kWindowStateMaximized;
   }
   return GHOST_kWindowStateNormal;
@@ -228,6 +234,59 @@ static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Internal #GWL_Window Pending Actions
+ * \{ */
+
+static void gwl_window_frame_pending_size_set(GWL_Window *win)
+{
+  if (win->frame_pending.size[0] == 0 || win->frame_pending.size[1] == 0) {
+    return;
+  }
+
+  win->frame.size[0] = win->frame_pending.size[0];
+  win->frame.size[1] = win->frame_pending.size[1];
+
+  wl_egl_window_resize(win->egl_window, UNPACK2(win->frame.size), 0, 0);
+  win->ghost_window->notify_size();
+
+  win->frame_pending.size[0] = 0;
+  win->frame_pending.size[1] = 0;
+}
+
+static void gwl_window_frame_update_from_pending(GWL_Window *win);
+
+/**
+ * Update the window's #GWL_WindowFrame
+ */
+static void gwl_window_frame_update_from_pending(GWL_Window *win)
+{
+  if (win->frame_pending.size[0] != 0 && win->frame_pending.size[1] != 0) {
+    if ((win->frame.size[0] != win->frame_pending.size[0]) ||
+        (win->frame.size[1] != win->frame_pending.size[1])) {
+      gwl_window_frame_pending_size_set(win);
+    }
+  }
+
+  if (win->frame_pending.is_active) {
+    win->ghost_window->activate();
+  }
+  else {
+    win->ghost_window->deactivate();
+  }
+
+  win->frame_pending.size[0] = win->frame.size[0];
+  win->frame_pending.size[1] = win->frame.size[1];
+
+  win->frame = win->frame_pending;
+
+  /* Signal not to apply the scale unless it's configured. */
+  win->frame_pending.size[0] = 0;
+  win->frame_pending.size[1] = 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
 
@@ -304,24 +363,24 @@ static void xdg_toplevel_handle_configure(void *data,
   CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
-  win->size_pending[0] = win->scale * width;
-  win->size_pending[1] = win->scale * height;
+  win->frame_pending.size[0] = win->scale * width;
+  win->frame_pending.size[1] = win->scale * height;
 
-  win->is_maximised = false;
-  win->is_fullscreen = false;
-  win->is_active = false;
+  win->frame_pending.is_maximised = false;
+  win->frame_pending.is_fullscreen = false;
+  win->frame_pending.is_active = false;
 
   enum xdg_toplevel_state *state;
   WL_ARRAY_FOR_EACH (state, states) {
     switch (*state) {
       case XDG_TOPLEVEL_STATE_MAXIMIZED:
-        win->is_maximised = true;
+        win->frame_pending.is_maximised = true;
         break;
       case XDG_TOPLEVEL_STATE_FULLSCREEN:
-        win->is_fullscreen = true;
+        win->frame_pending.is_fullscreen = true;
         break;
       case XDG_TOPLEVEL_STATE_ACTIVATED:
-        win->is_active = true;
+        win->frame_pending.is_active = true;
         break;
       default:
         break;
@@ -362,65 +421,49 @@ static void frame_handle_configure(struct libdecor_frame *frame,
 {
   CLOG_INFO(LOG, 2, "configure");
 
-  GWL_Window *win = static_cast<GWL_Window *>(data);
+  GWL_WindowFrame *frame_pending = &static_cast<GWL_Window *>(data)->frame_pending;
 
+  /* Set the size. */
   int size_next[2];
-  enum libdecor_window_state window_state;
-  struct libdecor_state *state;
-  bool do_redraw = false;
-
-  if (!libdecor_configuration_get_content_size(
-          configuration, frame, &size_next[0], &size_next[1])) {
-    size_next[0] = win->size[0] / win->scale;
-    size_next[1] = win->size[1] / win->scale;
-  }
-
-  const int size_prev[2] = {UNPACK2(win->size)};
-  win->size[0] = win->scale * size_next[0];
-  win->size[1] = win->scale * size_next[1];
-
-  const bool do_resize = (size_prev[0] != win->size[0]) || (size_prev[1] != win->size[1]);
-
-  if (do_resize) {
-    wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
-    win->ghost_window->notify_size();
-  }
-
-  if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
-    window_state = LIBDECOR_WINDOW_STATE_NONE;
-  }
-
-  win->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
-  win->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
-
-  GHOST_SystemWayland *system = win->ghost_system;
-  const bool is_active_prev_ghost = (win->ghost_window ==
-                                     system->getWindowManager()->getActiveWindow());
-  win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
-  if (is_active_prev_ghost != win->is_active) {
-    if (win->is_active) {
-      win->ghost_window->activate();
+  {
+    const int scale = static_cast<GWL_Window *>(data)->scale;
+    if (!libdecor_configuration_get_content_size(
+            configuration, frame, &size_next[0], &size_next[1])) {
+      GWL_Window *win = static_cast<GWL_Window *>(data);
+      size_next[0] = win->frame.size[0] / scale;
+      size_next[1] = win->frame.size[1] / scale;
     }
-    else {
-      win->ghost_window->deactivate();
+
+    frame_pending->size[0] = scale * size_next[0];
+    frame_pending->size[1] = scale * size_next[1];
+  }
+
+  /* Set the state. */
+  {
+    enum libdecor_window_state window_state;
+    if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
+      window_state = LIBDECOR_WINDOW_STATE_NONE;
     }
+
+    frame_pending->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
+    frame_pending->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
+    frame_pending->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
   }
 
-  const bool is_active_prev_decor = win->is_active;
-  if (is_active_prev_decor) {
-    /* Without this, activating another window doesn't refresh the title-bar as inactive. */
-    do_redraw = true;
+  /* Commit the changes. */
+  {
+    GWL_Window *win = static_cast<GWL_Window *>(data);
+    struct libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
+    libdecor_frame_commit(frame, state, configuration);
+    libdecor_state_free(state);
+
+    win->libdecor->configured = true;
   }
 
-  state = libdecor_state_new(UNPACK2(size_next));
-  libdecor_frame_commit(frame, state, configuration);
-  libdecor_state_free(state);
-
-  if (do_redraw) {
-    win->ghost_window->swapBuffers();
+  {
+    GWL_Window *win = static_cast<GWL_Window *>(data);
+    gwl_window_frame_update_from_pending(win);
   }
-
-  win->libdecor->configured = true;
 }
 
 static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
@@ -497,29 +540,9 @@ static void xdg_surface_handle_configure(void *data,
     CLOG_INFO(LOG, 2, "configure (skipped)");
     return;
   }
-  const bool do_resize = win->size_pending[0] != 0 && win->size_pending[1] != 0;
-  CLOG_INFO(LOG, 2, "configure (do_resize=%d)", do_resize);
+  CLOG_INFO(LOG, 2, "configure");
 
-  if (do_resize) {
-    win->size[0] = win->size_pending[0];
-    win->size[1] = win->size_pending[1];
-    wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
-    win->size_pending[0] = 0;
-    win->size_pending[1] = 0;
-    win->ghost_window->notify_size();
-  }
-
-  GHOST_SystemWayland *system = win->ghost_system;
-  const bool is_active_prev_ghost = (win->ghost_window ==
-                                     system->getWindowManager()->getActiveWindow());
-  if (is_active_prev_ghost != win->is_active) {
-    if (win->is_active) {
-      win->ghost_window->activate();
-    }
-    else {
-      win->ghost_window->deactivate();
-    }
-  }
+  gwl_window_frame_update_from_pending(win);
 
   xdg_surface_ack_configure(xdg_surface, serial);
 }
@@ -617,8 +640,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->ghost_window = this;
   window_->ghost_system = system;
 
-  window_->size[0] = int32_t(width);
-  window_->size[1] = int32_t(height);
+  window_->frame.size[0] = int32_t(width);
+  window_->frame.size[1] = int32_t(height);
 
   window_->is_dialog = is_dialog;
 
@@ -642,7 +665,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   wl_surface_add_listener(window_->wl_surface, &wl_surface_listener, window_);
 
   window_->egl_window = wl_egl_window_create(
-      window_->wl_surface, int(window_->size[0]), int(window_->size[1]));
+      window_->wl_surface, int(window_->frame.size[0]), int(window_->frame.size[1]));
 
   /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
    * This has the advantage that the size limit is the same when moving the window between monitors
@@ -812,31 +835,25 @@ void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
 
 void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
 {
-  bounds.set(0, 0, UNPACK2(window_->size));
+  bounds.set(0, 0, UNPACK2(window_->frame.size));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientWidth(const uint32_t width)
 {
-  return setClientSize(width, uint32_t(window_->size[1]));
+  return setClientSize(width, uint32_t(window_->frame.size[1]));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientHeight(const uint32_t height)
 {
-  return setClientSize(uint32_t(window_->size[0]), height);
+  return setClientSize(uint32_t(window_->frame.size[0]), height);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientSize(const uint32_t width, const uint32_t height)
 {
-  wl_egl_window_resize(window_->egl_window, int(width), int(height), 0, 0);
+  window_->frame_pending.size[0] = width;
+  window_->frame_pending.size[1] = height;
 
-  /* Override any pending size that may be set. */
-  window_->size_pending[0] = 0;
-  window_->size_pending[1] = 0;
-
-  window_->size[0] = width;
-  window_->size[1] = height;
-
-  notify_size();
+  gwl_window_frame_pending_size_set(window_);
 
   return GHOST_kSuccess;
 }
@@ -1114,17 +1131,18 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
     /* It's important to resize the window immediately, to avoid the window changing size
      * and flickering in a constant feedback loop (in some bases). */
-    if ((window_->size_pending[0] != 0) && (window_->size_pending[1] != 0)) {
+
+    if ((window_->frame_pending.size[0] != 0) && (window_->frame_pending.size[1] != 0)) {
       /* Unlikely but possible there is a pending size change is set. */
-      window_->size[0] = window_->size_pending[0];
-      window_->size[1] = window_->size_pending[1];
-      window_->size_pending[0] = 0;
-      window_->size_pending[1] = 0;
+      window_->frame.size[0] = window_->frame_pending.size[0];
+      window_->frame.size[1] = window_->frame_pending.size[1];
     }
-    window_->size[0] = (window_->size[0] / scale_curr) * scale_next;
-    window_->size[1] = (window_->size[1] / scale_curr) * scale_next;
-    wl_egl_window_resize(window_->egl_window, UNPACK2(window_->size), 0, 0);
-    window_->ghost_window->notify_size();
+
+    /* Write to the pending values as these are what is applied. */
+    window_->frame_pending.size[0] = (window_->frame.size[0] / scale_curr) * scale_next;
+    window_->frame_pending.size[1] = (window_->frame.size[1] / scale_curr) * scale_next;
+
+    gwl_window_frame_pending_size_set(window_);
 
     changed = true;
   }
