@@ -10,7 +10,6 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 
@@ -18,10 +17,10 @@
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
 
-#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "asset_library_service.hh"
+#include "asset_storage.hh"
 
 using namespace blender;
 using namespace blender::asset_system;
@@ -107,13 +106,16 @@ void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_li
 void AS_asset_library_remap_ids(const IDRemapper *mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  service->foreach_loaded_asset_library(
-      [mappings](asset_system::AssetLibrary &library) { library.remap_ids(*mappings); });
+  service->foreach_loaded_asset_library([mappings](asset_system::AssetLibrary &library) {
+    library.remap_ids_and_remove_invalid(*mappings);
+  });
 }
 
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary() : catalog_service(std::make_unique<AssetCatalogService>())
+AssetLibrary::AssetLibrary()
+    : catalog_service(std::make_unique<AssetCatalogService>()),
+      asset_storage_(std::make_unique<AssetStorage>())
 {
 }
 
@@ -139,25 +141,22 @@ void AssetLibrary::refresh()
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef name,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
-  return *asset_storage_.lookup_key_or_add(
-      std::make_unique<AssetRepresentation>(name, std::move(metadata)));
+  return asset_storage_->add_external_asset(name, std::move(metadata));
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(ID &id)
 {
-  return *asset_storage_.lookup_key_or_add(std::make_unique<AssetRepresentation>(id));
+  return asset_storage_->add_local_id_asset(id);
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
-  /* Create a "fake" unique_ptr to figure out the hash for the pointed to asset representation. The
-   * standard requires that this is the same for all unique_ptr's wrapping the same address. */
-  std::unique_ptr<AssetRepresentation> fake_asset_ptr{&asset};
+  return asset_storage_->remove_asset(asset);
+}
 
-  const bool was_removed = asset_storage_.remove_as(fake_asset_ptr);
-  /* Make sure the contained storage is not destructed. */
-  fake_asset_ptr.release();
-  return was_removed;
+void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)
+{
+  asset_storage_->remap_ids_and_remove_invalid(mappings);
 }
 
 namespace {
@@ -200,28 +199,6 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
 
   if (save_catalogs_when_file_is_saved) {
     this->catalog_service->write_to_disk(main->filepath);
-  }
-}
-
-void AssetLibrary::remap_ids(const IDRemapper &mappings)
-{
-  Set<AssetRepresentation *> removed_id_assets;
-
-  for (auto &asset_uptr : asset_storage_) {
-    if (!asset_uptr->is_local_id()) {
-      continue;
-    }
-
-    IDRemapperApplyResult result = BKE_id_remapper_apply(
-        &mappings, &asset_uptr->local_asset_id_, ID_REMAP_APPLY_DEFAULT);
-    if (result == ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
-      removed_id_assets.add(asset_uptr.get());
-    }
-  }
-
-  /* Remove the assets from storage. */
-  for (AssetRepresentation *asset : removed_id_assets) {
-    remove_asset(*asset);
   }
 }
 

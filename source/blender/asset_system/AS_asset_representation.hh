@@ -23,6 +23,7 @@ namespace blender::asset_system {
  */
 class AssetRepresentation {
   friend struct AssetLibrary;
+  friend class AssetStorage;
 
   struct ExternalAsset {
     std::string name;

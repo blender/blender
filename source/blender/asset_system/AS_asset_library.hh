@@ -20,11 +20,13 @@
 struct AssetLibrary;
 struct AssetLibraryReference;
 struct AssetMetaData;
+struct IDRemapper;
 struct Main;
 
 namespace blender::asset_system {
 
 class AssetRepresentation;
+class AssetStorage;
 
 /**
  * AssetLibrary provides access to an asset library's data.
@@ -54,11 +56,23 @@ struct AssetLibrary {
    * loading a different file).
    */
   AssetRepresentation &add_external_asset(StringRef name, std::unique_ptr<AssetMetaData> metadata);
+  /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_local_id_asset(ID &id);
   /** Remove an asset from the library that was added using #add_external_asset() or
-   * #add_local_id_asset().
-   * \return True on success, false if the asset couldn't be found inside the library. */
+   * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
+   * differ).
+   * \note This is save to call if \a asset is freed (dangling reference), will not perform any
+   *       change then.
+   * \return True on success, false if the asset couldn't be found inside the library (also the
+   *         case when the reference is dangling). */
   bool remove_asset(AssetRepresentation &asset);
+
+  /**
+   * Remap ID pointers for local ID assets, see #BKE_lib_remap.h. When an ID pointer would be
+   * mapped to null (typically when an ID gets removed), the asset is removed, because we don't
+   * support such empty/null assets.
+   */
+  void remap_ids_and_remove_invalid(const IDRemapper &mappings);
 
   /**
    * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
@@ -72,8 +86,6 @@ struct AssetLibrary {
   void on_blend_save_handler_unregister();
 
   void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
-
-  void remap_ids(const struct IDRemapper &mappings);
 
  private:
   bCallbackFuncStore on_save_callback_store_{};
@@ -91,7 +103,7 @@ struct AssetLibrary {
    * already in memory and which not. Neither do we keep track of how many parts of Blender are
    * using an asset or an asset library, which is needed to know when assets can be freed.
    */
-  Set<std::unique_ptr<AssetRepresentation>> asset_storage_;
+  std::unique_ptr<AssetStorage> asset_storage_;
 
   std::optional<int> find_asset_index(const AssetRepresentation &asset);
 };

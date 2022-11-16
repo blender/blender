@@ -19,12 +19,14 @@ set(SRC
   intern/asset_library.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
+  intern/asset_storage.cc
 
   AS_asset_catalog.hh
   AS_asset_catalog_path.hh
   AS_asset_library.hh
   AS_asset_representation.hh
   intern/asset_library_service.hh
+  intern/asset_storage.hh
 
   AS_asset_library.h
   AS_asset_representation.h
