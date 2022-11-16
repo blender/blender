@@ -153,7 +153,7 @@ struct NodeState {
   /**
    * Set to true once the node is done running for the first time.
    */
-  bool had_initialization = true;
+  bool had_initialization = false;
   /**
    * Nodes with side effects should always be executed when their required inputs have been
    * computed.
@@ -638,7 +638,7 @@ class Executor {
         return;
       }
 
-      if (node_state.had_initialization) {
+      if (!node_state.had_initialization) {
         /* Initialize storage. */
         node_state.storage = fn.init_storage(allocator);
 
@@ -670,7 +670,7 @@ class Executor {
           }
         }
 
-        node_state.had_initialization = false;
+        node_state.had_initialization = true;
       }
 
       for (const int input_index : node_state.inputs.index_range()) {
