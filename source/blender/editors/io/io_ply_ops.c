@@ -64,7 +64,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
-  export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");;
+  export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
 
   PLY_export(C, &export_params);
 
@@ -177,7 +177,6 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
-
   /* Object transform options. */
   prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
@@ -217,7 +216,6 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "All ngons with four or more vertices will be triangulated. Meshes in "
                   "the scene will not be affected. Behaves like Triangulate Modifier with "
                   "ngon-method: \"Beauty\", quad-method: \"Shortest Diagonal\", min vertices: 4");
-
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");
