@@ -2595,7 +2595,7 @@ static void pointer_handle_enter(void *data,
 
   seat->system->seat_active_set(seat);
 
-  win->setCursorShape(win->getCursorShape());
+  seat->system->cursor_shape_set(win->getCursorShape());
 
   const wl_fixed_t scale = win->scale();
   seat->system->pushEvent_maybe_pending(
@@ -3257,7 +3257,7 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   win->activate();
 
-  win->setCursorShape(win->getCursorShape());
+  seat->system->cursor_shape_set(win->getCursorShape());
 }
 static void tablet_tool_handle_proximity_out(void *data,
                                              struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
@@ -3456,7 +3456,7 @@ static void tablet_tool_handle_frame(void *data,
                               wl_fixed_to_int(scale * seat->tablet.xy[1]),
                               tablet_tool->data));
     if (tablet_tool->proximity == false) {
-      win->setCursorShape(win->getCursorShape());
+      seat->system->cursor_shape_set(win->getCursorShape());
     }
   }
 
