@@ -147,6 +147,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
       mesh_data.ceil_positions != nullptr &&
       mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
+    BKE_mesh_tag_coords_changed(config.mesh);
     return;
   }
 
@@ -162,6 +163,8 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
   }
+  BKE_mesh_tag_coords_changed(&mesh);
+
   if (normals) {
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
     for (const int64_t i : IndexRange(normals->size())) {
@@ -246,7 +249,6 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 static void process_no_normals(CDStreamConfig &config)
 {
   /* Absence of normals in the Alembic mesh is interpreted as 'smooth'. */
-  BKE_mesh_normals_tag_dirty(config.mesh);
 }
 
 static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr loop_normals_ptr)

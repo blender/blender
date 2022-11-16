@@ -91,10 +91,6 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  /* A newly created mesh does not have normals, so tag them dirty. This will be cleared
-   * by #BKE_mesh_vertex_normals_clear_dirty or #BKE_mesh_poly_normals_ensure. */
-  BKE_mesh_normals_tag_dirty(mesh);
-
   mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
 
@@ -162,13 +158,6 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->edit_mesh = nullptr;
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
-
-  /* Set normal layers dirty. They should be dirty by default on new meshes anyway, but being
-   * explicit about it is safer. Alternatively normal layers could be copied if they aren't dirty,
-   * avoiding recomputation in some cases. However, a copied mesh is often changed anyway, so that
-   * idea is not clearly better. With proper reference counting, all custom data layers could be
-   * copied as the cost would be much lower. */
-  BKE_mesh_normals_tag_dirty(mesh_dst);
 
   /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
@@ -363,10 +352,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
       BLI_endian_switch_uint32_array(tf->col, 4);
     }
   }
-
-  /* We don't expect to load normals from files, since they are derived data. */
-  BKE_mesh_normals_tag_dirty(mesh);
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)

@@ -149,8 +149,8 @@ struct MeshRuntime {
    * #CustomData because they can be calculated on a `const` mesh, and adding custom data layers on
    * a `const` mesh is not thread-safe.
    */
-  bool vert_normals_dirty = false;
-  bool poly_normals_dirty = false;
+  bool vert_normals_dirty = true;
+  bool poly_normals_dirty = true;
   float (*vert_normals)[3] = nullptr;
   float (*poly_normals)[3] = nullptr;
 

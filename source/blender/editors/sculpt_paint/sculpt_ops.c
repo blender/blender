@@ -220,7 +220,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
 
       ED_sculpt_undo_geometry_end(ob);
-      BKE_mesh_normals_tag_dirty(mesh);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
       break;

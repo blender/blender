@@ -39,7 +39,7 @@ bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
 void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
 
 /**
- * Clear and any derived caches associated with the mesh geometry data. Examples include BVH
+ * Clear and free any derived caches associated with the mesh geometry data. Examples include BVH
  * caches, normals, triangulation, etc. This should be called when replacing a mesh's geometry
  * directly or making other large changes to topology. It does not need to be called on new meshes.
  *

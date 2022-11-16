@@ -688,9 +688,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me->ldata = ldata;
   me->pdata = pdata;
 
-  /* Tag normals dirty because vertex positions could be changed from the original. */
-  BKE_mesh_normals_tag_dirty(me);
-
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {
     ma = ob->mat[a - 1];
