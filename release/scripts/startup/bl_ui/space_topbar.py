@@ -473,7 +473,7 @@ class TOPBAR_MT_file_import(Menu):
         if bpy.app.build_options.io_ply:
             self.layout.operator("wm.ply_import", text="PLY (.ply) (experimental)")
         if bpy.app.build_options.io_stl:
-            self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")     
+            self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")
 
 
 class TOPBAR_MT_file_export(Menu):
