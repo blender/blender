@@ -306,7 +306,20 @@ class Executor {
 
       this->set_always_unused_graph_inputs();
       this->set_defaulted_graph_outputs();
-      this->schedule_side_effect_nodes(current_task);
+
+      /* Retrieve and tag side effect nodes. */
+      Vector<const FunctionNode *> side_effect_nodes;
+      if (self_.side_effect_provider_ != nullptr) {
+        side_effect_nodes = self_.side_effect_provider_->get_nodes_with_side_effects(*context_);
+        for (const FunctionNode *node : side_effect_nodes) {
+          const int node_index = node->index_in_graph();
+          NodeState &node_state = *node_states_[node_index];
+          node_state.has_side_effects = true;
+        }
+      }
+
+      this->initialize_static_value_usages(side_effect_nodes);
+      this->schedule_side_effect_nodes(side_effect_nodes, current_task);
     }
 
     this->schedule_newly_requested_outputs(current_task);
@@ -346,15 +359,6 @@ class Executor {
 
     node_state.inputs = allocator.construct_array<InputState>(node_inputs.size());
     node_state.outputs = allocator.construct_array<OutputState>(node_outputs.size());
-
-    for (const int i : node_outputs.index_range()) {
-      OutputState &output_state = node_state.outputs[i];
-      const OutputSocket &output_socket = *node_outputs[i];
-      output_state.potential_target_sockets = output_socket.targets().size();
-      if (output_state.potential_target_sockets == 0) {
-        output_state.usage = ValueUsage::Unused;
-      }
-    }
   }
 
   void destruct_node_state(const Node &node, NodeState &node_state)
@@ -425,18 +429,94 @@ class Executor {
     }
   }
 
-  void schedule_side_effect_nodes(CurrentTask &current_task)
+  /**
+   * Determines which nodes might be executed and which are unreachable. The set of reachable nodes
+   * can dynamically depend on the side effect nodes.
+   *
+   * Most importantly, this function initializes `InputState.usage` and
+   * `OutputState.potential_target_sockets`.
+   */
+  void initialize_static_value_usages(const Span<const FunctionNode *> side_effect_nodes)
   {
-    if (self_.side_effect_provider_ != nullptr) {
-      const Vector<const FunctionNode *> side_effect_nodes =
-          self_.side_effect_provider_->get_nodes_with_side_effects(*context_);
-      for (const FunctionNode *node : side_effect_nodes) {
-        NodeState &node_state = *node_states_[node->index_in_graph()];
-        node_state.has_side_effects = true;
-        this->with_locked_node(*node, node_state, current_task, [&](LockedNode &locked_node) {
-          this->schedule_node(locked_node, current_task);
-        });
+    const Span<const Node *> all_nodes = self_.graph_.nodes();
+
+    /* Used for a search through all nodes that outputs depend on. */
+    Stack<const Node *> reachable_nodes_to_check;
+    Array<bool> reachable_node_flags(all_nodes.size(), false);
+
+    /* Graph outputs are always reachable. */
+    for (const InputSocket *socket : self_.graph_outputs_) {
+      const Node &node = socket->node();
+      const int node_index = node.index_in_graph();
+      if (!reachable_node_flags[node_index]) {
+        reachable_node_flags[node_index] = true;
+        reachable_nodes_to_check.push(&node);
       }
+    }
+
+    /* Side effect nodes are always reachable. */
+    for (const FunctionNode *node : side_effect_nodes) {
+      const int node_index = node->index_in_graph();
+      reachable_node_flags[node_index] = true;
+      reachable_nodes_to_check.push(node);
+    }
+
+    /* Tag every node that reachable nodes depend on using depth-first-search. */
+    while (!reachable_nodes_to_check.is_empty()) {
+      const Node &node = *reachable_nodes_to_check.pop();
+      for (const InputSocket *input_socket : node.inputs()) {
+        const OutputSocket *origin_socket = input_socket->origin();
+        if (origin_socket != nullptr) {
+          const Node &origin_node = origin_socket->node();
+          const int origin_node_index = origin_node.index_in_graph();
+          if (!reachable_node_flags[origin_node_index]) {
+            reachable_node_flags[origin_node_index] = true;
+            reachable_nodes_to_check.push(&origin_node);
+          }
+        }
+      }
+    }
+
+    for (const int node_index : reachable_node_flags.index_range()) {
+      const Node &node = *all_nodes[node_index];
+      NodeState &node_state = *node_states_[node_index];
+      const bool node_is_reachable = reachable_node_flags[node_index];
+      if (node_is_reachable) {
+        for (const int output_index : node.outputs().index_range()) {
+          const OutputSocket &output_socket = node.output(output_index);
+          OutputState &output_state = node_state.outputs[output_index];
+          int use_count = 0;
+          for (const InputSocket *target_socket : output_socket.targets()) {
+            const Node &target_node = target_socket->node();
+            const bool target_is_reachable = reachable_node_flags[target_node.index_in_graph()];
+            /* Only count targets that are reachable. */
+            if (target_is_reachable) {
+              use_count++;
+            }
+          }
+          output_state.potential_target_sockets = use_count;
+          if (use_count == 0) {
+            output_state.usage = ValueUsage::Unused;
+          }
+        }
+      }
+      else {
+        /* Inputs of unreachable nodes are unused. */
+        for (InputState &input_state : node_state.inputs) {
+          input_state.usage = ValueUsage::Unused;
+        }
+      }
+    }
+  }
+
+  void schedule_side_effect_nodes(const Span<const FunctionNode *> side_effect_nodes,
+                                  CurrentTask &current_task)
+  {
+    for (const FunctionNode *node : side_effect_nodes) {
+      NodeState &node_state = *node_states_[node->index_in_graph()];
+      this->with_locked_node(*node, node_state, current_task, [&](LockedNode &locked_node) {
+        this->schedule_node(locked_node, current_task);
+      });
     }
   }
 
