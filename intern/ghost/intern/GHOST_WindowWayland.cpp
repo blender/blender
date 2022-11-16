@@ -989,6 +989,9 @@ bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
 GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
     uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*system_->server_mutex};
+#endif
   return system_->cursor_shape_custom_set(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
