@@ -18,7 +18,10 @@ from bl_ui.properties_grease_pencil_common import (
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 class VIEW3D_HT_tool_header(Header):
@@ -1133,7 +1136,9 @@ class VIEW3D_MT_mirror(Menu):
 
         for (space_name, space_id) in (("Global", 'GLOBAL'), ("Local", 'LOCAL')):
             for axis_index, axis_name in enumerate("XYZ"):
-                props = layout.operator("transform.mirror", text="%s %s" % (axis_name, space_name))
+                props = layout.operator("transform.mirror",
+                                        text="%s %s" % (axis_name, iface_(space_name)),
+                                        translate=False)
                 props.constraint_axis[axis_index] = True
                 props.orient_type = space_id
 
@@ -2549,16 +2554,16 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.data_path_item = "data.lens"
                 props.input_scale = 0.1
                 if obj.data.lens_unit == 'MILLIMETERS':
-                    props.header_text = "Camera Focal Length: %.1fmm"
+                    props.header_text = tip_("Camera Focal Length: %.1fmm")
                 else:
-                    props.header_text = "Camera Focal Length: %.1f\u00B0"
+                    props.header_text = tip_("Camera Focal Length: %.1f\u00B0")
 
             else:
                 props = layout.operator("wm.context_modal_mouse", text="Camera Lens Scale")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.ortho_scale"
                 props.input_scale = 0.01
-                props.header_text = "Camera Lens Scale: %.3f"
+                props.header_text = tip_("Camera Lens Scale: %.3f")
 
             if not obj.data.dof.focus_object:
                 if view and view.camera == obj and view.region_3d.view_perspective == 'CAMERA':
@@ -2568,7 +2573,7 @@ class VIEW3D_MT_object_context_menu(Menu):
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.dof.focus_distance"
                     props.input_scale = 0.02
-                    props.header_text = "Focus Distance: %.3f"
+                    props.header_text = tip_("Focus Distance: %.3f")
 
             layout.separator()
 
@@ -2579,13 +2584,13 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.extrude"
             props.input_scale = 0.01
-            props.header_text = "Extrude: %.3f"
+            props.header_text = tip_("Extrude: %.3f")
 
             props = layout.operator("wm.context_modal_mouse", text="Adjust Offset")
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.offset"
             props.input_scale = 0.01
-            props.header_text = "Offset: %.3f"
+            props.header_text = tip_("Offset: %.3f")
 
             layout.separator()
 
@@ -2596,7 +2601,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "empty_display_size"
             props.input_scale = 0.01
-            props.header_text = "Empty Display Size: %.3f"
+            props.header_text = tip_("Empty Display Size: %.3f")
 
             layout.separator()
 
@@ -2614,36 +2619,36 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
             props.input_scale = 1.0
-            props.header_text = "Light Power: %.3f"
+            props.header_text = tip_("Light Power: %.3f")
 
             if light.type == 'AREA':
                 if light.shape in {'RECTANGLE', 'ELLIPSE'}:
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light X Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size"
-                    props.header_text = "Light Size X: %.3f"
+                    props.header_text = tip_("Light Size X: %.3f")
 
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light Y Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size_y"
-                    props.header_text = "Light Size Y: %.3f"
+                    props.header_text = tip_("Light Size Y: %.3f")
                 else:
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size"
-                    props.header_text = "Light Size: %.3f"
+                    props.header_text = tip_("Light Size: %.3f")
 
             elif light.type in {'SPOT', 'POINT'}:
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Light Radius")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.shadow_soft_size"
-                props.header_text = "Light Radius: %.3f"
+                props.header_text = tip_("Light Radius: %.3f")
 
             elif light.type == 'SUN':
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Sun Light Angle")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.angle"
-                props.header_text = "Light Angle: %.3f"
+                props.header_text = tip_("Light Angle: %.3f")
 
             if light.type == 'SPOT':
                 layout.separator()
@@ -2652,13 +2657,13 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_size"
                 props.input_scale = 0.01
-                props.header_text = "Spot Size: %.2f"
+                props.header_text = tip_("Spot Size: %.2f")
 
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Spot Light Blend")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_blend"
                 props.input_scale = -0.01
-                props.header_text = "Spot Blend: %.2f"
+                props.header_text = tip_("Spot Blend: %.2f")
 
             layout.separator()
 
