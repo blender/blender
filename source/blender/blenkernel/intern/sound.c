@@ -1519,6 +1519,12 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time)
 void BKE_sound_evaluate(Depsgraph *depsgraph, Main *bmain, bSound *sound)
 {
   DEG_debug_print_eval(depsgraph, __func__, sound->id.name, sound);
+  if (sound->id.recalc & ID_RECALC_SOURCE) {
+    /* Sequencer checks this flag to see if the strip sound is to be updated from the Audaspace
+     * side. */
+    sound->id.recalc |= ID_RECALC_AUDIO;
+  }
+
   if (sound->id.recalc & ID_RECALC_AUDIO) {
     BKE_sound_load(bmain, sound);
     return;

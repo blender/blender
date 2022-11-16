@@ -90,6 +90,13 @@ typedef struct BPathForeachPathData {
   /** The root to use as base for relative paths. Only set if `BKE_BPATH_FOREACH_PATH_ABSOLUTE`
    * flag is set, NULL otherwise. */
   const char *absolute_base_path;
+
+  /** ID owning the path being processed. */
+  struct ID *owner_id;
+
+  /** IDTypeInfo callbacks are responsible to set this boolean if they modified one or more  paths.
+   */
+  bool is_path_modified;
 } BPathForeachPathData;
 
 /** Run `bpath_data.callback_function` on all paths contained in `id`. */
