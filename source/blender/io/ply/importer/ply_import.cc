@@ -51,6 +51,5 @@ void importer_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYImportParams &import_params)
 {
-
 }
 }  // namespace blender::io::ply

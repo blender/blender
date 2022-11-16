@@ -10,7 +10,6 @@
 #include "ply_export.hh"
 #include "ply_import.hh"
 
-
 void PLY_export(bContext *C, const struct PLYExportParams *export_params)
 {
   SCOPED_TIMER("PLY Export");

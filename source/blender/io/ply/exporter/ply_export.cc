@@ -27,7 +27,6 @@
 
 namespace blender::io::ply {
 
-
 void exporter_main(bContext *C, const PLYExportParams &export_params)
 {
   Main *bmain = CTX_data_main(C);
@@ -41,6 +40,6 @@ void exporter_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYExportParams &export_params)
 {
-    perror("Error");
+  perror("Error");
 }
 }  // namespace blender::io::ply
