@@ -29,6 +29,8 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
@@ -164,7 +166,8 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     /* extension is added by 'screenshot_check' after */
-    char filepath[FILE_MAX] = "//screen";
+    char filepath[FILE_MAX];
+    BLI_snprintf(filepath, FILE_MAX, "//%s", DATA_("screen"));
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
       BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
