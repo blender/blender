@@ -2289,7 +2289,7 @@ class WM_OT_toolbar_fallback_pie(Operator):
             ToolSelectPanelHelper.draw_fallback_tool_items_for_pie_menu(self.layout, context)
 
         wm = context.window_manager
-        wm.popup_menu_pie(draw_func=draw_cb, title="Fallback Tool", event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=iface_("Fallback Tool"), event=event)
         return {'FINISHED'}
 
 

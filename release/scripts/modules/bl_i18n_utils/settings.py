@@ -549,6 +549,7 @@ CUSTOM_PY_UI_FILES = [
     os.path.join("scripts", "startup", "bl_operators"),
     os.path.join("scripts", "modules", "rna_prop_ui.py"),
     os.path.join("scripts", "modules", "rna_keymap_ui.py"),
+    os.path.join("scripts", "modules", "bpy_types.py"),
     os.path.join("scripts", "presets", "keyconfig"),
 ]
 
