@@ -41,6 +41,6 @@ void exporter_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYExportParams &export_params)
 {
-    perror("Error");
+  
 }
 }  // namespace blender::io::ply
