@@ -27,7 +27,6 @@
 
 namespace blender::io::ply {
 
-
 void exporter_main(bContext *C, const PLYExportParams &export_params)
 {
   Main *bmain = CTX_data_main(C);
