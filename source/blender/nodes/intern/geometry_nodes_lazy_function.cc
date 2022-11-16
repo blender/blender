@@ -404,14 +404,12 @@ class LazyFunctionForMultiFunctionConversion : public LazyFunction {
   const MultiFunction &fn_;
   const ValueOrFieldCPPType &from_type_;
   const ValueOrFieldCPPType &to_type_;
-  const Vector<const bNodeSocket *> target_sockets_;
 
  public:
   LazyFunctionForMultiFunctionConversion(const MultiFunction &fn,
                                          const ValueOrFieldCPPType &from,
-                                         const ValueOrFieldCPPType &to,
-                                         Vector<const bNodeSocket *> &&target_sockets)
-      : fn_(fn), from_type_(from), to_type_(to), target_sockets_(std::move(target_sockets))
+                                         const ValueOrFieldCPPType &to)
+      : fn_(fn), from_type_(from), to_type_(to)
   {
     debug_name_ = "Convert";
     inputs_.append({"From", from.self});
@@ -1120,13 +1118,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       const CPPType &to_type = *type_with_links.type;
       const Span<const bNodeLink *> links = type_with_links.links;
 
-      Vector<const bNodeSocket *> target_bsockets;
-      for (const bNodeLink *link : links) {
-        target_bsockets.append(link->tosock);
-      }
-
       lf::OutputSocket *converted_from_lf_socket = this->insert_type_conversion_if_necessary(
-          from_lf_socket, to_type, std::move(target_bsockets));
+          from_lf_socket, to_type);
 
       auto make_input_link_or_set_default = [&](lf::InputSocket &to_lf_socket) {
         if (converted_from_lf_socket == nullptr) {
@@ -1177,10 +1170,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
   }
 
-  lf::OutputSocket *insert_type_conversion_if_necessary(
-      lf::OutputSocket &from_socket,
-      const CPPType &to_type,
-      Vector<const bNodeSocket *> &&target_sockets)
+  lf::OutputSocket *insert_type_conversion_if_necessary(lf::OutputSocket &from_socket,
+                                                        const CPPType &to_type)
   {
     const CPPType &from_type = from_socket.type();
     if (from_type == to_type) {
@@ -1194,7 +1185,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
             MFDataType::ForSingle(from_field_type->value),
             MFDataType::ForSingle(to_field_type->value));
         auto fn = std::make_unique<LazyFunctionForMultiFunctionConversion>(
-            multi_fn, *from_field_type, *to_field_type, std::move(target_sockets));
+            multi_fn, *from_field_type, *to_field_type);
         lf::Node &conversion_node = lf_graph_->add_function(*fn);
         lf_graph_info_->functions.append(std::move(fn));
         lf_graph_->add_link(from_socket, conversion_node.input(0));
