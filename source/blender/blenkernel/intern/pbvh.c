@@ -959,6 +959,10 @@ void BKE_pbvh_free(PBVH *pbvh)
     }
   }
 
+  if (pbvh->looptri) {
+    MEM_freeN((void *)pbvh->looptri);
+  }
+
   if (pbvh->nodes) {
     MEM_freeN(pbvh->nodes);
   }
