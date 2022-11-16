@@ -823,7 +823,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * simply called `blender.desktop`, so the it's important to follow that name.
    * Other distributions such as SNAP & FLATPAK may need to change this value T101779.
    * Currently there isn't a way to configure this, we may want to support that. */
-  const char *xdg_app_id = "blender";
+  const char *xdg_app_id = (
+#ifdef WITH_GHOST_WAYLAND_APP_ID
+      STRINGIFY(WITH_GHOST_WAYLAND_APP_ID)
+#else
+      "blender"
+#endif
+  );
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
