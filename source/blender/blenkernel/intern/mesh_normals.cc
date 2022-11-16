@@ -128,13 +128,13 @@ float (*BKE_mesh_poly_normals_for_write(Mesh *mesh))[3]
 void BKE_mesh_vertex_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->vert_normals_dirty = false;
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
+  BLI_assert(mesh->runtime->vert_normals || mesh->totvert == 0);
 }
 
 void BKE_mesh_poly_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->poly_normals_dirty = false;
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
+  BLI_assert(mesh->runtime->poly_normals || mesh->totpoly == 0);
 }
 
 bool BKE_mesh_vertex_normals_are_dirty(const Mesh *mesh)
@@ -145,16 +145,6 @@ bool BKE_mesh_vertex_normals_are_dirty(const Mesh *mesh)
 bool BKE_mesh_poly_normals_are_dirty(const Mesh *mesh)
 {
   return mesh->runtime->poly_normals_dirty;
-}
-
-void BKE_mesh_assert_normals_dirty_or_calculated(const Mesh *mesh)
-{
-  if (!mesh->runtime->vert_normals_dirty) {
-    BLI_assert(mesh->runtime->vert_normals || mesh->totvert == 0);
-  }
-  if (!mesh->runtime->poly_normals_dirty) {
-    BLI_assert(mesh->runtime->poly_normals || mesh->totpoly == 0);
-  }
 }
 
 /** \} */

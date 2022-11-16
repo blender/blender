@@ -381,13 +381,6 @@ const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
 void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
 
 /**
- * Check that a mesh with non-dirty normals has the caches allocatred with a proper size.
- * If these asserts fail, it means some area cleared the dirty flag but didn't copy or add the
- * normals, or removed normals but didn't set the dirty flag.
- */
-void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
-
-/**
  * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
  * that they are calculated. The provided vertex normals should be the same as if they were
  * calculated automatically.

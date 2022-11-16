@@ -165,8 +165,6 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
 void BKE_mesh_free_editmesh(struct Mesh *mesh)
@@ -983,8 +981,6 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(me_dst);
 
   /* Copy vertex group names. */
   BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
@@ -1819,8 +1815,6 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               nullptr,
                               r_lnors_spacearr,
                               clnors);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)
@@ -2087,7 +2081,6 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
   /* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
   BKE_lnor_spacearr_free(&lnors_spacearr);
 
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 #ifdef VALIDATE_MESH
   BKE_mesh_validate(mesh, true, true);
 #endif
