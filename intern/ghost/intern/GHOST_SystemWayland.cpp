@@ -5580,6 +5580,10 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
@@ -5808,6 +5812,10 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
 
 uint8_t GHOST_SystemWayland::getNumDisplays() const
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   return display_ ? uint8_t(display_->outputs.size()) : 0;
 }
 
@@ -5926,7 +5934,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int
 
 void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  if (getNumDisplays() == 0) {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
+  if (display_->outputs.empty()) {
     return;
   }
   /* We assume first output as main. */
@@ -5936,6 +5948,10 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
   int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
 
@@ -5959,6 +5975,7 @@ static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
                                                   struct wl_display *wl_display,
                                                   wl_egl_window *egl_window)
 {
+  /* Caller must lock `system->server_mutex`. */
   GHOST_Context *context;
 
   for (int minor = 6; minor >= 0; --minor) {
@@ -6028,6 +6045,10 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
 
 GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
   struct wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
   wl_egl_window_destroy(egl_window);
@@ -6268,7 +6289,8 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
 
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
-  /* No need to lock (caller must lock). */
+  /* Caller must lock `server_mutex`. */
+
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
@@ -6311,6 +6333,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
 
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCursor cursorShape)
 {
+  /* No need to lock `server_mutex`. */
   auto cursor_find = ghost_wl_cursors.find(cursorShape);
   if (cursor_find == ghost_wl_cursors.end()) {
     return GHOST_kFailure;
@@ -6690,6 +6713,8 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                  wl_surface *wl_surface,
                                                  const int scale)
 {
+  /* Caller must lock `server_mutex`. */
+
   /* Ignore, if the required protocols are not supported. */
   if (UNLIKELY(!display_->wp_relative_pointer_manager || !display_->wp_pointer_constraints)) {
     return GHOST_kFailure;
