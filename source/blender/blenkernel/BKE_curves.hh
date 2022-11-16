@@ -65,9 +65,7 @@ struct BasisCache {
 }  // namespace curves::nurbs
 
 /**
- * Contains derived data, caches, and other information not saved in files, besides a few pointers
- * to arrays that are kept in the non-runtime struct to avoid dereferencing this whenever they are
- * accessed.
+ * Contains derived data, caches, and other information not saved in files.
  */
 class CurvesGeometryRuntime {
  public:
