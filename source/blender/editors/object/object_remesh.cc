@@ -157,11 +157,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     new_mesh = mesh_fixed_poles;
   }
 
-  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
-      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
-    BKE_mesh_runtime_clear_geometry(mesh);
-  }
-
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
     BKE_shrinkwrap_remesh_target_project(new_mesh, mesh, ob);
   }
@@ -175,7 +170,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_VERTEX_COLORS) {
-    BKE_mesh_runtime_clear_geometry(mesh);
     BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
   }
 
@@ -900,7 +894,6 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
   }
 
   if (qj->preserve_paint_mask) {
-    BKE_mesh_runtime_clear_geometry(mesh);
     BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
