@@ -257,6 +257,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
   MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
+  MEM_SAFE_FREE(mesh->runtime->looptris.array);
 }
 
 void BKE_mesh_tag_coords_changed(Mesh *mesh)
