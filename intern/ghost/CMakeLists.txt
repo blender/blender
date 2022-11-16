@@ -393,6 +393,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
+
+    if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
+      add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
+    endif()
+
   endif()
 
   if(WITH_INPUT_NDOF)
