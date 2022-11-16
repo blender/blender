@@ -805,6 +805,21 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
   return nullptr;
 }
 
+static bool gwl_seat_key_depressed_suppress_warning(const GWL_Seat *seat)
+{
+  bool suppress_warning = false;
+
+#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
+  if ((seat->key_depressed_suppress_warning.any_mod_held == true) &&
+      (seat->key_depressed_suppress_warning.any_keys_held_on_enter == false)) {
+    /* The compositor gave us invalid information, don't show a warning. */
+    suppress_warning = true;
+  }
+#endif
+
+  return suppress_warning;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1751,13 +1766,17 @@ static void keyboard_depressed_state_key_event(GWL_Seat *seat,
                                                const GHOST_TKey gkey,
                                                const GHOST_TEventType etype)
 {
+  const bool show_warning = !gwl_seat_key_depressed_suppress_warning(seat);
+
   if (GHOST_KEY_MODIFIER_CHECK(gkey)) {
     const int index = GHOST_KEY_MODIFIER_TO_INDEX(gkey);
     int16_t &value = seat->key_depressed.mods[index];
     if (etype == GHOST_kEventKeyUp) {
       value -= 1;
       if (UNLIKELY(value < 0)) {
-        CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
+        if (show_warning) {
+          CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
+        }
         value = 0;
       }
     }
@@ -5514,14 +5533,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
-  bool show_warning = true;
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  if ((seat->key_depressed_suppress_warning.any_mod_held == true) &&
-      (seat->key_depressed_suppress_warning.any_keys_held_on_enter == false)) {
-    /* The compositor gave us invalid information, don't show a warning. */
-    show_warning = false;
-  }
-#endif
+  const bool show_warning = !gwl_seat_key_depressed_suppress_warning(seat);
 
   /* Use local #GWL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
