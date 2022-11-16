@@ -47,8 +47,6 @@ static constexpr size_t base_dpi = 96;
 #  define use_libdecor GHOST_SystemWayland::use_libdecor_runtime()
 #endif
 
-static GHOST_WindowManager *window_manager = nullptr;
-
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 struct WGL_LibDecor_Window {
   struct libdecor_frame *frame = nullptr;
@@ -792,11 +790,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system->server_mutex};
 #endif
-
-  /* Globally store pointer to window manager. */
-  if (!window_manager) {
-    window_manager = system_->getWindowManager();
-  }
 
   window_->ghost_window = this;
   window_->ghost_system = system;
