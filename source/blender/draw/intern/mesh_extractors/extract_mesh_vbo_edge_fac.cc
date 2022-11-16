@@ -20,10 +20,10 @@ namespace blender::draw {
  * \{ */
 
 struct MeshExtract_EdgeFac_Data {
-  uchar *vbo_data;
+  uint8_t *vbo_data;
   bool use_edge_render;
   /* Number of loop per edge. */
-  uchar *edge_loop_count;
+  uint8_t *edge_loop_count;
 };
 
 static float loop_edge_factor_get(const float f_no[3],
@@ -59,8 +59,7 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(tls_data);
 
   if (mr->extract_type == MR_EXTRACT_MESH) {
-    data->edge_loop_count = static_cast<uchar *>(
-        MEM_callocN(sizeof(uint32_t) * mr->edge_len, __func__));
+    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr->edge_len, __func__);
 
     /* HACK(@fclem): Detecting the need for edge render.
      * We could have a flag in the mesh instead or check the modifier stack. */
