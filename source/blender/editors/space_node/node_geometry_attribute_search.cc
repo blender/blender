@@ -197,10 +197,14 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
       /* Relink all node links to the newly active output socket. */
       bNodeSocket *output_socket = bke::node_find_enabled_output_socket(*node, "Attribute");
       LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-        if (link->fromnode == node) {
-          link->fromsock = output_socket;
-          BKE_ntree_update_tag_link_changed(node_tree);
+        if (link->fromnode != node) {
+          continue;
         }
+        if (!STREQ(link->fromsock->name, "Attribute")) {
+          continue;
+        }
+        link->fromsock = output_socket;
+        BKE_ntree_update_tag_link_changed(node_tree);
       }
     }
     BKE_ntree_update_tag_node_property(node_tree, node);
