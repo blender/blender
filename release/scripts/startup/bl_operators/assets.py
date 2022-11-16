@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import bpy
 from bpy.types import Operator
-
-from bpy.app.translations import pgettext_data as data_
+from bpy.app.translations import (
+    pgettext_data as data_,
+    pgettext_tip as tip_,
+)
 
 
 from bpy_extras.asset_utils import (
@@ -125,7 +127,7 @@ class ASSET_OT_open_containing_blend_file(Operator):
             return {'RUNNING_MODAL'}
 
         if returncode:
-            self.report({'WARNING'}, "Blender sub-process exited with error code %d" % returncode)
+            self.report({'WARNING'}, tip_("Blender sub-process exited with error code %d") % returncode)
 
         if bpy.ops.asset.library_refresh.poll():
             bpy.ops.asset.library_refresh()

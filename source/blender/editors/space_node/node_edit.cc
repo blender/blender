@@ -503,6 +503,11 @@ void ED_node_shader_default(const bContext *C, ID *id)
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
+    LISTBASE_FOREACH (bNode *, node_iter, &ma->nodetree->nodes) {
+      BLI_strncpy(node_iter->name, DATA_(node_iter->name), NODE_MAXSTR);
+      nodeUniqueName(ma->nodetree, node_iter);
+    }
+
     BKE_ntree_update_main_tree(bmain, ma->nodetree, nullptr);
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {

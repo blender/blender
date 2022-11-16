@@ -117,7 +117,7 @@ DefNode(ShaderNode,     SH_NODE_BEVEL,              def_sh_bevel,           "BEV
 DefNode(ShaderNode,     SH_NODE_DISPLACEMENT,       def_sh_displacement,    "DISPLACEMENT",       Displacement,     "Displacement",      "Displace the surface along the surface normal")
 DefNode(ShaderNode,     SH_NODE_VECTOR_DISPLACEMENT,def_sh_vector_displacement,"VECTOR_DISPLACEMENT",VectorDisplacement,"Vector Displacement","Displace the surface along an arbitrary direction")
 DefNode(ShaderNode,     SH_NODE_TEX_IES,            def_sh_tex_ies,         "TEX_IES",            TexIES,           "IES Texture",       "Used to match real world lights with IES files, which store the directional intensity distribution of light sources")
-DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       "Return a random value or color based on an input seed")
+DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise Texture","Return a random value or color based on an input seed")
 DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUTPUT_AOV",         OutputAOV,        "AOV Output",        "Arbitrary Output Variables.\nProvide custom render passes for arbitrary shader node outputs")
 DefNode(ShaderNode,     SH_NODE_CURVE_FLOAT,        def_float_curve,        "CURVE_FLOAT",        FloatCurve,       "Float Curve",       "Map an input float to a curve and outputs a float value")
 DefNode(ShaderNode,     SH_NODE_COMBINE_COLOR,      def_sh_combsep_color,   "COMBINE_COLOR",      CombineColor,     "Combine Color",     "Create a color from individual components using multiple models")
