@@ -19,7 +19,7 @@ template<typename T> class Span;
 namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
-class PointCloudRuntime;
+struct PointCloudRuntime;
 }  // namespace bke
 }  // namespace blender
 using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
