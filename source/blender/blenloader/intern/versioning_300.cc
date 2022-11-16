@@ -58,6 +58,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -3686,6 +3687,15 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         BLI_assert(curve_socket != nullptr);
         STRNCPY(curve_socket->name, "Curves");
         STRNCPY(curve_socket->identifier, "Curves");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 1)) {
+    /* Reset edge visibility flag, since the base is meant to be "true" for original meshes. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      for (MEdge &edge : mesh->edges_for_write()) {
+        edge.flag |= ME_EDGEDRAW;
       }
     }
   }

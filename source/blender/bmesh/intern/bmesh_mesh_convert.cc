@@ -826,23 +826,6 @@ static void bm_to_mesh_shape(BMesh *bm,
 
 /** \} */
 
-BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
-{
-  /* This is a cheap way to set the edge draw, its not precise and will
-   * pick the first 2 faces an edge uses.
-   * The dot comparison is a little arbitrary, but set so that a 5 subdivisions
-   * ico-sphere won't vanish but 6 subdivisions will (as with pre-bmesh Blender). */
-
-  if (/* (med->flag & ME_EDGEDRAW) && */ /* Assume to be true. */
-      (e->l && (e->l != e->l->radial_next)) &&
-      (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.9995f)) {
-    med->flag &= ~ME_EDGEDRAW;
-  }
-  else {
-    med->flag |= ME_EDGEDRAW;
-  }
-}
-
 template<typename T, typename GetFn>
 static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attributes,
                                   const StringRef attribute_name,
@@ -1035,8 +1018,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
-
-    bmesh_quick_edgedraw_flag(&medge[i], e);
 
     i++;
     BM_CHECK_ELEMENT(e);
@@ -1307,14 +1288,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
             ".select_edge", ATTR_DOMAIN_EDGE);
       }
       select_edge_attribute.span[i] = true;
-    }
-
-    /* Handle this differently to editmode switching,
-     * only enable draw for single user edges rather than calculating angle. */
-    if ((med->flag & ME_EDGEDRAW) == 0) {
-      if (eed->l && eed->l == eed->l->radial_next) {
-        med->flag |= ME_EDGEDRAW;
-      }
     }
 
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);
