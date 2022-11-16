@@ -2331,44 +2331,11 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_node_clipboard_get_type() != ntree->type) {
-    BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
-    return OPERATOR_CANCELLED;
-  }
-
   /* only warn */
   if (is_clipboard_valid == false) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Some nodes references could not be restored, will be left empty");
-  }
-
-  /* make sure all clipboard nodes would be valid in the target tree */
-  bool all_nodes_valid = true;
-  LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
-    const char *disabled_hint = nullptr;
-    if (!node->typeinfo->poll_instance ||
-        !node->typeinfo->poll_instance(node, ntree, &disabled_hint)) {
-      all_nodes_valid = false;
-      if (disabled_hint) {
-        BKE_reportf(op->reports,
-                    RPT_ERROR,
-                    "Cannot add node %s into node tree %s:\n  %s",
-                    node->name,
-                    ntree->id.name + 2,
-                    disabled_hint);
-      }
-      else {
-        BKE_reportf(op->reports,
-                    RPT_ERROR,
-                    "Cannot add node %s into node tree %s",
-                    node->name,
-                    ntree->id.name + 2);
-      }
-    }
-  }
-  if (!all_nodes_valid) {
-    return OPERATOR_CANCELLED;
   }
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -2388,11 +2355,32 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
-  /* copy nodes from clipboard */
+  /* copy valid nodes from clipboard */
   LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
-    bNode *new_node = bke::node_copy_with_mapping(
-        ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
-    node_map.add_new(node, new_node);
+    const char *disabled_hint = nullptr;
+    if (node->typeinfo->poll_instance &&
+        node->typeinfo->poll_instance(node, ntree, &disabled_hint)) {
+      bNode *new_node = bke::node_copy_with_mapping(
+          ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      node_map.add_new(node, new_node);
+    }
+    else {
+      if (disabled_hint) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot add node %s into node tree %s: %s",
+                    node->name,
+                    ntree->id.name + 2,
+                    disabled_hint);
+      }
+      else {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot add node %s into node tree %s",
+                    node->name,
+                    ntree->id.name + 2);
+      }
+    }
   }
 
   for (bNode *new_node : node_map.values()) {
@@ -2407,15 +2395,19 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Add links between existing nodes. */
   LISTBASE_FOREACH (bNodeLink *, link, clipboard_links_lb) {
-    bNodeLink *new_link = nodeAddLink(ntree,
-                                      node_map.lookup(link->fromnode),
-                                      socket_map.lookup(link->fromsock),
-                                      node_map.lookup(link->tonode),
-                                      socket_map.lookup(link->tosock));
-    new_link->multi_input_socket_index = link->multi_input_socket_index;
+    const bNode *fromnode = link->fromnode;
+    const bNode *tonode = link->tonode;
+    if (node_map.lookup_key_ptr(fromnode) && node_map.lookup_key_ptr(tonode)) {
+      bNodeLink *new_link = nodeAddLink(ntree,
+                                        node_map.lookup(fromnode),
+                                        socket_map.lookup(link->fromsock),
+                                        node_map.lookup(tonode),
+                                        socket_map.lookup(link->tosock));
+      new_link->multi_input_socket_index = link->multi_input_socket_index;
+    }
   }
-
   ntree->ensure_topology_cache();
 
   for (bNode *new_node : node_map.values()) {
