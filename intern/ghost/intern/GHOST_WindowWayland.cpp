@@ -173,35 +173,24 @@ static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
   return GHOST_kWindowStateNormal;
 }
 
-static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state)
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+/**
+ * \note Keep in sync with #gwl_window_state_set_for_xdg.
+ */
+static bool gwl_window_state_set_for_libdecor(struct libdecor_frame *frame,
+                                              const GHOST_TWindowState state,
+                                              const GHOST_TWindowState state_current)
 {
-  const GHOST_TWindowState state_current = gwl_window_state_get(win);
   switch (state) {
     case GHOST_kWindowStateNormal:
       /* Unset states. */
       switch (state_current) {
         case GHOST_kWindowStateMaximized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-          if (use_libdecor) {
-            libdecor_frame_unset_maximized(win->libdecor->frame);
-          }
-          else
-#endif
-          {
-            xdg_toplevel_unset_maximized(win->xdg_decor->toplevel);
-          }
+          libdecor_frame_unset_maximized(frame);
           break;
         }
         case GHOST_kWindowStateFullScreen: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-          if (use_libdecor) {
-            libdecor_frame_unset_fullscreen(win->libdecor->frame);
-          }
-          else
-#endif
-          {
-            xdg_toplevel_unset_fullscreen(win->xdg_decor->toplevel);
-          }
+          libdecor_frame_unset_fullscreen(frame);
           break;
         }
         default: {
@@ -210,46 +199,83 @@ static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state
       }
       break;
     case GHOST_kWindowStateMaximized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_maximized(win->libdecor->frame);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_maximized(win->xdg_decor->toplevel);
-      }
+      libdecor_frame_set_maximized(frame);
       break;
     }
     case GHOST_kWindowStateMinimized: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_minimized(win->libdecor->frame);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_minimized(win->xdg_decor->toplevel);
-      }
+      libdecor_frame_set_minimized(frame);
       break;
     }
     case GHOST_kWindowStateFullScreen: {
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-      if (use_libdecor) {
-        libdecor_frame_set_fullscreen(win->libdecor->frame, nullptr);
-      }
-      else
-#endif
-      {
-        xdg_toplevel_set_fullscreen(win->xdg_decor->toplevel, nullptr);
-      }
+      libdecor_frame_set_fullscreen(frame, nullptr);
       break;
     }
     case GHOST_kWindowStateEmbedded: {
-      return GHOST_kFailure;
+      return false;
     }
   }
-  return GHOST_kSuccess;
+  return true;
+}
+
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+
+/**
+ * \note Keep in sync with #gwl_window_state_set_for_libdecor.
+ */
+static bool gwl_window_state_set_for_xdg(struct xdg_toplevel *toplevel,
+                                         const GHOST_TWindowState state,
+                                         const GHOST_TWindowState state_current)
+{
+  switch (state) {
+    case GHOST_kWindowStateNormal:
+      /* Unset states. */
+      switch (state_current) {
+        case GHOST_kWindowStateMaximized: {
+          xdg_toplevel_unset_maximized(toplevel);
+          break;
+        }
+        case GHOST_kWindowStateFullScreen: {
+          xdg_toplevel_unset_fullscreen(toplevel);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+      break;
+    case GHOST_kWindowStateMaximized: {
+      xdg_toplevel_set_maximized(toplevel);
+      break;
+    }
+    case GHOST_kWindowStateMinimized: {
+      xdg_toplevel_set_minimized(toplevel);
+      break;
+    }
+    case GHOST_kWindowStateFullScreen: {
+      xdg_toplevel_set_fullscreen(toplevel, nullptr);
+      break;
+    }
+    case GHOST_kWindowStateEmbedded: {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state)
+{
+  const GHOST_TWindowState state_current = gwl_window_state_get(win);
+  bool result;
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    result = gwl_window_state_set_for_libdecor(win->libdecor->frame, state, state_current);
+  }
+  else
+#endif
+  {
+    result = gwl_window_state_set_for_xdg(win->xdg_decor->toplevel, state, state_current);
+  }
+  return result;
 }
 
 /** \} */
@@ -856,26 +882,23 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   wl_surface_commit(window_->wl_surface);
   wl_display_roundtrip(system_->wl_display());
 
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *window_->libdecor;
-    /* It's important not to return until the window is configured or
-     * calls to `setState` from Blender will crash `libdecor`. */
-    while (!decor.configured) {
-      if (libdecor_dispatch(system_->libdecor_context(), 0) < 0) {
-        break;
-      }
-    }
-  }
-#endif
-
 #ifdef GHOST_OPENGL_ALPHA
   setOpaque();
 #endif
 
   /* Causes a glitch with `libdecor` for some reason. */
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor == false)
+  if (use_libdecor) {
+    /* Additional round-trip is needed to ensure `xdg_toplevel` is set. */
+    wl_display_roundtrip(system_->wl_display());
+
+    /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
+     * Workaround this by using the underlying `xdg_toplevel` */
+    WGL_LibDecor_Window &decor = *window_->libdecor;
+    struct xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
+    gwl_window_state_set_for_xdg(toplevel, state, GHOST_kWindowStateNormal);
+  }
+  else
 #endif
   {
     gwl_window_state_set(window_, state);
