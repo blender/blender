@@ -2048,10 +2048,12 @@ static size_t animdata_filter_mask(Main *bmain,
     }
 
     /* add mask animation channels */
-    BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
-      tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+    if (!(filter_mode & ANIMFILTER_FCURVESONLY)) {
+      BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
+        tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+      }
+      END_ANIMFILTER_SUBCHANNELS;
     }
-    END_ANIMFILTER_SUBCHANNELS;
 
     /* did we find anything? */
     if (tmp_items) {
