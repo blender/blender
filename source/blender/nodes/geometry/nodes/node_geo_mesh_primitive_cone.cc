@@ -329,7 +329,7 @@ static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConf
       MEdge &edge = edges[edge_index++];
       edge.v1 = config.first_vert;
       edge.v2 = config.first_ring_verts_start + i;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -342,7 +342,7 @@ static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConf
       MEdge &edge = edges[edge_index++];
       edge.v1 = this_ring_vert_start + j;
       edge.v2 = this_ring_vert_start + ((j + 1) % config.circle_segments);
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
     if (i == config.tot_edge_rings - 1) {
       /* There is one fewer ring of connecting edges. */
@@ -353,7 +353,7 @@ static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConf
       MEdge &edge = edges[edge_index++];
       edge.v1 = this_ring_vert_start + j;
       edge.v2 = next_ring_vert_start + j;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -363,7 +363,7 @@ static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConf
       MEdge &edge = edges[edge_index++];
       edge.v1 = config.last_ring_verts_start + i;
       edge.v2 = config.last_vert;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 }
@@ -854,8 +854,8 @@ void register_node_type_geo_mesh_primitive_cone()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CONE, "Cone", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(
       &ntype, "NodeGeometryMeshCone", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

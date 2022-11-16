@@ -58,6 +58,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h" /* for Main */
 #include "BKE_mesh.h" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"

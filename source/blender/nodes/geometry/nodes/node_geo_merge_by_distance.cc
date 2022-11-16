@@ -132,7 +132,7 @@ void register_node_type_geo_merge_by_distance()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MERGE_BY_DISTANCE, "Merge by Distance", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometryMergeByDistance",
                     node_free_standard_storage,

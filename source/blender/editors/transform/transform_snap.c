@@ -372,7 +372,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
   }
   else if (t->options & CTX_OBJECT) {
     BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-    copy_v3_v3(iloc, td->ob->obmat[3]);
+    copy_v3_v3(iloc, td->ob->object_to_world[3]);
   }
 
   if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) !=
@@ -444,7 +444,7 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
   }
   else if (t->options & CTX_OBJECT) {
     BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-    copy_v3_v3(init_loc, td->ob->obmat[3]);
+    copy_v3_v3(init_loc, td->ob->object_to_world[3]);
   }
 
   eSnapMode hit = ED_transform_snap_object_project_view3d(

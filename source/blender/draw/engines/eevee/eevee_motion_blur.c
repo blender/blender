@@ -292,7 +292,7 @@ void EEVEE_motion_blur_curves_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata)
 
   int mb_step = effects->motion_blur_step;
   /* Store transform. */
-  copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
+  copy_m4_m4(mb_data->obmat[mb_step], ob->object_to_world);
 
   EEVEE_HairMotionData *mb_curves = EEVEE_motion_blur_curves_data_get(mb_data);
 
@@ -362,7 +362,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
     /* Store transform. */
-    copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
+    copy_m4_m4(mb_data->obmat[mb_step], ob->object_to_world);
 
     EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(mb_data);
 

@@ -64,8 +64,8 @@ static float calc_point_weight_by_distance(Object *ob,
 {
   float weight;
   float gvert[3];
-  mul_v3_m4v3(gvert, ob->obmat, &pt->x);
-  float dist = len_v3v3(mmd->object->obmat[3], gvert);
+  mul_v3_m4v3(gvert, ob->object_to_world, &pt->x);
+  float dist = len_v3v3(mmd->object->object_to_world[3], gvert);
 
   if (dist > dist_max) {
     weight = 1.0f;

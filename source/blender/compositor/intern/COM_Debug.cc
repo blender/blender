@@ -305,7 +305,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
     for (NodeOperation *operation : group->operations_) {
 
-      sprintf(strbuf, "_%p", group);
+      BLI_snprintf(strbuf, sizeof(strbuf), "_%p", group);
       op_groups[operation].push_back(std::string(strbuf));
 
       len += graphviz_operation(

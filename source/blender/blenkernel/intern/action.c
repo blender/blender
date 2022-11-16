@@ -1738,7 +1738,7 @@ void what_does_obaction(Object *ob,
   BKE_object_workob_clear(workob);
 
   /* init workob */
-  copy_m4_m4(workob->obmat, ob->obmat);
+  copy_m4_m4(workob->object_to_world, ob->object_to_world);
   copy_m4_m4(workob->parentinv, ob->parentinv);
   copy_m4_m4(workob->constinv, ob->constinv);
   workob->parent = ob->parent;

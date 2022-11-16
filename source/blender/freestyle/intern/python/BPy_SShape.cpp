@@ -267,43 +267,44 @@ static PyGetSetDef BPy_SShape_getseters[] = {
 /*-----------------------BPy_SShape type definition ------------------------------*/
 
 PyTypeObject SShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "SShape", /* tp_name */
-    sizeof(BPy_SShape),                         /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    (destructor)SShape_dealloc,                 /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    nullptr,                                    /* tp_getattr */
-    nullptr,                                    /* tp_setattr */
-    nullptr,                                    /* tp_reserved */
-    (reprfunc)SShape_repr,                      /* tp_repr */
-    nullptr,                                    /* tp_as_number */
-    nullptr,                                    /* tp_as_sequence */
-    nullptr,                                    /* tp_as_mapping */
-    nullptr,                                    /* tp_hash */
-    nullptr,                                    /* tp_call */
-    nullptr,                                    /* tp_str */
-    nullptr,                                    /* tp_getattro */
-    nullptr,                                    /* tp_setattro */
-    nullptr,                                    /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
-    SShape_doc,                                 /* tp_doc */
-    nullptr,                                    /* tp_traverse */
-    nullptr,                                    /* tp_clear */
-    nullptr,                                    /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    nullptr,                                    /* tp_iter */
-    nullptr,                                    /* tp_iternext */
-    BPy_SShape_methods,                         /* tp_methods */
-    nullptr,                                    /* tp_members */
-    BPy_SShape_getseters,                       /* tp_getset */
-    nullptr,                                    /* tp_base */
-    nullptr,                                    /* tp_dict */
-    nullptr,                                    /* tp_descr_get */
-    nullptr,                                    /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)SShape_init,                      /* tp_init */
-    nullptr,                                    /* tp_alloc */
-    PyType_GenericNew,                          /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "SShape",
+    /*tp_basicsize*/ sizeof(BPy_SShape),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)SShape_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ (reprfunc)SShape_repr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ SShape_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_SShape_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_SShape_getseters,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)SShape_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

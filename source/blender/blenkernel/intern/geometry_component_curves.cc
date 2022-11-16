@@ -282,6 +282,12 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
+std::optional<eAttrDomain> CurveLengthFieldInput::preferred_domain(
+    const bke::CurvesGeometry & /*curves*/) const
+{
+  return ATTR_DOMAIN_CURVE;
+}
+
 /** \} */
 
 }  // namespace blender::bke

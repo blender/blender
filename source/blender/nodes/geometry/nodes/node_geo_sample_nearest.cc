@@ -334,7 +334,7 @@ void register_node_type_geo_sample_nearest()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST, "Sample Nearest", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

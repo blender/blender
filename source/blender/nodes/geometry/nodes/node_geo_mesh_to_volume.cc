@@ -174,8 +174,8 @@ void register_node_type_geo_mesh_to_volume()
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_VOLUME, "Mesh to Volume", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   node_type_size(&ntype, 200, 120, 700);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(

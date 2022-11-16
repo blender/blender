@@ -768,14 +768,14 @@ extern void main_python_exit(void);
 
 static struct PyModuleDef bpy_proxy_def = {
     PyModuleDef_HEAD_INIT,
-    "bpy",           /* m_name */
-    NULL,            /* m_doc */
-    0,               /* m_size */
-    NULL,            /* m_methods */
-    NULL,            /* m_slots */
-    NULL,            /* m_traverse */
-    NULL,            /* m_clear */
-    bpy_module_free, /* m_free */
+    /*m_name*/ "bpy",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ bpy_module_free,
 };
 
 typedef struct {

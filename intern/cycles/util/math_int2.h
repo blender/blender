@@ -10,23 +10,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/*******************************************************************************
- * Declaration.
- */
-
-#if !defined(__KERNEL_METAL__)
-ccl_device_inline bool operator==(const int2 a, const int2 b);
-ccl_device_inline int2 operator+(const int2 &a, const int2 &b);
-ccl_device_inline int2 operator+=(int2 &a, const int2 &b);
-ccl_device_inline int2 operator-(const int2 &a, const int2 &b);
-ccl_device_inline int2 operator*(const int2 &a, const int2 &b);
-ccl_device_inline int2 operator/(const int2 &a, const int2 &b);
-#endif /* !__KERNEL_METAL__ */
-
-/*******************************************************************************
- * Definition.
- */
-
 #if !defined(__KERNEL_METAL__)
 ccl_device_inline bool operator==(const int2 a, const int2 b)
 {

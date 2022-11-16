@@ -607,7 +607,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         cut_edge.v1 = dst_loops[mp_dst.loopstart].v;
         cut_edge.v2 = cut_dst_loop.v;
         BLI_assert(cut_edge.v1 != cut_edge.v2);
-        cut_edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+        cut_edge.flag = ME_EDGEDRAW;
         edge_index++;
 
         /* Only handle one of the cuts per iteration. */

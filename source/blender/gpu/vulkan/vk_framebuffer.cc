@@ -25,7 +25,7 @@ void VKFrameBuffer::clear(eGPUFrameBufferBits /*buffers*/,
 {
 }
 
-void VKFrameBuffer::clear_multi(const float (* /*clear_col*/)[4])
+void VKFrameBuffer::clear_multi(const float (*/*clear_col*/)[4])
 {
 }
 

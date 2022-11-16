@@ -75,6 +75,7 @@ set(SRC
   intern/asset_catalog_path.cc
   intern/asset_library.cc
   intern/asset_library_service.cc
+  intern/asset_representation.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -93,7 +94,7 @@ set(SRC
   intern/callbacks.c
   intern/camera.c
   intern/cdderivedmesh.c
-  intern/cloth.c
+  intern/cloth.cc
   intern/collection.c
   intern/collision.c
   intern/colorband.c
@@ -101,6 +102,7 @@ set(SRC
   intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
+  intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
@@ -207,7 +209,7 @@ set(SRC
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
-  intern/mesh_remap.c
+  intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
@@ -324,6 +326,7 @@ set(SRC
   BKE_asset_catalog_path.hh
   BKE_asset_library.h
   BKE_asset_library.hh
+  BKE_asset_representation.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -352,6 +355,7 @@ set(SRC
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
+  BKE_cpp_types.h
   BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h

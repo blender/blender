@@ -17,21 +17,22 @@ class VKShader : public Shader {
   {
   }
 
-  void vertex_shader_from_glsl(MutableSpan<const char *> sources)override;
-  void geometry_shader_from_glsl(MutableSpan<const char *> sources)override;
-  void fragment_shader_from_glsl(MutableSpan<const char *> sources)override;
-  void compute_shader_from_glsl(MutableSpan<const char *> sources)override;
-  bool finalize(const shader::ShaderCreateInfo *info = nullptr)override;
+  void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
+  bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
 
-  void transform_feedback_names_set(Span<const char *> name_list, eGPUShaderTFBType geom_type)override;
-  bool transform_feedback_enable(GPUVertBuf *)override;
-  void transform_feedback_disable()override;
+  void transform_feedback_names_set(Span<const char *> name_list,
+                                    eGPUShaderTFBType geom_type) override;
+  bool transform_feedback_enable(GPUVertBuf *) override;
+  void transform_feedback_disable() override;
 
-  void bind()override;
-  void unbind()override;
+  void bind() override;
+  void unbind() override;
 
-  void uniform_float(int location, int comp_len, int array_size, const float *data)override;
-  void uniform_int(int location, int comp_len, int array_size, const int *data)override;
+  void uniform_float(int location, int comp_len, int array_size, const float *data) override;
+  void uniform_int(int location, int comp_len, int array_size, const int *data) override;
 
   std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
   std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const override;

@@ -40,12 +40,7 @@ CCL_NAMESPACE_BEGIN
     const char *label;
 #define OSL_CLOSURE_STRUCT_END(Upper, lower) \
   } \
-  ; \
-  ccl_device void osl_closure_##lower##_setup(KernelGlobals kg, \
-                                              ccl_private ShaderData *sd, \
-                                              uint32_t path_flag, \
-                                              float3 weight, \
-                                              ccl_private Upper##Closure *closure);
+  ;
 #define OSL_CLOSURE_STRUCT_MEMBER(Upper, TYPE, type, name, key) type name;
 #define OSL_CLOSURE_STRUCT_ARRAY_MEMBER(Upper, TYPE, type, name, key, size) type name[size];
 
@@ -210,11 +205,9 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   bsdf->ior = closure->ior;
   bsdf->T = closure->T;
 
-  static OSL::ustring u_ggx("ggx");
-  static OSL::ustring u_default("default");
-
   /* GGX */
-  if (closure->distribution == u_ggx || closure->distribution == u_default) {
+  if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
+      closure->distribution == make_string("default", 4430693559278735917ull)) {
     if (!closure->refract) {
       if (closure->alpha_x == closure->alpha_y) {
         /* Isotropic */
@@ -1000,18 +993,14 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
                                          float3 weight,
                                          ccl_private const BSSRDFClosure *closure)
 {
-  static ustring u_burley("burley");
-  static ustring u_random_walk_fixed_radius("random_walk_fixed_radius");
-  static ustring u_random_walk("random_walk");
-
   ClosureType type;
-  if (closure->method == u_burley) {
+  if (closure->method == make_string("burley", 186330084368958868ull)) {
     type = CLOSURE_BSSRDF_BURLEY_ID;
   }
-  else if (closure->method == u_random_walk_fixed_radius) {
+  else if (closure->method == make_string("random_walk_fixed_radius", 5695810351010063150ull)) {
     type = CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID;
   }
-  else if (closure->method == u_random_walk) {
+  else if (closure->method == make_string("random_walk", 11360609267673527222ull)) {
     type = CLOSURE_BSSRDF_RANDOM_WALK_ID;
   }
   else {

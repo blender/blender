@@ -51,11 +51,6 @@ class GreasePencilSculptAdvancedPanel:
         tool = brush.gpencil_sculpt_tool
         gp_settings = brush.gpencil_settings
 
-        col = layout.column(heading="Auto-Masking", align=True)
-        col.prop(gp_settings, "use_automasking_stroke", text="Stroke")
-        col.prop(gp_settings, "use_automasking_layer", text="Layer")
-        col.prop(gp_settings, "use_automasking_material", text="Material")
-
         if tool in {'SMOOTH', 'RANDOMIZE'}:
             col = layout.column(heading="Affect", align=True)
             col.prop(gp_settings, "use_edit_position", text="Position")

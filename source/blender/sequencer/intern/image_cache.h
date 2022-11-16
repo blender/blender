@@ -48,7 +48,7 @@ void seq_cache_thumbnail_put(const struct SeqRenderData *context,
                              struct Sequence *seq,
                              float timeline_frame,
                              struct ImBuf *i,
-                             rctf *view_area);
+                             const struct rctf *view_area);
 bool seq_cache_put_if_possible(const struct SeqRenderData *context,
                                struct Sequence *seq,
                                float timeline_frame,

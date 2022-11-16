@@ -2379,7 +2379,7 @@ static Py_hash_t Matrix_hash(MatrixObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Matrix_len(MatrixObject *self)
+static Py_ssize_t Matrix_len(MatrixObject *self)
 {
   return self->row_num;
 }
@@ -2388,7 +2388,7 @@ static int Matrix_len(MatrixObject *self)
  * Sequence accessor (get): `x = object[i]`.
  * \note the wrapped vector gives direct access to the matrix data.
  */
-static PyObject *Matrix_item_row(MatrixObject *self, int row)
+static PyObject *Matrix_item_row(MatrixObject *self, Py_ssize_t row)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
@@ -2407,7 +2407,7 @@ static PyObject *Matrix_item_row(MatrixObject *self, int row)
  * Sequence accessor (get): `x = object.col[i]`.
  * \note the wrapped vector gives direct access to the matrix data.
  */
-static PyObject *Matrix_item_col(MatrixObject *self, int col)
+static PyObject *Matrix_item_col(MatrixObject *self, Py_ssize_t col)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
@@ -2964,61 +2964,61 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
  * \{ */
 
 static PySequenceMethods Matrix_SeqMethods = {
-    (lenfunc)Matrix_len,                  /*sq_length*/
-    (binaryfunc)NULL,                     /*sq_concat*/
-    (ssizeargfunc)NULL,                   /*sq_repeat*/
-    (ssizeargfunc)Matrix_item_row,        /*sq_item*/
-    (ssizessizeargfunc)NULL,              /*sq_slice(DEPRECATED)*/
-    (ssizeobjargproc)Matrix_ass_item_row, /*sq_ass_item*/
-    (ssizessizeobjargproc)NULL,           /*sq_ass_slice(DEPRECATED)*/
-    (objobjproc)NULL,                     /*sq_contains*/
-    (binaryfunc)NULL,                     /*sq_inplace_concat*/
-    (ssizeargfunc)NULL,                   /*sq_inplace_repeat*/
+    /*sq_length*/ (lenfunc)Matrix_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Matrix_item_row,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ (ssizeobjargproc)Matrix_ass_item_row,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods Matrix_AsMapping = {
-    (lenfunc)Matrix_len,
-    (binaryfunc)Matrix_subscript,
-    (objobjargproc)Matrix_ass_subscript,
+    /*mp_len*/ (lenfunc)Matrix_len,
+    /*mp_subscript*/ (binaryfunc)Matrix_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Matrix_ass_subscript,
 };
 
 static PyNumberMethods Matrix_NumMethods = {
-    (binaryfunc)Matrix_add,            /*nb_add*/
-    (binaryfunc)Matrix_sub,            /*nb_subtract*/
-    (binaryfunc)Matrix_mul,            /*nb_multiply*/
-    NULL,                              /*nb_remainder*/
-    NULL,                              /*nb_divmod*/
-    NULL,                              /*nb_power*/
-    (unaryfunc)0,                      /*nb_negative*/
-    (unaryfunc)0,                      /*tp_positive*/
-    (unaryfunc)0,                      /*tp_absolute*/
-    (inquiry)0,                        /*tp_bool*/
-    (unaryfunc)Matrix_inverted_noargs, /*nb_invert*/
-    NULL,                              /*nb_lshift*/
-    (binaryfunc)0,                     /*nb_rshift*/
-    NULL,                              /*nb_and*/
-    NULL,                              /*nb_xor*/
-    NULL,                              /*nb_or*/
-    NULL,                              /*nb_int*/
-    NULL,                              /*nb_reserved*/
-    NULL,                              /*nb_float*/
-    NULL,                              /*nb_inplace_add*/
-    NULL,                              /*nb_inplace_subtract*/
-    (binaryfunc)Matrix_imul,           /*nb_inplace_multiply*/
-    NULL,                              /*nb_inplace_remainder*/
-    NULL,                              /*nb_inplace_power*/
-    NULL,                              /*nb_inplace_lshift*/
-    NULL,                              /*nb_inplace_rshift*/
-    NULL,                              /*nb_inplace_and*/
-    NULL,                              /*nb_inplace_xor*/
-    NULL,                              /*nb_inplace_or*/
-    NULL,                              /*nb_floor_divide*/
-    NULL,                              /*nb_true_divide*/
-    NULL,                              /*nb_inplace_floor_divide*/
-    NULL,                              /*nb_inplace_true_divide*/
-    NULL,                              /*nb_index*/
-    (binaryfunc)Matrix_matmul,         /*nb_matrix_multiply*/
-    (binaryfunc)Matrix_imatmul,        /*nb_inplace_matrix_multiply*/
+    /*nb_add*/ (binaryfunc)Matrix_add,
+    /*nb_subtract*/ (binaryfunc)Matrix_sub,
+    /*nb_multiply*/ (binaryfunc)Matrix_mul,
+    /*nb_remainder*/ NULL,
+    /*nb_divmod*/ NULL,
+    /*nb_power*/ NULL,
+    /*nb_negative*/ NULL,
+    /*tp_positive*/ NULL,
+    /*tp_absolute*/ NULL,
+    /*tp_bool*/ NULL,
+    /*nb_invert*/ (unaryfunc)Matrix_inverted_noargs,
+    /*nb_lshift*/ NULL,
+    /*nb_rshift*/ NULL,
+    /*nb_and*/ NULL,
+    /*nb_xor*/ NULL,
+    /*nb_or*/ NULL,
+    /*nb_int*/ NULL,
+    /*nb_reserved*/ NULL,
+    /*nb_float*/ NULL,
+    /*nb_inplace_add*/ NULL,
+    /*nb_inplace_subtract*/ NULL,
+    /*nb_inplace_multiply*/ (binaryfunc)Matrix_imul,
+    /*nb_inplace_remainder*/ NULL,
+    /*nb_inplace_power*/ NULL,
+    /*nb_inplace_lshift*/ NULL,
+    /*nb_inplace_rshift*/ NULL,
+    /*nb_inplace_and*/ NULL,
+    /*nb_inplace_xor*/ NULL,
+    /*nb_inplace_or*/ NULL,
+    /*nb_floor_divide*/ NULL,
+    /*nb_true_divide*/ NULL,
+    /*nb_inplace_floor_divide*/ NULL,
+    /*nb_inplace_true_divide*/ NULL,
+    /*nb_index*/ NULL,
+    /*nb_matrix_multiply*/ (binaryfunc)Matrix_matmul,
+    /*nb_inplace_matrix_multiply*/ (binaryfunc)Matrix_imatmul,
 };
 
 /** \} */
@@ -3314,6 +3314,10 @@ static struct PyMethodDef Matrix_methods[] = {
 /** \name Matrix Type: Python Object Definition
  * \{ */
 
+#ifdef MATH_STANDALONE
+#  define Matrix_str NULL
+#endif
+
 PyDoc_STRVAR(
     matrix_doc,
     ".. class:: Matrix([rows])\n"
@@ -3324,56 +3328,60 @@ PyDoc_STRVAR(
     "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
     "   :type rows: 2d number sequence\n");
 PyTypeObject matrix_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Matrix", /*tp_name*/
-    sizeof(MatrixObject),                    /*tp_basicsize*/
-    0,                                       /*tp_itemsize*/
-    (destructor)BaseMathObject_dealloc,      /*tp_dealloc*/
-    (printfunc)NULL,                         /*tp_print*/
-    NULL,                                    /*tp_getattr*/
-    NULL,                                    /*tp_setattr*/
-    NULL,                                    /*tp_compare*/
-    (reprfunc)Matrix_repr,                   /*tp_repr*/
-    &Matrix_NumMethods,                      /*tp_as_number*/
-    &Matrix_SeqMethods,                      /*tp_as_sequence*/
-    &Matrix_AsMapping,                       /*tp_as_mapping*/
-    (hashfunc)Matrix_hash,                   /*tp_hash*/
-    NULL,                                    /*tp_call*/
-#ifndef MATH_STANDALONE
-    (reprfunc)Matrix_str, /*tp_str*/
-#else
-    NULL, /*tp_str*/
-#endif
-    NULL,                                                          /*tp_getattro*/
-    NULL,                                                          /*tp_setattro*/
-    NULL,                                                          /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-    matrix_doc,                                                    /*tp_doc*/
-    (traverseproc)BaseMathObject_traverse,                         /* tp_traverse */
-    (inquiry)BaseMathObject_clear,                                 /*tp_clear*/
-    (richcmpfunc)Matrix_richcmpr,                                  /*tp_richcompare*/
-    0,                                                             /*tp_weaklistoffset*/
-    NULL,                                                          /*tp_iter*/
-    NULL,                                                          /*tp_iternext*/
-    Matrix_methods,                                                /*tp_methods*/
-    NULL,                                                          /*tp_members*/
-    Matrix_getseters,                                              /*tp_getset*/
-    NULL,                                                          /*tp_base*/
-    NULL,                                                          /*tp_dict*/
-    NULL,                                                          /*tp_descr_get*/
-    NULL,                                                          /*tp_descr_set*/
-    0,                                                             /*tp_dictoffset*/
-    NULL,                                                          /*tp_init*/
-    NULL,                                                          /*tp_alloc*/
-    Matrix_new,                                                    /*tp_new*/
-    NULL,                                                          /*tp_free*/
-    (inquiry)BaseMathObject_is_gc,                                 /*tp_is_gc*/
-    NULL,                                                          /*tp_bases*/
-    NULL,                                                          /*tp_mro*/
-    NULL,                                                          /*tp_cache*/
-    NULL,                                                          /*tp_subclasses*/
-    NULL,                                                          /*tp_weaklist*/
-    NULL,                                                          /*tp_del*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "Matrix",
+    /*tp_basicsize*/ sizeof(MatrixObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Matrix_repr,
+    /*tp_as_number*/ &Matrix_NumMethods,
+    /*tp_as_sequence*/ &Matrix_SeqMethods,
+    /*tp_as_mapping*/ &Matrix_AsMapping,
+    /*tp_hash*/ (hashfunc)Matrix_hash,
+    /*tp_call*/ NULL,
+    /*tp_str*/ (reprfunc)Matrix_str,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ matrix_doc,
+    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
+    /*tp_clear*/ (inquiry)BaseMathObject_clear,
+    /*tp_richcompare*/ (richcmpfunc)Matrix_richcmpr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Matrix_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Matrix_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Matrix_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
+
+#ifdef MATH_STANDALONE
+#  undef Matrix_str
+#endif
 
 /** \} */
 
@@ -3625,15 +3633,15 @@ static int MatrixAccess_len(MatrixAccessObject *self)
   return (self->type == MAT_ACCESS_ROW) ? self->matrix_user->row_num : self->matrix_user->col_num;
 }
 
-static PyObject *MatrixAccess_slice(MatrixAccessObject *self, int begin, int end)
+static PyObject *MatrixAccess_slice(MatrixAccessObject *self, Py_ssize_t begin, Py_ssize_t end)
 {
   PyObject *tuple;
-  int count;
+  Py_ssize_t count;
 
   /* row/col access */
   MatrixObject *matrix_user = self->matrix_user;
   int matrix_access_len;
-  PyObject *(*Matrix_item_new)(MatrixObject *, int);
+  PyObject *(*Matrix_item_new)(MatrixObject *, Py_ssize_t);
 
   if (self->type == MAT_ACCESS_ROW) {
     matrix_access_len = matrix_user->row_num;
@@ -3752,9 +3760,9 @@ static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
 }
 
 static PyMappingMethods MatrixAccess_AsMapping = {
-    (lenfunc)MatrixAccess_len,
-    (binaryfunc)MatrixAccess_subscript,
-    (objobjargproc)MatrixAccess_ass_subscript,
+    /*mp_len*/ (lenfunc)MatrixAccess_len,
+    /*mp_subscript*/ (binaryfunc)MatrixAccess_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)MatrixAccess_ass_subscript,
 };
 
 /** \} */
@@ -3764,31 +3772,55 @@ static PyMappingMethods MatrixAccess_AsMapping = {
  * \{ */
 
 PyTypeObject matrix_access_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "MatrixAccess",           /*tp_name*/
-    sizeof(MatrixAccessObject),                              /*tp_basicsize*/
-    0,                                                       /*tp_itemsize*/
-    (destructor)MatrixAccess_dealloc,                        /*tp_dealloc*/
-    (printfunc)NULL,                                         /*tp_print*/
-    NULL,                                                    /*tp_getattr*/
-    NULL,                                                    /*tp_setattr*/
-    NULL,                                                    /*tp_compare*/
-    NULL,                                                    /*tp_repr*/
-    NULL,                                                    /*tp_as_number*/
-    NULL /* &MatrixAccess_SeqMethods */ /* TODO */,          /*tp_as_sequence*/
-    &MatrixAccess_AsMapping,                                 /*tp_as_mapping*/
-    NULL,                                                    /*tp_hash*/
-    NULL,                                                    /*tp_call*/
-    NULL,                                                    /*tp_str*/
-    NULL,                                                    /*tp_getattro*/
-    NULL,                                                    /*tp_setattro*/
-    NULL,                                                    /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,                 /*tp_flags*/
-    NULL,                                                    /*tp_doc*/
-    (traverseproc)MatrixAccess_traverse,                     /*tp_traverse*/
-    (inquiry)MatrixAccess_clear,                             /*tp_clear*/
-    NULL /* (richcmpfunc)MatrixAccess_richcmpr */ /* TODO*/, /*tp_richcompare*/
-    0,                                                       /*tp_weaklistoffset*/
-    (getiterfunc)MatrixAccess_iter,                          /* getiterfunc tp_iter; */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "MatrixAccess",
+    /*tp_basicsize*/ sizeof(MatrixAccessObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)MatrixAccess_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ NULL,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL /* &MatrixAccess_SeqMethods */ /* TODO */,
+    /*tp_as_mapping*/ &MatrixAccess_AsMapping,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ NULL,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ NULL,
+    /*tp_traverse*/ (traverseproc)MatrixAccess_traverse,
+    /*tp_clear*/ (inquiry)MatrixAccess_clear,
+    /*tp_richcompare*/ NULL /* MatrixAccess_richcmpr */ /* TODO*/,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ (getiterfunc)MatrixAccess_iter,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ NULL,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ NULL,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ NULL,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 /** \} */

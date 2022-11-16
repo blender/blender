@@ -1122,7 +1122,7 @@ static const char arg_handle_gpu_backend_set_doc[] =
 #  ifdef WITH_METAL_BACKEND
     "'metal',  "
 #  endif
-    "'opengl').";
+    "'opengl'.";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void *UNUSED(data))
 {
   if (argc == 0) {

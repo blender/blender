@@ -128,7 +128,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
     camera = wpd->cam_original_ob;
   }
 
-  Camera *cam = camera != NULL ? camera->data : NULL;
+  Camera *cam = camera != NULL && camera->type == OB_CAMERA ? camera->data : NULL;
   if ((wpd->shading.flag & V3D_SHADING_DEPTH_OF_FIELD) == 0 || (cam == NULL) ||
       ((cam->dof.flag & CAM_DOF_ENABLED) == 0)) {
     wpd->dof_enabled = false;

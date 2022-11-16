@@ -76,11 +76,11 @@ void register_node_type_sh_sepcolor()
 
   sh_node_type_base(&ntype, SH_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_sepcolor_declare;
-  node_type_update(&ntype, file_ns::node_sepcolor_update);
-  node_type_init(&ntype, node_combsep_color_init);
+  ntype.updatefunc = file_ns::node_sepcolor_update;
+  ntype.initfunc = node_combsep_color_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::gpu_shader_sepcolor);
+  ntype.gpu_fn = file_ns::gpu_shader_sepcolor;
 
   nodeRegisterType(&ntype);
 }
@@ -152,11 +152,11 @@ void register_node_type_sh_combcolor()
 
   sh_node_type_base(&ntype, SH_NODE_COMBINE_COLOR, "Combine Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_combcolor_declare;
-  node_type_update(&ntype, file_ns::node_combcolor_update);
-  node_type_init(&ntype, node_combsep_color_init);
+  ntype.updatefunc = file_ns::node_combcolor_update;
+  ntype.initfunc = node_combsep_color_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::gpu_shader_combcolor);
+  ntype.gpu_fn = file_ns::gpu_shader_combcolor;
 
   nodeRegisterType(&ntype);
 }

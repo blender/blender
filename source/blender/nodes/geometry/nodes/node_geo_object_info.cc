@@ -45,8 +45,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 &object_matrix = object->obmat;
-  const float4x4 transform = float4x4(self_object->imat) * object_matrix;
+  const float4x4 &object_matrix = object->object_to_world;
+  const float4x4 transform = float4x4(self_object->world_to_object) * object_matrix;
 
   if (transform_space_relative) {
     params.set_output("Location", transform.translation());
@@ -106,7 +106,7 @@ void register_node_type_geo_object_info()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT);
-  node_type_init(&ntype, file_ns::node_node_init);
+  ntype.initfunc = file_ns::node_node_init;
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

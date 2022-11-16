@@ -87,7 +87,7 @@ static void solve_camera_updatejob(void *scv)
   BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
 }
 
-static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
+static void solve_camera_startjob(void *scv, bool *stop, bool *do_update, float *progress)
 {
   SolveCameraJob *scj = (SolveCameraJob *)scv;
   BKE_tracking_reconstruction_solve(

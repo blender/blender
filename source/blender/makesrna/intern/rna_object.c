@@ -356,7 +356,8 @@ static void rna_Object_internal_update_draw(Main *UNUSED(bmain),
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* don't use compat so we get predictable rotation */
-  BKE_object_apply_mat4((Object *)ptr->owner_id, ((Object *)ptr->owner_id)->obmat, false, true);
+  BKE_object_apply_mat4(
+      (Object *)ptr->owner_id, ((Object *)ptr->owner_id)->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -3390,7 +3391,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
-  RNA_def_property_float_sdna(prop, NULL, "obmat");
+  RNA_def_property_float_sdna(prop, NULL, "object_to_world");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);

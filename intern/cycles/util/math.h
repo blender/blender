@@ -532,11 +532,13 @@ CCL_NAMESPACE_END
 #include "util/math_int2.h"
 #include "util/math_int3.h"
 #include "util/math_int4.h"
+#include "util/math_int8.h"
 
 #include "util/math_float2.h"
-#include "util/math_float3.h"
 #include "util/math_float4.h"
 #include "util/math_float8.h"
+
+#include "util/math_float3.h"
 
 #include "util/rect.h"
 

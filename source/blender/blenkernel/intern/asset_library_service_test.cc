@@ -8,6 +8,9 @@
 
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"
+#include "BKE_main.h"
+
+#include "DNA_asset_types.h"
 
 #include "CLG_log.h"
 
@@ -100,6 +103,26 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
   /* NOTE: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
+}
+
+TEST_F(AssetLibraryServiceTest, library_from_reference)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+  AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
+
+  AssetLibraryReference ref{};
+  ref.type = ASSET_LIBRARY_LOCAL;
+  EXPECT_EQ(curfile_lib, service->get_asset_library(nullptr, ref))
+      << "Getting the local (current file) reference without a main saved on disk should return "
+         "the current file library";
+
+  Main dummy_main{};
+  std::string dummy_filepath = asset_library_root_ + SEP + "dummy.blend";
+  BLI_strncpy(dummy_main.filepath, dummy_filepath.c_str(), sizeof(dummy_main.filepath));
+  EXPECT_EQ(lib, service->get_asset_library(&dummy_main, ref))
+      << "Getting the local (current file) reference with a main saved on disk should return "
+         "the an asset library for this directory";
 }
 
 TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)

@@ -142,7 +142,6 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
 static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
   Main *bmain = CTX_data_main(C);
-  bScreen *screen;
   Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
@@ -157,25 +156,7 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
     TexPaintSlot *slot = &ma->texpaintslot[ma->paint_active_slot];
     Image *image = slot->ima;
     if (image) {
-      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-        wmWindow *win = ED_screen_window_find(screen, bmain->wm.first);
-        if (win == NULL) {
-          continue;
-        }
-
-        ScrArea *area;
-        for (area = screen->areabase.first; area; area = area->next) {
-          SpaceLink *sl;
-          for (sl = area->spacedata.first; sl; sl = sl->next) {
-            if (sl->spacetype == SPACE_IMAGE) {
-              SpaceImage *sima = (SpaceImage *)sl;
-              if (!sima->pin) {
-                ED_space_image_set(bmain, sima, image, true);
-              }
-            }
-          }
-        }
-      }
+      ED_space_image_sync(bmain, image, false);
     }
 
     /* For compatibility reasons with vertex paint we activate the color attribute. */

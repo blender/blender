@@ -34,6 +34,7 @@ set(SRC
   render_graph_finalize_test.cpp
   util_aligned_malloc_test.cpp
   util_math_test.cpp
+  util_md5_test.cpp
   util_path_test.cpp
   util_string_test.cpp
   util_task_test.cpp
@@ -44,17 +45,24 @@ set(SRC
 # Disable AVX tests on macOS. Rosetta has problems running them, and other
 # platforms should be enough to verify AVX operations are implemented correctly.
 if(NOT APPLE)
+  if(CXX_HAS_SSE)
+    list(APPEND SRC
+      util_float8_sse2_test.cpp
+    )
+    set_source_files_properties(util_float8_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+  endif()
+
   if(CXX_HAS_AVX)
     list(APPEND SRC
-      util_avxf_avx_test.cpp
+      util_float8_avx_test.cpp
     )
-    set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+    set_source_files_properties(util_float8_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
   endif()
   if(CXX_HAS_AVX2)
     list(APPEND SRC
-      util_avxf_avx2_test.cpp
+      util_float8_avx2_test.cpp
     )
-    set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+    set_source_files_properties(util_float8_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
   endif()
 endif()
 

@@ -28,6 +28,7 @@ Evaluator::Evaluator(Context &context, bNodeTree &node_tree)
 
 void Evaluator::evaluate()
 {
+  context_.cache_manager().reset();
   context_.texture_pool().reset();
 
   if (!is_compiled_) {

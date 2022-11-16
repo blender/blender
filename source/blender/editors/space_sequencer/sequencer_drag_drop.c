@@ -505,8 +505,8 @@ typedef struct DropJobData {
 } DropJobData;
 
 static void prefetch_data_fn(void *custom_data,
-                             short *UNUSED(stop),
-                             short *UNUSED(do_update),
+                             bool *UNUSED(stop),
+                             bool *UNUSED(do_update),
                              float *UNUSED(progress))
 {
   DropJobData *job_data = (DropJobData *)custom_data;

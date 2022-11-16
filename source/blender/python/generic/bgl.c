@@ -417,11 +417,11 @@ static PyObject *Method_ShaderSource(PyObject *self, PyObject *args);
 
 /* Buffer sequence methods */
 
-static int Buffer_len(Buffer *self);
-static PyObject *Buffer_item(Buffer *self, int i);
-static PyObject *Buffer_slice(Buffer *self, int begin, int end);
-static int Buffer_ass_item(Buffer *self, int i, PyObject *v);
-static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq);
+static Py_ssize_t Buffer_len(Buffer *self);
+static PyObject *Buffer_item(Buffer *self, Py_ssize_t i);
+static PyObject *Buffer_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end);
+static int Buffer_ass_item(Buffer *self, Py_ssize_t i, PyObject *v);
+static int Buffer_ass_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end, PyObject *seq);
 static PyObject *Buffer_subscript(Buffer *self, PyObject *item);
 static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value);
 
@@ -491,22 +491,22 @@ static bool compare_dimensions(int ndim, const int *dim1, const Py_ssize_t *dim2
  * \{ */
 
 static PySequenceMethods Buffer_SeqMethods = {
-    (lenfunc)Buffer_len,              /* sq_length */
-    (binaryfunc)NULL,                 /* sq_concat */
-    (ssizeargfunc)NULL,               /* sq_repeat */
-    (ssizeargfunc)Buffer_item,        /* sq_item */
-    (ssizessizeargfunc)NULL,          /* sq_slice, deprecated, handled in Buffer_item */
-    (ssizeobjargproc)Buffer_ass_item, /* sq_ass_item */
-    (ssizessizeobjargproc)NULL,       /* sq_ass_slice, deprecated handled in Buffer_ass_item */
-    (objobjproc)NULL,                 /* sq_contains */
-    (binaryfunc)NULL,                 /* sq_inplace_concat */
-    (ssizeargfunc)NULL,               /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)Buffer_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Buffer_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. Handled by #Buffer_item. */
+    /*sq_ass_item*/ (ssizeobjargproc)Buffer_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. Handled by #Buffer_ass_item. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods Buffer_AsMapping = {
-    (lenfunc)Buffer_len,
-    (binaryfunc)Buffer_subscript,
-    (objobjargproc)Buffer_ass_subscript,
+    /*mp_len*/ (lenfunc)Buffer_len,
+    /*mp_subscript*/ (binaryfunc)Buffer_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Buffer_ass_subscript,
 };
 
 static void Buffer_dealloc(Buffer *self);
@@ -568,72 +568,55 @@ static PyGetSetDef Buffer_getseters[] = {
 };
 
 PyTypeObject BGL_bufferType = {
-    PyVarObject_HEAD_INIT(NULL, 0) "bgl.Buffer", /* tp_name */
-    sizeof(Buffer),                              /* tp_basicsize */
-    0,                                           /* tp_itemsize */
-    (destructor)Buffer_dealloc,                  /* tp_dealloc */
-    (printfunc)NULL,                             /* tp_print */
-    NULL,                                        /* tp_getattr */
-    NULL,                                        /* tp_setattr */
-    NULL,                                        /* tp_compare */
-    (reprfunc)Buffer_repr,                       /* tp_repr */
-    NULL,                                        /* tp_as_number */
-    &Buffer_SeqMethods,                          /* tp_as_sequence */
-    &Buffer_AsMapping,                           /* PyMappingMethods *tp_as_mapping; */
-
-    /* More standard operations (here for binary compatibility) */
-
-    NULL, /* hashfunc tp_hash; */
-    NULL, /* ternaryfunc tp_call; */
-    NULL, /* reprfunc tp_str; */
-    NULL, /* getattrofunc tp_getattro; */
-    NULL, /* setattrofunc tp_setattro; */
-
-    /* Functions to access object as input/output buffer */
-    NULL, /* PyBufferProcs *tp_as_buffer; */
-
-    /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT, /* long tp_flags; */
-
-    NULL, /*  char *tp_doc;  Documentation string */
-    /*** Assigned meaning in release 2.0 ***/
-    /* call function for all accessible objects */
-    NULL, /* traverseproc tp_traverse; */
-
-    /* delete references to contained objects */
-    NULL, /* inquiry tp_clear; */
-
-    /***  Assigned meaning in release 2.1 ***/
-    /*** rich comparisons ***/
-    NULL, /* richcmpfunc tp_richcompare; */
-
-    /***  weak reference enabler ***/
-    0, /* long tp_weaklistoffset; */
-
-    /*** Added in release 2.2 ***/
-    /*   Iterators */
-    NULL, /* getiterfunc tp_iter; */
-    NULL, /* iternextfunc tp_iternext; */
-    /*** Attribute descriptor and subclassing stuff ***/
-    Buffer_methods,   /* struct PyMethodDef *tp_methods; */
-    NULL,             /* struct PyMemberDef *tp_members; */
-    Buffer_getseters, /* struct PyGetSetDef *tp_getset; */
-    NULL,             /*tp_base*/
-    NULL,             /*tp_dict*/
-    NULL,             /*tp_descr_get*/
-    NULL,             /*tp_descr_set*/
-    0,                /*tp_dictoffset*/
-    NULL,             /*tp_init*/
-    NULL,             /*tp_alloc*/
-    Buffer_new,       /*tp_new*/
-    NULL,             /*tp_free*/
-    NULL,             /*tp_is_gc*/
-    NULL,             /*tp_bases*/
-    NULL,             /*tp_mro*/
-    NULL,             /*tp_cache*/
-    NULL,             /*tp_subclasses*/
-    NULL,             /*tp_weaklist*/
-    NULL,             /*tp_del*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "bgl.Buffer",
+    /*tp_basicsize*/ sizeof(Buffer),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)Buffer_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Buffer_repr,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ &Buffer_SeqMethods,
+    /*tp_as_mapping*/ &Buffer_AsMapping,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ NULL,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ NULL,
+    /*tp_traverse*/ NULL,
+    /*tp_clear*/ NULL,
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Buffer_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Buffer_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Buffer_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 static Buffer *BGL_MakeBuffer_FromData(
@@ -811,12 +794,12 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 
 /* Buffer sequence methods */
 
-static int Buffer_len(Buffer *self)
+static Py_ssize_t Buffer_len(Buffer *self)
 {
   return self->dimensions[0];
 }
 
-static PyObject *Buffer_item(Buffer *self, int i)
+static PyObject *Buffer_item(Buffer *self, Py_ssize_t i)
 {
   if (i >= self->dimensions[0] || i < 0) {
     PyErr_SetString(PyExc_IndexError, "array index out of range");
@@ -854,10 +837,9 @@ static PyObject *Buffer_item(Buffer *self, int i)
   return NULL;
 }
 
-static PyObject *Buffer_slice(Buffer *self, int begin, int end)
+static PyObject *Buffer_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end)
 {
   PyObject *list;
-  int count;
 
   if (begin < 0) {
     begin = 0;
@@ -871,13 +853,13 @@ static PyObject *Buffer_slice(Buffer *self, int begin, int end)
 
   list = PyList_New(end - begin);
 
-  for (count = begin; count < end; count++) {
+  for (Py_ssize_t count = begin; count < end; count++) {
     PyList_SET_ITEM(list, count - begin, Buffer_item(self, count));
   }
   return list;
 }
 
-static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
+static int Buffer_ass_item(Buffer *self, Py_ssize_t i, PyObject *v)
 {
   if (i >= self->dimensions[0] || i < 0) {
     PyErr_SetString(PyExc_IndexError, "array assignment index out of range");
@@ -912,10 +894,11 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
   }
 }
 
-static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
+static int Buffer_ass_slice(Buffer *self, Py_ssize_t begin, Py_ssize_t end, PyObject *seq)
 {
   PyObject *item;
-  int count, err = 0;
+  int err = 0;
+  Py_ssize_t count;
 
   if (begin < 0) {
     begin = 0;
@@ -935,7 +918,7 @@ static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
     return -1;
   }
 
-  /* re-use count var */
+  /* Re-use count variable. */
   if ((count = PySequence_Size(seq)) != (end - begin)) {
     PyErr_Format(PyExc_TypeError,
                  "buffer[:] = value, size mismatch in assignment. "
@@ -1393,14 +1376,14 @@ BGL_Wrap(TexImage3DMultisample,
 
 static struct PyModuleDef BGL_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bgl", /* m_name */
-    NULL,  /* m_doc */
-    0,     /* m_size */
-    NULL,  /* m_methods */
-    NULL,  /* m_slots */
-    NULL,  /* m_traverse */
-    NULL,  /* m_clear */
-    NULL,  /* m_free */
+    /*m_name*/ "bgl",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 static void py_module_dict_add_int(PyObject *dict, const char *name, int value)

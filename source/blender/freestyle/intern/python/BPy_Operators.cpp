@@ -756,43 +756,44 @@ static PyMethodDef BPy_Operators_methods[] = {
 /*-----------------------BPy_Operators type definition ------------------------------*/
 
 PyTypeObject Operators_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Operators", /* tp_name */
-    sizeof(BPy_Operators),                         /* tp_basicsize */
-    0,                                             /* tp_itemsize */
-    (destructor)Operators_dealloc,                 /* tp_dealloc */
-    0,                                             /* tp_vectorcall_offset */
-    nullptr,                                       /* tp_getattr */
-    nullptr,                                       /* tp_setattr */
-    nullptr,                                       /* tp_reserved */
-    nullptr,                                       /* tp_repr */
-    nullptr,                                       /* tp_as_number */
-    nullptr,                                       /* tp_as_sequence */
-    nullptr,                                       /* tp_as_mapping */
-    nullptr,                                       /* tp_hash */
-    nullptr,                                       /* tp_call */
-    nullptr,                                       /* tp_str */
-    nullptr,                                       /* tp_getattro */
-    nullptr,                                       /* tp_setattro */
-    nullptr,                                       /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                            /* tp_flags */
-    Operators_doc,                                 /* tp_doc */
-    nullptr,                                       /* tp_traverse */
-    nullptr,                                       /* tp_clear */
-    nullptr,                                       /* tp_richcompare */
-    0,                                             /* tp_weaklistoffset */
-    nullptr,                                       /* tp_iter */
-    nullptr,                                       /* tp_iternext */
-    BPy_Operators_methods,                         /* tp_methods */
-    nullptr,                                       /* tp_members */
-    nullptr,                                       /* tp_getset */
-    nullptr,                                       /* tp_base */
-    nullptr,                                       /* tp_dict */
-    nullptr,                                       /* tp_descr_get */
-    nullptr,                                       /* tp_descr_set */
-    0,                                             /* tp_dictoffset */
-    nullptr,                                       /* tp_init */
-    nullptr,                                       /* tp_alloc */
-    PyType_GenericNew,                             /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "Operators",
+    /*tp_basicsize*/ sizeof(BPy_Operators),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)Operators_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ Operators_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_Operators_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ nullptr,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ nullptr,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

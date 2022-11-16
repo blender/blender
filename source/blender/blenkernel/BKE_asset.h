@@ -23,6 +23,9 @@ struct ID;
 struct IDProperty;
 struct PreviewImage;
 
+/** C handle for #bke::AssetRepresentation. */
+typedef struct AssetRepresentation AssetRepresentation;
+
 typedef void (*PreSaveFn)(void *asset_ptr, struct AssetMetaData *asset_data);
 
 typedef struct AssetTypeInfo {
@@ -68,6 +71,22 @@ struct PreviewImage *BKE_asset_metadata_preview_get_from_id(const struct AssetMe
 void BKE_asset_metadata_write(struct BlendWriter *writer, struct AssetMetaData *asset_data);
 void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaData *asset_data);
 
+const char *BKE_asset_representation_name_get(const AssetRepresentation *asset)
+    ATTR_WARN_UNUSED_RESULT;
+AssetMetaData *BKE_asset_representation_metadata_get(const AssetRepresentation *asset)
+    ATTR_WARN_UNUSED_RESULT;
+bool BKE_asset_representation_is_local_id(const AssetRepresentation *asset)
+    ATTR_WARN_UNUSED_RESULT;
+
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+#  include <memory>
+
+[[nodiscard]] std::unique_ptr<AssetMetaData> BKE_asset_metadata_move_to_unique_ptr(
+    AssetMetaData *asset_data);
+
 #endif

@@ -89,8 +89,8 @@ struct CompoJob {
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
   /* Jon system integration. */
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 };
 
@@ -166,7 +166,7 @@ static int compo_get_recalc_flags(const bContext *C)
 }
 
 /* called by compo, only to check job 'stop' value */
-static int compo_breakjob(void *cjv)
+static bool compo_breakjob(void *cjv)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
@@ -250,8 +250,8 @@ static void compo_progressjob(void *cjv, float progress)
 static void compo_startjob(void *cjv,
                            /* Cannot be const, this function implements wm_jobs_start_callback.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   CompoJob *cj = (CompoJob *)cjv;
@@ -502,6 +502,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
     }
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ma->nodetree->owner_id = &ma->id;
     BKE_ntree_update_main_tree(bmain, ma->nodetree, nullptr);
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
@@ -736,26 +737,7 @@ void ED_node_set_active(
          * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
         if (node->id != nullptr && GS(node->id->name) == ID_IM) {
           Image *image = (Image *)node->id;
-          wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-          LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-            const bScreen *screen = WM_window_get_active_screen(win);
-            LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-              LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-                if (sl->spacetype != SPACE_IMAGE) {
-                  continue;
-                }
-                SpaceImage *sima = (SpaceImage *)sl;
-                if (sima->pin) {
-                  continue;
-                }
-                if (sima->image &&
-                    ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-                  continue;
-                }
-                ED_space_image_set(bmain, sima, image, true);
-              }
-            }
-          }
+          ED_space_image_sync(bmain, image, true);
         }
 
         if (r_active_texture_changed) {

@@ -225,8 +225,9 @@ set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
 set(CERTIFI_VERSION 2021.10.8)
 set(REQUESTS_VERSION 2.27.1)
 set(CYTHON_VERSION 0.29.26)
-# The version of the zstd library used to build the Python package should match ZSTD_VERSION defined below.
-# At this time of writing, 0.17.0 was already released, but built against zstd 1.5.1, while we use 1.5.0.
+# The version of the zstd library used to build the Python package should match ZSTD_VERSION
+# defined below. At this time of writing, 0.17.0 was already released,
+# but built against zstd 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
 set(AUTOPEP8_VERSION 1.6.0)
 set(PYCODESTYLE_VERSION 2.8.0)
@@ -371,10 +372,10 @@ set(PYSTRING_HASH f2c68786b359f5e4e62bed53bc4fb86d)
 set(PYSTRING_HASH_TYPE MD5)
 set(PYSTRING_FILE pystring-${PYSTRING_VERSION}.tar.gz)
 
-set(EXPAT_VERSION 2_4_9)
-set(EXPAT_VERSION_DOTS 2.4.9)
+set(EXPAT_VERSION 2_5_0)
+set(EXPAT_VERSION_DOTS 2.5.0)
 set(EXPAT_URI https://github.com/libexpat/libexpat/archive/R_${EXPAT_VERSION}.tar.gz)
-set(EXPAT_HASH b59a2aa796be1ee177bbab3b7231dfa5)
+set(EXPAT_HASH d375fa3571c0abb945873f5061a8f2e2)
 set(EXPAT_HASH_TYPE MD5)
 set(EXPAT_FILE libexpat-${EXPAT_VERSION}.tar.gz)
 set(EXPAT_CPE "cpe:2.3:a:libexpat_project:libexpat:${EXPAT_VERSION_DOTS}:*:*:*:*:*:*:*")

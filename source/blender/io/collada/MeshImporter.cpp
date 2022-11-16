@@ -564,7 +564,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   /* set default flags */
   medge = &edges[mesh->totedge];
   for (int i = 0; i < len; i++, medge++) {
-    medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
+    medge->flag = ME_EDGEDRAW;
   }
 
   mesh->totedge = totedge;

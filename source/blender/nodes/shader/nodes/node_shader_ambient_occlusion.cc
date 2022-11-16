@@ -66,8 +66,8 @@ void register_node_type_sh_ambient_occlusion()
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ambient_occlusion;
-  node_type_init(&ntype, file_ns::node_shader_init_ambient_occlusion);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_ambient_occlusion);
+  ntype.initfunc = file_ns::node_shader_init_ambient_occlusion;
+  ntype.gpu_fn = file_ns::node_shader_gpu_ambient_occlusion;
 
   nodeRegisterType(&ntype);
 }

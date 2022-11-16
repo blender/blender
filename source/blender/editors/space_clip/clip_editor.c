@@ -676,8 +676,8 @@ typedef struct PrefetchQueue {
 
   SpinLock spin;
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 } PrefetchQueue;
 
@@ -819,7 +819,7 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
                            (queue->initial_frame - queue->current_frame);
       }
 
-      *queue->do_update = 1;
+      *queue->do_update = true;
       *queue->progress = (float)frames_processed / (queue->end_frame - queue->start_frame);
     }
   }
@@ -868,7 +868,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
 
     if (!result) {
       /* no more space in the cache, stop reading frames */
-      *queue->stop = 1;
+      *queue->stop = true;
       break;
     }
   }
@@ -880,8 +880,8 @@ static void start_prefetch_threads(MovieClip *clip,
                                    int end_frame,
                                    short render_size,
                                    short render_flag,
-                                   short *stop,
-                                   short *do_update,
+                                   bool *stop,
+                                   bool *do_update,
                                    float *progress)
 {
   int tot_thread = BLI_task_scheduler_num_threads();
@@ -918,7 +918,7 @@ static bool prefetch_movie_frame(MovieClip *clip,
                                  int frame,
                                  short render_size,
                                  short render_flag,
-                                 short *stop)
+                                 bool *stop)
 {
   MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
 
@@ -940,14 +940,14 @@ static bool prefetch_movie_frame(MovieClip *clip,
 
       if (!result) {
         /* no more space in the cache, we could stop prefetching here */
-        *stop = 1;
+        *stop = true;
       }
 
       IMB_freeImBuf(ibuf);
     }
     else {
       /* error reading frame, fair enough stop attempting further reading */
-      *stop = 1;
+      *stop = true;
     }
   }
 
@@ -961,8 +961,8 @@ static void do_prefetch_movie(MovieClip *clip,
                               int end_frame,
                               short render_size,
                               short render_flag,
-                              short *stop,
-                              short *do_update,
+                              bool *stop,
+                              bool *do_update,
                               float *progress)
 {
   int frame;
@@ -976,7 +976,7 @@ static void do_prefetch_movie(MovieClip *clip,
 
     frames_processed++;
 
-    *do_update = 1;
+    *do_update = true;
     *progress = (float)frames_processed / (end_frame - start_frame);
   }
 
@@ -988,12 +988,12 @@ static void do_prefetch_movie(MovieClip *clip,
 
     frames_processed++;
 
-    *do_update = 1;
+    *do_update = true;
     *progress = (float)frames_processed / (end_frame - start_frame);
   }
 }
 
-static void prefetch_startjob(void *pjv, short *stop, short *do_update, float *progress)
+static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   PrefetchJob *pj = pjv;
 

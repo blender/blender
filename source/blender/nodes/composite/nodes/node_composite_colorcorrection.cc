@@ -353,7 +353,7 @@ void register_node_type_cmp_colorcorrection()
   ntype.draw_buttons = file_ns::node_composit_buts_colorcorrection;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorcorrection_ex;
   node_type_size(&ntype, 400, 200, 600);
-  node_type_init(&ntype, file_ns::node_composit_init_colorcorrection);
+  ntype.initfunc = file_ns::node_composit_init_colorcorrection;
   node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

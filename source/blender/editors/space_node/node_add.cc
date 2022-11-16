@@ -30,6 +30,7 @@
 
 #include "DEG_depsgraph_build.h"
 
+#include "ED_asset.h"
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -244,38 +245,36 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 /** \name Add Node Group Operator
  * \{ */
 
-static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
-                                                              wmOperator *op,
-                                                              bNodeTree *ntree)
+static bool node_group_add_poll(const bNodeTree &node_tree,
+                                const bNodeTree &node_group,
+                                ReportList &reports)
 {
-  bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_NT));
-  if (!node_group) {
-    return nullptr;
+  if (node_group.type != node_tree.type) {
+    return false;
   }
 
   const char *disabled_hint = nullptr;
-  if ((node_group->type != ntree->type) || !nodeGroupPoll(ntree, node_group, &disabled_hint)) {
+  if (!nodeGroupPoll(&node_tree, &node_group, &disabled_hint)) {
     if (disabled_hint) {
-      BKE_reportf(op->reports,
+      BKE_reportf(&reports,
                   RPT_ERROR,
                   "Can not add node group '%s' to '%s':\n  %s",
-                  node_group->id.name + 2,
-                  ntree->id.name + 2,
+                  node_group.id.name + 2,
+                  node_tree.id.name + 2,
                   disabled_hint);
     }
     else {
-      BKE_reportf(op->reports,
+      BKE_reportf(&reports,
                   RPT_ERROR,
                   "Can not add node group '%s' to '%s'",
-                  node_group->id.name + 2,
-                  ntree->id.name + 2);
+                  node_group.id.name + 2,
+                  node_tree.id.name + 2);
     }
 
-    return nullptr;
+    return false;
   }
 
-  return node_group;
+  return true;
 }
 
 static int node_add_group_exec(bContext *C, wmOperator *op)
@@ -284,8 +283,12 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
 
-  bNodeTree *node_group = node_add_group_get_and_poll_group_node_tree(bmain, op, ntree);
+  bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_NT));
   if (!node_group) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!node_group_add_poll(*ntree, *node_group, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -320,9 +323,8 @@ static bool node_add_group_poll(bContext *C)
   }
   const SpaceNode *snode = CTX_wm_space_node(C);
   if (snode->edittree->type == NTREE_CUSTOM) {
-    CTX_wm_operator_poll_msg_set(C,
-                                 "This node editor displays a custom (Python defined) node tree. "
-                                 "Dropping node groups isn't supported for this");
+    CTX_wm_operator_poll_msg_set(
+        C, "Adding node groups isn't supported for custom (Python defined) node trees");
     return false;
   }
   return true;
@@ -367,6 +369,105 @@ void NODE_OT_add_group(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Add Node Group Asset Operator
+ * \{ */
+
+static bool add_node_group_asset(const bContext &C,
+                                 const AssetLibraryReference &library_ref,
+                                 const AssetHandle asset,
+                                 ReportList &reports)
+{
+  Main &bmain = *CTX_data_main(&C);
+  SpaceNode &snode = *CTX_wm_space_node(&C);
+  bNodeTree &edit_tree = *snode.edittree;
+
+  bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
+      asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset));
+  if (!node_group) {
+    return false;
+  }
+  if (!node_group_add_poll(edit_tree, *node_group, reports)) {
+    /* Remove the node group if it was newly appended but can't be added to the tree. */
+    id_us_plus(&node_group->id);
+    BKE_id_free_us(&bmain, node_group);
+    return false;
+  }
+
+  ED_preview_kill_jobs(CTX_wm_manager(&C), CTX_data_main(&C));
+
+  bNode *group_node = add_node(
+      C, ntreeTypeFind(node_group->idname)->group_idname, snode.runtime->cursor);
+  if (!group_node) {
+    BKE_report(&reports, RPT_WARNING, "Could not add node group");
+    return false;
+  }
+  /* By default, don't show the data-block selector since it's not usually necessary for assets. */
+  group_node->flag &= ~NODE_OPTIONS;
+
+  group_node->id = &node_group->id;
+  id_us_plus(group_node->id);
+  BKE_ntree_update_tag_node_property(&edit_tree, group_node);
+
+  nodeSetActive(&edit_tree, group_node);
+  ED_node_tree_propagate_change(&C, &bmain, nullptr);
+  DEG_relations_tag_update(&bmain);
+
+  return true;
+}
+
+static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion &region = *CTX_wm_region(C);
+  SpaceNode &snode = *CTX_wm_space_node(C);
+
+  const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
+  if (!library_ref) {
+    return OPERATOR_CANCELLED;
+  }
+  bool is_valid;
+  const AssetHandle handle = CTX_wm_asset_handle(C, &is_valid);
+  if (!is_valid) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region.v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode.runtime->cursor[0],
+                           &snode.runtime->cursor[1]);
+
+  snode.runtime->cursor /= UI_DPI_FAC;
+
+  if (!add_node_group_asset(*C, *library_ref, handle, *op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  wmOperatorType *ot = WM_operatortype_find("NODE_OT_translate_attach_remove_on_cancel", true);
+  BLI_assert(ot);
+  PointerRNA ptr;
+  WM_operator_properties_create_ptr(&ptr, ot);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
+  WM_operator_properties_free(&ptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_add_group_asset(wmOperatorType *ot)
+{
+  ot->name = "Add Node Group Asset";
+  ot->description = "Add a node group asset to the active node tree";
+  ot->idname = "NODE_OT_add_group_asset";
+
+  ot->invoke = node_add_group_asset_invoke;
+  ot->poll = node_add_group_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Add Node Object Operator
  * \{ */
 
@@ -393,7 +494,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
 
   bNodeSocket *sock = nodeFindSocket(object_node, SOCK_IN, "Object");
   if (!sock) {
-    BKE_report(op->reports, RPT_WARNING, "Could not find node object socket");
+    BLI_assert_unreachable();
     return OPERATOR_CANCELLED;
   }
 

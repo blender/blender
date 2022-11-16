@@ -59,7 +59,7 @@ void ShaderBuilder::init()
       break;
   }
 
-  ghost_system_ = GHOST_CreateSystem();
+  ghost_system_ = GHOST_CreateSystemBackground();
   ghost_context_ = GHOST_CreateOpenGLContext(ghost_system_, glSettings);
   GHOST_ActivateOpenGLContext(ghost_context_);
 

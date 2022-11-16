@@ -50,9 +50,9 @@ void register_node_type_tex_valtorgb(void)
   tex_node_type_base(&ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, valtorgb_init);
+  ntype.initfunc = valtorgb_init;
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, NULL, NULL, valtorgb_exec);
+  ntype.exec_fn = valtorgb_exec;
 
   nodeRegisterType(&ntype);
 }
@@ -91,7 +91,7 @@ void register_node_type_tex_rgbtobw(void)
 
   tex_node_type_base(&ntype, TEX_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, rgbtobw_in, rgbtobw_out);
-  node_type_exec(&ntype, NULL, NULL, rgbtobw_exec);
+  ntype.exec_fn = rgbtobw_exec;
 
   nodeRegisterType(&ntype);
 }

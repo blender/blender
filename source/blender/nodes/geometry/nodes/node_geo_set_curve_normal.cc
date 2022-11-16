@@ -66,7 +66,7 @@ void register_node_type_geo_set_curve_normal()
   geo_node_type_base(&ntype, GEO_NODE_SET_CURVE_NORMAL, "Set Curve Normal", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.draw_buttons = file_ns::node_layout;
 
   nodeRegisterType(&ntype);

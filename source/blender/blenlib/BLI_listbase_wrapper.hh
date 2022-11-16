@@ -75,7 +75,7 @@ template<typename T> class ListBaseWrapper {
     return Iterator(listbase_, nullptr);
   }
 
-  T get(uint index) const
+  T *get(uint index) const
   {
     void *ptr = BLI_findlink(listbase_, index);
     BLI_assert(ptr);

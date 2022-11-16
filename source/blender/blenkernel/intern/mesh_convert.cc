@@ -119,7 +119,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
 
-      medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
+      medge->flag = ME_EDGEDRAW;
     }
     BLI_edgehashIterator_free(ehi);
 
@@ -223,7 +223,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         for (b = 1; b < dl->nr; b++) {
           medge->v1 = startvert + ofs + b - 1;
           medge->v2 = startvert + ofs + b;
-          medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
+          medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
 
           medge++;
         }
@@ -251,7 +251,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
             else {
               medge->v2 = startvert + ofs + b + 1;
             }
-            medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
+            medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
             medge++;
           }
         }
@@ -706,7 +706,7 @@ void BKE_mesh_edges_set_draw_render(Mesh *mesh)
 {
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   for (int i = 0; i < mesh->totedge; i++) {
-    edges[i].flag |= ME_EDGEDRAW | ME_EDGERENDER;
+    edges[i].flag |= ME_EDGEDRAW;
   }
 }
 

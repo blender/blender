@@ -307,7 +307,7 @@ class AssetCatalogTreeItem {
 
   /** Iterate over children calling \a callback for each of them, but do not recurse into their
    * children. */
-  void foreach_child(const ItemIterFn callback);
+  void foreach_child(ItemIterFn callback);
 
  protected:
   /** Child tree items, ordered by their names. */
@@ -345,10 +345,15 @@ class AssetCatalogTree {
   /** Ensure an item representing \a path is in the tree, adding it if necessary. */
   void insert_item(const AssetCatalog &catalog);
 
-  void foreach_item(const AssetCatalogTreeItem::ItemIterFn callback);
+  void foreach_item(ItemIterFn callback);
   /** Iterate over root items calling \a callback for each of them, but do not recurse into their
    * children. */
-  void foreach_root_item(const ItemIterFn callback);
+  void foreach_root_item(ItemIterFn callback);
+
+  bool is_empty() const;
+
+  AssetCatalogTreeItem *find_item(const AssetCatalogPath &path);
+  AssetCatalogTreeItem *find_root_item(const AssetCatalogPath &path);
 
  protected:
   /** Child tree items, ordered by their names. */

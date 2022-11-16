@@ -32,7 +32,7 @@ void Camera::init()
 
   CameraData &data = data_;
 
-  if (camera_eval) {
+  if (camera_eval && camera_eval->type == OB_CAMERA) {
     const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
     switch (cam->type) {
       default:
@@ -112,7 +112,7 @@ void Camera::sync()
     data.uv_bias = float2(0.0f);
   }
 
-  if (camera_eval) {
+  if (camera_eval && camera_eval->type == OB_CAMERA) {
     const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;

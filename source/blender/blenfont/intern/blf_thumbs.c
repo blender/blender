@@ -46,7 +46,7 @@ typedef struct UnicodeSample {
  * those need to be checked last. */
 static const UnicodeSample unicode_samples[] = {
     /* Chinese, Japanese, Korean, ordered specific to general. */
-    {U"\uc870\uc120\uae00", 2, TT_UCR_HANGUL},                 /* 조선글 */
+    {U"\ud55c\uad6d\uc5b4", 2, TT_UCR_HANGUL},                 /* 한국어 */
     {U"\u3042\u30a2\u4e9c", 2, TT_UCR_HIRAGANA},               /* あア亜 */
     {U"\u30a2\u30a4\u4e9c", 2, TT_UCR_KATAKANA},               /* アイ亜 */
     {U"\u1956\u195b\u1966", 3, TT_UCR_TAI_LE},                 /* ᥖᥛᥦ */

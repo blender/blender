@@ -110,7 +110,6 @@ struct NavigateWidgetGroup {
   struct {
     rcti rect_visible;
   } state;
-  int region_size[2];
 };
 
 static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
@@ -144,9 +143,6 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
 static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
   NavigateWidgetGroup *navgroup = MEM_cnew<NavigateWidgetGroup>(__func__);
-
-  navgroup->region_size[0] = -1;
-  navgroup->region_size[1] = -1;
 
   const struct NavigateGizmoInfo *navigate_params = navigate_params_from_space_type(
       gzgroup->type->gzmap_params.spaceid);

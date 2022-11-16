@@ -155,8 +155,10 @@ void register_node_type_tex_group(void)
 
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  node_type_group_update(&ntype, node_group_update);
-  node_type_exec(&ntype, group_initexec, group_freeexec, group_execute);
+  ntype.group_update_func = node_group_update;
+  ntype.init_exec_fn = group_initexec;
+  ntype.free_exec_fn = group_freeexec;
+  ntype.exec_fn = group_execute;
 
   nodeRegisterType(&ntype);
 }

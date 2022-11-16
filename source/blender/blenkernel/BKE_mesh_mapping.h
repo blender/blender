@@ -63,6 +63,10 @@ typedef struct UvElement {
  * If islands are calculated, it also stores UvElements
  * belonging to the same uv island in sequence and
  * the number of uvs per island.
+ *
+ * \note in C++, #head_table and #unique_index_table would
+ * be `mutable`, as they are created on demand, and never
+ * changed after creation.
  */
 typedef struct UvElementMap {
   /** UvElement Storage. */
@@ -77,6 +81,9 @@ typedef struct UvElementMap {
 
   /** If Non-NULL, pointer to local head of each unique UV. */
   struct UvElement **head_table;
+
+  /** If Non-NULL, pointer to index of each unique UV. */
+  int *unique_index_table;
 
   /** Number of islands, or zero if not calculated. */
   int total_islands;
@@ -336,6 +343,9 @@ int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
 #endif
 
 #ifdef __cplusplus
+
+#  include "DNA_meshdata_types.h" /* MPoly */
+
 namespace blender::bke::mesh_topology {
 
 Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);

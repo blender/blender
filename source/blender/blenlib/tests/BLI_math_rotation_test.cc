@@ -3,6 +3,7 @@
 #include "testing/testing.h"
 
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
@@ -136,6 +137,21 @@ TEST(math_rotation, quat_to_mat_to_quat_near_0001)
   test_quat_to_mat_to_quat(0.20f, -0.020f, -0.20f, 0.98f);
   test_quat_to_mat_to_quat(0.25f, -0.025f, -0.25f, 0.97f);
   test_quat_to_mat_to_quat(0.30f, -0.030f, -0.30f, 0.95f);
+}
+
+/* A zeroed matrix converted to a quaternion and back should not add rotation, see: T101848 */
+TEST(math_rotation, quat_to_mat_to_quat_zeroed_matrix)
+{
+  float matrix_zeroed[3][3] = {{0.0f}};
+  float matrix_result[3][3];
+  float matrix_unit[3][3];
+  float out_quat[4];
+
+  unit_m3(matrix_unit);
+  mat3_normalized_to_quat(out_quat, matrix_zeroed);
+  quat_to_mat3(matrix_result, out_quat);
+
+  EXPECT_M3_NEAR(matrix_unit, matrix_result, FLT_EPSILON);
 }
 
 TEST(math_rotation, quat_split_swing_and_twist_negative)

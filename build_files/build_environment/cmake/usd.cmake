@@ -58,8 +58,9 @@ set(USD_EXTRA_ARGS
   -DPXR_BUILD_USD_TOOLS=OFF
   -DCMAKE_DEBUG_POSTFIX=_d
   -DBUILD_SHARED_LIBS=Off
-  # USD is hellbound on making a shared lib, unless you point this variable to a valid cmake file
-  # doesn't have to make sense, but as long as it points somewhere valid it will skip the shared lib.
+  # USD is hellbound on making a shared library,
+  # unless you point this variable to a valid CMAKE file doesn't have to make sense,
+  # but as long as it points somewhere valid it will skip the shared library.
   -DPXR_MONOLITHIC_IMPORT=${BUILD_DIR}/usd/src/external_usd/cmake/defaults/Version.cmake
   -DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
@@ -86,7 +87,8 @@ add_dependencies(
   external_opensubdiv
 )
 
-# Since USD 21.11 the libraries are prefixed with "usd_", i.e. "libusd_m.a" became "libusd_usd_m.a".
+# Since USD 21.11 the libraries are prefixed with "usd_", i.e.
+# "libusd_m.a" became "libusd_usd_m.a".
 # See https://github.com/PixarAnimationStudios/USD/blob/release/CHANGELOG.md#2111---2021-11-01
 if(NOT WIN32)
   if (USD_VERSION VERSION_LESS 21.11)

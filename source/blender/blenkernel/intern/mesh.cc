@@ -1608,38 +1608,6 @@ void BKE_mesh_tessface_clear(Mesh *mesh)
   mesh_tessface_clear_intern(mesh, true);
 }
 
-void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
-{
-  if (UNLIKELY(mesh->cd_flag)) {
-    return;
-  }
-
-  const Span<MVert> verts = mesh->verts();
-  const Span<MEdge> edges = mesh->edges();
-
-  for (const MVert &vert : verts) {
-    if (vert.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-      break;
-    }
-  }
-
-  for (const MEdge &edge : edges) {
-    if (edge.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
-        break;
-      }
-    }
-    if (edge.crease_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-        break;
-      }
-    }
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /* MSelect functions (currently used in weight paint mode) */
 
@@ -1861,9 +1829,9 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               polys.size(),
                               use_split_normals,
                               split_angle,
+                              nullptr,
                               r_lnors_spacearr,
-                              clnors,
-                              nullptr);
+                              clnors);
 
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }

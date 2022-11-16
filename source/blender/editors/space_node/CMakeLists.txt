@@ -29,6 +29,7 @@ set(INC
 
 set(SRC
   add_node_search.cc
+  add_menu_assets.cc
   drawnode.cc
   link_drag_search.cc
   node_add.cc

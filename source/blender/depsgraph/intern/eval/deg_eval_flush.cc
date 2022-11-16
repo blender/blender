@@ -284,7 +284,7 @@ void invalidate_tagged_evaluated_transform(ID *id)
   switch (id_type) {
     case ID_OB: {
       Object *object = (Object *)id;
-      copy_vn_fl((float *)object->obmat, 16, NAN);
+      copy_vn_fl((float *)object->object_to_world, 16, NAN);
       break;
     }
     default:

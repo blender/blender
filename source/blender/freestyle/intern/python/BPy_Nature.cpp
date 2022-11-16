@@ -23,40 +23,42 @@ static PyObject *BPy_Nature_or(PyObject *a, PyObject *b);
 /*-----------------------BPy_Nature number method definitions --------------------*/
 
 static PyNumberMethods nature_as_number = {
-    nullptr,                    /* binaryfunc nb_add */
-    nullptr,                    /* binaryfunc nb_subtract */
-    nullptr,                    /* binaryfunc nb_multiply */
-    nullptr,                    /* binaryfunc nb_remainder */
-    nullptr,                    /* binaryfunc nb_divmod */
-    nullptr,                    /* ternaryfunc nb_power */
-    nullptr,                    /* unaryfunc nb_negative */
-    nullptr,                    /* unaryfunc nb_positive */
-    nullptr,                    /* unaryfunc nb_absolute */
-    nullptr,                    /* inquiry nb_bool */
-    nullptr,                    /* unaryfunc nb_invert */
-    nullptr,                    /* binaryfunc nb_lshift */
-    nullptr,                    /* binaryfunc nb_rshift */
-    (binaryfunc)BPy_Nature_and, /* binaryfunc nb_and */
-    (binaryfunc)BPy_Nature_xor, /* binaryfunc nb_xor */
-    (binaryfunc)BPy_Nature_or,  /* binaryfunc nb_or */
-    nullptr,                    /* unaryfunc nb_int */
-    nullptr,                    /* void *nb_reserved */
-    nullptr,                    /* unaryfunc nb_float */
-    nullptr,                    /* binaryfunc nb_inplace_add */
-    nullptr,                    /* binaryfunc nb_inplace_subtract */
-    nullptr,                    /* binaryfunc nb_inplace_multiply */
-    nullptr,                    /* binaryfunc nb_inplace_remainder */
-    nullptr,                    /* ternaryfunc nb_inplace_power */
-    nullptr,                    /* binaryfunc nb_inplace_lshift */
-    nullptr,                    /* binaryfunc nb_inplace_rshift */
-    nullptr,                    /* binaryfunc nb_inplace_and */
-    nullptr,                    /* binaryfunc nb_inplace_xor */
-    nullptr,                    /* binaryfunc nb_inplace_or */
-    nullptr,                    /* binaryfunc nb_floor_divide */
-    nullptr,                    /* binaryfunc nb_true_divide */
-    nullptr,                    /* binaryfunc nb_inplace_floor_divide */
-    nullptr,                    /* binaryfunc nb_inplace_true_divide */
-    nullptr,                    /* unaryfunc nb_index */
+    /*nb_add*/ nullptr,
+    /*nb_subtract*/ nullptr,
+    /*nb_multiply*/ nullptr,
+    /*nb_remainder*/ nullptr,
+    /*nb_divmod*/ nullptr,
+    /*nb_power*/ nullptr,
+    /*nb_negative*/ nullptr,
+    /*nb_positive*/ nullptr,
+    /*nb_absolute*/ nullptr,
+    /*nb_bool*/ nullptr,
+    /*nb_invert*/ nullptr,
+    /*nb_lshift*/ nullptr,
+    /*nb_rshift*/ nullptr,
+    /*nb_and*/ (binaryfunc)BPy_Nature_and,
+    /*nb_xor*/ (binaryfunc)BPy_Nature_xor,
+    /*nb_or*/ (binaryfunc)BPy_Nature_or,
+    /*nb_int*/ nullptr,
+    /*nb_reserved*/ nullptr,
+    /*nb_float*/ nullptr,
+    /*nb_inplace_add*/ nullptr,
+    /*nb_inplace_subtract*/ nullptr,
+    /*nb_inplace_multiply*/ nullptr,
+    /*nb_inplace_remainder*/ nullptr,
+    /*nb_inplace_power*/ nullptr,
+    /*nb_inplace_lshift*/ nullptr,
+    /*nb_inplace_rshift*/ nullptr,
+    /*nb_inplace_and*/ nullptr,
+    /*nb_inplace_xor*/ nullptr,
+    /*nb_inplace_or*/ nullptr,
+    /*nb_floor_divide*/ nullptr,
+    /*nb_true_divide*/ nullptr,
+    /*nb_inplace_floor_divide*/ nullptr,
+    /*nb_inplace_true_divide*/ nullptr,
+    /*nb_index*/ nullptr,
+    /*nb_matrix_multiply*/ NULL,
+    /*nb_inplace_matrix_multiply*/ NULL,
 };
 
 /*-----------------------BPy_Nature docstring ------------------------------------*/
@@ -91,43 +93,44 @@ PyDoc_STRVAR(Nature_doc,
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyTypeObject Nature_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Nature", /* tp_name */
-    sizeof(PyLongObject),                       /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    nullptr,                                    /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    nullptr,                                    /* tp_getattr */
-    nullptr,                                    /* tp_setattr */
-    nullptr,                                    /* tp_reserved */
-    nullptr,                                    /* tp_repr */
-    &nature_as_number,                          /* tp_as_number */
-    nullptr,                                    /* tp_as_sequence */
-    nullptr,                                    /* tp_as_mapping */
-    nullptr,                                    /* tp_hash */
-    nullptr,                                    /* tp_call */
-    nullptr,                                    /* tp_str */
-    nullptr,                                    /* tp_getattro */
-    nullptr,                                    /* tp_setattro */
-    nullptr,                                    /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-    Nature_doc,                                 /* tp_doc */
-    nullptr,                                    /* tp_traverse */
-    nullptr,                                    /* tp_clear */
-    nullptr,                                    /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    nullptr,                                    /* tp_iter */
-    nullptr,                                    /* tp_iternext */
-    nullptr,                                    /* tp_methods */
-    nullptr,                                    /* tp_members */
-    nullptr,                                    /* tp_getset */
-    &PyLong_Type,                               /* tp_base */
-    nullptr,                                    /* tp_dict */
-    nullptr,                                    /* tp_descr_get */
-    nullptr,                                    /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    nullptr,                                    /* tp_init */
-    nullptr,                                    /* tp_alloc */
-    nullptr,                                    /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "Nature",
+    /*tp_basicsize*/ sizeof(PyLongObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ &nature_as_number,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ Nature_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ nullptr,
+    /*tp_base*/ &PyLong_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ nullptr,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
 };
 
 /*-----------------------BPy_Nature instance definitions ----------------------------------*/

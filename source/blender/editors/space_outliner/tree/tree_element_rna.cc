@@ -232,12 +232,13 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
 
   char c = RNA_property_array_item_char(TreeElementRNAArrayElement::getPropertyRNA(), index);
 
-  legacy_te_.name = static_cast<char *>(MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
+  const size_t name_size = sizeof(char[20]);
+  legacy_te_.name = static_cast<char *>(MEM_callocN(name_size, "OutlinerRNAArrayName"));
   if (c) {
-    sprintf((char *)legacy_te_.name, "  %c", c);
+    BLI_snprintf((char *)legacy_te_.name, name_size, "  %c", c);
   }
   else {
-    sprintf((char *)legacy_te_.name, "  %d", index + 1);
+    BLI_snprintf((char *)legacy_te_.name, name_size, "  %d", index + 1);
   }
   legacy_te_.flag |= TE_FREE_NAME;
 }

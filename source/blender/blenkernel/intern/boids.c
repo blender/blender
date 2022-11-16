@@ -959,7 +959,7 @@ void boids_precalc_rules(ParticleSettings *part, float cfra)
         if (flbr->ob && flbr->cfra != cfra) {
           /* save object locations for velocity calculations */
           copy_v3_v3(flbr->oloc, flbr->loc);
-          copy_v3_v3(flbr->loc, flbr->ob->obmat[3]);
+          copy_v3_v3(flbr->loc, flbr->ob->object_to_world[3]);
           flbr->cfra = cfra;
         }
       }

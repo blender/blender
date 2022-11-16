@@ -371,7 +371,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
         else { /* SEQ_RIGHTSEL */
           SEQ_time_right_handle_frame_set(scene, seq, snap_frame);
         }
-        SEQ_transform_fix_single_image_seq_offsets(scene, seq);
       }
     }
   }

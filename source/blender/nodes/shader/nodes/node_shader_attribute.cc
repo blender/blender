@@ -86,10 +86,10 @@ void register_node_type_sh_attribute()
   sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_attribute;
-  node_type_init(&ntype, file_ns::node_shader_init_attribute);
+  ntype.initfunc = file_ns::node_shader_init_attribute;
   node_type_storage(
       &ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_attribute);
+  ntype.gpu_fn = file_ns::node_shader_gpu_attribute;
 
   nodeRegisterType(&ntype);
 }

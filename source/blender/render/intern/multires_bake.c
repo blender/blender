@@ -89,7 +89,7 @@ typedef struct {
   char *texels;
   const MResolvePixelData *data;
   MFlushPixel flush_pixel;
-  short *do_update;
+  bool *do_update;
 } MBakeRast;
 
 typedef struct {
@@ -134,7 +134,7 @@ static void init_bake_rast(MBakeRast *bake_rast,
                            const ImBuf *ibuf,
                            const MResolvePixelData *data,
                            MFlushPixel flush_pixel,
-                           short *do_update)
+                           bool *do_update)
 {
   BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 

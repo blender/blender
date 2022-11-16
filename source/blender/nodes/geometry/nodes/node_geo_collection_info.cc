@@ -93,7 +93,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (!reset_children) {
         add_v3_v3(transform.values[3], child_collection->instance_offset);
         if (use_relative_transform) {
-          mul_m4_m4_pre(transform.values, self_object->imat);
+          mul_m4_m4_pre(transform.values, self_object->world_to_object);
         }
         else {
           sub_v3_v3(transform.values[3], collection->instance_offset);
@@ -107,12 +107,12 @@ static void node_geo_exec(GeoNodeExecParams params)
       float4x4 transform = float4x4::identity();
       if (!reset_children) {
         if (use_relative_transform) {
-          transform = self_object->imat;
+          transform = self_object->world_to_object;
         }
         else {
           sub_v3_v3(transform.values[3], collection->instance_offset);
         }
-        mul_m4_m4_post(transform.values, child_object->obmat);
+        mul_m4_m4_post(transform.values, child_object->object_to_world);
       }
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
@@ -130,7 +130,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     float4x4 transform = float4x4::identity();
     if (use_relative_transform) {
       copy_v3_v3(transform.values[3], collection->instance_offset);
-      mul_m4_m4_pre(transform.values, self_object->imat);
+      mul_m4_m4_pre(transform.values, self_object->world_to_object);
     }
 
     const int handle = instances->add_reference(*collection);
@@ -150,7 +150,7 @@ void register_node_type_geo_collection_info()
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_node_init);
+  ntype.initfunc = file_ns::node_node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,

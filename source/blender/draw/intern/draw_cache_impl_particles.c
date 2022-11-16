@@ -1346,7 +1346,7 @@ static void particle_batch_cache_ensure_pos(Object *object,
   sim.ob = object;
   sim.psys = psys;
   sim.psmd = psys_get_modifier(object, psys);
-  sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
@@ -1392,6 +1392,8 @@ static void particle_batch_cache_ensure_pos(Object *object,
   if (curr_point != psys->totpart) {
     GPU_vertbuf_data_resize(point_cache->pos, curr_point);
   }
+
+  psys_sim_data_free(&sim);
 }
 
 static void drw_particle_update_ptcache_edit(Object *object_eval,

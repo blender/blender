@@ -428,6 +428,8 @@ void wm_exit_schedule_delayed(const bContext *C)
   WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
+void UV_clipboard_free(void);
+
 void WM_exit_ex(bContext *C, const bool do_python)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
@@ -536,6 +538,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
   BKE_node_clipboard_free();
+  UV_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();

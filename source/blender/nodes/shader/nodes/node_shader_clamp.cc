@@ -76,8 +76,8 @@ void register_node_type_sh_clamp()
   sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, "Clamp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_clamp_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_clamp;
-  node_type_init(&ntype, file_ns::node_shader_init_clamp);
-  node_type_gpu(&ntype, file_ns::gpu_shader_clamp);
+  ntype.initfunc = file_ns::node_shader_init_clamp;
+  ntype.gpu_fn = file_ns::gpu_shader_clamp;
   ntype.build_multi_function = file_ns::sh_node_clamp_build_multi_function;
 
   nodeRegisterType(&ntype);

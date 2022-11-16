@@ -9,6 +9,7 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/optix/queue.h"
 #  include "device/optix/util.h"
+#  include "kernel/osl/globals.h"
 #  include "kernel/types.h"
 #  include "util/unique_ptr.h"
 
@@ -23,8 +24,16 @@ enum {
   PG_RGEN_INTERSECT_SHADOW,
   PG_RGEN_INTERSECT_SUBSURFACE,
   PG_RGEN_INTERSECT_VOLUME_STACK,
+  PG_RGEN_SHADE_BACKGROUND,
+  PG_RGEN_SHADE_LIGHT,
+  PG_RGEN_SHADE_SURFACE,
   PG_RGEN_SHADE_SURFACE_RAYTRACE,
   PG_RGEN_SHADE_SURFACE_MNEE,
+  PG_RGEN_SHADE_VOLUME,
+  PG_RGEN_SHADE_SHADOW,
+  PG_RGEN_EVAL_DISPLACE,
+  PG_RGEN_EVAL_BACKGROUND,
+  PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY,
   PG_MISS,
   PG_HITD, /* Default hit group. */
   PG_HITS, /* __SHADOW_RECORD_ALL__ hit group. */
@@ -40,14 +49,14 @@ enum {
 };
 
 static const int MISS_PROGRAM_GROUP_OFFSET = PG_MISS;
-static const int NUM_MIS_PROGRAM_GROUPS = 1;
+static const int NUM_MISS_PROGRAM_GROUPS = 1;
 static const int HIT_PROGAM_GROUP_OFFSET = PG_HITD;
 static const int NUM_HIT_PROGRAM_GROUPS = 8;
 static const int CALLABLE_PROGRAM_GROUPS_BASE = PG_CALL_SVM_AO;
 static const int NUM_CALLABLE_PROGRAM_GROUPS = 2;
 
 /* List of OptiX pipelines. */
-enum { PIP_SHADE_RAYTRACE, PIP_SHADE_MNEE, PIP_INTERSECT, NUM_PIPELINES };
+enum { PIP_SHADE, PIP_INTERSECT, NUM_PIPELINES };
 
 /* A single shader binding table entry. */
 struct SbtRecord {
@@ -61,12 +70,20 @@ class OptiXDevice : public CUDADevice {
   OptixModule optix_module = NULL; /* All necessary OptiX kernels are in one module. */
   OptixModule builtin_modules[2] = {};
   OptixPipeline pipelines[NUM_PIPELINES] = {};
+  OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
+  OptixPipelineCompileOptions pipeline_options = {};
 
-  bool motion_blur = false;
   device_vector<SbtRecord> sbt_data;
   device_only_memory<KernelParamsOptiX> launch_params;
-  OptixTraversableHandle tlas_handle = 0;
 
+#  ifdef WITH_OSL
+  OSLGlobals osl_globals;
+  vector<OptixModule> osl_modules;
+  vector<OptixProgramGroup> osl_groups;
+#  endif
+
+ private:
+  OptixTraversableHandle tlas_handle = 0;
   vector<unique_ptr<device_only_memory<char>>> delayed_free_bvh_memory;
   thread_mutex delayed_free_bvh_mutex;
 
@@ -100,12 +117,13 @@ class OptiXDevice : public CUDADevice {
   OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
   ~OptiXDevice();
 
- private:
   BVHLayoutMask get_bvh_layout_mask() const override;
 
-  string compile_kernel_get_common_cflags(const uint kernel_features) override;
+  string compile_kernel_get_common_cflags(const uint kernel_features);
 
   bool load_kernels(const uint kernel_features) override;
+
+  bool load_osl_kernels() override;
 
   bool build_optix_bvh(BVHOptiX *bvh,
                        OptixBuildOperation operation,
@@ -122,6 +140,8 @@ class OptiXDevice : public CUDADevice {
   void update_launch_params(size_t offset, void *data, size_t data_size);
 
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+
+  void *get_cpu_osl_memory() override;
 
   /* --------------------------------------------------------------------
    * Denoising.

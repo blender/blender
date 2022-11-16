@@ -142,7 +142,7 @@ typedef struct EEVEE_LightBake {
   struct GPUTexture *dummy_layer_color;
 
   int total, done; /* to compute progress */
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   /** For only handling the resources. */
@@ -778,7 +778,7 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
     }
 
     if (old_lbake->stop != NULL) {
-      *old_lbake->stop = 1;
+      *old_lbake->stop = true;
     }
     BLI_mutex_unlock(old_lbake->mutex);
   }
@@ -1359,13 +1359,13 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   DRW_custom_pipeline(&draw_engine_eevee_type, depsgraph, render_callback, lbake);
   lbake->done += 1;
   *lbake->progress = lbake->done / (float)lbake->total;
-  *lbake->do_update = 1;
+  *lbake->do_update = true;
   eevee_lightbake_context_disable(lbake);
 
   return true;
 }
 
-void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float *progress)
+void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *progress)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Depsgraph *depsgraph = lbake->depsgraph;
@@ -1394,8 +1394,8 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 
   /* Resource allocation can fail. Early exit in this case. */
   if (lbake->lcache->flag & LIGHTCACHE_INVALID) {
-    *lbake->stop = 1;
-    *lbake->do_update = 1;
+    *lbake->stop = true;
+    *lbake->do_update = true;
     lbake->lcache->flag &= ~LIGHTCACHE_BAKING;
     eevee_lightbake_context_disable(lbake);
     eevee_lightbake_delete_resources(lbake);

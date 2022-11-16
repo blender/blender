@@ -385,6 +385,7 @@ typedef struct MenuType {
   bool (*poll)(const struct bContext *C, struct MenuType *mt);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct Menu *menu);
+  void (*listener)(const wmRegionListenerParams *params);
 
   /* RNA integration */
   ExtensionRNA rna_ext;
