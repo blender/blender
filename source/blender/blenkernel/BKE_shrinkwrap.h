@@ -63,7 +63,7 @@ typedef struct ShrinkwrapBoundaryData {
 /**
  * Free boundary data for target project.
  */
-void BKE_shrinkwrap_discard_boundary_data(struct Mesh *mesh);
+void BKE_shrinkwrap_boundary_data_free(ShrinkwrapBoundaryData *data);
 void BKE_shrinkwrap_compute_boundary_data(struct Mesh *mesh);
 
 /* Information about a mesh and BVH tree. */

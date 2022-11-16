@@ -152,20 +152,14 @@ void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data)
   free_bvhtree_from_mesh(&data->treeData);
 }
 
-void BKE_shrinkwrap_discard_boundary_data(Mesh *mesh)
+void BKE_shrinkwrap_boundary_data_free(ShrinkwrapBoundaryData *data)
 {
-  ShrinkwrapBoundaryData *data = mesh->runtime->shrinkwrap_data;
+  MEM_freeN((void *)data->edge_is_boundary);
+  MEM_freeN((void *)data->looptri_has_boundary);
+  MEM_freeN((void *)data->vert_boundary_id);
+  MEM_freeN((void *)data->boundary_verts);
 
-  if (data != nullptr) {
-    MEM_freeN((void *)data->edge_is_boundary);
-    MEM_freeN((void *)data->looptri_has_boundary);
-    MEM_freeN((void *)data->vert_boundary_id);
-    MEM_freeN((void *)data->boundary_verts);
-
-    MEM_freeN(data);
-  }
-
-  mesh->runtime->shrinkwrap_data = nullptr;
+  MEM_freeN(data);
 }
 
 /* Accumulate edge for average boundary edge direction. */
@@ -326,8 +320,9 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
 void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh)
 {
-  BKE_shrinkwrap_discard_boundary_data(mesh);
-
+  if (mesh->runtime->shrinkwrap_data) {
+    BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
+  }
   mesh->runtime->shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
 }
 

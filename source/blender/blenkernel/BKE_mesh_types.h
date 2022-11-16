@@ -161,8 +161,7 @@ struct MeshRuntime {
   uint32_t *subsurf_face_dot_tags = nullptr;
 
   MeshRuntime() = default;
-  /** \warning This does not free all data currently. See #BKE_mesh_runtime_free_data. */
-  ~MeshRuntime() = default;
+  ~MeshRuntime();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshRuntime")
 };

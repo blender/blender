@@ -201,7 +201,6 @@ static void mesh_free_data(ID *id)
 
   BKE_mesh_free_editmesh(mesh);
 
-  BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
 
