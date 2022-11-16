@@ -381,15 +381,16 @@ const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
 void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
 
 /**
- * Check that a mesh with non-dirty normals has vertex and face custom data layers.
+ * Check that a mesh with non-dirty normals has the caches allocatred with a proper size.
  * If these asserts fail, it means some area cleared the dirty flag but didn't copy or add the
- * normal layers, or removed normals but didn't set the dirty flag.
+ * normals, or removed normals but didn't set the dirty flag.
  */
 void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
 
 /**
- * Retrieve write access to the vertex normal layer, ensuring that it exists and that it is not
- * shared. The provided vertex normals should be the same as if they were calculated automatically.
+ * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
+ * that they are calculated. The provided vertex normals should be the same as if they were
+ * calculated automatically.
  *
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
@@ -401,8 +402,9 @@ void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
 float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
 
 /**
- * Retrieve write access to the poly normal layer, ensuring that it exists and that it is not
- * shared. The provided poly normals should be the same as if they were calculated automatically.
+ * Retrieve write access to the cached polygon normals, ensuring that they are allocated but *not*
+ * that they are calculated. The provided polygon normals should be the same as if they were
+ * calculated automatically.
  *
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_poly_normals_clear_dirty. This is separate so that normals are still tagged dirty

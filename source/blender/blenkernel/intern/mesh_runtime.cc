@@ -226,7 +226,6 @@ bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
   if (mesh->runtime->edit_data != nullptr) {
     return false;
   }
-
   mesh->runtime->edit_data = MEM_cnew<EditMeshData>(__func__);
   return true;
 }
@@ -250,6 +249,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 
 void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
+  /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
   free_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
