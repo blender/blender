@@ -78,7 +78,9 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* Ghost API */
 
-  GHOST_TSuccess swapBuffers() override;
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  GHOST_TSuccess swapBuffers() override; /* Only for assertion. */
+#endif
 
   uint16_t getDPIHint() override;
 
