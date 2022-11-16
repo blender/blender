@@ -24,6 +24,7 @@
 #include "io_cache.h"
 #include "io_gpencil.h"
 #include "io_obj.h"
+#include "io_ply_ops.h"
 #include "io_stl_ops.h"
 
 void ED_operatortypes_io(void)
@@ -62,6 +63,11 @@ void ED_operatortypes_io(void)
 #ifdef WITH_IO_WAVEFRONT_OBJ
   WM_operatortype_append(WM_OT_obj_export);
   WM_operatortype_append(WM_OT_obj_import);
+#endif
+
+#ifdef WITH_IO_PLY
+  WM_operatortype_append(WM_OT_ply_export);
+  WM_operatortype_append(WM_OT_ply_import);
 #endif
 
 #ifdef WITH_IO_STL
