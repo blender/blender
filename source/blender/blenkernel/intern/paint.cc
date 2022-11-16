@@ -2189,7 +2189,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
 static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
   PBVH *pbvh = BKE_pbvh_new(PBVH_FACES);
   BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
@@ -2197,11 +2196,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
-  MLoopTri *looptri = static_cast<MLoopTri *>(
-      MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
-
-  BKE_mesh_recalc_looptri(
-      loops.data(), polys.data(), verts.data(), me->totloop, me->totpoly, looptri);
+  const Span<MLoopTri> looptris = me->looptris();
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
@@ -2212,8 +2207,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
                       &me->vdata,
                       &me->ldata,
                       &me->pdata,
-                      looptri,
-                      looptris_num);
+                      looptris.data(),
+                      looptris.size());
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
