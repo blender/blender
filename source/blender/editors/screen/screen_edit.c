@@ -360,11 +360,59 @@ static void screen_verts_valign(const wmWindow *win,
   }
 }
 
+/* Test if two adjoining areas can be aligned by having their screen edges adjusted. */
+static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
+{
+  if (dir == SCREEN_DIR_NONE) {
+    return false;
+  }
+
+  int offset1;
+  int offset2;
+  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
+
+  const int tolerance = SCREEN_DIR_IS_HORIZONTAL(dir) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
+  if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
+    /* Misalignment is too great. */
+    return false;
+  }
+
+  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See T100772.  */
+  if (SCREEN_DIR_IS_VERTICAL(dir)) {
+    const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
+    const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->v3->vec.x - area->v1->vec.x < tolerance &&
+          (area->v1->vec.x == xmin || area->v3->vec.x == xmax)) {
+        /* There is a narrow vertical area sharing an edge of the combined bounds. */
+        return false;
+      }
+    }
+  }
+  else {
+    const short ymin = MIN2(sa1->v1->vec.y, sa2->v1->vec.y);
+    const short ymax = MAX2(sa1->v3->vec.y, sa2->v3->vec.y);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->v3->vec.y - area->v1->vec.y < tolerance &&
+          (area->v1->vec.y == ymin || area->v3->vec.y == ymax)) {
+        /* There is a narrow horizontal area sharing an edge of the combined bounds. */
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 /* Adjust all screen edges to allow joining two areas. 'dir' value is like area_getorientation().
  */
-static void screen_areas_align(
+static bool screen_areas_align(
     bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const eScreenDir dir)
 {
+  if (!screen_areas_can_align(screen, sa1, sa2, dir)) {
+    return false;
+  }
+
   wmWindow *win = CTX_wm_window(C);
 
   if (SCREEN_DIR_IS_HORIZONTAL(dir)) {
@@ -393,27 +441,19 @@ static void screen_areas_align(
     screen_verts_halign(win, screen, sa2->v1->vec.x, left);
     screen_verts_halign(win, screen, sa2->v3->vec.x, right);
   }
+
+  return true;
 }
 
 /* Simple join of two areas without any splitting. Will return false if not possible. */
 static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
   const eScreenDir dir = area_getorientation(sa1, sa2);
-  if (dir == SCREEN_DIR_NONE) {
+
+  /* Ensure that the area edges are exactly aligned. */
+  if (!screen_areas_align(C, screen, sa1, sa2, dir)) {
     return false;
   }
-
-  int offset1;
-  int offset2;
-  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
-
-  int tolerance = SCREEN_DIR_IS_HORIZONTAL(dir) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
-  if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
-    return false;
-  }
-
-  /* Align areas if they are not. */
-  screen_areas_align(C, screen, sa1, sa2, dir);
 
   if (dir == SCREEN_DIR_W) { /* sa1 to right of sa2 = West. */
     sa1->v1 = sa2->v1;       /* BL */
