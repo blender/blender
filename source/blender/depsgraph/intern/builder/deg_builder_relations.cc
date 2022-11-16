@@ -2970,6 +2970,11 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   build_idproperties(sound->id.properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
+
+  const ComponentKey parameters_key(&sound->id, NodeType::PARAMETERS);
+  const ComponentKey audio_key(&sound->id, NodeType::AUDIO);
+
+  add_relation(parameters_key, audio_key, "Parameters -> Audio");
 }
 
 void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
