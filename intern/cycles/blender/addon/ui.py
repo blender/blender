@@ -313,10 +313,11 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
         layout.active = cscene.use_guiding
 
+        layout.prop(cscene, "guiding_training_samples")
+
         col = layout.column(align=True)
-        col.prop(cscene, "use_surface_guiding")
-        col.prop(cscene, "use_volume_guiding")
-        col.prop(cscene, "guiding_training_samples")
+        col.prop(cscene, "use_surface_guiding", text="Surface")
+        col.prop(cscene, "use_volume_guiding", text="Volume")
 
 
 class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Panel):
