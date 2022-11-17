@@ -6,7 +6,7 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 /* **************** CURVE Time  ******************** */
 
@@ -23,8 +23,9 @@ static void time_colorfn(
     fac = (p->cfra - node->custom1) / (float)(node->custom2 - node->custom1);
   }
 
-  BKE_curvemapping_init(node->storage);
-  fac = BKE_curvemapping_evaluateF(node->storage, 0, fac);
+  CurveMapping *mapping = static_cast<CurveMapping *>(node->storage);
+  BKE_curvemapping_init(mapping);
+  fac = BKE_curvemapping_evaluateF(mapping, 0, fac);
   out[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }
 
@@ -35,7 +36,7 @@ static void time_exec(void *data,
                       bNodeStack **in,
                       bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &time_colorfn, data);
+  tex_output(node, execdata, in, out[0], &time_colorfn, static_cast<TexCallData *>(data));
 }
 
 static void time_init(bNodeTree *UNUSED(ntree), bNode *node)
@@ -76,7 +77,7 @@ static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, 
   float cin[4];
   tex_input_rgba(cin, in[0], p, thread);
 
-  BKE_curvemapping_evaluateRGBF(node->storage, out, cin);
+  BKE_curvemapping_evaluateRGBF(static_cast<CurveMapping *>(node->storage), out, cin);
   out[3] = cin[3];
 }
 
@@ -87,7 +88,7 @@ static void rgb_exec(void *data,
                      bNodeStack **in,
                      bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &rgb_colorfn, data);
+  tex_output(node, execdata, in, out[0], &rgb_colorfn, static_cast<TexCallData *>(data));
 }
 
 static void rgb_init(bNodeTree *UNUSED(ntree), bNode *node)

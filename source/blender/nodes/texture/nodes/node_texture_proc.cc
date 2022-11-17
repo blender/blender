@@ -6,7 +6,7 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 #include "RE_texture.h"
 
@@ -55,7 +55,7 @@ typedef void (*MapFn)(Tex *tex, bNodeStack **in, TexParams *p, const short threa
 static void texfn(
     float *result, TexParams *p, bNode *node, bNodeStack **in, MapFn map_inputs, short thread)
 {
-  Tex tex = *((Tex *)(node->storage));
+  Tex tex = blender::dna::shallow_copy(*((Tex *)(node->storage)));
   float col1[4], col2[4];
   tex_input_rgba(col1, in[0], p, thread);
   tex_input_rgba(col2, in[1], p, thread);
@@ -69,7 +69,7 @@ static int count_outputs(bNode *node)
 {
   bNodeSocket *sock;
   int num = 0;
-  for (sock = node->outputs.first; sock; sock = sock->next) {
+  for (sock = static_cast<bNodeSocket *>(node->outputs.first); sock; sock = sock->next) {
     num++;
   }
   return num;
@@ -98,7 +98,7 @@ static int count_outputs(bNode *node)
   { \
     int outs = count_outputs(node); \
     if (outs >= 1) { \
-      tex_output(node, execdata, in, out[0], &name##_colorfn, data); \
+      tex_output(node, execdata, in, out[0], &name##_colorfn, static_cast<TexCallData *>(data)); \
     } \
   }
 
@@ -234,7 +234,7 @@ ProcDef(stucci);
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  Tex *tex = MEM_callocN(sizeof(Tex), "Tex");
+  Tex *tex = static_cast<Tex *>(MEM_callocN(sizeof(Tex), "Tex"));
   node->storage = tex;
 
   BKE_texture_default(tex);

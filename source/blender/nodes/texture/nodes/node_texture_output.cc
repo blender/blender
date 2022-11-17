@@ -8,7 +8,7 @@
 #include "BLI_string.h"
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate inputs[] = {
@@ -116,7 +116,7 @@ check_index:
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
+  TexNodeOutput *tno = MEM_cnew<TexNodeOutput>("TEX_output");
   node->storage = tno;
 
   strcpy(tno->name, "Default");

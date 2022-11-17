@@ -7,7 +7,7 @@
 
 #include "IMB_colormanagement.h"
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate valtorgb_in[] = {
@@ -24,7 +24,7 @@ static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack *
   if (node->storage) {
     float fac = tex_input_value(in[0], p, thread);
 
-    BKE_colorband_evaluate(node->storage, fac, out);
+    BKE_colorband_evaluate(static_cast<const ColorBand *>(node->storage), fac, out);
   }
 }
 
@@ -35,7 +35,7 @@ static void valtorgb_exec(void *data,
                           bNodeStack **in,
                           bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &valtorgb_colorfn, data);
+  tex_output(node, execdata, in, out[0], &valtorgb_colorfn, static_cast<TexCallData *>(data));
 }
 
 static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode *node)
@@ -82,7 +82,7 @@ static void rgbtobw_exec(void *data,
                          bNodeStack **in,
                          bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &rgbtobw_valuefn, data);
+  tex_output(node, execdata, in, out[0], &rgbtobw_valuefn, static_cast<TexCallData *>(data));
 }
 
 void register_node_type_tex_rgbtobw(void)

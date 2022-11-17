@@ -6,7 +6,7 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 #include <math.h>
 
 static bNodeSocketTemplate inputs[] = {
@@ -52,10 +52,11 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &valuefn_r, data);
-  tex_output(node, execdata, in, out[1], &valuefn_g, data);
-  tex_output(node, execdata, in, out[2], &valuefn_b, data);
-  tex_output(node, execdata, in, out[3], &valuefn_a, data);
+  TexCallData *tex_call_data = static_cast<TexCallData *>(data);
+  tex_output(node, execdata, in, out[0], &valuefn_r, tex_call_data);
+  tex_output(node, execdata, in, out[1], &valuefn_g, tex_call_data);
+  tex_output(node, execdata, in, out[2], &valuefn_b, tex_call_data);
+  tex_output(node, execdata, in, out[3], &valuefn_a, tex_call_data);
 }
 
 void register_node_type_tex_decompose(void)

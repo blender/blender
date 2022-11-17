@@ -5,29 +5,39 @@
  * \ingroup texnodes
  */
 
-#include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
+#include <math.h>
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, N_("Texture"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Coordinates"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f, -10.0f, 10.0f, PROP_XYZ},
     {-1, ""},
 };
+
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, N_("Texture")},
+    {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
+  float scale[3], new_co[3], new_dxt[3], new_dyt[3];
   TexParams np = *p;
-  float new_co[3];
-  np.co = new_co;
 
-  tex_input_vec(new_co, in[1], p, thread);
+  np.co = new_co;
+  np.dxt = new_dxt;
+  np.dyt = new_dyt;
+
+  tex_input_vec(scale, in[1], p, thread);
+
+  mul_v3_v3v3(new_co, p->co, scale);
+  if (p->osatex) {
+    mul_v3_v3v3(new_dxt, p->dxt, scale);
+    mul_v3_v3v3(new_dyt, p->dyt, scale);
+  }
+
   tex_input_rgba(out, in[0], &np, thread);
 }
-
 static void exec(void *data,
                  int UNUSED(thread),
                  bNode *node,
@@ -35,16 +45,15 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_at(void)
+void register_node_type_tex_scale(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_AT, "At", NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, TEX_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
   node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_size(&ntype, 140, 100, 320);
   ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);

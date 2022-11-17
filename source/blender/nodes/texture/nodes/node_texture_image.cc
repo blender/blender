@@ -6,7 +6,7 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 static bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Image")},
@@ -77,12 +77,12 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
+  ImageUser *iuser = MEM_cnew<ImageUser>("node image user");
   node->storage = iuser;
   iuser->sfra = 1;
   iuser->flag |= IMA_ANIM_ALWAYS;

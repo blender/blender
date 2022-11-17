@@ -21,7 +21,7 @@
  * over other previous ones.
  */
 
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 bool tex_node_poll_default(bNodeType *UNUSED(ntype),
                            bNodeTree *ntree,
@@ -51,7 +51,7 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
 
 static void tex_input(float *out, int num, bNodeStack *in, TexParams *params, short thread)
 {
-  TexDelegate *dg = in->data;
+  TexDelegate *dg = static_cast<TexDelegate *>(in->data);
   if (dg) {
     tex_call_delegate(dg, in->vec, params, thread);
 
@@ -118,10 +118,11 @@ void tex_output(bNode *node,
 
   if (!out->data) {
     /* Freed in tex_end_exec (node.cc) */
-    dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
+    dg = MEM_new<TexDelegate>("tex delegate");
+    out->data = dg;
   }
   else {
-    dg = out->data;
+    dg = static_cast<TexDelegate *>(out->data);
   }
 
   dg->cdata = cdata;
@@ -135,7 +136,7 @@ void tex_output(bNode *node,
 void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 {
   bNode *node;
-  for (node = ntree->nodes.first; node; node = node->next) {
+  for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
 
     if (node->type == TEX_NODE_TEXTURE && node->id) {
       /* custom2 stops the node from rendering */

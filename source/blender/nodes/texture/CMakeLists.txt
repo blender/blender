@@ -22,35 +22,35 @@ set(INC
 
 
 set(SRC
-  nodes/node_texture_at.c
-  nodes/node_texture_bricks.c
-  nodes/node_texture_checker.c
-  nodes/node_texture_combine_color.c
-  nodes/node_texture_common.c
-  nodes/node_texture_compose.c
-  nodes/node_texture_coord.c
-  nodes/node_texture_curves.c
-  nodes/node_texture_decompose.c
-  nodes/node_texture_distance.c
-  nodes/node_texture_hueSatVal.c
-  nodes/node_texture_image.c
-  nodes/node_texture_invert.c
-  nodes/node_texture_math.c
-  nodes/node_texture_mixRgb.c
-  nodes/node_texture_output.c
-  nodes/node_texture_proc.c
-  nodes/node_texture_rotate.c
-  nodes/node_texture_scale.c
-  nodes/node_texture_separate_color.c
-  nodes/node_texture_texture.c
-  nodes/node_texture_translate.c
-  nodes/node_texture_valToNor.c
-  nodes/node_texture_valToRgb.c
-  nodes/node_texture_viewer.c
-  node_texture_tree.c
-  node_texture_util.c
+  nodes/node_texture_at.cc
+  nodes/node_texture_bricks.cc
+  nodes/node_texture_checker.cc
+  nodes/node_texture_combine_color.cc
+  nodes/node_texture_common.cc
+  nodes/node_texture_compose.cc
+  nodes/node_texture_coord.cc
+  nodes/node_texture_curves.cc
+  nodes/node_texture_decompose.cc
+  nodes/node_texture_distance.cc
+  nodes/node_texture_hueSatVal.cc
+  nodes/node_texture_image.cc
+  nodes/node_texture_invert.cc
+  nodes/node_texture_math.cc
+  nodes/node_texture_mixRgb.cc
+  nodes/node_texture_output.cc
+  nodes/node_texture_proc.cc
+  nodes/node_texture_rotate.cc
+  nodes/node_texture_scale.cc
+  nodes/node_texture_separate_color.cc
+  nodes/node_texture_texture.cc
+  nodes/node_texture_translate.cc
+  nodes/node_texture_valToNor.cc
+  nodes/node_texture_valToRgb.cc
+  nodes/node_texture_viewer.cc
+  node_texture_tree.cc
+  node_texture_util.cc
 
-  node_texture_util.h
+  node_texture_util.hh
 )
 
 set(LIB

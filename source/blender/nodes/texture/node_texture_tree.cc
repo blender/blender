@@ -26,7 +26,7 @@
 #include "NOD_texture.h"
 #include "node_common.h"
 #include "node_exec.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 #include "node_util.h"
 
 #include "DEG_depsgraph.h"
@@ -106,7 +106,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
   bNode *node, *node_next;
 
   /* replace muted nodes and reroute nodes by internal links */
-  for (node = localtree->nodes.first; node; node = node_next) {
+  for (node = static_cast<bNode *>(localtree->nodes.first); node; node = node_next) {
     node_next = node->next;
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
@@ -137,8 +137,7 @@ bNodeTreeType *ntreeType_Texture;
 
 void register_node_tree_type_tex(void)
 {
-  bNodeTreeType *tt = ntreeType_Texture = MEM_callocN(sizeof(bNodeTreeType),
-                                                      "texture node tree type");
+  bNodeTreeType *tt = ntreeType_Texture = MEM_cnew<bNodeTreeType>("texture node tree type");
 
   tt->type = NTREE_TEXTURE;
   strcpy(tt->idname, "TextureNodeTree");
@@ -173,7 +172,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
+    nts = MEM_cnew<bNodeThreadStack>("bNodeThreadStack");
     nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
@@ -226,9 +225,9 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
+  exec->threadstack = MEM_cnew_array<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
 
-  for (node = exec->nodetree->nodes.first; node; node = node->next) {
+  for (node = static_cast<bNode *>(exec->nodetree->nodes.first); node; node = node->next) {
     node->need_exec = 1;
   }
 
@@ -267,7 +266,8 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    for (nts = exec->threadstack[th].first; nts; nts = nts->next) {
+    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts;
+         nts = nts->next) {
       for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
@@ -286,7 +286,8 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = exec->threadstack[a].first; nts; nts = nts->next) {
+      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts;
+           nts = nts->next) {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }

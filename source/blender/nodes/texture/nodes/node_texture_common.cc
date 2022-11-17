@@ -14,7 +14,7 @@
 #include "NOD_common.h"
 #include "node_common.h"
 #include "node_exec.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 #include "RNA_access.h"
 
@@ -65,9 +65,10 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
   bNodeStack *ns;
   int a;
 
-  for (node = ngroup->nodes.first; node; node = node->next) {
+  for (node = static_cast<bNode *>(ngroup->nodes.first); node; node = node->next) {
     if (node->type == NODE_GROUP_INPUT) {
-      for (sock = node->outputs.first, a = 0; sock; sock = sock->next, a++) {
+      for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
+           sock = sock->next, a++) {
         if (in[a]) { /* shouldn't need to check this T36694. */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {
@@ -89,9 +90,10 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
   bNodeStack *ns;
   int a;
 
-  for (node = ngroup->nodes.first; node; node = node->next) {
+  for (node = static_cast<bNode *>(ngroup->nodes.first); node; node = node->next) {
     if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
-      for (sock = node->inputs.first, a = 0; sock; sock = sock->next, a++) {
+      for (sock = static_cast<bNodeSocket *>(node->inputs.first), a = 0; sock;
+           sock = sock->next, a++) {
         if (out[a]) { /* shouldn't need to check this T36694. */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {
@@ -111,7 +113,7 @@ static void group_execute(void *data,
                           struct bNodeStack **in,
                           struct bNodeStack **out)
 {
-  bNodeTreeExec *exec = execdata->data;
+  bNodeTreeExec *exec = static_cast<bNodeTreeExec *>(execdata->data);
   bNodeThreadStack *nts;
 
   if (!exec) {
@@ -123,7 +125,7 @@ static void group_execute(void *data,
    */
   {
     bNode *inode;
-    for (inode = exec->nodetree->nodes.first; inode; inode = inode->next) {
+    for (inode = static_cast<bNode *>(exec->nodetree->nodes.first); inode; inode = inode->next) {
       inode->need_exec = 1;
     }
   }

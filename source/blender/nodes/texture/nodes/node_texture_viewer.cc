@@ -6,7 +6,7 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 #include <math.h>
 
 static bNodeSocketTemplate inputs[] = {

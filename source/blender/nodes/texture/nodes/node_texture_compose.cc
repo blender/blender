@@ -5,15 +5,16 @@
  * \ingroup texnodes
  */
 
-#include "node_texture_util.h"
-#include <math.h>
+#include "NOD_texture.h"
+#include "node_texture_util.hh"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f, -10.0f, 10.0f, PROP_XYZ},
+    {SOCK_FLOAT, N_("Red"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Blue"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
     {-1, ""},
 };
-
 static bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
@@ -21,23 +22,12 @@ static bNodeSocketTemplate outputs[] = {
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
-  float scale[3], new_co[3], new_dxt[3], new_dyt[3];
-  TexParams np = *p;
-
-  np.co = new_co;
-  np.dxt = new_dxt;
-  np.dyt = new_dyt;
-
-  tex_input_vec(scale, in[1], p, thread);
-
-  mul_v3_v3v3(new_co, p->co, scale);
-  if (p->osatex) {
-    mul_v3_v3v3(new_dxt, p->dxt, scale);
-    mul_v3_v3v3(new_dyt, p->dyt, scale);
+  int i;
+  for (i = 0; i < 4; i++) {
+    out[i] = tex_input_value(in[i], p, thread);
   }
-
-  tex_input_rgba(out, in[0], &np, thread);
 }
+
 static void exec(void *data,
                  int UNUSED(thread),
                  bNode *node,
@@ -45,14 +35,15 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_scale(void)
+void register_node_type_tex_compose(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
+  tex_node_type_base(
+      &ntype, TEX_NODE_COMPOSE_LEGACY, "Combine RGBA (Legacy)", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

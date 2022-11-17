@@ -7,7 +7,7 @@
 
 #include "BLI_listbase.h"
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Red"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -60,7 +60,7 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
 void register_node_type_tex_combine_color(void)

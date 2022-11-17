@@ -6,15 +6,15 @@
  */
 
 #include "NOD_texture.h"
-#include "node_texture_util.h"
+#include "node_texture_util.hh"
+#include <math.h>
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_FLOAT, N_("Red"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("Blue"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_TRANSLATION},
     {-1, ""},
 };
+
 static bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
@@ -22,12 +22,18 @@ static bNodeSocketTemplate outputs[] = {
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
-  int i;
-  for (i = 0; i < 4; i++) {
-    out[i] = tex_input_value(in[i], p, thread);
-  }
-}
+  float offset[3], new_co[3];
+  TexParams np = *p;
+  np.co = new_co;
 
+  tex_input_vec(offset, in[1], p, thread);
+
+  new_co[0] = p->co[0] + offset[0];
+  new_co[1] = p->co[1] + offset[1];
+  new_co[2] = p->co[2] + offset[2];
+
+  tex_input_rgba(out, in[0], &np, thread);
+}
 static void exec(void *data,
                  int UNUSED(thread),
                  bNode *node,
@@ -35,15 +41,14 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack **out)
 {
-  tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_compose(void)
+void register_node_type_tex_translate(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(
-      &ntype, TEX_NODE_COMPOSE_LEGACY, "Combine RGBA (Legacy)", NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
   node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 
