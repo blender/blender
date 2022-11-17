@@ -444,60 +444,6 @@ void BKE_mesh_calc_normals(Mesh *mesh)
   BKE_mesh_vertex_normals_ensure(mesh);
 }
 
-void BKE_mesh_calc_normals_looptri(const MVert *mverts,
-                                   int numVerts,
-                                   const MLoop *mloop,
-                                   const MLoopTri *looptri,
-                                   int looptri_num,
-                                   float (*r_tri_nors)[3])
-{
-  float(*tnorms)[3] = (float(*)[3])MEM_calloc_arrayN(size_t(numVerts), sizeof(*tnorms), "tnorms");
-  float(*fnors)[3] = (r_tri_nors) ? r_tri_nors :
-                                    (float(*)[3])MEM_calloc_arrayN(
-                                        size_t(looptri_num), sizeof(*fnors), "meshnormals");
-
-  if (!tnorms || !fnors) {
-    goto cleanup;
-  }
-
-  for (int i = 0; i < looptri_num; i++) {
-    const MLoopTri *lt = &looptri[i];
-    float *f_no = fnors[i];
-    const uint vtri[3] = {
-        mloop[lt->tri[0]].v,
-        mloop[lt->tri[1]].v,
-        mloop[lt->tri[2]].v,
-    };
-
-    normal_tri_v3(f_no, mverts[vtri[0]].co, mverts[vtri[1]].co, mverts[vtri[2]].co);
-
-    accumulate_vertex_normals_tri_v3(tnorms[vtri[0]],
-                                     tnorms[vtri[1]],
-                                     tnorms[vtri[2]],
-                                     f_no,
-                                     mverts[vtri[0]].co,
-                                     mverts[vtri[1]].co,
-                                     mverts[vtri[2]].co);
-  }
-
-  /* Following Mesh convention; we use vertex coordinate itself for normal in this case. */
-  for (int i = 0; i < numVerts; i++) {
-    const MVert *mv = &mverts[i];
-    float *no = tnorms[i];
-
-    if (UNLIKELY(normalize_v3(no) == 0.0f)) {
-      normalize_v3_v3(no, mv->co);
-    }
-  }
-
-cleanup:
-  MEM_freeN(tnorms);
-
-  if (fnors != r_tri_nors) {
-    MEM_freeN(fnors);
-  }
-}
-
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
                             const int numLoops,
                             const char data_type)

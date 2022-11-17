@@ -3140,9 +3140,6 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
       }
     }
 
-    /* coordinates are new -- normals should also be updated */
-    BKE_mesh_calc_normals_looptri(
-        pbvh->verts, pbvh->totvert, pbvh->mloop, pbvh->looptri, pbvh->totprim, NULL);
 
     for (int a = 0; a < pbvh->totnode; a++) {
       BKE_pbvh_node_mark_update(&pbvh->nodes[a]);

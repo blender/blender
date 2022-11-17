@@ -472,12 +472,6 @@ void BKE_mesh_calc_normals(struct Mesh *me);
  * Called after calculating all modifiers.
  */
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
-void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
-                                   int numVerts,
-                                   const struct MLoop *mloop,
-                                   const struct MLoopTri *looptri,
-                                   int looptri_num,
-                                   float (*r_tri_nors)[3]);
 
 /**
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
