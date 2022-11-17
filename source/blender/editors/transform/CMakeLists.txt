@@ -88,7 +88,7 @@ set(SRC
   transform_mode_vert_slide.c
   transform_ops.c
   transform_orientations.c
-  transform_snap.c
+  transform_snap.cc
   transform_snap_animation.c
   transform_snap_object.cc
   transform_snap_sequencer.c

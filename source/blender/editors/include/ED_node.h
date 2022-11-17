@@ -32,6 +32,7 @@ typedef enum {
   NODE_LEFT = 4,
   NODE_RIGHT = 8,
 } NodeBorder;
+ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 
 #define NODE_GRID_STEP_SIZE U.widget_unit /* Based on the grid nodes snap to. */
 #define NODE_EDGE_PAN_INSIDE_PAD 2

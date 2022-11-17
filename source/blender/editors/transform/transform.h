@@ -158,6 +158,7 @@ typedef enum {
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
 } eTModifier;
+ENUM_OPERATORS(eTModifier, MOD_CONSTRAINT_SELECT_PLANE)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
@@ -169,6 +170,7 @@ typedef enum eTSnap {
   POINT_INIT = 1 << 3,
   MULTI_POINTS = 1 << 4,
 } eTSnap;
+ENUM_OPERATORS(eTSnap, MULTI_POINTS)
 
 /** #TransCon.mode, #TransInfo.con.mode */
 typedef enum {
@@ -198,6 +200,7 @@ typedef enum {
   TREDRAW_SOFT = (1 << 0),
   TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 } eRedrawFlag;
+ENUM_OPERATORS(eRedrawFlag, TREDRAW_HARD)
 
 /** #TransInfo.helpline */
 typedef enum {
