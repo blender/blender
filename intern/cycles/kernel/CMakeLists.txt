@@ -446,52 +446,27 @@ if(WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      string(SUBSTRING ${arch} 3 -1 CUDA_ARCH)
+    set(_cuda_nvcc_args
+          -arch=${arch}
+          ${CUDA_NVCC_FLAGS}
+          --${format}
+          ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
+          --ptxas-options="-v"
+          ${cuda_flags})
 
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib64")
-      endif()
-
+    if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
       add_custom_command(
         OUTPUT ${cuda_file}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target ${CUDA_ARCH}
-            -i ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${cuda_toolkit_root_dir}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
+        COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     else()
-      set(_cuda_nvcc_args
-            -arch=${arch}
-            ${CUDA_NVCC_FLAGS}
-            --${format}
-            ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            --ptxas-options="-v"
-            ${cuda_flags})
-
-      if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      else()
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      endif()
-
-      unset(_cuda_nvcc_args)
+      add_custom_command(
+        OUTPUT ${cuda_file}
+        COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     endif()
+
+    unset(_cuda_nvcc_args)
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file})
 
@@ -643,55 +618,25 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib64")
-      endif()
+    add_custom_command(
+      OUTPUT
+        ${output}
+      DEPENDS
+        ${input}
+        ${SRC_KERNEL_HEADERS}
+        ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+        ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+        ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
+        ${SRC_UTIL_HEADERS}
+      COMMAND
+        ${CUDA_NVCC_EXECUTABLE}
+        --ptx
+        -arch=sm_50
+        ${cuda_flags}
+        ${input}
+      WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}")
 
-      add_custom_command(
-        OUTPUT ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target 50
-            -ptx
-            -i ${CMAKE_CURRENT_SOURCE_DIR}/${input}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${CUDA_TOOLKIT_ROOT_DIR}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
-    else()
-      add_custom_command(
-        OUTPUT
-          ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND
-          ${CUDA_NVCC_EXECUTABLE}
-          --ptx
-          -arch=sm_50
-          ${cuda_flags}
-          ${input}
-        WORKING_DIRECTORY
-          "${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
     list(APPEND optix_ptx ${output})
 
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${output}" ${CYCLES_INSTALL_PATH}/lib)
