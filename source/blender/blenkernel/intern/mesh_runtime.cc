@@ -253,6 +253,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   free_bvh_cache(*mesh->runtime);
   free_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->bounds_cache.tag_dirty();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
