@@ -59,10 +59,11 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
-        if platform.machine() == 'x86_64':
-            lib_platform = "darwin"
-        elif platform.machine() == 'arm64':
+        # Check platform.version to detect arm64 with x86_64 python binary.
+        if platform.machine() == 'arm64' or ('ARM64' in platform.version()):
             lib_platform = "darwin_arm64"
+        elif platform.machine() == 'x86_64':
+            lib_platform = "darwin"
         else:
             lib_platform = None
     elif sys.platform == 'win32':
