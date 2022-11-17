@@ -19,6 +19,17 @@
 
 #include "CLG_log.h"
 
+/* When enabled, use a pre file load handler (#BKE_CB_EVT_LOAD_PRE) callback to destroy the asset
+ * library service. Without this an explicit call from the file loading code is needed to do this,
+ * which is not as nice.
+ *
+ * TODO Currently disabled because UI data depends on asset library data, so we have to make sure
+ * it's freed in the right order (UI first). Pre-load handlers don't give us this order.
+ * Should be addressed with a proper ownership model for the asset system:
+ * https://wiki.blender.org/wiki/Source/Architecture/Asset_System/Back_End#Ownership_Model
+ */
+//#define WITH_DESTROY_VIA_LOAD_HANDLER
+
 static CLG_LogRef LOG = {"asset_system.asset_library_service"};
 
 namespace blender::asset_system {
@@ -134,6 +145,7 @@ void AssetLibraryService::allocate_service_instance()
   }
 }
 
+#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
 static void on_blendfile_load(struct Main * /*bMain*/,
                               struct PointerRNA ** /*pointers*/,
                               const int /*num_pointers*/,
@@ -141,9 +153,11 @@ static void on_blendfile_load(struct Main * /*bMain*/,
 {
   AssetLibraryService::destroy();
 }
+#endif
 
 void AssetLibraryService::app_handler_register()
 {
+#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
   /* The callback system doesn't own `on_load_callback_store_`. */
   on_load_callback_store_.alloc = false;
 
@@ -151,13 +165,16 @@ void AssetLibraryService::app_handler_register()
   on_load_callback_store_.arg = this;
 
   BKE_callback_add(&on_load_callback_store_, BKE_CB_EVT_LOAD_PRE);
+#endif
 }
 
 void AssetLibraryService::app_handler_unregister()
 {
+#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
   BKE_callback_remove(&on_load_callback_store_, BKE_CB_EVT_LOAD_PRE);
   on_load_callback_store_.func = nullptr;
   on_load_callback_store_.arg = nullptr;
+#endif
 }
 
 bool AssetLibraryService::has_any_unsaved_catalogs() const

@@ -27,6 +27,12 @@ using namespace blender::asset_system;
 
 bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
 
+/* Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
+void AS_asset_libraries_exit()
+{
+  AssetLibraryService::destroy();
+}
+
 asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
                                                   const AssetLibraryReference &library_reference)
 {
