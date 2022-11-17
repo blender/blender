@@ -937,13 +937,20 @@ static void movieclip_load_get_size(MovieClip *clip)
   user.framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, 1);
   BKE_movieclip_get_size(clip, &user, &width, &height);
 
-  if (width && height) {
-    clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
-    clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-  }
-  else {
+  if (!width || !height) {
     clip->lastsize[0] = clip->lastsize[1] = IMG_SIZE_FALLBACK;
   }
+}
+
+static void movieclip_principal_to_center(MovieClip *clip)
+{
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+
+  int width, height;
+  BKE_movieclip_get_size(clip, &user, &width, &height);
+
+  clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
+  clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
 }
 
 static void detect_clip_source(Main *bmain, MovieClip *clip)
@@ -995,6 +1002,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
     clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
   }
 
+  movieclip_principal_to_center(clip);
   movieclip_calc_length(clip);
 
   return clip;
@@ -1672,10 +1680,25 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
   /* update clip source */
   detect_clip_source(bmain, clip);
 
-  clip->lastsize[0] = clip->lastsize[1] = 0;
-  movieclip_load_get_size(clip);
+  const int old_width = clip->lastsize[0];
+  const int old_height = clip->lastsize[1];
 
+  /* Tag for re-calculation of the actual size. */
+  clip->lastsize[0] = clip->lastsize[1] = 0;
+
+  movieclip_load_get_size(clip);
   movieclip_calc_length(clip);
+
+  int width, height;
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+  BKE_movieclip_get_size(clip, &user, &width, &height);
+
+  /* If the resolution changes then re-initialize the principal point.
+   * Ideally the principal point will be in some sort of relative space, but this is not how it is
+   * designed currently. The code should cover the most of the common cases. */
+  if (width != old_width || height != old_height) {
+    movieclip_principal_to_center(clip);
+  }
 
   BKE_ntree_update_tag_id_changed(bmain, &clip->id);
 }
