@@ -2242,7 +2242,6 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 
   /* clear current clipboard */
   BKE_node_clipboard_clear();
-  BKE_node_clipboard_init(ntree);
 
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;

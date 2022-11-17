@@ -3779,15 +3779,9 @@ struct bNodeClipboard {
 #endif
 
   ListBase links;
-  int type;
 };
 
 static bNodeClipboard node_clipboard = {{nullptr}};
-
-void BKE_node_clipboard_init(const struct bNodeTree *ntree)
-{
-  node_clipboard.type = ntree->type;
-}
 
 void BKE_node_clipboard_clear()
 {
@@ -3892,11 +3886,6 @@ const ListBase *BKE_node_clipboard_get_nodes()
 const ListBase *BKE_node_clipboard_get_links()
 {
   return &node_clipboard.links;
-}
-
-int BKE_node_clipboard_get_type()
-{
-  return node_clipboard.type;
 }
 
 void BKE_node_clipboard_free()
