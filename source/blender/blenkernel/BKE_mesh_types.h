@@ -11,17 +11,15 @@
 
 #  include <mutex>
 
+#  include "MEM_guardedalloc.h"
+
 #  include "BLI_bit_vector.hh"
+#  include "BLI_bounds_types.hh"
+#  include "BLI_math_vec_types.hh"
 #  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
 
 #  include "DNA_customdata_types.h"
-
-#  include "BLI_bounds_types.hh"
-#  include "BLI_math_vec_types.hh"
-#  include "BLI_shared_cache.hh"
-
-#  include "MEM_guardedalloc.h"
 
 struct BVHCache;
 struct EditMeshData;
