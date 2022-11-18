@@ -13,6 +13,7 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BLI_array.hh"
 #  include "BLI_bit_vector.hh"
 #  include "BLI_bounds_types.hh"
 #  include "BLI_math_vec_types.hh"
@@ -20,6 +21,7 @@
 #  include "BLI_span.hh"
 
 #  include "DNA_customdata_types.h"
+#  include "DNA_meshdata_types.h"
 
 struct BVHCache;
 struct EditMeshData;
@@ -78,19 +80,6 @@ struct LooseEdgeCache {
   int count = -1;
 };
 
-/**
- * \warning Typical access is done via #Mesh::looptris().
- */
-struct MLoopTri_Store {
-  /* WARNING! swapping between array (ready-to-be-used data) and array_wip
-   * (where data is actually computed)
-   * shall always be protected by same lock as one used for looptris computing. */
-  MLoopTri *array = nullptr;
-  MLoopTri *array_wip = nullptr;
-  int len = 0;
-  int len_alloc = 0;
-};
-
 struct MeshRuntime {
   /* Evaluated mesh for objects which do not have effective modifiers.
    * This mesh is used as a result of modifier stack evaluation.
@@ -120,8 +109,8 @@ struct MeshRuntime {
    */
   void *batch_cache = nullptr;
 
-  /** Cache for derived triangulation of the mesh. */
-  MLoopTri_Store looptris;
+  /** Cache for derived triangulation of the mesh, accessed with #Mesh::looptris(). */
+  SharedCache<Array<MLoopTri>> looptris_cache;
 
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;

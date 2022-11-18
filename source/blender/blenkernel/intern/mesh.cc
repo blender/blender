@@ -129,6 +129,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * Caches will be "un-shared" as necessary later on. */
   mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
+  mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
 
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
