@@ -83,7 +83,6 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 using blender::GPointer;
 using blender::Vector;
-using blender::fn::GField;
 
 extern "C" {
 /* XXX interface.h */

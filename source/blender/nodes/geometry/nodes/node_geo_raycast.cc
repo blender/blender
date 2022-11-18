@@ -231,7 +231,7 @@ class RaycastFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    fn::MFSignatureBuilder signature{"Geometry Proximity"};
     signature.single_input<float3>("Source Position");
     signature.single_input<float3>("Ray Direction");
     signature.single_input<float>("Ray Length");

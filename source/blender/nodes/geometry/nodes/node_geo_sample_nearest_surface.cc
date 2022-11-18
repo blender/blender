@@ -146,7 +146,7 @@ class SampleNearestSurfaceFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Sample Nearest Surface"};
+    fn::MFSignatureBuilder signature{"Sample Nearest Surface"};
     signature.single_input<float3>("Position");
     signature.single_output("Value", src_field_.cpp_type());
     return signature.build();

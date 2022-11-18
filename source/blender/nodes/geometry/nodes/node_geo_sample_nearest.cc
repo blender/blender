@@ -256,7 +256,7 @@ class SampleNearestFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Sample Nearest"};
+    fn::MFSignatureBuilder signature{"Sample Nearest"};
     signature.single_input<float3>("Position");
     signature.single_output<int>("Index");
     return signature.build();
