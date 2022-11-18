@@ -40,6 +40,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
     {MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
     RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+    {MA_RAMP_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
     {MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
     {MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
     RNA_ENUM_ITEM_SEPR,

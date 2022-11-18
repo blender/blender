@@ -258,6 +258,8 @@ static const char *gpu_shader_get_name(eNodeSocketDatatype data_type,
           return "node_mix_div_fallback";
         case MA_RAMP_DIFF:
           return "node_mix_diff";
+        case MA_RAMP_EXCLUSION:
+          return "node_mix_exclusion";
         case MA_RAMP_DARK:
           return "node_mix_dark";
         case MA_RAMP_LIGHT:

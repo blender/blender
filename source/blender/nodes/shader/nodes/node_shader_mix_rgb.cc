@@ -35,6 +35,8 @@ static const char *gpu_shader_get_name(int mode)
       return "mix_div_fallback";
     case MA_RAMP_DIFF:
       return "mix_diff";
+    case MA_RAMP_EXCLUSION:
+      return "mix_exclusion";
     case MA_RAMP_DARK:
       return "mix_dark";
     case MA_RAMP_LIGHT:

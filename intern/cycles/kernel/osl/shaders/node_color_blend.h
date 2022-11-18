@@ -73,6 +73,11 @@ color node_mix_diff(float t, color col1, color col2)
   return mix(col1, abs(col1 - col2), t);
 }
 
+color node_mix_exclusion(float t, color col1, color col2)
+{
+  return max(mix(col1, col1 + col2 - 2.0 * col1 * col2, t), 0.0);
+}
+
 color node_mix_dark(float t, color col1, color col2)
 {
   return mix(col1, min(col1, col2), t);

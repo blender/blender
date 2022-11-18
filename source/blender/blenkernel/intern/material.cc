@@ -1689,6 +1689,14 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       r_col[1] = facm * (r_col[1]) + fac * fabsf(r_col[1] - col[1]);
       r_col[2] = facm * (r_col[2]) + fac * fabsf(r_col[2] - col[2]);
       break;
+    case MA_RAMP_EXCLUSION:
+      r_col[0] = max_ff(facm * (r_col[0]) + fac * (r_col[0] + col[0] - 2.0f * r_col[0] * col[0]),
+                        0.0f);
+      r_col[1] = max_ff(facm * (r_col[1]) + fac * (r_col[1] + col[1] - 2.0f * r_col[1] * col[1]),
+                        0.0f);
+      r_col[2] = max_ff(facm * (r_col[2]) + fac * (r_col[2] + col[2] - 2.0f * r_col[2] * col[2]),
+                        0.0f);
+      break;
     case MA_RAMP_DARK:
       r_col[0] = min_ff(r_col[0], col[0]) * fac + r_col[0] * facm;
       r_col[1] = min_ff(r_col[1], col[1]) * fac + r_col[1] * facm;

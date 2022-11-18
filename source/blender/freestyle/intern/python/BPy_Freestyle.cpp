@@ -91,6 +91,9 @@ static int ramp_blend_type(const char *type)
   if (STREQ(type, "DIFFERENCE")) {
     return MA_RAMP_DIFF;
   }
+  if (STREQ(type, "EXCLUSION")) {
+    return MA_RAMP_EXCLUSION;
+  }
   if (STREQ(type, "DARKEN")) {
     return MA_RAMP_DARK;
   }
