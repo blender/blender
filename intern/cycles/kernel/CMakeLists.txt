@@ -564,11 +564,20 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     if(WIN32)
       set(hip_command ${CMAKE_COMMAND})
       set(hip_flags
-        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_DIR}"
+        -E env "HIP_PATH=${HIP_ROOT_DIR}"
         ${HIP_HIPCC_EXECUTABLE}.bat)
     else()
       set(hip_command ${HIP_HIPCC_EXECUTABLE})
       set(hip_flags)
+    endif()
+
+    # There's a bug in the compiler causing some scenes to fail to render on Vega cards
+    # A workaround currently is to set -O1 opt level during kernel compilation for these
+    # cards Remove this when a newer compiler is available with fixes.
+    if(WIN32 AND (${arch} MATCHES "gfx90[a-z0-9]+"))
+      set(hip_opt_flags "-O1")
+    else()
+      set(hip_opt_flags)
     endif()
 
     set(hip_flags
@@ -587,6 +596,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-unused-value
       --hipcc-func-supp
       -ffast-math
+      ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
     if(WITH_NANOVDB)
