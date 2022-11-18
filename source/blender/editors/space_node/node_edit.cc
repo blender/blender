@@ -1319,7 +1319,7 @@ bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
 /** \name Node Duplicate Operator
  * \{ */
 
-static void node_duplicate_reparent_recursive(const Map<const bNode *, bNode *> &node_map,
+static void node_duplicate_reparent_recursive(bNodeTree *ntree, const Map<const bNode *, bNode *> &node_map,
                                               bNode *node)
 {
   bNode *parent;
@@ -1330,15 +1330,15 @@ static void node_duplicate_reparent_recursive(const Map<const bNode *, bNode *> 
   for (parent = node->parent; parent; parent = parent->parent) {
     if (parent->flag & SELECT) {
       if (!(parent->flag & NODE_TEST)) {
-        node_duplicate_reparent_recursive(node_map, parent);
+        node_duplicate_reparent_recursive(ntree, node_map, parent);
       }
       break;
     }
   }
   /* reparent node copy to parent copy */
   if (parent) {
-    nodeDetachNode(node_map.lookup(node));
-    nodeAttachNode(node_map.lookup(node), node_map.lookup(parent));
+    nodeDetachNode(ntree, node_map.lookup(node));
+    nodeAttachNode(ntree, node_map.lookup(node), node_map.lookup(parent));
   }
 }
 
@@ -1432,7 +1432,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   /* reparent copied nodes */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if ((node->flag & SELECT) && !(node->flag & NODE_TEST)) {
-      node_duplicate_reparent_recursive(node_map, node);
+      node_duplicate_reparent_recursive(ntree, node_map, node);
     }
 
     /* only has to check old nodes */
@@ -2269,7 +2269,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
         new_node->parent = node_map.lookup(new_node->parent);
       }
       else {
-        nodeDetachNode(new_node);
+        nodeDetachNode(ntree, new_node);
       }
     }
   }

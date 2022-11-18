@@ -205,7 +205,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
       if (BLI_rctf_isect_pt_v(&frame_node->totr, insert_point)) {
-        nodeAttachNode(reroute, frame_node);
+        nodeAttachNode(&ntree, reroute, frame_node);
         break;
       }
     }

@@ -2571,7 +2571,7 @@ bool nodeAttachNodeCheck(const bNode *node, const bNode *parent)
   return false;
 }
 
-void nodeAttachNode(bNode *node, bNode *parent)
+void nodeAttachNode(bNodeTree *ntree, bNode *node, bNode *parent)
 {
   BLI_assert(parent->type == NODE_FRAME);
   BLI_assert(nodeAttachNodeCheck(parent, node) == false);
@@ -2580,11 +2580,12 @@ void nodeAttachNode(bNode *node, bNode *parent)
   nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 
   node->parent = parent;
+  BKE_ntree_update_tag_parent_change(ntree, node);
   /* transform to parent space */
   nodeFromView(parent, locx, locy, &node->locx, &node->locy);
 }
 
-void nodeDetachNode(struct bNode *node)
+void nodeDetachNode(bNodeTree *ntree, bNode *node)
 {
   if (node->parent) {
     BLI_assert(node->parent->type == NODE_FRAME);
@@ -2595,6 +2596,7 @@ void nodeDetachNode(struct bNode *node)
     node->locx = locx;
     node->locy = locy;
     node->parent = nullptr;
+    BKE_ntree_update_tag_parent_change(ntree, node);
   }
 }
 
@@ -2935,7 +2937,7 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->parent == parent) {
-      nodeDetachNode(node);
+      nodeDetachNode(ntree, node);
     }
   }
 }

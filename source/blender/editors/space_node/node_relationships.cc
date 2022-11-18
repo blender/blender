@@ -1601,8 +1601,8 @@ static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
       continue;
     }
     if (node->flag & NODE_SELECT) {
-      nodeDetachNode(node);
-      nodeAttachNode(node, frame);
+      nodeDetachNode(&ntree, node);
+      nodeAttachNode(&ntree, node, frame);
     }
   }
 
@@ -1637,7 +1637,8 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 #define NODE_JOIN_DONE 1
 #define NODE_JOIN_IS_DESCENDANT 2
 
-static void node_join_attach_recursive(bNode *node,
+static void node_join_attach_recursive(bNodeTree &ntree,
+                                       bNode *node,
                                        bNode *frame,
                                        const Set<bNode *> &selected_nodes)
 {
@@ -1649,7 +1650,7 @@ static void node_join_attach_recursive(bNode *node,
   else if (node->parent) {
     /* call recursively */
     if (!(node->parent->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(node->parent, frame, selected_nodes);
+      node_join_attach_recursive(ntree, node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
@@ -1658,13 +1659,13 @@ static void node_join_attach_recursive(bNode *node,
     }
     else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
-      nodeDetachNode(node);
-      nodeAttachNode(node, frame);
+      nodeDetachNode(&ntree, node);
+      nodeAttachNode(&ntree, node, frame);
       node->done |= NODE_JOIN_IS_DESCENDANT;
     }
   }
   else if (selected_nodes.contains(node)) {
-    nodeAttachNode(node, frame);
+    nodeAttachNode(&ntree, node, frame);
     node->done |= NODE_JOIN_IS_DESCENDANT;
   }
 }
@@ -1687,7 +1688,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
 
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (!(node->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(node, frame_node, selected_nodes);
+      node_join_attach_recursive(ntree, node, frame_node, selected_nodes);
     }
   }
 
@@ -1760,7 +1761,7 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
       /* disallow moving a parent into its child */
       if (nodeAttachNodeCheck(frame, node) == false) {
         /* attach all unparented nodes */
-        nodeAttachNode(node, frame);
+        nodeAttachNode(&ntree, node, frame);
       }
     }
     else {
@@ -1775,8 +1776,8 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
       if (parent) {
         /* disallow moving a parent into its child */
         if (nodeAttachNodeCheck(frame, node) == false) {
-          nodeDetachNode(node);
-          nodeAttachNode(node, frame);
+          nodeDetachNode(&ntree, node);
+          nodeAttachNode(&ntree, node, frame);
         }
       }
     }
@@ -1814,14 +1815,14 @@ void NODE_OT_attach(wmOperatorType *ot)
 #define NODE_DETACH_DONE 1
 #define NODE_DETACH_IS_DESCENDANT 2
 
-static void node_detach_recursive(bNode *node)
+static void node_detach_recursive(bNodeTree &ntree, bNode *node)
 {
   node->done |= NODE_DETACH_DONE;
 
   if (node->parent) {
     /* call recursively */
     if (!(node->parent->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(node->parent);
+      node_detach_recursive(ntree, node->parent);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
@@ -1830,7 +1831,7 @@ static void node_detach_recursive(bNode *node)
     }
     else if (node->flag & NODE_SELECT) {
       /* if parent is not a descendant of a selected node, detach */
-      nodeDetachNode(node);
+      nodeDetachNode(&ntree, node);
       node->done |= NODE_DETACH_IS_DESCENDANT;
     }
   }
@@ -1854,7 +1855,7 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
    */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (!(node->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(node);
+      node_detach_recursive(ntree, node);
     }
   }
 

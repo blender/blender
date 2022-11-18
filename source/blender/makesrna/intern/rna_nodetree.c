@@ -2333,6 +2333,7 @@ static void rna_Node_parent_set(PointerRNA *ptr,
 {
   bNode *node = ptr->data;
   bNode *parent = value.data;
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
 
   if (parent) {
     /* XXX only Frame node allowed for now,
@@ -2348,9 +2349,9 @@ static void rna_Node_parent_set(PointerRNA *ptr,
     }
   }
 
-  nodeDetachNode(node);
+  nodeDetachNode(ntree, node);
   if (parent) {
-    nodeAttachNode(node, parent);
+    nodeAttachNode(ntree, node, parent);
   }
 }
 

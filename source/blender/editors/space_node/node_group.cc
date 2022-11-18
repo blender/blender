@@ -488,7 +488,7 @@ static bool node_group_separate_selected(
 
     /* ensure valid parent pointers, detach if parent stays inside the group */
     if (newnode->parent && !(newnode->parent->flag & NODE_SELECT)) {
-      nodeDetachNode(newnode);
+      nodeDetachNode(&ngroup, newnode);
     }
 
     /* migrate node */
@@ -842,7 +842,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
     }
     if (node_group_make_use_node(*node->parent, gnode) &&
         !node_group_make_use_node(*node, gnode)) {
-      nodeDetachNode(node);
+      nodeDetachNode(&ntree, node);
     }
   }
 
@@ -865,7 +865,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
       /* ensure valid parent pointers, detach if parent stays outside the group */
       if (node->parent && !(node->parent->flag & NODE_SELECT)) {
-        nodeDetachNode(node);
+        nodeDetachNode(&ntree, node);
       }
 
       /* change node-collection membership */

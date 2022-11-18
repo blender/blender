@@ -84,6 +84,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_available_link_cycle = false;
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
+  Vector<bNode *> root_frames;
 };
 
 /**
@@ -154,6 +155,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   int index_in_tree = -1;
   bool has_available_linked_inputs = false;
   bool has_available_linked_outputs = false;
+  Vector<bNode *> direct_children_in_frame;
   bNodeTree *owner_tree = nullptr;
 };
 
@@ -323,6 +325,12 @@ inline blender::Span<bNodeSocket *> bNodeTree::all_sockets()
   return this->runtime->sockets;
 }
 
+inline blender::Span<bNode *> bNodeTree::root_frames() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->root_frames;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -437,6 +445,13 @@ inline blender::Span<const bNodeLink *> bNode::internal_links_span() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->internal_links;
+}
+
+inline blender::Span<bNode *> bNode::direct_children_in_frame() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  BLI_assert(this->is_frame());
+  return this->runtime->direct_children_in_frame;
 }
 
 inline const blender::nodes::NodeDeclaration *bNode::declaration() const

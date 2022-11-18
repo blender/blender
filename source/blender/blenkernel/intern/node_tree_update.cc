@@ -44,6 +44,7 @@ enum eNodeTreeChangedFlag {
   NTREE_CHANGED_REMOVED_SOCKET = (1 << 7),
   NTREE_CHANGED_SOCKET_PROPERTY = (1 << 8),
   NTREE_CHANGED_INTERNAL_LINK = (1 << 9),
+  NTREE_CHANGED_PARENT = (1 << 10),
   NTREE_CHANGED_ALL = -1,
 };
 
@@ -1702,6 +1703,11 @@ void BKE_ntree_update_tag_missing_runtime_data(bNodeTree *ntree)
 void BKE_ntree_update_tag_interface(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_INTERFACE);
+}
+
+void BKE_ntree_update_tag_parent_change(bNodeTree *ntree, bNode *node)
+{
+  add_node_tag(ntree, node, NTREE_CHANGED_PARENT);
 }
 
 void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)

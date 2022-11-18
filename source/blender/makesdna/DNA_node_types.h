@@ -407,6 +407,8 @@ typedef struct bNode {
   /** Lookup socket of this node by its identifier. */
   const bNodeSocket &input_by_identifier(blender::StringRef identifier) const;
   const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
+  /** If node is frame, will return all children nodes. */
+  blender::Span<bNode *> direct_children_in_frame() const;
   /** Node tree this node belongs to. */
   const bNodeTree &owner_tree() const;
 #endif
@@ -650,6 +652,8 @@ typedef struct bNodeTree {
   /** Efficient lookup of all nodes with a specific type. */
   blender::Span<bNode *> nodes_by_type(blender::StringRefNull type_idname);
   blender::Span<const bNode *> nodes_by_type(blender::StringRefNull type_idname) const;
+  /** Frame nodes without any parents. */
+  blender::Span<bNode *> root_frames() const;
   /**
    * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
