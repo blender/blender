@@ -98,7 +98,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
 
   std::string top_dir_trailing_slash = normalize_directory_path(top_level_directory);
 
-  AssetLibraryPtr *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(top_dir_trailing_slash);
+  std::unique_ptr<AssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
+      top_dir_trailing_slash);
   if (lib_uptr_ptr != nullptr) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_dir_trailing_slash.c_str());
     AssetLibrary *lib = lib_uptr_ptr->get();
@@ -106,7 +107,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
     return lib;
   }
 
-  AssetLibraryPtr lib_uptr = std::make_unique<AssetLibrary>();
+  std::unique_ptr lib_uptr = std::make_unique<AssetLibrary>();
   AssetLibrary *lib = lib_uptr.get();
 
   lib->on_blend_save_handler_register();
