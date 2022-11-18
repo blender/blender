@@ -5,6 +5,8 @@
  * \ingroup nodes
  */
 
+#include "BKE_node_runtime.hh"
+
 #include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
