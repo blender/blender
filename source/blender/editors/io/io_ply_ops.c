@@ -65,6 +65,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
+  export_params.ascii_mode = RNA_boolean_get(op->ptr, "ascii_mode");
 
   PLY_export(C, &export_params);
 
