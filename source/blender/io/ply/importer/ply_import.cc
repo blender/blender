@@ -25,6 +25,7 @@
 
 #include "ply_import.hh"
 
+
 namespace blender::io::ply {
 
 void ply_import_report_error(FILE *file)
@@ -51,5 +52,35 @@ void importer_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYImportParams &import_params)
 {
+  printf("TEST Import \n");
+  //copyed from the STL importer
+  FILE *file = BLI_fopen(import_params.filepath, "rb");
+  if (!file) {
+    fprintf(stderr, "Failed to open PLY file:'%s'.\n", import_params.filepath);
+    return;
+  }
+  BLI_SCOPED_DEFER([&]() { fclose(file); });
+
+  /* Detect STL file type by comparing file size with expected file size,
+   * could check if file starts with "solid", but some files do not adhere,
+   * this is the same as the old Python importer.
+   */
+
+  const size_t BINARY_HEADER_SIZE = 80;
+  const size_t BINARY_STRIDE = 12 * 4 + 2;
+
+  uint32_t num_tri = 0;
+  size_t file_size = BLI_file_size(import_params.filepath);
+  fseek(file, BINARY_HEADER_SIZE, SEEK_SET);
+  if (fread(&num_tri, sizeof(uint32_t), 1, file) != 1) {
+    ply_import_report_error(file);
+    return;
+  }
+  bool is_ascii_stl = (file_size != (BINARY_HEADER_SIZE + 4 + BINARY_STRIDE * num_tri));
+
+  /* Name used for both mesh and object. */
+  char ob_name[FILE_MAX];
+  BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
+  BLI_path_extension_replace(ob_name, FILE_MAX, "");
 }
 }  // namespace blender::io::ply
