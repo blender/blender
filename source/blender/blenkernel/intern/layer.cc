@@ -71,7 +71,7 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
 static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *collection)
 {
-  LayerCollection *lc = MEM_callocN(sizeof(LayerCollection), "Collection Base");
+  LayerCollection *lc = MEM_cnew<LayerCollection>("Collection Base");
   lc->collection = collection;
   lc->local_collections_bits = ~(0);
   BLI_addtail(lb_parent, lc);
@@ -94,7 +94,7 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
 
 static Base *object_base_new(Object *ob)
 {
-  Base *base = MEM_callocN(sizeof(Base), "Object Base");
+  Base *base = MEM_cnew<Base>("Object Base");
   base->object = ob;
   base->local_view_bits = ~(0);
   if (ob->base_flag & BASE_SELECTED) {
@@ -120,7 +120,7 @@ ViewLayer *BKE_view_layer_default_view(const Scene *scene)
   }
 
   BLI_assert(scene->view_layers.first);
-  return scene->view_layers.first;
+  return static_cast<ViewLayer *>(scene->view_layers.first);
 }
 
 ViewLayer *BKE_view_layer_default_render(const Scene *scene)
@@ -132,7 +132,7 @@ ViewLayer *BKE_view_layer_default_render(const Scene *scene)
   }
 
   BLI_assert(scene->view_layers.first);
-  return scene->view_layers.first;
+  return static_cast<ViewLayer *>(scene->view_layers.first);
 }
 
 ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
@@ -149,7 +149,7 @@ ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
   BLI_assert(scene->view_layers.first);
-  return scene->view_layers.first;
+  return static_cast<ViewLayer *>(scene->view_layers.first);
 }
 
 static ViewLayer *view_layer_add(const char *name)
@@ -158,7 +158,7 @@ static ViewLayer *view_layer_add(const char *name)
     name = DATA_("ViewLayer");
   }
 
-  ViewLayer *view_layer = MEM_callocN(sizeof(ViewLayer), "View Layer");
+  ViewLayer *view_layer = MEM_cnew<ViewLayer>("View Layer");
   view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
   BLI_strncpy_utf8(view_layer->name, name, sizeof(view_layer->name));
@@ -176,7 +176,8 @@ static ViewLayer *view_layer_add(const char *name)
 
 static void layer_collection_exclude_all(LayerCollection *layer_collection)
 {
-  LayerCollection *sub_collection = layer_collection->layer_collections.first;
+  LayerCollection *sub_collection = static_cast<LayerCollection *>(
+      layer_collection->layer_collections.first);
   for (; sub_collection != NULL; sub_collection = sub_collection->next) {
     sub_collection->flag |= LAYER_COLLECTION_EXCLUDE;
     layer_collection_exclude_all(sub_collection);
@@ -204,7 +205,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
     }
     case VIEWLAYER_ADD_COPY: {
       /* Allocate and copy view layer data */
-      view_layer_new = MEM_callocN(sizeof(ViewLayer), "View Layer");
+      view_layer_new = MEM_cnew<ViewLayer>("View Layer");
       *view_layer_new = *view_layer_source;
       BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
       BLI_addtail(&scene->view_layers, view_layer_new);
@@ -218,7 +219,8 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
 
       /* Initialize layer-collections. */
       BKE_layer_collection_sync(scene, view_layer_new);
-      layer_collection_exclude_all(view_layer_new->layer_collections.first);
+      layer_collection_exclude_all(
+          static_cast<LayerCollection *>(view_layer_new->layer_collections.first));
 
       /* Update collections after changing visibility */
       BKE_layer_collection_sync(scene, view_layer_new);
@@ -387,7 +389,7 @@ Base *BKE_view_layer_base_find(ViewLayer *view_layer, Object *ob)
     view_layer_bases_hash_create(view_layer, false);
   }
 
-  return BLI_ghash_lookup(view_layer->object_bases_hash, ob);
+  return static_cast<Base *>(BLI_ghash_lookup(view_layer->object_bases_hash, ob));
 }
 
 void BKE_view_layer_base_deselect_all(const Scene *scene, ViewLayer *view_layer)
@@ -421,8 +423,8 @@ static void layer_aov_copy_data(ViewLayer *view_layer_dst,
     BLI_duplicatelist(aovs_dst, aovs_src);
   }
 
-  ViewLayerAOV *aov_dst = aovs_dst->first;
-  const ViewLayerAOV *aov_src = aovs_src->first;
+  ViewLayerAOV *aov_dst = static_cast<ViewLayerAOV *>(aovs_dst->first);
+  const ViewLayerAOV *aov_src = static_cast<const ViewLayerAOV *>(aovs_src->first);
 
   while (aov_dst != NULL) {
     BLI_assert(aov_src);
@@ -444,8 +446,9 @@ static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
     BLI_duplicatelist(lightgroups_dst, lightgroups_src);
   }
 
-  ViewLayerLightgroup *lightgroup_dst = lightgroups_dst->first;
-  const ViewLayerLightgroup *lightgroup_src = lightgroups_src->first;
+  ViewLayerLightgroup *lightgroup_dst = static_cast<ViewLayerLightgroup *>(lightgroups_dst->first);
+  const ViewLayerLightgroup *lightgroup_src = static_cast<const ViewLayerLightgroup *>(
+      lightgroups_src->first);
 
   while (lightgroup_dst != NULL) {
     BLI_assert(lightgroup_src);
@@ -465,8 +468,10 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
 {
   BLI_duplicatelist(layer_collections_dst, layer_collections_src);
 
-  LayerCollection *layer_collection_dst = layer_collections_dst->first;
-  const LayerCollection *layer_collection_src = layer_collections_src->first;
+  LayerCollection *layer_collection_dst = static_cast<LayerCollection *>(
+      layer_collections_dst->first);
+  const LayerCollection *layer_collection_src = static_cast<const LayerCollection *>(
+      layer_collections_src->first);
 
   while (layer_collection_dst != NULL) {
     layer_collections_copy_data(view_layer_dst,
@@ -508,7 +513,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   BLI_assert_msg((view_layer_src->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View Layer Object Base out of sync, invoke BKE_view_layer_synced_ensure.");
   LISTBASE_FOREACH (const Base *, base_src, &view_layer_src->object_bases) {
-    Base *base_dst = MEM_dupallocN(base_src);
+    Base *base_dst = static_cast<Base *>(MEM_dupallocN(base_src));
     BLI_addtail(&view_layer_dst->object_bases, base_dst);
     if (view_layer_src->basact == base_src) {
       view_layer_dst->basact = base_dst;
@@ -521,7 +526,8 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
                               &view_layer_dst->layer_collections,
                               &view_layer_src->layer_collections);
 
-  LayerCollection *lc_scene_dst = view_layer_dst->layer_collections.first;
+  LayerCollection *lc_scene_dst = static_cast<LayerCollection *>(
+      view_layer_dst->layer_collections.first);
   lc_scene_dst->collection = scene_dst->master_collection;
 
   BLI_listbase_clear(&view_layer_dst->aovs);
@@ -555,7 +561,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
     bNode *node;
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    for (node = scene->nodetree->nodes.first; node; node = node->next) {
+    for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
       if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
         if (node->custom1 == index) {
           BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
@@ -568,7 +574,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
 
   /* WM can be missing on startup. */
-  wmWindowManager *wm = bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
@@ -620,7 +626,7 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
   }
 
   /* Restriction flags stay set, so we need to check parents */
-  CollectionParent *parent = lc->collection->parents.first;
+  CollectionParent *parent = static_cast<CollectionParent *>(lc->collection->parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
@@ -656,7 +662,7 @@ bool BKE_layer_collection_activate(ViewLayer *view_layer, LayerCollection *lc)
 
 LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, LayerCollection *lc)
 {
-  CollectionParent *parent = lc->collection->parents.first;
+  CollectionParent *parent = static_cast<CollectionParent *>(lc->collection->parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
@@ -672,7 +678,7 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
   }
 
   if (!lc) {
-    lc = view_layer->layer_collections.first;
+    lc = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   }
 
   view_layer->active_collection = lc;
@@ -808,7 +814,8 @@ typedef struct LayerCollectionResync {
 static LayerCollectionResync *layer_collection_resync_create_recurse(
     LayerCollectionResync *parent_layer_resync, LayerCollection *layer, BLI_mempool *mempool)
 {
-  LayerCollectionResync *layer_resync = BLI_mempool_calloc(mempool);
+  LayerCollectionResync *layer_resync = static_cast<LayerCollectionResync *>(
+      BLI_mempool_calloc(mempool));
 
   layer_resync->layer = layer;
   layer_resync->collection = layer->collection;
@@ -984,7 +991,8 @@ void BKE_scene_view_layers_synced_ensure(const Scene *scene)
 
 void BKE_main_view_layers_synced_ensure(const Main *bmain)
 {
-  for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  for (const Scene *scene = static_cast<const Scene *>(bmain->scenes.first); scene;
+       scene = static_cast<const Scene *>(scene->id.next)) {
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
@@ -1019,7 +1027,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
       /* Move from old base list to new base list. Base might have already
        * been moved to the new base list and the first/last test ensure that
        * case also works. */
-      base = *base_p;
+      base = static_cast<Base *>(*base_p);
       if (!ELEM(base, r_lb_new_object_bases->first, r_lb_new_object_bases->last)) {
         BLI_remlink(&view_layer->object_bases, base);
         BLI_addtail(r_lb_new_object_bases, base);
@@ -1137,7 +1145,8 @@ static void layer_collection_sync(ViewLayer *view_layer,
       LayerCollection *child_layer = layer_collection_add(&new_lb_layer, child_collection);
       child_layer->flag = parent_layer_flag;
 
-      child_layer_resync = BLI_mempool_calloc(layer_resync_mempool);
+      child_layer_resync = static_cast<LayerCollectionResync *>(
+          BLI_mempool_calloc(layer_resync_mempool));
       child_layer_resync->collection = child_collection;
       child_layer_resync->layer = child_layer;
       child_layer_resync->is_usable = true;
@@ -1215,7 +1224,7 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
   bool is_valid = true;
 
   if (layer == NULL) {
-    layer = view_layer->layer_collections.first;
+    layer = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   }
 
   /* Only check for a collection's objects if its layer is not excluded. */
@@ -1257,7 +1266,8 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *UNUSED(view_layer)
 
 void BKE_layer_collection_doversion_2_80(const Scene *scene, ViewLayer *view_layer)
 {
-  LayerCollection *first_layer_collection = view_layer->layer_collections.first;
+  LayerCollection *first_layer_collection = static_cast<LayerCollection *>(
+      view_layer->layer_collections.first);
   if (BLI_listbase_count_at_most(&view_layer->layer_collections, 2) > 1 ||
       first_layer_collection->collection != scene->master_collection) {
     /* In some cases (from older files) we do have a master collection, but no matching layer,
@@ -1296,7 +1306,8 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
                    "ViewLayer's first level of children layer collections should always have "
                    "exactly one item");
 
-    LayerCollection *first_layer_collection = view_layer->layer_collections.first;
+    LayerCollection *first_layer_collection = static_cast<LayerCollection *>(
+        view_layer->layer_collections.first);
     BLI_assert_msg(first_layer_collection->collection == scene->master_collection,
                    "ViewLayer's first layer collection should always be the one for the scene's "
                    "master collection");
@@ -1322,10 +1333,12 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   BLI_mempool *layer_resync_mempool = BLI_mempool_create(
       sizeof(LayerCollectionResync), 1024, 1024, BLI_MEMPOOL_NOP);
   LayerCollectionResync *master_layer_resync = layer_collection_resync_create_recurse(
-      NULL, view_layer->layer_collections.first, layer_resync_mempool);
+      NULL,
+      static_cast<LayerCollection *>(view_layer->layer_collections.first),
+      layer_resync_mempool);
 
   /* Generate new layer connections and object bases when collections changed. */
-  ListBase new_object_bases = {.first = NULL, .last = NULL};
+  ListBase new_object_bases{};
   const short parent_exclude = 0, parent_restrict = 0, parent_layer_restrict = 0;
   layer_collection_sync(view_layer,
                         master_layer_resync,
@@ -1372,7 +1385,8 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     BKE_layer_collection_activate_parent(view_layer, active);
   }
   else if (active == NULL) {
-    view_layer->active_collection = view_layer->layer_collections.first;
+    view_layer->active_collection = static_cast<LayerCollection *>(
+        view_layer->layer_collections.first);
   }
 }
 
@@ -1398,7 +1412,8 @@ void BKE_main_collection_sync(const Main *bmain)
 
   /* TODO: optimize for file load so only linked collections get checked? */
 
-  for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  for (const Scene *scene = static_cast<const Scene *>(bmain->scenes.first); scene;
+       scene = static_cast<const Scene *>(scene->id.next)) {
     BKE_scene_collection_sync(scene);
   }
 
@@ -1414,7 +1429,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   /* On remapping of object or collection pointers free caches. */
   /* TODO: try to make this faster */
 
-  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
+       scene = static_cast<Scene *>(scene->id.next)) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -1434,8 +1450,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
     DEG_id_tag_update_ex((Main *)bmain, &scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 
-  for (Collection *collection = bmain->collections.first; collection;
-       collection = collection->id.next) {
+  for (Collection *collection = static_cast<Collection *>(bmain->collections.first); collection;
+       collection = static_cast<Collection *>(collection->id.next)) {
     BKE_collection_object_cache_free(collection);
     DEG_id_tag_update_ex((Main *)bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
   }
@@ -1639,7 +1655,7 @@ void BKE_layer_collection_isolate_global(Scene *UNUSED(scene),
                                          LayerCollection *lc,
                                          bool extend)
 {
-  LayerCollection *lc_master = view_layer->layer_collections.first;
+  LayerCollection *lc_master = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   bool hide_it = extend && (lc->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER);
 
   if (!extend) {
@@ -1761,7 +1777,7 @@ void BKE_layer_collection_local_sync_all(const Main *bmain)
           if (area->spacetype != SPACE_VIEW3D) {
             continue;
           }
-          View3D *v3d = area->spacedata.first;
+          View3D *v3d = static_cast<View3D *>(area->spacedata.first);
           if (v3d->flag & V3D_LOCAL_COLLECTIONS) {
             BKE_layer_collection_local_sync(scene, view_layer, v3d);
           }
@@ -1774,7 +1790,7 @@ void BKE_layer_collection_local_sync_all(const Main *bmain)
 void BKE_layer_collection_isolate_local(
     const Scene *scene, ViewLayer *view_layer, const View3D *v3d, LayerCollection *lc, bool extend)
 {
-  LayerCollection *lc_master = view_layer->layer_collections.first;
+  LayerCollection *lc_master = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   bool hide_it = extend && ((v3d->local_collections_uuid & lc->local_collections_bits) != 0);
 
   if (!extend) {
@@ -1992,10 +2008,10 @@ static bool object_bases_iterator_is_valid(const View3D *v3d, Base *base, const 
 
 static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, const int flag)
 {
-  ObjectsVisibleIteratorData *data_in = data_in_v;
+  ObjectsVisibleIteratorData *data_in = static_cast<ObjectsVisibleIteratorData *>(data_in_v);
   ViewLayer *view_layer = data_in->view_layer;
   const View3D *v3d = data_in->v3d;
-  Base *base = BKE_view_layer_object_bases_get(view_layer)->first;
+  Base *base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
 
   /* when there are no objects */
   if (base == NULL) {
@@ -2004,7 +2020,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
     return;
   }
 
-  LayerObjectBaseIteratorData *data = MEM_callocN(sizeof(LayerObjectBaseIteratorData), __func__);
+  LayerObjectBaseIteratorData *data = MEM_cnew<LayerObjectBaseIteratorData>(__func__);
   iter->data = data;
 
   data->v3d = v3d;
@@ -2020,7 +2036,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
 
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag)
 {
-  LayerObjectBaseIteratorData *data = iter->data;
+  LayerObjectBaseIteratorData *data = static_cast<LayerObjectBaseIteratorData *>(iter->data);
   Base *base = data->base->next;
 
   while (base) {
@@ -2199,7 +2215,7 @@ static bool base_is_in_mode(struct ObjectsInModeIteratorData *data, Base *base)
 
 void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  struct ObjectsInModeIteratorData *data = data_in;
+  struct ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(data_in);
   Base *base = data->base_active;
 
   /* In this case the result will always be empty, the caller must check for no mode. */
@@ -2225,12 +2241,12 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
 
 void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 {
-  struct ObjectsInModeIteratorData *data = iter->data;
-  Base *base = iter->current;
+  struct ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(iter->data);
+  Base *base = static_cast<Base *>(iter->current);
 
   if (base == data->base_active) {
     /* first step */
-    base = data->view_layer->object_bases.first;
+    base = static_cast<Base *>(data->view_layer->object_bases.first);
     if ((base == data->base_active) && BKE_base_is_visible(data->v3d, base)) {
       base = base->next;
     }
@@ -2303,8 +2319,8 @@ static void layer_eval_view_layer(struct Depsgraph *depsgraph,
   BKE_view_layer_synced_ensure(scene, view_layer);
   const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
   MEM_SAFE_FREE(view_layer->object_bases_array);
-  view_layer->object_bases_array = MEM_malloc_arrayN(
-      num_object_bases, sizeof(Base *), "view_layer->object_bases_array");
+  view_layer->object_bases_array = static_cast<Base **>(
+      MEM_malloc_arrayN(num_object_bases, sizeof(Base *), "view_layer->object_bases_array"));
   int base_index = 0;
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     view_layer->object_bases_array[base_index++] = base;
@@ -2316,7 +2332,8 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
                                        int view_layer_index)
 {
   BLI_assert(view_layer_index >= 0);
-  ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(
+      BLI_findlink(&scene->view_layers, view_layer_index));
   BLI_assert(view_layer != NULL);
   layer_eval_view_layer(depsgraph, scene, view_layer);
 }
@@ -2488,7 +2505,7 @@ static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
 struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer)
 {
   ViewLayerAOV *aov;
-  aov = MEM_callocN(sizeof(ViewLayerAOV), __func__);
+  aov = MEM_cnew<ViewLayerAOV>(__func__);
   aov->type = AOV_TYPE_COLOR;
   BLI_strncpy(aov->name, DATA_("AOV"), sizeof(aov->name));
   BLI_addtail(&view_layer->aovs, aov);
@@ -2525,7 +2542,7 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
                                          const char *UNUSED(chanid),
                                          eNodeSocketDatatype UNUSED(type))
 {
-  GHash *name_count = userdata;
+  GHash *name_count = static_cast<GHash *>(userdata);
   void **value_p;
   void *key = BLI_strdup(name);
 
@@ -2550,7 +2567,7 @@ void BKE_view_layer_verify_aov(struct RenderEngine *engine,
   RE_engine_update_render_passes(
       engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    void **value_p = BLI_ghash_lookup(name_count, aov->name);
+    void **value_p = static_cast<void **>(BLI_ghash_lookup(name_count, aov->name));
     int count = POINTER_AS_INT(value_p);
     SET_FLAG_FROM_TEST(aov->flag, count > 1, AOV_CONFLICT);
   }
@@ -2612,7 +2629,7 @@ struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view
                                                           const char *name)
 {
   ViewLayerLightgroup *lightgroup;
-  lightgroup = MEM_callocN(sizeof(ViewLayerLightgroup), __func__);
+  lightgroup = MEM_cnew<ViewLayerLightgroup>(__func__);
   if (name && name[0]) {
     BLI_strncpy(lightgroup->name, name, sizeof(lightgroup->name));
   }
@@ -2710,7 +2727,7 @@ void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char
 {
   if (name[0] != '\0') {
     if (*lgm == NULL) {
-      *lgm = MEM_callocN(sizeof(LightgroupMembership), __func__);
+      *lgm = MEM_cnew<LightgroupMembership>(__func__);
     }
     BLI_strncpy((*lgm)->name, name, sizeof((*lgm)->name));
   }

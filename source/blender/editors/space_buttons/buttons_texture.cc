@@ -71,7 +71,7 @@ static void buttons_texture_user_socket_property_add(ListBase *users,
                                                      int icon,
                                                      const char *name)
 {
-  ButsTextureUser *user = MEM_callocN(sizeof(ButsTextureUser), "ButsTextureUser");
+  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ptr = ptr;
@@ -95,7 +95,7 @@ static void buttons_texture_user_property_add(ListBase *users,
                                               int icon,
                                               const char *name)
 {
-  ButsTextureUser *user = MEM_callocN(sizeof(ButsTextureUser), "ButsTextureUser");
+  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ptr = ptr;
@@ -116,7 +116,7 @@ static void buttons_texture_user_node_add(ListBase *users,
                                           int icon,
                                           const char *name)
 {
-  ButsTextureUser *user = MEM_callocN(sizeof(ButsTextureUser), "ButsTextureUser");
+  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ntree = ntree;
@@ -137,7 +137,7 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
   bNode *node;
 
   if (ntree) {
-    for (node = ntree->nodes.first; node; node = node->next) {
+    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
       if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
         PointerRNA ptr;
         // PropertyRNA *prop; /* UNUSED */
@@ -179,8 +179,8 @@ static void buttons_texture_modifier_geonodes_users_add(Object *ob,
       prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
-      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? (Tex *)texptr.data : NULL;
-      if (tex != NULL) {
+      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? (Tex *)texptr.data : nullptr;
+      if (tex != nullptr) {
         buttons_texture_user_socket_property_add(users,
                                                  &ob->id,
                                                  ptr,
@@ -201,11 +201,11 @@ static void buttons_texture_modifier_foreach(void *userData,
                                              ModifierData *md,
                                              const char *propname)
 {
-  ListBase *users = userData;
+  ListBase *users = static_cast<ListBase *>(userData);
 
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = (NodesModifierData *)md;
-    if (nmd->node_group != NULL) {
+    if (nmd->node_group != nullptr) {
       buttons_texture_modifier_geonodes_users_add(ob, nmd, nmd->node_group, users);
     }
   }
@@ -228,7 +228,7 @@ static void buttons_texture_modifier_gpencil_foreach(void *userData,
 {
   PointerRNA ptr;
   PropertyRNA *prop;
-  ListBase *users = userData;
+  ListBase *users = static_cast<ListBase *>(userData);
 
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
   prop = RNA_struct_find_property(&ptr, propname);
@@ -246,10 +246,10 @@ static void buttons_texture_users_from_context(ListBase *users,
                                                const bContext *C,
                                                SpaceProperties *sbuts)
 {
-  Scene *scene = NULL;
-  Object *ob = NULL;
-  FreestyleLineStyle *linestyle = NULL;
-  Brush *brush = NULL;
+  Scene *scene = nullptr;
+  Object *ob = nullptr;
+  FreestyleLineStyle *linestyle = nullptr;
+  Brush *brush = nullptr;
   ID *pinid = sbuts->pinid;
   bool limited_mode = (sbuts->flag & SB_TEX_USER_LIMITED) != 0;
 
@@ -273,7 +273,7 @@ static void buttons_texture_users_from_context(ListBase *users,
     scene = CTX_data_scene(C);
   }
 
-  const ID_Type id_type = pinid != NULL ? GS(pinid->name) : -1;
+  const ID_Type id_type = ID_Type(pinid != nullptr ? GS(pinid->name) : -1);
   if (!pinid || id_type == ID_SCE) {
     wmWindow *win = CTX_wm_window(C);
     ViewLayer *view_layer = (win->scene == scene) ? WM_window_get_active_view_layer(win) :
@@ -365,11 +365,11 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 {
   /* gather available texture users in context. runs on every draw of
    * properties editor, before the buttons are created. */
-  ButsContextTexture *ct = sbuts->texuser;
+  ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
   ID *pinid = sbuts->pinid;
 
   if (!ct) {
-    ct = MEM_callocN(sizeof(ButsContextTexture), "ButsContextTexture");
+    ct = MEM_cnew<ButsContextTexture>("ButsContextTexture");
     sbuts->texuser = ct;
   }
   else {
@@ -379,7 +379,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
   buttons_texture_users_from_context(&ct->users, C, sbuts);
 
   if (pinid && GS(pinid->name) == ID_TE) {
-    ct->user = NULL;
+    ct->user = nullptr;
     ct->texture = (Tex *)pinid;
   }
   else {
@@ -388,16 +388,16 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
       ct->index = 0;
     }
 
-    ct->user = BLI_findlink(&ct->users, ct->index);
-    ct->texture = NULL;
+    ct->user = static_cast<ButsTextureUser *>(BLI_findlink(&ct->users, ct->index));
+    ct->texture = nullptr;
 
     if (ct->user) {
-      if (ct->user->node != NULL) {
+      if (ct->user->node != nullptr) {
         /* Detect change of active texture node in same node tree, in that
          * case we also automatically switch to the other node. */
         if ((ct->user->node->flag & NODE_ACTIVE_TEXTURE) == 0) {
           ButsTextureUser *user;
-          for (user = ct->users.first; user; user = user->next) {
+          for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
             if (user->ntree == ct->user->ntree && user->node != ct->user->node) {
               if (user->node->flag & NODE_ACTIVE_TEXTURE) {
                 ct->user = user;
@@ -414,7 +414,8 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 
         /* Get texture datablock pointer if it's a property. */
         texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
-        tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? texptr.data : NULL;
+        tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) :
+                                                           nullptr;
 
         ct->texture = tex;
       }
@@ -426,7 +427,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 {
   /* callback when selecting a texture user in the menu */
   SpaceProperties *sbuts = find_space_properties(C);
-  ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
+  ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   ButsTextureUser *user = (ButsTextureUser *)user_p;
   PointerRNA texptr;
   Tex *tex;
@@ -437,19 +438,19 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 
   /* set user as active */
   if (user->node) {
-    ED_node_set_active(CTX_data_main(C), NULL, user->ntree, user->node, NULL);
-    ct->texture = NULL;
+    ED_node_set_active(CTX_data_main(C), nullptr, user->ntree, user->node, nullptr);
+    ct->texture = nullptr;
 
     /* Not totally sure if we should also change selection? */
     LISTBASE_FOREACH (bNode *, node, &user->ntree->nodes) {
       nodeSetSelected(node, false);
     }
     nodeSetSelected(user->node, true);
-    WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   }
   if (user->ptr.data) {
     texptr = RNA_property_pointer_get(&user->ptr, user->prop);
-    tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? texptr.data : NULL;
+    tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) : nullptr;
 
     ct->texture = tex;
 
@@ -479,26 +480,26 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 {
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  ButsContextTexture *ct = sbuts->texuser;
+  ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
   ButsTextureUser *user;
   uiBlock *block = uiLayoutGetBlock(layout);
-  const char *last_category = NULL;
+  const char *last_category = nullptr;
 
-  for (user = ct->users.first; user; user = user->next) {
+  for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
     uiBut *but;
     char name[UI_MAX_NAME_STR];
 
     /* add label per category */
     if (!last_category || !STREQ(last_category, user->category)) {
       uiItemL(layout, IFACE_(user->category), ICON_NONE);
-      but = block->buttons.last;
+      but = static_cast<uiBut *>(block->buttons.last);
       but->drawflag = UI_BUT_TEXT_LEFT;
     }
 
     /* create button */
     if (user->prop) {
       PointerRNA texptr = RNA_property_pointer_get(&user->ptr, user->prop);
-      Tex *tex = texptr.data;
+      Tex *tex = static_cast<Tex *>(texptr.data);
 
       if (tex) {
         BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name + 2);
@@ -520,13 +521,13 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
                            0,
                            UI_UNIT_X * 4,
                            UI_UNIT_Y,
-                           NULL,
+                           nullptr,
                            0.0,
                            0.0,
                            0.0,
                            0.0,
                            "");
-    UI_but_funcN_set(but, template_texture_select, MEM_dupallocN(user), NULL);
+    UI_but_funcN_set(but, template_texture_select, MEM_dupallocN(user), nullptr);
 
     last_category = user->category;
   }
@@ -540,7 +541,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
    * gathered before drawing in #ButsContextTexture, we merely need to
    * display the current item. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
+  ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   uiBlock *block = uiLayoutGetBlock(layout);
   uiBut *but;
   ButsTextureUser *user;
@@ -564,7 +565,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   if (user->icon) {
     but = uiDefIconTextMenuBut(block,
                                template_texture_user_menu,
-                               NULL,
+                               nullptr,
                                user->icon,
                                name,
                                0,
@@ -575,7 +576,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   }
   else {
     but = uiDefMenuBut(
-        block, template_texture_user_menu, NULL, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y, "");
+        block, template_texture_user_menu, nullptr, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y, "");
   }
 
   /* some cosmetic tweaks */
@@ -594,46 +595,46 @@ static ScrArea *find_area_properties(const bContext *C)
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (area->spacetype == SPACE_PROPERTIES) {
       /* Only if unpinned, or if pinned object matches. */
-      SpaceProperties *sbuts = area->spacedata.first;
+      SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
       ID *pinid = sbuts->pinid;
-      if (pinid == NULL || ((GS(pinid->name) == ID_OB) && (Object *)pinid == ob)) {
+      if (pinid == nullptr || ((GS(pinid->name) == ID_OB) && (Object *)pinid == ob)) {
         return area;
       }
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static SpaceProperties *find_space_properties(const bContext *C)
 {
   ScrArea *area = find_area_properties(C);
-  if (area != NULL) {
-    return area->spacedata.first;
+  if (area != nullptr) {
+    return static_cast<SpaceProperties *>(area->spacedata.first);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 {
-  if (data_p == NULL || prop_p == NULL) {
+  if (data_p == nullptr || prop_p == nullptr) {
     return;
   }
 
   ScrArea *area = find_area_properties(C);
-  if (area == NULL) {
+  if (area == nullptr) {
     return;
   }
 
   SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
-  ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
+  ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   if (!ct) {
     return;
   }
 
   ButsTextureUser *user;
-  for (user = ct->users.first; user; user = user->next) {
+  for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
     if (user->ptr.data == data_p && user->prop == prop_p) {
       break;
     }
@@ -641,7 +642,7 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 
   if (user) {
     /* select texture */
-    template_texture_select(C, user, NULL);
+    template_texture_select(C, user, nullptr);
 
     /* change context */
     sbuts->mainb = BCONTEXT_TEXTURE;
@@ -656,25 +657,25 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
   /* Only show the button if there is actually a texture assigned. */
-  Tex *texture = RNA_property_pointer_get(ptr, prop).data;
-  if (texture == NULL) {
+  Tex *texture = static_cast<Tex *>(RNA_property_pointer_get(ptr, prop).data);
+  if (texture == nullptr) {
     return;
   }
 
   /* Only show the button if we are not in the Properties Editor's texture tab. */
   SpaceProperties *sbuts_context = CTX_wm_space_properties(C);
-  if (sbuts_context != NULL && sbuts_context->mainb == BCONTEXT_TEXTURE) {
+  if (sbuts_context != nullptr && sbuts_context->mainb == BCONTEXT_TEXTURE) {
     return;
   }
 
   SpaceProperties *sbuts = find_space_properties(C);
-  ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
+  ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
 
   /* find corresponding texture user */
   ButsTextureUser *user;
   bool user_found = false;
-  if (ct != NULL) {
-    for (user = ct->users.first; user; user = user->next) {
+  if (ct != nullptr) {
+    for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
       if (user->ptr.data == ptr->data && user->prop == prop) {
         user_found = true;
         break;
@@ -693,7 +694,7 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
                      0,
                      UI_UNIT_X,
                      UI_UNIT_Y,
-                     NULL,
+                     nullptr,
                      0.0,
                      0.0,
                      0.0,
@@ -701,9 +702,9 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
                      TIP_("Show texture in texture tab"));
   UI_but_func_set(but,
                   template_texture_show,
-                  user_found ? user->ptr.data : NULL,
-                  user_found ? user->prop : NULL);
-  if (ct == NULL) {
+                  user_found ? user->ptr.data : nullptr,
+                  user_found ? user->prop : nullptr);
+  if (ct == nullptr) {
     UI_but_disable(but, TIP_("No (unpinned) Properties Editor found to display texture in"));
   }
   else if (!user_found) {

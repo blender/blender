@@ -89,13 +89,13 @@ BLI_INLINE void workbench_material_get_image(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, eGPUSamplerState *r_sampler)
 {
   const bNode *node;
-  *r_sampler = 0;
+  *r_sampler = eGPUSamplerState(0);
 
   ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, NULL);
   if (node && *r_image) {
     switch (node->type) {
       case SH_NODE_TEX_IMAGE: {
-        const NodeTexImage *storage = node->storage;
+        const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
         const bool use_repeat = (storage->extension == SHD_IMAGE_EXTENSION_REPEAT);
         const bool use_clip = (storage->extension == SHD_IMAGE_EXTENSION_CLIP);
@@ -105,7 +105,7 @@ BLI_INLINE void workbench_material_get_image(
         break;
       }
       case SH_NODE_TEX_ENVIRONMENT: {
-        const NodeTexEnvironment *storage = node->storage;
+        const NodeTexEnvironment *storage = static_cast<NodeTexEnvironment *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
         SET_FLAG_FROM_TEST(*r_sampler, use_filter, GPU_SAMPLER_FILTER);
         break;
@@ -128,15 +128,18 @@ BLI_INLINE bool workbench_material_chunk_select(WORKBENCH_PrivateData *wpd,
   /* We need to add a new chunk. */
   while (chunk >= wpd->material_chunk_count) {
     wpd->material_chunk_count++;
-    wpd->material_ubo_data_curr = BLI_memblock_alloc(wpd->material_ubo_data);
-    wpd->material_ubo_curr = workbench_material_ubo_alloc(wpd);
+    wpd->material_ubo_data_curr = static_cast<WORKBENCH_UBO_Material *>(
+        BLI_memblock_alloc(wpd->material_ubo_data));
+    wpd->material_ubo_curr = static_cast<GPUUniformBuf *>(workbench_material_ubo_alloc(wpd));
     wpd->material_chunk_curr = chunk;
     resource_changed = true;
   }
   /* We need to go back to a previous chunk. */
   if (wpd->material_chunk_curr != chunk) {
-    wpd->material_ubo_data_curr = BLI_memblock_elem_get(wpd->material_ubo_data, 0, chunk);
-    wpd->material_ubo_curr = BLI_memblock_elem_get(wpd->material_ubo, 0, chunk);
+    wpd->material_ubo_data_curr = static_cast<WORKBENCH_UBO_Material *>(
+        BLI_memblock_elem_get(wpd->material_ubo_data, 0, chunk));
+    wpd->material_ubo_curr = static_cast<GPUUniformBuf *>(
+        BLI_memblock_elem_get(wpd->material_ubo, 0, chunk));
     wpd->material_chunk_curr = chunk;
     resource_changed = true;
   }

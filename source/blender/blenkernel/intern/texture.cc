@@ -78,11 +78,11 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   if (!BKE_texture_is_image_user(texture_src)) {
-    texture_dst->ima = NULL;
+    texture_dst->ima = nullptr;
   }
 
   if (texture_dst->coba) {
-    texture_dst->coba = MEM_dupallocN(texture_dst->coba);
+    texture_dst->coba = static_cast<ColorBand *>(MEM_dupallocN(texture_dst->coba));
   }
   if (texture_src->nodetree) {
     if (texture_src->nodetree->execdata) {
@@ -103,7 +103,7 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     BKE_previewimg_id_copy(&texture_dst->id, &texture_src->id);
   }
   else {
-    texture_dst->preview = NULL;
+    texture_dst->preview = nullptr;
   }
 }
 
@@ -115,7 +115,7 @@ static void texture_free_data(ID *id)
   if (texture->nodetree) {
     ntreeFreeEmbeddedTree(texture->nodetree);
     MEM_freeN(texture->nodetree);
-    texture->nodetree = NULL;
+    texture->nodetree = nullptr;
   }
 
   MEM_SAFE_FREE(texture->coba);
@@ -172,7 +172,7 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &tex->preview);
   BKE_previewimg_blend_read(reader, tex->preview);
 
-  tex->iuser.scene = NULL;
+  tex->iuser.scene = nullptr;
 }
 
 static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -190,33 +190,33 @@ static void texture_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_TE = {
-    .id_code = ID_TE,
-    .id_filter = FILTER_ID_TE,
-    .main_listbase_index = INDEX_ID_TE,
-    .struct_size = sizeof(Tex),
-    .name = "Texture",
-    .name_plural = "textures",
-    .translation_context = BLT_I18NCONTEXT_ID_TEXTURE,
-    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    .asset_type_info = NULL,
+    /* id_code */ ID_TE,
+    /* id_filter */ FILTER_ID_TE,
+    /* main_listbase_index */ INDEX_ID_TE,
+    /* struct_size */ sizeof(Tex),
+    /* name */ "Texture",
+    /* name_plural */ "textures",
+    /* translation_context */ BLT_I18NCONTEXT_ID_TEXTURE,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
-    .init_data = texture_init_data,
-    .copy_data = texture_copy_data,
-    .free_data = texture_free_data,
-    .make_local = NULL,
-    .foreach_id = texture_foreach_id,
-    .foreach_cache = NULL,
-    .foreach_path = NULL,
-    .owner_pointer_get = NULL,
+    /* init_data */ texture_init_data,
+    /* copy_data */ texture_copy_data,
+    /* free_data */ texture_free_data,
+    /* make_local */ nullptr,
+    /* foreach_id */ texture_foreach_id,
+    /* foreach_cache */ nullptr,
+    /* foreach_path */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
-    .blend_write = texture_blend_write,
-    .blend_read_data = texture_blend_read_data,
-    .blend_read_lib = texture_blend_read_lib,
-    .blend_read_expand = texture_blend_read_expand,
+    /* blend_write */ texture_blend_write,
+    /* blend_read_data */ texture_blend_read_data,
+    /* blend_read_lib */ texture_blend_read_lib,
+    /* blend_read_expand */ texture_blend_read_expand,
 
-    .blend_read_undo_preserve = NULL,
+    /* blend_read_undo_preserve */ nullptr,
 
-    .lib_override_apply_post = NULL,
+    /* lib_override_apply_post */ nullptr,
 };
 
 void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
@@ -229,7 +229,7 @@ void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
 
 TexMapping *BKE_texture_mapping_add(int type)
 {
-  TexMapping *texmap = MEM_callocN(sizeof(TexMapping), "TexMapping");
+  TexMapping *texmap = MEM_cnew<TexMapping>("TexMapping");
 
   BKE_texture_mapping_default(texmap, type);
 
@@ -331,7 +331,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
 
 ColorMapping *BKE_texture_colormapping_add(void)
 {
-  ColorMapping *colormap = MEM_callocN(sizeof(ColorMapping), "ColorMapping");
+  ColorMapping *colormap = MEM_cnew<ColorMapping>("ColorMapping");
 
   BKE_texture_colormapping_default(colormap);
 
@@ -375,7 +375,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 {
   Tex *tex;
 
-  tex = BKE_id_new(bmain, ID_TE, name);
+  tex = static_cast<Tex *>(BKE_id_new(bmain, ID_TE, name));
 
   return tex;
 }
@@ -384,7 +384,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 
 void BKE_texture_mtex_default(MTex *mtex)
 {
-  memcpy(mtex, DNA_struct_default_get(MTex), sizeof(*mtex));
+  *mtex = blender::dna::shallow_copy(*DNA_struct_default_get(MTex));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -393,7 +393,7 @@ MTex *BKE_texture_mtex_add(void)
 {
   MTex *mtex;
 
-  mtex = MEM_callocN(sizeof(MTex), "BKE_texture_mtex_add");
+  mtex = static_cast<MTex *>(MEM_callocN(sizeof(MTex), "BKE_texture_mtex_add"));
 
   BKE_texture_mtex_default(mtex);
 
@@ -407,8 +407,8 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
   give_active_mtex(id, &mtex_ar, &act);
 
-  if (mtex_ar == NULL) {
-    return NULL;
+  if (mtex_ar == nullptr) {
+    return nullptr;
   }
 
   if (slot == -1) {
@@ -421,20 +421,20 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
       }
     }
     if (slot == -1) {
-      return NULL;
+      return nullptr;
     }
   }
   else {
     /* make sure slot is valid */
     if (slot < 0 || slot >= MAX_MTEX) {
-      return NULL;
+      return nullptr;
     }
   }
 
   if (mtex_ar[slot]) {
     id_us_min((ID *)mtex_ar[slot]->tex);
     MEM_freeN(mtex_ar[slot]);
-    mtex_ar[slot] = NULL;
+    mtex_ar[slot] = nullptr;
   }
 
   mtex_ar[slot] = BKE_texture_mtex_add();
@@ -446,8 +446,8 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
 {
-  MTex *mtex = NULL;
-  Tex *tex = NULL;
+  MTex *mtex = nullptr;
+  Tex *tex = nullptr;
 
   if (linestyle) {
     mtex = linestyle->mtex[(int)(linestyle->texact)];
@@ -497,7 +497,7 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
       }
       break;
     default:
-      *mtex_ar = NULL;
+      *mtex_ar = nullptr;
       if (act) {
         *act = 0;
       }
@@ -547,11 +547,11 @@ void set_current_brush_texture(Brush *br, Tex *newtex)
 
 Tex *give_current_particle_texture(ParticleSettings *part)
 {
-  MTex *mtex = NULL;
-  Tex *tex = NULL;
+  MTex *mtex = nullptr;
+  Tex *tex = nullptr;
 
   if (!part) {
-    return NULL;
+    return nullptr;
   }
 
   mtex = part->mtex[(int)(part->texact)];
@@ -594,8 +594,8 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   pd->falloff_type = TEX_PD_FALLOFF_STD;
   pd->falloff_softness = 2.0;
   pd->source = TEX_PD_PSYS;
-  pd->point_tree = NULL;
-  pd->point_data = NULL;
+  pd->point_tree = nullptr;
+  pd->point_data = nullptr;
   pd->noise_size = 0.5f;
   pd->noise_depth = 1;
   pd->noise_fac = 1.0f;
@@ -603,7 +603,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   pd->coba = BKE_colorband_add(true);
   pd->speed_scale = 1.0f;
   pd->totpoints = 0;
-  pd->object = NULL;
+  pd->object = nullptr;
   pd->psys = 0;
   pd->psys_cache_space = TEX_PD_WORLDSPACE;
   pd->falloff_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
@@ -619,7 +619,8 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
 
 PointDensity *BKE_texture_pointdensity_add(void)
 {
-  PointDensity *pd = MEM_callocN(sizeof(PointDensity), "pointdensity");
+  PointDensity *pd = static_cast<PointDensity *>(
+      MEM_callocN(sizeof(PointDensity), "pointdensity"));
   BKE_texture_pointdensity_init_data(pd);
   return pd;
 }
@@ -628,26 +629,26 @@ PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int UN
 {
   PointDensity *pdn;
 
-  pdn = MEM_dupallocN(pd);
-  pdn->point_tree = NULL;
-  pdn->point_data = NULL;
+  pdn = static_cast<PointDensity *>(MEM_dupallocN(pd));
+  pdn->point_tree = nullptr;
+  pdn->point_data = nullptr;
   if (pdn->coba) {
-    pdn->coba = MEM_dupallocN(pdn->coba);
+    pdn->coba = static_cast<ColorBand *>(MEM_dupallocN(pdn->coba));
   }
-  pdn->falloff_curve = BKE_curvemapping_copy(pdn->falloff_curve); /* can be NULL */
+  pdn->falloff_curve = BKE_curvemapping_copy(pdn->falloff_curve); /* can be nullptr */
   return pdn;
 }
 
 void BKE_texture_pointdensity_free_data(PointDensity *pd)
 {
   if (pd->point_tree) {
-    BLI_bvhtree_free(pd->point_tree);
-    pd->point_tree = NULL;
+    BLI_bvhtree_free(static_cast<BVHTree *>(pd->point_tree));
+    pd->point_tree = nullptr;
   }
   MEM_SAFE_FREE(pd->point_data);
   MEM_SAFE_FREE(pd->coba);
 
-  BKE_curvemapping_free(pd->falloff_curve); /* can be NULL */
+  BKE_curvemapping_free(pd->falloff_curve); /* can be nullptr */
 }
 
 void BKE_texture_pointdensity_free(PointDensity *pd)
@@ -721,7 +722,7 @@ void BKE_texture_get_value(const Scene *scene,
                            TexResult *texres,
                            bool use_color_management)
 {
-  BKE_texture_get_value_ex(scene, texture, tex_co, texres, NULL, use_color_management);
+  BKE_texture_get_value_ex(scene, texture, tex_co, texres, nullptr, use_color_management);
 }
 
 static void texture_nodes_fetch_images_for_pool(Tex *texture,
@@ -729,11 +730,11 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
                                                 struct ImagePool *pool)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_TEX_IMAGE && node->id != NULL) {
+    if (node->type == SH_NODE_TEX_IMAGE && node->id != nullptr) {
       Image *image = (Image *)node->id;
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);
     }
-    else if (node->type == NODE_GROUP && node->id != NULL) {
+    else if (node->type == NODE_GROUP && node->id != nullptr) {
       /* TODO(sergey): Do we need to control recursion here? */
       bNodeTree *nested_tree = (bNodeTree *)node->id;
       texture_nodes_fetch_images_for_pool(texture, nested_tree, pool);
@@ -743,12 +744,12 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
 
 void BKE_texture_fetch_images_for_pool(Tex *texture, struct ImagePool *pool)
 {
-  if (texture->nodetree != NULL) {
+  if (texture->nodetree != nullptr) {
     texture_nodes_fetch_images_for_pool(texture, texture->nodetree, pool);
   }
   else {
     if (texture->type == TEX_IMAGE) {
-      if (texture->ima != NULL) {
+      if (texture->ima != nullptr) {
         BKE_image_pool_acquire_ibuf(texture->ima, &texture->iuser, pool);
       }
     }

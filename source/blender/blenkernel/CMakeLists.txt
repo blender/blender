@@ -168,7 +168,7 @@ set(SRC
   intern/keyconfig.c
   intern/lattice.c
   intern/lattice_deform.c
-  intern/layer.c
+  intern/layer.cc
   intern/layer_utils.c
   intern/lib_id.c
   intern/lib_id_delete.c
@@ -181,14 +181,14 @@ set(SRC
   intern/library.c
   intern/light.c
   intern/lightprobe.c
-  intern/linestyle.c
+  intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
-  intern/material.c
+  intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc
   intern/mesh.cc
@@ -282,7 +282,7 @@ set(SRC
   intern/subsurf_ccg.c
   intern/text.c
   intern/text_suggestions.c
-  intern/texture.c
+  intern/texture.cc
   intern/tracking.c
   intern/tracking_auto.c
   intern/tracking_detect.c

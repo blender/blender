@@ -92,7 +92,7 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
-  if (material_src->nodetree != NULL) {
+  if (material_src->nodetree != nullptr) {
     if (is_localized) {
       material_dst->nodetree = ntreeLocalize(material_src->nodetree);
     }
@@ -109,21 +109,24 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
     BKE_previewimg_id_copy(&material_dst->id, &material_src->id);
   }
   else {
-    material_dst->preview = NULL;
+    material_dst->preview = nullptr;
   }
 
-  if (material_src->texpaintslot != NULL) {
+  if (material_src->texpaintslot != nullptr) {
     /* TODO: Think we can also skip copying this data in the more generic `NO_MAIN` case? */
-    material_dst->texpaintslot = is_localized ? NULL : MEM_dupallocN(material_src->texpaintslot);
+    material_dst->texpaintslot = is_localized ? nullptr :
+                                                static_cast<TexPaintSlot *>(
+                                                    MEM_dupallocN(material_src->texpaintslot));
   }
 
-  if (material_src->gp_style != NULL) {
-    material_dst->gp_style = MEM_dupallocN(material_src->gp_style);
+  if (material_src->gp_style != nullptr) {
+    material_dst->gp_style = static_cast<MaterialGPencilStyle *>(
+        MEM_dupallocN(material_src->gp_style));
   }
 
   BLI_listbase_clear(&material_dst->gpumaterial);
 
-  /* TODO: Duplicate Engine Settings and set runtime to NULL. */
+  /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
 }
 
 static void material_free_data(ID *id)
@@ -137,7 +140,7 @@ static void material_free_data(ID *id)
   if (material->nodetree) {
     ntreeFreeEmbeddedTree(material->nodetree);
     MEM_freeN(material->nodetree);
-    material->nodetree = NULL;
+    material->nodetree = nullptr;
   }
 
   MEM_SAFE_FREE(material->texpaintslot);
@@ -154,10 +157,10 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
   /* Nodetrees **are owned by IDs**, treat them as mere sub-data and not real ID! */
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree));
-  if (material->texpaintslot != NULL) {
+  if (material->texpaintslot != nullptr) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->texpaintslot->ima, IDWALK_CB_NOP);
   }
-  if (material->gp_style != NULL) {
+  if (material->gp_style != nullptr) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
   }
@@ -168,7 +171,7 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   Material *ma = (Material *)id;
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  ma->texpaintslot = NULL;
+  ma->texpaintslot = nullptr;
   BLI_listbase_clear(&ma->gpumaterial);
 
   /* write LibData */
@@ -199,7 +202,7 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &ma->adt);
   BKE_animdata_blend_read_data(reader, ma->adt);
 
-  ma->texpaintslot = NULL;
+  ma->texpaintslot = nullptr;
 
   BLO_read_data_address(reader, &ma->preview);
   BKE_previewimg_blend_read(reader, ma->preview);
@@ -215,12 +218,12 @@ static void material_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, ma->id.lib, &ma->ipo); /* XXX deprecated - old animation system */
 
   /* relink grease pencil settings */
-  if (ma->gp_style != NULL) {
+  if (ma->gp_style != nullptr) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
-    if (gp_style->sima != NULL) {
+    if (gp_style->sima != nullptr) {
       BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
     }
-    if (gp_style->ima != NULL) {
+    if (gp_style->ima != nullptr) {
       BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
     }
   }
@@ -239,39 +242,40 @@ static void material_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_MA = {
-    .id_code = ID_MA,
-    .id_filter = FILTER_ID_MA,
-    .main_listbase_index = INDEX_ID_MA,
-    .struct_size = sizeof(Material),
-    .name = "Material",
-    .name_plural = "materials",
-    .translation_context = BLT_I18NCONTEXT_ID_MATERIAL,
-    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    .asset_type_info = NULL,
+    /* id_code */ ID_MA,
+    /* id_filter */ FILTER_ID_MA,
+    /* main_listbase_index */ INDEX_ID_MA,
+    /* struct_size */ sizeof(Material),
+    /* name */ "Material",
+    /* name_plural */ "materials",
+    /* translation_context */ BLT_I18NCONTEXT_ID_MATERIAL,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
-    .init_data = material_init_data,
-    .copy_data = material_copy_data,
-    .free_data = material_free_data,
-    .make_local = NULL,
-    .foreach_id = material_foreach_id,
-    .foreach_cache = NULL,
-    .foreach_path = NULL,
-    .owner_pointer_get = NULL,
+    /* init_data */ material_init_data,
+    /* copy_data */ material_copy_data,
+    /* free_data */ material_free_data,
+    /* make_local */ nullptr,
+    /* foreach_id */ material_foreach_id,
+    /* foreach_cache */ nullptr,
+    /* foreach_path */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
-    .blend_write = material_blend_write,
-    .blend_read_data = material_blend_read_data,
-    .blend_read_lib = material_blend_read_lib,
-    .blend_read_expand = material_blend_read_expand,
+    /* blend_write */ material_blend_write,
+    /* blend_read_data */ material_blend_read_data,
+    /* blend_read_lib */ material_blend_read_lib,
+    /* blend_read_expand */ material_blend_read_expand,
 
-    .blend_read_undo_preserve = NULL,
+    /* blend_read_undo_preserve */ nullptr,
 
-    .lib_override_apply_post = NULL,
+    /* lib_override_apply_post */ nullptr,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)
 {
-  if ((ma) && (ma->gp_style == NULL)) {
-    ma->gp_style = MEM_callocN(sizeof(MaterialGPencilStyle), "Grease Pencil Material Settings");
+  if ((ma) && (ma->gp_style == nullptr)) {
+    ma->gp_style = static_cast<MaterialGPencilStyle *>(
+        MEM_callocN(sizeof(MaterialGPencilStyle), "Grease Pencil Material Settings"));
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* set basic settings */
@@ -291,7 +295,7 @@ Material *BKE_material_add(Main *bmain, const char *name)
 {
   Material *ma;
 
-  ma = BKE_id_new(bmain, ID_MA, name);
+  ma = static_cast<Material *>(BKE_id_new(bmain, ID_MA, name));
 
   return ma;
 }
@@ -303,7 +307,7 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
   ma = BKE_material_add(bmain, name);
 
   /* grease pencil settings */
-  if (ma != NULL) {
+  if (ma != nullptr) {
     BKE_gpencil_material_attr_init(ma);
   }
   return ma;
@@ -312,67 +316,67 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
 Material ***BKE_object_material_array_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     return &(me->mat);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    Curve *cu = ob->data;
+    Curve *cu = static_cast<Curve *>(ob->data);
     return &(cu->mat);
   }
   if (ob->type == OB_MBALL) {
-    MetaBall *mb = ob->data;
+    MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->mat);
   }
   if (ob->type == OB_GPENCIL) {
-    bGPdata *gpd = ob->data;
+    bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->mat);
   }
   if (ob->type == OB_CURVES) {
-    Curves *curves = ob->data;
+    Curves *curves = static_cast<Curves *>(ob->data);
     return &(curves->mat);
   }
   if (ob->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = ob->data;
+    PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
     return &(pointcloud->mat);
   }
   if (ob->type == OB_VOLUME) {
-    Volume *volume = ob->data;
+    Volume *volume = static_cast<Volume *>(ob->data);
     return &(volume->mat);
   }
-  return NULL;
+  return nullptr;
 }
 
 short *BKE_object_material_len_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     return &(me->totcol);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    Curve *cu = ob->data;
+    Curve *cu = static_cast<Curve *>(ob->data);
     return &(cu->totcol);
   }
   if (ob->type == OB_MBALL) {
-    MetaBall *mb = ob->data;
+    MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->totcol);
   }
   if (ob->type == OB_GPENCIL) {
-    bGPdata *gpd = ob->data;
+    bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->totcol);
   }
   if (ob->type == OB_CURVES) {
-    Curves *curves = ob->data;
+    Curves *curves = static_cast<Curves *>(ob->data);
     return &(curves->totcol);
   }
   if (ob->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = ob->data;
+    PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
     return &(pointcloud->totcol);
   }
   if (ob->type == OB_VOLUME) {
-    Volume *volume = ob->data;
+    Volume *volume = static_cast<Volume *>(ob->data);
     return &(volume->totcol);
   }
-  return NULL;
+  return nullptr;
 }
 
 Material ***BKE_id_material_array_p(ID *id)
@@ -398,7 +402,7 @@ Material ***BKE_id_material_array_p(ID *id)
     default:
       break;
   }
-  return NULL;
+  return nullptr;
 }
 
 short *BKE_id_material_len_p(ID *id)
@@ -424,7 +428,7 @@ short *BKE_id_material_len_p(ID *id)
     default:
       break;
   }
-  return NULL;
+  return nullptr;
 }
 
 static void material_data_index_remove_id(ID *id, short index)
@@ -462,8 +466,8 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
     }
   }
 
-  ID *ob_data = object->data;
-  if (ob_data == NULL || !OB_DATA_SUPPORT_ID(GS(ob_data->name))) {
+  ID *ob_data = static_cast<ID *>(object->data);
+  if (ob_data == nullptr || !OB_DATA_SUPPORT_ID(GS(ob_data->name))) {
     return false;
   }
 
@@ -515,7 +519,7 @@ void BKE_id_materials_copy(Main *bmain, ID *id_src, ID *id_dst)
 
   *materials_len_p_dst = *materials_len_p_src;
   if (*materials_len_p_src != 0) {
-    (*matar_dst) = MEM_dupallocN(*matar_src);
+    (*matar_dst) = static_cast<Material **>(MEM_dupallocN(*matar_src));
 
     for (int a = 0; a < *materials_len_p_src; a++) {
       id_us_plus((ID *)(*matar_dst)[a]);
@@ -531,7 +535,7 @@ void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
   Material ***matar = BKE_id_material_array_p(id);
   short *totcolp = BKE_id_material_len_p(id);
 
-  if (matar == NULL) {
+  if (matar == nullptr) {
     return;
   }
 
@@ -545,11 +549,11 @@ void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
   if (totcol == 0) {
     if (*totcolp) {
       MEM_freeN(*matar);
-      *matar = NULL;
+      *matar = nullptr;
     }
   }
   else {
-    *matar = MEM_recallocN(*matar, sizeof(void *) * totcol);
+    *matar = static_cast<Material **>(MEM_recallocN(*matar, sizeof(void *) * totcol));
   }
   *totcolp = totcol;
 
@@ -562,7 +566,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
   Material ***matar;
   if ((matar = BKE_id_material_array_p(id))) {
     short *totcol = BKE_id_material_len_p(id);
-    Material **mat = MEM_callocN(sizeof(void *) * ((*totcol) + 1), "newmatar");
+    Material **mat = MEM_cnew_array<Material *>((*totcol) + 1, "newmatar");
     if (*totcol) {
       memcpy(mat, *matar, sizeof(void *) * (*totcol));
     }
@@ -584,7 +588,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
 Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
 {
   short index = (short)index_i;
-  Material *ret = NULL;
+  Material *ret = nullptr;
   Material ***matar;
   if ((matar = BKE_id_material_array_p(id))) {
     short *totcol = BKE_id_material_len_p(id);
@@ -595,7 +599,7 @@ Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
       if (*totcol <= 1) {
         *totcol = 0;
         MEM_freeN(*matar);
-        *matar = NULL;
+        *matar = nullptr;
       }
       else {
         if (index + 1 != (*totcol)) {
@@ -605,7 +609,7 @@ Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
         }
 
         (*totcol)--;
-        *matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
+        *matar = static_cast<Material **>(MEM_reallocN(*matar, sizeof(void *) * (*totcol)));
         BKE_objects_materials_test_all(bmain, id);
       }
 
@@ -631,7 +635,7 @@ void BKE_id_material_clear(Main *bmain, ID *id)
     *totcol = 0;
     if (*matar) {
       MEM_freeN(*matar);
-      *matar = NULL;
+      *matar = nullptr;
     }
 
     BKE_objects_materials_test_all(bmain, id);
@@ -647,14 +651,14 @@ Material **BKE_object_material_get_p(Object *ob, short act)
   Material ***matarar, **ma_p;
   const short *totcolp;
 
-  if (ob == NULL) {
-    return NULL;
+  if (ob == nullptr) {
+    return nullptr;
   }
 
-  /* if object cannot have material, (totcolp == NULL) */
+  /* if object cannot have material, (totcolp == nullptr) */
   totcolp = BKE_object_material_len_p(ob);
-  if (totcolp == NULL || *totcolp == 0) {
-    return NULL;
+  if (totcolp == nullptr || *totcolp == 0) {
+    return nullptr;
   }
 
   /* Clamp to number of slots if index is out of range, same convention as used for rendering. */
@@ -678,7 +682,7 @@ Material **BKE_object_material_get_p(Object *ob, short act)
       ma_p = &(*matarar)[slot_index];
     }
     else {
-      ma_p = NULL;
+      ma_p = nullptr;
     }
   }
 
@@ -688,15 +692,15 @@ Material **BKE_object_material_get_p(Object *ob, short act)
 Material *BKE_object_material_get(Object *ob, short act)
 {
   Material **ma_p = BKE_object_material_get_p(ob, act);
-  return ma_p ? *ma_p : NULL;
+  return ma_p ? *ma_p : nullptr;
 }
 
 static ID *get_evaluated_object_data_with_materials(Object *ob)
 {
-  ID *data = ob->data;
+  ID *data = static_cast<ID *>(ob->data);
   /* Meshes in edit mode need special handling. */
   if (ob->type == OB_MESH && ob->mode == OB_MODE_EDIT) {
-    Mesh *mesh = ob->data;
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     if (mesh->edit_mesh && editmesh_eval_final) {
       data = &editmesh_eval_final->id;
@@ -714,7 +718,7 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
   const int tot_slots_data = tot_slots_data_ptr ? *tot_slots_data_ptr : 0;
 
   if (tot_slots_data == 0) {
-    return NULL;
+    return nullptr;
   }
 
   /* Clamp to number of slots if index is out of range, same convention as used for rendering. */
@@ -722,7 +726,7 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
   const int tot_slots_object = ob->totcol;
 
   Material ***materials_data_ptr = BKE_id_material_array_p(data);
-  Material **materials_data = materials_data_ptr ? *materials_data_ptr : NULL;
+  Material **materials_data = materials_data_ptr ? *materials_data_ptr : nullptr;
   Material **materials_object = ob->mat;
 
   /* Check if slot is overwritten by object. */
@@ -730,7 +734,7 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
     if (ob->matbits) {
       if (ob->matbits[slot_index]) {
         Material *material = materials_object[slot_index];
-        if (material != NULL) {
+        if (material != nullptr) {
           return material;
         }
       }
@@ -741,7 +745,7 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
     Material *material = materials_data[slot_index];
     return material;
   }
-  return NULL;
+  return nullptr;
 }
 
 int BKE_object_material_count_eval(Object *ob)
@@ -757,7 +761,7 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
   BLI_assert(slot >= 1);
   Material ***materials_ptr = BKE_id_material_array_p(id);
   short *len_ptr = BKE_id_material_len_p(id);
-  if (ELEM(NULL, materials_ptr, len_ptr)) {
+  if (ELEM(nullptr, materials_ptr, len_ptr)) {
     BLI_assert_unreachable();
     return;
   }
@@ -768,10 +772,11 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
   if (slot_index >= old_length) {
     /* Need to grow slots array. */
     const int new_length = slot_index + 1;
-    *materials_ptr = MEM_reallocN(*materials_ptr, sizeof(void *) * new_length);
+    *materials_ptr = static_cast<Material **>(
+        MEM_reallocN(*materials_ptr, sizeof(void *) * new_length));
     *len_ptr = new_length;
     for (int i = old_length; i < new_length; i++) {
-      (*materials_ptr)[i] = NULL;
+      (*materials_ptr)[i] = nullptr;
     }
   }
 
@@ -781,18 +786,18 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
 void BKE_id_material_eval_ensure_default_slot(ID *id)
 {
   short *len_ptr = BKE_id_material_len_p(id);
-  if (len_ptr == NULL) {
+  if (len_ptr == nullptr) {
     return;
   }
   if (*len_ptr == 0) {
-    BKE_id_material_eval_assign(id, 1, NULL);
+    BKE_id_material_eval_assign(id, 1, nullptr);
   }
 }
 
 Material *BKE_gpencil_material(Object *ob, short act)
 {
   Material *ma = BKE_object_material_get(ob, act);
-  if (ma != NULL) {
+  if (ma != nullptr) {
     return ma;
   }
 
@@ -802,8 +807,8 @@ Material *BKE_gpencil_material(Object *ob, short act)
 MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
 {
   Material *ma = BKE_object_material_get(ob, act);
-  if (ma != NULL) {
-    if (ma->gp_style == NULL) {
+  if (ma != nullptr) {
+    if (ma->gp_style == nullptr) {
       BKE_gpencil_material_attr_init(ma);
     }
 
@@ -828,13 +833,13 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     if (ob->totcol) {
       MEM_freeN(ob->mat);
       MEM_freeN(ob->matbits);
-      ob->mat = NULL;
-      ob->matbits = NULL;
+      ob->mat = nullptr;
+      ob->matbits = nullptr;
     }
   }
   else if (ob->totcol < totcol) {
-    newmatar = MEM_callocN(sizeof(void *) * totcol, "newmatar");
-    newmatbits = MEM_callocN(sizeof(char) * totcol, "newmatbits");
+    newmatar = MEM_cnew_array<Material *>(totcol, "newmatar");
+    newmatbits = MEM_cnew_array<char>(totcol, "newmatbits");
     if (ob->totcol) {
       memcpy(newmatar, ob->mat, sizeof(void *) * ob->totcol);
       memcpy(newmatbits, ob->matbits, sizeof(char) * ob->totcol);
@@ -863,7 +868,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
   /* make the ob mat-array same size as 'ob->data' mat-array */
   const short *totcol;
 
-  if (id == NULL || (totcol = BKE_id_material_len_p(id)) == NULL) {
+  if (id == nullptr || (totcol = BKE_id_material_len_p(id)) == nullptr) {
     return;
   }
 
@@ -886,13 +891,14 @@ void BKE_objects_materials_test_all(Main *bmain, ID *id)
   Object *ob;
   const short *totcol;
 
-  if (id == NULL || (totcol = BKE_id_material_len_p(id)) == NULL) {
+  if (id == nullptr || (totcol = BKE_id_material_len_p(id)) == nullptr) {
     return;
   }
 
   BKE_main_lock(bmain);
   int processed_objects = 0;
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+  for (ob = static_cast<Object *>(bmain->objects.first); ob;
+       ob = static_cast<Object *>(ob->id.next)) {
     if (ob->data == id) {
       BKE_object_material_resize(bmain, ob, *totcol, false);
       processed_objects++;
@@ -922,12 +928,12 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   totcolp = BKE_id_material_len_p(id);
   matarar = BKE_id_material_array_p(id);
 
-  if (totcolp == NULL || matarar == NULL) {
+  if (totcolp == nullptr || matarar == nullptr) {
     return;
   }
 
   if (act > *totcolp) {
-    matar = MEM_callocN(sizeof(void *) * act, "matarray1");
+    matar = MEM_cnew_array<Material *>(act, "matarray1");
 
     if (*totcolp) {
       memcpy(matar, *matarar, sizeof(void *) * (*totcolp));
@@ -971,12 +977,12 @@ static void object_material_assign(
   totcolp = BKE_object_material_len_p(ob);
   matarar = BKE_object_material_array_p(ob);
 
-  if (totcolp == NULL || matarar == NULL) {
+  if (totcolp == nullptr || matarar == nullptr) {
     return;
   }
 
   if (act > *totcolp) {
-    matar = MEM_callocN(sizeof(void *) * act, "matarray1");
+    matar = MEM_cnew_array<Material *>(act, "matarray1");
 
     if (*totcolp) {
       memcpy(matar, *matarar, sizeof(void *) * (*totcolp));
@@ -989,8 +995,10 @@ static void object_material_assign(
 
   if (act > ob->totcol) {
     /* Need more space in the material arrays */
-    ob->mat = MEM_recallocN_id(ob->mat, sizeof(void *) * act, "matarray2");
-    ob->matbits = MEM_recallocN_id(ob->matbits, sizeof(char) * act, "matbits1");
+    ob->mat = static_cast<Material **>(
+        MEM_recallocN_id(ob->mat, sizeof(void *) * act, "matarray2"));
+    ob->matbits = static_cast<char *>(
+        MEM_recallocN_id(ob->matbits, sizeof(char) * act, "matbits1"));
     ob->totcol = act;
   }
 
@@ -1028,7 +1036,7 @@ static void object_material_assign(
       id_us_min(&mao->id);
     }
     ob->mat[act - 1] = ma;
-    BKE_object_materials_test(bmain, ob, ob->data);
+    BKE_object_materials_test(bmain, ob, static_cast<ID *>(ob->data));
   }
   else { /* in data */
     mao = (*matarar)[act - 1];
@@ -1038,7 +1046,7 @@ static void object_material_assign(
     (*matarar)[act - 1] = ma;
     /* Data may be used by several objects. */
     if (do_test_all) {
-      BKE_objects_materials_test_all(bmain, ob->data);
+      BKE_objects_materials_test_all(bmain, static_cast<ID *>(ob->data));
     }
   }
 
@@ -1076,17 +1084,17 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   }
 
   if (ob->type == OB_MESH) {
-    BKE_mesh_material_remap(ob->data, remap, ob->totcol);
+    BKE_mesh_material_remap(static_cast<Mesh *>(ob->data), remap, ob->totcol);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
-    BKE_curve_material_remap(ob->data, remap, ob->totcol);
+    BKE_curve_material_remap(static_cast<Curve *>(ob->data), remap, ob->totcol);
   }
   else if (ob->type == OB_GPENCIL) {
-    BKE_gpencil_material_remap(ob->data, remap, ob->totcol);
+    BKE_gpencil_material_remap(static_cast<bGPdata *>(ob->data), remap, ob->totcol);
   }
   else {
     /* add support for this object data! */
-    BLI_assert(matar == NULL);
+    BLI_assert(matar == nullptr);
   }
 }
 
@@ -1100,7 +1108,7 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
 
   for (int i = 0; i < ob_dst->totcol; i++) {
     Material *ma_src = BKE_object_material_get(ob_dst, i + 1);
-    BLI_ghash_reinsert(gh_mat_map, ma_src, POINTER_FROM_INT(i), NULL, NULL);
+    BLI_ghash_reinsert(gh_mat_map, ma_src, POINTER_FROM_INT(i), nullptr, nullptr);
   }
 
   /* setup default mapping (when materials don't match) */
@@ -1135,12 +1143,12 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
     }
   }
 
-  BLI_ghash_free(gh_mat_map, NULL, NULL);
+  BLI_ghash_free(gh_mat_map, nullptr, nullptr);
 }
 
 void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *data_eval)
 {
-  ID *data_orig = ob_orig->data;
+  ID *data_orig = static_cast<ID *>(ob_orig->data);
 
   short *orig_totcol = BKE_id_material_len_p(data_orig);
   Material ***orig_mat = BKE_id_material_array_p(data_orig);
@@ -1149,7 +1157,7 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
   const short *eval_totcol = BKE_id_material_len_p((ID *)data_eval);
   Material ***eval_mat = BKE_id_material_array_p((ID *)data_eval);
 
-  if (ELEM(NULL, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
+  if (ELEM(nullptr, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
     return;
   }
 
@@ -1161,10 +1169,10 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
 
   /* Create new material slots based on materials on evaluated geometry. */
   *orig_totcol = *eval_totcol;
-  *orig_mat = MEM_callocN(sizeof(void *) * (*eval_totcol), __func__);
+  *orig_mat = MEM_cnew_array<Material *>(*eval_totcol, __func__);
   for (int i = 0; i < *eval_totcol; i++) {
     Material *material_eval = (*eval_mat)[i];
-    if (material_eval != NULL) {
+    if (material_eval != nullptr) {
       Material *material_orig = (Material *)DEG_get_original_id(&material_eval->id);
       (*orig_mat)[i] = material_orig;
       id_us_plus(&material_orig->id);
@@ -1210,14 +1218,14 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
   Material ***matarar;
   short a, *totcolp;
 
-  if (ma == NULL) {
+  if (ma == nullptr) {
     return 0;
   }
 
   totcolp = BKE_object_material_len_p(ob);
   matarar = BKE_object_material_array_p(ob);
 
-  if (totcolp == NULL || matarar == NULL) {
+  if (totcolp == nullptr || matarar == nullptr) {
     return 0;
   }
 
@@ -1234,14 +1242,14 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
 
 bool BKE_object_material_slot_add(Main *bmain, Object *ob)
 {
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
   if (ob->totcol >= MAXMAT) {
     return false;
   }
 
-  BKE_object_material_assign(bmain, ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(bmain, ob, nullptr, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
   ob->actcol = ob->totcol;
   return true;
 }
@@ -1253,7 +1261,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   Material *mao, ***matarar;
   short *totcolp;
 
-  if (ob == NULL || ob->totcol == 0) {
+  if (ob == nullptr || ob->totcol == 0) {
     return false;
   }
 
@@ -1272,7 +1280,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   totcolp = BKE_object_material_len_p(ob);
   matarar = BKE_object_material_array_p(ob);
 
-  if (ELEM(NULL, matarar, *matarar)) {
+  if (ELEM(nullptr, matarar, *matarar)) {
     return false;
   }
 
@@ -1294,12 +1302,13 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
   if (*totcolp == 0) {
     MEM_freeN(*matarar);
-    *matarar = NULL;
+    *matarar = nullptr;
   }
 
   const int actcol = ob->actcol;
 
-  for (Object *obt = bmain->objects.first; obt; obt = obt->id.next) {
+  for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
+       obt = static_cast<Object *>(obt->id.next)) {
     if (obt->data == ob->data) {
       /* Can happen when object material lists are used, see: T52953 */
       if (actcol > obt->totcol) {
@@ -1323,8 +1332,8 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
       if (obt->totcol == 0) {
         MEM_freeN(obt->mat);
         MEM_freeN(obt->matbits);
-        obt->mat = NULL;
-        obt->matbits = NULL;
+        obt->mat = nullptr;
+        obt->matbits = nullptr;
       }
     }
   }
@@ -1349,7 +1358,7 @@ static bNode *nodetree_uv_node_recursive(bNode *node)
   bNode *inode;
   bNodeSocket *sock;
 
-  for (sock = node->inputs.first; sock; sock = sock->next) {
+  for (sock = static_cast<bNodeSocket *>(node->inputs.first); sock; sock = sock->next) {
     if (sock->link) {
       inode = sock->link->fromnode;
       if (inode->typeinfo->nclass == NODE_CLASS_INPUT && inode->typeinfo->type == SH_NODE_UVMAP) {
@@ -1360,7 +1369,7 @@ static bNode *nodetree_uv_node_recursive(bNode *node)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /** Bitwise filter for updating paint slots. */
@@ -1368,6 +1377,7 @@ typedef enum ePaintSlotFilter {
   PAINT_SLOT_IMAGE = 1 << 0,
   PAINT_SLOT_COLOR_ATTRIBUTE = 1 << 1,
 } ePaintSlotFilter;
+ENUM_OPERATORS(ePaintSlotFilter, PAINT_SLOT_COLOR_ATTRIBUTE)
 
 typedef bool (*ForEachTexNodeCallback)(bNode *node, void *userdata);
 static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
@@ -1424,7 +1434,7 @@ struct FillTexPaintSlotsData {
 
 static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
 {
-  struct FillTexPaintSlotsData *fill_data = userdata;
+  struct FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
 
   Material *ma = fill_data->ma;
   int index = fill_data->index;
@@ -1459,17 +1469,17 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
 
     case SH_NODE_ATTRIBUTE: {
       TexPaintSlot *slot = &ma->texpaintslot[index];
-      NodeShaderAttribute *storage = node->storage;
+      NodeShaderAttribute *storage = static_cast<NodeShaderAttribute *>(node->storage);
       slot->attribute_name = storage->name;
       if (storage->type == SHD_ATTRIBUTE_GEOMETRY) {
         const Mesh *mesh = (const Mesh *)fill_data->ob->data;
         const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, storage->name);
-        slot->valid = layer != NULL;
+        slot->valid = layer != nullptr;
       }
 
       /* Do not show unsupported attributes. */
       if (!slot->valid) {
-        slot->attribute_name = NULL;
+        slot->attribute_name = nullptr;
         fill_data->index--;
       }
 
@@ -1514,7 +1524,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
   const int prev_paint_clone_slot = ma->paint_clone_slot;
   const int prev_tot_slots = ma->tot_slots;
 
-  ma->texpaintslot = NULL;
+  ma->texpaintslot = nullptr;
   ma->tot_slots = 0;
 
   if (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_IMAGE) {
@@ -1533,7 +1543,8 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = MEM_callocN(sizeof(*ma->texpaintslot) * count, "texpaint_slots");
+      ma->texpaintslot = static_cast<TexPaintSlot *>(
+          MEM_callocN(sizeof(TexPaintSlot) * count, "texpaint_slots"));
 
       bNode *active_node = nodeGetActivePaintCanvas(ma->nodetree);
 
@@ -1579,7 +1590,7 @@ struct FindTexPaintNodeData {
 
 static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 {
-  struct FindTexPaintNodeData *find_data = userdata;
+  struct FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
   if (find_data->slot->ima && node->type == SH_NODE_TEX_IMAGE) {
     Image *node_ima = (Image *)node->id;
     if (find_data->slot->ima == node_ima) {
@@ -1589,7 +1600,7 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
   }
 
   if (find_data->slot->attribute_name && node->type == SH_NODE_ATTRIBUTE) {
-    NodeShaderAttribute *storage = node->storage;
+    NodeShaderAttribute *storage = static_cast<NodeShaderAttribute *>(node->storage);
     if (STREQLEN(find_data->slot->attribute_name, storage->name, sizeof(storage->name))) {
       find_data->r_node = node;
       return false;
@@ -1602,7 +1613,7 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
   TexPaintSlot *slot = &ma->texpaintslot[texpaint_slot];
-  struct FindTexPaintNodeData find_data = {slot, NULL};
+  struct FindTexPaintNodeData find_data = {slot, nullptr};
   ntree_foreach_texnode_recursive(ma->nodetree,
                                   texpaint_slot_node_find_cb,
                                   &find_data,
@@ -1873,7 +1884,7 @@ static short matcopied = 0;
 
 void BKE_material_copybuf_clear(void)
 {
-  memset(&matcopybuf, 0, sizeof(Material));
+  matcopybuf = blender::dna::shallow_zero_initialize();
   matcopied = 0;
 }
 
@@ -1883,7 +1894,7 @@ void BKE_material_copybuf_free(void)
     ntreeFreeLocalTree(matcopybuf.nodetree);
     BLI_assert(!matcopybuf.nodetree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
     MEM_freeN(matcopybuf.nodetree);
-    matcopybuf.nodetree = NULL;
+    matcopybuf.nodetree = nullptr;
   }
 
   matcopied = 0;
@@ -1895,15 +1906,15 @@ void BKE_material_copybuf_copy(Main *bmain, Material *ma)
     BKE_material_copybuf_free();
   }
 
-  memcpy(&matcopybuf, ma, sizeof(Material));
+  matcopybuf = blender::dna::shallow_copy(*ma);
 
-  if (ma->nodetree != NULL) {
+  if (ma->nodetree != nullptr) {
     matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
   }
 
-  matcopybuf.preview = NULL;
+  matcopybuf.preview = nullptr;
   BLI_listbase_clear(&matcopybuf.gpumaterial);
-  /* TODO: Duplicate Engine Settings and set runtime to NULL. */
+  /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
   matcopied = 1;
 }
 
@@ -1924,10 +1935,10 @@ void BKE_material_copybuf_paste(Main *bmain, Material *ma)
   }
 
   id = (ma->id);
-  memcpy(ma, &matcopybuf, sizeof(Material));
+  *ma = blender::dna::shallow_copy(matcopybuf);
   (ma->id) = id;
 
-  if (matcopybuf.nodetree != NULL) {
+  if (matcopybuf.nodetree != nullptr) {
     ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
   }
 }
@@ -1954,7 +1965,7 @@ static Material *default_materials[] = {&default_material_empty,
                                         &default_material_surface,
                                         &default_material_volume,
                                         &default_material_gpencil,
-                                        NULL};
+                                        nullptr};
 
 static void material_default_gpencil_init(Material *ma)
 {
@@ -1968,14 +1979,14 @@ static void material_default_surface_init(Material *ma)
   strcpy(ma->id.name, "MADefault Surface");
 
   bNodeTree *ntree = ntreeAddTreeEmbedded(
-      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
+      nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_PRINCIPLED);
+  bNode *principled = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED);
   bNodeSocket *base_color = nodeFindSocket(principled, SOCK_IN, "Base Color");
   copy_v3_v3(((bNodeSocketValueRGBA *)base_color->default_value)->value, &ma->r);
 
-  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   nodeAddLink(ntree,
               principled,
@@ -1996,11 +2007,11 @@ static void material_default_volume_init(Material *ma)
   strcpy(ma->id.name, "MADefault Volume");
 
   bNodeTree *ntree = ntreeAddTreeEmbedded(
-      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
+      nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_VOLUME_PRINCIPLED);
-  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *principled = nodeAddStaticNode(nullptr, ntree, SH_NODE_VOLUME_PRINCIPLED);
+  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   nodeAddLink(ntree,
               principled,
@@ -2021,11 +2032,11 @@ static void material_default_holdout_init(Material *ma)
   strcpy(ma->id.name, "MADefault Holdout");
 
   bNodeTree *ntree = ntreeAddTreeEmbedded(
-      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
+      nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *holdout = nodeAddStaticNode(NULL, ntree, SH_NODE_HOLDOUT);
-  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *holdout = nodeAddStaticNode(nullptr, ntree, SH_NODE_HOLDOUT);
+  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   nodeAddLink(ntree,
               holdout,

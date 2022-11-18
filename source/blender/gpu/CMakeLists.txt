@@ -62,7 +62,7 @@ set(SRC
   intern/gpu_init_exit.c
   intern/gpu_material.c
   intern/gpu_matrix.cc
-  intern/gpu_node_graph.c
+  intern/gpu_node_graph.cc
   intern/gpu_platform.cc
   intern/gpu_query.cc
   intern/gpu_select.c
