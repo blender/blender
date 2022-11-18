@@ -2431,7 +2431,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 
 static bool allow_changing_sockets(bNode *node)
 {
-  return ELEM(node->type, NODE_CUSTOM, SH_NODE_SCRIPT);
+  return ELEM(node->type, NODE_CUSTOM, SH_NODE_SCRIPT, CMP_NODE_OUTPUT_FILE);
 }
 
 static bNodeSocket *rna_Node_inputs_new(ID *id,
