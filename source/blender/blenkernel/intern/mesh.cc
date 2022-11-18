@@ -228,7 +228,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-  mesh->runtime = nullptr;
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
@@ -276,6 +275,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->ldata, loop_layers, names_to_skip);
     CustomData_blend_write_prepare(mesh->pdata, poly_layers, names_to_skip);
   }
+
+  mesh->runtime = nullptr;
 
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
