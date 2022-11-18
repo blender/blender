@@ -11,6 +11,8 @@
 
 #  include <mutex>
 
+#  include "BLI_bit_vector.hh"
+#  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
 
 #  include "DNA_customdata_types.h"
@@ -60,6 +62,23 @@ typedef enum eMeshWrapperType {
 #ifdef __cplusplus
 
 namespace blender::bke {
+
+/**
+ * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
+ */
+struct LooseEdgeCache {
+  /**
+   * A bitmap set to true for each loose edge, false if the edge is used by any face.
+   * Allocated only if there is at least one loose edge.
+   */
+  blender::BitVector<> is_loose_bits;
+  /**
+   * The number of loose edges. If zero, the #is_loose_bits shouldn't be accessed.
+   * If less than zero, the cache has been accessed in an invalid way
+   * (i.e.directly instead of through #Mesh::loose_edges()).
+   */
+  int count = -1;
+};
 
 /**
  * \warning Typical access is done via #Mesh::looptris().
@@ -153,6 +172,12 @@ struct MeshRuntime {
   bool poly_normals_dirty = true;
   float (*vert_normals)[3] = nullptr;
   float (*poly_normals)[3] = nullptr;
+
+  /**
+   * A cache of data about the loose edges. Can be shared with other data-blocks with unchanged
+   * topology. Accessed with #Mesh::loose_edges().
+   */
+  SharedCache<LooseEdgeCache> loose_edges_cache;
 
   /**
    * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the

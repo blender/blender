@@ -593,7 +593,6 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
         uint *indices = mp->getPositionIndices().getData();
 
         for (int j = 0; j < edge_count; j++, med++) {
-          med->flag |= ME_LOOSEEDGE;
           med->v1 = indices[2 * j];
           med->v2 = indices[2 * j + 1];
         }

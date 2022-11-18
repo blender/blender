@@ -697,6 +697,8 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   calculate_cone_uvs(mesh, config);
   calculate_selection_outputs(mesh, config, attribute_outputs);
 
+  mesh->loose_edges_tag_none();
+
   return mesh;
 }
 

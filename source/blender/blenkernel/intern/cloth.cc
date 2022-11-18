@@ -1456,6 +1456,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
 
 static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 {
+  using namespace blender::bke;
   Cloth *cloth = clmd->clothObject;
   ClothSpring *spring = nullptr, *tspring = nullptr, *tspring2 = nullptr;
   uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
@@ -1591,12 +1592,14 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   }
 
   /* Structural springs. */
+  const LooseEdgeCache &loose_edges = mesh->loose_edges();
   for (int i = 0; i < numedges; i++) {
     spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
     if (spring) {
       spring_verts_ordered_set(spring, medge[i].v1, medge[i].v2);
-      if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && medge[i].flag & ME_LOOSEEDGE) {
+      if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && loose_edges.count > 0 &&
+          loose_edges.is_loose_bits[i]) {
         /* handle sewing (loose edges will be pulled together) */
         spring->restlen = 0.0f;
         spring->lin_stiffness = 1.0f;

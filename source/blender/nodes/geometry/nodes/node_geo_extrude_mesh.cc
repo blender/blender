@@ -158,15 +158,6 @@ static MEdge new_edge(const int v1, const int v2)
   return edge;
 }
 
-static MEdge new_loose_edge(const int v1, const int v2)
-{
-  MEdge edge;
-  edge.v1 = v1;
-  edge.v2 = v2;
-  edge.flag = ME_LOOSEEDGE;
-  return edge;
-}
-
 static MPoly new_poly(const int loopstart, const int totloop)
 {
   MPoly poly;
@@ -234,7 +225,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
   MutableSpan<MEdge> new_edges = mesh.edges_for_write().slice(new_edge_range);
 
   for (const int i_selection : selection.index_range()) {
-    new_edges[i_selection] = new_loose_edge(selection[i_selection], new_vert_range[i_selection]);
+    new_edges[i_selection] = new_edge(selection[i_selection], new_vert_range[i_selection]);
   }
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();

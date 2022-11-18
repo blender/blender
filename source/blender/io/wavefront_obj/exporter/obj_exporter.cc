@@ -160,7 +160,6 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
     if (export_params.export_normals) {
       obj.ensure_mesh_normals();
     }
-    obj.ensure_mesh_edges();
   }
 
   /* Parallel over meshes: store normal coords & indices, uv coords and indices. */

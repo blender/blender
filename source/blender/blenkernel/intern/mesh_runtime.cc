@@ -15,6 +15,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh_cache.h"
@@ -114,6 +115,38 @@ blender::Span<MLoopTri> Mesh::looptris() const
   const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(this);
   const int num_looptris = BKE_mesh_runtime_looptri_len(this);
   return {looptris, num_looptris};
+}
+
+const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
+{
+  using namespace blender::bke;
+  this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
+    SCOPED_TIMER("loose_edges");
+    blender::BitVector<> &loose_edges = r_data.is_loose_bits;
+    loose_edges.resize(0);
+    loose_edges.resize(this->totedge, true);
+
+    int count = this->totedge;
+    for (const MLoop &loop : this->loops()) {
+      if (loose_edges[loop.e]) {
+        loose_edges[loop.e].reset();
+        count--;
+      }
+    }
+
+    r_data.count = count;
+  });
+
+  return this->runtime->loose_edges_cache.data();
+}
+
+void Mesh::loose_edges_tag_none() const
+{
+  using namespace blender::bke;
+  this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
+    r_data.is_loose_bits.resize(0);
+    r_data.count = 0;
+  });
 }
 
 /**
@@ -254,6 +287,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   free_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->bounds_cache.tag_dirty();
+  mesh->runtime->loose_edges_cache.tag_dirty();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
@@ -274,6 +308,11 @@ void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
   /* The normals and triangulation didn't change, since all verts moved by the same amount. */
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->bounds_cache.tag_dirty();
+}
+
+void BKE_mesh_tag_topology_changed(struct Mesh *mesh)
+{
+  BKE_mesh_runtime_clear_geometry(mesh);
 }
 
 bool BKE_mesh_is_deformed_only(const Mesh *mesh)

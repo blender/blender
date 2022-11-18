@@ -181,11 +181,6 @@ void OBJMesh::ensure_mesh_normals() const
   BKE_mesh_calc_normals_split(export_mesh_eval_);
 }
 
-void OBJMesh::ensure_mesh_edges() const
-{
-  BKE_mesh_calc_edges_loose(export_mesh_eval_);
-}
-
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
   const Span<MEdge> edges = export_mesh_eval_->edges();

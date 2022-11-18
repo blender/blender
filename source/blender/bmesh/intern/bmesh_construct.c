@@ -731,8 +731,7 @@ short BM_edge_flag_to_mflag(BMEdge *e)
   const char hflag = e->head.hflag;
 
   return (((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) | ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0) |
-          ((hflag & BM_ELEM_SMOOTH) == 0 ? ME_SHARP : 0) |
-          (BM_edge_is_wire(e) ? ME_LOOSEEDGE : 0));
+          ((hflag & BM_ELEM_SMOOTH) == 0 ? ME_SHARP : 0));
 }
 char BM_face_flag_to_mflag(BMFace *f)
 {

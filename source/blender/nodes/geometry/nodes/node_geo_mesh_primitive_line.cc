@@ -196,7 +196,6 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
           for (const int i : range) {
             edges[i].v1 = i;
             edges[i].v2 = i + 1;
-            edges[i].flag |= ME_LOOSEEDGE;
           }
         });
       });

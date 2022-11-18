@@ -22,6 +22,7 @@ namespace bke {
 struct MeshRuntime;
 class AttributeAccessor;
 class MutableAttributeAccessor;
+struct LooseEdgeCache;
 }  // namespace bke
 }  // namespace blender
 using MeshRuntimeHandle = blender::bke::MeshRuntime;
@@ -253,6 +254,19 @@ typedef struct Mesh {
    * Cached triangulation of the mesh.
    */
   blender::Span<MLoopTri> looptris() const;
+
+  /**
+   * Cached information about loose edges, calculated lazily when necessary.
+   */
+  const blender::bke::LooseEdgeCache &loose_edges() const;
+  /**
+   * Explicitly set the cached number of loose edges to zero. This can improve performance
+   * later on, because finding loose edges lazily can be skipped entirely.
+   *
+   * \note To allow setting this status on meshes without changing them, this This does not tag the
+   * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
+   */
+  void loose_edges_tag_none() const;
 #endif
 } Mesh;
 

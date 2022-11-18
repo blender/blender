@@ -1319,24 +1319,6 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
 /** \name Mesh Edge Calculation
  * \{ */
 
-void BKE_mesh_calc_edges_loose(Mesh *mesh)
-{
-  const Span<MLoop> loops = mesh->loops();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-
-  for (const int i : edges.index_range()) {
-    edges[i].flag |= ME_LOOSEEDGE;
-  }
-  for (const int i : loops.index_range()) {
-    edges[loops[i].e].flag &= ~ME_LOOSEEDGE;
-  }
-  for (const int i : edges.index_range()) {
-    if (edges[i].flag & ME_LOOSEEDGE) {
-      edges[i].flag |= ME_EDGEDRAW;
-    }
-  }
-}
-
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
   const int numFaces = mesh->totface;

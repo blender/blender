@@ -1485,6 +1485,13 @@ static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
   select_edge[index] = value;
 }
 
+static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  return ED_mesh_edge_is_loose(mesh, index);
+}
+
 static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
 {
   const Mesh *me = rna_mesh(ptr);
@@ -2341,8 +2348,9 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
-  RNA_def_property_ui_text(prop, "Loose", "Loose edge");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_is_loose_get", NULL);
+  RNA_def_property_ui_text(prop, "Loose", "Edge is not connected to any faces");
 
   prop = RNA_def_property(srna, "use_freestyle_mark", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(

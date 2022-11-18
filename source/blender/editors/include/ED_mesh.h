@@ -552,6 +552,8 @@ void ED_mesh_geometry_clear(struct Mesh *mesh);
 
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
 
+bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
+
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);

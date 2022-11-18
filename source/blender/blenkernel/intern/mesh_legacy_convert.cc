@@ -154,9 +154,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
       if (use_old == false || ed->is_draw) {
         med->flag = ME_EDGEDRAW;
       }
-      if (ed->is_loose) {
-        med->flag |= ME_LOOSEEDGE;
-      }
 
       /* order is swapped so extruding this edge as a surface won't flip face normals
        * with cyclic curves */
@@ -174,9 +171,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   med->v1 = ed->v1;
   med->v2 = ed->v2;
   med->flag = ME_EDGEDRAW;
-  if (ed->is_loose) {
-    med->flag |= ME_LOOSEEDGE;
-  }
 
   MEM_freeN(edsort);
 
@@ -237,6 +231,7 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
   medge = (MEdge *)CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, totedge);
   me->totedge = totedge;
 
+  BKE_mesh_tag_topology_changed(me);
   BKE_mesh_strip_loose_faces(me);
 }
 
@@ -1542,6 +1537,33 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
     });
     select_poly.finish();
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loose Edges
+ * \{ */
+
+void BKE_mesh_legacy_convert_loose_edges_to_flag(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  const LooseEdgeCache &loose_edges = mesh->loose_edges();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+    if (loose_edges.count == 0) {
+      for (const int64_t i : range) {
+        edges[i].flag &= ~ME_LOOSEEDGE;
+      }
+    }
+    else {
+      for (const int64_t i : range) {
+        SET_FLAG_FROM_TEST(edges[i].flag, loose_edges.is_loose_bits[i], ME_LOOSEEDGE);
+      }
+    }
+  });
 }
 
 /** \} */

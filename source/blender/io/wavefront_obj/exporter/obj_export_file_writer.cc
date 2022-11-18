@@ -416,11 +416,16 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data) const
 {
-  /* NOTE: ensure_mesh_edges should be called before. */
-  const Span<MEdge> edges = obj_mesh_data.get_mesh()->edges();
-  for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if (edge.flag & ME_LOOSEEDGE) {
+  const Mesh &mesh = *obj_mesh_data.get_mesh();
+  const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+  if (loose_edges.count == 0) {
+    return;
+  }
+
+  const Span<MEdge> edges = mesh.edges();
+  for (const int64_t i : edges.index_range()) {
+    if (loose_edges.is_loose_bits[i]) {
+      const MEdge &edge = edges[i];
       fh.write_obj_edge(edge.v1 + offsets.vertex_offset + 1, edge.v2 + offsets.vertex_offset + 1);
     }
   }

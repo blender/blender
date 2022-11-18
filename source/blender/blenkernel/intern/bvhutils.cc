@@ -1159,22 +1159,12 @@ static BitVector<> loose_verts_map_get(const Span<MEdge> edges,
   return loose_verts_mask;
 }
 
-static BitVector<> loose_edges_map_get(const Span<MEdge> edges, int *r_loose_edge_len)
+static BitVector<> loose_edges_map_get(const Mesh &mesh, int *r_loose_edge_len)
 {
-  BitVector<> loose_edges_mask(edges.size());
-
-  int loose_edges_len = 0;
-  for (const int64_t i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if (edge.flag & ME_LOOSEEDGE) {
-      loose_edges_mask[i].set();
-      loose_edges_len++;
-    }
-  }
-
-  *r_loose_edge_len = loose_edges_len;
-
-  return loose_edges_mask;
+  using namespace blender::bke;
+  const LooseEdgeCache &loose_edges = mesh.loose_edges();
+  *r_loose_edge_len = loose_edges.count;
+  return loose_edges.is_loose_bits;
 }
 
 static BitVector<> looptri_no_hidden_map_get(const Span<MPoly> polys,
@@ -1261,7 +1251,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       break;
 
     case BVHTREE_FROM_LOOSEEDGES:
-      mask = loose_edges_map_get(edges, &mask_bits_act_len);
+      mask = loose_edges_map_get(*mesh, &mask_bits_act_len);
       ATTR_FALLTHROUGH;
     case BVHTREE_FROM_EDGES:
       data->tree = bvhtree_from_mesh_edges_create_tree(

@@ -1713,68 +1713,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
 
 struct LooseEdgeData {
   int loose_count;
-  int loose_max;
   int *loose_array;
-  const MEdge *edges;
 };
-
-static void lineart_loose_data_reallocate(LooseEdgeData *loose_data, int count)
-{
-  int *new_arr = static_cast<int *>(MEM_calloc_arrayN(count, sizeof(int), "loose edge array"));
-  if (loose_data->loose_array) {
-    memcpy(new_arr, loose_data->loose_array, sizeof(int) * loose_data->loose_max);
-    MEM_SAFE_FREE(loose_data->loose_array);
-  }
-  loose_data->loose_max = count;
-  loose_data->loose_array = new_arr;
-}
-
-static void lineart_join_loose_edge_arr(LooseEdgeData *loose_data, LooseEdgeData *to_be_joined)
-{
-  if (!to_be_joined->loose_array) {
-    return;
-  }
-  int new_count = loose_data->loose_count + to_be_joined->loose_count;
-  if (new_count >= loose_data->loose_max) {
-    lineart_loose_data_reallocate(loose_data, new_count);
-  }
-  memcpy(&loose_data->loose_array[loose_data->loose_count],
-         to_be_joined->loose_array,
-         sizeof(int) * to_be_joined->loose_count);
-  loose_data->loose_count += to_be_joined->loose_count;
-  MEM_freeN(to_be_joined->loose_array);
-  to_be_joined->loose_array = nullptr;
-}
-
-static void lineart_add_loose_edge(LooseEdgeData *loose_data, const int i)
-{
-  if (loose_data->loose_count >= loose_data->loose_max) {
-    int min_amount = MAX2(100, loose_data->loose_count * 2);
-    lineart_loose_data_reallocate(loose_data, min_amount);
-  }
-  loose_data->loose_array[loose_data->loose_count] = i;
-  loose_data->loose_count++;
-}
-
-static void lineart_identify_loose_edges(void *__restrict /*userdata*/,
-                                         const int i,
-                                         const TaskParallelTLS *__restrict tls)
-{
-  LooseEdgeData *loose_data = (LooseEdgeData *)tls->userdata_chunk;
-
-  if (loose_data->edges[i].flag & ME_LOOSEEDGE) {
-    lineart_add_loose_edge(loose_data, i);
-  }
-}
-
-static void loose_data_sum_reduce(const void *__restrict /*userdata*/,
-                                  void *__restrict chunk_join,
-                                  void *__restrict chunk)
-{
-  LooseEdgeData *final = (LooseEdgeData *)chunk_join;
-  LooseEdgeData *loose_chunk = (LooseEdgeData *)chunk;
-  lineart_join_loose_edge_arr(final, loose_chunk);
-}
 
 void lineart_add_edge_to_array(LineartPendingEdges *pe, LineartEdge *e)
 {
@@ -1985,6 +1925,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
                                          LineartData *la_data,
                                          ListBase *shadow_elns)
 {
+  using namespace blender;
   Mesh *me = ob_info->original_me;
   if (!me->totedge) {
     return;
@@ -2158,15 +2099,18 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   if (la_data->conf.use_loose) {
     /* Only identifying floating edges at this point because other edges has been taken care of
      * inside #lineart_identify_mlooptri_feature_edges function. */
-    TaskParallelSettings edge_loose_settings;
-    BLI_parallel_range_settings_defaults(&edge_loose_settings);
-    edge_loose_settings.min_iter_per_thread = 4000;
-    edge_loose_settings.func_reduce = loose_data_sum_reduce;
-    edge_loose_settings.userdata_chunk = &loose_data;
-    edge_loose_settings.userdata_chunk_size = sizeof(LooseEdgeData);
-    loose_data.edges = BKE_mesh_edges(me);
-    BLI_task_parallel_range(
-        0, me->totedge, &loose_data, lineart_identify_loose_edges, &edge_loose_settings);
+    const bke::LooseEdgeCache &loose_edges = me->loose_edges();
+    loose_data.loose_array = static_cast<int *>(
+        MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));
+    if (loose_edges.count > 0) {
+      int loose_i = 0;
+      for (const int64_t edge_i : IndexRange(me->totedge)) {
+        if (loose_edges.is_loose_bits[edge_i]) {
+          loose_data.loose_array[loose_i] = int(edge_i);
+          loose_i++;
+        }
+      }
+    }
   }
 
   int allocate_la_e = edge_reduce.feat_edges + loose_data.loose_count;
@@ -2271,8 +2215,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   }
 
   if (loose_data.loose_array) {
+    const Span<MEdge> edges = me->edges();
     for (int i = 0; i < loose_data.loose_count; i++) {
-      const MEdge *edge = &loose_data.edges[loose_data.loose_array[i]];
+      const MEdge *edge = &edges[loose_data.loose_array[i]];
       la_edge->v1 = &la_v_arr[edge->v1];
       la_edge->v2 = &la_v_arr[edge->v2];
       la_edge->flags = LRT_EDGE_FLAG_LOOSE;

@@ -259,7 +259,6 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged
    * with the new ones created from polygons. */
   BKE_mesh_calc_edges(mesh, true, false);
-  BKE_mesh_calc_edges_loose(mesh);
 }
 
 void MeshFromGeometry::create_uv_verts(Mesh *mesh)

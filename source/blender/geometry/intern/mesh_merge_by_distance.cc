@@ -1434,9 +1434,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       MEdge *me = &dst_edges[dest_index];
       me->v1 = vert_final[wegrp->v1];
       me->v2 = vert_final[wegrp->v2];
-      /* "For now, assume that all merged edges are loose. This flag will be cleared in the
-       * Polys/Loops step". */
-      me->flag |= ME_LOOSEEDGE;
 
       edge_final[i] = dest_index;
       dest_index++;
@@ -1485,10 +1482,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         r_ml->e = e;
         r_ml++;
         loop_cur++;
-        if (iter.type) {
-          dst_edges[e].flag &= ~ME_LOOSEEDGE;
-        }
-        BLI_assert((dst_edges[e].flag & ME_LOOSEEDGE) == 0);
       }
     }
 
@@ -1520,10 +1513,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       r_ml->e = e;
       r_ml++;
       loop_cur++;
-      if (iter.type) {
-        dst_edges[e].flag &= ~ME_LOOSEEDGE;
-      }
-      BLI_assert((dst_edges[e].flag & ME_LOOSEEDGE) == 0);
     }
 
     r_mp->loopstart = loop_start;
@@ -1600,11 +1589,19 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
   range_vn_i(vert_dest_map.data(), mesh.totvert, 0);
 
   /* Collapse Edges that are shorter than the threshold. */
+  const bke::LooseEdgeCache *loose_edges = nullptr;
+  if (only_loose_edges) {
+    loose_edges = &mesh.loose_edges();
+    if (loose_edges->count == 0) {
+      return {};
+    }
+  }
+
   for (const int i : edges.index_range()) {
     int v1 = edges[i].v1;
     int v2 = edges[i].v2;
 
-    if (only_loose_edges && (edges[i].flag & ME_LOOSEEDGE) == 0) {
+    if (loose_edges && !loose_edges->is_loose_bits[i]) {
       continue;
     }
     while (v1 != vert_dest_map[v1]) {

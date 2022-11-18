@@ -1118,8 +1118,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
     BKE_mesh_calc_edges(mesh, calc_edges, true);
   }
 
-  if (calc_edges_loose && mesh->totedge) {
-    BKE_mesh_calc_edges_loose(mesh);
+  if (calc_edges_loose) {
+    mesh->runtime->loose_edges_cache.tag_dirty();
   }
 
   /* Default state is not to have tessface's so make sure this is the case. */
@@ -1130,6 +1130,13 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+}
+
+bool ED_mesh_edge_is_loose(const Mesh *mesh, const int index)
+{
+  using namespace blender;
+  const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+  return loose_edges.count > 0 && loose_edges.is_loose_bits[index];
 }
 
 static void mesh_add_verts(Mesh *mesh, int len)
