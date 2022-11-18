@@ -36,7 +36,6 @@ class AssetRepresentation {
     ID *local_asset_id_ = nullptr; /* Non-owning. */
   };
 
-  friend struct AssetLibrary;
   friend class AssetStorage;
 
  public:

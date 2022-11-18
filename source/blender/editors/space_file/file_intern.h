@@ -226,7 +226,7 @@ void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_li
 #ifdef __cplusplus
 
 namespace blender::asset_system {
-struct AssetLibrary;
+class AssetLibrary;
 }
 
 FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings(void);

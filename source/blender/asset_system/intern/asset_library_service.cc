@@ -146,19 +146,18 @@ void AssetLibraryService::allocate_service_instance()
   }
 }
 
-#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
 static void on_blendfile_load(struct Main * /*bMain*/,
                               struct PointerRNA ** /*pointers*/,
                               const int /*num_pointers*/,
                               void * /*arg*/)
 {
+#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
   AssetLibraryService::destroy();
-}
 #endif
+}
 
 void AssetLibraryService::app_handler_register()
 {
-#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
   /* The callback system doesn't own `on_load_callback_store_`. */
   on_load_callback_store_.alloc = false;
 
@@ -166,16 +165,13 @@ void AssetLibraryService::app_handler_register()
   on_load_callback_store_.arg = this;
 
   BKE_callback_add(&on_load_callback_store_, BKE_CB_EVT_LOAD_PRE);
-#endif
 }
 
 void AssetLibraryService::app_handler_unregister()
 {
-#ifdef WITH_DESTROY_VIA_LOAD_HANDLER
   BKE_callback_remove(&on_load_callback_store_, BKE_CB_EVT_LOAD_PRE);
   on_load_callback_store_.func = nullptr;
   on_load_callback_store_.arg = nullptr;
-#endif
 }
 
 bool AssetLibraryService::has_any_unsaved_catalogs() const
