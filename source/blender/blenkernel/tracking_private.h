@@ -79,6 +79,26 @@ void tracking_set_marker_coords_from_tracking(int frame_width,
                                               const double search_pixel_x[5],
                                               const double search_pixel_y[5]);
 
+/**
+ * Convert the lens principal point (optical center) between normalized and pixel spaces.
+ *
+ * The normalized space stores principal point relative to the frame center which has normalized
+ * princibal coordinate of (0, 0). The right top corder of the frame corresponds to a notmalized
+ * principal coordinate of (1, 1), and the left bottom cornder corresponds to coordinate of
+ * (-1, -1).
+ *
+ * The pixel space is measured in pixels, with the reference being the left bottom cornder of
+ * the frame.
+ */
+void tracking_principal_point_normalized_to_pixel(const float principal_point_normalized[2],
+                                                  int frame_width,
+                                                  int frame_height,
+                                                  float r_principal_point_pixel[2]);
+void tracking_principal_point_pixel_to_normalized(const float principal_point_pixel[2],
+                                                  int frame_width,
+                                                  int frame_height,
+                                                  float r_principal_point_normalized[2]);
+
 /*********************** General purpose utility functions *************************/
 
 /**

@@ -14,6 +14,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
@@ -51,7 +52,7 @@
 typedef struct MovieDistortion {
   struct libmv_CameraIntrinsics *intrinsics;
   /* Parameters needed for coordinates normalization. */
-  float principal[2];
+  float principal_px[2];
   float pixel_aspect;
   float focal;
 } MovieDistortion;
@@ -2103,10 +2104,14 @@ static void reconstructed_camera_scale_set(const MovieTrackingObject *tracking_o
 void BKE_tracking_camera_shift_get(
     MovieTracking *tracking, int winx, int winy, float *shiftx, float *shifty)
 {
+  float principal_px[2];
+  tracking_principal_point_normalized_to_pixel(
+      tracking->camera.principal_point, winx, winy, principal_px);
+
   /* Indeed in both of cases it should be winx -
    * it's just how camera shift works for blender's camera. */
-  *shiftx = (0.5f * winx - tracking->camera.principal[0]) / winx;
-  *shifty = (0.5f * winy - tracking->camera.principal[1]) / winx;
+  *shiftx = (0.5f * winx - principal_px[0]) / winx;
+  *shifty = (0.5f * winy - principal_px[1]) / winx;
 }
 
 void BKE_tracking_camera_to_blender(
@@ -2167,6 +2172,32 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *UNUSED(tra
   reconstructed_camera_scale_set(tracking_object, mat);
 }
 
+void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
+                                                   float r_principal_point_pixel[2])
+{
+  const MovieTrackingCamera *camera = &clip->tracking.camera;
+
+  int frame_width, frame_height;
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+  BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
+
+  tracking_principal_point_normalized_to_pixel(
+      camera->principal_point, frame_width, frame_height, r_principal_point_pixel);
+}
+
+void BKE_tracking_camera_principal_point_pixel_set(struct MovieClip *clip,
+                                                   const float principal_point_pixel[2])
+{
+  MovieTrackingCamera *camera = &clip->tracking.camera;
+
+  int frame_width, frame_height;
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+  BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
+
+  tracking_principal_point_pixel_to_normalized(
+      principal_point_pixel, frame_width, frame_height, camera->principal_point);
+}
+
 /* --------------------------------------------------------------------
  * (Un)distortion.
  */
@@ -2185,7 +2216,10 @@ MovieDistortion *BKE_tracking_distortion_new(MovieTracking *tracking,
   distortion->intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
   const MovieTrackingCamera *camera = &tracking->camera;
-  copy_v2_v2(distortion->principal, camera->principal);
+  tracking_principal_point_normalized_to_pixel(tracking->camera.principal_point,
+                                               calibration_width,
+                                               calibration_height,
+                                               distortion->principal_px);
   distortion->pixel_aspect = camera->pixel_aspect;
   distortion->focal = camera->focal;
 
@@ -2203,7 +2237,10 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion,
       tracking, calibration_width, calibration_height, &camera_intrinsics_options);
 
   const MovieTrackingCamera *camera = &tracking->camera;
-  copy_v2_v2(distortion->principal, camera->principal);
+  tracking_principal_point_normalized_to_pixel(tracking->camera.principal_point,
+                                               calibration_width,
+                                               calibration_height,
+                                               distortion->principal_px);
   distortion->pixel_aspect = camera->pixel_aspect;
   distortion->focal = camera->focal;
 
@@ -2296,8 +2333,8 @@ void BKE_tracking_distortion_distort_v2(MovieDistortion *distortion,
 
   /* Normalize coords. */
   float inv_focal = 1.0f / distortion->focal;
-  double x = (co[0] - distortion->principal[0]) * inv_focal,
-         y = (co[1] - distortion->principal[1] * aspy) * inv_focal;
+  double x = (co[0] - distortion->principal_px[0]) * inv_focal,
+         y = (co[1] - distortion->principal_px[1] * aspy) * inv_focal;
 
   libmv_cameraIntrinsicsApply(distortion->intrinsics, x, y, &x, &y);
 
@@ -2314,8 +2351,8 @@ void BKE_tracking_distortion_undistort_v2(MovieDistortion *distortion,
   libmv_cameraIntrinsicsInvert(distortion->intrinsics, x, y, &x, &y);
 
   const float aspy = 1.0f / distortion->pixel_aspect;
-  r_co[0] = (float)x * distortion->focal + distortion->principal[0];
-  r_co[1] = (float)y * distortion->focal + distortion->principal[1] * aspy;
+  r_co[0] = (float)x * distortion->focal + distortion->principal_px[0];
+  r_co[1] = (float)y * distortion->focal + distortion->principal_px[1] * aspy;
 }
 
 void BKE_tracking_distortion_free(MovieDistortion *distortion)
@@ -2336,9 +2373,13 @@ void BKE_tracking_distort_v2(
       tracking, image_width, image_height, &camera_intrinsics_options);
   libmv_CameraIntrinsics *intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
+  float principal_px[2];
+  tracking_principal_point_normalized_to_pixel(
+      tracking->camera.principal_point, image_width, image_height, principal_px);
+
   /* Normalize coordinates. */
-  double x = (co[0] - camera->principal[0]) / camera->focal,
-         y = (co[1] - camera->principal[1] * aspy) / camera->focal;
+  double x = (co[0] - principal_px[0]) / camera->focal,
+         y = (co[1] - principal_px[1] * aspy) / camera->focal;
 
   libmv_cameraIntrinsicsApply(intrinsics, x, y, &x, &y);
   libmv_cameraIntrinsicsDestroy(intrinsics);
@@ -2363,8 +2404,12 @@ void BKE_tracking_undistort_v2(
   libmv_cameraIntrinsicsInvert(intrinsics, x, y, &x, &y);
   libmv_cameraIntrinsicsDestroy(intrinsics);
 
-  r_co[0] = (float)x * camera->focal + camera->principal[0];
-  r_co[1] = (float)y * camera->focal + camera->principal[1] * aspy;
+  float principal_px[2];
+  tracking_principal_point_normalized_to_pixel(
+      tracking->camera.principal_point, image_width, image_height, principal_px);
+
+  r_co[0] = (float)x * camera->focal + principal_px[0];
+  r_co[1] = (float)y * camera->focal + principal_px[1] * aspy;
 }
 
 ImBuf *BKE_tracking_undistort_frame(MovieTracking *tracking,

@@ -48,8 +48,17 @@ typedef struct MovieTrackingCamera {
   /** Units of focal length user is working with. */
   short units;
   char _pad1[2];
-  /** Principal point. */
-  float principal[2];
+
+  /* Principal point (optical center) stored in normalized coordinates.
+   *
+   * The normalized space stores principal point relative to the frame center which has normalized
+   * princibal coordinate of (0, 0). The right top corder of the frame corresponds to a notmalized
+   * principal coordinate of (1, 1), and the left bottom cornder corresponds to coordinate of
+   * (-1, -1). */
+  float principal_point[2];
+
+  /** Legacy principal point in pixel space. */
+  float principal_legacy[2];
 
   /* Polynomial distortion */
   /** Polynomial radial distortion. */

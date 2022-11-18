@@ -387,6 +387,20 @@ static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
   }
 }
 
+static void rna_trackingCamera_principal_point_pixels_get(PointerRNA *ptr,
+                                                          float *r_principal_point_pixels)
+{
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  BKE_tracking_camera_principal_point_pixel_get(clip, r_principal_point_pixels);
+}
+
+static void rna_trackingCamera_principal_point_pixels_set(PointerRNA *ptr,
+                                                          const float *principal_point_pixels)
+{
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  BKE_tracking_camera_principal_point_pixel_set(clip, principal_point_pixels);
+}
+
 static char *rna_trackingStabilization_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tracking.stabilization");
@@ -1198,11 +1212,24 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Units", "Units used for camera focal length");
 
   /* Principal Point */
-  prop = RNA_def_property(srna, "principal", PROP_FLOAT, PROP_PIXEL);
+  prop = RNA_def_property(srna, "principal_point", PROP_FLOAT, PROP_NONE);
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_sdna(prop, NULL, "principal");
+  RNA_def_property_float_sdna(prop, NULL, "principal_point");
+  RNA_def_property_range(prop, -1, 1);
+  RNA_def_property_ui_range(prop, -1, 1, 0.1, 3);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Principal Point", "Optical center of lens");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, NULL);
+
+  /* Principal Point, in pixels */
+  prop = RNA_def_property(srna, "principal_point_pixels", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_float_funcs(prop,
+                               "rna_trackingCamera_principal_point_pixels_get",
+                               "rna_trackingCamera_principal_point_pixels_set",
+                               NULL);
+  RNA_def_property_ui_text(prop, "Principal Point", "Optical center of lens in pixels");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, NULL);
 
   /* Radial distortion parameters */

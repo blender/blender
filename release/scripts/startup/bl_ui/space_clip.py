@@ -920,8 +920,7 @@ class CLIP_PT_tracking_lens(Panel):
         col.prop(camera, "units", text="Units")
 
         col = layout.column()
-        col.prop(clip.tracking.camera, "principal", text="Optical Center")
-        col.operator("clip.set_center_principal", text="Set Center")
+        col.prop(clip.tracking.camera, "principal_point", text="Optical Center")
 
         col = layout.column()
         col.prop(camera, "distortion_model", text="Lens Distortion")
@@ -1353,7 +1352,6 @@ class CLIP_MT_clip(Menu):
 
         if clip:
             layout.operator("clip.set_scene_frames")
-            layout.operator("clip.set_center_principal")
             layout.operator("clip.prefetch")
             layout.operator("clip.reload")
             layout.menu("CLIP_MT_proxy")

@@ -457,6 +457,12 @@ void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tra
                                                        float framenr,
                                                        float mat[4][4]);
 
+/* Access the principal point in pixels space. */
+void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
+                                                   float r_principal_point_pixel[2]);
+void BKE_tracking_camera_principal_point_pixel_set(struct MovieClip *clip,
+                                                   const float principal_point_pixel[2]);
+
 /* --------------------------------------------------------------------
  * (Un)distortion.
  */

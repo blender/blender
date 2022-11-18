@@ -34,9 +34,11 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
@@ -3697,6 +3699,22 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (MEdge &edge : mesh->edges_for_write()) {
         edge.flag |= ME_EDGEDRAW;
       }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 2)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTracking *tracking = &clip->tracking;
+
+      const float frame_center_x = ((float)clip->lastsize[0]) / 2;
+      const float frame_center_y = ((float)clip->lastsize[1]) / 2;
+
+      tracking->camera.principal_point[0] = (tracking->camera.principal_legacy[0] -
+                                             frame_center_x) /
+                                            frame_center_x;
+      tracking->camera.principal_point[1] = (tracking->camera.principal_legacy[1] -
+                                             frame_center_y) /
+                                            frame_center_y;
     }
   }
 

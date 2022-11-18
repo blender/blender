@@ -229,8 +229,6 @@ void CLIP_OT_set_scale(struct wmOperatorType *ot);
 void CLIP_OT_set_solution_scale(struct wmOperatorType *ot);
 void CLIP_OT_apply_solution_scale(struct wmOperatorType *ot);
 
-void CLIP_OT_set_center_principal(struct wmOperatorType *ot);
-
 void CLIP_OT_slide_marker(struct wmOperatorType *ot);
 
 void CLIP_OT_frame_jump(struct wmOperatorType *ot);

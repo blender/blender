@@ -965,47 +965,6 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Set Principal Center Operator
- * \{ */
-
-static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  SpaceClip *sc = CTX_wm_space_clip(C);
-  MovieClip *clip = ED_space_clip_get_clip(sc);
-  int width, height;
-
-  BKE_movieclip_get_size(clip, &sc->user, &width, &height);
-
-  if (width == 0 || height == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
-  clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-
-  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
-
-  return OPERATOR_FINISHED;
-}
-
-void CLIP_OT_set_center_principal(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Set Principal to Center";
-  ot->description = "Set optical center to center of footage";
-  ot->idname = "CLIP_OT_set_center_principal";
-
-  /* api callbacks */
-  ot->exec = set_center_principal_exec;
-  ot->poll = ED_space_clip_tracking_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Hide Tracks Operator
  * \{ */
 

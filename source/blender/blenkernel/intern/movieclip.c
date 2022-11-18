@@ -69,6 +69,8 @@
 
 #include "BLO_read_write.h"
 
+#include "tracking_private.h"
+
 /* Convert camera object to legacy format where the camera tracks are stored in the MovieTracking
  * structure when saving .blend file. */
 #define USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE 1
@@ -220,6 +222,16 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
     tracking->reconstruction_legacy = tracking_camera_object->reconstruction;
   }
 #endif
+
+  /* Assign the pixel-space principal point for forward compatibility. */
+  /* TODO(sergey): Remove with the next major version update when forward compatibility is allowed
+   * to be broken. */
+  if (!is_undo && clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
+    tracking_principal_point_normalized_to_pixel(tracking->camera.principal_point,
+                                                 clip->lastsize[0],
+                                                 clip->lastsize[1],
+                                                 tracking->camera.principal_legacy);
+  }
 
   BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
   BKE_id_blend_write(writer, &clip->id);
@@ -725,7 +737,7 @@ typedef struct MovieClipCache {
 
     /* cache for undistorted shot */
     float focal_length;
-    float principal[2];
+    float principal_point[2];
     float polynomial_k[3];
     float division_k[2];
     float nuke_k[2];
@@ -981,17 +993,6 @@ static void movieclip_load_get_size(MovieClip *clip)
   }
 }
 
-static void movieclip_principal_to_center(MovieClip *clip)
-{
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-
-  int width, height;
-  BKE_movieclip_get_size(clip, &user, &width, &height);
-
-  clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
-  clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-}
-
 static void detect_clip_source(Main *bmain, MovieClip *clip)
 {
   ImBuf *ibuf;
@@ -1041,7 +1042,6 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
     clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
   }
 
-  movieclip_principal_to_center(clip);
   movieclip_calc_length(clip);
 
   return clip;
@@ -1154,7 +1154,7 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
   }
 
   /* check for distortion model changes */
-  if (!equals_v2v2(camera->principal, cache->postprocessed.principal)) {
+  if (!equals_v2v2(camera->principal_point, cache->postprocessed.principal_point)) {
     return false;
   }
 
@@ -1279,7 +1279,7 @@ static void put_postprocessed_frame_to_cache(
   if (need_undistortion_postprocess(user, flag)) {
     cache->postprocessed.distortion_model = camera->distortion_model;
     cache->postprocessed.focal_length = camera->focal;
-    copy_v2_v2(cache->postprocessed.principal, camera->principal);
+    copy_v2_v2(cache->postprocessed.principal_point, camera->principal_point);
     copy_v3_v3(cache->postprocessed.polynomial_k, &camera->k1);
     copy_v2_v2(cache->postprocessed.division_k, &camera->division_k1);
     copy_v2_v2(cache->postprocessed.nuke_k, &camera->nuke_k1);
@@ -1719,25 +1719,11 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
   /* update clip source */
   detect_clip_source(bmain, clip);
 
-  const int old_width = clip->lastsize[0];
-  const int old_height = clip->lastsize[1];
-
   /* Tag for re-calculation of the actual size. */
   clip->lastsize[0] = clip->lastsize[1] = 0;
 
   movieclip_load_get_size(clip);
   movieclip_calc_length(clip);
-
-  int width, height;
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-  BKE_movieclip_get_size(clip, &user, &width, &height);
-
-  /* If the resolution changes then re-initialize the principal point.
-   * Ideally the principal point will be in some sort of relative space, but this is not how it is
-   * designed currently. The code should cover the most of the common cases. */
-  if (width != old_width || height != old_height) {
-    movieclip_principal_to_center(clip);
-  }
 
   BKE_ntree_update_tag_id_changed(bmain, &clip->id);
 }
