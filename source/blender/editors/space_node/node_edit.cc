@@ -24,6 +24,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -925,7 +926,7 @@ static bool socket_is_occluded(const float2 &location,
     rctf socket_hitbox;
     const float socket_hitbox_radius = NODE_SOCKSIZE - 0.1f * U.widget_unit;
     BLI_rctf_init_pt_radius(&socket_hitbox, location, socket_hitbox_radius);
-    if (BLI_rctf_inside_rctf(&node->totr, &socket_hitbox)) {
+    if (BLI_rctf_inside_rctf(&node->runtime->totr, &socket_hitbox)) {
       return true;
     }
   }
@@ -1319,7 +1320,8 @@ bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
 /** \name Node Duplicate Operator
  * \{ */
 
-static void node_duplicate_reparent_recursive(bNodeTree *ntree, const Map<const bNode *, bNode *> &node_map,
+static void node_duplicate_reparent_recursive(bNodeTree *ntree,
+                                              const Map<const bNode *, bNode *> &node_map,
                                               bNode *node)
 {
   bNode *parent;
@@ -1935,7 +1937,7 @@ static int node_switch_view_exec(bContext *C, wmOperator * /*op*/)
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
       /* call the update function from the Switch View node */
-      node->update = NODE_UPDATE_OPERATOR;
+      node->runtime->update = NODE_UPDATE_OPERATOR;
     }
   }
 
@@ -2346,8 +2348,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   float2 center = {0.0f, 0.0f};
   int num_nodes = 0;
   LISTBASE_FOREACH_INDEX (bNode *, node, clipboard_nodes_lb, num_nodes) {
-    center.x += BLI_rctf_cent_x(&node->totr);
-    center.y += BLI_rctf_cent_y(&node->totr);
+    center.x += BLI_rctf_cent_x(&node->runtime->totr);
+    center.y += BLI_rctf_cent_y(&node->runtime->totr);
   }
   mul_v2_fl(center, 1.0 / num_nodes);
 

@@ -433,41 +433,41 @@ static void node_update_basis(const bContext &C,
     dy -= NODE_DY / 4;
   }
 
-  node.prvr.xmin = loc.x + NODE_DYS;
-  node.prvr.xmax = loc.x + NODE_WIDTH(node) - NODE_DYS;
+  node.runtime->prvr.xmin = loc.x + NODE_DYS;
+  node.runtime->prvr.xmax = loc.x + NODE_WIDTH(node) - NODE_DYS;
 
   /* preview rect? */
   if (node.flag & NODE_PREVIEW) {
     float aspect = 1.0f;
 
-    if (node.preview_xsize && node.preview_ysize) {
-      aspect = float(node.preview_ysize) / float(node.preview_xsize);
+    if (node.runtime->preview_xsize && node.runtime->preview_ysize) {
+      aspect = float(node.runtime->preview_ysize) / float(node.runtime->preview_xsize);
     }
 
     dy -= NODE_DYS / 2;
-    node.prvr.ymax = dy;
+    node.runtime->prvr.ymax = dy;
 
     if (aspect <= 1.0f) {
-      node.prvr.ymin = dy - aspect * (NODE_WIDTH(node) - NODE_DY);
+      node.runtime->prvr.ymin = dy - aspect * (NODE_WIDTH(node) - NODE_DY);
     }
     else {
       /* Width correction of image. XXX huh? (ton) */
       float dx = (NODE_WIDTH(node) - NODE_DYS) - (NODE_WIDTH(node) - NODE_DYS) / aspect;
 
-      node.prvr.ymin = dy - (NODE_WIDTH(node) - NODE_DY);
+      node.runtime->prvr.ymin = dy - (NODE_WIDTH(node) - NODE_DY);
 
-      node.prvr.xmin += 0.5f * dx;
-      node.prvr.xmax -= 0.5f * dx;
+      node.runtime->prvr.xmin += 0.5f * dx;
+      node.runtime->prvr.xmax -= 0.5f * dx;
     }
 
-    dy = node.prvr.ymin - NODE_DYS / 2;
+    dy = node.runtime->prvr.ymin - NODE_DYS / 2;
 
     /* Make sure that maximums are bigger or equal to minimums. */
-    if (node.prvr.xmax < node.prvr.xmin) {
-      SWAP(float, node.prvr.xmax, node.prvr.xmin);
+    if (node.runtime->prvr.xmax < node.runtime->prvr.xmin) {
+      SWAP(float, node.runtime->prvr.xmax, node.runtime->prvr.xmin);
     }
-    if (node.prvr.ymax < node.prvr.ymin) {
-      SWAP(float, node.prvr.ymax, node.prvr.ymin);
+    if (node.runtime->prvr.ymax < node.runtime->prvr.ymin) {
+      SWAP(float, node.runtime->prvr.ymax, node.runtime->prvr.ymin);
     }
   }
 
@@ -564,18 +564,18 @@ static void node_update_basis(const bContext &C,
     dy -= NODE_DYS / 2;
   }
 
-  node.totr.xmin = loc.x;
-  node.totr.xmax = loc.x + NODE_WIDTH(node);
-  node.totr.ymax = loc.y;
-  node.totr.ymin = min_ff(dy, loc.y - 2 * NODE_DY);
+  node.runtime->totr.xmin = loc.x;
+  node.runtime->totr.xmax = loc.x + NODE_WIDTH(node);
+  node.runtime->totr.ymax = loc.y;
+  node.runtime->totr.ymin = min_ff(dy, loc.y - 2 * NODE_DY);
 
   /* Set the block bounds to clip mouse events from underlying nodes.
    * Add a margin for sockets on each side. */
   UI_block_bounds_set_explicit(&block,
-                               node.totr.xmin - NODE_SOCKSIZE,
-                               node.totr.ymin,
-                               node.totr.xmax + NODE_SOCKSIZE,
-                               node.totr.ymax);
+                               node.runtime->totr.xmin - NODE_SOCKSIZE,
+                               node.runtime->totr.ymin,
+                               node.runtime->totr.xmax + NODE_SOCKSIZE,
+                               node.runtime->totr.ymax);
 }
 
 /**
@@ -609,10 +609,10 @@ static void node_update_hidden(bNode &node, uiBlock &block)
     hiddenrad += 5.0f * float(tot - 4);
   }
 
-  node.totr.xmin = loc.x;
-  node.totr.xmax = loc.x + max_ff(NODE_WIDTH(node), 2 * hiddenrad);
-  node.totr.ymax = loc.y + (hiddenrad - 0.5f * NODE_DY);
-  node.totr.ymin = node.totr.ymax - 2 * hiddenrad;
+  node.runtime->totr.xmin = loc.x;
+  node.runtime->totr.xmax = loc.x + max_ff(NODE_WIDTH(node), 2 * hiddenrad);
+  node.runtime->totr.ymax = loc.y + (hiddenrad - 0.5f * NODE_DY);
+  node.runtime->totr.ymin = node.runtime->totr.ymax - 2 * hiddenrad;
 
   /* Output sockets. */
   float rad = float(M_PI) / (1.0f + float(totout));
@@ -621,8 +621,8 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
     if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      socket->locx = round(node.totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
-      socket->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
+      socket->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -633,8 +633,8 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
     if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      socket->locx = round(node.totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
-      socket->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
+      socket->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -642,10 +642,10 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   /* Set the block bounds to clip mouse events from underlying nodes.
    * Add a margin for sockets on each side. */
   UI_block_bounds_set_explicit(&block,
-                               node.totr.xmin - NODE_SOCKSIZE,
-                               node.totr.ymin,
-                               node.totr.xmax + NODE_SOCKSIZE,
-                               node.totr.ymax);
+                               node.runtime->totr.xmin - NODE_SOCKSIZE,
+                               node.runtime->totr.ymin,
+                               node.runtime->totr.xmax + NODE_SOCKSIZE,
+                               node.runtime->totr.ymax);
 }
 
 static int node_get_colorid(TreeDrawContext &tree_draw_ctx, const bNode &node)
@@ -1375,7 +1375,7 @@ static void node_draw_shadow(const SpaceNode &snode,
                              const float radius,
                              const float alpha)
 {
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   ui_draw_dropshadow(&rct, radius, snode.runtime->aspect, alpha, node.flag & SELECT);
 }
@@ -2002,7 +2002,7 @@ static void node_draw_extra_info_panel(TreeDrawContext &tree_draw_ctx,
     return;
   }
 
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   float color[4];
   rctf extra_info_rect;
 
@@ -2063,7 +2063,7 @@ static void node_draw_basis(const bContext &C,
   const float iconbutw = NODE_HEADER_ICON_SIZE;
 
   /* Skip if out of view. */
-  if (BLI_rctf_isect(&node.totr, &v2d.cur, nullptr) == false) {
+  if (BLI_rctf_isect(&node.runtime->totr, &v2d.cur, nullptr) == false) {
     UI_block_end(&C, &block);
     return;
   }
@@ -2071,7 +2071,7 @@ static void node_draw_basis(const bContext &C,
   /* Shadow. */
   node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   float color[4];
   int color_id = node_get_colorid(tree_draw_ctx, node);
 
@@ -2360,8 +2360,8 @@ static void node_draw_basis(const bContext &C,
   if (node.flag & NODE_PREVIEW && previews) {
     bNodePreview *preview = (bNodePreview *)BKE_node_instance_hash_lookup(previews, key);
     if (preview && (preview->xsize && preview->ysize)) {
-      if (preview->rect && !BLI_rctf_is_empty(&node.prvr)) {
-        node_draw_preview(preview, &node.prvr);
+      if (preview->rect && !BLI_rctf_is_empty(&node.runtime->prvr)) {
+        node_draw_preview(preview, &node.runtime->prvr);
       }
     }
   }
@@ -2378,7 +2378,7 @@ static void node_draw_hidden(const bContext &C,
                              bNode &node,
                              uiBlock &block)
 {
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   float centy = BLI_rctf_cent_y(&rct);
   float hiddenrad = BLI_rctf_size_y(&rct) / 2.0f;
 
@@ -2581,7 +2581,7 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
 
   /* Check nodes front to back. */
   for (node = (bNode *)ntree->nodes.last; node; node = node->prev) {
-    if (BLI_rctf_isect_pt(&node->totr, cursor[0], cursor[1])) {
+    if (BLI_rctf_isect_pt(&node->runtime->totr, cursor[0], cursor[1])) {
       break; /* First hit on node stops. */
     }
   }
@@ -2651,7 +2651,7 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
     }
 
     /* add margin to node rect */
-    rctf noderect = tnode->totr;
+    rctf noderect = tnode->runtime->totr;
     noderect.xmin -= margin;
     noderect.xmax += margin;
     noderect.ymin -= margin;
@@ -2676,7 +2676,7 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   node.width = max.x - node.offsetx;
   node.height = -max.y + node.offsety;
 
-  node.totr = rect;
+  node.runtime->totr = rect;
 }
 
 static void reroute_node_prepare_for_draw(bNode &node)
@@ -2695,10 +2695,10 @@ static void reroute_node_prepare_for_draw(bNode &node)
 
   const float size = 8.0f;
   node.width = size * 2;
-  node.totr.xmin = loc.x - size;
-  node.totr.xmax = loc.x + size;
-  node.totr.ymax = loc.y + size;
-  node.totr.ymin = loc.y - size;
+  node.runtime->totr.xmin = loc.x - size;
+  node.runtime->totr.xmax = loc.x + size;
+  node.runtime->totr.ymax = loc.y + size;
+  node.runtime->totr.ymin = loc.y - size;
 }
 
 static void node_update_nodetree(const bContext &C,
@@ -2773,7 +2773,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const int label_height = ((margin / aspect) + (ascender * aspect));
 
   /* 'x' doesn't need aspect correction */
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   /* XXX a bit hacky, should use separate align values for x and y */
   float x = BLI_rctf_cent_x(&rct) - (0.5f * width);
   float y = rct.ymax - label_height;
@@ -2839,7 +2839,7 @@ static void frame_node_draw(const bContext &C,
                             uiBlock &block)
 {
   /* skip if out of view */
-  if (BLI_rctf_isect(&node.totr, &region.v2d.cur, nullptr) == false) {
+  if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
     UI_block_end(&C, &block);
     return;
   }
@@ -2859,7 +2859,7 @@ static void frame_node_draw(const bContext &C,
     UI_GetThemeColor4fv(TH_NODE_FRAME, color);
   }
 
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
 
@@ -2888,11 +2888,11 @@ static void reroute_node_draw(
     const bContext &C, ARegion &region, bNodeTree &ntree, bNode &node, uiBlock &block)
 {
   char showname[128]; /* 128 used below */
-  const rctf &rct = node.totr;
+  const rctf &rct = node.runtime->totr;
 
   /* skip if out of view */
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
-      rct.ymax < region.v2d.cur.ymin || node.totr.ymin > region.v2d.cur.ymax) {
+      rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax) {
     UI_block_end(&C, &block);
     return;
   }
@@ -2901,8 +2901,8 @@ static void reroute_node_draw(
     /* draw title (node label) */
     BLI_strncpy(showname, node.label, sizeof(showname));
     const short width = 512;
-    const int x = BLI_rctf_cent_x(&node.totr) - (width / 2);
-    const int y = node.totr.ymax;
+    const int x = BLI_rctf_cent_x(&node.runtime->totr) - (width / 2);
+    const int y = node.runtime->totr.ymax;
 
     uiBut *label_but = uiDefBut(&block,
                                 UI_BTYPE_LABEL,
@@ -2977,7 +2977,7 @@ static void node_draw_nodetree(const bContext &C,
 #ifdef USE_DRAW_TOT_UPDATE
     /* Unrelated to background nodes, update the v2d->tot,
      * can be anywhere before we draw the scroll bars. */
-    BLI_rctf_union(&region.v2d.tot, &nodes[i]->totr);
+    BLI_rctf_union(&region.v2d.tot, &nodes[i]->runtime->totr);
 #endif
 
     if (!(nodes[i]->flag & NODE_BACKGROUND)) {

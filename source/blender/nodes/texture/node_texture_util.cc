@@ -44,7 +44,7 @@ void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, sho
 
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
-  if (dg->node->need_exec) {
+  if (dg->node->runtime->need_exec) {
     dg->fn(out, params, dg->node, dg->in, thread);
   }
 }

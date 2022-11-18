@@ -12,6 +12,7 @@
 
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "MEM_guardedalloc.h"
@@ -209,7 +210,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
       /* disable the node if an input link is invalid */
       if (sock->link && !(sock->link->flag & NODE_LINK_VALID)) {
-        node->need_exec = 0;
+        node->runtime->need_exec = 0;
       }
 
       ns = setup_stack(exec->stack, ntree, node, sock);

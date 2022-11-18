@@ -126,7 +126,7 @@ static void group_execute(void *data,
   {
     bNode *inode;
     for (inode = static_cast<bNode *>(exec->nodetree->nodes.first); inode; inode = inode->next) {
-      inode->need_exec = 1;
+      inode->runtime->need_exec = 1;
     }
   }
 

@@ -146,6 +146,46 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** #eNodeTreeChangedFlag. */
   uint32_t changed_flag = 0;
 
+  /** Both for dependency and sorting. */
+  short done = 0;
+  short level = 0;
+
+  /** Used as a boolean for execution. */
+  uint8_t need_exec = 0;
+
+  /** The original node in the tree (for localized tree). */
+  struct bNode *original = nullptr;
+
+  /**
+   * XXX TODO
+   * Node totr size depends on the prvr size, which in turn is determined from preview size.
+   * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
+   * multiple instances using different preview images it is possible that required node size
+   * varies between instances. preview_xsize, preview_ysize defines a common reserved size for
+   * preview rect for now, could be replaced by more accurate node instance drawing,
+   * but that requires removing totr from DNA and replacing all uses with per-instance data.
+   */
+  /** Reserved size of the preview rect. */
+  short preview_xsize, preview_ysize = 0;
+  /** Entire bound-box (world-space). */
+  rctf totr{};
+  /** Optional preview area. */
+  rctf prvr{};
+
+  /** Used at runtime when going through the tree. Initialize before use. */
+  short tmp_flag = 0;
+
+  /** Used at runtime when iterating over node branches. */
+  char iter_flag = 0;
+
+  /** Update flags. */
+  int update = 0;
+
+  /** Initial locx for insert offset animation. */
+  float anim_init_locx;
+  /** Offset that will be added to locx for insert offset animation. */
+  float anim_ofsx;
+
   /** Only valid if #topology_cache_is_dirty is false. */
   Vector<bNodeSocket *> inputs;
   Vector<bNodeSocket *> outputs;

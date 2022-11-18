@@ -38,7 +38,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     zero_v3(dyt);
   }
 
-  if (node->custom2 || node->need_exec == 0) {
+  if (node->custom2 || node->runtime->need_exec == 0) {
     /* this node refers to its own texture tree! */
     copy_v4_v4(out, (fabsf(co[0] - co[1]) < 0.01f) ? white : red);
   }

@@ -198,7 +198,7 @@ bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
 
   for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; n++, nodeexec++) {
     node = nodeexec->node;
-    if (node->need_exec) {
+    if (node->runtime->need_exec) {
       node_get_stack(node, nts->stack, nsin, nsout);
       /* Handle muted nodes...
        * If the mute func is not set, assume the node should never be muted,
@@ -228,7 +228,7 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec->threadstack = MEM_cnew_array<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
 
   for (node = static_cast<bNode *>(exec->nodetree->nodes.first); node; node = node->next) {
-    node->need_exec = 1;
+    node->runtime->need_exec = 1;
   }
 
   return exec;

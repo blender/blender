@@ -1115,7 +1115,6 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 
   node->flag = NODE_SELECT | NODE_OPTIONS | ntype->flag;
   node->width = ntype->width;
-  node->miniwidth = 42.0f;
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608; /* default theme color */
   /* initialize the node name with the node label.
@@ -2116,11 +2115,11 @@ static void iter_backwards_ex(const bNodeTree *ntree,
       /* Skip links marked as cyclic. */
       continue;
     }
-    if (link->fromnode->iter_flag & recursion_mask) {
+    if (link->fromnode->runtime->iter_flag & recursion_mask) {
       continue;
     }
 
-    link->fromnode->iter_flag |= recursion_mask;
+    link->fromnode->runtime->iter_flag |= recursion_mask;
 
     if (!callback(link->fromnode, link->tonode, userdata)) {
       return;
@@ -2145,7 +2144,7 @@ void nodeChainIterBackwards(const bNodeTree *ntree,
 
   /* Reset flag. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->iter_flag &= ~recursion_mask;
+    node->runtime->iter_flag &= ~recursion_mask;
   }
 
   iter_backwards_ex(ntree, node_start, callback, userdata, recursion_mask);
@@ -2789,8 +2788,8 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
 
     if (BKE_node_preview_used(node)) {
-      node->preview_xsize = xsize;
-      node->preview_ysize = ysize;
+      node->runtime->preview_xsize = xsize;
+      node->runtime->preview_ysize = ysize;
 
       BKE_node_preview_verify(previews, key, xsize, ysize, false);
     }
@@ -3277,7 +3276,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
   bNode *node_src = (bNode *)ntree->nodes.first;
   bNode *node_local = (bNode *)ltree->nodes.first;
   while (node_src != nullptr) {
-    node_local->original = node_src;
+    node_local->runtime->original = node_src;
     node_src = node_src->next;
     node_local = node_local->next;
   }
@@ -3753,6 +3752,17 @@ bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)
   return false;
 }
 
+void nodeDimensionsGet(const bNode *node, float *r_width, float *r_height)
+{
+  *r_width = node->runtime->totr.xmax - node->runtime->totr.xmin;
+  *r_height = node->runtime->totr.ymax - node->runtime->totr.ymin;
+}
+
+void nodeTagUpdateID(bNode *node)
+{
+  node->runtime->update |= NODE_UPDATE_ID;
+}
+
 /* ************** Node Clipboard *********** */
 
 #define USE_NODE_CB_VALIDATE
@@ -4064,28 +4074,28 @@ static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort
 {
   int level = 0xFFF;
 
-  node->done = true;
+  node->runtime->done = true;
 
   /* check linked nodes */
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (link->tonode == node) {
       bNode *fromnode = link->fromnode;
-      if (fromnode->done == 0) {
-        fromnode->level = node_get_deplist_recurs(ntree, fromnode, nsort);
+      if (fromnode->runtime->done == 0) {
+        fromnode->runtime->level = node_get_deplist_recurs(ntree, fromnode, nsort);
       }
-      if (fromnode->level <= level) {
-        level = fromnode->level - 1;
+      if (fromnode->runtime->level <= level) {
+        level = fromnode->runtime->level - 1;
       }
     }
   }
 
   /* check parent node */
   if (node->parent) {
-    if (node->parent->done == 0) {
-      node->parent->level = node_get_deplist_recurs(ntree, node->parent, nsort);
+    if (node->parent->runtime->done == 0) {
+      node->parent->runtime->level = node_get_deplist_recurs(ntree, node->parent, nsort);
     }
-    if (node->parent->level <= level) {
-      level = node->parent->level - 1;
+    if (node->parent->runtime->level <= level) {
+      level = node->parent->runtime->level - 1;
     }
   }
 
@@ -4103,7 +4113,7 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***r_deplist, 
 
   /* first clear data */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->done = false;
+    node->runtime->done = false;
     (*r_deplist_len)++;
   }
   if (*r_deplist_len == 0) {
@@ -4117,8 +4127,8 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***r_deplist, 
 
   /* recursive check */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->done == 0) {
-      node->level = node_get_deplist_recurs(ntree, node, &nsort);
+    if (node->runtime->done == 0) {
+      node->runtime->level = node_get_deplist_recurs(ntree, node, &nsort);
     }
   }
 }
@@ -4128,13 +4138,13 @@ void ntreeUpdateNodeLevels(bNodeTree *ntree)
 {
   /* first clear tag */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->done = false;
+    node->runtime->done = false;
   }
 
   /* recursive check */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->done == 0) {
-      node->level = node_get_deplist_recurs(ntree, node, nullptr);
+    if (node->runtime->done == 0) {
+      node->runtime->level = node_get_deplist_recurs(ntree, node, nullptr);
     }
   }
 }

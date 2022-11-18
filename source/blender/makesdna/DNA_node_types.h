@@ -307,12 +307,8 @@ typedef struct bNode {
   char name[64];
   int flag;
   short type;
-  /** Both for dependency and sorting. */
-  short done, level;
 
-  /** Used as a boolean for execution. */
-  uint8_t need_exec;
-  char _pad2[1];
+  char _pad2[6];
 
   /** Custom user-defined color. */
   float color[3];
@@ -324,8 +320,6 @@ typedef struct bNode {
   struct ID *id;
   /** Custom data, must be struct, for storage in file. */
   void *storage;
-  /** The original node in the tree (for localized tree). */
-  struct bNode *original;
   /** List of cached internal links (input to output), for muted nodes and operators. */
   ListBase internal_links;
 
@@ -333,47 +327,16 @@ typedef struct bNode {
   float locx, locy;
   /** Node custom width and height. */
   float width, height;
-  /** Node width if hidden. */
-  float miniwidth;
   /** Additional offset from loc. */
   float offsetx, offsety;
-  /** Initial locx for insert offset animation. */
-  float anim_init_locx;
-  /** Offset that will be added to locx for insert offset animation. */
-  float anim_ofsx;
 
-  /** Update flags. */
-  int update;
+  char _pad0[4];
 
   /** Custom user-defined label, MAX_NAME. */
   char label[64];
   /** To be abused for buttons. */
   short custom1, custom2;
   float custom3, custom4;
-
-  char _pad1[4];
-
-  /** Entire bound-box (world-space). */
-  rctf totr;
-  /** Optional preview area. */
-  rctf prvr;
-  /**
-   * XXX TODO
-   * Node totr size depends on the prvr size, which in turn is determined from preview size.
-   * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
-   * multiple instances using different preview images it is possible that required node size
-   * varies between instances. preview_xsize, preview_ysize defines a common reserved size for
-   * preview rect for now, could be replaced by more accurate node instance drawing,
-   * but that requires removing totr from DNA and replacing all uses with per-instance data.
-   */
-  /** Reserved size of the preview rect. */
-  short preview_xsize, preview_ysize;
-  /** Used at runtime when going through the tree. Initialize before use. */
-  short tmp_flag;
-
-  char _pad0;
-  /** Used at runtime when iterating over node branches. */
-  char iter_flag;
 
   bNodeRuntimeHandle *runtime;
 

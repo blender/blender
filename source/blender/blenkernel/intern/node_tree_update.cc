@@ -1275,7 +1275,8 @@ class NodeTreeMainUpdater {
   {
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
-      if (link->fromnode && link->tonode && link->fromnode->level <= link->tonode->level) {
+      if (link->fromnode && link->tonode &&
+          link->fromnode->runtime->level <= link->tonode->runtime->level) {
         link->flag &= ~NODE_LINK_VALID;
       }
       else if (ntree.typeinfo->validate_link) {
@@ -1597,7 +1598,7 @@ class NodeTreeMainUpdater {
     ntree.runtime->changed_flag = NTREE_CHANGED_NOTHING;
     LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
       node->runtime->changed_flag = NTREE_CHANGED_NOTHING;
-      node->update = 0;
+      node->runtime->update = 0;
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
         socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
@@ -1715,7 +1716,7 @@ void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
   FOREACH_NODETREE_BEGIN (bmain, ntree, ntree_id) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->id == id) {
-        node->update |= NODE_UPDATE_ID;
+        node->runtime->update |= NODE_UPDATE_ID;
         add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);
       }
     }

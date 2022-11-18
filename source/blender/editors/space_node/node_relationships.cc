@@ -1642,31 +1642,31 @@ static void node_join_attach_recursive(bNodeTree &ntree,
                                        bNode *frame,
                                        const Set<bNode *> &selected_nodes)
 {
-  node->done |= NODE_JOIN_DONE;
+  node->runtime->done |= NODE_JOIN_DONE;
 
   if (node == frame) {
-    node->done |= NODE_JOIN_IS_DESCENDANT;
+    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
   }
   else if (node->parent) {
     /* call recursively */
-    if (!(node->parent->done & NODE_JOIN_DONE)) {
+    if (!(node->parent->runtime->done & NODE_JOIN_DONE)) {
       node_join_attach_recursive(ntree, node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->done & NODE_JOIN_IS_DESCENDANT) {
-      node->done |= NODE_JOIN_IS_DESCENDANT;
+    if (node->parent->runtime->done & NODE_JOIN_IS_DESCENDANT) {
+      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
     }
     else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
       nodeDetachNode(&ntree, node);
       nodeAttachNode(&ntree, node, frame);
-      node->done |= NODE_JOIN_IS_DESCENDANT;
+      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
     }
   }
   else if (selected_nodes.contains(node)) {
     nodeAttachNode(&ntree, node, frame);
-    node->done |= NODE_JOIN_IS_DESCENDANT;
+    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
   }
 }
 
@@ -1683,11 +1683,11 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
 
   /* reset tags */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->done = 0;
+    node->runtime->done = 0;
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!(node->done & NODE_JOIN_DONE)) {
+    if (!(node->runtime->done & NODE_JOIN_DONE)) {
       node_join_attach_recursive(ntree, node, frame_node, selected_nodes);
     }
   }
@@ -1733,7 +1733,7 @@ static bNode *node_find_frame_to_attach(ARegion &region,
     if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
       continue;
     }
-    if (BLI_rctf_isect_pt_v(&frame->totr, cursor)) {
+    if (BLI_rctf_isect_pt_v(&frame->runtime->totr, cursor)) {
       return frame;
     }
   }
@@ -1817,26 +1817,26 @@ void NODE_OT_attach(wmOperatorType *ot)
 
 static void node_detach_recursive(bNodeTree &ntree, bNode *node)
 {
-  node->done |= NODE_DETACH_DONE;
+  node->runtime->done |= NODE_DETACH_DONE;
 
   if (node->parent) {
     /* call recursively */
-    if (!(node->parent->done & NODE_DETACH_DONE)) {
+    if (!(node->parent->runtime->done & NODE_DETACH_DONE)) {
       node_detach_recursive(ntree, node->parent);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->done & NODE_DETACH_IS_DESCENDANT) {
-      node->done |= NODE_DETACH_IS_DESCENDANT;
+    if (node->parent->runtime->done & NODE_DETACH_IS_DESCENDANT) {
+      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
     }
     else if (node->flag & NODE_SELECT) {
       /* if parent is not a descendant of a selected node, detach */
       nodeDetachNode(&ntree, node);
-      node->done |= NODE_DETACH_IS_DESCENDANT;
+      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
     }
   }
   else if (node->flag & NODE_SELECT) {
-    node->done |= NODE_DETACH_IS_DESCENDANT;
+    node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
   }
 }
 
@@ -1848,13 +1848,13 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
 
   /* reset tags */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->done = 0;
+    node->runtime->done = 0;
   }
   /* detach nodes recursively
    * relative order is preserved here!
    */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!(node->done & NODE_DETACH_DONE)) {
+    if (!(node->runtime->done & NODE_DETACH_DONE)) {
       node_detach_recursive(ntree, node);
     }
   }
@@ -1946,10 +1946,11 @@ void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
      * upper left node edge of a intersected line segment */
     for (int i = 0; i < NODE_LINK_RESOL; i++) {
       /* Check if the node rectangle intersects the line from this point to next one. */
-      if (BLI_rctf_isect_segment(&node_to_insert->totr, coords[i], coords[i + 1])) {
+      if (BLI_rctf_isect_segment(&node_to_insert->runtime->totr, coords[i], coords[i + 1])) {
         /* store the shortest distance to the upper left edge
          * of all intersections found so far */
-        const float node_xy[] = {node_to_insert->totr.xmin, node_to_insert->totr.ymax};
+        const float node_xy[] = {node_to_insert->runtime->totr.xmin,
+                                 node_to_insert->runtime->totr.ymax};
 
         /* to be precise coords should be clipped by select->totr,
          * but not done since there's no real noticeable difference */
@@ -2156,8 +2157,8 @@ static void node_offset_apply(bNode &node, const float offset_x)
 {
   /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
   if ((node.flag & NODE_TEST) == 0) {
-    node.anim_init_locx = node.locx;
-    node.anim_ofsx = (offset_x / UI_DPI_FAC);
+    node.runtime->anim_init_locx = node.locx;
+    node.runtime->anim_ofsx = (offset_x / UI_DPI_FAC);
     node.flag |= NODE_TEST;
   }
 }
@@ -2263,7 +2264,8 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   const float min_margin = U.node_margin * UI_DPI_FAC;
   const float width = NODE_WIDTH(insert);
-  const bool needs_alignment = (next->totr.xmin - prev->totr.xmax) < (width + (min_margin * 2.0f));
+  const bool needs_alignment = (next->runtime->totr.xmin - prev->runtime->totr.xmax) <
+                               (width + (min_margin * 2.0f));
 
   float margin = width;
 
@@ -2312,8 +2314,8 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   /* *** ensure offset at the left (or right for right_alignment case) of insert_node *** */
 
-  float dist = right_alignment ? totr_insert.xmin - prev->totr.xmax :
-                                 next->totr.xmin - totr_insert.xmax;
+  float dist = right_alignment ? totr_insert.xmin - prev->runtime->totr.xmax :
+                                 next->runtime->totr.xmin - totr_insert.xmax;
   /* distance between insert_node and prev is smaller than min margin */
   if (dist < min_margin) {
     const float addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
@@ -2327,7 +2329,8 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   /* *** ensure offset at the right (or left for right_alignment case) of insert_node *** */
 
-  dist = right_alignment ? next->totr.xmin - totr_insert.xmax : totr_insert.xmin - prev->totr.xmax;
+  dist = right_alignment ? next->runtime->totr.xmin - totr_insert.xmax :
+                           totr_insert.xmin - prev->runtime->totr.xmax;
   /* distance between insert_node and next is smaller than min margin */
   if (dist < min_margin) {
     const float addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
@@ -2385,12 +2388,14 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (UNLIKELY(node->anim_ofsx)) {
-      const float endval = node->anim_init_locx + node->anim_ofsx;
+    if (UNLIKELY(node->runtime->anim_ofsx)) {
+      const float endval = node->runtime->anim_init_locx + node->runtime->anim_ofsx;
       if (IS_EQF(node->locx, endval) == false) {
-        node->locx = BLI_easing_cubic_ease_in_out(
-            duration, node->anim_init_locx, node->anim_ofsx, NODE_INSOFS_ANIM_DURATION);
-        if (node->anim_ofsx < 0) {
+        node->locx = BLI_easing_cubic_ease_in_out(duration,
+                                                  node->runtime->anim_init_locx,
+                                                  node->runtime->anim_ofsx,
+                                                  NODE_INSOFS_ANIM_DURATION);
+        if (node->runtime->anim_ofsx < 0) {
           CLAMP_MIN(node->locx, endval);
         }
         else {
@@ -2409,7 +2414,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     WM_event_remove_timer(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
 
     LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-      node->anim_init_locx = node->anim_ofsx = 0.0f;
+      node->runtime->anim_init_locx = node->runtime->anim_ofsx = 0.0f;
     }
 
     MEM_freeN(iofsd);

@@ -49,6 +49,8 @@
 
 #include "RE_texture.h"
 
+#include "NOD_composite.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -2620,6 +2622,15 @@ static void rna_Node_width_range(
   *max = *softmax = node->typeinfo->maxwidth;
 }
 
+static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value))
+{
+}
+
+static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
+{
+  return 0.0f;
+}
+
 static void rna_Node_height_range(
     PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
@@ -2631,8 +2642,7 @@ static void rna_Node_height_range(
 static void rna_Node_dimensions_get(PointerRNA *ptr, float *value)
 {
   bNode *node = ptr->data;
-  value[0] = node->totr.xmax - node->totr.xmin;
-  value[1] = node->totr.ymax - node->totr.ymin;
+  nodeDimensionsGet(node, &value[0], &value[1]);
 }
 
 /* ******** Node Socket ******** */
@@ -3473,7 +3483,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
 
 static void rna_CompositorNode_tag_need_exec(bNode *node)
 {
-  node->need_exec = true;
+  ntreeCompositTagNeedExec(node);
 }
 
 static void rna_Node_tex_image_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -3904,7 +3914,7 @@ static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  node->update |= NODE_UPDATE_ID;
+  nodeTagUpdateID(node);
   rna_Node_update(bmain, scene, ptr);
 }
 
@@ -12189,10 +12199,11 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
   prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_sdna(prop, NULL, "miniwidth");
-  RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
-  RNA_def_property_ui_text(prop, "Width Hidden", "Width of the node in hidden state");
-  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+  RNA_def_property_float_funcs(
+      prop, "rna_Node_width_hidden_get", "rna_Node_width_hidden_set", "rna_Node_width_range");
+  RNA_def_property_ui_text(
+      prop, "Width Hidden", "Deprecated width of the node when it is collapsed");
+  RNA_def_property_update(prop, 0, NULL);
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "height");

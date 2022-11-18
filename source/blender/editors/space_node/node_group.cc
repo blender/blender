@@ -680,7 +680,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       }
     }
 
-    node->done = 0;
+    node->runtime->done = 0;
   }
 
   /* free local pseudo node tree again */
@@ -694,14 +694,14 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
    * inputs and outputs to a selection */
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
     if (node_group_make_use_node(*link->fromnode, gnode)) {
-      link->tonode->done |= 1;
+      link->tonode->runtime->done |= 1;
     }
     if (node_group_make_use_node(*link->tonode, gnode)) {
-      link->fromnode->done |= 2;
+      link->fromnode->runtime->done |= 2;
     }
   }
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!(node->flag & NODE_SELECT) && node != gnode && node->done == 3) {
+    if (!(node->flag & NODE_SELECT) && node != gnode && node->runtime->done == 3) {
       return false;
     }
   }

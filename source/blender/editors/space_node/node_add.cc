@@ -204,7 +204,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
-      if (BLI_rctf_isect_pt_v(&frame_node->totr, insert_point)) {
+      if (BLI_rctf_isect_pt_v(&frame_node->runtime->totr, insert_point)) {
         nodeAttachNode(&ntree, reroute, frame_node);
         break;
       }

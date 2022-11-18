@@ -22,6 +22,7 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -1180,8 +1181,8 @@ static void TargetSnapOffset(TransInfo *t, TransData *td)
   if (t->spacetype == SPACE_NODE && td != nullptr) {
     bNode *node = static_cast<bNode *>(td->extra);
     char border = t->tsnap.snapNodeBorder;
-    float width = BLI_rctf_size_x(&node->totr);
-    float height = BLI_rctf_size_y(&node->totr);
+    float width = BLI_rctf_size_x(&node->runtime->totr);
+    float height = BLI_rctf_size_y(&node->runtime->totr);
 
 #ifdef USE_NODE_CENTER
     if (border & NODE_LEFT) {
@@ -1467,8 +1468,8 @@ static bool snapNodeTest(View2D *v2d, bNode *node, eSnapTargetSelect snap_target
   /* node is use for snapping only if a) snap mode matches and b) node is inside the view */
   return (((snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) && !(node->flag & NODE_SELECT)) ||
           (snap_target_select == SCE_SNAP_TARGET_ALL && !(node->flag & NODE_ACTIVE))) &&
-         (node->totr.xmin < v2d->cur.xmax && node->totr.xmax > v2d->cur.xmin &&
-          node->totr.ymin < v2d->cur.ymax && node->totr.ymax > v2d->cur.ymin);
+         (node->runtime->totr.xmin < v2d->cur.xmax && node->runtime->totr.xmax > v2d->cur.xmin &&
+          node->runtime->totr.ymin < v2d->cur.ymax && node->runtime->totr.ymax > v2d->cur.ymin);
 }
 
 static NodeBorder snapNodeBorder(eSnapMode snap_node_mode)
@@ -1498,7 +1499,7 @@ static bool snapNode(ToolSettings *ts,
   rcti totr;
   int new_dist;
 
-  UI_view2d_view_to_region_rcti(v2d, &node->totr, &totr);
+  UI_view2d_view_to_region_rcti(v2d, &node->runtime->totr, &totr);
 
   if (border & NODE_LEFT) {
     new_dist = abs(totr.xmin - mval[0]);
