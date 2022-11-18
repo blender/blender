@@ -103,6 +103,7 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
   uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
+  uiItemR(sub, imfptr, "ascii_mode", 0, IFACE_("ASCII Format"), ICON_NONE);
 }
 
 static void wm_ply_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -216,6 +217,11 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "All ngons with four or more vertices will be triangulated. Meshes in "
                   "the scene will not be affected. Behaves like Triangulate Modifier with "
                   "ngon-method: \"Beauty\", quad-method: \"Shortest Diagonal\", min vertices: 4");
+  RNA_def_boolean(ot->srna,
+                  "ascii_mode",
+                  false,
+                  "ASCII Format",
+                  "Export file in ASCII format, export as binary otherwise.");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

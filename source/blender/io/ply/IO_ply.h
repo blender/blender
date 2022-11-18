@@ -23,6 +23,9 @@ struct PLYExportParams {
   /** Full path to current blender file (used for comments in output). */
   const char *blen_filepath;
 
+  /** File export format, ASCII if true, binary otherwise */
+  bool ascii_mode;
+
   /* Geometry Transform options. */
   eIOAxis forward_axis;
   eIOAxis up_axis;
