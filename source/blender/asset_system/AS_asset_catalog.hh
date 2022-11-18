@@ -424,8 +424,8 @@ using MutableAssetCatalogOrderedSet = std::set<AssetCatalog *, AssetCatalogLessT
  * \see AssetCatalogService::create_catalog_filter()
  */
 class AssetCatalogFilter {
-  const Set<CatalogID> matching_catalog_ids;
-  const Set<CatalogID> known_catalog_ids;
+  const Set<CatalogID> matching_catalog_ids_;
+  const Set<CatalogID> known_catalog_ids_;
 
   friend AssetCatalogService;
 

@@ -960,14 +960,14 @@ std::string AssetCatalog::sensible_simple_name_for_path(const AssetCatalogPath &
 
 AssetCatalogFilter::AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids,
                                        Set<CatalogID> &&known_catalog_ids)
-    : matching_catalog_ids(std::move(matching_catalog_ids)),
-      known_catalog_ids(std::move(known_catalog_ids))
+    : matching_catalog_ids_(std::move(matching_catalog_ids)),
+      known_catalog_ids_(std::move(known_catalog_ids))
 {
 }
 
 bool AssetCatalogFilter::contains(const CatalogID asset_catalog_id) const
 {
-  return matching_catalog_ids.contains(asset_catalog_id);
+  return matching_catalog_ids_.contains(asset_catalog_id);
 }
 
 bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
@@ -975,7 +975,7 @@ bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
   if (BLI_uuid_is_nil(asset_catalog_id)) {
     return false;
   }
-  return known_catalog_ids.contains(asset_catalog_id);
+  return known_catalog_ids_.contains(asset_catalog_id);
 }
 
 }  // namespace blender::asset_system
