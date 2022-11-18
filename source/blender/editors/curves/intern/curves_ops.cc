@@ -635,7 +635,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             continue;
           }
 
-          const MLoopTri &looptri = *lookup_result.looptri;
+          const MLoopTri &looptri = surface_looptris[lookup_result.looptri_index];
           const float3 &bary_coords = lookup_result.bary_weights;
 
           const float3 &p0_su = verts[loops[looptri.tri[0]].v].co;
