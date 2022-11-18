@@ -42,27 +42,27 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
   ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
 
   if (!(path_flag & PATH_RAY_SINGLE_PASS_DONE)) {
+    if (INTEGRATOR_STATE(state, path, sample) == 0) {
+      if (flag & PASSMASK(DEPTH)) {
+        const float depth = camera_z_depth(kg, sd->P);
+        film_overwrite_pass_float(buffer + kernel_data.film.pass_depth, depth);
+      }
+      if (flag & PASSMASK(OBJECT_ID)) {
+        const float id = object_pass_id(kg, sd->object);
+        film_overwrite_pass_float(buffer + kernel_data.film.pass_object_id, id);
+      }
+      if (flag & PASSMASK(MATERIAL_ID)) {
+        const float id = shader_pass_id(kg, sd);
+        film_overwrite_pass_float(buffer + kernel_data.film.pass_material_id, id);
+      }
+      if (flag & PASSMASK(POSITION)) {
+        const float3 position = sd->P;
+        film_overwrite_pass_float3(buffer + kernel_data.film.pass_position, position);
+      }
+    }
+
     if (!(sd->flag & SD_TRANSPARENT) || kernel_data.film.pass_alpha_threshold == 0.0f ||
         average(surface_shader_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold) {
-      if (INTEGRATOR_STATE(state, path, sample) == 0) {
-        if (flag & PASSMASK(DEPTH)) {
-          const float depth = camera_z_depth(kg, sd->P);
-          film_write_pass_float(buffer + kernel_data.film.pass_depth, depth);
-        }
-        if (flag & PASSMASK(OBJECT_ID)) {
-          const float id = object_pass_id(kg, sd->object);
-          film_write_pass_float(buffer + kernel_data.film.pass_object_id, id);
-        }
-        if (flag & PASSMASK(MATERIAL_ID)) {
-          const float id = shader_pass_id(kg, sd);
-          film_write_pass_float(buffer + kernel_data.film.pass_material_id, id);
-        }
-        if (flag & PASSMASK(POSITION)) {
-          const float3 position = sd->P;
-          film_write_pass_float3(buffer + kernel_data.film.pass_position, position);
-        }
-      }
-
       if (flag & PASSMASK(NORMAL)) {
         const float3 normal = surface_shader_average_normal(kg, sd);
         film_write_pass_float3(buffer + kernel_data.film.pass_normal, normal);
