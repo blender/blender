@@ -22,14 +22,30 @@ namespace blender::asset_system {
  * Representation of a catalog path in the #AssetCatalogTree.
  */
 class AssetCatalogTreeItem {
-  friend class AssetCatalogTree;
-
  public:
   /** Container for child items. Uses a #std::map to keep items ordered by their name (i.e. their
    * last catalog component). */
   using ChildMap = std::map<std::string, AssetCatalogTreeItem>;
   using ItemIterFn = FunctionRef<void(AssetCatalogTreeItem &)>;
 
+ private:
+  /** Child tree items, ordered by their names. */
+  ChildMap children_;
+  /** The user visible name of this component. */
+  CatalogPathComponent name_;
+  CatalogID catalog_id_;
+  /** Copy of #AssetCatalog::simple_name. */
+  std::string simple_name_;
+  /** Copy of #AssetCatalog::flags.has_unsaved_changes. */
+  bool has_unsaved_changes_ = false;
+
+  /** Pointer back to the parent item. Used to reconstruct the hierarchy from an item (e.g. to
+   * build a path). */
+  const AssetCatalogTreeItem *parent_ = nullptr;
+
+  friend class AssetCatalogTree;
+
+ public:
   AssetCatalogTreeItem(StringRef name,
                        CatalogID catalog_id,
                        StringRef simple_name,
@@ -49,21 +65,6 @@ class AssetCatalogTreeItem {
    * children. */
   void foreach_child(ItemIterFn callback);
 
- protected:
-  /** Child tree items, ordered by their names. */
-  ChildMap children_;
-  /** The user visible name of this component. */
-  CatalogPathComponent name_;
-  CatalogID catalog_id_;
-  /** Copy of #AssetCatalog::simple_name. */
-  std::string simple_name_;
-  /** Copy of #AssetCatalog::flags.has_unsaved_changes. */
-  bool has_unsaved_changes_ = false;
-
-  /** Pointer back to the parent item. Used to reconstruct the hierarchy from an item (e.g. to
-   * build a path). */
-  const AssetCatalogTreeItem *parent_ = nullptr;
-
  private:
   static void foreach_item_recursive(ChildMap &children_, ItemIterFn callback);
 };
@@ -71,6 +72,9 @@ class AssetCatalogTreeItem {
 class AssetCatalogTree {
   using ChildMap = AssetCatalogTreeItem::ChildMap;
   using ItemIterFn = AssetCatalogTreeItem::ItemIterFn;
+
+  /** Child tree items, ordered by their names. */
+  ChildMap root_items_;
 
  public:
   /** Ensure an item representing \a path is in the tree, adding it if necessary. */
@@ -85,10 +89,6 @@ class AssetCatalogTree {
 
   AssetCatalogTreeItem *find_item(const AssetCatalogPath &path);
   AssetCatalogTreeItem *find_root_item(const AssetCatalogPath &path);
-
- protected:
-  /** Child tree items, ordered by their names. */
-  ChildMap root_items_;
 };
 
 }  // namespace blender::asset_system

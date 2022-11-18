@@ -22,9 +22,6 @@ struct ID;
 namespace blender::asset_system {
 
 class AssetRepresentation {
-  friend struct AssetLibrary;
-  friend class AssetStorage;
-
   struct ExternalAsset {
     std::string name;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
@@ -38,6 +35,9 @@ class AssetRepresentation {
     ExternalAsset external_asset_;
     ID *local_asset_id_ = nullptr; /* Non-owning. */
   };
+
+  friend struct AssetLibrary;
+  friend class AssetStorage;
 
  public:
   /** Constructs an asset representation for an external ID. The asset will not be editable. */

@@ -31,9 +31,22 @@ namespace blender::asset_system {
  *   loaded from a file on disk).
  */
 class AssetLibraryService {
- public:
   using AssetLibraryPtr = std::unique_ptr<AssetLibrary>;
 
+  static std::unique_ptr<AssetLibraryService> instance_;
+
+  /* Mapping absolute path of the library's top-level directory to the AssetLibrary instance. */
+  Map<std::string, AssetLibraryPtr> on_disk_libraries_;
+  /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
+   * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
+   * above should be used. */
+  AssetLibraryPtr current_file_library_;
+
+  /* Handlers for managing the life cycle of the AssetLibraryService instance. */
+  bCallbackFuncStore on_load_callback_store_;
+  static bool atexit_handler_registered_;
+
+ public:
   AssetLibraryService() = default;
   ~AssetLibraryService() = default;
 
@@ -60,19 +73,6 @@ class AssetLibraryService {
   void foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const;
 
  protected:
-  static std::unique_ptr<AssetLibraryService> instance_;
-
-  /* Mapping absolute path of the library's top-level directory to the AssetLibrary instance. */
-  Map<std::string, AssetLibraryPtr> on_disk_libraries_;
-  /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
-   * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
-   * above should be used. */
-  AssetLibraryPtr current_file_library_;
-
-  /* Handlers for managing the life cycle of the AssetLibraryService instance. */
-  bCallbackFuncStore on_load_callback_store_;
-  static bool atexit_handler_registered_;
-
   /** Allocate a new instance of the service and assign it to `instance_`. */
   static void allocate_service_instance();
 

@@ -121,8 +121,8 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
 namespace blender::asset_system {
 
 AssetLibrary::AssetLibrary()
-    : catalog_service(std::make_unique<AssetCatalogService>()),
-      asset_storage_(std::make_unique<AssetStorage>())
+    : asset_storage_(std::make_unique<AssetStorage>()),
+      catalog_service(std::make_unique<AssetCatalogService>())
 {
 }
 
