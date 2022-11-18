@@ -20,6 +20,9 @@ struct wmNotifier;
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
  * and may return earlier.
+ *
+ * \warning: Asset list reading involves an #AS_asset_library_load() call which may reload asset
+ *           library data like catalogs (invalidating pointers). Refer to its warning for details.
  */
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
                                 const struct bContext *C);

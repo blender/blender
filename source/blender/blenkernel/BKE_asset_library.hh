@@ -61,6 +61,10 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs();
 
 }  // namespace blender::bke
 
+/**
+ * \warning Catalogs are reloaded, invalidating catalog pointers. Do not store catalog pointers,
+ *          store CatalogIDs instead and lookup the catalog where needed.
+ */
 blender::bke::AssetLibrary *BKE_asset_library_load(const Main *bmain,
                                                    const AssetLibraryReference &library_reference);
 

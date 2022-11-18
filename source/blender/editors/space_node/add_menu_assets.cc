@@ -49,7 +49,9 @@ struct LibraryAsset {
 
 struct LibraryCatalog {
   bke::AssetLibrary *library;
-  const bke::AssetCatalog *catalog;
+  /* Catalog pointers are not save to store. Use the catalog ID instead and lookup the catalog when
+   * needed. */
+  const bke::CatalogID catalog_id;
 };
 
 struct AssetItemTree {
@@ -88,7 +90,7 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
           const bke::CatalogID &id = item.get_catalog_id();
           bke::AssetCatalog *catalog = library->catalog_service->find_catalog(id);
           catalogs_from_all_libraries.insert_item(*catalog);
-          id_to_catalog_map.add(item.get_catalog_id(), LibraryCatalog{library, catalog});
+          id_to_catalog_map.add(item.get_catalog_id(), LibraryCatalog{library, id});
         });
       }
     }
@@ -118,7 +120,9 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
       if (library_catalog == nullptr) {
         return true;
       }
-      assets_per_path.add(library_catalog->catalog->path, LibraryAsset{library_ref, asset});
+      const bke::AssetCatalog *catalog = library_catalog->library->catalog_service->find_catalog(
+          library_catalog->catalog_id);
+      assets_per_path.add(catalog->path, LibraryAsset{library_ref, asset});
       return true;
     });
   }

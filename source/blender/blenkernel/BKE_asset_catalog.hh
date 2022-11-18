@@ -424,8 +424,14 @@ class AssetCatalogDefinitionFile {
   bool ensure_directory_exists(const CatalogFilePath directory_path) const;
 };
 
-/** Asset Catalog definition, containing a symbolic ID and a path that points to a node in the
- * catalog hierarchy. */
+/**
+ * Asset Catalog definition, containing a symbolic ID and a path that points to a node in the
+ * catalog hierarchy.
+ *
+ * \warning The asset system may reload catalogs, invalidating pointers. Thus it's not recommended
+ *          to store pointers to asset catalogs. Store the #CatalogID instead and do a lookup when
+ *          needed.
+ */
 class AssetCatalog {
  public:
   AssetCatalog() = default;
