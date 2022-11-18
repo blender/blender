@@ -1707,26 +1707,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 264, 6)) {
-    /* Fix for bug T32982, internal_links list could get corrupted from r51630 onward.
-     * Simply remove bad internal_links lists to avoid NULL pointers.
-     */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      bNode *node;
-      bNodeLink *link, *nextlink;
-
-      for (node = ntree->nodes.first; node; node = node->next) {
-        for (link = node->internal_links.first; link; link = nextlink) {
-          nextlink = link->next;
-          if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
-            BLI_remlink(&node->internal_links, link);
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
     /* convert tiles size from resolution and number of tiles */
     {

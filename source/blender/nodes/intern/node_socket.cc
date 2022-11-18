@@ -220,7 +220,7 @@ static void refresh_socket_list(bNodeTree &ntree,
               link->tosock = new_socket;
             }
           }
-          LISTBASE_FOREACH (bNodeLink *, internal_link, &node.internal_links) {
+          for (bNodeLink *internal_link : node.runtime->internal_links) {
             if (internal_link->fromsock == old_socket_with_same_identifier) {
               internal_link->fromsock = new_socket;
             }

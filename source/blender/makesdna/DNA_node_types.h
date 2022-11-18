@@ -320,8 +320,6 @@ typedef struct bNode {
   struct ID *id;
   /** Custom data, must be struct, for storage in file. */
   void *storage;
-  /** List of cached internal links (input to output), for muted nodes and operators. */
-  ListBase internal_links;
 
   /** Root offset for drawing (parent space). */
   float locx, locy;
@@ -349,6 +347,8 @@ typedef struct bNode {
   bool is_group_input() const;
   bool is_group_output() const;
   const blender::nodes::NodeDeclaration *declaration() const;
+  /** A span containing all internal links when the node is muted. */
+  blender::Span<const bNodeLink *> internal_links() const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */
@@ -365,8 +365,6 @@ typedef struct bNode {
   /** Utility to get an output socket by its index. */
   bNodeSocket &output_socket(int index);
   const bNodeSocket &output_socket(int index) const;
-  /** A span containing all internal links when the node is muted. */
-  blender::Span<const bNodeLink *> internal_links_span() const;
   /** Lookup socket of this node by its identifier. */
   const bNodeSocket &input_by_identifier(blender::StringRef identifier) const;
   const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;

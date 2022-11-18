@@ -1137,7 +1137,7 @@ class NodeTreeMainUpdater {
         }
       }
       /* Rebuilt internal links if they have changed. */
-      if (node->internal_links_span().size() != expected_internal_links.size()) {
+      if (node->runtime->internal_links.size() != expected_internal_links.size()) {
         this->update_internal_links_in_node(ntree, *node, expected_internal_links);
       }
       else {
@@ -1145,7 +1145,7 @@ class NodeTreeMainUpdater {
           const bNodeSocket *from_socket = item.first;
           const bNodeSocket *to_socket = item.second;
           bool found = false;
-          for (const bNodeLink *internal_link : node->internal_links_span()) {
+          for (const bNodeLink *internal_link : node->runtime->internal_links) {
             if (from_socket == internal_link->fromsock && to_socket == internal_link->tosock) {
               found = true;
             }
@@ -1192,7 +1192,9 @@ class NodeTreeMainUpdater {
                                      bNode &node,
                                      Span<std::pair<bNodeSocket *, bNodeSocket *>> links)
   {
-    BLI_freelistN(&node.internal_links);
+    for (bNodeLink *link : node.runtime->internal_links) {
+      MEM_freeN(link);
+    }
     for (const auto &item : links) {
       bNodeSocket *from_socket = item.first;
       bNodeSocket *to_socket = item.second;
@@ -1202,7 +1204,7 @@ class NodeTreeMainUpdater {
       link->tonode = &node;
       link->tosock = to_socket;
       link->flag |= NODE_LINK_VALID;
-      BLI_addtail(&node.internal_links, link);
+      node.runtime->internal_links.append(link);
     }
     BKE_ntree_update_tag_node_internal_link(&ntree, &node);
   }

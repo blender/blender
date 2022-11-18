@@ -2357,6 +2357,15 @@ static void rna_Node_parent_set(PointerRNA *ptr,
   }
 }
 
+static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  bNode *node = ptr->data;
+  bNodeLink **begin;
+  int len;
+  nodeInternalLinks(node, &begin, &len);
+  rna_iterator_array_begin(iter, begin, sizeof(bNodeLink *), len, false, NULL);
+}
+
 static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
 {
   bNode *node = ptr->data;
@@ -12243,7 +12252,15 @@ static void rna_def_node(BlenderRNA *brna)
   rna_def_node_sockets_api(brna, prop, SOCK_OUT);
 
   prop = RNA_def_property(srna, "internal_links", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "internal_links", NULL);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Node_internal_links_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "NodeLink");
   RNA_def_property_ui_text(
       prop, "Internal Links", "Internal input-to-output connections for muting");

@@ -699,8 +699,6 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     BLO_read_data_address(reader, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
 
-    BLI_listbase_clear(&node->internal_links);
-
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
       /* Do nothing, this is runtime cache and hence handled by generic code using
        * `IDTypeInfo.foreach_cache` callback. */
@@ -1970,11 +1968,12 @@ void nodeRemoveSocketEx(struct bNodeTree *ntree,
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node->internal_links) {
+  for (bNodeLink *link : node->runtime->internal_links) {
     if (link->fromsock == sock || link->tosock == sock) {
-      BLI_remlink(&node->internal_links, link);
+      node->runtime->internal_links.remove_first_occurrence_and_reorder(link);
       MEM_freeN(link);
       BKE_ntree_update_tag_node_internal_link(ntree, node);
+      break;
     }
   }
 
@@ -1996,7 +1995,10 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
     }
   }
 
-  BLI_freelistN(&node->internal_links);
+  for (bNodeLink *link : node->runtime->internal_links) {
+    MEM_freeN(link);
+  }
+  node->runtime->internal_links.clear();
 
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     node_socket_free(sock, true);
@@ -2304,14 +2306,14 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_dst->prop = IDP_CopyProperty_ex(node_src.prop, flag);
   }
 
-  BLI_listbase_clear(&node_dst->internal_links);
-  LISTBASE_FOREACH (const bNodeLink *, src_link, &node_src.internal_links) {
+  node_dst->runtime->internal_links.clear();
+  for (const bNodeLink *src_link : node_src.runtime->internal_links) {
     bNodeLink *dst_link = (bNodeLink *)MEM_dupallocN(src_link);
     dst_link->fromnode = node_dst;
     dst_link->tonode = node_dst;
     dst_link->fromsock = socket_map.lookup(src_link->fromsock);
     dst_link->tosock = socket_map.lookup(src_link->tosock);
-    BLI_addtail(&node_dst->internal_links, dst_link);
+    node_dst->runtime->internal_links.append(dst_link);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -2469,7 +2471,7 @@ static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
 void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
   /* store link pointers in output sockets, for efficient lookup */
-  LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
+  for (bNodeLink *link : node->runtime->internal_links) {
     link->tosock->link = link;
   }
 
@@ -2977,7 +2979,10 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(sock);
   }
 
-  BLI_freelistN(&node->internal_links);
+  for (bNodeLink *link : node->runtime->internal_links) {
+    MEM_freeN(link);
+  }
+  node->runtime->internal_links.clear();
 
   if (node->prop) {
     /* Remember, no ID user refcount management here! */
@@ -3761,6 +3766,12 @@ void nodeDimensionsGet(const bNode *node, float *r_width, float *r_height)
 void nodeTagUpdateID(bNode *node)
 {
   node->runtime->update |= NODE_UPDATE_ID;
+}
+
+void nodeInternalLinks(bNode *node, bNodeLink ***r_links, int *r_len)
+{
+  *r_links = node->runtime->internal_links.data();
+  *r_len = node->runtime->internal_links.size();
 }
 
 /* ************** Node Clipboard *********** */

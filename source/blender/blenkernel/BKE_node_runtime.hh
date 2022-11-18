@@ -186,10 +186,12 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Offset that will be added to locx for insert offset animation. */
   float anim_ofsx;
 
+  /** List of cached internal links (input to output), for muted nodes and operators. */
+  Vector<bNodeLink *> internal_links;
+
   /** Only valid if #topology_cache_is_dirty is false. */
   Vector<bNodeSocket *> inputs;
   Vector<bNodeSocket *> outputs;
-  Vector<bNodeLink *> internal_links;
   Map<StringRefNull, bNodeSocket *> inputs_by_identifier;
   Map<StringRefNull, bNodeSocket *> outputs_by_identifier;
   int index_in_tree = -1;
@@ -481,9 +483,8 @@ inline bool bNode::is_group_output() const
   return this->type == NODE_GROUP_OUTPUT;
 }
 
-inline blender::Span<const bNodeLink *> bNode::internal_links_span() const
+inline blender::Span<const bNodeLink *> bNode::internal_links() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->internal_links;
 }
 
