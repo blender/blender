@@ -6,6 +6,11 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -14,11 +19,6 @@
 #include "BLI_vector.hh"
 
 #include "AS_asset_catalog_path.hh"
-
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
 
 namespace blender::asset_system {
 

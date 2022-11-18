@@ -6,20 +6,19 @@
 
 #pragma once
 
+#include <memory>
+
+#include "AS_asset_catalog.hh"
+
 #include "DNA_asset_types.h"
 
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "AS_asset_catalog.hh"
 #include "BKE_callbacks.h"
 
-#include <memory>
-
 struct AssetLibrary;
-struct AssetLibraryReference;
-struct AssetMetaData;
 struct IDRemapper;
 struct Main;
 
