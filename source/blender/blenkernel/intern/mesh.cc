@@ -124,9 +124,9 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
-  /* Share the bounding box cache between the source and destination mesh for improved performance
-   * when the source is persistent and edits to the destination don't change the bounds. It will be
-   * "un-shared" as necessary when the positions are changed. */
+  /* Share various derived caches between the source and destination mesh for improved performance
+   * when the source is persistent and edits to the destination mesh don't affect the caches.
+   * Caches will be "un-shared" as necessary later on. */
   mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
 
