@@ -1195,6 +1195,7 @@ class NodeTreeMainUpdater {
     for (bNodeLink *link : node.runtime->internal_links) {
       MEM_freeN(link);
     }
+    node.runtime->internal_links.clear();
     for (const auto &item : links) {
       bNodeSocket *from_socket = item.first;
       bNodeSocket *to_socket = item.second;
