@@ -16,6 +16,7 @@ set(INC_SYS
 set(SRC
   intern/asset_catalog.cc
   intern/asset_catalog_path.cc
+  intern/asset_catalog_tree.cc
   intern/asset_library.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
@@ -23,6 +24,7 @@ set(SRC
 
   AS_asset_catalog.hh
   AS_asset_catalog_path.hh
+  AS_asset_catalog_tree.hh
   AS_asset_library.hh
   AS_asset_representation.hh
   intern/asset_library_service.hh

@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"

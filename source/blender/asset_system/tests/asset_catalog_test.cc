@@ -2,6 +2,7 @@
  * Copyright 2020 Blender Foundation. All rights reserved. */
 
 #include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
 
 #include "BKE_appdir.h"
 #include "BKE_preferences.h"

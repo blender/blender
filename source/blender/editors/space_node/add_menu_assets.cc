@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 
 #include "BLI_multi_value_map.hh"
