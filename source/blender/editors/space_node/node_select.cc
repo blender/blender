@@ -1243,7 +1243,6 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
   bNode *active = nodeGetActive(snode->edittree);
   int totnodes;
   const bool revert = RNA_boolean_get(op->ptr, "prev");
-  const bool same_type = true;
 
   ntreeGetDependencyList(snode->edittree, &node_array, &totnodes);
 
@@ -1256,49 +1255,29 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (same_type) {
-      bNode *node = nullptr;
+    bNode *node = nullptr;
 
-      while (node == nullptr) {
-        if (revert) {
-          a--;
-        }
-        else {
-          a++;
-        }
-
-        if (a < 0 || a >= totnodes) {
-          break;
-        }
-
-        node = node_array[a];
-
-        if (node->type == active->type) {
-          break;
-        }
-        node = nullptr;
-      }
-      if (node) {
-        active = node;
-      }
-    }
-    else {
+    while (node == nullptr) {
       if (revert) {
-        if (a == 0) {
-          active = node_array[totnodes - 1];
-        }
-        else {
-          active = node_array[a - 1];
-        }
+        a--;
       }
       else {
-        if (a == totnodes - 1) {
-          active = node_array[0];
-        }
-        else {
-          active = node_array[a + 1];
-        }
+        a++;
       }
+
+      if (a < 0 || a >= totnodes) {
+        break;
+      }
+
+      node = node_array[a];
+
+      if (node->type == active->type) {
+        break;
+      }
+      node = nullptr;
+    }
+    if (node) {
+      active = node;
     }
 
     node_select_single(*C, *active);
