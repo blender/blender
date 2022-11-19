@@ -620,13 +620,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_EDGESLIDE_UP:
-    case TFM_MODAL_EDGESLIDE_DOWN: {
-      if (t->mode != TFM_EDGE_SLIDE) {
-        return false;
-      }
-      break;
-    }
     case TFM_MODAL_INSERTOFS_TOGGLE_DIR: {
       if (t->spacetype != SPACE_NODE) {
         return false;
@@ -683,8 +676,6 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Decrease Max AutoIK Chain Length",
        ""},
-      {TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select Next Edge Slide Edge", ""},
-      {TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select Previous Edge Slide Edge", ""},
       {TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
       {TFM_MODAL_INSERTOFS_TOGGLE_DIR,
        "INSERTOFS_TOGGLE_DIR",
@@ -1206,9 +1197,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_HARD;
         }
         break;
-      /* Those two are only handled in transform's own handler, see T44634! */
-      case TFM_MODAL_EDGESLIDE_UP:
-      case TFM_MODAL_EDGESLIDE_DOWN:
       default:
         break;
     }

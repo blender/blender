@@ -249,8 +249,8 @@ enum {
   TFM_MODAL_AUTOIK_LEN_INC = 22,
   TFM_MODAL_AUTOIK_LEN_DEC = 23,
 
-  TFM_MODAL_EDGESLIDE_UP = 24,
-  TFM_MODAL_EDGESLIDE_DOWN = 25,
+  // TFM_MODAL_UNUSED_1 = 24,
+  // TFM_MODAL_UNUSED_2 = 25,
 
   /** For analog input, like track-pad. */
   TFM_MODAL_PROPSIZE = 26,
