@@ -219,7 +219,7 @@ class NODE_MT_add(bpy.types.Menu):
         import nodeitems_utils
 
         layout = self.layout
-        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         snode = context.space_data
         if snode.tree_type == 'GeometryNodeTree':

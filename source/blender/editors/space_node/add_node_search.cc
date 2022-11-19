@@ -257,7 +257,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
   }
 
   new_node->locx = storage.cursor.x / UI_DPI_FAC;
-  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20 * UI_DPI_FAC;
+  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20;
 
   nodeSetSelected(new_node, true);
   nodeSetActive(&node_tree, new_node);
