@@ -1069,10 +1069,10 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
          * so the box needs to small enough not to let the cursor escape the window but large
          * enough that the cursor isn't being warped every time.
          * If this was not the case it would be less trouble to simply warp the cursor to the
-         * center of the screen on every motion, see: T102346. */
+         * center of the screen on every motion, see: D16558 (alternative fix for T102346). */
         const int32_t subregion_div = 4; /* One quarter of the region. */
         const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
-        const int center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
+        const int32_t center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
         /* Shrink the box to prevent the cursor escaping. */
         bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
         bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
