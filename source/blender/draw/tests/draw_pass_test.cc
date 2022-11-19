@@ -181,12 +181,19 @@ static void test_draw_pass_multi_draw()
   pass.draw_procedural(GPU_PRIM_LINES, 1, -1, -1, {5});
   pass.draw_procedural(GPU_PRIM_POINTS, 6, -1, -1, {5});
   pass.draw_procedural(GPU_PRIM_TRIS, 3, -1, -1, {6});
+  /* Custom calls should use their own group and never be batched. */
+  pass.draw_procedural(GPU_PRIM_TRIS, 2, 2, 2, {7});
+  pass.draw_procedural(GPU_PRIM_TRIS, 2, 2, 2, {8});
 
   std::string result = pass.serialize();
   std::stringstream expected;
   expected << ".test.multi_draw" << std::endl;
   expected << "  .shader_bind(gpu_shader_3D_image_color)" << std::endl;
   expected << "  .draw_multi(3)" << std::endl;
+  expected << "    .group(id=4, len=2)" << std::endl;
+  expected << "      .proto(instance_len=2, resource_id=8, front_face)" << std::endl;
+  expected << "    .group(id=3, len=2)" << std::endl;
+  expected << "      .proto(instance_len=2, resource_id=7, front_face)" << std::endl;
   expected << "    .group(id=2, len=1)" << std::endl;
   expected << "      .proto(instance_len=1, resource_id=5, front_face)" << std::endl;
   expected << "    .group(id=1, len=15)" << std::endl;

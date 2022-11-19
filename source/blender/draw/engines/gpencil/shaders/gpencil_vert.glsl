@@ -71,7 +71,7 @@ void main()
       /* Use the index of the point as depth.
        * This means the stroke can overlap itself. */
       float point_index = float(ma1.z);
-      gp_interp.depth = (point_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
+      gp_interp.depth = (point_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
     }
     else {
       /* Use the index of first point of the stroke as depth.
@@ -80,12 +80,12 @@ void main()
        * We offset by one so that the fill can be overlapped by its stroke.
        * The offset is ok since we pad the strokes data because of adjacency infos. */
       float stroke_index = float(ma1.y);
-      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
+      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
     }
   }
   else {
     int stroke_point_id = gpencil_stroke_point_id();
-    vec4 uv1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 2);
+    vec4 uv1 = texelFetch(gp_pos_tx, stroke_point_id * 3 + 2);
     vec4 fcol1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 1);
     vec4 fill_col = gp_mat.fill_color;
 
@@ -128,7 +128,7 @@ void main()
     else {
       /* Use the index of first point of the stroke as depth. */
       float stroke_index = float(ma1.y);
-      gp_interp.depth = (stroke_index + gpStrokeIndexOffset) * 0.0000002;
+      gp_interp.depth = (stroke_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
     }
   }
 }

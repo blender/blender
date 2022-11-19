@@ -1444,15 +1444,20 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
   }
 
   /* get Grease Pencil datablocks */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
+            ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
+    /* only consider grease pencil container channels */
+    if (!ELEM(ale->type, ANIMTYPE_GPDATABLOCK, ANIMTYPE_DSGPENCIL)) {
+      continue;
+    }
+
     ListBase anim_data_visible = {NULL, NULL};
     bGPdata *gpd = ale->data;
 
     /* only consider layers if this datablock is open */
-    BLI_assert(ale->type == ANIMTYPE_GPDATABLOCK);
     if ((gpd->flag & GP_DATA_EXPAND) == 0) {
       continue;
     }
@@ -1509,6 +1514,10 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
     int filter;
+
+    if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
+      rearrange_gpencil_channels(&ac, mode);
+    }
 
     /* get animdata blocks */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |

@@ -67,8 +67,8 @@ static void createTransTexspace(bContext *UNUSED(C), TransInfo *t)
   td->flag = TD_SELECTED;
   td->ob = ob;
 
-  copy_m3_m4(td->mtx, ob->obmat);
-  copy_m3_m4(td->axismtx, ob->obmat);
+  copy_m3_m4(td->mtx, ob->object_to_world);
+  copy_m3_m4(td->axismtx, ob->object_to_world);
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 

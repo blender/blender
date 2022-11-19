@@ -833,7 +833,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+
+  /* Ensure leaf limit is at least 4 so there's room
+   * to split at original face boundaries.
+   * Fixes T102209.
+   */
+  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 4);
 
   /* We need the base mesh attribute layout for PBVH draw. */
   pbvh->vdata = &me->vdata;
@@ -3135,9 +3140,6 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
       }
     }
 
-    /* coordinates are new -- normals should also be updated */
-    BKE_mesh_calc_normals_looptri(
-        pbvh->verts, pbvh->totvert, pbvh->mloop, pbvh->looptri, pbvh->totprim, NULL);
 
     for (int a = 0; a < pbvh->totnode; a++) {
       BKE_pbvh_node_mark_update(&pbvh->nodes[a]);

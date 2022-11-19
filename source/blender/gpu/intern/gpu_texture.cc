@@ -463,7 +463,7 @@ void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)
 
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
-  BLI_assert(data != nullptr); /* Do not accept NULL as parameter. */
+  BLI_assert(data != nullptr); /* Do not accept nullptr as parameter. */
   reinterpret_cast<Texture *>(tex)->clear(data_format, data);
 }
 

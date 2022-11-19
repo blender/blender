@@ -483,7 +483,7 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
     }
     if (barrier_bits & GPU_BARRIER_SHADER_STORAGE ||
         barrier_bits & GPU_BARRIER_VERTEX_ATTRIB_ARRAY ||
-        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY) {
+        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY || barrier_bits & GPU_BARRIER_UNIFORM) {
       scope = scope | MTLBarrierScopeBuffers;
     }
 

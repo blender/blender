@@ -715,7 +715,7 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
           /* Weak unicode support!, so "µm" won't match up be replaced by "m"
            * since non ascii utf8 values will NEVER return true */
           isalpha_or_utf8(*BLI_str_find_prev_char_utf8(str_found, str)) == 0) {
-        /* Next char cannot be alphanum. */
+        /* Next char cannot be alpha-numeric. */
         int len_name = strlen(substr);
 
         if (!isalpha_or_utf8(*(str_found + len_name))) {

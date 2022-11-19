@@ -274,8 +274,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (ob_axis != NULL) {
     /* Calculate the matrix relative to the axis object. */
-    invert_m4_m4(mtx_tmp_a, ctx->object->obmat);
-    copy_m4_m4(mtx_tx_inv, ob_axis->obmat);
+    invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world);
+    copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world);
     mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
     /* Calculate the axis vector. */
@@ -431,19 +431,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   mv_new = mvert_new;
   mv_orig = mvert_orig;
 
-  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
-
   /* Copy the first set of edges */
   const MEdge *med_orig = medge_orig;
   med_new = medge_new;
   for (i = 0; i < totedge; i++, med_orig++, med_new++) {
     med_new->v1 = med_orig->v1;
     med_new->v2 = med_orig->v2;
-    med_new->flag = med_orig->flag & ~ME_LOOSEEDGE;
-
-    /* Tag #MVert as not loose. */
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v2);
+    med_new->flag = med_orig->flag;
   }
 
   /* build polygon -> edge map */
@@ -814,10 +808,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* add the new edge */
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if (!BLI_BITMAP_TEST(vert_tag, j)) {
-        med_new->flag |= ME_LOOSEEDGE;
-      }
+      med_new->flag = ME_EDGEDRAW;
       med_new++;
     }
   }
@@ -835,10 +826,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (i = 0; i < totvert; i++) {
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
-      med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if (!BLI_BITMAP_TEST(vert_tag, i)) {
-        med_new->flag |= ME_LOOSEEDGE;
-      }
+      med_new->flag = ME_EDGEDRAW;
       med_new++;
     }
   }
@@ -994,7 +982,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* new vertical edge */
     med_new->v1 = i1;
     med_new->v2 = i2;
-    med_new->flag = med_new_firstloop->flag & ~ME_LOOSEEDGE;
+    med_new->flag = med_new_firstloop->flag;
     med_new++;
   }
 
@@ -1024,8 +1012,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 #endif
-
-  MEM_freeN(vert_tag);
 
   if (edge_poly_map) {
     MEM_freeN(edge_poly_map);

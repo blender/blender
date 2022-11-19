@@ -20,6 +20,14 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_mempool.h"
 
+#ifdef __cplusplus
+#  include "BLI_bit_vector.hh"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* these iterator over all elements of a specific
  * type in the mesh.
  *
@@ -216,18 +224,22 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                          void **stack_array,
                          int stack_array_size);
 
+#ifdef __cplusplus
+
 int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,
-                                    uint *bitmap,
+                                    blender::BitVector<> &bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data);
 /**
  * Needed when we want to check faces, but return a loop aligned array.
  */
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
-                                             uint *bitmap,
+                                             blender::BitVector<> &bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data);
+
+#endif
 
 /**
  * \brief Elem Iter Flag Count
@@ -282,3 +294,7 @@ BMITER_CB_DEF(loop_of_face);
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_new(iter, bm, itype, data))
 #define BM_iter_init(iter, bm, itype, data) \
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_init(iter, bm, itype, data))
+
+#ifdef __cplusplus
+}
+#endif

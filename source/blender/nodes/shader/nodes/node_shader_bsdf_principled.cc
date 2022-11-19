@@ -6,6 +6,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes::node_shader_bsdf_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -190,7 +192,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 
   if (use_subsurf) {
-    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);
+    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
     use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);
@@ -245,9 +247,9 @@ void register_node_type_sh_bsdf_principled()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_principled;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, file_ns::node_shader_init_principled);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_principled);
-  node_type_update(&ntype, file_ns::node_shader_update_principled);
+  ntype.initfunc = file_ns::node_shader_init_principled;
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_principled;
+  ntype.updatefunc = file_ns::node_shader_update_principled;
 
   nodeRegisterType(&ntype);
 }

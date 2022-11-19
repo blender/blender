@@ -37,7 +37,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   struct GPUBatch *sculpt_overlays;
   PBVH *pbvh = ob->sculpt->pbvh;
 
-  const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+  const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d);
 
   if (!pbvh) {
     /* It is possible to have SculptSession without PBVH. This happens, for example, when toggling

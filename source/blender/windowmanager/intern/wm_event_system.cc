@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "AS_asset_library.h"
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -393,6 +395,8 @@ void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
   if (wm && wm->message_bus) {
     BKE_id_remapper_iter(mappings, wm_main_remap_msgbus_notify, wm->message_bus);
   }
+
+  AS_asset_library_remap_ids(mappings);
 }
 
 static void wm_notifier_clear(wmNotifier *note)
@@ -893,7 +897,8 @@ static void wm_add_reports(ReportList *reports)
 void WM_report(eReportType type, const char *message)
 {
   ReportList reports;
-  BKE_reports_init(&reports, RPT_STORE);
+  BKE_reports_init(&reports, RPT_STORE | RPT_PRINT);
+  BKE_report_print_level_set(&reports, RPT_WARNING);
   BKE_report(&reports, type, message);
 
   wm_add_reports(&reports);
@@ -4535,7 +4540,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
                                            wmUIHandlerFunc handle_fn,
                                            wmUIHandlerRemoveFunc remove_fn,
                                            void *user_data,
-                                           const char flag)
+                                           const eWM_EventHandlerFlag flag)
 {
   wmEventHandler_UI *handler = MEM_cnew<wmEventHandler_UI>(__func__);
   handler->head.type = WM_HANDLER_TYPE_UI;

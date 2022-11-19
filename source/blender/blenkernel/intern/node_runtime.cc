@@ -67,21 +67,6 @@ static void update_link_vector(const bNodeTree &ntree)
   }
 }
 
-static void update_internal_links(const bNodeTree &ntree)
-{
-  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  for (bNode *node : tree_runtime.nodes) {
-    node->runtime->internal_links.clear();
-    for (bNodeSocket *socket : node->runtime->outputs) {
-      socket->runtime->internal_link_input = nullptr;
-    }
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      node->runtime->internal_links.append(link);
-      link->tosock->runtime->internal_link_input = link->fromsock;
-    }
-  }
-}
-
 static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
@@ -372,6 +357,36 @@ static void update_toposort(const bNodeTree &ntree,
   BLI_assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
 }
 
+static void update_root_frames(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  Span<bNode *> nodes = tree_runtime.nodes;
+
+  tree_runtime.root_frames.clear();
+
+  for (bNode *node : nodes) {
+    if (!node->parent && node->is_frame()) {
+      tree_runtime.root_frames.append(node);
+    }
+  }
+}
+
+static void update_direct_frames_childrens(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  Span<bNode *> nodes = tree_runtime.nodes;
+
+  for (bNode *node : nodes) {
+    node->runtime->direct_children_in_frame.clear();
+  }
+
+  for (bNode *node : nodes) {
+    if (const bNode *frame = node->parent) {
+      frame->runtime->direct_children_in_frame.append(node);
+    }
+  }
+}
+
 static void update_group_output_node(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
@@ -401,24 +416,27 @@ static void ensure_topology_cache(const bNodeTree &ntree)
         update_node_vector(ntree);
         update_link_vector(ntree);
         update_socket_vectors_and_owner_node(ntree);
-        update_internal_links(ntree);
         update_directly_linked_links_and_sockets(ntree);
-        threading::parallel_invoke([&]() { update_logical_origins(ntree); },
-                                   [&]() { update_nodes_by_type(ntree); },
-                                   [&]() { update_sockets_by_identifier(ntree); },
-                                   [&]() {
-                                     update_toposort(ntree,
-                                                     ToposortDirection::LeftToRight,
-                                                     tree_runtime.toposort_left_to_right,
-                                                     tree_runtime.has_available_link_cycle);
-                                   },
-                                   [&]() {
-                                     bool dummy;
-                                     update_toposort(ntree,
-                                                     ToposortDirection::RightToLeft,
-                                                     tree_runtime.toposort_right_to_left,
-                                                     dummy);
-                                   });
+        threading::parallel_invoke(
+            tree_runtime.nodes.size() > 32,
+            [&]() { update_logical_origins(ntree); },
+            [&]() { update_nodes_by_type(ntree); },
+            [&]() { update_sockets_by_identifier(ntree); },
+            [&]() {
+              update_toposort(ntree,
+                              ToposortDirection::LeftToRight,
+                              tree_runtime.toposort_left_to_right,
+                              tree_runtime.has_available_link_cycle);
+            },
+            [&]() {
+              bool dummy;
+              update_toposort(ntree,
+                              ToposortDirection::RightToLeft,
+                              tree_runtime.toposort_right_to_left,
+                              dummy);
+            },
+            [&]() { update_root_frames(ntree); },
+            [&]() { update_direct_frames_childrens(ntree); });
         update_group_output_node(ntree);
         tree_runtime.topology_cache_exists = true;
       });

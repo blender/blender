@@ -74,7 +74,7 @@ class GHOST_Window : public GHOST_IWindow {
    */
   virtual bool getValid() const override
   {
-    return m_context != NULL;
+    return m_context != nullptr;
   }
 
   /**
@@ -283,8 +283,9 @@ class GHOST_Window : public GHOST_IWindow {
 
   float getNativePixelSize(void) override
   {
-    if (m_nativePixelSize > 0.0f)
+    if (m_nativePixelSize > 0.0f) {
       return m_nativePixelSize;
+    }
     return 1.0f;
   }
 
@@ -298,7 +299,8 @@ class GHOST_Window : public GHOST_IWindow {
   }
 
 #ifdef WITH_INPUT_IME
-  virtual void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override
+  virtual void beginIME(
+      int32_t /*x*/, int32_t /*y*/, int32_t /*w*/, int32_t /*h*/, bool /*completed*/) override
   {
     /* do nothing temporarily if not in windows */
   }

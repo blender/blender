@@ -787,7 +787,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 
     if (me->edit_mesh) {
       /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve autosmooth shading. */
+       * to preserve auto-smooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
         BM_edges_sharp_from_angle_set(me->edit_mesh->bm, me->smoothresh);
       }
@@ -796,7 +796,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     }
     else {
       /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve autosmooth shading. */
+       * to preserve auto-smooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
         const Span<MVert> verts = me->verts();
         MutableSpan<MEdge> edges = me->edges_for_write();
@@ -1118,8 +1118,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
     BKE_mesh_calc_edges(mesh, calc_edges, true);
   }
 
-  if (calc_edges_loose && mesh->totedge) {
-    BKE_mesh_calc_edges_loose(mesh);
+  if (calc_edges_loose) {
+    mesh->runtime->loose_edges_cache.tag_dirty();
   }
 
   /* Default state is not to have tessface's so make sure this is the case. */
@@ -1130,6 +1130,13 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+}
+
+bool ED_mesh_edge_is_loose(const Mesh *mesh, const int index)
+{
+  using namespace blender;
+  const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+  return loose_edges.count > 0 && loose_edges.is_loose_bits[index];
 }
 
 static void mesh_add_verts(Mesh *mesh, int len)
@@ -1191,7 +1198,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   for (MEdge &edge : edges.take_back(len)) {
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    edge.flag = ME_EDGEDRAW;
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();

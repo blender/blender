@@ -238,6 +238,11 @@ void GPU_framebuffer_free(GPUFrameBuffer *gpu_fb)
   delete unwrap(gpu_fb);
 }
 
+const char *GPU_framebuffer_get_name(GPUFrameBuffer *gpu_fb)
+{
+  return unwrap(gpu_fb)->name_get();
+}
+
 /* ---------- Binding ----------- */
 
 void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)

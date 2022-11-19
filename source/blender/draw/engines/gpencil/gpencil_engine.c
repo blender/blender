@@ -289,7 +289,7 @@ void GPENCIL_cache_init(void *ved)
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 
-  Camera *cam = (pd->camera != NULL) ? pd->camera->data : NULL;
+  Camera *cam = (pd->camera != NULL && pd->camera->type == OB_CAMERA) ? pd->camera->data : NULL;
 
   /* Pseudo DOF setup. */
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
@@ -536,7 +536,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
     gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
-  iter->stroke_index_last = gps->runtime.vertex_start + gps->totpoints + 1;
+  iter->stroke_index_last = gps->runtime.stroke_start + gps->totpoints + 1;
 }
 
 static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopulateData *iter)

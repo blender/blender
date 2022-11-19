@@ -619,6 +619,44 @@ struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *elem
   return element_map->head_table;
 }
 
+int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map)
+{
+  if (!element_map->unique_index_table) {
+    element_map->unique_index_table = MEM_callocN(
+        element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__);
+
+    int j = 0;
+    for (int i = 0; i < element_map->total_uvs; i++) {
+      UvElement *element = element_map->storage + i;
+      if (!element->separate) {
+        continue;
+      }
+      BLI_assert(0 <= j);
+      BLI_assert(j < element_map->total_unique_uvs);
+      while (element) {
+        element_map->unique_index_table[element - element_map->storage] = j;
+        element = element->next;
+        if (!element || element->separate) {
+          break;
+        }
+      }
+      j++;
+    }
+    BLI_assert(j == element_map->total_unique_uvs);
+  }
+
+  return element_map->unique_index_table;
+}
+
+int BM_uv_element_get_unique_index(struct UvElementMap *element_map, struct UvElement *child)
+{
+  int *unique_index = BM_uv_element_map_ensure_unique_index(element_map);
+  int index = child - element_map->storage;
+  BLI_assert(0 <= index);
+  BLI_assert(index < element_map->total_uvs);
+  return unique_index[index];
+}
+
 #define INVALID_ISLAND ((uint)-1)
 
 static void bm_uv_assign_island(UvElementMap *element_map,
@@ -1163,6 +1201,7 @@ void BM_uv_element_map_free(UvElementMap *element_map)
     MEM_SAFE_FREE(element_map->storage);
     MEM_SAFE_FREE(element_map->vertex);
     MEM_SAFE_FREE(element_map->head_table);
+    MEM_SAFE_FREE(element_map->unique_index_table);
     MEM_SAFE_FREE(element_map->island_indices);
     MEM_SAFE_FREE(element_map->island_total_uvs);
     MEM_SAFE_FREE(element_map->island_total_unique_uvs);
@@ -1858,7 +1897,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
 
   ED_view3d_win_to_segment_clipped(depsgraph, region, v3d, mval_f, origin, end, false);
 
-  invert_m4_m4(invmat, obedit->obmat);
+  invert_m4_m4(invmat, obedit->object_to_world);
   mul_m4_v3(invmat, origin);
 
   copy_v3_v3(co1, e->v1->co);
@@ -1942,7 +1981,7 @@ void EDBM_project_snap_verts(
                 NULL,
                 co_proj,
                 NULL)) {
-          mul_v3_m4v3(eve->co, obedit->imat, co_proj);
+          mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
       }
     }

@@ -338,9 +338,6 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
-  /* It may be possible to rely on the #ME_LOOSEEDGE flag, but that seems error-prone. */
-  Array<bool> loose_edges(mesh.totedge, true);
-
   r_values.fill(true);
   for (const int poly_index : polys.index_range()) {
     const MPoly &poly = polys[poly_index];
@@ -352,22 +349,23 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
       const MLoop &loop = loops[loop_i];
       const int edge_index = loop.e;
 
-      loose_edges[edge_index] = false;
-
       if (!old_values[loop_i] || !old_values[next_loop_i]) {
         r_values[edge_index] = false;
       }
     }
   }
 
-  /* Deselect loose edges without corners that are still selected from the 'true' default. */
-  threading::parallel_for(IndexRange(mesh.totedge), 2048, [&](const IndexRange range) {
-    for (const int edge_index : range) {
-      if (loose_edges[edge_index]) {
-        r_values[edge_index] = false;
+  const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+  if (loose_edges.count > 0) {
+    /* Deselect loose edges without corners that are still selected from the 'true' default. */
+    threading::parallel_for(IndexRange(mesh.totedge), 2048, [&](const IndexRange range) {
+      for (const int edge_index : range) {
+        if (loose_edges.is_loose_bits[edge_index]) {
+          r_values[edge_index] = false;
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray &varray)
@@ -776,7 +774,9 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
 
 }  // namespace blender::bke
 
-static bool can_simple_adapt_for_single(const eAttrDomain from_domain, const eAttrDomain to_domain)
+static bool can_simple_adapt_for_single(const Mesh &mesh,
+                                        const eAttrDomain from_domain,
+                                        const eAttrDomain to_domain)
 {
   /* For some domain combinations, a single value will always map directly. For others, there may
    * be loose elements on the result domain that should have the default value rather than the
@@ -790,9 +790,15 @@ static bool can_simple_adapt_for_single(const eAttrDomain from_domain, const eAt
       return ELEM(to_domain, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
     case ATTR_DOMAIN_FACE:
       /* There may be loose vertices or edges not connected to faces. */
+      if (to_domain == ATTR_DOMAIN_EDGE) {
+        return mesh.loose_edges().count == 0;
+      }
       return to_domain == ATTR_DOMAIN_CORNER;
     case ATTR_DOMAIN_CORNER:
       /* Only faces are always connected to corners. */
+      if (to_domain == ATTR_DOMAIN_EDGE) {
+        return mesh.loose_edges().count == 0;
+      }
       return to_domain == ATTR_DOMAIN_FACE;
     default:
       BLI_assert_unreachable();
@@ -815,7 +821,7 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     return varray;
   }
   if (varray.is_single()) {
-    if (can_simple_adapt_for_single(from_domain, to_domain)) {
+    if (can_simple_adapt_for_single(mesh, from_domain, to_domain)) {
       BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
       varray.get_internal_single(value);
       return blender::GVArray::ForSingle(

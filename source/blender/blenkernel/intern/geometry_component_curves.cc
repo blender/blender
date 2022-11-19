@@ -282,6 +282,12 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
+std::optional<eAttrDomain> CurveLengthFieldInput::preferred_domain(
+    const bke::CurvesGeometry & /*curves*/) const
+{
+  return ATTR_DOMAIN_CURVE;
+}
+
 /** \} */
 
 }  // namespace blender::bke
@@ -307,6 +313,12 @@ static void tag_component_positions_changed(void *owner)
 {
   blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
   curves.tag_positions_changed();
+}
+
+static void tag_component_radii_changed(void *owner)
+{
+  blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
+  curves.tag_radii_changed();
 }
 
 static void tag_component_normals_changed(void *owner)
@@ -378,7 +390,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                point_access,
                                                make_array_read_attribute<float>,
                                                make_array_write_attribute<float>,
-                                               nullptr);
+                                               tag_component_radii_changed);
 
   static BuiltinCustomDataLayerProvider id("id",
                                            ATTR_DOMAIN_POINT,

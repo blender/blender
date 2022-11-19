@@ -185,7 +185,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
   /* Shorten ray when the surface object is hit. */
   if (surface_object_eval != nullptr) {
-    const float4x4 surface_to_world_mat = surface_object->obmat;
+    const float4x4 surface_to_world_mat = surface_object->object_to_world;
     const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
@@ -218,7 +218,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     }
   }
 
-  const float4x4 curves_to_world_mat = curves_object.obmat;
+  const float4x4 curves_to_world_mat = curves_object.object_to_world;
   const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
 
   const float3 center_ray_start_cu = world_to_curves_mat * center_ray_start_wo;

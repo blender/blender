@@ -234,6 +234,11 @@ static void image_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(Image, cache);
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
+  key.offset_in_ID = offsetof(Image, anims.first);
+  function_callback(id, &key, (void **)&image->anims.first, 0, user_data);
+  key.offset_in_ID = offsetof(Image, anims.last);
+  function_callback(id, &key, (void **)&image->anims.last, 0, user_data);
+
   auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
     struct GPUTexture **first = &image->gputexture[0][0];
@@ -3610,12 +3615,12 @@ void BKE_image_set_filepath_from_tile_number(char *filepath,
   }
 
   if (tile_format == UDIM_TILE_FORMAT_UDIM) {
-    sprintf(filepath, pattern, tile_number);
+    BLI_sprintf(filepath, pattern, tile_number);
   }
   else if (tile_format == UDIM_TILE_FORMAT_UVTILE) {
     int u = ((tile_number - 1001) % 10);
     int v = ((tile_number - 1001) / 10);
-    sprintf(filepath, pattern, u + 1, v + 1);
+    BLI_sprintf(filepath, pattern, u + 1, v + 1);
   }
 }
 

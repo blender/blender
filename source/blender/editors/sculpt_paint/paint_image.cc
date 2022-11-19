@@ -780,20 +780,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
   }
 
   if (ima) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      const bScreen *screen = WM_window_get_active_screen(win);
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-        if (sl->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = (SpaceImage *)sl;
-
-          if (!sima->pin) {
-            ED_space_image_set(bmain, sima, ima, true);
-          }
-        }
-      }
-    }
+    ED_space_image_sync(bmain, ima, false);
   }
 
   ob->mode |= OB_MODE_TEXTURE_PAINT;

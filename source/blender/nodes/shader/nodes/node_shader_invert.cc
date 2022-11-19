@@ -35,7 +35,7 @@ void register_node_type_sh_invert()
 
   sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_invert);
+  ntype.gpu_fn = file_ns::gpu_shader_invert;
 
   nodeRegisterType(&ntype);
 }

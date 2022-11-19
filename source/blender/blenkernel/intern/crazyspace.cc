@@ -70,47 +70,48 @@ static void set_crazy_vertex_quat(float r_quat[4],
   sub_qt_qtqt(r_quat, q2, q1);
 }
 
-static bool modifiers_disable_subsurf_temporary(struct Scene *scene, Object *ob)
+static bool modifiers_disable_subsurf_temporary(Object *ob, const int cageIndex)
 {
-  bool disabled = false;
-  int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
+  bool changed = false;
 
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
   for (int i = 0; md && i <= cageIndex; i++, md = md->next) {
     if (md->type == eModifierType_Subsurf) {
       md->mode ^= eModifierMode_DisableTemporary;
-      disabled = true;
+      changed = true;
     }
   }
 
-  return disabled;
+  return changed;
 }
 
 float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object *obedit))[3]
 {
-  Scene *scene = DEG_get_input_scene(depsgraph);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-  Mesh *mesh_eval = static_cast<Mesh *>(obedit_eval->data);
-  BMEditMesh *editmesh_eval = mesh_eval->edit_mesh;
+  const int cageIndex = BKE_modifiers_get_cage_index(scene_eval, obedit_eval, nullptr, true);
 
-  /* disable subsurf temporal, get mapped cos, and enable it */
-  if (modifiers_disable_subsurf_temporary(scene_eval, obedit_eval)) {
-    /* Need to make new derived-mesh. */
+  /* Disable subsurf temporal, get mapped cos, and enable it. */
+  if (modifiers_disable_subsurf_temporary(obedit_eval, cageIndex)) {
+    /* Need to make new cage.
+     * TODO: Avoid losing original evaluated geometry. */
     makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 
-  /* now get the cage */
-  Mesh *mesh_eval_cage = editbmesh_get_eval_cage_from_orig(
-      depsgraph, scene, obedit, &CD_MASK_BAREMESH);
+  /* Now get the cage. */
+  BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+  Mesh *mesh_eval_cage = editbmesh_get_eval_cage(
+      depsgraph, scene_eval, obedit_eval, em_eval, &CD_MASK_BAREMESH);
 
-  const int nverts = editmesh_eval->bm->totvert;
+  const int nverts = em_eval->bm->totvert;
   float(*vertexcos)[3] = static_cast<float(*)[3]>(
       MEM_mallocN(sizeof(*vertexcos) * nverts, "vertexcos map"));
   mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos, nverts);
 
-  /* set back the flag, no new cage needs to be built, transform does it */
-  modifiers_disable_subsurf_temporary(scene_eval, obedit_eval);
+  /* Set back the flag, and ensure new cage needs to be built. */
+  if (modifiers_disable_subsurf_temporary(obedit_eval, cageIndex)) {
+    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+  }
 
   return vertexcos;
 }

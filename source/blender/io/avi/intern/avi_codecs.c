@@ -14,6 +14,8 @@
 #include "avi_rgb.h"
 #include "avi_rgb32.h"
 
+#include "BLI_string.h"
+
 void *avi_format_convert(
     AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, size_t *size)
 {
@@ -68,10 +70,10 @@ int avi_get_data_id(AviFormat format, int stream)
   char fcc[5];
 
   if (avi_get_format_type(format) == FCC("vids")) {
-    sprintf(fcc, "%2.2ddc", stream);
+    BLI_snprintf(fcc, sizeof(fcc), "%2.2ddc", stream);
   }
   else if (avi_get_format_type(format) == FCC("auds")) {
-    sprintf(fcc, "%2.2ddc", stream);
+    BLI_snprintf(fcc, sizeof(fcc), "%2.2ddc", stream);
   }
   else {
     return 0;

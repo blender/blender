@@ -182,7 +182,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  sprintf(buf, "Scripts: %%t|[None]%%x0|");
+  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */
@@ -201,7 +201,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
     if (BPY_is_pyconstraint(text)) {
       BLI_dynstr_append(pupds, text->id.name + 2);
 
-      sprintf(buf, "%%x%d", i);
+      BLI_snprintf(buf, sizeof(buf), "%%x%d", i);
       BLI_dynstr_append(pupds, buf);
 
       if (text->id.next) {
@@ -2327,14 +2327,14 @@ static bool get_new_constraint_target(
       /* Since by default, IK targets the tip of the last bone,
        * use the tip of the active PoseChannel if adding a target for an IK Constraint. */
       if (con_type == CONSTRAINT_TYPE_KINEMATIC) {
-        mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_tail);
+        mul_v3_m4v3(obt->loc, obact->object_to_world, pchanact->pose_tail);
       }
       else {
-        mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_head);
+        mul_v3_m4v3(obt->loc, obact->object_to_world, pchanact->pose_head);
       }
     }
     else {
-      copy_v3_v3(obt->loc, obact->obmat[3]);
+      copy_v3_v3(obt->loc, obact->object_to_world[3]);
     }
 
     /* restore, BKE_object_add sets active */

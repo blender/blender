@@ -104,7 +104,7 @@ void register_node_type_cmp_luma_matte()
   ntype.declare = file_ns::cmp_node_luma_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_luma_matte;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_luma_matte);
+  ntype.initfunc = file_ns::node_composit_init_luma_matte;
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 

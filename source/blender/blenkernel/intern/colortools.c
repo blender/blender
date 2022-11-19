@@ -908,13 +908,13 @@ void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
       dy = cmp[a].y - cmp[a + 1].y;
       if (sqrtf(dx * dx + dy * dy) < thresh) {
         if (a == 0) {
-          cmp[a + 1].flag |= CUMA_HANDLE_VECTOR;
+          cmp[a + 1].flag |= CUMA_REMOVE;
           if (cmp[a + 1].flag & CUMA_SELECT) {
             cmp[a].flag |= CUMA_SELECT;
           }
         }
         else {
-          cmp[a].flag |= CUMA_HANDLE_VECTOR;
+          cmp[a].flag |= CUMA_REMOVE;
           if (cmp[a].flag & CUMA_SELECT) {
             cmp[a + 1].flag |= CUMA_SELECT;
           }
@@ -923,7 +923,7 @@ void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
       }
     }
     if (a != cuma->totpoint - 1) {
-      BKE_curvemap_remove(cuma, 2);
+      BKE_curvemap_remove(cuma, CUMA_REMOVE);
     }
   }
   curvemap_make_table(cumap, cuma);

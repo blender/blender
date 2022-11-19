@@ -1219,8 +1219,8 @@ static void do_movie_proxy(void *pjv,
                            int UNUSED(build_count),
                            int *build_undistort_sizes,
                            int build_undistort_count,
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   ProxyJob *pj = pjv;
@@ -1285,8 +1285,8 @@ typedef struct ProxyQueue {
   int efra;
   SpinLock spin;
 
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 } ProxyQueue;
 
@@ -1343,7 +1343,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     queue->cfra++;
     close(file);
 
-    *queue->do_update = 1;
+    *queue->do_update = true;
     *queue->progress = (float)(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
   }
   BLI_spin_unlock(&queue->spin);
@@ -1392,8 +1392,8 @@ static void do_sequence_proxy(void *pjv,
                               int build_undistort_count,
                               /* Cannot be const, because it is assigned to a non-const variable.
                                * NOLINTNEXTLINE: readability-non-const-parameter. */
-                              short *stop,
-                              short *do_update,
+                              bool *stop,
+                              bool *do_update,
                               float *progress)
 {
   ProxyJob *pj = pjv;
@@ -1452,7 +1452,7 @@ static void do_sequence_proxy(void *pjv,
   MEM_freeN(handles);
 }
 
-static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = pjv;
   MovieClip *clip = pj->clip;

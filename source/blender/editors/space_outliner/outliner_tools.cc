@@ -60,6 +60,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_scene.h"
@@ -2458,6 +2459,8 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
+  ED_node_tree_propagate_change(C, bmain, nullptr);
+
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
@@ -2763,6 +2766,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       /* Invalid - unhandled. */
       break;
   }
+
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);

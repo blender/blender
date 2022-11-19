@@ -16,8 +16,10 @@
 #include "../image/Image.h"
 #include "../image/ImagePyramid.h"
 
-#include "BKE_global.h"
 #include "BLI_math.h"
+#include "BLI_sys_types.h"
+
+#include "BKE_global.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

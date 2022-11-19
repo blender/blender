@@ -154,7 +154,7 @@ static bool bake_strokes(Object *ob,
 typedef struct LineartBakeJob {
   wmWindowManager *wm;
   void *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   /* C or ob must have one != NULL. */
@@ -218,8 +218,8 @@ static void lineart_gpencil_guard_modifiers(LineartBakeJob *bj)
 }
 
 static void lineart_gpencil_bake_startjob(void *customdata,
-                                          short *stop,
-                                          short *do_update,
+                                          bool *stop,
+                                          bool *do_update,
                                           float *progress)
 {
   LineartBakeJob *bj = (LineartBakeJob *)customdata;
@@ -337,7 +337,7 @@ static int lineart_gpencil_bake_common(bContext *C,
   }
 
   float pseduo_progress;
-  short pseduo_do_update;
+  bool pseduo_do_update;
   lineart_gpencil_bake_startjob(bj, NULL, &pseduo_do_update, &pseduo_progress);
 
   BLI_linklist_free(bj->objects, NULL);

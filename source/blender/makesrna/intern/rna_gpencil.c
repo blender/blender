@@ -334,13 +334,13 @@ static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char **
 static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *substr)
 {
   if (type == PAROBJECT) {
-    invert_m4_m4(gpl->inverse, par->obmat);
+    invert_m4_m4(gpl->inverse, par->object_to_world);
     gpl->parent = par;
     gpl->partype |= PAROBJECT;
     gpl->parsubstr[0] = 0;
   }
   else if (type == PARSKEL) {
-    invert_m4_m4(gpl->inverse, par->obmat);
+    invert_m4_m4(gpl->inverse, par->object_to_world);
     gpl->parent = par;
     gpl->partype |= PARSKEL;
     gpl->parsubstr[0] = 0;
@@ -349,7 +349,7 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
     bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, substr);
     if (pchan) {
       float tmp_mat[4][4];
-      mul_m4_m4m4(tmp_mat, par->obmat, pchan->pose_mat);
+      mul_m4_m4m4(tmp_mat, par->object_to_world, pchan->pose_mat);
 
       invert_m4_m4(gpl->inverse, tmp_mat);
       gpl->parent = par;
@@ -357,7 +357,7 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
       BLI_strncpy(gpl->parsubstr, substr, sizeof(gpl->parsubstr));
     }
     else {
-      invert_m4_m4(gpl->inverse, par->obmat);
+      invert_m4_m4(gpl->inverse, par->object_to_world);
       gpl->parent = par;
       gpl->partype |= PAROBJECT;
       gpl->parsubstr[0] = 0;

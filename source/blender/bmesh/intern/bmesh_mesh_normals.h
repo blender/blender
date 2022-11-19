@@ -8,6 +8,10 @@
 
 #include "bmesh_class.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMeshNormalsUpdate_Params {
   /**
    * When calculating tessellation as well as normals, tessellate & calculate face normals
@@ -99,3 +103,7 @@ void BM_custom_loop_normals_from_vector_layer(struct BMesh *bm, bool add_sharp_e
  * to keep same shading as with auto-smooth!
  */
 void BM_edges_sharp_from_angle_set(BMesh *bm, float split_angle);
+
+#ifdef __cplusplus
+}
+#endif

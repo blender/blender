@@ -99,11 +99,8 @@ Scene::Scene(const SceneParams &params_, Device *device)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
 
-  /* OSL only works on the CPU */
-  if (device->info.has_osl)
-    shader_manager = ShaderManager::create(params.shadingsystem);
-  else
-    shader_manager = ShaderManager::create(SHADINGSYSTEM_SVM);
+  shader_manager = ShaderManager::create(
+      device->info.has_osl ? params.shadingsystem : SHADINGSYSTEM_SVM, device);
 
   light_manager = new LightManager();
   geometry_manager = new GeometryManager();

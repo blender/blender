@@ -58,13 +58,29 @@ ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
   const float4 I = kernel_read_pass_float4(buffer + kernel_data.film.pass_combined);
 
   const float sample = __float_as_uint(buffer[kernel_data.film.pass_sample_count]);
-  const float inv_sample = 1.0f / sample;
+  const float intensity_scale = kernel_data.film.exposure / sample;
 
   /* The per pixel error as seen in section 2.1 of
    * "A hierarchical automatic stopping condition for Monte Carlo global illumination" */
   const float error_difference = (fabsf(I.x - A.x) + fabsf(I.y - A.y) + fabsf(I.z - A.z)) *
-                                 inv_sample;
-  const float error_normalize = sqrtf((I.x + I.y + I.z) * inv_sample);
+                                 intensity_scale;
+  const float intensity = (I.x + I.y + I.z) * intensity_scale;
+
+  /* Anything with R+G+B > 1 is highly exposed - even in sRGB it's a range that
+   * some displays aren't even able to display without significant losses in
+   * detalization. Everything with R+G+B > 3 is overexposed and should receive
+   * even less samples. Filmic-like curves need maximum sampling rate at
+   * intensity near 0.1-0.2, so threshold of 1 for R+G+B leaves an additional
+   * fstop in case it is needed for compositing.
+   */
+  float error_normalize;
+  if (intensity < 1.0f) {
+    error_normalize = sqrtf(intensity);
+  }
+  else {
+    error_normalize = intensity;
+  }
+
   /* A small epsilon is added to the divisor to prevent division by zero. */
   const float error = error_difference / (0.0001f + error_normalize);
   const bool did_converge = (error < threshold);

@@ -138,6 +138,15 @@ class MultiDevice : public Device {
     return true;
   }
 
+  bool load_osl_kernels() override
+  {
+    foreach (SubDevice &sub, devices)
+      if (!sub.device->load_osl_kernels())
+        return false;
+
+    return true;
+  }
+
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
     /* Try to build and share a single acceleration structure, if possible */
@@ -204,10 +213,12 @@ class MultiDevice : public Device {
 
   virtual void *get_cpu_osl_memory() override
   {
-    if (devices.size() > 1) {
+    /* Always return the OSL memory of the CPU device (this works since the constructor above
+     * guarantees that CPU devices are always added to the back). */
+    if (devices.size() > 1 && devices.back().device->info.type != DEVICE_CPU) {
       return NULL;
     }
-    return devices.front().device->get_cpu_osl_memory();
+    return devices.back().device->get_cpu_osl_memory();
   }
 
   bool is_resident(device_ptr key, Device *sub_device) override

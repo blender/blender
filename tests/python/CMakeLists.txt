@@ -41,7 +41,7 @@ function(add_python_test testname testscript)
 
   add_test(
     NAME ${testname}
-    COMMAND ${TEST_PYTHON_EXE} ${testscript} ${ARGN}
+    COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${testscript} ${ARGN}
   )
   set_tests_properties(${testname} PROPERTIES ENVIRONMENT
     LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
@@ -334,7 +334,7 @@ add_blender_test(
   --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_cube.obj',use_selection=False\)
   --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.obj
   --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.mtl
-  --md5=95832f81160f07101dc566cb286a9f76 --md5_method=FILE
+  --md5=e80660437ad9bfe082849641c361a233 --md5_method=FILE
 )
 
 add_blender_test(
@@ -632,7 +632,7 @@ endif()
 
 # SVG Import
 if(True)
-  set(_svg_render_tests path)
+  set(_svg_render_tests complex path)
 
   foreach(render_test ${_svg_render_tests})
     add_python_test(

@@ -33,6 +33,7 @@
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -287,11 +288,13 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
   mesh_prim_.GetFaceVertexCountsAttr().Get(&face_counts_, motionSampleTime);
   mesh_prim_.GetPointsAttr().Get(&positions_, motionSampleTime);
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+
   /* TODO(makowalski): Reading normals probably doesn't belong in this function,
    * as this is not required to determine if the topology has changed. */
 
   /* If 'normals' and 'primvars:normals' are both specified, the latter has precedence. */
-  pxr::UsdGeomPrimvar primvar = mesh_prim_.GetPrimvar(usdtokens::normalsPrimvar);
+  pxr::UsdGeomPrimvar primvar = primvarsAPI.GetPrimvar(usdtokens::normalsPrimvar);
   if (primvar.HasValue()) {
     primvar.ComputeFlattened(&normals_, motionSampleTime);
     normal_interpolation_ = primvar.GetInterpolation();
@@ -355,6 +358,8 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
   std::vector<UVSample> uv_primvars(ldata->totlayer);
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+
   if (has_uvs_) {
     for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
       const CustomDataLayer *layer = &ldata->layers[layer_idx];
@@ -385,11 +390,11 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
       }
 
       /* Early out if mesh doesn't have primvar. */
-      if (!mesh_prim_.HasPrimvar(uv_token)) {
+      if (!primvarsAPI.HasPrimvar(uv_token)) {
         continue;
       }
 
-      if (pxr::UsdGeomPrimvar uv_primvar = mesh_prim_.GetPrimvar(uv_token)) {
+      if (pxr::UsdGeomPrimvar uv_primvar = primvarsAPI.GetPrimvar(uv_token)) {
         uv_primvar.ComputeFlattened(&uv_primvars[layer_idx].uvs, motionSampleTime);
         uv_primvars[layer_idx].interpolation = uv_primvar.GetInterpolation();
       }
@@ -608,14 +613,12 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totloop) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -653,14 +656,12 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 void USDMeshReader::process_normals_uniform(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totpoly) {
     std::cerr << "WARNING: uniform normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -701,6 +702,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
     }
+    BKE_mesh_tag_coords_changed(mesh);
 
     read_vertex_creases(mesh, motionSampleTime);
   }
@@ -712,10 +714,6 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     }
     else if (normal_interpolation_ == pxr::UsdGeomTokens->uniform) {
       process_normals_uniform(mesh);
-    }
-    else {
-      /* Default */
-      BKE_mesh_normals_tag_dirty(mesh);
     }
   }
 
@@ -835,12 +833,14 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     is_left_handed_ = true;
   }
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+
   std::vector<pxr::TfToken> uv_tokens;
 
   /* Currently we only handle UV primvars. */
   if (read_flag & MOD_MESHSEQ_READ_UV) {
 
-    std::vector<pxr::UsdGeomPrimvar> primvars = mesh_prim_.GetPrimvars();
+    std::vector<pxr::UsdGeomPrimvar> primvars = primvarsAPI.GetPrimvars();
 
     for (pxr::UsdGeomPrimvar p : primvars) {
 

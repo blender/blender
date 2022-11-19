@@ -1100,7 +1100,12 @@ static int64_t ffmpeg_get_seek_pts(struct anim *anim, int64_t pts_to_search)
    * experimentally. Note: Too big offset can impact performance. Current 3 frame offset has no
    * measurable impact.
    */
-  return pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
+  int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
+
+  if (seek_pts < 0) {
+    seek_pts = 0;
+  }
+  return seek_pts;
 }
 
 /* This gives us an estimate of which pts our requested frame will have.

@@ -55,8 +55,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   /* use top-left corner as the transform origin for nodes */
   /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
 #ifdef USE_NODE_CENTER
-  td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
-  td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
+  td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->runtime->totr) * +0.5f);
+  td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->runtime->totr) * -0.5f);
 #else
   td2d->loc[0] = locx * dpi_fac;
   td2d->loc[1] = locy * dpi_fac;
@@ -74,8 +74,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = NULL;
-  td->val = NULL;
+  td->ext = nullptr;
+  td->val = nullptr;
 
   td->flag = TD_SELECTED;
   td->dist = 0.0f;
@@ -246,8 +246,8 @@ static void flushTransNodes(TransInfo *t)
       add_v2_v2v2(loc, td2d->loc, offset);
 
 #ifdef USE_NODE_CENTER
-      loc[0] -= 0.5f * BLI_rctf_size_x(&node->totr);
-      loc[1] += 0.5f * BLI_rctf_size_y(&node->totr);
+      loc[0] -= 0.5f * BLI_rctf_size_x(&node->runtime->totr);
+      loc[1] += 0.5f * BLI_rctf_size_y(&node->runtime->totr);
 #endif
 
       /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */

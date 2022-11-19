@@ -302,6 +302,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
       switch (product_id) {
         case 0xC62E: /* Plugged in. */
         case 0xC62F: /* Wireless. */
+        case 0xC658: /* Wireless (3DConnexion Universal Wireless Receiver in WIN32), see T82412. */
         {
           device_type_ = NDOF_SpaceMouseWireless;
           hid_map_button_num_ = 2;

@@ -433,36 +433,105 @@ class NODE_MT_node_color_context_menu(Menu):
         layout.operator("node.node_copy_color", icon='COPY_ID')
 
 
-class NODE_MT_context_menu(Menu):
-    bl_label = "Node Context Menu"
+class NODE_MT_context_menu_show_hide_menu(Menu):
+    bl_label = "Show/Hide"
+
+    def draw(self, context):
+        snode = context.space_data
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
+
+        layout = self.layout
+
+        layout.operator("node.mute_toggle", text="Mute")
+
+        # Node previews are only available in the Compositor.
+        if is_compositor:
+            layout.operator("node.preview_toggle", text="Node Preview")
+
+        layout.operator("node.options_toggle", text="Node Options")
+
+        layout.separator()
+
+        layout.operator("node.hide_socket_toggle", text="Unconnected Sockets")
+        layout.operator("node.hide_toggle", text="Collapse")
+        layout.operator("node.collapse_hide_unused_toggle")
+
+
+class NODE_MT_context_menu_select_menu(Menu):
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
 
-        selected_nodes_len = len(context.selected_nodes)
+        layout.operator("node.select_grouped", text="Select Grouped...").extend = False
 
-        # If nothing is selected
-        # (disabled for now until it can be made more useful).
-        '''
+        layout.separator()
+
+        layout.operator("node.select_linked_from")
+        layout.operator("node.select_linked_to")
+
+        layout.separator()
+
+        layout.operator("node.select_same_type_step", text="Activate Same Type Previous").prev = True
+        layout.operator("node.select_same_type_step", text="Activate Same Type Next").prev = False
+
+
+class NODE_MT_context_menu(Menu):
+    bl_label = "Node Context Menu"
+
+    def draw(self, context):
+        snode = context.space_data
+        is_nested = (len(snode.path) > 1)
+        is_geometrynodes = snode.tree_type == 'GeometryNodeTree'
+
+        selected_nodes_len = len(context.selected_nodes)
+        active_node = context.active_node
+
+        layout = self.layout
+
+        # If no nodes are selected.
         if selected_nodes_len == 0:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.menu("NODE_MT_add")
-            layout.operator("node.clipboard_paste", text="Paste")
+            layout.menu("NODE_MT_add", icon="ADD")
+            layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+
+            layout.separator()
+
+            layout.operator("node.find_node", text="Find...", icon="VIEWZOOM")
+
+            layout.separator()
+
+            if is_geometrynodes:
+                layout.operator_context = 'INVOKE_DEFAULT'
+                layout.operator("node.select", text="Clear Viewer", icon="HIDE_ON").clear_viewer = True
+
+            layout.operator("node.links_cut")
+            layout.operator("node.links_mute")
+
+            if is_nested:
+                layout.separator()
+
+                layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
+
             return
-        '''
 
-        # If something is selected
+        if is_geometrynodes:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("node.link_viewer", text="Link to Viewer", icon="HIDE_OFF")
+
+            layout.separator()
+
+        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
+        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("node.duplicate_move")
-        props = layout.operator("wm.call_panel", text="Rename...")
-        props.name = "TOPBAR_PT_name"
-        props.keep_open = False
-        layout.operator("node.delete")
-        layout.operator("node.clipboard_copy", text="Copy")
-        layout.operator("node.clipboard_paste", text="Paste")
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("node.duplicate_move", icon="DUPLICATE")
 
-        layout.operator("node.delete_reconnect")
+        layout.separator()
+
+        layout.operator("node.delete", icon="X")
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("node.delete_reconnect", text="Dissolve")
 
         if selected_nodes_len > 1:
             layout.separator()
@@ -471,21 +540,33 @@ class NODE_MT_context_menu(Menu):
             layout.operator("node.link_make", text="Make and Replace Links").replace = True
             layout.operator("node.links_detach")
 
-            layout.separator()
+        layout.separator()
 
-            layout.operator("node.group_make", text="Group")
+        layout.operator("node.group_make", text="Make Group", icon="NODETREE")
+        layout.operator("node.group_insert", text="Insert Into Group")
 
-        layout.operator("node.group_ungroup", text="Ungroup")
-        layout.operator("node.group_edit").exit = False
+        if active_node and active_node.type == 'GROUP':
+            layout.operator("node.group_edit", text="Edit").exit = False
+            layout.operator("node.group_ungroup", text="Ungroup")
+
+            if is_nested:
+                layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
 
         layout.separator()
 
-        layout.operator("node.hide_toggle")
-        layout.operator("node.mute_toggle")
-        layout.operator("node.preview_toggle")
-        layout.operator("node.hide_socket_toggle")
-        layout.operator("node.options_toggle")
-        layout.operator("node.collapse_hide_unused_toggle")
+        layout.operator("node.join", text="Join in New Frame")
+        layout.operator("node.detach", text="Remove from Frame")
+
+        layout.separator()
+
+        props = layout.operator("wm.call_panel", text="Rename...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
+
+        layout.separator()
+
+        layout.menu("NODE_MT_context_menu_select_menu")
+        layout.menu("NODE_MT_context_menu_show_hide_menu")
 
 
 class NODE_PT_active_node_generic(Panel):
@@ -888,6 +969,8 @@ classes = (
     NODE_MT_select,
     NODE_MT_node,
     NODE_MT_node_color_context_menu,
+    NODE_MT_context_menu_show_hide_menu,
+    NODE_MT_context_menu_select_menu,
     NODE_MT_context_menu,
     NODE_MT_view_pie,
     NODE_PT_material_slots,

@@ -34,7 +34,6 @@ typedef enum CurvesEvalShader {
 typedef struct CurvesEvalFinalCache {
   /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
   GPUVertBuf *proc_buf;
-  GPUTexture *proc_tex;
 
   /** Just contains a huge index buffer used to draw the final curves. */
   GPUBatch *proc_hairs[MAX_THICKRES];
@@ -61,35 +60,29 @@ typedef struct CurvesEvalFinalCache {
   /* Output of the subdivision stage: vertex buffers sized to subdiv level. This is only attributes
    * on point domain. */
   GPUVertBuf *attributes_buf[GPU_MAX_ATTR];
-  GPUTexture *attributes_tex[GPU_MAX_ATTR];
 } CurvesEvalFinalCache;
 
 /* Curves procedural display: Evaluation is done on the GPU. */
 typedef struct CurvesEvalCache {
   /* Input control point positions combined with parameter data. */
   GPUVertBuf *proc_point_buf;
-  GPUTexture *point_tex;
 
   /* Editmode data (such as selection flags) used by overlay_edit_curve_point.glsl */
   GPUVertBuf *data_edit_points;
 
   /** Info of control points strands (segment count and base index) */
   GPUVertBuf *proc_strand_buf;
-  GPUTexture *strand_tex;
 
   /* Curve length data. */
   GPUVertBuf *proc_length_buf;
-  GPUTexture *length_tex;
 
   GPUVertBuf *proc_strand_seg_buf;
-  GPUTexture *strand_seg_tex;
 
   CurvesEvalFinalCache final[MAX_HAIR_SUBDIV];
 
   /* For point attributes, which need subdivision, these buffers contain the input data.
    * For curve domain attributes, which do not need subdivision, these are the final data. */
   GPUVertBuf *proc_attributes_buf[GPU_MAX_ATTR];
-  GPUTexture *proc_attributes_tex[GPU_MAX_ATTR];
 
   int strands_len;
   int elems_len;

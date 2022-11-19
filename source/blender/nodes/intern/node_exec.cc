@@ -12,6 +12,7 @@
 
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "MEM_guardedalloc.h"
@@ -68,38 +69,41 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
   }
 }
 
-static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *internal_links)
+static void node_init_output_index_muted(bNodeSocket *sock,
+                                         int *index,
+                                         const blender::Span<bNodeLink *> internal_links)
 {
-  if (internal_links) {
-    bNodeLink *link;
-    /* copy the stack index from internally connected input to skip the node */
-    for (link = (bNodeLink *)internal_links->first; link; link = link->next) {
-      if (link->tosock == sock) {
-        sock->stack_index = link->fromsock->stack_index;
-        /* set the link pointer to indicate that this socket
-         * should not overwrite the stack value!
-         */
-        sock->link = link;
-        break;
-      }
-    }
-    /* if not internally connected, assign a new stack index anyway to avoid bad stack access */
-    if (!link) {
-      if (node_exec_socket_use_stack(sock)) {
-        sock->stack_index = (*index)++;
-      }
-      else {
-        sock->stack_index = -1;
-      }
+  bNodeLink *link;
+  /* copy the stack index from internally connected input to skip the node */
+  for (bNodeLink *iter_link : internal_links) {
+    if (iter_link->tosock == sock) {
+      sock->stack_index = iter_link->fromsock->stack_index;
+      /* set the link pointer to indicate that this socket
+       * should not overwrite the stack value!
+       */
+      sock->link = iter_link;
+      link = iter_link;
+      break;
     }
   }
-  else {
+  /* if not internally connected, assign a new stack index anyway to avoid bad stack access */
+  if (!link) {
     if (node_exec_socket_use_stack(sock)) {
       sock->stack_index = (*index)++;
     }
     else {
       sock->stack_index = -1;
     }
+  }
+}
+
+static void node_init_output_index(bNodeSocket *sock, int *index)
+{
+  if (node_exec_socket_use_stack(sock)) {
+    sock->stack_index = (*index)++;
+  }
+  else {
+    sock->stack_index = -1;
   }
 }
 
@@ -162,7 +166,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
   /* XXX could let callbacks do this for specialized data */
   exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
-  /* backpointer to node tree */
+  /* Back-pointer to node tree. */
   exec->nodetree = ntree;
 
   /* set stack indices */
@@ -177,12 +181,12 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
       for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-        node_init_output_index(sock, &index, &node->internal_links);
+        node_init_output_index_muted(sock, &index, node->runtime->internal_links);
       }
     }
     else {
       for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-        node_init_output_index(sock, &index, nullptr);
+        node_init_output_index(sock, &index);
       }
     }
   }
@@ -209,7 +213,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
       /* disable the node if an input link is invalid */
       if (sock->link && !(sock->link->flag & NODE_LINK_VALID)) {
-        node->need_exec = 0;
+        node->runtime->need_exec = 0;
       }
 
       ns = setup_stack(exec->stack, ntree, node, sock);

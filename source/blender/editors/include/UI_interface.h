@@ -133,6 +133,8 @@ enum {
 /** #uiBlock.flag (controls) */
 enum {
   UI_BLOCK_LOOP = 1 << 0,
+  /** Indicate that items in a popup are drawn with inverted order. Used for arrow key navigation
+   *  so that it knows to invert the navigation direction to match the drawing order. */
   UI_BLOCK_IS_FLIP = 1 << 1,
   UI_BLOCK_NO_FLIP = 1 << 2,
   UI_BLOCK_NUMSELECT = 1 << 3,
@@ -784,6 +786,9 @@ void UI_block_set_search_only(uiBlock *block, bool search_only);
  * Can be called with C==NULL.
  */
 void UI_block_free(const struct bContext *C, uiBlock *block);
+
+void UI_block_listen(const uiBlock *block, const struct wmRegionListenerParams *listener_params);
+
 /**
  * Can be called with C==NULL.
  */
@@ -1784,7 +1789,6 @@ void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
 void UI_but_drag_set_asset(uiBut *but,
                            const struct AssetHandle *asset,
                            const char *path,
-                           struct AssetMetaData *metadata,
                            int import_type, /* eFileAssetImportType */
                            int icon,
                            struct ImBuf *imb,
@@ -2525,6 +2529,7 @@ void uiTemplateNodeView(uiLayout *layout,
                         struct bNodeTree *ntree,
                         struct bNode *node,
                         struct bNodeSocket *input);
+void uiTemplateNodeAssetMenuItems(uiLayout *layout, struct bContext *C, const char *catalog_path);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
 /**
  * Button to quickly show texture in Properties Editor texture tab.
@@ -3196,9 +3201,6 @@ void UI_interface_tag_script_reload(void);
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
-
-void UI_block_views_listen(const uiBlock *block,
-                           const struct wmRegionListenerParams *listener_params);
 
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
 bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);

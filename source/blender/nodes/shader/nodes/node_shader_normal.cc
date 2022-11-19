@@ -44,7 +44,7 @@ void register_node_type_sh_normal()
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_normal);
+  ntype.gpu_fn = file_ns::gpu_shader_normal;
 
   nodeRegisterType(&ntype);
 }

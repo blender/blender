@@ -45,7 +45,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
 
   if (&rna_type == &RNA_NodeTree) {
     ID *id = (ID *)ptr;
-    path.append({name, int(icon), id->us});
+    path.append({name, int(icon), ID_REAL_USERS(id)});
   }
   else {
     path.append({name, int(icon), 1});

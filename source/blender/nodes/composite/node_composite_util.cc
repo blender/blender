@@ -5,6 +5,8 @@
  * \ingroup nodes
  */
 
+#include "BKE_node_runtime.hh"
+
 #include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
@@ -26,7 +28,7 @@ void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
       // sock->cache = nullptr;
     }
   }
-  node->need_exec = 1;
+  node->runtime->need_exec = 1;
 }
 
 void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)

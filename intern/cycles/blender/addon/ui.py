@@ -150,6 +150,16 @@ def get_effective_preview_denoiser(context):
     return 'OIDN'
 
 
+def use_mnee(context):
+    # The MNEE kernel doesn't compile on macOS < 13.
+    if use_metal(context):
+        import platform
+        v, _, _ = platform.mac_ver()
+        if float(v) < 13.0:
+            return False
+    return True
+
+
 class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_label = "Sampling"
 
@@ -303,10 +313,11 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
         layout.active = cscene.use_guiding
 
+        layout.prop(cscene, "guiding_training_samples")
+
         col = layout.column(align=True)
-        col.prop(cscene, "use_surface_guiding")
-        col.prop(cscene, "use_volume_guiding")
-        col.prop(cscene, "guiding_training_samples")
+        col.prop(cscene, "use_surface_guiding", text="Surface")
+        col.prop(cscene, "use_volume_guiding", text="Volume")
 
 
 class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Panel):
@@ -1235,7 +1246,7 @@ class CYCLES_OBJECT_PT_shading_caustics(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and not use_metal(context) and context.object.type != 'LIGHT'
+        return CyclesButtonsPanel.poll(context) and use_mnee(context) and context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
@@ -1449,7 +1460,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         sub.active = not (light.type == 'AREA' and clamp.is_portal)
         sub.prop(clamp, "cast_shadow")
         sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
-        if not use_metal(context):
+        if use_mnee(context):
             sub.prop(clamp, "is_caustics_light", text="Shadow Caustics")
 
         if light.type == 'AREA':
@@ -2295,7 +2306,10 @@ def draw_device(self, context):
         col.prop(cscene, "device")
 
         from . import engine
-        if engine.with_osl() and use_cpu(context):
+        if engine.with_osl() and (
+                use_cpu(context) or
+                (use_optix(context) and (engine.osl_version()[1] >= 13 or engine.osl_version()[0] > 1))
+        ):
             col.prop(cscene, "shading_system")
 
 

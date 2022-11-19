@@ -40,7 +40,7 @@
  *
  * Any feedback is very welcome.
  * http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
- * email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space). */
+ * email: `m-mat @ math.sci.hiroshima-u.ac.jp` (remove space). */
 
 /* Period parameters */
 #define N 624
@@ -120,7 +120,7 @@ static void setRndSeed(int seed)
   }
 }
 
-/* float number in range [0, 1) using the mersenne twister rng */
+/* Float number in range [0, 1) using the mersenne twister random number generator. */
 static float frand(void)
 {
   ulong y;
@@ -1085,14 +1085,14 @@ static PyMethodDef M_Noise_methods[] = {
 
 static struct PyModuleDef M_Noise_module_def = {
     PyModuleDef_HEAD_INIT,
-    "mathutils.noise", /* m_name */
-    M_Noise_doc,       /* m_doc */
-    0,                 /* m_size */
-    M_Noise_methods,   /* m_methods */
-    NULL,              /* m_slots */
-    NULL,              /* m_traverse */
-    NULL,              /* m_clear */
-    NULL,              /* m_free */
+    /*m_name*/ "mathutils.noise",
+    /*m_doc*/ M_Noise_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ M_Noise_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /*----------------------------MODULE INIT-------------------------*/

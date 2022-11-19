@@ -284,6 +284,7 @@ void gpu_shader_create_info_init()
   _info
 
 /* Declare, register and construct the infos. */
+#include "compositor_shader_create_info_list.hh"
 #include "gpu_shader_create_info_list.hh"
 
 /* Baked shader data appended to create infos. */

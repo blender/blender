@@ -40,15 +40,15 @@ ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,ver-
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
-force-xr-openxr,force-level-zero, force-openpgl,\
+force-xr-openxr,force-level-zero,force-openpgl,\
 build-all,build-python,build-boost,build-tbb,\
 build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
-build-xr-openxr,build-level-zero, build-openpgl,\
+build-xr-openxr,build-level-zero,build-openpgl,\
 skip-python,skip-boost,skip-tbb,\
 skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
-skip-xr-openxr,skip-level-zero, skip-openpgl \
+skip-xr-openxr,skip-level-zero,skip-openpgl \
 -- "$@" \
 )
 
@@ -602,9 +602,9 @@ LEVEL_ZERO_FORCE_BUILD=false
 LEVEL_ZERO_FORCE_REBUILD=false
 LEVEL_ZERO_SKIP=false
 
-OPENPGL_VERSION="0.4.0"
+OPENPGL_VERSION="0.4.1"
 OPENPGL_VERSION_SHORT="0.4"
-OPENPGL_VERSION_MIN="0.3.1"
+OPENPGL_VERSION_MIN="0.4.1"
 OPENPGL_VERSION_MEX="0.5"
 OPENPGL_FORCE_BUILD=false
 OPENPGL_FORCE_REBUILD=false

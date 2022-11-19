@@ -1317,7 +1317,7 @@ static int ptcache_path(PTCacheID *pid, char *dirname)
       BLI_path_abs(dirname, blendfilename);
     }
 
-    return BLI_path_slash_ensure(dirname); /* new strlen() */
+    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
   }
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
@@ -1334,14 +1334,14 @@ static int ptcache_path(PTCacheID *pid, char *dirname)
     BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
 
     BLI_path_abs(dirname, blendfilename);
-    return BLI_path_slash_ensure(dirname); /* new strlen() */
+    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
   }
 
   /* use the temp path. this is weak but better than not using point cache at all */
   /* temporary directory is assumed to exist and ALWAYS has a trailing slash */
   BLI_snprintf(dirname, MAX_PTCACHE_PATH, "%s" PTCACHE_PATH, BKE_tempdir_session());
 
-  return BLI_path_slash_ensure(dirname); /* new strlen() */
+  return BLI_path_slash_ensure(dirname, MAX_PTCACHE_FILE); /* new strlen() */
 }
 
 static size_t ptcache_filepath_ext_append(PTCacheID *pid,
@@ -2611,7 +2611,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
   }
 #endif
 
-  /* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
+  /* Clear all files in the temp dir with the prefix of the ID and the `.bphys` suffix. */
   switch (mode) {
     case PTCACHE_CLEAR_ALL:
     case PTCACHE_CLEAR_BEFORE:
@@ -2775,7 +2775,7 @@ void BKE_ptcache_id_time(
   /* time handling for point cache:
    * - simulation time is scaled by result of bsystem_time
    * - for offsetting time only time offset is taken into account, since
-   *   that's always the same and can't be animated. a timeoffset which
+   *   that's always the same and can't be animated. a time-offset which
    *   varies over time is not simple to support.
    * - field and motion blur offsets are currently ignored, proper solution
    *   is probably to interpolate results from two frames for that ..
@@ -3132,15 +3132,15 @@ static void ptcache_dt_to_str(char *str, double dtime)
 {
   if (dtime > 60.0) {
     if (dtime > 3600.0) {
-      sprintf(
+      BLI_sprintf(
           str, "%ih %im %is", (int)(dtime / 3600), ((int)(dtime / 60)) % 60, ((int)dtime) % 60);
     }
     else {
-      sprintf(str, "%im %is", ((int)(dtime / 60)) % 60, ((int)dtime) % 60);
+      BLI_sprintf(str, "%im %is", ((int)(dtime / 60)) % 60, ((int)dtime) % 60);
     }
   }
   else {
-    sprintf(str, "%is", ((int)dtime) % 60);
+    BLI_sprintf(str, "%is", ((int)dtime) % 60);
   }
 }
 

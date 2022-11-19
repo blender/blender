@@ -151,7 +151,7 @@ if(WITH_PYTHON)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
     if(EXISTS ${LIBDIR})
-      cmake_path(IS_PREFIX LIBDIR "${PYTHON_SITE_PACKAGES}" NORMALIZE _is_prefix)
+      path_is_prefix(LIBDIR PYTHON_SITE_PACKAGES _is_prefix)
       if(_is_prefix)
         message(WARNING "
 Building Blender with the following configuration:
@@ -660,6 +660,7 @@ if(WITH_GHOST_WAYLAND)
     set(wayland-scanner_FOUND ON)
     set(wayland-cursor_FOUND ON)
   endif()
+  mark_as_advanced(WAYLAND_PROTOCOLS_DIR)
 
   set_and_warn_library_found("wayland-client" wayland-client_FOUND WITH_GHOST_WAYLAND)
   set_and_warn_library_found("wayland-egl" wayland-egl_FOUND WITH_GHOST_WAYLAND)
@@ -694,6 +695,7 @@ if(WITH_GHOST_WAYLAND)
     else()
       pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
     endif()
+    mark_as_advanced(WAYLAND_SCANNER)
 
     # When using dynamic loading, headers generated
     # from older versions of `wayland-scanner` aren't compatible.

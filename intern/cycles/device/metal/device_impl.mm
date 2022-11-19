@@ -307,6 +307,9 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   MD5Hash md5;
   md5.append(baked_constants);
   md5.append(source);
+  if (use_metalrt) {
+    md5.append(std::to_string(kernel_features & METALRT_FEATURE_MASK));
+  }
   source_md5[pso_type] = md5.get_hex();
 }
 

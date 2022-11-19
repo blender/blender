@@ -34,7 +34,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
 {
 
   switch (tex_format) {
-    /* Formats texture & renderbuffer. */
+    /* Formats texture & render-buffer. */
     case GPU_RGBA8UI:
       return MTLPixelFormatRGBA8Uint;
     case GPU_RGBA8I:

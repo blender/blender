@@ -50,10 +50,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
   const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
-  bool has_curves = false;
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
-      has_curves = true;
       geometry_set_curve_to_mesh(geometry_set, profile_set, fill_caps);
     }
     geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});

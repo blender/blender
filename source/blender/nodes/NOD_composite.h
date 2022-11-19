@@ -153,6 +153,8 @@ void ntreeCompositExecTree(struct Scene *scene,
  */
 void ntreeCompositTagRender(struct Scene *scene);
 
+void ntreeCompositTagNeedExec(bNode *node);
+
 /**
  * Update the outputs of the render layer nodes.
  * Since the outputs depend on the render engine, this part is a bit complex:

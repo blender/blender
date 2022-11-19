@@ -2143,7 +2143,7 @@ static void direct_link_id_common(
     BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag)
 {
   if (!BLO_read_data_is_undo(reader)) {
-    /* When actually reading a file, we do want to reset/re-generate session uuids.
+    /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
   }
@@ -3111,7 +3111,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
       SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
       allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
-      char *allocname_buf = malloc(allocname_size);
+      char *allocname_buf = static_cast<char *>(malloc(allocname_size));
       memcpy(allocname_buf, allocname, allocname_size);
       allocname = allocname_buf;
     }

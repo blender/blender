@@ -131,7 +131,7 @@ void register_node_type_fn_boolean_math()
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_boolean_math_declare;
   ntype.labelfunc = file_ns::node_boolean_math_label;
-  node_type_update(&ntype, file_ns::node_boolean_math_update);
+  ntype.updatefunc = file_ns::node_boolean_math_update;
   ntype.build_multi_function = file_ns::fn_node_boolean_math_build_multi_function;
   ntype.draw_buttons = file_ns::fn_node_boolean_math_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

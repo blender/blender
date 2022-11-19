@@ -140,6 +140,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
                                                     const Span<float> new_lengths_cu,
                                                     const Span<float3> new_normals_su,
                                                     const bke::CurvesSurfaceTransforms &transforms,
+                                                    const Span<MLoopTri> looptris,
                                                     const ReverseUVSampler &reverse_uv_sampler,
                                                     const Span<float3> corner_normals_su)
 {
@@ -178,7 +179,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
         }
 
         const float3 neighbor_normal_su = compute_surface_point_normal(
-            *result.looptri, result.bary_weights, corner_normals_su);
+            looptris[result.looptri_index], result.bary_weights, corner_normals_su);
         const float3 neighbor_normal_cu = math::normalize(transforms.surface_to_curves_normal *
                                                           neighbor_normal_su);
 
@@ -254,7 +255,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
       outputs.uv_error = true;
       continue;
     }
-    const MLoopTri &looptri = *result.looptri;
+    const MLoopTri &looptri = inputs.surface_looptris[result.looptri_index];
     bary_coords.append(result.bary_weights);
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
@@ -358,6 +359,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                             new_lengths_cu,
                                             new_normals_su,
                                             *inputs.transforms,
+                                            inputs.surface_looptris,
                                             *inputs.reverse_uv_sampler,
                                             inputs.corner_normals_su);
   }

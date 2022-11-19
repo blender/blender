@@ -186,7 +186,7 @@ static void setup_app_data(bContext *C,
     clean_paths(bfd->main);
   }
 
-  /* XXX here the complex windowmanager matching */
+  /* The following code blocks performs complex window-manager matching. */
 
   /* no load screens? */
   if (mode != LOAD_UI) {

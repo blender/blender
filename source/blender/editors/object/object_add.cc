@@ -322,7 +322,7 @@ void ED_object_base_init_transform_on_add(Object *object, const float loc[3], co
     copy_v3_v3(object->rot, rot);
   }
 
-  BKE_object_to_mat4(object, object->obmat);
+  BKE_object_to_mat4(object, object->object_to_world);
 }
 
 float ED_object_new_primitive_matrix(bContext *C,
@@ -342,14 +342,14 @@ float ED_object_new_primitive_matrix(bContext *C,
   invert_m3(rmat);
 
   /* inverse transform for initial rotation and object */
-  copy_m3_m4(mat, obedit->obmat);
+  copy_m3_m4(mat, obedit->object_to_world);
   mul_m3_m3m3(cmat, rmat, mat);
   invert_m3_m3(imat, cmat);
   copy_m4_m3(r_primmat, imat);
 
   /* center */
   copy_v3_v3(r_primmat[3], loc);
-  sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->obmat[3]);
+  sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->object_to_world[3]);
   invert_m3_m3(imat, mat);
   mul_m3_v3(imat, r_primmat[3]);
 
@@ -2084,7 +2084,7 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   Object *curves_ob = ED_object_add_type(
       C, OB_CURVES, nullptr, nullptr, nullptr, false, local_view_bits);
-  BKE_object_apply_mat4(curves_ob, surface_ob->obmat, false, false);
+  BKE_object_apply_mat4(curves_ob, surface_ob->object_to_world, false, false);
 
   /* Set surface object. */
   Curves *curves_id = static_cast<Curves *>(curves_ob->data);
@@ -2561,8 +2561,8 @@ static void make_object_duplilist_real(bContext *C,
     id_us_min((ID *)ob_dst->instance_collection);
     ob_dst->instance_collection = nullptr;
 
-    copy_m4_m4(ob_dst->obmat, dob->mat);
-    BKE_object_apply_mat4(ob_dst, ob_dst->obmat, false, false);
+    copy_m4_m4(ob_dst->object_to_world, dob->mat);
+    BKE_object_apply_mat4(ob_dst, ob_dst->object_to_world, false, false);
 
     BLI_ghash_insert(dupli_gh, dob, ob_dst);
     if (parent_gh) {
@@ -3017,7 +3017,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
       float loc[3], size[3], rot[3][3], eul[3];
       float matrix[4][4];
-      mat4_to_loc_rot_size(loc, rot, size, ob->obmat);
+      mat4_to_loc_rot_size(loc, rot, size, ob->object_to_world);
       mat3_to_eul(eul, rot);
 
       Object *ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
@@ -3871,8 +3871,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
   if (RNA_property_is_set(op->ptr, prop_matrix)) {
     Object *ob_add = basen->object;
-    RNA_property_float_get_array(op->ptr, prop_matrix, &ob_add->obmat[0][0]);
-    BKE_object_apply_mat4(ob_add, ob_add->obmat, true, true);
+    RNA_property_float_get_array(op->ptr, prop_matrix, &ob_add->object_to_world[0][0]);
+    BKE_object_apply_mat4(ob_add, ob_add->object_to_world, true, true);
 
     DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
   }
@@ -3969,7 +3969,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
     float mat_dst_unit[4][4];
     float final_delta[4][4];
 
-    normalize_m4_m4(mat_src_unit, ob->obmat);
+    normalize_m4_m4(mat_src_unit, ob->object_to_world);
     normalize_m4_m4(mat_dst_unit, matrix);
     invert_m4(mat_src_unit);
     mul_m4_m4m4(final_delta, mat_dst_unit, mat_src_unit);
@@ -4124,7 +4124,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
      * If the zero scale is removed, the data on this axis remains un-scaled
      * (something that wouldn't work for #invert_m4_m4_safe). */
     float imat_test[4][4];
-    if (!invert_m4_m4(imat_test, ob->obmat)) {
+    if (!invert_m4_m4(imat_test, ob->object_to_world)) {
       BKE_report(op->reports,
                  RPT_WARNING,
                  "Active object final transform has one or more zero scaled axes");

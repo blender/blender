@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Returns true if the vertex is used in a given face.
  */
@@ -771,3 +775,7 @@ int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
 float bmesh_subd_falloff_calc(int falloff, float val) ATTR_WARN_UNUSED_RESULT;
 
 #include "bmesh_query_inline.h"
+
+#ifdef __cplusplus
+}
+#endif

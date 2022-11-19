@@ -154,16 +154,7 @@ static MEdge new_edge(const int v1, const int v2)
   MEdge edge;
   edge.v1 = v1;
   edge.v2 = v2;
-  edge.flag = (ME_EDGEDRAW | ME_EDGERENDER);
-  return edge;
-}
-
-static MEdge new_loose_edge(const int v1, const int v2)
-{
-  MEdge edge;
-  edge.v1 = v1;
-  edge.v2 = v2;
-  edge.flag = ME_LOOSEEDGE;
+  edge.flag = ME_EDGEDRAW;
   return edge;
 }
 
@@ -234,7 +225,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
   MutableSpan<MEdge> new_edges = mesh.edges_for_write().slice(new_edge_range);
 
   for (const int i_selection : selection.index_range()) {
-    new_edges[i_selection] = new_loose_edge(selection[i_selection], new_vert_range[i_selection]);
+    new_edges[i_selection] = new_edge(selection[i_selection], new_vert_range[i_selection]);
   }
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -1380,8 +1371,8 @@ void register_node_type_geo_extrude_mesh()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, "Extrude Mesh", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   node_type_storage(
       &ntype, "NodeGeometryExtrudeMesh", node_free_standard_storage, node_copy_standard_storage);

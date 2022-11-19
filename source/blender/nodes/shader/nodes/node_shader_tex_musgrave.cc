@@ -535,11 +535,11 @@ void register_node_type_sh_tex_musgrave()
   ntype.declare = file_ns::sh_node_tex_musgrave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_musgrave;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_tex_musgrave);
+  ntype.initfunc = file_ns::node_shader_init_tex_musgrave;
   node_type_storage(
       &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_musgrave);
-  node_type_update(&ntype, file_ns::node_shader_update_tex_musgrave);
+  ntype.gpu_fn = file_ns::node_shader_gpu_tex_musgrave;
+  ntype.updatefunc = file_ns::node_shader_update_tex_musgrave;
   ntype.build_multi_function = file_ns::sh_node_musgrave_build_multi_function;
 
   nodeRegisterType(&ntype);

@@ -68,9 +68,11 @@ static void deform_curves(const CurvesGeometry &curves,
 
   const Span<MVert> surface_verts_old = surface_mesh_old.verts();
   const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
+  const Span<MLoopTri> surface_looptris_old = surface_mesh_old.looptris();
 
   const Span<MVert> surface_verts_new = surface_mesh_new.verts();
   const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
+  const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
   threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
     for (const int curve_i : range) {
@@ -85,8 +87,8 @@ static void deform_curves(const CurvesGeometry &curves,
         continue;
       }
 
-      const MLoopTri &looptri_old = *surface_sample_old.looptri;
-      const MLoopTri &looptri_new = *surface_sample_new.looptri;
+      const MLoopTri &looptri_old = surface_looptris_old[surface_sample_old.looptri_index];
+      const MLoopTri &looptri_new = surface_looptris_new[surface_sample_new.looptri_index];
       const float3 &bary_weights_old = surface_sample_old.bary_weights;
       const float3 &bary_weights_new = surface_sample_new.bary_weights;
 
@@ -310,7 +312,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                                              ATTR_DOMAIN_CORNER);
   const VArraySpan<float3> rest_positions = mesh_attributes_eval.lookup<float3>(rest_position_name,
                                                                                 ATTR_DOMAIN_POINT);
-  const Span<float2> surface_uv_coords = curves.surface_uv_coords();
+  const VArraySpan<float2> surface_uv_coords = curves.attributes().lookup_or_default(
+      "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
 
   const Span<MLoopTri> looptris_orig = surface_mesh_orig->looptris();
   const Span<MLoopTri> looptris_eval = surface_mesh_eval->looptris();
@@ -379,7 +382,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                   invalid_uv_count);
     /* Then also deform edit curve information for use in sculpt mode. */
     const CurvesGeometry &curves_orig = CurvesGeometry::wrap(edit_hints->curves_id_orig.geometry);
-    const Span<float2> surface_uv_coords_orig = curves_orig.surface_uv_coords();
+    const VArraySpan<float2> surface_uv_coords_orig = curves_orig.attributes().lookup_or_default(
+        "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {
       deform_curves(curves_orig,
                     *surface_mesh_orig,

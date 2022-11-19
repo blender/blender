@@ -91,10 +91,6 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  /* A newly created mesh does not have normals, so tag them dirty. This will be cleared
-   * by #BKE_mesh_vertex_normals_clear_dirty or #BKE_mesh_poly_normals_ensure. */
-  BKE_mesh_normals_tag_dirty(mesh);
-
   mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
 
@@ -128,6 +124,13 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
+  /* Share various derived caches between the source and destination mesh for improved performance
+   * when the source is persistent and edits to the destination mesh don't affect the caches.
+   * Caches will be "un-shared" as necessary later on. */
+  mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
+  mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
+  mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
+
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
 
@@ -158,21 +161,12 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
 
-  /* Set normal layers dirty. They should be dirty by default on new meshes anyway, but being
-   * explicit about it is safer. Alternatively normal layers could be copied if they aren't dirty,
-   * avoiding recomputation in some cases. However, a copied mesh is often changed anyway, so that
-   * idea is not clearly better. With proper reference counting, all custom data layers could be
-   * copied as the cost would be much lower. */
-  BKE_mesh_normals_tag_dirty(mesh_dst);
-
   /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
 void BKE_mesh_free_editmesh(struct Mesh *mesh)
@@ -196,7 +190,6 @@ static void mesh_free_data(ID *id)
 
   BKE_mesh_free_editmesh(mesh);
 
-  BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
 
@@ -236,7 +229,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-  mesh->runtime = nullptr;
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
@@ -261,6 +253,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_face_set_from_generic(mesh, poly_layers);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
+      BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert",
                                       ".hide_edge",
@@ -283,6 +276,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->ldata, loop_layers, names_to_skip);
     CustomData_blend_write_prepare(mesh->pdata, poly_layers, names_to_skip);
   }
+
+  mesh->runtime = nullptr;
 
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
@@ -359,10 +354,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
       BLI_endian_switch_uint32_array(tf->col, 4);
     }
   }
-
-  /* We don't expect to load normals from files, since they are derived data. */
-  BKE_mesh_normals_tag_dirty(mesh);
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -995,8 +986,6 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 
   BKE_mesh_copy_parameters(me_dst, me_src);
 
-  BKE_mesh_assert_normals_dirty_or_calculated(me_dst);
-
   /* Copy vertex group names. */
   BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
   BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
@@ -1523,29 +1512,27 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
     return false;
   }
 
-  struct Result {
-    float3 min;
-    float3 max;
-  };
-  const Span<MVert> verts = me->verts();
+  me->runtime->bounds_cache.ensure([me](Bounds<float3> &r_bounds) {
+    const Span<MVert> verts = me->verts();
+    r_bounds = threading::parallel_reduce(
+        verts.index_range(),
+        1024,
+        Bounds<float3>{float3(FLT_MAX), float3(-FLT_MAX)},
+        [verts](IndexRange range, const Bounds<float3> &init) {
+          Bounds<float3> result = init;
+          for (const int i : range) {
+            math::min_max(float3(verts[i].co), result.min, result.max);
+          }
+          return result;
+        },
+        [](const Bounds<float3> &a, const Bounds<float3> &b) {
+          return Bounds<float3>{math::min(a.min, b.min), math::max(a.max, b.max)};
+        });
+  });
 
-  const Result minmax = threading::parallel_reduce(
-      verts.index_range(),
-      1024,
-      Result{float3(FLT_MAX), float3(-FLT_MAX)},
-      [verts](IndexRange range, const Result &init) {
-        Result result = init;
-        for (const int i : range) {
-          math::min_max(float3(verts[i].co), result.min, result.max);
-        }
-        return result;
-      },
-      [](const Result &a, const Result &b) {
-        return Result{math::min(a.min, b.min), math::max(a.max, b.max)};
-      });
-
-  copy_v3_v3(r_min, math::min(minmax.min, float3(r_min)));
-  copy_v3_v3(r_max, math::max(minmax.max, float3(r_max)));
+  const Bounds<float3> &bounds = me->runtime->bounds_cache.data();
+  copy_v3_v3(r_min, math::min(bounds.min, float3(r_min)));
+  copy_v3_v3(r_max, math::max(bounds.max, float3(r_max)));
 
   return true;
 }
@@ -1606,38 +1593,6 @@ void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 void BKE_mesh_tessface_clear(Mesh *mesh)
 {
   mesh_tessface_clear_intern(mesh, true);
-}
-
-void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
-{
-  if (UNLIKELY(mesh->cd_flag)) {
-    return;
-  }
-
-  const Span<MVert> verts = mesh->verts();
-  const Span<MEdge> edges = mesh->edges();
-
-  for (const MVert &vert : verts) {
-    if (vert.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-      break;
-    }
-  }
-
-  for (const MEdge &edge : edges) {
-    if (edge.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
-        break;
-      }
-    }
-    if (edge.crease_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-        break;
-      }
-    }
-  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -1861,11 +1816,9 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               polys.size(),
                               use_split_normals,
                               split_angle,
+                              nullptr,
                               r_lnors_spacearr,
-                              clnors,
-                              nullptr);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
+                              clnors);
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)
@@ -2132,7 +2085,6 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
   /* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
   BKE_lnor_spacearr_free(&lnors_spacearr);
 
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 #ifdef VALIDATE_MESH
   BKE_mesh_validate(mesh, true, true);
 #endif

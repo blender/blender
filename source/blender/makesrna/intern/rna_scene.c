@@ -5928,7 +5928,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {FFMPEG_MKV, "MKV", 0, "Matroska", ""},
       {FFMPEG_FLV, "FLASH", 0, "Flash", ""},
       {FFMPEG_WEBM, "WEBM", 0, "WebM", ""},
-      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5947,6 +5946,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
       {AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
       {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
+      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

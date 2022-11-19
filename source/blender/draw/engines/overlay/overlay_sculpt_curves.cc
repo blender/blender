@@ -64,7 +64,7 @@ void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *object)
                                                                      ".selection_curve_float";
 
   bool is_point_domain;
-  GPUTexture **texture = DRW_curves_texture_for_evaluated_attribute(
+  GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
       curves, name, &is_point_domain);
   if (texture == nullptr) {
     return;
@@ -78,7 +78,7 @@ void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *object)
   }
 
   DRW_shgroup_uniform_bool_copy(grp, "is_point_domain", is_point_domain);
-  DRW_shgroup_uniform_texture(grp, "selection_tx", *texture);
+  DRW_shgroup_buffer_texture(grp, "selection_tx", *texture);
 }
 
 void OVERLAY_sculpt_curves_draw(OVERLAY_Data *vedata)

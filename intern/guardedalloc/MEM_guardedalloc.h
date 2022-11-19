@@ -271,7 +271,7 @@ void MEM_use_guarded_allocator(void);
 template<typename T, typename... Args>
 inline T *MEM_new(const char *allocation_name, Args &&...args)
 {
-  void *buffer = MEM_mallocN(sizeof(T), allocation_name);
+  void *buffer = MEM_mallocN_aligned(sizeof(T), alignof(T), allocation_name);
   return new (buffer) T(std::forward<Args>(args)...);
 }
 

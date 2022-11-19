@@ -68,8 +68,15 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
 
 /**
  * Append a filename to a dir, ensuring slash separates.
+ * \return The new length of `dst`.
  */
-void BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
+size_t BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
+    ATTR_NONNULL();
+/**
+ * A version of #BLI_path_append that ensures a trailing slash if there is space in `dst`.
+ * \return The new length of `dst`.
+ */
+size_t BLI_path_append_dir(char *__restrict dst, size_t maxlen, const char *__restrict dir)
     ATTR_NONNULL();
 
 /**
@@ -195,7 +202,10 @@ const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_
  * - 1 or -2: `path`
  * - 2 or -1: `file.txt`
  *
- * Ignores multiple slashes at any point in the path (including start/end).
+ * Ignored elements in the path:
+ * - Multiple slashes at any point in the path (including start/end).
+ * - Single '.' in the path: `/./` except for the beginning of the path
+ *   where it's used to signify a $PWD relative path.
  */
 bool BLI_path_name_at_index(const char *__restrict path,
                             int index,
@@ -218,7 +228,7 @@ const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UN
  * Appends a slash to string if there isn't one there already.
  * Returns the new length of the string.
  */
-int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
+int BLI_path_slash_ensure(char *string, size_t string_maxlen) ATTR_NONNULL(1);
 /**
  * Removes the last slash and everything after it to the end of string, if there is one.
  */
@@ -314,7 +324,7 @@ void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
 
 /**
  * Make given name safe to be used in paths.
@@ -357,6 +367,8 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
  *
  * Replaces path with the path of its parent directory, returning true if
  * it was able to find a parent directory within the path.
+ *
+ * On success, the resulting path will always have a trailing slash.
  */
 bool BLI_path_parent_dir(char *path) ATTR_NONNULL();
 /**

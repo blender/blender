@@ -1612,7 +1612,7 @@ static void library_make_local_copying_check(ID *id,
     if (!BLI_gset_haskey(done_ids, from_id)) {
       if (BLI_gset_haskey(loop_tags, from_id)) {
         /* We are in a 'dependency loop' of IDs, this does not say us anything, skip it.
-         * Note that this is the situation that can lead to archipelagoes of linked data-blocks
+         * Note that this is the situation that can lead to archipelagos of linked data-blocks
          * (since all of them have non-local users, they would all be duplicated,
          * leading to a loop of unused linked data-blocks that cannot be freed since they all use
          * each other...). */

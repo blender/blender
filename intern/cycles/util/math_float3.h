@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2013 Intel Corporation
  * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_MATH_FLOAT3_H__
@@ -9,73 +10,6 @@
 #endif
 
 CCL_NAMESPACE_BEGIN
-
-/*******************************************************************************
- * Declaration.
- */
-
-#if !defined(__KERNEL_METAL__)
-ccl_device_inline float3 operator-(const float3 &a);
-ccl_device_inline float3 operator*(const float3 &a, const float3 &b);
-ccl_device_inline float3 operator*(const float3 &a, const float f);
-ccl_device_inline float3 operator*(const float f, const float3 &a);
-ccl_device_inline float3 operator/(const float f, const float3 &a);
-ccl_device_inline float3 operator/(const float3 &a, const float f);
-ccl_device_inline float3 operator/(const float3 &a, const float3 &b);
-ccl_device_inline float3 operator+(const float3 &a, const float f);
-ccl_device_inline float3 operator+(const float3 &a, const float3 &b);
-ccl_device_inline float3 operator-(const float3 &a, const float f);
-ccl_device_inline float3 operator-(const float3 &a, const float3 &b);
-ccl_device_inline float3 operator+=(float3 &a, const float3 &b);
-ccl_device_inline float3 operator-=(float3 &a, const float3 &b);
-ccl_device_inline float3 operator*=(float3 &a, const float3 &b);
-ccl_device_inline float3 operator*=(float3 &a, float f);
-ccl_device_inline float3 operator/=(float3 &a, const float3 &b);
-ccl_device_inline float3 operator/=(float3 &a, float f);
-
-ccl_device_inline bool operator==(const float3 &a, const float3 &b);
-ccl_device_inline bool operator!=(const float3 &a, const float3 &b);
-
-ccl_device_inline float distance(const float3 &a, const float3 &b);
-ccl_device_inline float dot(const float3 &a, const float3 &b);
-ccl_device_inline float dot_xy(const float3 &a, const float3 &b);
-ccl_device_inline float3 cross(const float3 &a, const float3 &b);
-ccl_device_inline float3 normalize(const float3 &a);
-ccl_device_inline float3 min(const float3 &a, const float3 &b);
-ccl_device_inline float3 max(const float3 &a, const float3 &b);
-ccl_device_inline float3 clamp(const float3 &a, const float3 &mn, const float3 &mx);
-ccl_device_inline float3 fabs(const float3 &a);
-ccl_device_inline float3 mix(const float3 &a, const float3 &b, float t);
-ccl_device_inline float3 rcp(const float3 &a);
-ccl_device_inline float3 sqrt(const float3 &a);
-ccl_device_inline float3 floor(const float3 &a);
-ccl_device_inline float3 ceil(const float3 &a);
-ccl_device_inline float3 reflect(const float3 incident, const float3 normal);
-#endif /* !defined(__KERNEL_METAL__) */
-
-ccl_device_inline float reduce_min(float3 a);
-ccl_device_inline float reduce_max(float3 a);
-ccl_device_inline float len(const float3 a);
-ccl_device_inline float len_squared(const float3 a);
-
-ccl_device_inline float3 project(const float3 v, const float3 v_proj);
-
-ccl_device_inline float3 safe_normalize(const float3 a);
-ccl_device_inline float3 normalize_len(const float3 a, ccl_private float *t);
-ccl_device_inline float3 safe_normalize_len(const float3 a, ccl_private float *t);
-ccl_device_inline float3 safe_divide(const float3 a, const float3 b);
-ccl_device_inline float3 safe_divide(const float3 a, const float b);
-ccl_device_inline float3 interp(float3 a, float3 b, float t);
-ccl_device_inline float3 sqr(float3 a);
-
-ccl_device_inline bool is_zero(const float3 a);
-ccl_device_inline float reduce_add(const float3 a);
-ccl_device_inline float average(const float3 a);
-ccl_device_inline bool isequal(const float3 a, const float3 b);
-
-/*******************************************************************************
- * Definition.
- */
 
 ccl_device_inline float3 zero_float3()
 {
@@ -109,7 +43,7 @@ ccl_device_inline float3 operator-(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 operator*(const float3 &a, const float3 &b)
+ccl_device_inline float3 operator*(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_mul_ps(a.m128, b.m128));
@@ -118,7 +52,7 @@ ccl_device_inline float3 operator*(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 operator*(const float3 &a, const float f)
+ccl_device_inline float3 operator*(const float3 a, const float f)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_mul_ps(a.m128, _mm_set1_ps(f)));
@@ -127,7 +61,7 @@ ccl_device_inline float3 operator*(const float3 &a, const float f)
 #  endif
 }
 
-ccl_device_inline float3 operator*(const float f, const float3 &a)
+ccl_device_inline float3 operator*(const float f, const float3 a)
 {
 #  if defined(__KERNEL_SSE__)
   return float3(_mm_mul_ps(_mm_set1_ps(f), a.m128));
@@ -136,7 +70,7 @@ ccl_device_inline float3 operator*(const float f, const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 operator/(const float f, const float3 &a)
+ccl_device_inline float3 operator/(const float f, const float3 a)
 {
 #  if defined(__KERNEL_SSE__)
   return float3(_mm_div_ps(_mm_set1_ps(f), a.m128));
@@ -145,7 +79,7 @@ ccl_device_inline float3 operator/(const float f, const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 operator/(const float3 &a, const float f)
+ccl_device_inline float3 operator/(const float3 a, const float f)
 {
 #  if defined(__KERNEL_SSE__)
   return float3(_mm_div_ps(a.m128, _mm_set1_ps(f)));
@@ -154,7 +88,7 @@ ccl_device_inline float3 operator/(const float3 &a, const float f)
 #  endif
 }
 
-ccl_device_inline float3 operator/(const float3 &a, const float3 &b)
+ccl_device_inline float3 operator/(const float3 a, const float3 b)
 {
 #  if defined(__KERNEL_SSE__)
   return float3(_mm_div_ps(a.m128, b.m128));
@@ -163,12 +97,7 @@ ccl_device_inline float3 operator/(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 operator+(const float3 &a, const float f)
-{
-  return a + make_float3(f, f, f);
-}
-
-ccl_device_inline float3 operator+(const float3 &a, const float3 &b)
+ccl_device_inline float3 operator+(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_add_ps(a.m128, b.m128));
@@ -177,12 +106,12 @@ ccl_device_inline float3 operator+(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 operator-(const float3 &a, const float f)
+ccl_device_inline float3 operator+(const float3 a, const float f)
 {
-  return a - make_float3(f, f, f);
+  return a + make_float3(f, f, f);
 }
 
-ccl_device_inline float3 operator-(const float3 &a, const float3 &b)
+ccl_device_inline float3 operator-(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_sub_ps(a.m128, b.m128));
@@ -191,17 +120,22 @@ ccl_device_inline float3 operator-(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 operator+=(float3 &a, const float3 &b)
+ccl_device_inline float3 operator-(const float3 a, const float f)
+{
+  return a - make_float3(f, f, f);
+}
+
+ccl_device_inline float3 operator+=(float3 &a, const float3 b)
 {
   return a = a + b;
 }
 
-ccl_device_inline float3 operator-=(float3 &a, const float3 &b)
+ccl_device_inline float3 operator-=(float3 &a, const float3 b)
 {
   return a = a - b;
 }
 
-ccl_device_inline float3 operator*=(float3 &a, const float3 &b)
+ccl_device_inline float3 operator*=(float3 &a, const float3 b)
 {
   return a = a * b;
 }
@@ -211,7 +145,7 @@ ccl_device_inline float3 operator*=(float3 &a, float f)
   return a = a * f;
 }
 
-ccl_device_inline float3 operator/=(float3 &a, const float3 &b)
+ccl_device_inline float3 operator/=(float3 &a, const float3 b)
 {
   return a = a / b;
 }
@@ -223,7 +157,7 @@ ccl_device_inline float3 operator/=(float3 &a, float f)
 }
 
 #  if !(defined(__KERNEL_METAL__) || defined(__KERNEL_CUDA__))
-ccl_device_inline packed_float3 operator*=(packed_float3 &a, const float3 &b)
+ccl_device_inline packed_float3 operator*=(packed_float3 &a, const float3 b)
 {
   a = float3(a) * b;
   return a;
@@ -235,7 +169,7 @@ ccl_device_inline packed_float3 operator*=(packed_float3 &a, float f)
   return a;
 }
 
-ccl_device_inline packed_float3 operator/=(packed_float3 &a, const float3 &b)
+ccl_device_inline packed_float3 operator/=(packed_float3 &a, const float3 b)
 {
   a = float3(a) / b;
   return a;
@@ -248,7 +182,7 @@ ccl_device_inline packed_float3 operator/=(packed_float3 &a, float f)
 }
 #  endif
 
-ccl_device_inline bool operator==(const float3 &a, const float3 &b)
+ccl_device_inline bool operator==(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return (_mm_movemask_ps(_mm_cmpeq_ps(a.m128, b.m128)) & 7) == 7;
@@ -257,17 +191,12 @@ ccl_device_inline bool operator==(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline bool operator!=(const float3 &a, const float3 &b)
+ccl_device_inline bool operator!=(const float3 a, const float3 b)
 {
   return !(a == b);
 }
 
-ccl_device_inline float distance(const float3 &a, const float3 &b)
-{
-  return len(a - b);
-}
-
-ccl_device_inline float dot(const float3 &a, const float3 &b)
+ccl_device_inline float dot(const float3 a, const float3 b)
 {
 #  if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
   return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7F));
@@ -276,26 +205,62 @@ ccl_device_inline float dot(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float dot_xy(const float3 &a, const float3 &b)
+#endif
+
+ccl_device_inline float dot_xy(const float3 a, const float3 b)
 {
-#  if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
   return _mm_cvtss_f32(_mm_hadd_ps(_mm_mul_ps(a, b), b));
-#  else
+#else
   return a.x * b.x + a.y * b.y;
-#  endif
+#endif
 }
 
-ccl_device_inline float3 cross(const float3 &a, const float3 &b)
+ccl_device_inline float len(const float3 a)
+{
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+  return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(a.m128, a.m128, 0x7F)));
+#else
+  return sqrtf(dot(a, a));
+#endif
+}
+
+ccl_device_inline float reduce_min(float3 a)
+{
+  return min(min(a.x, a.y), a.z);
+}
+
+ccl_device_inline float reduce_max(float3 a)
+{
+  return max(max(a.x, a.y), a.z);
+}
+
+ccl_device_inline float len_squared(const float3 a)
+{
+  return dot(a, a);
+}
+
+#ifndef __KERNEL_METAL__
+
+ccl_device_inline float distance(const float3 a, const float3 b)
+{
+  return len(a - b);
+}
+
+ccl_device_inline float3 cross(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
-  return float3(shuffle<1, 2, 0, 3>(
-      msub(ssef(a), shuffle<1, 2, 0, 3>(ssef(b)), shuffle<1, 2, 0, 3>(ssef(a)) * ssef(b))));
+  const float4 x = float4(a.m128);
+  const float4 y = shuffle<1, 2, 0, 3>(float4(b.m128));
+  const float4 z = float4(_mm_mul_ps(shuffle<1, 2, 0, 3>(float4(a.m128)), float4(b.m128)));
+
+  return float3(shuffle<1, 2, 0, 3>(msub(x, y, z)).m128);
 #  else
   return make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 #  endif
 }
 
-ccl_device_inline float3 normalize(const float3 &a)
+ccl_device_inline float3 normalize(const float3 a)
 {
 #  if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
   __m128 norm = _mm_sqrt_ps(_mm_dp_ps(a.m128, a.m128, 0x7F));
@@ -305,7 +270,7 @@ ccl_device_inline float3 normalize(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 min(const float3 &a, const float3 &b)
+ccl_device_inline float3 min(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_min_ps(a.m128, b.m128));
@@ -314,7 +279,7 @@ ccl_device_inline float3 min(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 max(const float3 &a, const float3 &b)
+ccl_device_inline float3 max(const float3 a, const float3 b)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_max_ps(a.m128, b.m128));
@@ -323,12 +288,12 @@ ccl_device_inline float3 max(const float3 &a, const float3 &b)
 #  endif
 }
 
-ccl_device_inline float3 clamp(const float3 &a, const float3 &mn, const float3 &mx)
+ccl_device_inline float3 clamp(const float3 a, const float3 mn, const float3 mx)
 {
   return min(max(a, mn), mx);
 }
 
-ccl_device_inline float3 fabs(const float3 &a)
+ccl_device_inline float3 fabs(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
 #    ifdef __KERNEL_NEON__
@@ -342,7 +307,7 @@ ccl_device_inline float3 fabs(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 sqrt(const float3 &a)
+ccl_device_inline float3 sqrt(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_sqrt_ps(a));
@@ -351,7 +316,7 @@ ccl_device_inline float3 sqrt(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 floor(const float3 &a)
+ccl_device_inline float3 floor(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_floor_ps(a));
@@ -360,7 +325,7 @@ ccl_device_inline float3 floor(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 ceil(const float3 &a)
+ccl_device_inline float3 ceil(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
   return float3(_mm_ceil_ps(a));
@@ -369,12 +334,12 @@ ccl_device_inline float3 ceil(const float3 &a)
 #  endif
 }
 
-ccl_device_inline float3 mix(const float3 &a, const float3 &b, float t)
+ccl_device_inline float3 mix(const float3 a, const float3 b, float t)
 {
   return a + t * (b - a);
 }
 
-ccl_device_inline float3 rcp(const float3 &a)
+ccl_device_inline float3 rcp(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
   /* Don't use _mm_rcp_ps due to poor precision. */
@@ -399,33 +364,6 @@ ccl_device_inline float3 log(float3 v)
   return make_float3(logf(v.x), logf(v.y), logf(v.z));
 }
 
-#endif /* !__KERNEL_METAL__ */
-
-ccl_device_inline float reduce_min(float3 a)
-{
-  return min(min(a.x, a.y), a.z);
-}
-
-ccl_device_inline float reduce_max(float3 a)
-{
-  return max(max(a.x, a.y), a.z);
-}
-
-ccl_device_inline float len(const float3 a)
-{
-#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-  return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(a.m128, a.m128, 0x7F)));
-#else
-  return sqrtf(dot(a, a));
-#endif
-}
-
-ccl_device_inline float len_squared(const float3 a)
-{
-  return dot(a, a);
-}
-
-#if !defined(__KERNEL_METAL__)
 ccl_device_inline float3 reflect(const float3 incident, const float3 normal)
 {
   float3 unit_normal = normalize(normal);

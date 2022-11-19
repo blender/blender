@@ -8,6 +8,7 @@ from bpy.props import (
     IntProperty,
     StringProperty,
 )
+from bpy.app.translations import pgettext_tip as tip_
 
 
 class SelectPattern(Operator):
@@ -363,14 +364,12 @@ class ShapeTransfer(Operator):
         for ob_other in objects:
             if ob_other.type != 'MESH':
                 self.report({'WARNING'},
-                            ("Skipping '%s', "
-                             "not a mesh") % ob_other.name)
+                            tip_("Skipping '%s', not a mesh") % ob_other.name)
                 continue
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'},
-                            ("Skipping '%s', "
-                             "vertex count differs") % ob_other.name)
+                            tip_("Skipping '%s', vertex count differs") % ob_other.name)
                 continue
 
             target_normals = me_nos(me_other.vertices)
@@ -508,7 +507,7 @@ class JoinUVs(Operator):
 
         if not mesh.uv_layers:
             self.report({'WARNING'},
-                        "Object: %s, Mesh: '%s' has no UVs"
+                        tip_("Object: %s, Mesh: '%s' has no UVs")
                         % (obj.name, mesh.name))
         else:
             nbr_loops = len(mesh.loops)
@@ -531,9 +530,10 @@ class JoinUVs(Operator):
                             mesh_other.tag = True
 
                             if len(mesh_other.loops) != nbr_loops:
-                                self.report({'WARNING'}, "Object: %s, Mesh: "
-                                            "'%s' has %d loops (for %d faces),"
-                                            " expected %d\n"
+                                self.report({'WARNING'},
+                                            tip_("Object: %s, Mesh: "
+                                                 "'%s' has %d loops (for %d faces),"
+                                                 " expected %d\n")
                                             % (obj_other.name,
                                                mesh_other.name,
                                                len(mesh_other.loops),
@@ -547,9 +547,10 @@ class JoinUVs(Operator):
                                     mesh_other.uv_layers.new()
                                     uv_other = mesh_other.uv_layers.active
                                     if not uv_other:
-                                        self.report({'ERROR'}, "Could not add "
-                                                    "a new UV map to object "
-                                                    "'%s' (Mesh '%s')\n"
+                                        self.report({'ERROR'},
+                                                    tip_("Could not add "
+                                                         "a new UV map to object "
+                                                         "'%s' (Mesh '%s')\n")
                                                     % (obj_other.name,
                                                        mesh_other.name,
                                                        ),
@@ -784,8 +785,8 @@ class TransformsToDeltasAnim(Operator):
             adt = obj.animation_data
             if (adt is None) or (adt.action is None):
                 self.report({'WARNING'},
-                            "No animation data to convert on object: %r" %
-                            obj.name)
+                            tip_("No animation data to convert on object: %r")
+                            % obj.name)
                 continue
 
             # first pass over F-Curves: ensure that we don't have conflicting
@@ -811,8 +812,8 @@ class TransformsToDeltasAnim(Operator):
                     if fcu.array_index in existingFCurves[dpath]:
                         # conflict
                         self.report({'ERROR'},
-                                    "Object '%r' already has '%r' F-Curve(s). "
-                                    "Remove these before trying again" %
+                                    tip_("Object '%r' already has '%r' F-Curve(s). "
+                                         "Remove these before trying again") %
                                     (obj.name, dpath))
                         return {'CANCELLED'}
                     else:

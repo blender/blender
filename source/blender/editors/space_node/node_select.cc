@@ -91,10 +91,10 @@ rctf node_frame_rect_inside(const bNode &node)
 {
   const float margin = 1.5f * U.widget_unit;
   rctf frame_inside = {
-      node.totr.xmin,
-      node.totr.xmax,
-      node.totr.ymin,
-      node.totr.ymax,
+      node.runtime->totr.xmin,
+      node.runtime->totr.xmax,
+      node.runtime->totr.ymin,
+      node.runtime->totr.ymax,
   };
 
   BLI_rctf_pad(&frame_inside, -margin, -margin);
@@ -112,7 +112,7 @@ static bool node_frame_select_isect_mouse(const bNode &node, const float2 &mouse
   /* Frame nodes are selectable by their borders (including their whole rect - as for other nodes -
    * would prevent e.g. box selection of nodes inside that frame). */
   const rctf frame_inside = node_frame_rect_inside(node);
-  if (BLI_rctf_isect_pt(&node.totr, mouse.x, mouse.y) &&
+  if (BLI_rctf_isect_pt(&node.runtime->totr, mouse.x, mouse.y) &&
       !BLI_rctf_isect_pt(&frame_inside, mouse.x, mouse.y)) {
     return true;
   }
@@ -131,7 +131,7 @@ static bNode *node_under_mouse_select(bNodeTree &ntree, const float2 mouse)
         break;
       }
       default: {
-        if (BLI_rctf_isect_pt(&node->totr, int(mouse.x), int(mouse.y))) {
+        if (BLI_rctf_isect_pt(&node->runtime->totr, int(mouse.x), int(mouse.y))) {
           return node;
         }
         break;
@@ -159,7 +159,7 @@ static bool node_under_mouse_tweak(const bNodeTree &ntree, const float2 &mouse)
         break;
       }
       default: {
-        if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y)) {
+        if (BLI_rctf_isect_pt(&node->runtime->totr, mouse.x, mouse.y)) {
           return true;
         }
         break;
@@ -779,7 +779,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of other nodes inside that frame. */
         const rctf frame_inside = node_frame_rect_inside(*node);
-        if (BLI_rctf_isect(&rectf, &node->totr, nullptr) &&
+        if (BLI_rctf_isect(&rectf, &node->runtime->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
           nodeSetSelected(node, select);
           is_inside = true;
@@ -787,7 +787,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
         break;
       }
       default: {
-        is_inside = BLI_rctf_isect(&rectf, &node->totr, nullptr);
+        is_inside = BLI_rctf_isect(&rectf, &node->runtime->totr, nullptr);
         break;
       }
     }
@@ -884,14 +884,14 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
         rctf frame_inside = node_frame_rect_inside(*node);
         const float radius_adjusted = float(radius) / zoom;
         BLI_rctf_pad(&frame_inside, -2.0f * radius_adjusted, -2.0f * radius_adjusted);
-        if (BLI_rctf_isect_circle(&node->totr, offset, radius_adjusted) &&
+        if (BLI_rctf_isect_circle(&node->runtime->totr, offset, radius_adjusted) &&
             !BLI_rctf_isect_circle(&frame_inside, offset, radius_adjusted)) {
           nodeSetSelected(node, select);
         }
         break;
       }
       default: {
-        if (BLI_rctf_isect_circle(&node->totr, offset, radius / zoom)) {
+        if (BLI_rctf_isect_circle(&node->runtime->totr, offset, radius / zoom)) {
           nodeSetSelected(node, select);
         }
         break;
@@ -980,7 +980,7 @@ static bool do_lasso_select_node(bContext *C,
         BLI_rctf_rcti_copy(&rectf, &rect);
         UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
         const rctf frame_inside = node_frame_rect_inside(*node);
-        if (BLI_rctf_isect(&rectf, &node->totr, nullptr) &&
+        if (BLI_rctf_isect(&rectf, &node->runtime->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
           nodeSetSelected(node, select);
           changed = true;
@@ -989,7 +989,8 @@ static bool do_lasso_select_node(bContext *C,
       }
       default: {
         int2 screen_co;
-        const float2 center = {BLI_rctf_cent_x(&node->totr), BLI_rctf_cent_y(&node->totr)};
+        const float2 center = {BLI_rctf_cent_x(&node->runtime->totr),
+                               BLI_rctf_cent_y(&node->runtime->totr)};
 
         /* marker in screen coords */
         if (UI_view2d_view_to_region_clip(
@@ -1303,8 +1304,10 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
     node_select_single(*C, *active);
 
     /* is note outside view? */
-    if (active->totr.xmax < region->v2d.cur.xmin || active->totr.xmin > region->v2d.cur.xmax ||
-        active->totr.ymax < region->v2d.cur.ymin || active->totr.ymin > region->v2d.cur.ymax) {
+    if (active->runtime->totr.xmax < region->v2d.cur.xmin ||
+        active->runtime->totr.xmin > region->v2d.cur.xmax ||
+        active->runtime->totr.ymax < region->v2d.cur.ymin ||
+        active->runtime->totr.ymin > region->v2d.cur.ymax) {
       const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
       space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx);
     }
@@ -1393,8 +1396,10 @@ static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
     node_select_single(*C, *active);
 
     /* is note outside view? */
-    if (active->totr.xmax < region->v2d.cur.xmin || active->totr.xmin > region->v2d.cur.xmax ||
-        active->totr.ymax < region->v2d.cur.ymin || active->totr.ymin > region->v2d.cur.ymax) {
+    if (active->runtime->totr.xmax < region->v2d.cur.xmin ||
+        active->runtime->totr.xmin > region->v2d.cur.xmax ||
+        active->runtime->totr.ymax < region->v2d.cur.ymin ||
+        active->runtime->totr.ymin > region->v2d.cur.ymax) {
       space_node_view_flag(*C, *snode, *region, NODE_SELECT, U.smooth_viewtx);
     }
   }

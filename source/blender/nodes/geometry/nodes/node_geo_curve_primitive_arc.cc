@@ -359,8 +359,8 @@ void register_node_type_geo_curve_primitive_arc()
 
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_ARC, "Arc", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveArc",
                     node_free_standard_storage,

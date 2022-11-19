@@ -268,35 +268,35 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
     return SCREEN_DIR_NONE;
   }
 
-  const vec2s *sa_bl = &sa_a->v1->vec;
-  const vec2s *sa_tl = &sa_a->v2->vec;
-  const vec2s *sa_tr = &sa_a->v3->vec;
-  const vec2s *sa_br = &sa_a->v4->vec;
+  short left_a = sa_a->v1->vec.x;
+  short right_a = sa_a->v3->vec.x;
+  short top_a = sa_a->v3->vec.y;
+  short bottom_a = sa_a->v1->vec.y;
 
-  const vec2s *sb_bl = &sa_b->v1->vec;
-  const vec2s *sb_tl = &sa_b->v2->vec;
-  const vec2s *sb_tr = &sa_b->v3->vec;
-  const vec2s *sb_br = &sa_b->v4->vec;
+  short left_b = sa_b->v1->vec.x;
+  short right_b = sa_b->v3->vec.x;
+  short top_b = sa_b->v3->vec.y;
+  short bottom_b = sa_b->v1->vec.y;
 
-  if (sa_bl->x == sb_br->x && sa_tl->x == sb_tr->x) { /* sa_a to right of sa_b = W */
-    if ((MIN2(sa_tl->y, sb_tr->y) - MAX2(sa_bl->y, sb_br->y)) > AREAJOINTOLERANCEY) {
-      return 0;
-    }
+  /* How much these areas share a common edge. */
+  short overlapx = MIN2(right_a, right_b) - MAX2(left_a, left_b);
+  short overlapy = MIN2(top_a, top_b) - MAX2(bottom_a, bottom_b);
+
+  /* Minimum overlap required. */
+  const short minx = MIN3(AREAJOINTOLERANCEX, right_a - left_a, right_b - left_b);
+  const short miny = MIN3(AREAJOINTOLERANCEY, top_a - bottom_a, top_b - bottom_b);
+
+  if (top_a == bottom_b && overlapx >= minx) {
+    return 1; /* sa_a to bottom of sa_b = N */
   }
-  else if (sa_tl->y == sb_bl->y && sa_tr->y == sb_br->y) { /* sa_a to bottom of sa_b = N */
-    if ((MIN2(sa_tr->x, sb_br->x) - MAX2(sa_tl->x, sb_bl->x)) > AREAJOINTOLERANCEX) {
-      return 1;
-    }
+  if (bottom_a == top_b && overlapx >= minx) {
+    return 3; /* sa_a on top of sa_b = S */
   }
-  else if (sa_tr->x == sb_tl->x && sa_br->x == sb_bl->x) { /* sa_a to left of sa_b = E */
-    if ((MIN2(sa_tr->y, sb_tl->y) - MAX2(sa_br->y, sb_bl->y)) > AREAJOINTOLERANCEY) {
-      return 2;
-    }
+  if (left_a == right_b && overlapy >= miny) {
+    return 0; /* sa_a to right of sa_b = W */
   }
-  else if (sa_bl->y == sb_tl->y && sa_br->y == sb_tr->y) { /* sa_a on top of sa_b = S */
-    if ((MIN2(sa_br->x, sb_tr->x) - MAX2(sa_bl->x, sb_tl->x)) > AREAJOINTOLERANCEX) {
-      return 3;
-    }
+  if (right_a == left_b && overlapy >= miny) {
+    return 2; /* sa_a to left of sa_b = E */
   }
 
   return -1;
@@ -360,11 +360,65 @@ static void screen_verts_valign(const wmWindow *win,
   }
 }
 
+/* Test if two adjoining areas can be aligned by having their screen edges adjusted. */
+static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
+{
+  if (dir == SCREEN_DIR_NONE) {
+    return false;
+  }
+
+  int offset1;
+  int offset2;
+  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
+
+  const int tolerance = SCREEN_DIR_IS_HORIZONTAL(dir) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
+  if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
+    /* Misalignment is too great. */
+    return false;
+  }
+
+  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See T100772.  */
+  if (SCREEN_DIR_IS_VERTICAL(dir)) {
+    const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
+    const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area == sa1 || area == sa2) {
+        continue;
+      }
+      if (area->v3->vec.x - area->v1->vec.x < tolerance &&
+          (area->v1->vec.x == xmin || area->v3->vec.x == xmax)) {
+        /* There is a narrow vertical area sharing an edge of the combined bounds. */
+        return false;
+      }
+    }
+  }
+  else {
+    const short ymin = MIN2(sa1->v1->vec.y, sa2->v1->vec.y);
+    const short ymax = MAX2(sa1->v3->vec.y, sa2->v3->vec.y);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area == sa1 || area == sa2) {
+        continue;
+      }
+      if (area->v3->vec.y - area->v1->vec.y < tolerance &&
+          (area->v1->vec.y == ymin || area->v3->vec.y == ymax)) {
+        /* There is a narrow horizontal area sharing an edge of the combined bounds. */
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 /* Adjust all screen edges to allow joining two areas. 'dir' value is like area_getorientation().
  */
-static void screen_areas_align(
+static bool screen_areas_align(
     bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const eScreenDir dir)
 {
+  if (!screen_areas_can_align(screen, sa1, sa2, dir)) {
+    return false;
+  }
+
   wmWindow *win = CTX_wm_window(C);
 
   if (SCREEN_DIR_IS_HORIZONTAL(dir)) {
@@ -393,27 +447,19 @@ static void screen_areas_align(
     screen_verts_halign(win, screen, sa2->v1->vec.x, left);
     screen_verts_halign(win, screen, sa2->v3->vec.x, right);
   }
+
+  return true;
 }
 
 /* Simple join of two areas without any splitting. Will return false if not possible. */
 static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
   const eScreenDir dir = area_getorientation(sa1, sa2);
-  if (dir == SCREEN_DIR_NONE) {
+
+  /* Ensure that the area edges are exactly aligned. */
+  if (!screen_areas_align(C, screen, sa1, sa2, dir)) {
     return false;
   }
-
-  int offset1;
-  int offset2;
-  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
-
-  int tolerance = SCREEN_DIR_IS_HORIZONTAL(dir) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
-  if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
-    return false;
-  }
-
-  /* Align areas if they are not. */
-  screen_areas_align(C, screen, sa1, sa2, dir);
 
   if (dir == SCREEN_DIR_W) { /* sa1 to right of sa2 = West. */
     sa1->v1 = sa2->v1;       /* BL */

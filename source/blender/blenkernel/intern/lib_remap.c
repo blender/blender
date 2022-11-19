@@ -27,6 +27,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -116,6 +117,11 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
       DEG_id_tag_update_ex(id_remap_data->bmain,
                            id_owner,
                            ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    }
+    if (GS(id_owner->name) == ID_NT) {
+      /* Make sure that the node tree is updated after a property in it changed. Ideally, we would
+       * know which nodes property was changed so that only this node is tagged. */
+      BKE_ntree_update_tag_all((bNodeTree *)id_owner);
     }
   }
   /* Get the new_id pointer. When the mapping is violating never null we should use a NULL

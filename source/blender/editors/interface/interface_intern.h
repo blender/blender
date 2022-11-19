@@ -477,6 +477,12 @@ typedef enum uiButtonGroupFlag {
 } uiButtonGroupFlag;
 ENUM_OPERATORS(uiButtonGroupFlag, UI_BUTTON_GROUP_PANEL_HEADER);
 
+typedef struct uiBlockDynamicListener {
+  struct uiBlockDynamicListener *next, *prev;
+
+  void (*listener_func)(const struct wmRegionListenerParams *params);
+} uiBlockDynamicListener;
+
 struct uiBlock {
   uiBlock *next, *prev;
 
@@ -498,6 +504,8 @@ struct uiBlock {
    * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
    * state that is persistent over redraws (e.g. collapsed tree-view items). */
   ListBase views;
+
+  ListBase dynamic_listeners; /* #uiBlockDynamicListener */
 
   char name[UI_MAX_NAME_STR];
 
@@ -1540,6 +1548,8 @@ void ui_interface_tag_script_reload_queries(void);
 /* interface_view.cc */
 
 void ui_block_free_views(struct uiBlock *block);
+void ui_block_views_listen(const uiBlock *block,
+                           const struct wmRegionListenerParams *listener_params);
 uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
                                                        const uiViewHandle *new_view);
 

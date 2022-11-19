@@ -31,6 +31,7 @@
 #include "BLI_math_color.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "BKE_appdir.h"
@@ -2249,6 +2250,43 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
   }
 }
 
+typedef struct ImbufByteToFloatData {
+  OCIO_ConstCPUProcessorRcPtr *processor;
+  int width;
+  int offset, stride;
+  const uchar *in_buffer;
+  float *out_buffer;
+  bool use_premultiply;
+} ImbufByteToFloatData;
+
+static void imbuf_byte_to_float_cb(void *__restrict userdata,
+                                   const int y,
+                                   const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  ImbufByteToFloatData *data = userdata;
+
+  const size_t in_offset = data->offset + y * data->stride;
+  const size_t out_offset = y * data->width;
+  const uchar *in = data->in_buffer + in_offset * 4;
+  float *out = data->out_buffer + out_offset * 4;
+
+  /* Convert to scene linear, to sRGB and premultiply. */
+  for (int x = 0; x < data->width; x++, in += 4, out += 4) {
+    float pixel[4];
+    rgba_uchar_to_float(pixel, in);
+    if (data->processor) {
+      OCIO_cpuProcessorApplyRGB(data->processor, pixel);
+    }
+    else {
+      srgb_to_linearrgb_v3_v3(pixel, pixel);
+    }
+    if (data->use_premultiply) {
+      mul_v3_fl(pixel, pixel[3]);
+    }
+    copy_v4_v4(out, pixel);
+  }
+}
+
 void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
                                                 const int offset_x,
                                                 const int offset_y,
@@ -2307,34 +2345,25 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
     const uchar *in_buffer = (uchar *)ibuf->rect;
     const bool use_premultiply = IMB_alpha_affects_rgb(ibuf) && store_premultiplied;
 
-    /* TODO(brecht): make this multi-threaded, or at least process in batches. */
     OCIO_ConstCPUProcessorRcPtr *processor = (ibuf->rect_colorspace) ?
                                                  colorspace_to_scene_linear_cpu_processor(
                                                      ibuf->rect_colorspace) :
                                                  NULL;
 
-    for (int y = 0; y < height; y++) {
-      const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
-      const size_t out_offset = y * width;
-      const uchar *in = in_buffer + in_offset * 4;
-      float *out = out_buffer + out_offset * 4;
+    ImbufByteToFloatData data = {
+        .processor = processor,
+        .width = width,
+        .offset = offset_y * ibuf->x + offset_x,
+        .stride = ibuf->x,
+        .in_buffer = in_buffer,
+        .out_buffer = out_buffer,
+        .use_premultiply = use_premultiply,
+    };
 
-      /* Convert to scene linear, to sRGB and premultiply. */
-      for (int x = 0; x < width; x++, in += 4, out += 4) {
-        float pixel[4];
-        rgba_uchar_to_float(pixel, in);
-        if (processor) {
-          OCIO_cpuProcessorApplyRGB(processor, pixel);
-        }
-        else {
-          srgb_to_linearrgb_v3_v3(pixel, pixel);
-        }
-        if (use_premultiply) {
-          mul_v3_fl(pixel, pixel[3]);
-        }
-        copy_v4_v4(out, pixel);
-      }
-    }
+    TaskParallelSettings settings;
+    BLI_parallel_range_settings_defaults(&settings);
+    settings.use_threading = (height > 128);
+    BLI_task_parallel_range(0, height, &data, imbuf_byte_to_float_cb, &settings);
   }
 }
 

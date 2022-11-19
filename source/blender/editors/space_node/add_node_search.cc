@@ -2,14 +2,15 @@
 
 #include <optional>
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_library.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string_search.h"
 
 #include "DNA_space_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"

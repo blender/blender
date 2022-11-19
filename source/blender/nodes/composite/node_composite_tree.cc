@@ -18,6 +18,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
@@ -86,8 +87,8 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
   while (node != nullptr) {
 
     /* Ensure new user input gets handled ok. */
-    node->need_exec = 0;
-    local_node->original = node;
+    node->runtime->need_exec = 0;
+    local_node->runtime->original = node;
 
     /* move over the compbufs */
     /* right after #ntreeCopyTree() `oldsock` pointers are valid */
@@ -262,9 +263,14 @@ void ntreeCompositClearTags(bNodeTree *ntree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->need_exec = 0;
+    node->runtime->need_exec = 0;
     if (node->type == NODE_GROUP) {
       ntreeCompositClearTags((bNodeTree *)node->id);
     }
   }
+}
+
+void ntreeCompositTagNeedExec(bNode *node)
+{
+  node->runtime->need_exec = true;
 }

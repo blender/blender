@@ -3356,8 +3356,8 @@ static bool merge_target(BMEditMesh *em,
   if (use_cursor) {
     vco = scene->cursor.location;
     copy_v3_v3(co, vco);
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_m4_v3(ob->imat, co);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_m4_v3(ob->world_to_object, co);
   }
   else {
     float fac;
@@ -6684,7 +6684,7 @@ static void sort_bmelem_flag(bContext *C,
     int coidx = (action == SRT_VIEW_ZAXIS) ? 2 : 0;
 
     /* Apply the view matrix to the object matrix. */
-    mul_m4_m4m4(mat, rv3d->viewmat, ob->obmat);
+    mul_m4_m4m4(mat, rv3d->viewmat, ob->object_to_world);
 
     if (totelem[0]) {
       pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
@@ -6753,7 +6753,7 @@ static void sort_bmelem_flag(bContext *C,
 
     copy_v3_v3(cur, scene->cursor.location);
 
-    invert_m4_m4(mat, ob->obmat);
+    invert_m4_m4(mat, ob->object_to_world);
     mul_m4_v3(mat, cur);
 
     if (totelem[0]) {
