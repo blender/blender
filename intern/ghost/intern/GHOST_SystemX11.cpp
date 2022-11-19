@@ -945,10 +945,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             window->getClientBounds(bounds);
 
             /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
-             * on every motion event, see: T102346. */
+             * on every motion event, see: D16557 (alternative fix for T102346). */
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
-            const int center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
+            const int32_t center[2] = {
+                (bounds.m_l + bounds.m_r) / 2,
+                (bounds.m_t + bounds.m_b) / 2,
+            };
             /* Shrink the box to prevent the cursor escaping. */
             bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
             bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
