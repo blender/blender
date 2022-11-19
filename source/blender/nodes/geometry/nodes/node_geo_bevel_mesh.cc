@@ -887,7 +887,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
     copy_v3_v3(mesh_out->verts_for_write()[v + keep_vertices.size()].co, new_verts_[v].co);
   }
 
-  BKE_mesh_calc_edges_loose(mesh_out);
+  BKE_mesh_runtime_clear_cache(mesh_out);
   if (dbglevel > 0) {
     std::cout << "\nFinal Mesh\n" << mesh_out;
   }
@@ -2014,8 +2014,8 @@ void register_node_type_geo_bevel_mesh()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_BEVEL_MESH, "Bevel Mesh", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   node_type_storage(
       &ntype, "NodeGeometryBevelMesh", node_free_standard_storage, node_copy_standard_storage);
