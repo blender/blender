@@ -38,7 +38,7 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
   void *exec;
 
   if (!ngroup) {
-    return NULL;
+    return nullptr;
   }
 
   /* initialize the internal node tree execution */
@@ -152,7 +152,7 @@ void register_node_type_tex_group(void)
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
   ntype.rna_ext.srna = RNA_struct_find("TextureNodeGroup");
-  BLI_assert(ntype.rna_ext.srna != NULL);
+  BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
   node_type_size(&ntype, 140, 60, 400);

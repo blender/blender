@@ -39,7 +39,7 @@ static void do_proc(float *result,
   int textype;
 
   textype = multitex_nodes(
-      tex, p->co, p->dxt, p->dyt, p->osatex, &texres, thread, 0, p->mtex, NULL);
+      tex, p->co, p->dxt, p->dyt, p->osatex, &texres, thread, 0, p->mtex, nullptr);
 
   if (textype & TEX_RGB) {
     copy_v4_v4(result, texres.trgba);

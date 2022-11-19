@@ -151,7 +151,8 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
       if (num < mesh->totface) {
-        /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required */
+        /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required
+         */
         MFace *face = mface == nullptr ? nullptr : &mface[num];
         MTFace *tface = mtface + num;
 

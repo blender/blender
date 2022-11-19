@@ -64,7 +64,7 @@ void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
 
   /* sanity check */
   if (index < 0) {
-    return NULL;
+    return nullptr;
   }
 
   val = BM_iter_new(&iter, bm, itype, data);
@@ -167,7 +167,7 @@ void *BM_iter_as_arrayN(BMesh *bm,
   }
 
   *r_len = 0;
-  return NULL;
+  return nullptr;
 }
 
 void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
@@ -206,7 +206,7 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
   }
 
   *r_len = 0;
-  return NULL;
+  return nullptr;
 }
 
 int BM_iter_mesh_bitmap_from_filter(const char itype,
@@ -341,7 +341,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  * When a step() callback is invoked the current value of 'next'
  * is stored to be returned later and the next variable is incremented.
  *
- * When the end of a sequence is reached, next should always equal NULL
+ * When the end of a sequence is reached, next should always equal nullptr
  *
  * The 'bmiter__' prefix is used because these are used in
  * bmesh_iterators_inine.c but should otherwise be seen as
@@ -391,8 +391,8 @@ void bmiter__edge_of_vert_begin(struct BMIter__edge_of_vert *iter)
     iter->e_next = iter->vdata->e;
   }
   else {
-    iter->e_first = NULL;
-    iter->e_next = NULL;
+    iter->e_first = nullptr;
+    iter->e_next = nullptr;
   }
 }
 
@@ -403,7 +403,7 @@ void *bmiter__edge_of_vert_step(struct BMIter__edge_of_vert *iter)
   if (iter->e_next) {
     iter->e_next = bmesh_disk_edge_next(iter->e_next, iter->vdata);
     if (iter->e_next == iter->e_first) {
-      iter->e_next = NULL;
+      iter->e_next = nullptr;
     }
   }
 
@@ -424,8 +424,8 @@ void bmiter__face_of_vert_begin(struct BMIter__face_of_vert *iter)
     iter->l_next = iter->l_first;
   }
   else {
-    iter->l_first = iter->l_next = NULL;
-    iter->e_first = iter->e_next = NULL;
+    iter->l_first = iter->l_next = nullptr;
+    iter->e_first = iter->e_next = nullptr;
   }
 }
 void *bmiter__face_of_vert_step(struct BMIter__face_of_vert *iter)
@@ -443,10 +443,10 @@ void *bmiter__face_of_vert_step(struct BMIter__face_of_vert *iter)
   }
 
   if (!((BMIter *)iter)->count) {
-    iter->l_next = NULL;
+    iter->l_next = nullptr;
   }
 
-  return l_curr ? l_curr->f : NULL;
+  return l_curr ? l_curr->f : nullptr;
 }
 
 /*
@@ -463,8 +463,8 @@ void bmiter__loop_of_vert_begin(struct BMIter__loop_of_vert *iter)
     iter->l_next = iter->l_first;
   }
   else {
-    iter->l_first = iter->l_next = NULL;
-    iter->e_first = iter->e_next = NULL;
+    iter->l_first = iter->l_next = nullptr;
+    iter->e_first = iter->e_next = nullptr;
   }
 }
 void *bmiter__loop_of_vert_step(struct BMIter__loop_of_vert *iter)
@@ -482,10 +482,10 @@ void *bmiter__loop_of_vert_step(struct BMIter__loop_of_vert *iter)
   }
 
   if (!((BMIter *)iter)->count) {
-    iter->l_next = NULL;
+    iter->l_next = nullptr;
   }
 
-  /* NULL on finish */
+  /* nullptr on finish */
   return l_curr;
 }
 
@@ -505,11 +505,11 @@ void *bmiter__loop_of_edge_step(struct BMIter__loop_of_edge *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->radial_next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 
-  /* NULL on finish */
+  /* nullptr on finish */
   return l_curr;
 }
 
@@ -523,7 +523,7 @@ void bmiter__loop_of_loop_begin(struct BMIter__loop_of_loop *iter)
   iter->l_next = iter->l_first->radial_next;
 
   if (iter->l_next == iter->l_first) {
-    iter->l_next = NULL;
+    iter->l_next = nullptr;
   }
 }
 
@@ -534,11 +534,11 @@ void *bmiter__loop_of_loop_step(struct BMIter__loop_of_loop *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->radial_next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 
-  /* NULL on finish */
+  /* nullptr on finish */
   return l_curr;
 }
 
@@ -558,11 +558,11 @@ void *bmiter__face_of_edge_step(struct BMIter__face_of_edge *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->radial_next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 
-  return current ? current->f : NULL;
+  return current ? current->f : nullptr;
 }
 
 /*
@@ -582,7 +582,7 @@ void *bmiter__vert_of_edge_step(struct BMIter__vert_of_edge *iter)
     case 1:
       return iter->edata->v2;
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -602,11 +602,11 @@ void *bmiter__vert_of_face_step(struct BMIter__vert_of_face *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 
-  return l_curr ? l_curr->v : NULL;
+  return l_curr ? l_curr->v : nullptr;
 }
 
 /*
@@ -625,11 +625,11 @@ void *bmiter__edge_of_face_step(struct BMIter__edge_of_face *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 
-  return l_curr ? l_curr->e : NULL;
+  return l_curr ? l_curr->e : nullptr;
 }
 
 /*
@@ -648,7 +648,7 @@ void *bmiter__loop_of_face_step(struct BMIter__loop_of_face *iter)
   if (iter->l_next) {
     iter->l_next = iter->l_next->next;
     if (iter->l_next == iter->l_first) {
-      iter->l_next = NULL;
+      iter->l_next = nullptr;
     }
   }
 

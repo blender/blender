@@ -997,7 +997,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
-    WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+    WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
     /* Required for deformation. */
     new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;

@@ -50,7 +50,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     tex_input_rgba(col1, in[0], p, thread);
     tex_input_rgba(col2, in[1], p, thread);
 
-    textype = multitex_nodes(nodetex, co, dxt, dyt, p->osatex, &texres, thread, 0, p->mtex, NULL);
+    textype = multitex_nodes(
+        nodetex, co, dxt, dyt, p->osatex, &texres, thread, 0, p->mtex, nullptr);
 
     if (textype & TEX_RGB) {
       copy_v4_v4(out, texres.trgba);

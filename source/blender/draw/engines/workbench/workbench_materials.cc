@@ -79,7 +79,7 @@ void workbench_material_ubo_data(WORKBENCH_PrivateData *wpd,
 BLI_INLINE Material *workbench_object_material_get(Object *ob, int mat_nr)
 {
   Material *ma = BKE_object_material_get_eval(ob, mat_nr);
-  if (ma == NULL) {
+  if (ma == nullptr) {
     ma = BKE_material_default_empty();
   }
   return ma;
@@ -91,7 +91,7 @@ BLI_INLINE void workbench_material_get_image(
   const bNode *node;
   *r_sampler = eGPUSamplerState(0);
 
-  ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, NULL);
+  ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, nullptr);
   if (node && *r_image) {
     switch (node->type) {
       case SH_NODE_TEX_IMAGE: {
@@ -153,14 +153,14 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
                                              eWORKBENCH_DataType datatype,
                                              bool *r_transp)
 {
-  Image *ima = NULL;
-  ImageUser *iuser = NULL;
+  Image *ima = nullptr;
+  ImageUser *iuser = nullptr;
   eGPUSamplerState sampler;
   const bool infront = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
     workbench_material_get_image(ob, mat_nr, &ima, &iuser, &sampler);
-    if (ima == NULL) {
+    if (ima == nullptr) {
       /* Fallback to material color. */
       color_type = V3D_SHADING_MATERIAL_COLOR;
     }
@@ -185,7 +185,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
         *r_transp = true;
       }
 
-      DRWShadingGroup **grp_mat = NULL;
+      DRWShadingGroup **grp_mat = nullptr;
       /* A hash-map stores material shgroups to pack all similar drawcalls together. */
       if (BLI_ghash_ensure_p(prepass->material_hash, ma, (void ***)&grp_mat)) {
         return *grp_mat;
@@ -216,7 +216,8 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
       uint32_t mat_id, id = DRW_object_resource_id_get(ob);
 
       bool resource_changed = workbench_material_chunk_select(wpd, id, &mat_id);
-      workbench_material_ubo_data(wpd, ob, NULL, &wpd->material_ubo_data_curr[mat_id], color_type);
+      workbench_material_ubo_data(
+          wpd, ob, nullptr, &wpd->material_ubo_data_curr[mat_id], color_type);
 
       const bool transp = wpd->shading.xray_alpha < 1.0f || ob->color[3] < 1.0f;
       DRWShadingGroup **grp = &wpd->prepass[transp][infront][datatype].common_shgrp;
@@ -240,23 +241,23 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           eGPUSamplerState sampler,
                                           eWORKBENCH_DataType datatype)
 {
-  GPUTexture *tex = NULL, *tex_tile_data = NULL;
+  GPUTexture *tex = nullptr, *tex_tile_data = nullptr;
 
-  if (ima == NULL) {
+  if (ima == nullptr) {
     workbench_material_get_image(ob, mat_nr, &ima, &iuser, &sampler);
   }
 
   if (ima) {
     if (ima->source == IMA_SRC_TILED) {
-      tex = BKE_image_get_gpu_tiles(ima, iuser, NULL);
-      tex_tile_data = BKE_image_get_gpu_tilemap(ima, iuser, NULL);
+      tex = BKE_image_get_gpu_tiles(ima, iuser, nullptr);
+      tex_tile_data = BKE_image_get_gpu_tilemap(ima, iuser, nullptr);
     }
     else {
-      tex = BKE_image_get_gpu_texture(ima, iuser, NULL);
+      tex = BKE_image_get_gpu_texture(ima, iuser, nullptr);
     }
   }
 
-  if (tex == NULL) {
+  if (tex == nullptr) {
     tex = wpd->dummy_image_tx;
   }
 
@@ -264,7 +265,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   const bool transp = wpd->shading.xray_alpha < 1.0f;
   WORKBENCH_Prepass *prepass = &wpd->prepass[transp][infront][datatype];
 
-  DRWShadingGroup **grp_tex = NULL;
+  DRWShadingGroup **grp_tex = nullptr;
   /* A hash-map stores image shgroups to pack all similar drawcalls together. */
   if (BLI_ghash_ensure_p(prepass->material_hash, tex, (void ***)&grp_tex)) {
     return *grp_tex;

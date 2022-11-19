@@ -602,7 +602,7 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   PropertyRNA *base_or_object_prop = nullptr;
   if (layer_collection != nullptr) {
     /* If we are toggling Layer collections we still want to change the properties of the base
-     * or the objects. If we have a matching property, toggle it as well, it can be NULL. */
+     * or the objects. If we have a matching property, toggle it as well, it can be nullptr. */
     struct_rna = collection ? &RNA_Object : &RNA_ObjectBase;
     base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
   }

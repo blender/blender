@@ -64,7 +64,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
                            bNodeInstanceKey UNUSED(key))
 {
   BKE_curvemapping_init(static_cast<CurveMapping *>(node->storage));
-  return NULL; /* unused return */
+  return nullptr; /* unused return */
 }
 
 /** \} */
@@ -322,7 +322,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
     socket_iter = socket_iter->next ? socket_iter->next : first; /* Wrap around the list end. */
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
@@ -349,7 +349,7 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
         return;
       }
 
-      if (new_socket == NULL) {
+      if (new_socket == nullptr) {
         /* No possible replacement, remove the existing link. */
         nodeRemLink(ntree, to_link);
         return;

@@ -82,7 +82,7 @@ static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *co
 static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
 {
   if (lc == view_layer->active_collection) {
-    view_layer->active_collection = NULL;
+    view_layer->active_collection = nullptr;
   }
 
   LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
@@ -143,7 +143,7 @@ ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
@@ -178,7 +178,7 @@ static void layer_collection_exclude_all(LayerCollection *layer_collection)
 {
   LayerCollection *sub_collection = static_cast<LayerCollection *>(
       layer_collection->layer_collections.first);
-  for (; sub_collection != NULL; sub_collection = sub_collection->next) {
+  for (; sub_collection != nullptr; sub_collection = sub_collection->next) {
     sub_collection->flag |= LAYER_COLLECTION_EXCLUDE;
     layer_collection_exclude_all(sub_collection);
   }
@@ -246,12 +246,12 @@ void BKE_view_layer_free(ViewLayer *view_layer)
 
 void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
-  view_layer->basact = NULL;
+  view_layer->basact = nullptr;
 
   BLI_freelistN(&view_layer->object_bases);
 
   if (view_layer->object_bases_hash) {
-    BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
+    BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
   }
 
   LISTBASE_FOREACH (LayerCollection *, lc, &view_layer->layer_collections) {
@@ -269,9 +269,9 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   }
   BLI_freelistN(&view_layer->drawdata);
   BLI_freelistN(&view_layer->aovs);
-  view_layer->active_aov = NULL;
+  view_layer->active_aov = nullptr;
   BLI_freelistN(&view_layer->lightgroups);
-  view_layer->active_lightgroup = NULL;
+  view_layer->active_lightgroup = nullptr;
 
   MEM_SAFE_FREE(view_layer->stats);
 
@@ -321,7 +321,7 @@ Object *BKE_view_layer_camera_find(const Scene *scene, ViewLayer *view_layer)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
@@ -332,7 +332,7 @@ ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollecti
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Base */
@@ -341,10 +341,10 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
 {
   static ThreadMutex hash_lock = BLI_MUTEX_INITIALIZER;
 
-  if (view_layer->object_bases_hash == NULL) {
+  if (view_layer->object_bases_hash == nullptr) {
     BLI_mutex_lock(&hash_lock);
 
-    if (view_layer->object_bases_hash == NULL) {
+    if (view_layer->object_bases_hash == nullptr) {
       GHash *hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
       LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
@@ -361,7 +361,7 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
            * tackle it here. */
           else if (do_base_duplicates_fix) {
             if (view_layer->basact == base) {
-              view_layer->basact = NULL;
+              view_layer->basact = nullptr;
             }
             BLI_freelinkN(&view_layer->object_bases, base);
           }
@@ -419,14 +419,14 @@ static void layer_aov_copy_data(ViewLayer *view_layer_dst,
                                 ListBase *aovs_dst,
                                 const ListBase *aovs_src)
 {
-  if (aovs_src != NULL) {
+  if (aovs_src != nullptr) {
     BLI_duplicatelist(aovs_dst, aovs_src);
   }
 
   ViewLayerAOV *aov_dst = static_cast<ViewLayerAOV *>(aovs_dst->first);
   const ViewLayerAOV *aov_src = static_cast<const ViewLayerAOV *>(aovs_src->first);
 
-  while (aov_dst != NULL) {
+  while (aov_dst != nullptr) {
     BLI_assert(aov_src);
     if (aov_src == view_layer_src->active_aov) {
       view_layer_dst->active_aov = aov_dst;
@@ -442,7 +442,7 @@ static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
                                        ListBase *lightgroups_dst,
                                        const ListBase *lightgroups_src)
 {
-  if (lightgroups_src != NULL) {
+  if (lightgroups_src != nullptr) {
     BLI_duplicatelist(lightgroups_dst, lightgroups_src);
   }
 
@@ -450,7 +450,7 @@ static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
   const ViewLayerLightgroup *lightgroup_src = static_cast<const ViewLayerLightgroup *>(
       lightgroups_src->first);
 
-  while (lightgroup_dst != NULL) {
+  while (lightgroup_dst != nullptr) {
     BLI_assert(lightgroup_src);
     if (lightgroup_src == view_layer_src->active_lightgroup) {
       view_layer_dst->active_lightgroup = lightgroup_dst;
@@ -473,7 +473,7 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
   const LayerCollection *layer_collection_src = static_cast<const LayerCollection *>(
       layer_collections_src->first);
 
-  while (layer_collection_dst != NULL) {
+  while (layer_collection_dst != nullptr) {
     layer_collections_copy_data(view_layer_dst,
                                 view_layer_src,
                                 &layer_collection_dst->layer_collections,
@@ -494,18 +494,18 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
                               const ViewLayer *view_layer_src,
                               const int flag)
 {
-  if (view_layer_dst->id_properties != NULL) {
+  if (view_layer_dst->id_properties != nullptr) {
     view_layer_dst->id_properties = IDP_CopyProperty_ex(view_layer_dst->id_properties, flag);
   }
   BKE_freestyle_config_copy(
       &view_layer_dst->freestyle_config, &view_layer_src->freestyle_config, flag);
 
-  view_layer_dst->stats = NULL;
+  view_layer_dst->stats = nullptr;
 
   /* Clear temporary data. */
   BLI_listbase_clear(&view_layer_dst->drawdata);
-  view_layer_dst->object_bases_array = NULL;
-  view_layer_dst->object_bases_hash = NULL;
+  view_layer_dst->object_bases_array = nullptr;
+  view_layer_dst->object_bases_hash = nullptr;
 
   /* Copy layer collections and object bases. */
   /* Inline 'BLI_duplicatelist' and update the active base. */
@@ -520,7 +520,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
     }
   }
 
-  view_layer_dst->active_collection = NULL;
+  view_layer_dst->active_collection = nullptr;
   layer_collections_copy_data(view_layer_dst,
                               view_layer_src,
                               &view_layer_dst->layer_collections,
@@ -562,7 +562,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
     for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
-      if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
+      if (node->type == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
         }
@@ -571,7 +571,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   }
 
   /* Fix all the animation data and windows which may link to this. */
-  BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
+  BKE_animdata_fix_paths_rename_all(nullptr, "view_layers", oldname, view_layer->name);
 
   /* WM can be missing on startup. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -608,7 +608,7 @@ static LayerCollection *collection_from_index(ListBase *lb, const int number, in
       return lc_nested;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /**
@@ -668,7 +668,7 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
   }
   else {
-    lc = NULL;
+    lc = nullptr;
   }
 
   /* Don't activate excluded or hidden collections to prevent creating objects in a hidden
@@ -820,19 +820,19 @@ static LayerCollectionResync *layer_collection_resync_create_recurse(
   layer_resync->layer = layer;
   layer_resync->collection = layer->collection;
   layer_resync->parent_layer_resync = parent_layer_resync;
-  if (parent_layer_resync != NULL) {
+  if (parent_layer_resync != nullptr) {
     BLI_addtail(&parent_layer_resync->children_layer_resync, layer_resync);
   }
 
-  layer_resync->is_usable = (layer->collection != NULL);
+  layer_resync->is_usable = (layer->collection != nullptr);
   layer_resync->is_valid_as_child =
-      layer_resync->is_usable && (parent_layer_resync == NULL ||
+      layer_resync->is_usable && (parent_layer_resync == nullptr ||
                                   (parent_layer_resync->is_usable &&
                                    BLI_findptr(&parent_layer_resync->layer->collection->children,
                                                layer->collection,
-                                               offsetof(CollectionChild, collection)) != NULL));
+                                               offsetof(CollectionChild, collection)) != nullptr));
   if (layer_resync->is_valid_as_child) {
-    layer_resync->is_used = parent_layer_resync != NULL ? parent_layer_resync->is_used : true;
+    layer_resync->is_used = parent_layer_resync != nullptr ? parent_layer_resync->is_used : true;
   }
   else {
     layer_resync->is_used = false;
@@ -880,15 +880,15 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
    */
 
   BLI_assert(layer_resync->collection != child_collection);
-  BLI_assert(child_collection != NULL);
+  BLI_assert(child_collection != nullptr);
 
-  LayerCollectionResync *current_layer_resync = NULL;
+  LayerCollectionResync *current_layer_resync = nullptr;
   LayerCollectionResync *root_layer_resync = layer_resync;
 
   LayerCollectionResync *queue_head = layer_resync, *queue_tail = layer_resync;
-  layer_resync->queue_next = NULL;
+  layer_resync->queue_next = nullptr;
 
-  while (queue_head != NULL) {
+  while (queue_head != nullptr) {
     current_layer_resync = queue_head;
     queue_head = current_layer_resync->queue_next;
 
@@ -908,16 +908,16 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
                       &current_layer_resync->children_layer_resync) {
       /* Add to tail of the queue. */
       queue_tail->queue_next = child_layer_resync;
-      child_layer_resync->queue_next = NULL;
+      child_layer_resync->queue_next = nullptr;
       queue_tail = child_layer_resync;
-      if (queue_head == NULL) {
+      if (queue_head == nullptr) {
         queue_head = queue_tail;
       }
     }
 
     /* If all descendants from current layer have been processed, go one step higher and
      * process all of its other siblings. */
-    if (queue_head == NULL && root_layer_resync->parent_layer_resync != NULL) {
+    if (queue_head == nullptr && root_layer_resync->parent_layer_resync != nullptr) {
       LISTBASE_FOREACH (LayerCollectionResync *,
                         sibling_layer_resync,
                         &root_layer_resync->parent_layer_resync->children_layer_resync) {
@@ -926,16 +926,16 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
         }
         /* Add to tail of the queue. */
         queue_tail->queue_next = sibling_layer_resync;
-        sibling_layer_resync->queue_next = NULL;
+        sibling_layer_resync->queue_next = nullptr;
         queue_tail = sibling_layer_resync;
-        if (queue_head == NULL) {
+        if (queue_head == nullptr) {
           queue_head = queue_tail;
         }
       }
       root_layer_resync = root_layer_resync->parent_layer_resync;
     }
 
-    current_layer_resync = NULL;
+    current_layer_resync = nullptr;
   }
 
   return current_layer_resync;
@@ -953,18 +953,18 @@ static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
     CLOG_INFO(&LOG,
               4,
               "Freeing unused LayerCollection for %s",
-              layer_resync->collection != NULL ? layer_resync->collection->id.name :
-                                                 "<Deleted Collection>");
+              layer_resync->collection != nullptr ? layer_resync->collection->id.name :
+                                                    "<Deleted Collection>");
 
     if (layer_resync->layer == view_layer->active_collection) {
-      view_layer->active_collection = NULL;
+      view_layer->active_collection = nullptr;
     }
 
     /* We do not want to go recursive here, this is handled through the LayerCollectionResync data
      * wrapper. */
     MEM_freeN(layer_resync->layer);
-    layer_resync->layer = NULL;
-    layer_resync->collection = NULL;
+    layer_resync->layer = nullptr;
+    layer_resync->collection = nullptr;
     layer_resync->is_usable = false;
   }
 }
@@ -1013,7 +1013,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
   }
 
   LISTBASE_FOREACH (CollectionObject *, cob, &layer->collection->gobject) {
-    if (cob->ob == NULL) {
+    if (cob->ob == nullptr) {
       continue;
     }
 
@@ -1089,7 +1089,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
    */
 
   /* Temporary storage for all valid (new or reused) children layers. */
-  ListBase new_lb_layer = {NULL, NULL};
+  ListBase new_lb_layer = {nullptr, nullptr};
 
   BLI_assert(layer_resync->is_used);
 
@@ -1097,16 +1097,16 @@ static void layer_collection_sync(ViewLayer *view_layer,
   LISTBASE_FOREACH (CollectionChild *, child, &layer_resync->collection->children) {
     Collection *child_collection = child->collection;
     /* Collection relations may not have rebuild yet. */
-    if (child_collection == NULL) {
+    if (child_collection == nullptr) {
       skipped_children++;
       continue;
     }
     LayerCollectionResync *child_layer_resync = layer_collection_resync_find(layer_resync,
                                                                              child_collection);
 
-    if (child_layer_resync != NULL) {
-      BLI_assert(child_layer_resync->collection != NULL);
-      BLI_assert(child_layer_resync->layer != NULL);
+    if (child_layer_resync != nullptr) {
+      BLI_assert(child_layer_resync->collection != nullptr);
+      BLI_assert(child_layer_resync->layer != nullptr);
       BLI_assert(child_layer_resync->is_usable);
 
       if (child_layer_resync->is_used) {
@@ -1223,17 +1223,17 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
 {
   bool is_valid = true;
 
-  if (layer == NULL) {
+  if (layer == nullptr) {
     layer = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   }
 
   /* Only check for a collection's objects if its layer is not excluded. */
   if ((layer->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
     LISTBASE_FOREACH (CollectionObject *, cob, &layer->collection->gobject) {
-      if (cob->ob == NULL) {
+      if (cob->ob == nullptr) {
         continue;
       }
-      if (BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob) == NULL) {
+      if (BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob) == nullptr) {
         CLOG_FATAL(
             &LOG,
             "Object '%s' from collection '%s' has no entry in view layer's object bases cache",
@@ -1333,7 +1333,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   BLI_mempool *layer_resync_mempool = BLI_mempool_create(
       sizeof(LayerCollectionResync), 1024, 1024, BLI_MEMPOOL_NOP);
   LayerCollectionResync *master_layer_resync = layer_collection_resync_create_recurse(
-      NULL,
+      nullptr,
       static_cast<LayerCollection *>(view_layer->layer_collections.first),
       layer_resync_mempool);
 
@@ -1351,12 +1351,12 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   layer_collection_resync_unused_layers_free(view_layer, master_layer_resync);
   BLI_mempool_destroy(layer_resync_mempool);
-  master_layer_resync = NULL;
+  master_layer_resync = nullptr;
 
   /* Any remaining object bases are to be removed. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (view_layer->basact == base) {
-      view_layer->basact = NULL;
+      view_layer->basact = nullptr;
     }
 
     if (base->object) {
@@ -1364,16 +1364,16 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
        * this layer resync function currently gets called way too often. */
 #if 0
       BLI_assert(BLI_findindex(&new_object_bases, base) == -1);
-      BLI_assert(BLI_findptr(&new_object_bases, base->object, offsetof(Base, object)) == NULL);
+      BLI_assert(BLI_findptr(&new_object_bases, base->object, offsetof(Base, object)) == nullptr);
 #endif
-      BLI_ghash_remove(view_layer->object_bases_hash, base->object, NULL, NULL);
+      BLI_ghash_remove(view_layer->object_bases_hash, base->object, nullptr, nullptr);
     }
   }
 
   BLI_freelistN(&view_layer->object_bases);
   view_layer->object_bases = new_object_bases;
 
-  view_layer_objects_base_cache_validate(view_layer, NULL);
+  view_layer_objects_base_cache_validate(view_layer, nullptr);
 
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     BKE_base_eval_flags(base);
@@ -1384,7 +1384,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   if (active && layer_collection_hidden(view_layer, active)) {
     BKE_layer_collection_activate_parent(view_layer, active);
   }
-  else if (active == NULL) {
+  else if (active == nullptr) {
     view_layer->active_collection = static_cast<LayerCollection *>(
         view_layer->layer_collections.first);
   }
@@ -1435,8 +1435,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
       if (view_layer->object_bases_hash) {
-        BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
-        view_layer->object_bases_hash = NULL;
+        BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
+        view_layer->object_bases_hash = nullptr;
       }
 
       /* Directly re-create the mapping here, so that we can also deal with duplicates in
@@ -1580,7 +1580,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
     return false;
   }
 
-  if (v3d == NULL) {
+  if (v3d == nullptr) {
     return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
   }
 
@@ -1601,7 +1601,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
 
 bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *ob)
 {
-  BLI_assert(v3d != NULL);
+  BLI_assert(v3d != nullptr);
 
   if (ob->visibility_flag & OB_HIDE_VIEWPORT) {
     return false;
@@ -1728,7 +1728,7 @@ static void layer_collection_local_sync(const Scene *scene,
 
   if (visible) {
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
-      if (cob->ob == NULL) {
+      if (cob->ob == nullptr) {
         continue;
       }
 
@@ -1947,7 +1947,7 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
       return found;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 LayerCollection *BKE_layer_collection_first_from_scene_collection(const ViewLayer *view_layer,
@@ -1956,16 +1956,16 @@ LayerCollection *BKE_layer_collection_first_from_scene_collection(const ViewLaye
   LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
     LayerCollection *found = find_layer_collection_by_scene_collection(layer_collection,
                                                                        collection);
-    if (found != NULL) {
+    if (found != nullptr) {
       return found;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool BKE_view_layer_has_collection(const ViewLayer *view_layer, const Collection *collection)
 {
-  return BKE_layer_collection_first_from_scene_collection(view_layer, collection) != NULL;
+  return BKE_layer_collection_first_from_scene_collection(view_layer, collection) != nullptr;
 }
 
 bool BKE_scene_has_object(Scene *scene, Object *ob)
@@ -1995,7 +1995,7 @@ typedef struct LayerObjectBaseIteratorData {
 
 static bool object_bases_iterator_is_valid(const View3D *v3d, Base *base, const int flag)
 {
-  BLI_assert((v3d == NULL) || (v3d->spacetype == SPACE_VIEW3D));
+  BLI_assert((v3d == nullptr) || (v3d->spacetype == SPACE_VIEW3D));
 
   /* Any flag satisfies the condition. */
   if (flag == ~0) {
@@ -2014,8 +2014,8 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
   Base *base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
 
   /* when there are no objects */
-  if (base == NULL) {
-    iter->data = NULL;
+  if (base == nullptr) {
+    iter->data = nullptr;
     iter->valid = false;
     return;
   }
@@ -2222,7 +2222,7 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
   BLI_assert(data->object_mode != 0);
 
   /* when there are no objects */
-  if (base == NULL) {
+  if (base == nullptr) {
     iter->valid = false;
     return;
   }
@@ -2334,7 +2334,7 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
   BLI_assert(view_layer_index >= 0);
   ViewLayer *view_layer = static_cast<ViewLayer *>(
       BLI_findlink(&scene->view_layers, view_layer_index));
-  BLI_assert(view_layer != NULL);
+  BLI_assert(view_layer != nullptr);
   layer_eval_view_layer(depsgraph, scene, view_layer);
 }
 
@@ -2398,7 +2398,7 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
 
 void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_layer)
 {
-  view_layer->stats = NULL;
+  view_layer->stats = nullptr;
   BLO_read_list(reader, &view_layer->object_bases);
   BLO_read_data_address(reader, &view_layer->basact);
 
@@ -2418,8 +2418,8 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   BLO_read_data_address(reader, &view_layer->active_lightgroup);
 
   BLI_listbase_clear(&view_layer->drawdata);
-  view_layer->object_bases_array = NULL;
-  view_layer->object_bases_hash = NULL;
+  view_layer->object_bases_array = nullptr;
+  view_layer->object_bases_hash = nullptr;
 }
 
 static void lib_link_layer_collection(BlendLibReader *reader,
@@ -2453,11 +2453,11 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
     /* we only bump the use count for the collection objects */
     BLO_read_id_address(reader, lib, &base->object);
 
-    if (base->object == NULL) {
+    if (base->object == nullptr) {
       /* Free in case linked object got lost. */
       BLI_freelinkN(&view_layer->object_bases, base);
       if (view_layer->basact == base) {
-        view_layer->basact = NULL;
+        view_layer->basact = nullptr;
       }
     }
   }
@@ -2480,7 +2480,7 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
 static void viewlayer_aov_make_name_unique(ViewLayer *view_layer)
 {
   ViewLayerAOV *aov = view_layer->active_aov;
-  if (aov == NULL) {
+  if (aov == nullptr) {
     return;
   }
 
@@ -2493,12 +2493,12 @@ static void viewlayer_aov_make_name_unique(ViewLayer *view_layer)
 
 static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
 {
-  if (aov != NULL) {
+  if (aov != nullptr) {
     BLI_assert(BLI_findindex(&view_layer->aovs, aov) != -1);
     view_layer->active_aov = aov;
   }
   else {
-    view_layer->active_aov = NULL;
+    view_layer->active_aov = nullptr;
   }
 }
 
@@ -2517,7 +2517,7 @@ struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer)
 void BKE_view_layer_remove_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
 {
   BLI_assert(BLI_findindex(&view_layer->aovs, aov) != -1);
-  BLI_assert(aov != NULL);
+  BLI_assert(aov != nullptr);
   if (view_layer->active_aov == aov) {
     if (aov->next) {
       viewlayer_aov_active_set(view_layer, aov->next);
@@ -2571,7 +2571,7 @@ void BKE_view_layer_verify_aov(struct RenderEngine *engine,
     int count = POINTER_AS_INT(value_p);
     SET_FLAG_FROM_TEST(aov->flag, count > 1, AOV_CONFLICT);
   }
-  BLI_ghash_free(name_count, MEM_freeN, NULL);
+  BLI_ghash_free(name_count, MEM_freeN, nullptr);
 }
 
 bool BKE_view_layer_has_valid_aov(ViewLayer *view_layer)
@@ -2591,7 +2591,7 @@ ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV
       return view_layer;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -2616,12 +2616,12 @@ static void viewlayer_lightgroup_make_name_unique(ViewLayer *view_layer,
 
 static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLightgroup *lightgroup)
 {
-  if (lightgroup != NULL) {
+  if (lightgroup != nullptr) {
     BLI_assert(BLI_findindex(&view_layer->lightgroups, lightgroup) != -1);
     view_layer->active_lightgroup = lightgroup;
   }
   else {
-    view_layer->active_lightgroup = NULL;
+    view_layer->active_lightgroup = nullptr;
   }
 }
 
@@ -2645,7 +2645,7 @@ struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view
 void BKE_view_layer_remove_lightgroup(ViewLayer *view_layer, ViewLayerLightgroup *lightgroup)
 {
   BLI_assert(BLI_findindex(&view_layer->lightgroups, lightgroup) != -1);
-  BLI_assert(lightgroup != NULL);
+  BLI_assert(lightgroup != nullptr);
   if (view_layer->active_lightgroup == lightgroup) {
     if (lightgroup->next) {
       viewlayer_lightgroup_active_set(view_layer, lightgroup->next);
@@ -2670,7 +2670,7 @@ ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
       return view_layer;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void BKE_view_layer_rename_lightgroup(Scene *scene,
@@ -2683,10 +2683,10 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
   BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
 
-  if (scene != NULL) {
+  if (scene != nullptr) {
     /* Update objects in the scene to refer to the new name instead. */
     FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
-      if (!ID_IS_LINKED(ob) && ob->lightgroup != NULL) {
+      if (!ID_IS_LINKED(ob) && ob->lightgroup != nullptr) {
         LightgroupMembership *lgm = ob->lightgroup;
         if (STREQ(lgm->name, old_name)) {
           BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
@@ -2696,7 +2696,8 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
     FOREACH_SCENE_OBJECT_END;
 
     /* Update the scene's world to refer to the new name instead. */
-    if (scene->world != NULL && !ID_IS_LINKED(scene->world) && scene->world->lightgroup != NULL) {
+    if (scene->world != nullptr && !ID_IS_LINKED(scene->world) &&
+        scene->world->lightgroup != nullptr) {
       LightgroupMembership *lgm = scene->world->lightgroup;
       if (STREQ(lgm->name, old_name)) {
         BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
@@ -2707,7 +2708,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
 
 void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)
 {
-  if (lgm != NULL) {
+  if (lgm != nullptr) {
     BLI_strncpy(name, lgm->name, sizeof(lgm->name));
   }
   else {
@@ -2717,7 +2718,7 @@ void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)
 
 int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm)
 {
-  if (lgm != NULL) {
+  if (lgm != nullptr) {
     return strlen(lgm->name);
   }
   return 0;
@@ -2726,15 +2727,15 @@ int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm)
 void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *name)
 {
   if (name[0] != '\0') {
-    if (*lgm == NULL) {
+    if (*lgm == nullptr) {
       *lgm = MEM_cnew<LightgroupMembership>(__func__);
     }
     BLI_strncpy((*lgm)->name, name, sizeof((*lgm)->name));
   }
   else {
-    if (*lgm != NULL) {
+    if (*lgm != nullptr) {
       MEM_freeN(*lgm);
-      *lgm = NULL;
+      *lgm = nullptr;
     }
   }
 }

@@ -49,10 +49,10 @@ static void texture_get_from_context(const bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Tex *tx = NULL;
+  Tex *tx = nullptr;
 
   if (snode->texfrom == SNODE_TEX_BRUSH) {
-    struct Brush *brush = NULL;
+    struct Brush *brush = nullptr;
 
     if (ob && (ob->mode & OB_MODE_SCULPT)) {
       brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
@@ -188,8 +188,8 @@ void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 
 bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
 {
-  bNodeStack *nsin[MAX_SOCKET] = {NULL};  /* arbitrary... watch this */
-  bNodeStack *nsout[MAX_SOCKET] = {NULL}; /* arbitrary... watch this */
+  bNodeStack *nsin[MAX_SOCKET] = {nullptr};  /* arbitrary... watch this */
+  bNodeStack *nsout[MAX_SOCKET] = {nullptr}; /* arbitrary... watch this */
   bNodeExec *nodeexec;
   bNode *node;
   int n;
@@ -296,7 +296,7 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     }
 
     MEM_freeN(exec->threadstack);
-    exec->threadstack = NULL;
+    exec->threadstack = nullptr;
   }
 
   ntree_exec_end(exec);
@@ -311,7 +311,7 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
 
     /* XXX: clear node-tree back-pointer to exec data,
      * same problem as noted in #ntreeBeginExecTree. */
-    ntree->execdata = NULL;
+    ntree->execdata = nullptr;
   }
 }
 
@@ -330,7 +330,7 @@ int ntreeTexExecTree(bNodeTree *ntree,
 {
   TexCallData data;
   int retval = TEX_INT;
-  bNodeThreadStack *nts = NULL;
+  bNodeThreadStack *nts = nullptr;
   bNodeTreeExec *exec = ntree->execdata;
 
   data.co = co;

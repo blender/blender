@@ -51,7 +51,7 @@ void register_node_type_tex_curve_time(void)
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_CURVE_TIME, "Time", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, NULL, time_outputs);
+  node_type_socket_templates(&ntype, nullptr, time_outputs);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   ntype.initfunc = time_init;
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);

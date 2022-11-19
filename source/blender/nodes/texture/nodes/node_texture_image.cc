@@ -22,7 +22,7 @@ static void colorfn(
   ImageUser *iuser = (ImageUser *)node->storage;
 
   if (ima) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
     if (ibuf) {
       float xsize, ysize;
       float xoff, yoff;
@@ -65,7 +65,7 @@ static void colorfn(
       result = ibuf->rect_float + py * ibuf->x * 4 + px * 4;
       copy_v4_v4(out, result);
 
-      BKE_image_release_ibuf(ima, ibuf, NULL);
+      BKE_image_release_ibuf(ima, ibuf, nullptr);
     }
   }
 }
@@ -93,7 +93,7 @@ void register_node_type_tex_image(void)
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, NULL, outputs);
+  node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.initfunc = init;
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.exec_fn = exec;

@@ -256,7 +256,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
         CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
-          pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, totpoly, "material_index");
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
     }
     if (material_indices) {
       for (a = 0; a < me->totpoly; a++) {

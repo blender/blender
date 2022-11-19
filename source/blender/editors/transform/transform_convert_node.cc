@@ -74,8 +74,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = NULL;
-  td->val = NULL;
+  td->ext = nullptr;
+  td->val = nullptr;
 
   td->flag = TD_SELECTED;
   td->dist = 0.0f;
