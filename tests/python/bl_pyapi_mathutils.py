@@ -163,7 +163,6 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(mat1 @ mat2, prod1)
         self.assertEqual(mat2 @ mat1, prod2)
 
-    """
     # tests for element-wise multiplication
 
     def test_matrix_mul(self):
@@ -182,7 +181,6 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(mat1 * mat2, prod)
         self.assertEqual(mat2 * mat1, prod)
         self.assertRaises(ValueError, mat1.__mul__, mat3)
-    """
 
     def test_matrix_inverse(self):
         mat = Matrix(((1, 4, 0, -1),
@@ -280,7 +278,6 @@ class VectorTesting(unittest.TestCase):
         with self.assertRaises(TypeError):
             vec @= vec
 
-    """
     # tests for element-wise multiplication
 
     def test_vector_mul(self):
@@ -306,7 +303,6 @@ class VectorTesting(unittest.TestCase):
 
         vec *= 2
         self.assertEqual(vec, prod2)
-    """
 
 
 class QuaternionTesting(unittest.TestCase):
