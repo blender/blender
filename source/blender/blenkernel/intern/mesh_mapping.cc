@@ -586,6 +586,24 @@ Array<Vector<int>> build_vert_to_loop_map(const Span<MLoop> loops, const int ver
   return map;
 }
 
+Array<Vector<int>> build_edge_to_loop_map(const Span<MLoop> loops, const int edges_num)
+{
+  Array<Vector<int>> map(edges_num);
+  for (const int64_t i : loops.index_range()) {
+    map[loops[i].e].append(int(i));
+  }
+  return map;
+}
+
+Vector<Vector<int>> build_edge_to_loop_map_resizable(const Span<MLoop> loops, const int edges_num)
+{
+  Vector<Vector<int>> map(edges_num);
+  for (const int64_t i : loops.index_range()) {
+    map[loops[i].e].append(int(i));
+  }
+  return map;
+}
+
 }  // namespace blender::bke::mesh_topology
 
 /** \} */

@@ -795,6 +795,7 @@ set(geo_node_tests
   mesh_primitives
   mesh
   mesh/extrude
+  mesh/split_edges
   points
   utilities
   vector
