@@ -473,6 +473,13 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot);
 
 /* paint_mask.c */
 
+/* The gesture API doesn't write to this enum type,
+ * it writes to eSelectOp from ED_select_utils.h.
+ * We must thus map the modes here to the desired
+ * eSelectOp modes.
+ *
+ * Fixes T102349.
+ */
 typedef enum {
   PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
   PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
