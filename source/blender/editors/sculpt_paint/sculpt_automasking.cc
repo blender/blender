@@ -894,8 +894,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
    * from zero which other modes can subtract from.  If none of them are
    * enabled initialize to 1.
    */
-  if (!(mode & (BRUSH_AUTOMASKING_BOUNDARY_EDGES | BRUSH_AUTOMASKING_TOPOLOGY |
-                BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS))) {
+  if (!(mode & BRUSH_AUTOMASKING_TOPOLOGY)) {
     initial_value = 1.0f;
   }
   else {
