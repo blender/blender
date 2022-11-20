@@ -1453,8 +1453,6 @@ void NODE_OT_find_node(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(ot->srna, "prev", false, "Previous", "");
 }
 
 /** \} */
