@@ -968,7 +968,8 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
   for (int i = 0; i < totpoints; i++, pt++) {
 
-    if (flag & GP_BRUSH_FILL_HIDE) {
+    /* This flag is inverted in the UI. */
+    if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
       float alpha = gp_style->stroke_rgba[3] * pt->strength;
       CLAMP(alpha, 0.0f, 1.0f);
       col[3] = alpha <= thershold ? 0.0f : 1.0f;
