@@ -13,6 +13,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
+#include "ED_select_utils.h"
+
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
@@ -472,9 +474,9 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot);
 /* paint_mask.c */
 
 typedef enum {
-  PAINT_MASK_FLOOD_VALUE,
-  PAINT_MASK_FLOOD_VALUE_INVERSE,
-  PAINT_MASK_INVERT,
+  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
+  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
+  PAINT_MASK_INVERT = SEL_OP_XOR,
 } PaintMaskFloodMode;
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot);
