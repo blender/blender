@@ -1286,6 +1286,10 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
       continue;
     }
 
+    if (boundary->edit_info[i].original_vertex.i == -1) {
+      continue;
+    }
+
     const float *co1 = SCULPT_vertex_co_get(ss, vertex);
 
     float dir[3];

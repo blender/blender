@@ -268,8 +268,8 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
       if (!ss->vemap) {
         BKE_mesh_vert_edge_map_create(&ss->vemap,
                                       &ss->vemap_mem,
-                                      mesh->mvert,
-                                      mesh->medge,
+                                      BKE_mesh_verts(mesh),
+                                      BKE_mesh_edges(mesh),
                                       mesh->totvert,
                                       mesh->totedge,
                                       true);
