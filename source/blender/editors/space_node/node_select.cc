@@ -1274,11 +1274,7 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 
   node_select_single(*C, *new_active_node);
 
-  /* is note outside view? */
-  if (new_active_node->runtime->totr.xmax < region->v2d.cur.xmin ||
-      new_active_node->runtime->totr.xmin > region->v2d.cur.xmax ||
-      new_active_node->runtime->totr.ymax < region->v2d.cur.ymin ||
-      new_active_node->runtime->totr.ymin > region->v2d.cur.ymax) {
+  if (!BLI_rctf_inside_rctf(&region->v2d.cur, &new_active_node->runtime->totr)) {
     const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
     space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx);
   }
@@ -1361,11 +1357,7 @@ static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
     ARegion *region = CTX_wm_region(C);
     node_select_single(*C, *active);
 
-    /* is note outside view? */
-    if (active->runtime->totr.xmax < region->v2d.cur.xmin ||
-        active->runtime->totr.xmin > region->v2d.cur.xmax ||
-        active->runtime->totr.ymax < region->v2d.cur.ymin ||
-        active->runtime->totr.ymin > region->v2d.cur.ymax) {
+    if (!BLI_rctf_inside_rctf(&region->v2d.cur, &active->runtime->totr)) {
       space_node_view_flag(*C, *snode, *region, NODE_SELECT, U.smooth_viewtx);
     }
   }
