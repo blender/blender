@@ -3656,6 +3656,7 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_GRIDS:
       fd->subdiv_ccg_ = pbvh->subdiv_ccg;
+      ATTR_FALLTHROUGH;
     case PBVH_FACES:
       fd->mpoly_ = pbvh->mpoly;
       fd->mloop_ = pbvh->mloop;
