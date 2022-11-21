@@ -3564,7 +3564,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       }
     }
 
-    if (!is_lib) {
+    if (!is_lib && BLI_is_dir(subdir)) {
       entries_num = filelist_readjob_list_dir(
           subdir, &entries, filter_glob, do_lib, job_params->main_name, skip_currpar);
     }
