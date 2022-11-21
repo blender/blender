@@ -1705,16 +1705,13 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
   if (node.type == NODE_GROUP_OUTPUT) {
     return tree_log->run_time_sum;
   }
-  if (node.type == NODE_FRAME) {
+  else if (node.is_frame()) {
     /* Could be cached in the future if this recursive code turns out to be slow. */
     std::chrono::nanoseconds run_time{0};
     bool found_node = false;
-    LISTBASE_FOREACH (bNode *, tnode, &ntree.nodes) {
-      if (tnode->parent != &node) {
-        continue;
-      }
 
-      if (tnode->type == NODE_FRAME) {
+    for (const bNode *tnode : node.direct_children_in_frame()) {
+      if (tnode->is_frame()) {
         std::optional<std::chrono::nanoseconds> sub_frame_run_time = node_get_execution_time(
             tree_draw_ctx, ntree, *tnode);
         if (sub_frame_run_time.has_value()) {
