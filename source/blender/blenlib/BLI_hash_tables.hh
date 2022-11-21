@@ -331,11 +331,26 @@ class HashTableStats {
  * requires the parameters to be of type T. Our hash tables support lookups using other types
  * without conversion, therefore DefaultEquality needs to be more generic.
  */
-struct DefaultEquality {
+template<typename T> struct DefaultEquality {
   template<typename T1, typename T2> bool operator()(const T1 &a, const T2 &b) const
   {
     return a == b;
   }
+};
+
+/**
+ * Support comparing different kinds of raw and smart pointers.
+ */
+struct PointerComparison {
+  template<typename T1, typename T2> bool operator()(const T1 &a, const T2 &b) const
+  {
+    return &*a == &*b;
+  }
+};
+
+template<typename T> struct DefaultEquality<std::unique_ptr<T>> : public PointerComparison {
+};
+template<typename T> struct DefaultEquality<std::shared_ptr<T>> : public PointerComparison {
 };
 
 }  // namespace blender

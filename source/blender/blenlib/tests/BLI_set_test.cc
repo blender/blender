@@ -393,7 +393,7 @@ TEST(set, IntrusiveIntKey)
       2,
       DefaultProbingStrategy,
       DefaultHash<int>,
-      DefaultEquality,
+      DefaultEquality<int>,
       IntegerSetSlot<int, 100, 200>>
       set;
   EXPECT_TRUE(set.add(4));
@@ -587,6 +587,17 @@ TEST(set, RemoveIf)
   for (const int64_t i : IndexRange(100)) {
     EXPECT_EQ(set.contains(i * i), i <= 10);
   }
+}
+
+TEST(set, RemoveUniquePtrWithRaw)
+{
+  Set<std::unique_ptr<int>> set;
+  std::unique_ptr<int> a = std::make_unique<int>(5);
+  int *a_ptr = a.get();
+  set.add(std::move(a));
+  EXPECT_EQ(set.size(), 1);
+  set.remove_as(a_ptr);
+  EXPECT_TRUE(set.is_empty());
 }
 
 /**
