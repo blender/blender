@@ -512,8 +512,6 @@ bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup)
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
-void ntreeUpdateNodeLevels(struct bNodeTree *ntree);
-
 /**
  * XXX: old trees handle output flags automatically based on special output
  * node types and last active selection.

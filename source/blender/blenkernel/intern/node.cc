@@ -4078,62 +4078,6 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
   MEM_freeN(untagged);
 }
 
-/* ************** dependency stuff *********** */
-
-/* node is guaranteed to be not checked before */
-static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort)
-{
-  int level = 0xFFF;
-
-  node->runtime->done = true;
-
-  /* check linked nodes */
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->tonode == node) {
-      bNode *fromnode = link->fromnode;
-      if (fromnode->runtime->done == 0) {
-        fromnode->runtime->level = node_get_deplist_recurs(ntree, fromnode, nsort);
-      }
-      if (fromnode->runtime->level <= level) {
-        level = fromnode->runtime->level - 1;
-      }
-    }
-  }
-
-  /* check parent node */
-  if (node->parent) {
-    if (node->parent->runtime->done == 0) {
-      node->parent->runtime->level = node_get_deplist_recurs(ntree, node->parent, nsort);
-    }
-    if (node->parent->runtime->level <= level) {
-      level = node->parent->runtime->level - 1;
-    }
-  }
-
-  if (nsort) {
-    **nsort = node;
-    (*nsort)++;
-  }
-
-  return level;
-}
-
-/* only updates node->level for detecting cycles links */
-void ntreeUpdateNodeLevels(bNodeTree *ntree)
-{
-  /* first clear tag */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->runtime->done = false;
-  }
-
-  /* recursive check */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->runtime->done == 0) {
-      node->runtime->level = node_get_deplist_recurs(ntree, node, nullptr);
-    }
-  }
-}
-
 void ntreeUpdateAllNew(Main *main)
 {
   Vector<bNodeTree *> new_ntrees;

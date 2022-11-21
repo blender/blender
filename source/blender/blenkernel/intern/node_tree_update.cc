@@ -998,7 +998,6 @@ class NodeTreeMainUpdater {
     result.output_changed = this->check_if_output_changed(ntree);
 
     this->update_socket_link_and_use(ntree);
-    this->update_node_levels(ntree);
     this->update_link_validation(ntree);
 
     if (ntree.type == NTREE_TEXTURE) {
@@ -1269,25 +1268,32 @@ class NodeTreeMainUpdater {
     }
   }
 
-  void update_node_levels(bNodeTree &ntree)
-  {
-    ntreeUpdateNodeLevels(&ntree);
-  }
-
   void update_link_validation(bNodeTree &ntree)
   {
+    const Span<const bNode *> toposort = ntree.toposort_left_to_right();
+
+    /* Build an array of toposort indices to allow retrieving the "depth" for each node. */
+    Array<int> toposort_indices(toposort.size());
+    for (const int i : toposort.index_range()) {
+      const bNode &node = *toposort[i];
+      toposort_indices[node.runtime->index_in_tree] = i;
+    }
+
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
-      if (link->fromnode && link->tonode &&
-          link->fromnode->runtime->level <= link->tonode->runtime->level) {
+      const bNode &from_node = *link->fromnode;
+      const bNode &to_node = *link->tonode;
+      if (toposort_indices[from_node.runtime->index_in_tree] >
+          toposort_indices[to_node.runtime->index_in_tree]) {
         link->flag &= ~NODE_LINK_VALID;
+        continue;
       }
-      else if (ntree.typeinfo->validate_link) {
-        const eNodeSocketDatatype from_type = static_cast<eNodeSocketDatatype>(
-            link->fromsock->type);
-        const eNodeSocketDatatype to_type = static_cast<eNodeSocketDatatype>(link->tosock->type);
+      if (ntree.typeinfo->validate_link) {
+        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link->fromsock->type);
+        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link->tosock->type);
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
           link->flag &= ~NODE_LINK_VALID;
+          continue;
         }
       }
     }
