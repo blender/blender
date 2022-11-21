@@ -164,6 +164,11 @@ static void basic_cache_populate(void *vedata, Object *ob)
     DRW_shgroup_curves_create_sub(ob, stl->g_data->depth_curves_shgrp[do_in_front], NULL);
   }
 
+  if (ob->type == OB_POINTCLOUD) {
+    DRW_shgroup_pointcloud_create_sub(ob, stl->g_data->depth_pointcloud_shgrp[do_in_front], NULL);
+    return;
+  }
+
   /* Make flat object selectable in ortho view if wireframe is enabled. */
   if ((draw_ctx->v3d->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
       (draw_ctx->v3d->shading.type == OB_WIRE) || (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE)) {
@@ -187,15 +192,8 @@ static void basic_cache_populate(void *vedata, Object *ob)
   const bool do_cull = (draw_ctx->v3d &&
                         (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
 
-  DRWShadingGroup *shgrp = NULL;
-
-  if (ob->type == OB_POINTCLOUD) {
-    shgrp = stl->g_data->depth_pointcloud_shgrp[do_in_front];
-  }
-  else {
-    shgrp = (do_cull) ? stl->g_data->depth_shgrp_cull[do_in_front] :
-                        stl->g_data->depth_shgrp[do_in_front];
-  }
+  DRWShadingGroup *shgrp = (do_cull) ? stl->g_data->depth_shgrp_cull[do_in_front] :
+                                       stl->g_data->depth_shgrp[do_in_front];
 
   if (use_sculpt_pbvh) {
     DRW_shgroup_call_sculpt(shgrp, ob, false, false, false, false, false);
