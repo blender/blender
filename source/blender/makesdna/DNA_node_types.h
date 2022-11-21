@@ -620,7 +620,9 @@ typedef struct bNodeTree {
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
    * correctly. Use #has_available_link_cycle to check for cycles.
    */
+  blender::Span<bNode *> toposort_left_to_right();
   blender::Span<const bNode *> toposort_left_to_right() const;
+  blender::Span<bNode *> toposort_right_to_left();
   blender::Span<const bNode *> toposort_right_to_left() const;
   /** True when there are any cycles in the node tree. */
   bool has_available_link_cycle() const;

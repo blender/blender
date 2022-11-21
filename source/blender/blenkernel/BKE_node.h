@@ -512,9 +512,6 @@ bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup)
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
-void ntreeGetDependencyList(struct bNodeTree *ntree,
-                            struct bNode ***r_deplist,
-                            int *r_deplist_len);
 void ntreeUpdateNodeLevels(struct bNodeTree *ntree);
 
 /**

@@ -289,6 +289,18 @@ inline blender::Span<const bNode *> bNodeTree::toposort_right_to_left() const
   return this->runtime->toposort_right_to_left;
 }
 
+inline blender::Span<bNode *> bNodeTree::toposort_left_to_right()
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->toposort_left_to_right;
+}
+
+inline blender::Span<bNode *> bNodeTree::toposort_right_to_left()
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->toposort_right_to_left;
+}
+
 inline blender::Span<const bNode *> bNodeTree::all_nodes() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));

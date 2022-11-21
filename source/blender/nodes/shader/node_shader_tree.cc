@@ -889,6 +889,9 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
             case SH_NODE_VOLUME_PRINCIPLED:
             case SH_NODE_VOLUME_SCATTER:
               fromsock = ntree_shader_node_find_input(fromnode, "Weight");
+              /* Make "weight" sockets available so that links to it are available as well and are
+               * not ignored in other places. */
+              fromsock->flag &= ~SOCK_UNAVAIL;
               if (fromsock->link) {
                 ntree_weight_tree_merge_weight(ntree, fromnode, fromsock, &tonode, &tosock);
               }

@@ -4118,32 +4118,6 @@ static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort
   return level;
 }
 
-void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***r_deplist, int *r_deplist_len)
-{
-  *r_deplist_len = 0;
-
-  /* first clear data */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->runtime->done = false;
-    (*r_deplist_len)++;
-  }
-  if (*r_deplist_len == 0) {
-    *r_deplist = nullptr;
-    return;
-  }
-
-  bNode **nsort;
-  nsort = *r_deplist = (bNode **)MEM_callocN((*r_deplist_len) * sizeof(bNode *),
-                                             "sorted node array");
-
-  /* recursive check */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->runtime->done == 0) {
-      node->runtime->level = node_get_deplist_recurs(ntree, node, &nsort);
-    }
-  }
-}
-
 /* only updates node->level for detecting cycles links */
 void ntreeUpdateNodeLevels(bNodeTree *ntree)
 {
