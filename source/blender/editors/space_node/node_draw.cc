@@ -2712,7 +2712,6 @@ static void node_update_nodetree(const bContext &C,
 
   count_multi_input_socket_links(ntree, *snode);
 
-  /* Update nodes front to back, so children sizes get updated before parents. */
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
     uiBlock &block = *blocks[i];
@@ -2734,8 +2733,9 @@ static void node_update_nodetree(const bContext &C,
     }
   }
 
-  /* Now calculate the size of frame nodes, which can depend on the size of other nodes. */
-  for (const int i : nodes.index_range()) {
+  /* Now calculate the size of frame nodes, which can depend on the size of other nodes.
+   * Update nodes in reverse, so children sizes get updated before parents. */
+  for (int i = nodes.size() - 1; i >= 0; i--) {
     if (nodes[i]->type == NODE_FRAME) {
       frame_node_prepare_for_draw(*nodes[i], nodes);
     }
