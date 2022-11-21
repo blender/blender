@@ -410,16 +410,6 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  Span<short> material_remap,
                                  MutableSpan<int> dst_material_indices)
 {
-  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
-  const int src_index = src_material_indices[index_in_orig_me];
-  if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
-    dst_material_indices[mp_index] = material_remap[src_index];
-  }
-  else {
-    dst_material_indices[mp_index] = src_index;
-  }
-
   mp->flag = orig_mp->flag;
   CustomData *target_cd = &dest_mesh->pdata;
   const CustomData *source_cd = &orig_me->pdata;
@@ -434,6 +424,17 @@ static void copy_poly_attributes(Mesh *dest_mesh,
       CustomData_copy_data_layer(
           source_cd, target_cd, source_layer_i, target_layer_i, index_in_orig_me, mp_index, 1);
     }
+  }
+
+  /* Fix material indices after they have been transferred as a generic attribute. */
+  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  const int src_index = src_material_indices[index_in_orig_me];
+  if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
+    dst_material_indices[mp_index] = material_remap[src_index];
+  }
+  else {
+    dst_material_indices[mp_index] = src_index;
   }
 }
 
