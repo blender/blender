@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <optional>
 #include <sys/stat.h>
 
 #ifndef WIN32
@@ -3116,11 +3117,15 @@ static int filelist_readjob_list_lib_populate_from_index(FileList *filelist,
   return read_from_index + navigate_to_parent_len;
 }
 
-static int filelist_readjob_list_lib(FileList *filelist,
-                                     const char *root,
-                                     ListBase *entries,
-                                     const ListLibOptions options,
-                                     FileIndexer *indexer_runtime)
+/**
+ * \return The number of entries found if the \a root path points to a valid library file.
+ *         Otherwise returns no value (#std::nullopt).
+ */
+static std::optional<int> filelist_readjob_list_lib(FileList *filelist,
+                                                    const char *root,
+                                                    ListBase *entries,
+                                                    const ListLibOptions options,
+                                                    FileIndexer *indexer_runtime)
 {
   BLI_assert(indexer_runtime);
 
@@ -3135,7 +3140,7 @@ static int filelist_readjob_list_lib(FileList *filelist,
    * call it directly from `filelist_readjob_do` to increase readability. */
   const bool is_lib = BLO_library_path_explode(root, dir, &group, nullptr);
   if (!is_lib) {
-    return 0;
+    return std::nullopt;
   }
 
   const bool group_came_from_path = group != nullptr;
@@ -3166,7 +3171,7 @@ static int filelist_readjob_list_lib(FileList *filelist,
   BlendFileReadReport bf_reports{};
   libfiledata = BLO_blendhandle_from_file(dir, &bf_reports);
   if (libfiledata == nullptr) {
-    return 0;
+    return std::nullopt;
   }
 
   /* Add current parent when requested. */
@@ -3557,10 +3562,11 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       if (filelist->asset_library_ref) {
         list_lib_options |= LIST_LIB_ASSETS_ONLY;
       }
-      entries_num = filelist_readjob_list_lib(
+      std::optional<int> lib_entries_num = filelist_readjob_list_lib(
           filelist, subdir, &entries, list_lib_options, &indexer_runtime);
-      if (entries_num > 0) {
+      if (lib_entries_num) {
         is_lib = true;
+        entries_num += *lib_entries_num;
       }
     }
 
