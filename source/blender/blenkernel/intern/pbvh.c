@@ -841,7 +841,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   for (int i = 0; i < me->totpoly; i++) {
     max_grids = max_ii(max_grids, mpoly[i].totloop);
   }
-  
+
   /* Ensure leaf limit is at least 4 so there's room
    * to split at original face boundaries.
    * Fixes T102209.
@@ -3151,7 +3151,6 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
       }
     }
 
-
     for (int a = 0; a < pbvh->totnode; a++) {
       BKE_pbvh_node_mark_update(&pbvh->nodes[a]);
     }
@@ -3548,7 +3547,7 @@ BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
   }
 }
 
-void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
+static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
 {
   if (do_step) {
     fd->i++;

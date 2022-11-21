@@ -685,11 +685,6 @@ typedef struct PBVHFaceIter {
   PBVHVertRef *verts;
   int verts_num;
 
-  /* Private. */
-#ifdef __cplusplus
- private:
-#endif
-
   PBVHVertRef verts_reserved_[PBVH_FACE_ITER_VERTS_RESERVED];
   const PBVHNode *node_;
   PBVHType pbvh_type_;
