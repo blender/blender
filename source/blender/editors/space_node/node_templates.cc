@@ -830,7 +830,7 @@ static void ui_node_draw_input(
 
     sub = uiLayoutRow(sub, true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, IFACE_(input.name), ICON_NONE);
+    uiItemL(sub, IFACE_(nodeSocketLabel(&input)), ICON_NONE);
   }
 
   if (dependency_loop) {
