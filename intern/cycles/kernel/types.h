@@ -1390,12 +1390,13 @@ static_assert_align(KernelShaderEvalInput, 16);
 
 /* Pre-computed sample table sizes for PMJ02 sampler.
  *
- * NOTE: divisions *must* be a power of two, and patterns
+ * NOTE: min and max samples *must* be a power of two, and patterns
  * ideally should be as well.
  */
-#define NUM_PMJ_DIVISIONS 32
-#define NUM_PMJ_SAMPLES ((NUM_PMJ_DIVISIONS) * (NUM_PMJ_DIVISIONS))
-#define NUM_PMJ_PATTERNS 64
+#define MIN_PMJ_SAMPLES 256
+#define MAX_PMJ_SAMPLES 8192
+#define NUM_PMJ_DIMENSIONS 2
+#define NUM_PMJ_PATTERNS 256
 
 /* Device kernels.
  *
