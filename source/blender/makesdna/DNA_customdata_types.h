@@ -46,6 +46,7 @@ typedef struct CustomDataLayer {
    * automatically.
    */
   const struct AnonymousAttributeID *anonymous_id;
+  void *default_data;
 } CustomDataLayer;
 
 #define MAX_CUSTOMDATA_LAYER_NAME 64

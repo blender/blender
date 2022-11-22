@@ -220,6 +220,7 @@ struct LayerTypeInfo {
   /** a function to determine max allowed number of layers,
    * should be null or return -1 if no limit */
   int (*layers_max)();
+  bool use_default_data;
 };
 
 /** \} */
@@ -1848,7 +1849,21 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerInterp_propInt,
-     nullptr},
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     true},
     /* 12: CD_PROP_STRING */
     {sizeof(MStringProperty),
      "MStringProperty",
@@ -2624,6 +2639,10 @@ bool CustomData_merge(const CustomData *source,
     }
 
     if (newlayer) {
+      if (layer->default_data) {
+        newlayer->default_data = MEM_dupallocN(layer->default_data);
+      }
+
       newlayer->uid = layer->uid;
 
       newlayer->active = lastactive;
@@ -2758,6 +2777,10 @@ static void customData_free_layer__internal(CustomDataLayer *layer, const int to
 
     if (layer->data) {
       MEM_freeN(layer->data);
+    }
+
+    if (layer->default_data) {
+      MEM_freeN(layer->default_data);
     }
   }
 }
@@ -4295,7 +4318,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
       ptr += cd_tflags;
 
       MToolFlags *flags = (MToolFlags *)ptr;
-      flags->flag = NULL;
+      flags->flag = nullptr;
     }
   }
   else {
@@ -4345,7 +4368,12 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const
     typeInfo->set_default_value(POINTER_OFFSET(*block, offset), 1);
   }
   else {
-    memset(POINTER_OFFSET(*block, offset), 0, typeInfo->size);
+    if (typeInfo->use_default_data && data->layers[n].default_data) {
+      memcpy(POINTER_OFFSET(*block, offset), data->layers[n].default_data, typeInfo->size);
+    }
+    else {
+      memset(POINTER_OFFSET(*block, offset), 0, typeInfo->size);
+    }
   }
 }
 
@@ -4850,9 +4878,16 @@ void CustomData_bmesh_interp(CustomData *data,
                          1);
         }
         else {
-          memcpy(POINTER_OFFSET(dst_block, layer->offset),
-                 POINTER_OFFSET(src_blocks[0], layer->offset),
-                 typeInfo->size);
+          if (layer->default_data && typeInfo->use_default_data) {
+            memcpy(POINTER_OFFSET(dst_block, layer->offset),
+                   layer->default_data,
+                   typeInfo->size);
+          }
+          else {
+            memcpy(POINTER_OFFSET(dst_block, layer->offset),
+                   POINTER_OFFSET(src_blocks[0], layer->offset),
+                   typeInfo->size);
+          }
         }
       }
 
@@ -5846,6 +5881,12 @@ void CustomData_blend_write(BlendWriter *writer,
       writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   for (const CustomDataLayer &layer : layers_to_write) {
+    const LayerTypeInfo *typeInfo = layerType_getInfo(layer.type);
+
+    if (typeInfo->use_default_data && layer.default_data) {
+      BLO_write_struct_by_name(writer, typeInfo->structname, layer.default_data);
+    }
+
     switch (layer.type) {
       case CD_MDEFORMVERT:
         BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));
@@ -5956,6 +5997,14 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
+    const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+    if (layer->default_data && typeInfo->use_default_data) {
+      BLO_read_data_address(reader, &layer->default_data);
+    }
+    else {
+      layer->default_data = nullptr;
+    }
 
     if (layer->flag & CD_FLAG_EXTERNAL) {
       layer->flag &= ~CD_FLAG_IN_MEMORY;

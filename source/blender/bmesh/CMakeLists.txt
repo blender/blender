@@ -73,6 +73,8 @@ set(SRC
   intern/bmesh_delete.h
   intern/bmesh_edgeloop.c
   intern/bmesh_edgeloop.h
+  intern/bmesh_idmap.cc
+  intern/bmesh_idmap.h
   intern/bmesh_inline.h
   intern/bmesh_interp.c
   intern/bmesh_interp.h
