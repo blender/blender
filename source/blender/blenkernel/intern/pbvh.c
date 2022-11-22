@@ -3738,10 +3738,12 @@ void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
       pbvh_face_iter_verts_reserve(fd, mp->totloop);
 
       const MLoop *ml = fd->mloop_ + mp->loopstart;
+      const int grid_area = fd->subdiv_key_.grid_area;
+
       for (int i = 0; i < mp->totloop; i++, ml++) {
         if (fd->pbvh_type_ == PBVH_GRIDS) {
           /* Grid corners. */
-          fd->verts[i].i = mp->loopstart + i;
+          fd->verts[i].i = (mp->loopstart + i) * grid_area + grid_area - 1;
         }
         else {
           fd->verts[i].i = ml->v;
@@ -3771,6 +3773,8 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_GRIDS:
       fd->subdiv_ccg_ = pbvh->subdiv_ccg;
+      fd->subdiv_key_ = pbvh->gridkey;
+      ATTR_FALLTHROUGH;
     case PBVH_FACES:
       fd->mpoly_ = pbvh->mpoly;
       fd->mloop_ = pbvh->mloop;

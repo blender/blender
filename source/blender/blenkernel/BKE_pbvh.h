@@ -710,6 +710,7 @@ typedef struct PBVHFaceIter {
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
+  CCGKey subdiv_key_;
 
   int last_face_index_;
 } PBVHFaceIter;
