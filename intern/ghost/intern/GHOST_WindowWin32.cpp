@@ -15,6 +15,9 @@
 #include "utfconv.h"
 
 #include "GHOST_ContextWGL.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 #include <Dwmapi.h>
 
@@ -631,6 +634,19 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 
     return context;
   }
+
+#ifdef WITH_VULKAN_BACKEND
+  else if (type == GHOST_kDrawingContextTypeVulkan) {
+    GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 0, m_debug_context);
+
+    if (context->initializeDrawingContext()) {
+      return context;
+    }
+    else {
+      delete context;
+    }
+  }
+#endif
 
   return NULL;
 }

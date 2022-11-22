@@ -5,7 +5,7 @@
  * \ingroup gpu
  */
 
-#include "vk_backend.hh"
+#include "gpu_platform_private.hh"
 
 #include "vk_batch.hh"
 #include "vk_context.hh"
@@ -19,7 +19,35 @@
 #include "vk_uniform_buffer.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "vk_backend.hh"
+
 namespace blender::gpu {
+
+void VKBackend::init_platform()
+{
+  BLI_assert(!GPG.initialized);
+
+  eGPUDeviceType device = GPU_DEVICE_ANY;
+  eGPUOSType os = GPU_OS_ANY;
+  eGPUDriverType driver = GPU_DRIVER_ANY;
+  eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
+
+#ifdef _WIN32
+  os = GPU_OS_WIN;
+#elif defined(__APPLE__)
+  os = GPU_OS_MAC;
+#else
+  os = GPU_OS_UNIX;
+#endif
+
+  GPG.init(device, os, driver, support_level, GPU_BACKEND_VULKAN, "", "", "");
+}
+
+void VKBackend::platform_exit()
+{
+  BLI_assert(GPG.initialized);
+  GPG.clear();
+}
 
 void VKBackend::delete_resources()
 {

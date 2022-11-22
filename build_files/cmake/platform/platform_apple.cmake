@@ -100,6 +100,11 @@ if(WITH_USD)
   find_package(USD REQUIRED)
 endif()
 
+if(WITH_VULKAN_BACKEND)
+  find_package(Vulkan REQUIRED)
+  find_package(MoltenVK REQUIRED)
+endif()
+
 if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
 endif()

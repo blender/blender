@@ -121,6 +121,10 @@ if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
 endif()
 
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_OPENCOLLADA)
   add_definitions(-DWITH_COLLADA)
 endif()

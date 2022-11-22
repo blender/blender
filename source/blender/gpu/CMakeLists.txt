@@ -267,6 +267,8 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND SRC ${VULKAN_SRC})
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
 if(WITH_METAL_BACKEND)
