@@ -397,6 +397,8 @@ void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
  */
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *pbvh);
 
+void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, struct Mesh *me);
+
 /**
  * Returns the number of visible quads in the nodes' grids.
  */

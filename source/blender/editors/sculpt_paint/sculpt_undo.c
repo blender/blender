@@ -1058,6 +1058,13 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
 
     if (update_visibility) {
+      if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
+        Mesh *me = (Mesh *)ob->data;
+        BKE_pbvh_sync_visibility_from_verts(ss->pbvh, me);
+
+        BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
+      }
+
       BKE_pbvh_update_visibility(ss->pbvh);
     }
 
@@ -1078,11 +1085,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       BKE_mesh_tag_coords_changed(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
-    }
-
-    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && update_visibility) {
-      Mesh *mesh = ob->data;
-      BKE_mesh_flush_hidden_from_verts(mesh);
     }
 
     if (tag_update) {
