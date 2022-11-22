@@ -3572,7 +3572,7 @@ BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
   }
 }
 
-void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
+static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
 {
   if (do_step) {
     fd->i++;
@@ -3677,7 +3677,6 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
 
   fd->node_ = node;
   fd->pbvh_type_ = BKE_pbvh_type(pbvh);
-
   fd->verts = fd->verts_reserved_;
   fd->verts_size_ = PBVH_FACE_ITER_VERTS_RESERVED;
 
