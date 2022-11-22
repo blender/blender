@@ -836,7 +836,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  MPoly *mpoly = BKE_mesh_polys(me);
+  const MPoly *mpoly = BKE_mesh_polys(me);
 
   for (int i = 0; i < me->totpoly; i++) {
     max_grids = max_ii(max_grids, mpoly[i].totloop);
