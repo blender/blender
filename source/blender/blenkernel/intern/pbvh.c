@@ -746,6 +746,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->vdata = vdata;
   pbvh->ldata = ldata;
   pbvh->pdata = pdata;
+  pbvh->faces_num = mesh->totpoly;
 
   pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
   pbvh->face_sets_color_default = mesh->face_sets_color_default;
@@ -833,6 +834,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->subdiv_ccg = subdiv_ccg;
+  pbvh->faces_num = me->totpoly;
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
@@ -2018,6 +2020,11 @@ void BKE_pbvh_node_mark_update_color(PBVHNode *node)
   node->flag |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
+void BKE_pbvh_node_mark_update_face_sets(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
 {
   for (int n = 0; n < pbvh->totnode; n++) {
@@ -2120,6 +2127,20 @@ void BKE_pbvh_node_get_loops(PBVH *pbvh,
   if (r_loops) {
     *r_loops = pbvh->mloop;
   }
+}
+
+int BKE_pbvh_num_faces(const PBVH *pbvh)
+{
+  switch (pbvh->header.type) {
+    case PBVH_GRIDS:
+    case PBVH_FACES:
+      return pbvh->faces_num;
+    case PBVH_BMESH:
+      return pbvh->header.bm->totface;
+  }
+
+  BLI_assert_unreachable();
+  return 0;
 }
 
 void BKE_pbvh_node_get_verts(PBVH *pbvh,
@@ -3788,5 +3809,186 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
       break;
     }
+  }
+}
+
+static void pbvh_face_iter_verts_reserve(PBVHFaceIter *fd, int verts_num)
+{
+  if (verts_num >= fd->verts_size_) {
+    fd->verts_size_ = (verts_num + 1) << 2;
+
+    if (fd->verts != fd->verts_reserved_) {
+      MEM_SAFE_FREE(fd->verts);
+    }
+
+    fd->verts = MEM_malloc_arrayN(fd->verts_size_, sizeof(void *), __func__);
+  }
+
+  fd->verts_num = verts_num;
+}
+
+BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
+{
+  if (fd->subdiv_ccg_) {
+    return BKE_subdiv_ccg_grid_to_face_index(fd->subdiv_ccg_, prim_index);
+  }
+  else {
+    return fd->looptri_[prim_index].poly;
+  }
+}
+
+void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
+{
+  if (do_step) {
+    fd->i++;
+  }
+
+  switch (fd->pbvh_type_) {
+    case PBVH_BMESH: {
+      if (do_step) {
+        BLI_gsetIterator_step(&fd->bm_faces_iter_);
+        if (BLI_gsetIterator_done(&fd->bm_faces_iter_)) {
+          return;
+        }
+      }
+
+      BMFace *f = (BMFace *)BLI_gsetIterator_getKey(&fd->bm_faces_iter_);
+      fd->face.i = (intptr_t)f;
+      fd->index = f->head.index;
+
+      if (fd->cd_face_set_ != -1) {
+        fd->face_set = (int *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_face_set_);
+      }
+
+      if (fd->cd_hide_poly_ != -1) {
+        fd->hide = (bool *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_hide_poly_);
+      }
+
+      pbvh_face_iter_verts_reserve(fd, f->len);
+      int vertex_i = 0;
+
+      BMLoop *l = f->l_first;
+      do {
+        fd->verts[vertex_i++].i = (intptr_t)l->v;
+      } while ((l = l->next) != f->l_first);
+
+      break;
+    }
+    case PBVH_GRIDS:
+    case PBVH_FACES: {
+      int face_index = 0;
+
+      if (do_step) {
+        fd->prim_index_++;
+
+        while (fd->prim_index_ < fd->node_->totprim) {
+          face_index = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+
+          if (face_index != fd->last_face_index_) {
+            break;
+          }
+
+          fd->prim_index_++;
+        }
+      }
+      else if (fd->prim_index_ < fd->node_->totprim) {
+        face_index = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+      }
+
+      if (fd->prim_index_ >= fd->node_->totprim) {
+        return;
+      }
+
+      fd->last_face_index_ = face_index;
+      const MPoly *mp = fd->mpoly_ + face_index;
+
+      fd->face.i = fd->index = face_index;
+
+      if (fd->face_sets_) {
+        fd->face_set = fd->face_sets_ + face_index;
+      }
+      if (fd->hide_poly_) {
+        fd->hide = fd->hide_poly_ + face_index;
+      }
+
+      pbvh_face_iter_verts_reserve(fd, mp->totloop);
+
+      const MLoop *ml = fd->mloop_ + mp->loopstart;
+      for (int i = 0; i < mp->totloop; i++, ml++) {
+        if (fd->pbvh_type_ == PBVH_GRIDS) {
+          /* Grid corners. */
+          fd->verts[i].i = mp->loopstart + i;
+        }
+        else {
+          fd->verts[i].i = ml->v;
+        }
+      }
+
+      break;
+    }
+  }
+}
+
+void BKE_pbvh_face_iter_step(PBVHFaceIter *fd)
+{
+  pbvh_face_iter_step(fd, true);
+}
+
+void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
+{
+  memset(fd, 0, sizeof(*fd));
+
+  fd->node_ = node;
+  fd->pbvh_type_ = BKE_pbvh_type(pbvh);
+
+  fd->verts = fd->verts_reserved_;
+  fd->verts_size_ = PBVH_FACE_ITER_VERTS_RESERVED;
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_GRIDS:
+      fd->subdiv_ccg_ = pbvh->subdiv_ccg;
+    case PBVH_FACES:
+      fd->mpoly_ = pbvh->mpoly;
+      fd->mloop_ = pbvh->mloop;
+      fd->looptri_ = pbvh->looptri;
+      fd->hide_poly_ = pbvh->hide_poly;
+      fd->face_sets_ = pbvh->face_sets;
+      fd->last_face_index_ = -1;
+
+      break;
+    case PBVH_BMESH:
+      fd->bm = pbvh->header.bm;
+      fd->cd_face_set_ = CustomData_get_offset_named(
+          &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+      fd->cd_hide_poly_ = CustomData_get_offset_named(
+          &pbvh->header.bm->pdata, CD_PROP_INT32, ".hide_poly");
+
+      BLI_gsetIterator_init(&fd->bm_faces_iter_, node->bm_faces);
+      break;
+  }
+
+  if (!BKE_pbvh_face_iter_done(fd)) {
+    pbvh_face_iter_step(fd, false);
+  }
+}
+
+void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd)
+{
+  if (fd->verts != fd->verts_reserved_) {
+    MEM_SAFE_FREE(fd->verts);
+  }
+}
+
+bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd)
+{
+  switch (fd->pbvh_type_) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return fd->prim_index_ >= fd->node_->totprim;
+    case PBVH_BMESH:
+      return BLI_gsetIterator_done(&fd->bm_faces_iter_);
+    default:
+      BLI_assert_unreachable();
+      return true;
   }
 }
