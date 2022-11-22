@@ -69,7 +69,7 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
   tracking.act_plane_track_legacy = nullptr;
 }
 
-void version_movieclips_legacy_camera_object(Main *bmain)
+static void version_movieclips_legacy_camera_object(Main *bmain)
 {
   LISTBASE_FOREACH (MovieClip *, movieclip, &bmain->movieclips) {
     version_motion_tracking_legacy_camera_object(*movieclip);
