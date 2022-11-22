@@ -161,7 +161,8 @@ const GeometryComponent *GeometrySet::get_component_for_read(
 
 bool GeometrySet::has(const GeometryComponentType component_type) const
 {
-  return components_[component_type].has_value();
+  const GeometryComponentPtr &component = components_[component_type];
+  return component.has_value() && !component->is_empty();
 }
 
 void GeometrySet::remove(const GeometryComponentType component_type)
