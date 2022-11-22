@@ -469,11 +469,12 @@ inline bool remove(void *owner, const AttributeIDRef &attribute_id)
       return provider->try_delete(owner);
     }
   }
-  bool success = false;
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
-    success = provider->try_delete(owner, attribute_id) || success;
+    if (provider->try_delete(owner, attribute_id)) {
+      return true;
+    }
   }
-  return success;
+  return false;
 }
 
 template<const ComponentAttributeProviders &providers>
