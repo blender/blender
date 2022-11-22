@@ -984,6 +984,93 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   }
 }
 
+static void shader_node_disconnect_input(bNodeTree *ntree, bNode *node, int index)
+{
+  bNodeLink *link = ntree_shader_node_input_get(node, index)->link;
+  if (link) {
+    nodeRemLink(ntree, link);
+  }
+}
+
+static void shader_node_disconnect_inactive_mix_branch(bNodeTree *ntree,
+                                                       bNode *node,
+                                                       int factor_socket_index,
+                                                       int a_socket_index,
+                                                       int b_socket_index,
+                                                       bool clamp_factor)
+{
+  bNodeSocket *factor_socket = ntree_shader_node_input_get(node, factor_socket_index);
+  if (factor_socket->link == nullptr) {
+    float factor = 0.5;
+
+    if (factor_socket->type == SOCK_FLOAT) {
+      factor = factor_socket->default_value_typed<bNodeSocketValueFloat>()->value;
+      if (clamp_factor) {
+        factor = clamp_f(factor, 0.0f, 1.0f);
+      }
+    }
+    else if (factor_socket->type == SOCK_VECTOR) {
+      const float *vfactor = factor_socket->default_value_typed<bNodeSocketValueVector>()->value;
+      float vfactor_copy[3];
+      for (int i = 0; i < 3; i++) {
+        if (clamp_factor) {
+          vfactor_copy[i] = clamp_f(vfactor[i], 0.0f, 1.0f);
+        }
+        else {
+          vfactor_copy[i] = vfactor[i];
+        }
+      }
+      if (vfactor_copy[0] == vfactor_copy[1] && vfactor_copy[0] == vfactor_copy[2]) {
+        factor = vfactor_copy[0];
+      }
+    }
+
+    if (factor == 1.0f && a_socket_index >= 0) {
+      shader_node_disconnect_input(ntree, node, a_socket_index);
+    }
+    else if (factor == 0.0f && b_socket_index >= 0) {
+      shader_node_disconnect_input(ntree, node, b_socket_index);
+    }
+  }
+}
+
+static void ntree_shader_disconnect_inactive_mix_branches(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_MIX_SHADER) {
+      shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 1, 2, true);
+    }
+    else if (node->type == SH_NODE_MIX) {
+      const NodeShaderMix *storage = static_cast<NodeShaderMix *>(node->storage);
+      if (storage->data_type == SOCK_FLOAT) {
+        shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 2, 3, storage->clamp_factor);
+        /* Disconnect links from data_type-specific sockets that are not currently in use */
+        for (int i : {1, 4, 5, 6, 7}) {
+          shader_node_disconnect_input(ntree, node, i);
+        }
+      }
+      else if (storage->data_type == SOCK_VECTOR) {
+        int factor_socket = storage->factor_mode == NODE_MIX_MODE_UNIFORM ? 0 : 1;
+        shader_node_disconnect_inactive_mix_branch(
+            ntree, node, factor_socket, 4, 5, storage->clamp_factor);
+        /* Disconnect links from data_type-specific sockets that are not currently in use */
+        int unused_factor_socket = factor_socket == 0 ? 1 : 0;
+        for (int i : {unused_factor_socket, 2, 3, 6, 7}) {
+          shader_node_disconnect_input(ntree, node, i);
+        }
+      }
+      else if (storage->data_type == SOCK_RGBA) {
+        /* Branch A can't be optimized-out, since its alpha is always used regardless of factor */
+        shader_node_disconnect_inactive_mix_branch(ntree, node, 0, -1, 7, storage->clamp_factor);
+        /* Disconnect links from data_type-specific sockets that are not currently in use */
+        for (int i : {1, 2, 3, 4, 5}) {
+          shader_node_disconnect_input(ntree, node, i);
+        }
+      }
+    }
+  }
+}
+
 static bool ntree_branch_node_tag(bNode *fromnode, bNode *tonode, void * /*userdata*/)
 {
   fromnode->tmp_flag = 1;
@@ -996,6 +1083,8 @@ static bool ntree_branch_node_tag(bNode *fromnode, bNode *tonode, void * /*userd
  * first executed SSS node gets a SSS profile. */
 static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
 {
+  ntree_shader_disconnect_inactive_mix_branches(ntree);
+
   bool changed = false;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
