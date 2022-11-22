@@ -907,6 +907,10 @@ bool BM_data_layer_free_named(BMesh *bm, CustomData *data, const char *name)
   if (has_layer) {
     update_data_blocks(bm, &olddata, data);
   }
+  else {
+    /* Move pool ownership back to BMesh CustomData, no block reallocation. */
+    data->pool = olddata.pool;
+  }
 
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
