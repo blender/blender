@@ -168,8 +168,8 @@ typedef struct TrackingCopyContext {
 static TrackingCopyContext tracking_copy_context_new(void)
 {
   TrackingCopyContext ctx = {
-      BLI_ghash_ptr_new(__func__), /* old_to_new_track_map */
-      BLI_ghash_ptr_new(__func__), /* old_to_new_plane_track_map */
+      .old_to_new_track_map = BLI_ghash_ptr_new(__func__),
+      .old_to_new_plane_track_map = BLI_ghash_ptr_new(__func__),
   };
   return ctx;
 }
