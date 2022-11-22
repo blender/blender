@@ -292,6 +292,7 @@ struct PartialUpdateData {
   bool *modified_hidden_verts;
   bool *modified_mask_verts;
   bool *modified_color_verts;
+  bool *modified_face_set_faces;
 };
 
 /**
@@ -349,6 +350,16 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
         }
       }
     }
+  }
+  if (data->modified_face_set_faces) {
+    PBVHFaceIter fd;
+    BKE_pbvh_face_iter_begin (data->pbvh, node, fd) {
+      if (data->modified_face_set_faces[fd.index]) {
+        BKE_pbvh_node_mark_update_face_sets(node);
+        break;
+      }
+    }
+    BKE_pbvh_face_iter_end(fd);
   }
 }
 
@@ -600,24 +611,32 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   return true;
 }
 
-static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
+static bool sculpt_undo_restore_face_sets(bContext *C,
+                                          SculptUndoNode *unode,
+                                          bool *modified_face_set_faces)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Mesh *me = BKE_object_get_original_mesh(ob);
+  SculptSession *ss = ob->sculpt;
 
-  int *face_sets = CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set");
-  if (!face_sets) {
-    face_sets = CustomData_add_layer_named(
-        &me->pdata, CD_PROP_INT32, CD_CONSTRUCT, NULL, me->totpoly, ".sculpt_face_set");
+  ss->face_sets = BKE_sculpt_face_sets_ensure(me);
+  BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
+
+  bool modified = false;
+
+  for (int i = 0; i < unode->faces_num; i++) {
+    int face_index = unode->faces[i].i;
+
+    SWAP(int, unode->face_sets[i], ss->face_sets[face_index]);
+
+    modified_face_set_faces[face_index] = unode->face_sets[i] != ss->face_sets[face_index];
+    modified |= modified_face_set_faces[face_index];
   }
 
-  for (int i = 0; i < me->totpoly; i++) {
-    SWAP(int, face_sets[i], unode->face_sets[i]);
-  }
-  return false;
+  return modified;
 }
 
 static void sculpt_undo_bmesh_restore_generic_task_cb(
@@ -864,6 +883,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   SculptUndoNode *unode;
   bool update = false, rebuild = false, update_mask = false, update_visibility = false;
+  bool update_face_sets = false;
   bool need_mask = false;
   bool need_refine_subdiv = false;
   bool clear_automask_cache = false;
@@ -892,34 +912,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-  if (lb->first) {
-    unode = lb->first;
-    if (unode->type == SCULPT_UNDO_FACE_SETS) {
-      sculpt_undo_restore_face_sets(C, unode);
-
-      rebuild = true;
-      BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
-
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, true, need_mask, false);
-
-      SCULPT_visibility_sync_all_from_faces(ob);
-
-      BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
-
-      if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-        BKE_mesh_flush_hidden_from_verts(ob->data);
-      }
-
-      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-      if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
-        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      }
-
-      unode->applied = true;
-      return;
-    }
-  }
-
   if (lb->first != NULL) {
     /* Only do early object update for edits if first node needs this.
      * Undo steps like geometry does not need object to be updated before they run and will
@@ -934,12 +926,13 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
-  /* The PBVH already keeps track of which vertices need updated normals, but it doesn't keep track
-   * of other updated. In order to tell the corresponding PBVH nodes to update, keep track of which
-   * elements were updated for specific layers. */
+  /* The PBVH already keeps track of which vertices need updated normals, but it doesn't keep
+   * track of other updated. In order to tell the corresponding PBVH nodes to update, keep track
+   * of which elements were updated for specific layers. */
   bool *modified_hidden_verts = NULL;
   bool *modified_mask_verts = NULL;
   bool *modified_color_verts = NULL;
+  bool *modified_face_set_faces = NULL;
   char *undo_modified_grids = NULL;
   bool use_multires_undo = false;
 
@@ -990,6 +983,14 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         }
         break;
       case SCULPT_UNDO_FACE_SETS:
+        if (modified_face_set_faces == NULL) {
+          modified_face_set_faces = MEM_calloc_arrayN(
+              BKE_pbvh_num_faces(ss->pbvh), sizeof(bool), __func__);
+        }
+        if (sculpt_undo_restore_face_sets(C, unode, modified_face_set_faces)) {
+          update = true;
+          update_face_sets = true;
+        }
         break;
       case SCULPT_UNDO_COLOR:
         if (modified_color_verts == NULL) {
@@ -1049,12 +1050,17 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         .modified_hidden_verts = modified_hidden_verts,
         .modified_mask_verts = modified_mask_verts,
         .modified_color_verts = modified_color_verts,
+        .modified_face_set_faces = modified_face_set_faces,
     };
     BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (update_mask) {
       BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+    }
+    if (update_face_sets) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+      BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_RebuildDrawBuffers);
     }
 
     if (update_visibility) {
@@ -1098,6 +1104,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   MEM_SAFE_FREE(modified_hidden_verts);
   MEM_SAFE_FREE(modified_mask_verts);
   MEM_SAFE_FREE(modified_color_verts);
+  MEM_SAFE_FREE(modified_face_set_faces);
   MEM_SAFE_FREE(undo_modified_grids);
 }
 
@@ -1120,6 +1127,9 @@ static void sculpt_undo_free_list(ListBase *lb)
     }
     if (unode->index) {
       MEM_freeN(unode->index);
+    }
+    if (unode->faces) {
+      MEM_freeN(unode->faces);
     }
     if (unode->loop_index) {
       MEM_freeN(unode->loop_index);
@@ -1270,6 +1280,23 @@ static SculptUndoNode *sculpt_undo_find_or_alloc_node_type(Object *object, Sculp
   return sculpt_undo_alloc_node_type(object, type);
 }
 
+static void sculpt_undo_store_faces(SculptSession *ss, SculptUndoNode *unode)
+{
+  unode->faces_num = 0;
+
+  PBVHFaceIter fd;
+  BKE_pbvh_face_iter_begin (ss->pbvh, unode->node, fd) {
+    unode->faces_num++;
+  }
+  BKE_pbvh_face_iter_end(fd);
+
+  unode->faces = MEM_malloc_arrayN(sizeof(*unode->faces), unode->faces_num, __func__);
+  BKE_pbvh_face_iter_begin (ss->pbvh, unode->node, fd) {
+    unode->faces[fd.i] = fd.face;
+  }
+  BKE_pbvh_face_iter_end(fd);
+}
+
 static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1292,6 +1319,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
   }
 
   bool need_loops = type == SCULPT_UNDO_COLOR;
+  const bool need_faces = type == SCULPT_UNDO_FACE_SETS;
 
   if (need_loops) {
     int totloop;
@@ -1303,6 +1331,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->totloop = totloop;
 
     size_t alloc_size = sizeof(int) * (size_t)totloop;
+    usculpt->undo_size += alloc_size;
+  }
+
+  if (need_faces) {
+    sculpt_undo_store_faces(ss, unode);
+    const size_t alloc_size = sizeof(*unode->faces) * (size_t)unode->faces_num;
     usculpt->undo_size += alloc_size;
   }
 
@@ -1356,9 +1390,14 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       BLI_assert_msg(0, "Dynamic topology should've already been handled");
-    case SCULPT_UNDO_GEOMETRY:
-    case SCULPT_UNDO_FACE_SETS:
       break;
+    case SCULPT_UNDO_GEOMETRY:
+      break;
+    case SCULPT_UNDO_FACE_SETS: {
+      const size_t alloc_size = sizeof(*unode->face_sets) * (size_t)unode->faces_num;
+      usculpt->undo_size += alloc_size;
+      break;
+    }
   }
 
   if (maxgrid) {
@@ -1488,32 +1527,15 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *object, SculptUndoType 
   return unode;
 }
 
-static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType type)
+static void sculpt_undo_store_face_sets(SculptSession *ss, SculptUndoNode *unode)
 {
-  UndoSculpt *usculpt = sculpt_undo_get_nodes();
-  SculptUndoNode *unode = MEM_callocN(sizeof(*unode), __func__);
+  unode->face_sets = MEM_malloc_arrayN(sizeof(*unode->face_sets), unode->faces_num, __func__);
 
-  BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
-  unode->type = type;
-  unode->applied = true;
-
-  Mesh *me = BKE_object_get_original_mesh(ob);
-
-  unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
-
-  const int *face_sets = CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set");
-  if (face_sets) {
-    for (int i = 0; i < me->totpoly; i++) {
-      unode->face_sets[i] = face_sets[i];
-    }
+  PBVHFaceIter fd;
+  BKE_pbvh_face_iter_begin (ss->pbvh, unode->node, fd) {
+    unode->face_sets[fd.i] = fd.face_set ? *fd.face_set : SCULPT_FACE_SET_NONE;
   }
-  else {
-    memset(unode->face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * me->totpoly);
-  }
-
-  BLI_addtail(&usculpt->nodes, unode);
-
-  return unode;
+  BKE_pbvh_face_iter_end(fd);
 }
 
 static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
@@ -1616,11 +1638,6 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if (type == SCULPT_UNDO_FACE_SETS) {
-    unode = sculpt_undo_face_sets_push(ob, type);
-    BLI_thread_unlock(LOCK_CUSTOM1);
-    return unode;
-  }
   if ((unode = SCULPT_undo_get_node(node, type))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
@@ -1678,7 +1695,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       BLI_assert_msg(0, "Dynamic topology should've already been handled");
     case SCULPT_UNDO_GEOMETRY:
+      break;
     case SCULPT_UNDO_FACE_SETS:
+      sculpt_undo_store_face_sets(ss, unode);
       break;
   }
 
