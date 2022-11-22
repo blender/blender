@@ -1244,9 +1244,6 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND BLENDER_GL_LIBRARIES ${VULKAN_LIBRARIES})
-  if(APPLE)
-    list(APPEND BLENDER_GL_LIBRARIES ${MOLTENVK_LIBRARIES})
-  endif()
 endif()
 
 # -----------------------------------------------------------------------------

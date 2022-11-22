@@ -101,8 +101,20 @@ if(WITH_USD)
 endif()
 
 if(WITH_VULKAN_BACKEND)
-  find_package(Vulkan REQUIRED)
   find_package(MoltenVK REQUIRED)
+
+  if(EXISTS ${LIBDIR}/vulkan)
+    set(VULKAN_FOUND On)
+    set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan/macOS)
+    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
+    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/lib/libvulkan.1.dylib)
+
+    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR} ${MOLTENVK_INCLUDE_DIRS})
+    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY} ${MOLTENVK_LIBRARIES})
+  else()
+    message(WARNING "Vulkan SDK was not found, disabling WITH_VULKAN_BACKEND")
+    set(WITH_VULKAN_BACKEND OFF)
+  endif()
 endif()
 
 if(WITH_OPENSUBDIV)
