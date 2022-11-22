@@ -65,7 +65,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
-  export_params.ascii_mode = RNA_boolean_get(op->ptr, "ascii_mode");
+  export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
 
   PLY_export(C, &export_params);
 
@@ -82,6 +82,8 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   /* Object Transform options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
+  uiItemR(sub, imfptr, "ascii_format", 0, IFACE_("ASCII"), ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
@@ -104,7 +106,6 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
   uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
-  uiItemR(sub, imfptr, "ascii_mode", 0, IFACE_("ASCII Format"), ICON_NONE);
 }
 
 static void wm_ply_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -219,10 +220,10 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "the scene will not be affected. Behaves like Triangulate Modifier with "
                   "ngon-method: \"Beauty\", quad-method: \"Shortest Diagonal\", min vertices: 4");
   RNA_def_boolean(ot->srna,
-                  "ascii_mode",
+                  "ascii_format",
                   false,
                   "ASCII Format",
-                  "Export file in ASCII format, export as binary otherwise.");
+                  "Export file in ASCII format, export as binary otherwise");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

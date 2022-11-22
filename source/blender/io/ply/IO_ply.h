@@ -24,7 +24,7 @@ struct PLYExportParams {
   const char *blen_filepath;
 
   /** File export format, ASCII if true, binary otherwise */
-  bool ascii_mode;
+  bool ascii_format;
 
   /* Geometry Transform options. */
   eIOAxis forward_axis;
