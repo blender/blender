@@ -841,7 +841,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   for (int i = 0; i < me->totpoly; i++) {
     max_grids = max_ii(max_grids, mpoly[i].totloop);
   }
-  
+
   /* Ensure leaf limit is at least 4 so there's room
    * to split at original face boundaries.
    * Fixes T102209.
@@ -3521,4 +3521,93 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node)
 {
   return node->debug_draw_gen;
+}
+
+void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
+{
+  switch (pbvh->header.type) {
+    case PBVH_FACES: {
+      BKE_mesh_flush_hidden_from_verts(mesh);
+      BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+      break;
+    }
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMVert *v;
+      BMEdge *e;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
+        BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
+      }
+
+      BM_ITER_MESH (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH) {
+        BM_elem_flag_disable(e, BM_ELEM_HIDDEN);
+      }
+
+      BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
+        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        BMIter iter_l;
+        BMLoop *l;
+
+        BM_ITER_ELEM (l, &iter_l, v, BM_LOOPS_OF_VERT) {
+          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+          BM_elem_flag_enable(l->f, BM_ELEM_HIDDEN);
+        }
+      }
+      break;
+    }
+    case PBVH_GRIDS: {
+      const MPoly *mp = BKE_mesh_polys(mesh);
+      const MLoop *mloop = BKE_mesh_loops(mesh);
+      CCGKey key = pbvh->gridkey;
+
+      bool *hide_poly = (bool *)CustomData_get_layer_named(
+          &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+
+      bool delete_hide_poly = true;
+      for (int face_index = 0; face_index < mesh->totpoly; face_index++, mp++) {
+        const MLoop *ml = mloop + mp->loopstart;
+        bool hidden = false;
+
+        for (int loop_index = 0; !hidden && loop_index < mp->totloop; loop_index++, ml++) {
+          int grid_index = mp->loopstart + loop_index;
+
+          if (pbvh->grid_hidden[grid_index] &&
+              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {
+            hidden = true;
+
+            break;
+          }
+        }
+
+        if (hidden && !hide_poly) {
+          hide_poly = (bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+
+          if (!hide_poly) {
+            CustomData_add_layer_named(
+                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, NULL, mesh->totpoly, ".hide_poly");
+
+            hide_poly = (bool *)CustomData_get_layer_named(
+                &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+          }
+        }
+
+        if (hide_poly) {
+          delete_hide_poly = delete_hide_poly && !hidden;
+          hide_poly[face_index] = hidden;
+        }
+      }
+
+      if (delete_hide_poly) {
+        CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+      }
+
+      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+      break;
+    }
+  }
 }
