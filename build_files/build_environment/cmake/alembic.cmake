@@ -44,3 +44,4 @@ add_dependencies(
   external_openexr
   external_imath
 )
+test
