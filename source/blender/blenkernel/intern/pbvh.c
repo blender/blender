@@ -3656,7 +3656,6 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
           fd->verts[i].i = ml->v;
         }
       }
-      
       break;
     }
   }
