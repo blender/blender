@@ -54,6 +54,8 @@ class AssetLibraryService {
   /** Destroy the AssetLibraryService singleton. It will be reallocated by #get() if necessary. */
   static void destroy();
 
+  static std::string root_path_from_library_ref(const AssetLibraryReference &library_reference);
+
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
 

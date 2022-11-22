@@ -423,16 +423,20 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   }
 
   switch (library->type) {
+    case ASSET_LIBRARY_ALL:
+      base_params->dir[0] = '\0';
+      base_params->type = FILE_ASSET_LIBRARY_ALL;
+      break;
     case ASSET_LIBRARY_LOCAL:
       base_params->dir[0] = '\0';
+      base_params->type = FILE_MAIN_ASSET;
       break;
     case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
       BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
+      base_params->type = FILE_ASSET_LIBRARY;
       break;
   }
-  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET :
-                                                               FILE_ASSET_LIBRARY;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)

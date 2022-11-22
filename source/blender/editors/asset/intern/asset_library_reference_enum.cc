@@ -47,7 +47,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
   if (value < ASSET_LIBRARY_CUSTOM) {
     library.type = value;
     library.custom_library_index = -1;
-    BLI_assert(ELEM(value, ASSET_LIBRARY_LOCAL));
+    BLI_assert(ELEM(value, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL));
     return library;
   }
 
@@ -78,8 +78,11 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
 
   if (include_local_library) {
     const EnumPropertyItem predefined_items[] = {
-        /* For the future. */
-        // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
+        {ASSET_LIBRARY_ALL,
+         "ALL",
+         ICON_NONE,
+         "All",
+         "Show assets from all of the listed asset libraries"},
         {ASSET_LIBRARY_LOCAL,
          "LOCAL",
          ICON_CURRENT_FILE,

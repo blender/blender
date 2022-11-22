@@ -320,6 +320,10 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          bool *stop,
                                          bool *do_update,
                                          float *progress);
+static void filelist_readjob_all_asset_libraries(FileListReadJob *job_params,
+                                                 bool *stop,
+                                                 bool *do_update,
+                                                 float *progress);
 
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
@@ -854,13 +858,16 @@ static bool is_filtered_lib_type(FileListInternEntry *file,
                                  const char *root,
                                  FileListFilter *filter)
 {
-  char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
+  if (root) {
+    char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
 
-  BLI_path_join(path, sizeof(path), root, file->relpath);
+    BLI_path_join(path, sizeof(path), root, file->relpath);
 
-  if (BLO_library_path_explode(path, dir, &group, &name)) {
-    return is_filtered_id_file_type(file, group, name, filter);
+    if (BLO_library_path_explode(path, dir, &group, &name)) {
+      return is_filtered_id_file_type(file, group, name, filter);
+    }
   }
+
   return is_filtered_file_type(file, filter);
 }
 
@@ -1359,11 +1366,10 @@ static bool filelist_checkdir_main(struct FileList *filelist, char *r_dir, const
   return filelist_checkdir_lib(filelist, r_dir, do_change);
 }
 
-static bool filelist_checkdir_main_assets(struct FileList * /*filelist*/,
-                                          char * /*r_dir*/,
-                                          const bool /*do_change*/)
+static bool filelist_checkdir_return_always_valid(struct FileList * /*filelist*/,
+                                                  char * /*r_dir*/,
+                                                  const bool /*do_change*/)
 {
-  /* Main is always valid. */
   return true;
 }
 
@@ -1625,6 +1631,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     BLI_thread_queue_push(cache->previews_done, preview);
   }
   else {
+    /* XXX */
     if (entry->redirection_path) {
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
@@ -1766,11 +1773,18 @@ void filelist_settype(FileList *filelist, short type)
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
       break;
     case FILE_MAIN_ASSET:
-      filelist->check_dir_fn = filelist_checkdir_main_assets;
+      filelist->check_dir_fn = filelist_checkdir_return_always_valid;
       filelist->read_job_fn = filelist_readjob_main_assets;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_main_assets;
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS;
+      break;
+    case FILE_ASSET_LIBRARY_ALL:
+      filelist->check_dir_fn = filelist_checkdir_return_always_valid;
+      filelist->read_job_fn = filelist_readjob_all_asset_libraries;
+      filelist->prepare_filter_fn = prepare_filter_asset_library;
+      filelist->filter_fn = is_filtered_asset_library;
+      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
       break;
     default:
       filelist->check_dir_fn = filelist_checkdir_dir;
@@ -2852,6 +2866,9 @@ void filelist_entry_parent_select_set(FileList *filelist,
 
 bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group)
 {
+  if (filelist->asset_library) {
+    return true;
+  }
   return BLO_library_path_explode(filelist->filelist.root, dir, r_group, nullptr);
 }
 
@@ -3746,6 +3763,10 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
  */
 static bool filelist_contains_main(const FileList *filelist, const Main *bmain)
 {
+  if (filelist->asset_library_ref && (filelist->asset_library_ref->type == ASSET_LIBRARY_ALL)) {
+    return true;
+  }
+
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
   return blendfile_path[0] && BLI_path_contains(filelist->filelist.root, blendfile_path);
 }
@@ -3798,6 +3819,40 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
   filelist->filelist.entries_num = 0;
 
   filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
+}
+
+static void filelist_readjob_all_asset_libraries(FileListReadJob *job_params,
+                                                 bool *stop,
+                                                 bool *do_update,
+                                                 float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
+
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+
+  /* A valid, but empty file-list from now. */
+  filelist->filelist.entries_num = 0;
+
+  filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
+
+  /* When only doing partialy reload for main data, we're done. */
+  if (job_params->only_main_data) {
+    return;
+  }
+  /* TODO propertly update progress? */
+
+  for (const AssetLibraryReference &library_ref : asset_system::all_valid_asset_library_refs()) {
+    if (library_ref.type == ASSET_LIBRARY_LOCAL) {
+      /* Already added main assets above. */
+      continue;
+    }
+    std::string library_path = AS_asset_library_root_path_from_library_ref(library_ref);
+    BLI_strncpy(filelist->filelist.root, library_path.c_str(), sizeof(filelist->filelist.root));
+
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+  }
 }
 
 /**

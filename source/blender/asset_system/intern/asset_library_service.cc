@@ -68,12 +68,17 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
     return get_asset_library_on_disk(root_path);
   }
-  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
-    bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-        &U, library_reference.custom_library_index);
 
-    if (user_library) {
-      return get_asset_library_on_disk(user_library->path);
+  /* TODO */
+  if (library_reference.type == ASSET_LIBRARY_ALL) {
+    return get_asset_library_current_file();
+  }
+
+  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
+    std::string root_path = root_path_from_library_ref(library_reference);
+
+    if (!root_path.empty()) {
+      return get_asset_library_on_disk(root_path);
     }
   }
 
@@ -131,6 +136,31 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 
   AssetLibrary *lib = current_file_library_.get();
   return lib;
+}
+
+std::string AssetLibraryService::root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  if (ELEM(library_reference.type, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL)) {
+    return "";
+  }
+
+  const char *top_level_directory = nullptr;
+
+  BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
+  BLI_assert(library_reference.custom_library_index >= 0);
+
+  bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+      &U, library_reference.custom_library_index);
+  if (user_library) {
+    top_level_directory = user_library->path;
+  }
+
+  if (!top_level_directory) {
+    return "";
+  }
+
+  return normalize_directory_path(top_level_directory);
 }
 
 void AssetLibraryService::allocate_service_instance()

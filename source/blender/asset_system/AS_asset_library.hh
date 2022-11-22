@@ -120,6 +120,9 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs();
 blender::asset_system::AssetLibrary *AS_asset_library_load(
     const Main *bmain, const AssetLibraryReference &library_reference);
 
+std::string AS_asset_library_root_path_from_library_ref(
+    const AssetLibraryReference &library_reference);
+
 /**
  * Try to find an appropriate location for an asset library root from a file or directory path.
  * Does not check if \a input_path exists.

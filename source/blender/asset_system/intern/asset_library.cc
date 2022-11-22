@@ -64,6 +64,12 @@ bool AS_asset_library_has_any_unsaved_catalogs()
   return service->has_any_unsaved_catalogs();
 }
 
+std::string AS_asset_library_root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  return AssetLibraryService::root_path_from_library_ref(library_reference);
+}
+
 std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
@@ -224,6 +230,7 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
 }
 
+/* TODO get rid of this. */
 Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
