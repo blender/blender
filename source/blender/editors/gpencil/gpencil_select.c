@@ -2441,15 +2441,15 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
   /* if select mode is stroke, use whole stroke */
   if ((ob) && (ob->mode == OB_MODE_SCULPT_GPENCIL)) {
-    whole = (bool)(gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) ==
+    whole |= (bool)(gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) ==
                    GP_SELECTMODE_STROKE);
   }
   else if ((ob) && (ob->mode == OB_MODE_VERTEX_GPENCIL)) {
-    whole = (bool)(gpencil_select_mode_from_vertex(ts->gpencil_selectmode_sculpt) ==
+    whole |= (bool)(gpencil_select_mode_from_vertex(ts->gpencil_selectmode_sculpt) ==
                    GP_SELECTMODE_STROKE);
   }
   else {
-    whole = (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
+    whole |= (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
   }
 
   if (is_curve_edit) {
