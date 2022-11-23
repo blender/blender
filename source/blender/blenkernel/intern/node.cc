@@ -641,8 +641,6 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   BLO_read_data_address(reader, &sock->storage);
   BLO_read_data_address(reader, &sock->default_value);
   BLO_read_data_address(reader, &sock->default_attribute_name);
-  sock->total_inputs = 0; /* Clear runtime data set before drawing. */
-  sock->cache = nullptr;
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 }
 
@@ -2262,7 +2260,7 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
   sock_dst->stack_index = 0;
   /* XXX some compositor nodes (e.g. image, render layers) still store
    * some persistent buffer data here, need to clear this to avoid dangling pointers. */
-  sock_dst->cache = nullptr;
+  sock_dst->runtime->cache = nullptr;
 }
 
 namespace blender::bke {

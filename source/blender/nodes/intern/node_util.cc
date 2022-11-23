@@ -19,6 +19,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
@@ -336,7 +337,7 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
   /* If we're not at the link limit of the target socket, we can skip
    * trying to move existing links to another socket. */
   const int to_link_limit = nodeSocketLinkLimit(socket);
-  if (socket->total_inputs + 1 < to_link_limit) {
+  if (socket->runtime->total_inputs + 1 < to_link_limit) {
     return;
   }
 

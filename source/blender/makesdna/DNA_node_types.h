@@ -126,12 +126,6 @@ typedef struct bNodeSocket {
   /** Runtime type identifier. */
   char idname[64];
 
-  /**
-   * The location of the sockets, in the view-space of the node editor.
-   * \note These are runtime data-- only calculated when drawing, and could be removed from DNA.
-   */
-  float locx, locy;
-
   /** Default input value used for unlinked sockets. */
   void *default_value;
 
@@ -143,10 +137,7 @@ typedef struct bNodeSocket {
    * output. */
   char attribute_domain;
 
-  char _pad[2];
-
-  /* Runtime-only cache of the number of input links, for multi-input sockets. */
-  short total_inputs;
+  char _pad[4];
 
   /** Custom dynamic defined label, MAX_NAME. */
   char label[64];
@@ -159,9 +150,6 @@ typedef struct bNodeSocket {
    * declarations.
    */
   char *default_attribute_name;
-
-  /** Cached data from execution. */
-  void *cache;
 
   /* internal data to retrieve relations and groups
    * DEPRECATED, now uses the generic identifier string instead

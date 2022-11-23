@@ -104,6 +104,19 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   /** #eNodeTreeChangedFlag. */
   uint32_t changed_flag = 0;
 
+  /**
+   * The location of the sockets, in the view-space of the node editor.
+   * \note Only calculated when drawing.
+   */
+  float locx = 0;
+  float locy = 0;
+
+  /* Runtime-only cache of the number of input links, for multi-input sockets. */
+  short total_inputs = 0;
+
+  /** Cached data from execution. */
+  void *cache = nullptr;
+
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> directly_linked_links;
   Vector<bNodeSocket *> directly_linked_sockets;

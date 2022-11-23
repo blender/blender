@@ -417,8 +417,8 @@ static void node_update_basis(const bContext &C,
     buty = min_ii(buty, dy - NODE_DY);
 
     /* Round the socket location to stop it from jiggling. */
-    socket->locx = round(loc.x + NODE_WIDTH(node));
-    socket->locy = round(dy - NODE_DYS);
+    socket->runtime->locx = round(loc.x + NODE_WIDTH(node));
+    socket->runtime->locy = round(dy - NODE_DYS);
 
     dy = buty;
     if (socket->next) {
@@ -511,8 +511,9 @@ static void node_update_basis(const bContext &C,
      * to account for the increased height of the taller sockets. */
     float multi_input_socket_offset = 0.0f;
     if (socket->flag & SOCK_MULTI_INPUT) {
-      if (socket->total_inputs > 2) {
-        multi_input_socket_offset = (socket->total_inputs - 2) * NODE_MULTI_INPUT_LINK_GAP;
+      if (socket->runtime->total_inputs > 2) {
+        multi_input_socket_offset = (socket->runtime->total_inputs - 2) *
+                                    NODE_MULTI_INPUT_LINK_GAP;
       }
     }
     dy -= multi_input_socket_offset * 0.5f;
@@ -548,9 +549,9 @@ static void node_update_basis(const bContext &C,
     /* Ensure minimum socket height in case layout is empty. */
     buty = min_ii(buty, dy - NODE_DY);
 
-    socket->locx = loc.x;
+    socket->runtime->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
-    socket->locy = round(dy - NODE_DYS);
+    socket->runtime->locy = round(dy - NODE_DYS);
 
     dy = buty - multi_input_socket_offset * 0.5;
     if (socket->next) {
@@ -620,8 +621,8 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
     if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      socket->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
-      socket->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->runtime->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
+      socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -632,8 +633,8 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
     if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      socket->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
-      socket->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->runtime->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
+      socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -1172,7 +1173,7 @@ static void node_socket_draw_nested(const bContext &C,
                                     const float size,
                                     const bool selected)
 {
-  const float2 location(sock.locx, sock.locy);
+  const float2 location(sock.runtime->locx, sock.runtime->locy);
 
   float color[4];
   float outline_color[4];
@@ -1577,7 +1578,7 @@ static void node_draw_sockets(const View2D &v2d,
     node_socket_color_get(C, ntree, node_ptr, *socket, color);
     node_socket_outline_color_get(socket->flag & SELECT, socket->type, outline_color);
 
-    const float2 location(socket->locx, socket->locy);
+    const float2 location(socket->runtime->locx, socket->runtime->locy);
     node_socket_draw_multi_input(color, outline_color, width, height, location);
   }
 }
@@ -2618,7 +2619,7 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
-        socket->total_inputs = counts.lookup_default(socket, 0);
+        socket->runtime->total_inputs = counts.lookup_default(socket, 0);
       }
     }
   }
@@ -2682,12 +2683,12 @@ static void reroute_node_prepare_for_draw(bNode &node)
 
   /* reroute node has exactly one input and one output, both in the same place */
   bNodeSocket *socket = (bNodeSocket *)node.outputs.first;
-  socket->locx = loc.x;
-  socket->locy = loc.y;
+  socket->runtime->locx = loc.x;
+  socket->runtime->locy = loc.y;
 
   socket = (bNodeSocket *)node.inputs.first;
-  socket->locx = loc.x;
-  socket->locy = loc.y;
+  socket->runtime->locx = loc.x;
+  socket->runtime->locy = loc.y;
 
   const float size = 8.0f;
   node.width = size * 2;
