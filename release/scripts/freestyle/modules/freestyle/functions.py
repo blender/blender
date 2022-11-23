@@ -198,7 +198,7 @@ class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):
 class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
     def __call__(self, inter):
         cp = inter.object
-        assert(isinstance(cp, CurvePoint))
+        assert isinstance(cp, CurvePoint)
         return cp.t2d
 
 

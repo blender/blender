@@ -235,7 +235,7 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
                      EVAL,
                      "Accumulated recalc bits for %s: %u\n",
                      id_orig->name,
-                     (unsigned int)id_cow->recalc);
+                     uint(id_cow->recalc));
 
     /* Inform editors. Only if the data-block is being evaluated a second
      * time, to distinguish between user edits and initial evaluation when
@@ -284,7 +284,7 @@ void invalidate_tagged_evaluated_transform(ID *id)
   switch (id_type) {
     case ID_OB: {
       Object *object = (Object *)id;
-      copy_vn_fl((float *)object->obmat, 16, NAN);
+      copy_vn_fl((float *)object->object_to_world, 16, NAN);
       break;
     }
     default:
@@ -371,10 +371,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
     while (op_node != nullptr) {
       /* Tag operation as required for update. */
       op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-      /* Tag depsgraph visibility update when visibility operation is tagged for an update. */
-      if (op_node->opcode == OperationCode::VISIBILITY) {
-        graph->need_update_nodes_visibility = true;
-      }
       /* Inform corresponding ID and component nodes about the change. */
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;

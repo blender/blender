@@ -200,7 +200,7 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   ColorBand *coba;
   float in, out[4];
 
-  if (!(PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in))) {
+  if (!PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in)) {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
@@ -239,7 +239,7 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   int cur;
   float value;
 
-  if (!(PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value))) {
+  if (!PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value)) {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {
@@ -509,10 +509,14 @@ static PyMethodDef module_functions[] = {
 
 static PyModuleDef module_definition = {
     PyModuleDef_HEAD_INIT,
-    "_freestyle",
-    module_docstring,
-    -1,
-    module_functions,
+    /*m_name*/ "_freestyle",
+    /*m_doc*/ module_docstring,
+    /*m_size*/ -1,
+    /*m_methods*/ module_functions,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -531,7 +535,7 @@ PyObject *Freestyle_Init(void)
   const char *const path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, "freestyle");
   if (path) {
     char modpath[FILE_MAX];
-    BLI_join_dirfile(modpath, sizeof(modpath), path, "modules");
+    BLI_path_join(modpath, sizeof(modpath), path, "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
     PyObject *py_modpath = PyUnicode_FromString(modpath);
     PyList_Append(sys_path, py_modpath);

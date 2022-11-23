@@ -20,7 +20,7 @@ layout(location = 1) out vec4 volumeExtinction;
 layout(location = 2) out vec4 volumeEmissive;
 layout(location = 3) out vec4 volumePhase;
 
-int attr_id;
+int attr_id = 0;
 
 #ifndef CLEAR
 GlobalData init_globals(void)
@@ -52,8 +52,8 @@ vec3 coordinate_camera(vec3 P)
 vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
-  window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
-  window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
+  window.xy = project_point(ProjectionMatrix, transform_point(ViewMatrix, P)).xy * 0.5 + 0.5;
+  window.xy = window.xy * cameraUvScaleBias.xy + cameraUvScaleBias.zw;
   return window;
 }
 

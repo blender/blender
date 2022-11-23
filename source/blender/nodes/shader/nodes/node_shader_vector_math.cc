@@ -28,7 +28,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_vect_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
@@ -141,7 +141,7 @@ static const char *gpu_shader_get_name(int mode)
 
 static int gpu_shader_vector_math(GPUMaterial *mat,
                                   bNode *node,
-                                  bNodeExecData *UNUSED(execdata),
+                                  bNodeExecData * /*execdata*/,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
@@ -322,8 +322,8 @@ void register_node_type_sh_vect_math()
   ntype.declare = file_ns::sh_node_vector_math_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vect_math;
   ntype.labelfunc = node_vector_math_label;
-  node_type_gpu(&ntype, file_ns::gpu_shader_vector_math);
-  node_type_update(&ntype, file_ns::node_shader_update_vector_math);
+  ntype.gpu_fn = file_ns::gpu_shader_vector_math;
+  ntype.updatefunc = file_ns::node_shader_update_vector_math;
   ntype.build_multi_function = file_ns::sh_node_vector_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_vector_math_gather_link_searches;
 

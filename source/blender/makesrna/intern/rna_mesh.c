@@ -108,13 +108,11 @@ static CustomData *rna_mesh_vdata(const PointerRNA *ptr)
   Mesh *me = rna_mesh(ptr);
   return rna_mesh_vdata_helper(me);
 }
-#  if 0
-static CustomData *rna_mesh_edata(PointerRNA *ptr)
+static CustomData *rna_mesh_edata(const PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   return rna_mesh_edata_helper(me);
 }
-#  endif
 static CustomData *rna_mesh_pdata(const PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
@@ -229,6 +227,26 @@ static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
 {
   Mesh *me = ptr->data;
   return BKE_mesh_has_custom_loop_normals(me);
+}
+
+static bool rna_Mesh_has_edge_bevel_weight_get(PointerRNA *ptr)
+{
+  return CustomData_has_layer(rna_mesh_edata(ptr), CD_BWEIGHT);
+}
+
+static bool rna_Mesh_has_vertex_bevel_weight_get(PointerRNA *ptr)
+{
+  return CustomData_has_layer(rna_mesh_vdata(ptr), CD_BWEIGHT);
+}
+
+static bool rna_Mesh_has_edge_crease_get(PointerRNA *ptr)
+{
+  return CustomData_has_layer(rna_mesh_edata(ptr), CD_CREASE);
+}
+
+static bool rna_Mesh_has_vertex_crease_get(PointerRNA *ptr)
+{
+  return CustomData_has_layer(rna_mesh_vdata(ptr), CD_CREASE);
 }
 
 /** \} */
@@ -388,10 +406,37 @@ static int rna_MeshLoopTriangle_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const MLoopTri *ltri = (MLoopTri *)ptr->data;
-  const int index = (int)(ltri - mesh->runtime.looptris.array);
+  const int index = (int)(ltri - BKE_mesh_runtime_looptri_ensure(mesh));
   BLI_assert(index >= 0);
-  BLI_assert(index < mesh->runtime.looptris.len);
+  BLI_assert(index < BKE_mesh_runtime_looptri_len(mesh));
   return index;
+}
+
+static void rna_Mesh_loop_triangles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(mesh);
+  rna_iterator_array_begin(
+      iter, (void *)looptris, sizeof(MLoopTri), BKE_mesh_runtime_looptri_len(mesh), false, NULL);
+}
+
+static int rna_Mesh_loop_triangles_length(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  return BKE_mesh_runtime_looptri_len(mesh);
+}
+
+int rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= BKE_mesh_runtime_looptri_len(mesh)) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshLoopTriangle;
+  r_ptr->data = (void *)&BKE_mesh_runtime_looptri_ensure(mesh)[index];
+  return true;
 }
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
@@ -428,40 +473,81 @@ static void rna_MeshVertex_hide_set(PointerRNA *ptr, bool value)
   hide_vert[index] = value;
 }
 
+static bool rna_MeshVertex_select_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *select_vert = (const bool *)CustomData_get_layer_named(
+      &mesh->vdata, CD_PROP_BOOL, ".select_vert");
+  const int index = rna_MeshVertex_index_get(ptr);
+  return select_vert == NULL ? false : select_vert[index];
+}
+
+static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *select_vert = (bool *)CustomData_duplicate_referenced_layer_named(
+      &mesh->vdata, CD_PROP_BOOL, ".select_vert", mesh->totvert);
+  if (!select_vert) {
+    if (!value) {
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
+      return;
+    }
+    select_vert = (bool *)CustomData_add_layer_named(
+        &mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totvert, ".select_vert");
+  }
+  const int index = rna_MeshVertex_index_get(ptr);
+  select_vert[index] = value;
+}
+
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
 {
-  MVert *mvert = (MVert *)ptr->data;
-  return mvert->bweight / 255.0f;
+  const Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshVertex_index_get(ptr);
+  const float *values = (const float *)CustomData_get_layer(&mesh->vdata, CD_BWEIGHT);
+  return values == NULL ? 0.0f : values[index];
 }
 
 static void rna_MeshVertex_bevel_weight_set(PointerRNA *ptr, float value)
 {
-  MVert *mvert = (MVert *)ptr->data;
-  mvert->bweight = round_fl_to_uchar_clamp(value * 255.0f);
+  Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshVertex_index_get(ptr);
+  float *values = (float *)CustomData_add_layer(
+      &mesh->vdata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, mesh->totvert);
+  values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
 static float rna_MEdge_bevel_weight_get(PointerRNA *ptr)
 {
-  MEdge *medge = (MEdge *)ptr->data;
-  return medge->bweight / 255.0f;
+  const Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  const float *values = (const float *)CustomData_get_layer(&mesh->edata, CD_BWEIGHT);
+  return values == NULL ? 0.0f : values[index];
 }
 
 static void rna_MEdge_bevel_weight_set(PointerRNA *ptr, float value)
 {
-  MEdge *medge = (MEdge *)ptr->data;
-  medge->bweight = round_fl_to_uchar_clamp(value * 255.0f);
+  Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  float *values = (float *)CustomData_add_layer(
+      &mesh->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, mesh->totedge);
+  values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
 static float rna_MEdge_crease_get(PointerRNA *ptr)
 {
-  MEdge *medge = (MEdge *)ptr->data;
-  return medge->crease / 255.0f;
+  const Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  const float *values = (const float *)CustomData_get_layer(&mesh->edata, CD_CREASE);
+  return values == NULL ? 0.0f : values[index];
 }
 
 static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 {
-  MEdge *medge = (MEdge *)ptr->data;
-  medge->crease = round_fl_to_uchar_clamp(value * 255.0f);
+  Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  float *values = (float *)CustomData_add_layer(
+      &mesh->edata, CD_CREASE, CD_SET_DEFAULT, NULL, mesh->totedge);
+  values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
 static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
@@ -563,6 +649,32 @@ static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
   hide_poly[index] = value;
 }
 
+static bool rna_MeshPolygon_select_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *select_poly = (const bool *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, ".select_poly");
+  const int index = rna_MeshPolygon_index_get(ptr);
+  return select_poly == NULL ? false : select_poly[index];
+}
+
+static void rna_MeshPolygon_select_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *select_poly = (bool *)CustomData_duplicate_referenced_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, ".select_poly", mesh->totpoly);
+  if (!select_poly) {
+    if (!value) {
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
+      return;
+    }
+    select_poly = (bool *)CustomData_add_layer_named(
+        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totpoly, ".select_poly");
+  }
+  const int index = rna_MeshPolygon_index_get(ptr);
+  select_poly[index] = value;
+}
+
 static int rna_MeshPolygon_material_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -604,7 +716,6 @@ static void rna_MeshPolygon_flip(ID *id, MPoly *mp)
   BKE_mesh_polygon_flip(mp, loops, &me->ldata);
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
-  BKE_mesh_normals_tag_dirty(me);
 }
 
 static void rna_MeshLoopTriangle_verts_get(PointerRNA *ptr, int *values)
@@ -623,9 +734,9 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const MVert *verts = BKE_mesh_verts(me);
   const MLoop *loops = BKE_mesh_loops(me);
-  unsigned int v1 = loops[lt->tri[0]].v;
-  unsigned int v2 = loops[lt->tri[1]].v;
-  unsigned int v3 = loops[lt->tri[2]].v;
+  uint v1 = loops[lt->tri[0]].v;
+  uint v2 = loops[lt->tri[1]].v;
+  uint v3 = loops[lt->tri[2]].v;
 
   normal_tri_v3(values, verts[v1].co, verts[v2].co, verts[v3].co);
 }
@@ -654,9 +765,9 @@ static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const MVert *verts = BKE_mesh_verts(me);
   const MLoop *loops = BKE_mesh_loops(me);
-  unsigned int v1 = loops[lt->tri[0]].v;
-  unsigned int v2 = loops[lt->tri[1]].v;
-  unsigned int v3 = loops[lt->tri[2]].v;
+  uint v1 = loops[lt->tri[0]].v;
+  uint v2 = loops[lt->tri[1]].v;
+  uint v3 = loops[lt->tri[2]].v;
   return area_tri_v3(verts[v1].co, verts[v2].co, verts[v3].co);
 }
 
@@ -1147,6 +1258,31 @@ static int rna_MeshVertexCreaseLayer_data_length(PointerRNA *ptr)
 
 /* End vertex creases */
 
+/* Edge creases */
+
+DEFINE_CUSTOMDATA_LAYER_COLLECTION(edge_crease, edata, CD_CREASE)
+
+static char *rna_EdgeCustomData_data_path(const PointerRNA *ptr, const char *collection, int type);
+static char *rna_MeshEdgeCreaseLayer_path(const PointerRNA *ptr)
+{
+  return rna_EdgeCustomData_data_path(ptr, "edge_creases", CD_CREASE);
+}
+
+static void rna_MeshEdgeCreaseLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Mesh *me = rna_mesh(ptr);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  rna_iterator_array_begin(iter, layer->data, sizeof(float), me->totedge, 0, NULL);
+}
+
+static int rna_MeshEdgeCreaseLayer_data_length(PointerRNA *ptr)
+{
+  Mesh *me = rna_mesh(ptr);
+  return me->totedge;
+}
+
+/* End edge creases */
+
 /* Paint mask */
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_paint_mask, vdata, CD_PAINT_MASK)
 
@@ -1267,7 +1403,7 @@ static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
   MPoly *mp = (MPoly *)ptr->data;
   const MLoop *loops = BKE_mesh_loops(me);
   const MLoop *ml = &loops[mp->loopstart];
-  unsigned int i;
+  uint i;
   for (i = mp->totloop; i > 0; i--, values++, ml++) {
     *values = ml->v;
   }
@@ -1280,7 +1416,7 @@ static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
   MLoop *loops = BKE_mesh_loops_for_write(me);
 
   MLoop *ml = &loops[mp->loopstart];
-  unsigned int i;
+  uint i;
   for (i = mp->totloop; i > 0; i--, values++, ml++) {
     ml->v = *values;
   }
@@ -1321,6 +1457,39 @@ static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
   }
   const int index = rna_MeshEdge_index_get(ptr);
   hide_edge[index] = value;
+}
+
+static bool rna_MeshEdge_select_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *select_edge = (const bool *)CustomData_get_layer_named(
+      &mesh->edata, CD_PROP_BOOL, ".select_edge");
+  const int index = rna_MeshEdge_index_get(ptr);
+  return select_edge == NULL ? false : select_edge[index];
+}
+
+static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *select_edge = (bool *)CustomData_duplicate_referenced_layer_named(
+      &mesh->edata, CD_PROP_BOOL, ".select_edge", mesh->totedge);
+  if (!select_edge) {
+    if (!value) {
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
+      return;
+    }
+    select_edge = (bool *)CustomData_add_layer_named(
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, ".select_edge");
+  }
+  const int index = rna_MeshEdge_index_get(ptr);
+  select_edge[index] = value;
+}
+
+static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const int index = rna_MeshEdge_index_get(ptr);
+  return ED_mesh_edge_is_loose(mesh, index);
 }
 
 static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
@@ -1366,8 +1535,9 @@ static char *rna_MeshPolygon_path(const PointerRNA *ptr)
 
 static char *rna_MeshLoopTriangle_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("loop_triangles[%d]",
-                      (int)((MLoopTri *)ptr->data - rna_mesh(ptr)->runtime.looptris.array));
+  return BLI_sprintfN(
+      "loop_triangles[%d]",
+      (int)((MLoopTri *)ptr->data - BKE_mesh_runtime_looptri_ensure(rna_mesh(ptr))));
 }
 
 static char *rna_MeshEdge_path(const PointerRNA *ptr)
@@ -1396,6 +1566,27 @@ static char *rna_VertCustomData_data_path(const PointerRNA *ptr, const char *col
     if (cdl->type == type) {
       b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(type);
       if (b >= 0 && b < totvert) {
+        char name_esc[sizeof(cdl->name) * 2];
+        BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
+        return BLI_sprintfN("%s[\"%s\"].data[%d]", collection, name_esc, b);
+      }
+    }
+  }
+
+  return NULL;
+}
+
+static char *rna_EdgeCustomData_data_path(const PointerRNA *ptr, const char *collection, int type)
+{
+  const CustomDataLayer *cdl;
+  const Mesh *me = rna_mesh(ptr);
+  const CustomData *edata = rna_mesh_edata(ptr);
+  int a, b, totedge = (me->edit_mesh) ? 0 : me->totedge;
+
+  for (cdl = edata->layers, a = 0; a < edata->totlayer; cdl++, a++) {
+    if (cdl->type == type) {
+      b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(type);
+      if (b >= 0 && b < totedge) {
         char name_esc[sizeof(cdl->name) * 2];
         BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
         return BLI_sprintfN("%s[\"%s\"].data[%d]", collection, name_esc, b);
@@ -1553,6 +1744,19 @@ static int rna_Mesh_vertex_normals_length(PointerRNA *ptr)
   return mesh->totvert;
 }
 
+int rna_Mesh_vertex_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= mesh->totvert) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshNormalValue;
+  r_ptr->data = (float *)BKE_mesh_vertex_normals_ensure(mesh)[index];
+  return true;
+}
+
 static void rna_Mesh_poly_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -1564,6 +1768,19 @@ static int rna_Mesh_poly_normals_length(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->totpoly;
+}
+
+int rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= mesh->totpoly) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshNormalValue;
+  r_ptr->data = (float *)BKE_mesh_poly_normals_ensure(mesh)[index];
+  return true;
 }
 
 static char *rna_MeshUVLoop_path(const PointerRNA *ptr)
@@ -1925,6 +2142,7 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
   (void)rna_Mesh_face_map_active_index_get;
   (void)rna_Mesh_face_map_active_set;
   (void)rna_Mesh_vertex_crease_index_range;
+  (void)rna_Mesh_edge_crease_index_range;
   /* end unused function block */
 }
 
@@ -2034,7 +2252,7 @@ static void rna_def_mvert(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshVertex_select_get", "rna_MeshVertex_select_set");
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
@@ -2110,7 +2328,7 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_select_get", "rna_MeshEdge_select_set");
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
@@ -2130,8 +2348,9 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
-  RNA_def_property_ui_text(prop, "Loose", "Loose edge");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_is_loose_get", NULL);
+  RNA_def_property_ui_text(prop, "Loose", "Edge is not connected to any faces");
 
   prop = RNA_def_property(srna, "use_freestyle_mark", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
@@ -2324,7 +2543,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FACE_SEL);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshPolygon_select_get", "rna_MeshPolygon_select_set");
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
@@ -3247,6 +3466,40 @@ static void rna_def_vertex_creases(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
+static void rna_def_edge_creases(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "MeshEdgeCreaseLayer", NULL);
+  RNA_def_struct_ui_text(srna, "Mesh Edge Crease Layer", "Per-edge crease");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_path_func(srna, "rna_MeshEdgeCreaseLayer_path");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MeshEdgeCrease");
+  RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_MeshEdgeCreaseLayer_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_MeshEdgeCreaseLayer_data_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  /* EdgeCrease struct */
+  srna = RNA_def_struct(brna, "MeshEdgeCrease", NULL);
+  RNA_def_struct_sdna(srna, "MFloatProperty");
+  RNA_def_struct_ui_text(srna, "Float Property", "");
+
+  prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "f");
+  RNA_def_property_ui_text(prop, "Value", "");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+}
+
 static void rna_def_paint_mask(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 {
   StructRNA *srna;
@@ -3444,7 +3697,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Mesh_vertex_normals_length",
-                                    NULL,
+                                    "rna_Mesh_vertex_normals_lookup_int",
                                     NULL,
                                     NULL);
 
@@ -3461,12 +3714,20 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Mesh_poly_normals_length",
-                                    NULL,
+                                    "rna_Mesh_poly_normals_lookup_int",
                                     NULL,
                                     NULL);
 
   prop = RNA_def_property(srna, "loop_triangles", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "runtime.looptris.array", "runtime.looptris.len");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_loop_triangles_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Mesh_loop_triangles_length",
+                                    "rna_Mesh_loop_triangles_lookup_int",
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "MeshLoopTriangle");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Loop Triangles", "Tessellation of mesh polygons into triangles");
@@ -3721,6 +3982,24 @@ static void rna_def_mesh(BlenderRNA *brna)
   rna_def_vertex_creases(brna);
   /* End vertex crease */
 
+  /* Vertex Crease */
+  prop = RNA_def_property(srna, "edge_creases", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MeshEdgeCreaseLayer");
+  RNA_def_property_collection_sdna(prop, NULL, "edata.layers", "edata.totlayer");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_edge_creases_begin",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    "rna_Mesh_edge_creases_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Edge Creases", "Sharpness of the edges for subdivision");
+  rna_def_edge_creases(brna);
+  /* End edge crease */
+
   /* Paint mask */
   prop = RNA_def_property(srna, "vertex_paint_masks", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "vdata.layers", "vdata.totlayer");
@@ -3752,6 +4031,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Size of the voxel in object space used for volume evaluation. Lower "
                            "values preserve finer details");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "remesh_voxel_adaptivity", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "remesh_voxel_adaptivity");
@@ -3763,11 +4043,13 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Reduces the final face count by simplifying geometry where detail is not needed, "
       "generating triangles. A value greater than 0 disables Fix Poles");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_fix_poles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_FIX_POLES);
   RNA_def_property_ui_text(prop, "Fix Poles", "Produces less poles and a better topology flow");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_volume", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_VOLUME);
@@ -3776,29 +4058,34 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Preserve Volume",
       "Projects the mesh to preserve the volume and details of the original mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_paint_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_PAINT_MASK);
   RNA_def_property_ui_text(prop, "Preserve Paint Mask", "Keep the current mask on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_SCULPT_FACE_SETS);
   RNA_def_property_ui_text(
       prop, "Preserve Face Sets", "Keep the current Face Sets on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_vertex_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_VERTEX_COLORS);
   RNA_def_property_ui_text(
       prop, "Preserve Vertex Colors", "Keep the current vertex colors on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "remesh_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "remesh_mode");
   RNA_def_property_enum_items(prop, rna_enum_mesh_remesh_mode_items);
   RNA_def_property_ui_text(prop, "Remesh Mode", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   /* End remesh */
 
@@ -3854,6 +4141,29 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_custom_normals_get", NULL);
   RNA_define_verify_sdna(true);
 
+  prop = RNA_def_property(srna, "has_bevel_weight_edge", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Has Edge Bevel Weight", "True if the mesh has an edge bevel weight layer");
+  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_edge_bevel_weight_get", NULL);
+
+  prop = RNA_def_property(srna, "has_bevel_weight_vertex", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Has Vertex Bevel Weight", "True if the mesh has an vertex bevel weight layer");
+  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_vertex_bevel_weight_get", NULL);
+
+  prop = RNA_def_property(srna, "has_crease_edge", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Has Edge Crease", "True if the mesh has an edge crease layer");
+  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_edge_crease_get", NULL);
+
+  prop = RNA_def_property(srna, "has_crease_vertex", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Has Vertex Crease", "True if the mesh has an vertex crease layer");
+  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_vertex_crease_get", NULL);
+
   prop = RNA_def_property(srna, "texco_mesh", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -3905,23 +4215,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting");
   RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_vertmask");
-
-  /* customdata flags */
-  prop = RNA_def_property(srna, "use_customdata_vertex_bevel", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cd_flag", ME_CDFLAG_VERT_BWEIGHT);
-  RNA_def_property_ui_text(prop, "Store Vertex Bevel Weight", "");
-
-  prop = RNA_def_property(srna, "use_customdata_edge_bevel", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cd_flag", ME_CDFLAG_EDGE_BWEIGHT);
-  RNA_def_property_ui_text(prop, "Store Edge Bevel Weight", "");
-
-  prop = RNA_def_property(srna, "use_customdata_vertex_crease", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cd_flag", ME_CDFLAG_VERT_CREASE);
-  RNA_def_property_ui_text(prop, "Store Vertex Crease", "");
-
-  prop = RNA_def_property(srna, "use_customdata_edge_crease", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cd_flag", ME_CDFLAG_EDGE_CREASE);
-  RNA_def_property_ui_text(prop, "Store Edge Crease", "");
 
   /* readonly editmesh info - use for extrude menu */
   prop = RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);

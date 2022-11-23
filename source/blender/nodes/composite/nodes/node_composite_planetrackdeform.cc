@@ -51,11 +51,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
     BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
 
-    const MovieTrackingPlaneTrack *active_plane_track = BKE_tracking_plane_track_get_active(
-        tracking);
-    if (active_plane_track) {
-      BLI_strncpy(
-          data->plane_track_name, active_plane_track->name, sizeof(data->plane_track_name));
+    if (tracking_object->active_plane_track) {
+      BLI_strncpy(data->plane_track_name,
+                  tracking_object->active_plane_track->name,
+                  sizeof(data->plane_track_name));
     }
   }
 }
@@ -79,7 +78,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;
     MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *object;
+    MovieTrackingObject *tracking_object;
     uiLayout *col;
     PointerRNA tracking_ptr;
 
@@ -88,11 +87,11 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     col = uiLayoutColumn(layout, false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
-    object = BKE_tracking_object_get_named(tracking, data->tracking_object);
-    if (object) {
+    tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+    if (tracking_object) {
       PointerRNA object_ptr;
 
-      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, tracking_object, &object_ptr);
 
       uiItemPointerR(
           col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);

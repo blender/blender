@@ -93,10 +93,10 @@ void Shader::print_log(Span<const char *> sources,
     }
 
     /* Silence not useful lines. */
-    StringRef logref = StringRefNull(log_line).substr(0, (size_t)line_end - (size_t)log_line);
+    StringRef logref = StringRefNull(log_line).substr(0, size_t(line_end) - size_t(log_line));
     if (logref.endswith(" shader failed to compile with the following errors:") ||
         logref.endswith(" No code generated")) {
-      log_line += (size_t)line_end - (size_t)log_line;
+      log_line += size_t(line_end) - size_t(log_line);
       continue;
     }
 
@@ -291,7 +291,7 @@ bool GPULogParser::at_any(const char *log_line, const StringRef chars) const
 
 int GPULogParser::parse_number(const char *log_line, char **r_new_position) const
 {
-  return (int)strtol(log_line, r_new_position, 10);
+  return int(strtol(log_line, r_new_position, 10));
 }
 
 /** \} */

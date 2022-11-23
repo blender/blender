@@ -4,10 +4,14 @@ set(INC
   ../include
   ../../blenkernel
   ../../blenlib
+  ../../blenloader
   ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 set(INC_SYS
@@ -25,3 +29,6 @@ set(LIB
 )
 
 blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# dna_type_offsets.h
+add_dependencies(bf_editor_space_userpref bf_dna)

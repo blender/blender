@@ -11,6 +11,10 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegionType;
 struct ID;
 struct SpaceProperties;
@@ -26,7 +30,7 @@ struct SpaceProperties_Runtime {
   /** For filtering properties displayed in the space. */
   char search_string[UI_MAX_NAME_STR];
   /**
-   * Bitfield (in the same order as the tabs) for whether each tab has properties
+   * Bit-field (in the same order as the tabs) for whether each tab has properties
    * that match the search filter. Only valid when #search_string is set.
    */
   BLI_bitmap *tab_search_results;
@@ -97,3 +101,7 @@ void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
  */
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

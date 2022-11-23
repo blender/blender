@@ -26,7 +26,7 @@
  */
 class CBlendThumb : public IInitializeWithStream, public IThumbnailProvider {
  public:
-  CBlendThumb() : _cRef(1), _pStream(NULL)
+  CBlendThumb() : _cRef(1), _pStream(nullptr)
   {
   }
 
@@ -85,7 +85,7 @@ HRESULT CBlendThumb_CreateInstance(REFIID riid, void **ppv)
 
 IFACEMETHODIMP CBlendThumb::Initialize(IStream *pStream, DWORD)
 {
-  if (_pStream != NULL) {
+  if (_pStream != nullptr) {
     /* Can only be initialized once. */
     return E_UNEXPECTED;
   }
@@ -110,7 +110,7 @@ static ssize_t stream_read(FileReader *reader, void *buffer, size_t size)
   stream->_pStream->Read(buffer, size, &readsize);
   stream->reader.offset += readsize;
 
-  return (ssize_t)readsize;
+  return ssize_t(readsize);
 }
 
 static off64_t stream_seek(FileReader *reader, off64_t offset, int whence)
@@ -171,15 +171,15 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
   }
   *pdwAlpha = WTSAT_ARGB;
 
-  /* Scale down the thumbnail if required. */
-  if ((unsigned)thumb.width > cx || (unsigned)thumb.height > cx) {
-    float scale = 1.0f / (std::max(thumb.width, thumb.height) / (float)cx);
-    LONG NewWidth = (LONG)(thumb.width * scale);
-    LONG NewHeight = (LONG)(thumb.height * scale);
+  /* Scale up the thumbnail if required. */
+  if (uint(thumb.width) < cx && uint(thumb.height) < cx) {
+    float scale = 1.0f / (std::max(thumb.width, thumb.height) / float(cx));
+    LONG NewWidth = LONG(thumb.width * scale);
+    LONG NewHeight = LONG(thumb.height * scale);
 
     IWICImagingFactory *pImgFac;
     hr = CoCreateInstance(
-        CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
+        CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
 
     IWICBitmap *WICBmp;
     hr = pImgFac->CreateBitmapFromHBITMAP(*phbmp, 0, WICBitmapUseAlpha, &WICBmp);
@@ -193,7 +193,8 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
     bmi.bmiHeader.biCompression = BI_RGB;
 
     BYTE *pBits;
-    HBITMAP ResizedHBmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void **)&pBits, NULL, 0);
+    HBITMAP ResizedHBmp = CreateDIBSection(
+        nullptr, &bmi, DIB_RGB_COLORS, (void **)&pBits, nullptr, 0);
     hr = ResizedHBmp ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr)) {
       IWICBitmapScaler *pIScaler;

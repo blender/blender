@@ -29,6 +29,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
@@ -453,7 +454,7 @@ static int distribute_binary_search(const float *sum, int n, float value)
   return low;
 }
 
-/* the max number if calls to rng_* funcs within psys_thread_distribute_particle
+/* the max number if calls to rng_* functions within psys_thread_distribute_particle
  * be sure to keep up to date if this changes */
 #define PSYS_RND_DIST_SKIP 3
 
@@ -480,7 +481,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
      * map to equal-colored parts of a texture */
     for (int i = 0; i < ctx->mesh->totface; i++, mface++) {
       if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
-        unsigned int *vert = &mface->v1;
+        uint *vert = &mface->v1;
 
         for (int j = 0; j < 4; j++, vert++) {
           if (*vert == pa->num) {
@@ -899,7 +900,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     return 0;
   }
 
-  if (!final_mesh->runtime.deformed_only &&
+  if (!BKE_mesh_is_deformed_only(final_mesh) &&
       !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX)) {
     printf(
         "Can't create particles with the current modifier stack, disable destructive modifiers\n");
@@ -1093,7 +1094,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     maxweight /= totarea;
   }
   else {
-    float min = 1.0f / (float)(MIN2(totelem, totpart));
+    float min = 1.0f / (float)MIN2(totelem, totpart);
     for (i = 0; i < totelem; i++) {
       element_weight[i] = min;
     }

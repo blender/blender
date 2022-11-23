@@ -98,7 +98,7 @@ class Cluster {
 
   std::string name() const
   {
-    return "cluster_" + std::to_string((uintptr_t)this);
+    return "cluster_" + std::to_string(uintptr_t(this));
   }
 
   void set_parent_cluster(Cluster *new_parent);

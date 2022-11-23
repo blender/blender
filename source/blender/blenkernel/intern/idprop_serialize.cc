@@ -665,7 +665,7 @@ class IDPUnknownSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *UNUSED(id_property)) const override
+      const struct IDProperty * /*id_property*/) const override
   {
     BLI_assert_unreachable();
     return nullptr;
@@ -677,7 +677,7 @@ class IDPUnknownSerializer : public IDPropertySerializer {
   }
 
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
-      DictionaryEntryParser &UNUSED(entry_reader)) const override
+      DictionaryEntryParser & /*entry_reader*/) const override
   {
     return nullptr;
   }

@@ -31,11 +31,11 @@ class IslandFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     const Span<MEdge> edges = mesh.edges();
 
-    DisjointSet islands(mesh.totvert);
+    DisjointSet<int> islands(mesh.totvert);
     for (const int i : edges.index_range()) {
       islands.join(edges[i].v1, edges[i].v2);
     }
@@ -43,7 +43,7 @@ class IslandFieldInput final : public bke::MeshFieldInput {
     Array<int> output(mesh.totvert);
     VectorSet<int> ordered_roots;
     for (const int i : IndexRange(mesh.totvert)) {
-      const int64_t root = islands.find_root(i);
+      const int root = islands.find_root(i);
       output[i] = ordered_roots.index_of_or_add(root);
     }
 
@@ -61,6 +61,11 @@ class IslandFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const IslandFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 class IslandCountFieldInput final : public bke::MeshFieldInput {
@@ -72,18 +77,18 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     const Span<MEdge> edges = mesh.edges();
 
-    DisjointSet islands(mesh.totvert);
+    DisjointSet<int> islands(mesh.totvert);
     for (const int i : edges.index_range()) {
       islands.join(edges[i].v1, edges[i].v2);
     }
 
     Set<int> island_list;
     for (const int i_vert : IndexRange(mesh.totvert)) {
-      const int64_t root = islands.find_root(i_vert);
+      const int root = islands.find_root(i_vert);
       island_list.add(root);
     }
 
@@ -99,6 +104,11 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const IslandCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

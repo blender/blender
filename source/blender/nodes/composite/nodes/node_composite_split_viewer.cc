@@ -29,7 +29,7 @@ static void cmp_node_split_viewer_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Image"), "Image_001");
 }
 
-static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_splitviewer(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
@@ -39,7 +39,7 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
-static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_splitviewer(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 
@@ -125,7 +125,7 @@ void register_node_type_cmp_splitviewer()
   ntype.declare = file_ns::cmp_node_split_viewer_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_splitviewer;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_splitviewer);
+  ntype.initfunc = file_ns::node_composit_init_splitviewer;
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

@@ -414,13 +414,16 @@ void scene_remove_all_bases(Scene *scene_cow)
 
 /* Makes it so given view layer only has bases corresponding to enabled
  * objects. */
-void view_layer_remove_disabled_bases(const Depsgraph *depsgraph, ViewLayer *view_layer)
+void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
+                                      const Scene *scene,
+                                      ViewLayer *view_layer)
 {
   if (view_layer == nullptr) {
     return;
   }
   ListBase enabled_bases = {nullptr, nullptr};
-  LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH_MUTABLE (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     /* TODO(sergey): Would be cool to optimize this somehow, or make it so
      * builder tags bases.
      *
@@ -479,7 +482,7 @@ void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,
   const ViewLayer *view_layer_orig = get_original_view_layer(depsgraph, id_node);
   ViewLayer *view_layer_eval = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first);
   view_layer_update_orig_base_pointers(view_layer_orig, view_layer_eval);
-  view_layer_remove_disabled_bases(depsgraph, view_layer_eval);
+  view_layer_remove_disabled_bases(depsgraph, scene_cow, view_layer_eval);
   /* TODO(sergey): Remove objects from collections as well.
    * Not a HUGE deal for now, nobody is looking into those CURRENTLY.
    * Still not an excuse to have those. */

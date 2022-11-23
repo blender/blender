@@ -470,7 +470,7 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
         BMLoop *lf;           /* current face loops */
         MLoopUV *f_luv;       /* first face loop uv */
         float p_uv[2];        /* previous uvs */
-        float t_uv[2];        /* tmp uvs */
+        float t_uv[2];        /* temp uvs */
 
         int n = 0;
         BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
@@ -603,7 +603,7 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 
   const size_t size = cd_loop_color_type == CD_PROP_COLOR ? sizeof(MPropCol) : sizeof(MLoopCol);
   void *p_col;                /* previous color */
-  void *t_col = alloca(size); /* tmp color */
+  void *t_col = alloca(size); /* Temp color. */
 
   BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
     if (use_ccw == false) { /* same loops direction */

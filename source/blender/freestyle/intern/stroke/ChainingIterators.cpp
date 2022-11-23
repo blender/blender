@@ -26,7 +26,7 @@ bool AdjacencyIterator::isIncoming() const
 int AdjacencyIterator::increment()
 {
   ++_internalIterator;
-  while ((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first))) {
+  while (!_internalIterator.isEnd() && !isValid((*_internalIterator).first)) {
     ++_internalIterator;
   }
   return 0;

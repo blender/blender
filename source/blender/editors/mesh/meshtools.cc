@@ -102,9 +102,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
   MPoly *mpoly = *mpoly_pp;
 
   if (me->totvert) {
-    /* merge customdata flag */
-    ((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
-
     /* standard data */
     CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
@@ -135,7 +132,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       float cmat[4][4];
 
       /* Watch this: switch matrix multiplication order really goes wrong. */
-      mul_m4_m4m4(cmat, imat, ob_src->obmat);
+      mul_m4_m4m4(cmat, imat, ob_src->object_to_world);
 
       /* transform vertex coordinates into new space */
       for (a = 0; a < me->totvert; a++, mvert++) {
@@ -253,15 +250,18 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
-    blender::bke::AttributeWriter<int> material_indices =
-        me->attributes_for_write().lookup_for_write<int>("material_index");
+    /* Apply matmap. In case we don't have material indices yet, create them if more than one
+     * material is the result of joining. */
+    int *material_indices = static_cast<int *>(
+        CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+    if (!material_indices && totcol > 1) {
+      material_indices = (int *)CustomData_add_layer_named(
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
+    }
     if (material_indices) {
-      blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
-      for (const int i : material_indices_span.index_range()) {
-        material_indices_span[i] = matmap ? matmap[material_indices_span[i]] : 0;
+      for (a = 0; a < me->totpoly; a++) {
+        material_indices[a + *polyofs] = matmap ? matmap[material_indices[a + *polyofs]] : 0;
       }
-      material_indices_span.save();
-      material_indices.finish();
     }
 
     for (a = 0; a < me->totpoly; a++, mpoly++) {
@@ -305,7 +305,8 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
     return;
   }
 
-  int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = (int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (!face_sets) {
     return;
   }
@@ -314,15 +315,10 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
   for (int f = 0; f < mesh->totpoly; f++) {
     /* As face sets encode the visibility in the integer sign, the offset needs to be added or
      * subtracted depending on the initial sign of the integer to get the new ID. */
-    if (abs(face_sets[f]) <= *face_set_offset) {
-      if (face_sets[f] > 0) {
-        face_sets[f] += *face_set_offset;
-      }
-      else {
-        face_sets[f] -= *face_set_offset;
-      }
+    if (face_sets[f] <= *face_set_offset) {
+      face_sets[f] += *face_set_offset;
     }
-    max_face_set = max_ii(max_face_set, abs(face_sets[f]));
+    max_face_set = max_ii(max_face_set, face_sets[f]);
   }
   *face_set_offset = max_face_set;
 }
@@ -344,7 +340,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   int totloop = 0, totpoly = 0, vertofs, *matmap = nullptr;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
   bool ok = false, join_parent = false;
-  CustomData vdata, edata, fdata, ldata, pdata;
+  CustomData vdata, edata, ldata, pdata;
 
   if (ob->mode & OB_MODE_EDIT) {
     BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
@@ -390,7 +386,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * NOTE: This doesn't apply recursive parenting. */
   if (join_parent) {
     ob->parent = nullptr;
-    BKE_object_apply_mat4_ex(ob, ob->obmat, ob->parent, ob->parentinv, false);
+    BKE_object_apply_mat4_ex(ob, ob->object_to_world, ob->parent, ob->parentinv, false);
   }
 
   /* that way the active object is always selected */
@@ -425,7 +421,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
    * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
   BKE_mesh_runtime_clear_geometry(me);
-  BKE_mesh_clear_derived_normals(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -583,7 +578,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* setup new data for destination mesh */
   CustomData_reset(&vdata);
   CustomData_reset(&edata);
-  CustomData_reset(&fdata);
   CustomData_reset(&ldata);
   CustomData_reset(&pdata);
 
@@ -599,7 +593,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(imat, ob->obmat);
+  invert_m4_m4_safe_ortho(imat, ob->object_to_world);
 
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible
@@ -693,9 +687,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me->edata = edata;
   me->ldata = ldata;
   me->pdata = pdata;
-
-  /* Tag normals dirty because vertex positions could be changed from the original. */
-  BKE_mesh_normals_tag_dirty(me);
 
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {
@@ -882,7 +873,7 @@ void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *me_eval)
   ED_mesh_mirrtopo_init(em_mirror, me_mirror, &mesh_topo_store, false);
 }
 
-void ED_mesh_mirror_topo_table_end(Object *UNUSED(ob))
+void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
 {
   /* TODO: store this in object/object-data (keep unused argument for now). */
   ED_mesh_mirrtopo_free(&mesh_topo_store);
@@ -1215,7 +1206,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
   }
 
-  if ((*r_index) == 0 || (*r_index) > (uint)me->totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(me->totpoly)) {
     return false;
   }
 
@@ -1272,7 +1263,7 @@ bool ED_mesh_pick_face_vert(
     int v_idx_best = ORIGINDEX_NONE;
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
     float len_best = FLT_MAX;
 
     const Span<MVert> verts = me_eval->verts();
@@ -1340,7 +1331,7 @@ struct VertPickData {
 static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no[3]))
+                                       const float /*no*/[3])
 {
   VertPickData *data = static_cast<VertPickData *>(userData);
   if (data->hide_vert && data->hide_vert[index]) {
@@ -1384,7 +1375,7 @@ bool ED_mesh_pick_vert(
       *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
     }
 
-    if ((*r_index) == 0 || (*r_index) > (uint)me->totvert) {
+    if ((*r_index) == 0 || (*r_index) > uint(me->totvert)) {
       return false;
     }
 
@@ -1400,7 +1391,7 @@ bool ED_mesh_pick_vert(
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
 
     VertPickData data = {nullptr};
 

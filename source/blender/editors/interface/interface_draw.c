@@ -2307,15 +2307,15 @@ void UI_draw_box_shadow(const rctf *rect, uchar alpha)
 void ui_draw_dropshadow(
     const rctf *rct, float radius, float aspect, float alpha, int UNUSED(select))
 {
-  const float max_radius = (BLI_rctf_size_y(rct) - 10.0f) * 0.5f;
-  const float rad = min_ff(radius, max_radius);
-
   /* This undoes the scale of the view for higher zoom factors to clamp the shadow size. */
   const float clamped_aspect = smoothminf(aspect, 1.0f, 0.5f);
 
   const float shadow_softness = 0.6f * U.widget_unit * clamped_aspect;
   const float shadow_offset = 0.5f * U.widget_unit * clamped_aspect;
   const float shadow_alpha = 0.5f * alpha;
+
+  const float max_radius = (BLI_rctf_size_y(rct) - shadow_offset) * 0.5f;
+  const float rad = min_ff(radius, max_radius);
 
   GPU_blend(GPU_BLEND_ALPHA);
 

@@ -104,6 +104,7 @@
 #include "SEQ_sequencer.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_tag.h"
@@ -208,7 +209,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   return id_node;
 }
 
-IDNode *DepsgraphNodeBuilder::find_id_node(ID *id)
+IDNode *DepsgraphNodeBuilder::find_id_node(const ID *id)
 {
   return graph_->find_id_node(id);
 }
@@ -226,6 +227,17 @@ ComponentNode *DepsgraphNodeBuilder::add_component_node(ID *id,
   ComponentNode *comp_node = id_node->add_component(comp_type, comp_name);
   comp_node->owner = id_node;
   return comp_node;
+}
+
+ComponentNode *DepsgraphNodeBuilder::find_component_node(const ID *id,
+                                                         const NodeType comp_type,
+                                                         const char *comp_name)
+{
+  IDNode *id_node = find_id_node(id);
+  if (id_node == nullptr) {
+    return nullptr;
+  }
+  return id_node->find_component(comp_type, comp_name);
 }
 
 OperationNode *DepsgraphNodeBuilder::add_operation_node(ComponentNode *comp_node,
@@ -311,21 +323,30 @@ bool DepsgraphNodeBuilder::has_operation_node(ID *id,
   return find_operation_node(id, comp_type, comp_name, opcode, name, name_tag) != nullptr;
 }
 
-OperationNode *DepsgraphNodeBuilder::find_operation_node(ID *id,
+OperationNode *DepsgraphNodeBuilder::find_operation_node(const ID *id,
                                                          NodeType comp_type,
                                                          const char *comp_name,
                                                          OperationCode opcode,
                                                          const char *name,
                                                          int name_tag)
 {
-  ComponentNode *comp_node = add_component_node(id, comp_type, comp_name);
+  ComponentNode *comp_node = find_component_node(id, comp_type, comp_name);
+  if (comp_node == nullptr) {
+    return nullptr;
+  }
   return comp_node->find_operation(opcode, name, name_tag);
 }
 
 OperationNode *DepsgraphNodeBuilder::find_operation_node(
-    ID *id, NodeType comp_type, OperationCode opcode, const char *name, int name_tag)
+    const ID *id, NodeType comp_type, OperationCode opcode, const char *name, int name_tag)
 {
   return find_operation_node(id, comp_type, "", opcode, name, name_tag);
+}
+
+OperationNode *DepsgraphNodeBuilder::find_operation_node(const OperationKey &key)
+{
+  return find_operation_node(
+      key.id, key.component_type, key.component_name, key.opcode, key.name, key.name_tag);
 }
 
 ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
@@ -371,17 +392,8 @@ void DepsgraphNodeBuilder::begin_build()
     id_node->id_cow = nullptr;
   }
 
-  for (OperationNode *op_node : graph_->entry_tags) {
-    ComponentNode *comp_node = op_node->owner;
-    IDNode *id_node = comp_node->owner;
-
-    SavedEntryTag entry_tag;
-    entry_tag.id_orig = id_node->id_orig;
-    entry_tag.component_type = comp_node->type;
-    entry_tag.opcode = op_node->opcode;
-    entry_tag.name = op_node->name;
-    entry_tag.name_tag = op_node->name_tag;
-    saved_entry_tags_.append(entry_tag);
+  for (const OperationNode *op_node : graph_->entry_tags) {
+    saved_entry_tags_.append_as(op_node);
   }
 
   /* Make sure graph has no nodes left from previous state. */
@@ -439,6 +451,11 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
 {
   ID *id = *cb_data->id_pointer;
   if (id == nullptr) {
+    return IDWALK_RET_NOP;
+  }
+  if (!ID_TYPE_IS_COW(GS(id->name))) {
+    /* No need to go further if the id never had a cow copy in the depsgraph. This function is
+     * only concerned with keeping the mapping between original and COW ids intact. */
     return IDWALK_RET_NOP;
   }
 
@@ -499,23 +516,15 @@ void DepsgraphNodeBuilder::update_invalid_cow_pointers()
 
 void DepsgraphNodeBuilder::tag_previously_tagged_nodes()
 {
-  for (const SavedEntryTag &entry_tag : saved_entry_tags_) {
-    IDNode *id_node = find_id_node(entry_tag.id_orig);
-    if (id_node == nullptr) {
+  for (const OperationKey &operation_key : saved_entry_tags_) {
+    OperationNode *operation_node = find_operation_node(operation_key);
+    if (operation_node == nullptr) {
       continue;
     }
-    ComponentNode *comp_node = id_node->find_component(entry_tag.component_type);
-    if (comp_node == nullptr) {
-      continue;
-    }
-    OperationNode *op_node = comp_node->find_operation(
-        entry_tag.opcode, entry_tag.name.c_str(), entry_tag.name_tag);
-    if (op_node == nullptr) {
-      continue;
-    }
+
     /* Since the tag is coming from a saved copy of entry tags, this means
      * that originally node was explicitly tagged for user update. */
-    op_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
+    operation_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
   }
 }
 
@@ -1742,6 +1751,18 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   /* Output update. */
   add_operation_node(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  if (ntree->type == NTREE_GEOMETRY) {
+    ID *id_cow = get_cow_id(&ntree->id);
+    add_operation_node(&ntree->id,
+                       NodeType::NTREE_GEOMETRY_PREPROCESS,
+                       OperationCode::NTREE_GEOMETRY_PREPROCESS,
+                       [id_cow](::Depsgraph * /*depsgraph*/) {
+                         bNodeTree *ntree_cow = reinterpret_cast<bNodeTree *>(id_cow);
+                         bke::node_tree_runtime::preprocess_geometry_node_tree_for_evaluation(
+                             *ntree_cow);
+                       });
+  }
+
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -1969,13 +1990,6 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
                      [bmain = bmain_, clip_cow](::Depsgraph *depsgraph) {
                        BKE_movieclip_eval_update(depsgraph, bmain, clip_cow);
                      });
-
-  add_operation_node(clip_id,
-                     NodeType::BATCH_CACHE,
-                     OperationCode::MOVIECLIP_SELECT_UPDATE,
-                     [clip_cow](::Depsgraph *depsgraph) {
-                       BKE_movieclip_eval_selection_update(depsgraph, clip_cow);
-                     });
 }
 
 void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
@@ -2118,9 +2132,10 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
                      });
 }
 
-void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
     if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
       continue;

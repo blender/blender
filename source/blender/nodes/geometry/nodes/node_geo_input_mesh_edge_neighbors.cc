@@ -26,7 +26,7 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     const Span<MLoop> loops = mesh.loops();
     Array<int> face_count(mesh.totedge, 0);
@@ -47,6 +47,11 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const EdgeNeighborCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
   }
 };
 

@@ -64,7 +64,7 @@ void main()
   if (finalInnerColor.a > 0.0) {
     float stick_size = sizePixel * 5.0;
     gl_Position = (is_head) ? p0 : p1;
-    gl_Position.xy += stick_size * (vpos * drw_view.viewport_size_inverse);
+    gl_Position.xy += stick_size * (vpos * sizeViewportInv);
     gl_Position.z += (is_bone) ? 0.0 : 1e-6; /* Avoid Z fighting of head/tails. */
     view_clipping_distances((is_head ? boneStart_4d : boneEnd_4d).xyz);
   }

@@ -2127,6 +2127,12 @@ void size_to_mat4(float R[4][4], const float size[3])
   R[3][3] = 1.0f;
 }
 
+void mat3_to_size_2d(float size[2], const float M[3][3])
+{
+  size[0] = len_v2(M[0]);
+  size[1] = len_v2(M[1]);
+}
+
 void mat3_to_size(float size[3], const float M[3][3])
 {
   size[0] = len_v3(M[0]);
@@ -3108,6 +3114,34 @@ bool has_zero_axis_m4(const float matrix[4][4])
 {
   return len_squared_v3(matrix[0]) < FLT_EPSILON || len_squared_v3(matrix[1]) < FLT_EPSILON ||
          len_squared_v3(matrix[2]) < FLT_EPSILON;
+}
+
+void zero_axis_bias_m4(float mat[4][4])
+{
+  const bool axis_x_degenerate = len_squared_v3(mat[0]) < FLT_EPSILON;
+  const bool axis_y_degenerate = len_squared_v3(mat[1]) < FLT_EPSILON;
+  const bool axis_z_degenerate = len_squared_v3(mat[2]) < FLT_EPSILON;
+
+  /* X Axis. */
+  if (axis_x_degenerate && !axis_y_degenerate && !axis_z_degenerate) {
+    cross_v3_v3v3(mat[0], mat[1], mat[2]);
+    mul_v3_fl(mat[0], FLT_EPSILON);
+    return;
+  }
+
+  /* Y Axis. */
+  if (!axis_x_degenerate && axis_y_degenerate && !axis_z_degenerate) {
+    cross_v3_v3v3(mat[1], mat[2], mat[0]);
+    mul_v3_fl(mat[1], FLT_EPSILON);
+    return;
+  }
+
+  /* Z Axis. */
+  if (!axis_x_degenerate && !axis_y_degenerate && axis_z_degenerate) {
+    cross_v3_v3v3(mat[2], mat[0], mat[1]);
+    mul_v3_fl(mat[2], FLT_EPSILON);
+    return;
+  }
 }
 
 void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4])

@@ -20,7 +20,7 @@ static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
-                             bNodeExecData *UNUSED(execdata),
+                             bNodeExecData * /*execdata*/,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
@@ -45,7 +45,7 @@ class MF_SeparateXYZ : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
     MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");
@@ -97,7 +97,7 @@ void register_node_type_sh_sepxyz()
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_sepxyz_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_sepxyz);
+  ntype.gpu_fn = file_ns::gpu_shader_sepxyz;
   ntype.build_multi_function = file_ns::sh_node_sepxyz_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -116,7 +116,7 @@ static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,
-                              bNodeExecData *UNUSED(execdata),
+                              bNodeExecData * /*execdata*/,
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {
@@ -142,7 +142,7 @@ void register_node_type_sh_combxyz()
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_combxyz_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_combxyz);
+  ntype.gpu_fn = file_ns::gpu_shader_combxyz;
   ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;
 
   nodeRegisterType(&ntype);

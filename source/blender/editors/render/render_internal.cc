@@ -32,6 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -68,7 +69,7 @@
 #include "render_intern.hh"
 
 /* Render Callbacks */
-static int render_break(void *rjv);
+static bool render_break(void *rjv);
 
 struct RenderJob {
   Main *main;
@@ -86,8 +87,8 @@ struct RenderJob {
   Image *image;
   ImageUser iuser;
   bool image_outdated;
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
   ReportList *reports;
   int orig_layer;
@@ -404,56 +405,57 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* local view */
   if (rs->localview) {
-    spos += sprintf(spos, "%s | ", TIP_("3D Local View"));
+    spos += BLI_sprintf(spos, "%s | ", TIP_("3D Local View"));
   }
   else if (v3d_override) {
-    spos += sprintf(spos, "%s | ", TIP_("3D View"));
+    spos += BLI_sprintf(spos, "%s | ", TIP_("3D View"));
   }
 
   /* frame number */
-  spos += sprintf(spos, TIP_("Frame:%d "), (scene->r.cfra));
+  spos += BLI_sprintf(spos, TIP_("Frame:%d "), (scene->r.cfra));
 
   /* previous and elapsed time */
   BLI_timecode_string_from_time_simple(info_time_str, sizeof(info_time_str), rs->lastframetime);
 
   if (rs->infostr && rs->infostr[0]) {
     if (rs->lastframetime != 0.0) {
-      spos += sprintf(spos, TIP_("| Last:%s "), info_time_str);
+      spos += BLI_sprintf(spos, TIP_("| Last:%s "), info_time_str);
     }
     else {
-      spos += sprintf(spos, "| ");
+      spos += BLI_sprintf(spos, "| ");
     }
 
     BLI_timecode_string_from_time_simple(
         info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
   }
   else {
-    spos += sprintf(spos, "| ");
+    spos += BLI_sprintf(spos, "| ");
   }
 
-  spos += sprintf(spos, TIP_("Time:%s "), info_time_str);
+  spos += BLI_sprintf(spos, TIP_("Time:%s "), info_time_str);
 
   /* statistics */
   if (rs->statstr) {
     if (rs->statstr[0]) {
-      spos += sprintf(spos, "| %s ", rs->statstr);
+      spos += BLI_sprintf(spos, "| %s ", rs->statstr);
     }
   }
   else {
     if (rs->mem_peak == 0.0f) {
-      spos += sprintf(spos, TIP_("| Mem:%.2fM (Peak %.2fM) "), megs_used_memory, megs_peak_memory);
+      spos += BLI_sprintf(
+          spos, TIP_("| Mem:%.2fM (Peak %.2fM) "), megs_used_memory, megs_peak_memory);
     }
     else {
-      spos += sprintf(spos, TIP_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
+      spos += BLI_sprintf(spos, TIP_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
     }
   }
 
   /* extra info */
   if (rs->infostr && rs->infostr[0]) {
-    spos += sprintf(spos, "| %s ", rs->infostr);
+    spos += BLI_sprintf(spos, "| %s ", rs->infostr);
   }
   else if (error && error[0]) {
-    spos += sprintf(spos, "| %s ", error);
+    spos += BLI_sprintf(spos, "| %s ", error);
   }
 
   /* very weak... but 512 characters is quite safe */
@@ -636,7 +638,7 @@ static void current_scene_update(void *rjv, Scene *scene)
   rj->iuser.scene = scene;
 }
 
-static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
+static void render_startjob(void *rjv, bool *stop, bool *do_update, float *progress)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
@@ -790,29 +792,29 @@ static void render_endjob(void *rjv)
 }
 
 /* called by render, check job 'stop' value or the global */
-static int render_breakjob(void *rjv)
+static bool render_breakjob(void *rjv)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   if (G.is_break) {
-    return 1;
+    return true;
   }
   if (rj->stop && *(rj->stop)) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /**
  * For exec() when there is no render job
  * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
-static int render_break(void *UNUSED(rjv))
+static bool render_break(void * /*rjv*/)
 {
   if (G.is_break) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */
@@ -856,7 +858,7 @@ static void screen_render_cancel(bContext *C, wmOperator *op)
 
 static void clean_viewport_memory_base(Base *base)
 {
-  if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return;
   }
 
@@ -885,9 +887,10 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
        wm = static_cast<wmWindowManager *>(wm->id.next)) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+      BKE_view_layer_synced_ensure(scene, view_layer);
 
-      for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next) {
-        clean_viewport_memory_base(base);
+      LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
+        clean_viewport_memory_base(b);
       }
     }
   }

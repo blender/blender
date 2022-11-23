@@ -40,12 +40,12 @@ typedef enum GPUAttachmentType : int {
 
 inline constexpr GPUAttachmentType operator-(GPUAttachmentType a, int b)
 {
-  return static_cast<GPUAttachmentType>(static_cast<int>(a) - b);
+  return static_cast<GPUAttachmentType>(int(a) - b);
 }
 
 inline constexpr GPUAttachmentType operator+(GPUAttachmentType a, int b)
 {
-  return static_cast<GPUAttachmentType>(static_cast<int>(a) + b);
+  return static_cast<GPUAttachmentType>(int(a) + b);
 }
 
 inline GPUAttachmentType &operator++(GPUAttachmentType &a)
@@ -74,9 +74,9 @@ class FrameBuffer {
   /** Set of texture attachments to render to. DEPTH and DEPTH_STENCIL are mutually exclusive. */
   GPUAttachment attachments_[GPU_FB_MAX_ATTACHMENT];
   /** Is true if internal representation need to be updated. */
-  bool dirty_attachments_;
+  bool dirty_attachments_ = true;
   /** Size of attachment textures. */
-  int width_, height_;
+  int width_ = 0, height_ = 0;
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
   /** Frame-buffer state. */
@@ -93,11 +93,6 @@ class FrameBuffer {
    */
   void **py_ref = nullptr;
 #endif
-
- public:
-  /* Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
-   * Points to #BPyGPUFrameBuffer::fb */
-  void **ref = nullptr;
 
  public:
   FrameBuffer(const char *name);
@@ -208,6 +203,11 @@ class FrameBuffer {
   inline GPUTexture *color_tex(int slot) const
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
+  };
+
+  inline const char *const name_get() const
+  {
+    return name_;
   };
 };
 

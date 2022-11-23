@@ -41,7 +41,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
   }
 }
 
-static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_tangent(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderTangent *attr = MEM_cnew<NodeShaderTangent>("NodeShaderTangent");
   attr->axis = SHD_TANGENT_AXIS_Z;
@@ -50,7 +50,7 @@ static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tangent(GPUMaterial *mat,
                                    bNode *node,
-                                   bNodeExecData *UNUSED(execdata),
+                                   bNodeExecData * /*execdata*/,
                                    GPUNodeStack *in,
                                    GPUNodeStack *out)
 {
@@ -89,8 +89,8 @@ void register_node_type_sh_tangent()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_tangent);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tangent);
+  ntype.initfunc = file_ns::node_shader_init_tangent;
+  ntype.gpu_fn = file_ns::node_shader_gpu_tangent;
   node_type_storage(
       &ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
 

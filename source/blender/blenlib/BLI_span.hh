@@ -112,13 +112,11 @@ template<typename T> class Span {
    *  Span<int> span = {1, 2, 3, 4};
    *  call_function_with_array(span);
    */
-  constexpr Span(const std::initializer_list<T> &list)
-      : Span(list.begin(), static_cast<int64_t>(list.size()))
+  constexpr Span(const std::initializer_list<T> &list) : Span(list.begin(), int64_t(list.size()))
   {
   }
 
-  constexpr Span(const std::vector<T> &vector)
-      : Span(vector.data(), static_cast<int64_t>(vector.size()))
+  constexpr Span(const std::vector<T> &vector) : Span(vector.data(), int64_t(vector.size()))
   {
   }
 
@@ -580,15 +578,31 @@ template<typename T> class MutableSpan {
    */
   constexpr MutableSpan slice(const int64_t start, const int64_t size) const
   {
+    BLI_assert(this->index_range().contains(start));
+    BLI_assert(this->index_range().contains(IndexRange(start, size).last()));
+    return MutableSpan(data_ + start, size);
+  }
+
+  constexpr MutableSpan slice(IndexRange range) const
+  {
+    return this->slice(range.start(), range.size());
+  }
+
+  /**
+   * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
+   * is negative. Clamps the size of the new new span so it fits in the current one.
+   */
+  constexpr MutableSpan slice_safe(const int64_t start, const int64_t size) const
+  {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
     const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
     return MutableSpan(data_ + start, new_size);
   }
 
-  constexpr MutableSpan slice(IndexRange range) const
+  constexpr MutableSpan slice_safe(IndexRange range) const
   {
-    return this->slice(range.start(), range.size());
+    return this->slice_safe(range.start(), range.size());
   }
 
   /**
@@ -718,7 +732,7 @@ template<typename T> class MutableSpan {
   {
     BLI_assert((size_ * sizeof(T)) % sizeof(NewT) == 0);
     int64_t new_size = size_ * sizeof(T) / sizeof(NewT);
-    return MutableSpan<NewT>((NewT *)data_, new_size);
+    return MutableSpan<NewT>(reinterpret_cast<NewT *>(data_), new_size);
   }
 };
 

@@ -136,7 +136,7 @@ typedef struct SequenceRuntime {
  */
 typedef struct Sequence {
   struct Sequence *next, *prev;
-  /** Tmp var for copying, and tagging for linked selection. */
+  /** Temp var for copying, and tagging for linked selection. */
   void *tmp;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
@@ -184,7 +184,7 @@ typedef struct Sequence {
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
 
-  /** these ID vars should never be NULL but can be when linked libs fail to load,
+  /** these ID vars should never be NULL but can be when linked libraries fail to load,
    * so check on access */
   struct Scene *scene;
   /** Override scene camera. */

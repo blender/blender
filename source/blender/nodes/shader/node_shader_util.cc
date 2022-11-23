@@ -13,7 +13,7 @@
 
 #include "node_exec.h"
 
-bool sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree, const char **r_disabled_hint)
+bool sh_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "ShaderNodeTree")) {
     *r_disabled_hint = TIP_("Not a shader node tree");
@@ -22,7 +22,7 @@ bool sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree, const char
   return true;
 }
 
-static bool sh_fn_poll_default(bNodeType *UNUSED(ntype),
+static bool sh_fn_poll_default(bNodeType * /*ntype*/,
                                bNodeTree *ntree,
                                const char **r_disabled_hint)
 {
@@ -284,7 +284,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
   }
 }
 
-void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeLink **link)
+void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode * /*node*/, GPUNodeLink **link)
 {
   GPU_link(mat, "differentiate_texco", *link, link);
 }
@@ -300,7 +300,7 @@ void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLin
 void node_shader_gpu_tex_mapping(GPUMaterial *mat,
                                  bNode *node,
                                  GPUNodeStack *in,
-                                 GPUNodeStack *UNUSED(out))
+                                 GPUNodeStack * /*out*/)
 {
   NodeTexBase *base = (NodeTexBase *)node->storage;
   TexMapping *texmap = &base->tex_mapping;

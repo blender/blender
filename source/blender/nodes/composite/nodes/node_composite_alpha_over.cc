@@ -37,12 +37,12 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_alphaover_init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = MEM_cnew<NodeTwoFloats>(__func__);
 }
 
-static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_alphaover(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -108,7 +108,7 @@ void register_node_type_cmp_alphaover()
   cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_alphaover_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_alphaover;
-  node_type_init(&ntype, file_ns::node_alphaover_init);
+  ntype.initfunc = file_ns::node_alphaover_init;
   node_type_storage(
       &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

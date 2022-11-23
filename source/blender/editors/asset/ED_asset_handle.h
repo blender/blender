@@ -35,3 +35,16 @@ void ED_asset_handle_get_full_library_path(const struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::asset {
+
+/** If the ID already exists in the database, return it, otherwise add it. */
+ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain,
+                                                const AssetLibraryReference &library_ref,
+                                                AssetHandle asset);
+
+}  // namespace blender::ed::asset
+
+#endif

@@ -7,6 +7,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMEdgeLoopStore;
 struct GSet;
 struct ListBase;
@@ -80,3 +84,7 @@ bool BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a,
 #define BM_EDGELOOP_NEXT(el_store) \
   (CHECK_TYPE_INLINE(el_store, struct BMEdgeLoopStore *), \
    (struct BMEdgeLoopStore *)((LinkData *)el_store)->next)
+
+#ifdef __cplusplus
+}
+#endif

@@ -61,7 +61,7 @@ class MyCustomTreeNode:
 
 
 # Derived from the Node base type.
-class MyCustomNode(Node, MyCustomTreeNode):
+class MyCustomNode(MyCustomTreeNode, Node):
     # === Basics ===
     # Description string
     '''A custom node'''

@@ -217,8 +217,8 @@ static void studiolight_load_solid_light(StudioLight *sl)
 #undef READ_IVAL
 #undef READ_FVAL
 
-#define WRITE_FVAL(str, id, val) (BLI_dynstr_appendf(str, id " %f\n", val))
-#define WRITE_IVAL(str, id, val) (BLI_dynstr_appendf(str, id " %d\n", val))
+#define WRITE_FVAL(str, id, val) BLI_dynstr_appendf(str, id " %f\n", val)
+#define WRITE_IVAL(str, id, val) BLI_dynstr_appendf(str, id " %d\n", val)
 
 #define WRITE_VEC3(str, id, val) \
   do { \
@@ -273,7 +273,7 @@ static void direction_to_equirect(float r[2], const float dir[3])
 
 static void equirect_to_direction(float r[3], float u, float v)
 {
-  float phi = (-(M_PI * 2)) * u + M_PI;
+  float phi = -(M_PI * 2) * u + M_PI;
   float theta = -M_PI * v + M_PI;
   float sin_theta = sinf(theta);
   r[0] = sin_theta * cosf(phi);
@@ -342,9 +342,7 @@ static void *studiolight_multilayer_addlayer(void *base, const char *UNUSED(laye
 /* Convert a multilayer pass to ImBuf channel 4 float buffer.
  * NOTE: Parameter rect will become invalid. Do not use rect after calling this
  * function */
-static float *studiolight_multilayer_convert_pass(ImBuf *ibuf,
-                                                  float *rect,
-                                                  const unsigned int channels)
+static float *studiolight_multilayer_convert_pass(ImBuf *ibuf, float *rect, const uint channels)
 {
   if (channels == 4) {
     return rect;
@@ -1166,19 +1164,21 @@ static void studiolight_add_files_from_datafolder(const int folder_id,
                                                   const char *subfolder,
                                                   int flag)
 {
-  struct direntry *dirs;
   const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
-  if (folder) {
-    const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
-    int i;
-    for (i = 0; i < dirs_num; i++) {
-      if (dirs[i].type & S_IFREG) {
-        studiolight_add_file(dirs[i].path, flag);
-      }
-    }
-    BLI_filelist_free(dirs, dirs_num);
-    dirs = NULL;
+  if (!folder) {
+    return;
   }
+
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
+  int i;
+  for (i = 0; i < dirs_num; i++) {
+    if (dirs[i].type & S_IFREG) {
+      studiolight_add_file(dirs[i].path, flag);
+    }
+  }
+  BLI_filelist_free(dirs, dirs_num);
+  dirs = NULL;
 }
 
 static int studiolight_flag_cmp_order(const StudioLight *sl)

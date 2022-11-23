@@ -18,14 +18,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_init_glossy(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_glossy(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_GLOSSY_GGX;
 }
 
 static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
                                        bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
+                                       bNodeExecData * /*execdata*/,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
@@ -56,8 +56,8 @@ void register_node_type_sh_bsdf_glossy()
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_glossy);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_glossy);
+  ntype.initfunc = file_ns::node_shader_init_glossy;
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glossy;
 
   nodeRegisterType(&ntype);
 }

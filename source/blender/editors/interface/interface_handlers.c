@@ -959,7 +959,7 @@ static void ui_apply_but_undo(uiBut *but)
     str = "";
   }
 
-  /* delayed, after all other funcs run, popups are closed, etc */
+  /* Delayed, after all other functions run, popups are closed, etc. */
   uiAfterFunc *after = ui_afterfunc_new();
   BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
 }
@@ -991,7 +991,7 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
 
 static void ui_apply_but_funcs_after(bContext *C)
 {
-  /* copy to avoid recursive calls */
+  /* Copy to avoid recursive calls. */
   ListBase funcs = UIAfterFuncs;
   BLI_listbase_clear(&UIAfterFuncs);
 
@@ -1118,9 +1118,6 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
   }
   else {
     value_toggle = (value == 0.0);
-    if (ELEM(but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N)) {
-      value_toggle = !value_toggle;
-    }
   }
 
   ui_but_value_set(but, (double)value_toggle);
@@ -3017,23 +3014,6 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
   return changed;
 }
 
-static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
-                                                     const size_t str_step_ofs,
-                                                     const rcti *glyph_step_bounds,
-                                                     const int UNUSED(glyph_advance_x),
-                                                     const rcti *glyph_bounds,
-                                                     const int UNUSED(glyph_bearing[2]),
-                                                     void *user_data)
-{
-  int *cursor_data = user_data;
-  const int center = glyph_step_bounds->xmin + (BLI_rcti_size_x(glyph_bounds) / 2.0f);
-  if (cursor_data[0] < center) {
-    cursor_data[1] = str_step_ofs;
-    return false;
-  }
-  return true;
-}
-
 /**
  * \param x: Screen space cursor location - #wmEvent.x
  *
@@ -3064,7 +3044,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
       startx += UI_DPI_ICON_SIZE / aspect;
     }
   }
-  startx += (UI_TEXT_MARGIN_X * U.widget_unit) / aspect;
+  startx += (UI_TEXT_MARGIN_X * U.widget_unit - U.pixelsize) / aspect;
 
   /* mouse dragged outside the widget to the left */
   if (x < startx) {
@@ -3088,23 +3068,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
   }
   /* mouse inside the widget, mouse coords mapped in widget space */
   else {
-    str_last = &str[but->ofs];
-    const int str_last_len = strlen(str_last);
-    const int x_pos = (int)(x - startx);
-    int glyph_data[2] = {
-        x_pos, /* horizontal position to test. */
-        -1,    /* Write the character offset here. */
-    };
-    BLF_boundbox_foreach_glyph(fstyle.uifont_id,
-                               str + but->ofs,
-                               INT_MAX,
-                               ui_textedit_set_cursor_pos_foreach_glyph,
-                               glyph_data);
-    /* If value untouched then we are to the right. */
-    if (glyph_data[1] == -1) {
-      glyph_data[1] = str_last_len;
-    }
-    but->pos = glyph_data[1] + but->ofs;
+    but->pos = but->ofs + BLF_str_offset_from_cursor_position(
+                              fstyle.uifont_id, str + but->ofs, INT_MAX, (int)(x - startx));
   }
 
   ui_but_text_password_hide(password_str, but, true);
@@ -3554,7 +3519,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
 {
-  /* label and roundbox can overlap real buttons (backdrops...) */
+  /* Label and round-box can overlap real buttons (backdrops...). */
   if (ELEM(actbut->type,
            UI_BTYPE_LABEL,
            UI_BTYPE_SEPR,
@@ -3586,7 +3551,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
 {
-  /* label and roundbox can overlap real buttons (backdrops...) */
+  /* Label and round-box can overlap real buttons (backdrops...). */
   if (ELEM(actbut->type,
            UI_BTYPE_LABEL,
            UI_BTYPE_SEPR,
@@ -3929,7 +3894,7 @@ static void ui_do_but_textedit(
     }
     if (event->type == WM_IME_COMPOSITE_EVENT && ime_data->result_len) {
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
-          strcmp(ime_data->str_result, "\xE3\x80\x82") == 0) {
+          STREQ(ime_data->str_result, "\xE3\x80\x82")) {
         /* Convert Ideographic Full Stop (U+3002) to decimal point when entering numbers. */
         ui_textedit_insert_ascii(but, data, '.');
       }
@@ -4646,7 +4611,7 @@ static int ui_do_but_TEX(
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, EVT_PADENTER, EVT_RETKEY) &&
         event->val == KM_PRESS) {
-      if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && (!UI_but_is_utf8(but))) {
+      if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && !UI_but_is_utf8(but)) {
         /* pass - allow filesel, enter to execute */
       }
       else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) &&
@@ -5172,7 +5137,7 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
       CLAMP_MIN(non_linear_scale, 0.5f * UI_DPI_FAC);
     }
 
-    data->dragf += (((float)(mx - data->draglastx)) / deler) * non_linear_scale;
+    data->dragf += ((float)(mx - data->draglastx) / deler) * non_linear_scale;
 
     if (but->softmin == softmin) {
       CLAMP_MIN(data->dragf, 0.0f);
@@ -5797,7 +5762,7 @@ static int ui_do_but_SLI(
       else
 #endif
       {
-        f = (float)(mx - but->rect.xmin) / (BLI_rctf_size_x(&but->rect));
+        f = (float)(mx - but->rect.xmin) / BLI_rctf_size_x(&but->rect);
       }
 
       if (scale_type == PROP_SCALE_LOG) {
@@ -6004,7 +5969,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
       }
     }
 #ifdef USE_DRAG_TOGGLE
-    if (event->type == LEFTMOUSE && event->val == KM_PRESS && (ui_but_is_drag_toggle(but))) {
+    if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
       button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
       data->dragstartx = event->xy[0];
       data->dragstarty = event->xy[1];
@@ -6152,7 +6117,7 @@ static bool ui_numedit_but_UNITVEC(
      * do this in "angle" space - this gives increments of same size */
     for (int i = 0; i < 3; i++) {
       angle = asinf(fp[i]);
-      angle_snap = roundf((angle / snap_steps_angle)) * snap_steps_angle;
+      angle_snap = roundf(angle / snap_steps_angle) * snap_steps_angle;
       fp[i] = sinf(angle_snap);
     }
     normalize_v3(fp);
@@ -7008,7 +6973,7 @@ static bool ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int m
     return changed;
   }
 
-  const float dx = ((float)(mx - data->draglastx)) / BLI_rctf_size_x(&but->rect);
+  const float dx = (float)(mx - data->draglastx) / BLI_rctf_size_x(&but->rect);
   data->dragcbd->pos += dx;
   CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 
@@ -7034,7 +6999,7 @@ static int ui_do_but_COLORBAND(
 
       if (event->modifier & KM_CTRL) {
         /* insert new key on mouse location */
-        const float pos = ((float)(mx - but->rect.xmin)) / BLI_rctf_size_x(&but->rect);
+        const float pos = (float)(mx - but->rect.xmin) / BLI_rctf_size_x(&but->rect);
         BKE_colorband_element_add(coba, pos);
         button_activate_state(C, but, BUTTON_STATE_EXIT);
       }
@@ -9585,8 +9550,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   else if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
          (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0) ||
-        ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
-          (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0))) {
+        (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
+         (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0)) {
       const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
       int value, min, max;
 
@@ -10839,7 +10804,7 @@ static int ui_handle_menu_return_submenu(bContext *C,
 
 static bool ui_but_pie_menu_supported_apply(uiBut *but)
 {
-  return (!ELEM(but->type, UI_BTYPE_NUM_SLIDER, UI_BTYPE_NUM));
+  return !ELEM(but->type, UI_BTYPE_NUM_SLIDER, UI_BTYPE_NUM);
 }
 
 static int ui_but_pie_menu_apply(bContext *C,
@@ -11113,7 +11078,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         case EVT_XKEY:
         case EVT_YKEY:
         case EVT_ZKEY: {
-          if ((ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) &&
+          if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0)) {
             LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
               if (but->menu_key == event->type) {
@@ -11380,9 +11345,9 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
         (ui_region_find_active_but(data->menu->region) == NULL) &&
         /* make sure mouse isn't inside another menu (see T43247) */
         (ui_screen_region_find_mouse_over(screen, event) == NULL) &&
-        (ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
+        ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU) &&
         (but_other = ui_but_find_mouse_over(region, event)) && (but != but_other) &&
-        (ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
+        ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU) &&
         /* Hover-opening menu's doesn't work well for buttons over one another
          * along the same axis the menu is opening on (see T71719). */
         (((data->menu->direction & (UI_DIR_LEFT | UI_DIR_RIGHT)) &&

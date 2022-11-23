@@ -73,10 +73,10 @@ namespace blender::ed::space_node {
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
-static void node_socket_button_label(bContext *UNUSED(C),
+static void node_socket_button_label(bContext * /*C*/,
                                      uiLayout *layout,
-                                     PointerRNA *UNUSED(ptr),
-                                     PointerRNA *UNUSED(node_ptr),
+                                     PointerRNA * /*ptr*/,
+                                     PointerRNA * /*node_ptr*/,
                                      const char *text)
 {
   uiItemL(layout, text, 0);
@@ -84,7 +84,7 @@ static void node_socket_button_label(bContext *UNUSED(C),
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_value(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   /* first output stores value */
@@ -95,7 +95,7 @@ static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *p
   uiItemR(layout, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   /* first output stores value */
@@ -109,7 +109,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr
   uiItemR(col, &sockptr, "default_value", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, "", ICON_NONE);
 }
 
-static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_mix_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
 
@@ -123,7 +123,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
   uiItemR(col, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_time(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateCurveMapping(layout, ptr, "curve", 's', false, false, false, false);
 
@@ -132,17 +132,17 @@ static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(col, ptr, "frame_end", DEFAULT_FLAGS, IFACE_("End"), ICON_NONE);
 }
 
-static void node_buts_colorramp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_colorramp(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateColorRamp(layout, ptr, "color_ramp", false);
 }
 
-static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_curvevec(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
 }
 
-static void node_buts_curvefloat(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_curvefloat(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false);
 }
@@ -164,7 +164,7 @@ void ED_node_sample_set(const float col[4])
 
 namespace blender::ed::space_node {
 
-static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_curvecol(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   CurveMapping *cumap = (CurveMapping *)node->storage;
@@ -183,7 +183,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
       layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT));
 }
 
-static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_normal(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   /* first output stores normal */
@@ -194,7 +194,7 @@ static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
   uiItemR(layout, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_texture(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
@@ -209,13 +209,13 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
   }
 }
 
-static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static void node_buts_combsep_color(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
@@ -232,7 +232,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
-    const rctf &totr = node->totr;
+    const rctf &totr = node->runtime->totr;
     const float size = NODE_RESIZE_MARGIN;
 
     if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -253,8 +253,8 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
   if (node->flag & NODE_HIDDEN) {
     /* right part of node */
-    rctf totr = node->totr;
-    totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
+    rctf totr = node->runtime->totr;
+    totr.xmin = node->runtime->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
@@ -263,7 +263,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
   }
 
   const float size = NODE_RESIZE_MARGIN;
-  const rctf &totr = node->totr;
+  const rctf &totr = node->runtime->totr;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -283,7 +283,7 @@ static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *p
       layout, C, ptr, "node_tree", nullptr, nullptr, nullptr, UI_TEMPLATE_ID_FILTER_ALL, nullptr);
 }
 
-static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_frame_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
   uiItemR(layout, ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
@@ -441,17 +441,17 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
 }
 
-static void node_shader_buts_displacement(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_displacement(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "space", DEFAULT_FLAGS, "", 0);
 }
 
-static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_output_shader(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_output_shader(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
 }
@@ -519,7 +519,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
 
 static void node_buts_image_views(uiLayout *layout,
-                                  bContext *UNUSED(C),
+                                  bContext * /*C*/,
                                   PointerRNA *ptr,
                                   PointerRNA *imaptr)
 {
@@ -579,7 +579,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
   uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, true);
 }
 
-static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   CurveMapping *cumap = (CurveMapping *)node->storage;
@@ -595,14 +595,12 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C),
   uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false);
 }
 
-static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_ycc(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_composit_buts_combsep_color(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
@@ -733,7 +731,7 @@ static void node_composit_backdrop_ellipsemask(
 }
 
 static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
@@ -748,8 +746,8 @@ static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
 }
 
 static void node_composit_buts_cryptomatte_legacy_ex(uiLayout *layout,
-                                                     bContext *UNUSED(C),
-                                                     PointerRNA *UNUSED(ptr))
+                                                     bContext * /*C*/,
+                                                     PointerRNA * /*ptr*/)
 {
   uiItemO(layout, IFACE_("Add Crypto Layer"), ICON_ADD, "NODE_OT_cryptomatte_layer_add");
   uiItemO(layout, IFACE_("Remove Crypto Layer"), ICON_REMOVE, "NODE_OT_cryptomatte_layer_remove");
@@ -874,7 +872,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR TEXTURE NODES ***************** */
 
-static void node_texture_buts_bricks(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_texture_buts_bricks(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -887,7 +885,7 @@ static void node_texture_buts_bricks(uiLayout *layout, bContext *UNUSED(C), Poin
   uiItemR(col, ptr, "squash_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
 }
 
-static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   PointerRNA tex_ptr;
   bNode *node = (bNode *)ptr->data;
@@ -938,7 +936,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
       uiItemR(
           row, &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
       row = uiLayoutRow(col, false);
-      uiLayoutSetActive(row, !(ELEM(tex->stype, TEX_BAND, TEX_RING)));
+      uiLayoutSetActive(row, !ELEM(tex->stype, TEX_BAND, TEX_RING));
       uiItemR(row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
       break;
 
@@ -998,12 +996,12 @@ static void node_texture_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA
   uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, false);
 }
 
-static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_texture_buts_output(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_texture_buts_combsep_color(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_texture_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
@@ -1068,7 +1066,7 @@ static void node_texture_set_butfunc(bNodeType *ntype)
  * Only called on node initialization, once.
  * \{ */
 
-static void node_property_update_default(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void node_property_update_default(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
@@ -1102,18 +1100,18 @@ static void node_template_properties_update(bNodeType *ntype)
   }
 }
 
-static void node_socket_undefined_draw(bContext *UNUSED(C),
+static void node_socket_undefined_draw(bContext * /*C*/,
                                        uiLayout *layout,
-                                       PointerRNA *UNUSED(ptr),
-                                       PointerRNA *UNUSED(node_ptr),
-                                       const char *UNUSED(text))
+                                       PointerRNA * /*ptr*/,
+                                       PointerRNA * /*node_ptr*/,
+                                       const char * /*text*/)
 {
   uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
-static void node_socket_undefined_draw_color(bContext *UNUSED(C),
-                                             PointerRNA *UNUSED(ptr),
-                                             PointerRNA *UNUSED(node_ptr),
+static void node_socket_undefined_draw_color(bContext * /*C*/,
+                                             PointerRNA * /*ptr*/,
+                                             PointerRNA * /*node_ptr*/,
                                              float *r_color)
 {
   r_color[0] = 1.0f;
@@ -1122,15 +1120,15 @@ static void node_socket_undefined_draw_color(bContext *UNUSED(C),
   r_color[3] = 1.0f;
 }
 
-static void node_socket_undefined_interface_draw(bContext *UNUSED(C),
+static void node_socket_undefined_interface_draw(bContext * /*C*/,
                                                  uiLayout *layout,
-                                                 PointerRNA *UNUSED(ptr))
+                                                 PointerRNA * /*ptr*/)
 {
   uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
-static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C),
-                                                       PointerRNA *UNUSED(ptr),
+static void node_socket_undefined_interface_draw_color(bContext * /*C*/,
+                                                       PointerRNA * /*ptr*/,
                                                        float *r_color)
 {
   r_color[0] = 1.0f;
@@ -1173,7 +1171,7 @@ void ED_node_init_butfuncs()
   NODE_TYPES_END;
 }
 
-void ED_init_custom_node_type(bNodeType *UNUSED(ntype))
+void ED_init_custom_node_type(bNodeType * /*ntype*/)
 {
 }
 
@@ -1205,18 +1203,16 @@ static const float std_node_socket_colors[][4] = {
 };
 
 /* common color callbacks for standard types */
-static void std_node_socket_draw_color(bContext *UNUSED(C),
+static void std_node_socket_draw_color(bContext * /*C*/,
                                        PointerRNA *ptr,
-                                       PointerRNA *UNUSED(node_ptr),
+                                       PointerRNA * /*node_ptr*/,
                                        float *r_color)
 {
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int type = sock->typeinfo->type;
   copy_v4_v4(r_color, std_node_socket_colors[type]);
 }
-static void std_node_socket_interface_draw_color(bContext *UNUSED(C),
-                                                 PointerRNA *ptr,
-                                                 float *r_color)
+static void std_node_socket_interface_draw_color(bContext * /*C*/, PointerRNA *ptr, float *r_color)
 {
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int type = sock->typeinfo->type;
@@ -1425,7 +1421,7 @@ static void std_node_socket_draw(
   }
 }
 
-static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *ptr)
+static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int type = sock->typeinfo->type;
@@ -1469,9 +1465,9 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
   uiItemR(layout, ptr, "hide_value", DEFAULT_FLAGS, nullptr, 0);
 }
 
-static void node_socket_virtual_draw_color(bContext *UNUSED(C),
-                                           PointerRNA *UNUSED(ptr),
-                                           PointerRNA *UNUSED(node_ptr),
+static void node_socket_virtual_draw_color(bContext * /*C*/,
+                                           PointerRNA * /*ptr*/,
+                                           PointerRNA * /*node_ptr*/,
                                            float *r_color)
 {
   copy_v4_v4(r_color, virtual_node_socket_color);
@@ -1585,10 +1581,12 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-static float2 socket_link_connection_location(const bNodeSocket &socket, const bNodeLink &link)
+static float2 socket_link_connection_location(const bNode &node,
+                                              const bNodeSocket &socket,
+                                              const bNodeLink &link)
 {
   const float2 socket_location(socket.locx, socket.locy);
-  if (socket.flag & SOCK_MULTI_INPUT && socket.in_out == SOCK_IN) {
+  if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
     return node_link_calculate_multi_input_position(
         socket_location, link.multi_input_socket_index, socket.total_inputs);
   }
@@ -1604,12 +1602,19 @@ static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
     points[2] = math::interpolate(points[0], points[3], 2.0f / 3.0f);
   }
   else {
-    const float dist = curving * 0.1f * math::distance(points[0].x, points[3].x);
+    const float dist_x = math::distance(points[0].x, points[3].x);
+    const float dist_y = math::distance(points[0].y, points[3].y);
 
-    points[1].x = points[0].x + dist;
+    /* Reduce the handle offset when the link endpoints are close to horizontal. */
+    const float slope = safe_divide(dist_y, dist_x);
+    const float clamp_factor = math::min(1.0f, slope * (4.5f - 0.25f * float(curving)));
+
+    const float handle_offset = curving * 0.1f * dist_x * clamp_factor;
+
+    points[1].x = points[0].x + handle_offset;
     points[1].y = points[0].y;
 
-    points[2].x = points[3].x - dist;
+    points[2].x = points[3].x - handle_offset;
     points[2].y = points[3].y;
   }
 }
@@ -1617,8 +1622,8 @@ static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
 static std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
 {
   std::array<float2, 4> points;
-  points[0] = socket_link_connection_location(*link.fromsock, link);
-  points[3] = socket_link_connection_location(*link.tosock, link);
+  points[0] = socket_link_connection_location(*link.fromnode, *link.fromsock, link);
+  points[3] = socket_link_connection_location(*link.tonode, *link.tosock, link);
   calculate_inner_link_bezier_points(points);
   return points;
 }
@@ -1757,7 +1762,7 @@ static void nodelink_batch_init()
 
     /* curve strip */
     for (int i = 0; i < LINK_RESOL; i++) {
-      uv[0] = 255 * (i / (float)(LINK_RESOL - 1));
+      uv[0] = 255 * (i / float(LINK_RESOL - 1));
       uv[1] = 0;
       set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
       uv[1] = 255;
@@ -1901,7 +1906,7 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void nodelink_batch_start(SpaceNode &UNUSED(snode))
+void nodelink_batch_start(SpaceNode & /*snode*/)
 {
   g_batch_link.enabled = true;
 }
@@ -1976,7 +1981,7 @@ static void node_draw_link_end_marker(const float2 center,
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv(&rect, true, radius, color);
-  /* Roundbox disables alpha. Reenable it for node links that are drawn after this one. */
+  /* Round-box disables alpha. Re-enable it for node links that are drawn after this one. */
   GPU_blend(GPU_BLEND_ALPHA);
 }
 
@@ -2209,8 +2214,11 @@ static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &sn
 {
   const float2 cursor = snode.runtime->cursor * UI_DPI_FAC;
   std::array<float2, 4> points;
-  points[0] = link.fromsock ? socket_link_connection_location(*link.fromsock, link) : cursor;
-  points[3] = link.tosock ? socket_link_connection_location(*link.tosock, link) : cursor;
+  points[0] = link.fromsock ?
+                  socket_link_connection_location(*link.fromnode, *link.fromsock, link) :
+                  cursor;
+  points[3] = link.tosock ? socket_link_connection_location(*link.tonode, *link.tosock, link) :
+                            cursor;
   calculate_inner_link_bezier_points(points);
   return points;
 }

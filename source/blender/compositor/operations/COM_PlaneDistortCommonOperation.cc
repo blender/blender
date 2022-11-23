@@ -82,7 +82,7 @@ void PlaneDistortWarpImageOperation::calculate_corners(const float corners[4][2]
   }
 
   float frame_corners[4][2] = {
-      {0.0f, 0.0f}, {(float)width, 0.0f}, {(float)width, (float)height}, {0.0f, (float)height}};
+      {0.0f, 0.0f}, {float(width), 0.0f}, {float(width), float(height)}, {0.0f, float(height)}};
   BKE_tracking_homography_between_two_quads(
       sample_data->frame_space_corners, frame_corners, sample_data->perspective_matrix);
 }
@@ -116,7 +116,7 @@ void PlaneDistortWarpImageOperation::execute_pixel_sampled(float output[4],
       pixel_reader_->read_filtered(color, uv[0], uv[1], deriv[0], deriv[1]);
       add_v4_v4(output, color);
     }
-    mul_v4_fl(output, 1.0f / (float)motion_blur_samples_);
+    mul_v4_fl(output, 1.0f / float(motion_blur_samples_));
   }
 }
 
@@ -143,7 +143,7 @@ void PlaneDistortWarpImageOperation::update_memory_buffer_partial(MemoryBuffer *
         input_img->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], color);
         add_v4_v4(it.out, color);
       }
-      mul_v4_fl(it.out, 1.0f / (float)motion_blur_samples_);
+      mul_v4_fl(it.out, 1.0f / float(motion_blur_samples_));
     }
   }
 }
@@ -258,7 +258,7 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
         inside_counter++;
       }
     }
-    output[0] = (float)inside_counter / osa_;
+    output[0] = float(inside_counter) / osa_;
   }
   else {
     for (int motion_sample = 0; motion_sample < motion_blur_samples_; motion_sample++) {
@@ -278,13 +278,13 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
         }
       }
     }
-    output[0] = (float)inside_counter / (osa_ * motion_blur_samples_);
+    output[0] = float(inside_counter) / (osa_ * motion_blur_samples_);
   }
 }
 
 void PlaneDistortMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                              const rcti &area,
-                                                             Span<MemoryBuffer *> UNUSED(inputs))
+                                                             Span<MemoryBuffer *> /*inputs*/)
 {
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     int inside_count = 0;
@@ -292,7 +292,7 @@ void PlaneDistortMaskOperation::update_memory_buffer_partial(MemoryBuffer *outpu
       MotionSample &sample = samples_[motion_sample];
       inside_count += get_jitter_samples_inside_count(it.x, it.y, sample);
     }
-    *it.out = (float)inside_count / (osa_ * motion_blur_samples_);
+    *it.out = float(inside_count) / (osa_ * motion_blur_samples_);
   }
 }
 

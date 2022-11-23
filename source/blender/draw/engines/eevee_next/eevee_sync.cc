@@ -68,6 +68,20 @@ WorldHandle &SyncModule::sync_world(::World *world)
   return eevee_dd;
 }
 
+SceneHandle &SyncModule::sync_scene(::Scene *scene)
+{
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  struct DrawData *dd = DRW_drawdata_ensure(
+      (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
+  SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
+
+  const int recalc_flags = ID_RECALC_ALL;
+  if ((eevee_dd.recalc & recalc_flags) != 0) {
+    inst_.sampling.reset();
+  }
+  return eevee_dd;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -120,10 +134,14 @@ void SyncModule::sync_mesh(Object *ob,
 
     is_shadow_caster = is_shadow_caster || material->shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material->is_alpha_blend_transparent;
+
+    GPUMaterial *gpu_material = material_array.gpu_materials[i];
+    ::Material *mat = GPU_material_get_material(gpu_material);
+    inst_.cryptomatte.sync_material(mat);
   }
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
-
+  inst_.cryptomatte.sync_object(ob, res_handle);
   // shadows.sync_object(ob, ob_handle, is_shadow_caster, is_alpha_blend);
 }
 
@@ -211,8 +229,8 @@ static void gpencil_drawcall_add(gpIterData &iter,
   iter.vcount = v_first + v_count - iter.vfirst;
 }
 
-static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
+                                bGPDframe * /*gpf*/,
                                 bGPDstroke *gps,
                                 void *thunk)
 {
@@ -230,17 +248,17 @@ static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
     return;
   }
 
+  GPUBatch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
+
   if (show_fill) {
-    GPUBatch *geom = DRW_cache_gpencil_fills_get(iter.ob, iter.cfra);
     int vfirst = gps->runtime.fill_start * 3;
     int vcount = gps->tot_triangles * 3;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, false);
   }
 
   if (show_stroke) {
-    GPUBatch *geom = DRW_cache_gpencil_strokes_get(iter.ob, iter.cfra);
     /* Start one vert before to have gl_InstanceID > 0 (see shader). */
-    int vfirst = gps->runtime.stroke_start - 1;
+    int vfirst = gps->runtime.stroke_start * 3;
     /* Include "potential" cyclic vertex and start adj vertex (see shader). */
     int vcount = gps->totpoints + 1 + 1;
     gpencil_drawcall_add(iter, geom, material, vfirst, vcount, true);
@@ -319,6 +337,12 @@ void SyncModule::sync_curves(Object *ob,
   shgroup_curves_call(material.shading, ob, part_sys, modifier_data);
   shgroup_curves_call(material.prepass, ob, part_sys, modifier_data);
   shgroup_curves_call(material.shadow, ob, part_sys, modifier_data);
+
+  inst_.cryptomatte.sync_object(ob, res_handle);
+  GPUMaterial *gpu_material =
+      inst_.materials.material_array_get(ob, has_motion).gpu_materials[mat_nr - 1];
+  ::Material *mat = GPU_material_get_material(gpu_material);
+  inst_.cryptomatte.sync_material(mat);
 
   /* TODO(fclem) Hair velocity. */
   // shading_passes.velocity.gpencil_add(ob, ob_handle);

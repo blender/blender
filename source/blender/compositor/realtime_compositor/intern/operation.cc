@@ -66,6 +66,11 @@ Domain Operation::compute_domain()
       continue;
     }
 
+    /* An input that skips realization can't be a domain input. */
+    if (descriptor.skip_realization) {
+      continue;
+    }
+
     /* Notice that the lower the domain priority value is, the higher the priority is, hence the
      * less than comparison. */
     if (descriptor.domain_priority < current_domain_priority) {

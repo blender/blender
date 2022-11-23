@@ -269,7 +269,7 @@ void BM_mesh_free(BMesh *bm)
   MEM_freeN(bm);
 }
 
-void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
+void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
 {
   /* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
    * absolute space during mesh edits. With this enabled, changes to the topology

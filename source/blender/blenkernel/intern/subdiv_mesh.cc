@@ -5,6 +5,8 @@
  * \ingroup bke
  */
 
+#include <mutex>
+
 #include "atomic_ops.h"
 
 #include "DNA_key_types.h"
@@ -18,12 +20,15 @@
 #include "BKE_customdata.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
 #include "BKE_subdiv_mesh.h"
 
 #include "MEM_guardedalloc.h"
+
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Subdivision Context
@@ -58,6 +63,11 @@ struct SubdivMeshContext {
   /* Per-subdivided vertex counter of averaged values. */
   int *accumulated_counters;
   bool have_displacement;
+
+  /* Lazily initialize a map from vertices to connected edges. */
+  std::mutex vert_to_edge_map_mutex;
+  int *vert_to_edge_buffer;
+  MeshElemMap *vert_to_edge_map;
 };
 
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
@@ -106,6 +116,8 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
 {
   MEM_SAFE_FREE(ctx->accumulated_counters);
+  MEM_SAFE_FREE(ctx->vert_to_edge_buffer);
+  MEM_SAFE_FREE(ctx->vert_to_edge_map);
 }
 
 /** \} */
@@ -210,7 +222,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
     vertex_interpolation->vertex_data_storage_allocated = true;
     /* Interpolate center of poly right away, it stays unchanged for all
      * ptex faces. */
-    const float weight = 1.0f / (float)coarse_poly->totloop;
+    const float weight = 1.0f / float(coarse_poly->totloop);
     blender::Array<float, 32> weights(coarse_poly->totloop);
     blender::Array<int, 32> indices(coarse_poly->totloop);
     for (int i = 0; i < coarse_poly->totloop; i++) {
@@ -255,14 +267,13 @@ static void vertex_interpolation_from_corner(const SubdivMeshContext *ctx,
     const int first_loop_index = loops_of_ptex.first_loop - coarse_mloop;
     const int last_loop_index = loops_of_ptex.last_loop - coarse_mloop;
     const int first_indices[2] = {
-        static_cast<int>(coarse_mloop[first_loop_index].v),
-        static_cast<int>(
-            coarse_mloop[coarse_poly->loopstart +
+        int(coarse_mloop[first_loop_index].v),
+        int(coarse_mloop[coarse_poly->loopstart +
                          (first_loop_index - coarse_poly->loopstart + 1) % coarse_poly->totloop]
                 .v)};
     const int last_indices[2] = {
-        static_cast<int>(coarse_mloop[first_loop_index].v),
-        static_cast<int>(coarse_mloop[last_loop_index].v),
+        int(coarse_mloop[first_loop_index].v),
+        int(coarse_mloop[last_loop_index].v),
     };
     CustomData_interp(vertex_data,
                       &vertex_interpolation->vertex_data_storage,
@@ -344,7 +355,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
     loop_interpolation->loop_data_storage_allocated = true;
     /* Interpolate center of poly right away, it stays unchanged for all
      * ptex faces. */
-    const float weight = 1.0f / (float)coarse_poly->totloop;
+    const float weight = 1.0f / float(coarse_poly->totloop);
     blender::Array<float, 32> weights(coarse_poly->totloop);
     blender::Array<int, 32> indices(coarse_poly->totloop);
     for (int i = 0; i < coarse_poly->totloop; i++) {
@@ -390,8 +401,8 @@ static void loop_interpolation_from_corner(const SubdivMeshContext *ctx,
                                   (first_loop_index - base_loop_index + 1) % coarse_poly->totloop;
     const int first_indices[2] = {first_loop_index, second_loop_index};
     const int last_indices[2] = {
-        static_cast<int>(loops_of_ptex.last_loop - coarse_mloop),
-        static_cast<int>(loops_of_ptex.first_loop - coarse_mloop),
+        int(loops_of_ptex.last_loop - coarse_mloop),
+        int(loops_of_ptex.first_loop - coarse_mloop),
     };
     CustomData_interp(
         loop_data, &loop_interpolation->loop_data_storage, first_indices, weights, nullptr, 2, 1);
@@ -503,21 +514,23 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int num_edges,
                                       const int num_loops,
                                       const int num_polygons,
-                                      const int *UNUSED(subdiv_polygon_offset))
+                                      const int * /*subdiv_polygon_offset*/)
 {
   /* Multi-resolution grid data will be applied or become invalid after subdivision,
-   * so don't try to preserve it and use memory. */
+   * so don't try to preserve it and use memory. Crease values should also not be interpolated. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
+  mask.vmask &= ~CD_MASK_CREASE;
+  mask.emask &= ~CD_MASK_CREASE;
 
   SubdivMeshContext *subdiv_context = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template_ex(
       subdiv_context->coarse_mesh, num_vertices, num_edges, 0, num_loops, num_polygons, mask);
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
-  MEM_SAFE_FREE(subdiv_context->subdiv_mesh->runtime.subsurf_face_dot_tags);
-  subdiv_context->subdiv_mesh->runtime.subsurf_face_dot_tags = BLI_BITMAP_NEW(num_vertices,
-                                                                              __func__);
+  MEM_SAFE_FREE(subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags);
+  subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags = BLI_BITMAP_NEW(num_vertices,
+                                                                               __func__);
   return true;
 }
 
@@ -582,7 +595,7 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
   /* Evaluate undeformed texture coordinate. */
   subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
   /* Remove face-dot flag. This can happen if there is more than one subsurf modifier. */
-  BLI_BITMAP_DISABLE(ctx->subdiv_mesh->runtime.subsurf_face_dot_tags, subdiv_vertex_index);
+  BLI_BITMAP_DISABLE(ctx->subdiv_mesh->runtime->subsurf_face_dot_tags, subdiv_vertex_index);
 }
 
 static void evaluate_vertex_and_apply_displacement_interpolate(
@@ -613,7 +626,7 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
 
 static void subdiv_mesh_vertex_displacement_every_corner_or_edge(
     const SubdivForeachContext *foreach_context,
-    void *UNUSED(tls),
+    void * /*tls*/,
     const int ptex_face_index,
     const float u,
     const float v,
@@ -630,9 +643,9 @@ static void subdiv_mesh_vertex_displacement_every_corner(
     const int ptex_face_index,
     const float u,
     const float v,
-    const int UNUSED(coarse_vertex_index),
-    const int UNUSED(coarse_poly_index),
-    const int UNUSED(coarse_corner),
+    const int /*coarse_vertex_index*/,
+    const int /*coarse_poly_index*/,
+    const int /*coarse_corner*/,
     const int subdiv_vertex_index)
 {
   subdiv_mesh_vertex_displacement_every_corner_or_edge(
@@ -644,9 +657,9 @@ static void subdiv_mesh_vertex_displacement_every_edge(const SubdivForeachContex
                                                        const int ptex_face_index,
                                                        const float u,
                                                        const float v,
-                                                       const int UNUSED(coarse_edge_index),
-                                                       const int UNUSED(coarse_poly_index),
-                                                       const int UNUSED(coarse_corner),
+                                                       const int /*coarse_edge_index*/,
+                                                       const int /*coarse_poly_index*/,
+                                                       const int /*coarse_corner*/,
                                                        const int subdiv_vertex_index)
 {
   subdiv_mesh_vertex_displacement_every_corner_or_edge(
@@ -654,13 +667,13 @@ static void subdiv_mesh_vertex_displacement_every_edge(const SubdivForeachContex
 }
 
 static void subdiv_mesh_vertex_corner(const SubdivForeachContext *foreach_context,
-                                      void *UNUSED(tls),
+                                      void * /*tls*/,
                                       const int ptex_face_index,
                                       const float u,
                                       const float v,
                                       const int coarse_vertex_index,
-                                      const int UNUSED(coarse_poly_index),
-                                      const int UNUSED(coarse_corner),
+                                      const int /*coarse_poly_index*/,
+                                      const int /*coarse_corner*/,
                                       const int subdiv_vertex_index)
 {
   BLI_assert(coarse_vertex_index != ORIGINDEX_NONE);
@@ -704,7 +717,7 @@ static void subdiv_mesh_vertex_edge(const SubdivForeachContext *foreach_context,
                                     const int ptex_face_index,
                                     const float u,
                                     const float v,
-                                    const int UNUSED(coarse_edge_index),
+                                    const int /*coarse_edge_index*/,
                                     const int coarse_poly_index,
                                     const int coarse_corner,
                                     const int subdiv_vertex_index)
@@ -740,7 +753,7 @@ static void subdiv_mesh_tag_center_vertex(const MPoly *coarse_poly,
                                           Mesh *subdiv_mesh)
 {
   if (subdiv_mesh_is_center_vertex(coarse_poly, u, v)) {
-    BLI_BITMAP_ENABLE(subdiv_mesh->runtime.subsurf_face_dot_tags, subdiv_vertex_index);
+    BLI_BITMAP_ENABLE(subdiv_mesh->runtime->subsurf_face_dot_tags, subdiv_vertex_index);
   }
 }
 
@@ -778,11 +791,10 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
 {
   const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
   if (coarse_edge == nullptr) {
-    subdiv_edge->crease = 0;
-    subdiv_edge->bweight = 0;
+    /* TODO: Ensure crease layer isn't copied to result. */
     subdiv_edge->flag = 0;
     if (!ctx->settings->use_optimal_display) {
-      subdiv_edge->flag |= ME_EDGERENDER;
+      subdiv_edge->flag |= ME_EDGEDRAW;
     }
     if (ctx->edge_origindex != nullptr) {
       ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
@@ -792,14 +804,14 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
   const int coarse_edge_index = coarse_edge - ctx->coarse_edges;
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
-  subdiv_edge->flag |= ME_EDGERENDER;
+  subdiv_edge->flag |= ME_EDGEDRAW;
 }
 
 static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
-                             void *UNUSED(tls),
+                             void * /*tls*/,
                              const int coarse_edge_index,
                              const int subdiv_edge_index,
-                             const bool UNUSED(is_loose),
+                             const bool /*is_loose*/,
                              const int subdiv_v1,
                              const int subdiv_v2)
 {
@@ -890,7 +902,7 @@ static void subdiv_mesh_loop(const SubdivForeachContext *foreach_context,
                              const int ptex_face_index,
                              const float u,
                              const float v,
-                             const int UNUSED(coarse_loop_index),
+                             const int /*coarse_loop_index*/,
                              const int coarse_poly_index,
                              const int coarse_corner,
                              const int subdiv_loop_index,
@@ -926,7 +938,7 @@ static void subdiv_copy_poly_data(const SubdivMeshContext *ctx,
 }
 
 static void subdiv_mesh_poly(const SubdivForeachContext *foreach_context,
-                             void *UNUSED(tls),
+                             void * /*tls*/,
                              const int coarse_poly_index,
                              const int subdiv_poly_index,
                              const int start_loop_index,
@@ -948,7 +960,7 @@ static void subdiv_mesh_poly(const SubdivForeachContext *foreach_context,
  * \{ */
 
 static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context,
-                                     void *UNUSED(tls),
+                                     void * /*tls*/,
                                      const int coarse_vertex_index,
                                      const int subdiv_vertex_index)
 {
@@ -961,25 +973,30 @@ static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context
 /* Get neighbor edges of the given one.
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
-static void find_edge_neighbors(const Mesh *coarse_mesh,
-                                const MEdge *edge,
+static void find_edge_neighbors(const MEdge *coarse_edges,
+                                const MeshElemMap *vert_to_edge_map,
+                                const int edge_index,
                                 const MEdge *neighbors[2])
 {
-  const blender::Span<MEdge> coarse_edges = coarse_mesh->edges();
+  const MEdge *edge = &coarse_edges[edge_index];
   neighbors[0] = nullptr;
   neighbors[1] = nullptr;
   int neighbor_counters[2] = {0, 0};
-  for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
-    const MEdge *current_edge = &coarse_edges[edge_index];
-    if (current_edge == edge) {
+  for (const int i : Span(vert_to_edge_map[edge->v1].indices, vert_to_edge_map[edge->v1].count)) {
+    if (i == edge_index) {
       continue;
     }
-    if (ELEM(edge->v1, current_edge->v1, current_edge->v2)) {
-      neighbors[0] = current_edge;
+    if (ELEM(edge->v1, coarse_edges[i].v1, coarse_edges[i].v2)) {
+      neighbors[0] = &coarse_edges[i];
       ++neighbor_counters[0];
     }
-    if (ELEM(edge->v2, current_edge->v1, current_edge->v2)) {
-      neighbors[1] = current_edge;
+  }
+  for (const int i : Span(vert_to_edge_map[edge->v2].indices, vert_to_edge_map[edge->v2].count)) {
+    if (i == edge_index) {
+      continue;
+    }
+    if (ELEM(edge->v2, coarse_edges[i].v1, coarse_edges[i].v2)) {
+      neighbors[1] = &coarse_edges[i];
       ++neighbor_counters[1];
     }
   }
@@ -994,12 +1011,11 @@ static void find_edge_neighbors(const Mesh *coarse_mesh,
   }
 }
 
-static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
+static void points_for_loose_edges_interpolation_get(const MVert *coarse_mvert,
                                                      const MEdge *coarse_edge,
                                                      const MEdge *neighbors[2],
                                                      float points_r[4][3])
 {
-  const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
   /* Middle points corresponds to the edge. */
   copy_v3_v3(points_r[1], coarse_mvert[coarse_edge->v1].co);
   copy_v3_v3(points_r[2], coarse_mvert[coarse_edge->v2].co);
@@ -1031,24 +1047,26 @@ static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
   }
 }
 
-void BKE_subdiv_mesh_interpolate_position_on_edge(const Mesh *coarse_mesh,
-                                                  const MEdge *coarse_edge,
+void BKE_subdiv_mesh_interpolate_position_on_edge(const MVert *coarse_verts,
+                                                  const MEdge *coarse_edges,
+                                                  const MeshElemMap *vert_to_edge_map,
+                                                  const int coarse_edge_index,
                                                   const bool is_simple,
                                                   const float u,
                                                   float pos_r[3])
 {
+  const MEdge *coarse_edge = &coarse_edges[coarse_edge_index];
   if (is_simple) {
-    const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
-    const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
-    const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
+    const MVert *vert_1 = &coarse_verts[coarse_edge->v1];
+    const MVert *vert_2 = &coarse_verts[coarse_edge->v2];
     interp_v3_v3v3(pos_r, vert_1->co, vert_2->co, u);
   }
   else {
     /* Find neighbors of the coarse edge. */
     const MEdge *neighbors[2];
-    find_edge_neighbors(coarse_mesh, coarse_edge, neighbors);
+    find_edge_neighbors(coarse_edges, vert_to_edge_map, coarse_edge_index, neighbors);
     float points[4][3];
-    points_for_loose_edges_interpolation_get(coarse_mesh, coarse_edge, neighbors, points);
+    points_for_loose_edges_interpolation_get(coarse_verts, coarse_edge, neighbors, points);
     float weights[4];
     key_curve_position_weights(u, weights, KEY_BSPLINE);
     interp_v3_v3v3v3v3(pos_r, points[0], points[1], points[2], points[3], weights);
@@ -1066,8 +1084,7 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
   BLI_assert(u > 0.0f);
   BLI_assert(u < 1.0f);
   const float interpolation_weights[2] = {1.0f - u, u};
-  const int coarse_vertex_indices[2] = {static_cast<int>(coarse_edge->v1),
-                                        static_cast<int>(coarse_edge->v2)};
+  const int coarse_vertex_indices[2] = {int(coarse_edge->v1), int(coarse_edge->v2)};
   CustomData_interp(&coarse_mesh->vdata,
                     &subdiv_mesh->vdata,
                     coarse_vertex_indices,
@@ -1081,7 +1098,7 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
 }
 
 static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach_context,
-                                             void *UNUSED(tls),
+                                             void * /*tls*/,
                                              const int coarse_edge_index,
                                              const float u,
                                              const int subdiv_vertex_index)
@@ -1090,6 +1107,20 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_edge = &ctx->coarse_edges[coarse_edge_index];
   const bool is_simple = ctx->subdiv->settings.is_simple;
+
+  /* Lazily initialize a vertex to edge map to avoid quadratic runtime when subdividing loose
+   * edges. Do this here to avoid the cost in common cases when there are no loose edges at all. */
+  if (ctx->vert_to_edge_map == nullptr) {
+    std::lock_guard lock{ctx->vert_to_edge_map_mutex};
+    if (ctx->vert_to_edge_map == nullptr) {
+      BKE_mesh_vert_edge_map_create(&ctx->vert_to_edge_map,
+                                    &ctx->vert_to_edge_buffer,
+                                    ctx->coarse_edges,
+                                    coarse_mesh->totvert,
+                                    ctx->coarse_mesh->totedge);
+    }
+  }
+
   /* Interpolate custom data when not an end point.
    * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
   if (!ELEM(u, 0.0, 1.0)) {
@@ -1097,13 +1128,13 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
   }
   /* Interpolate coordinate. */
   MVert *subdiv_vertex = &ctx->subdiv_verts[subdiv_vertex_index];
-  BKE_subdiv_mesh_interpolate_position_on_edge(
-      coarse_mesh, coarse_edge, is_simple, u, subdiv_vertex->co);
-  /* Reset flags and such. */
-  subdiv_vertex->flag = 0;
-  /* TODO(sergey): This matches old behavior, but we can as well interpolate
-   * it. Maybe even using vertex varying attributes. */
-  subdiv_vertex->bweight = 0.0f;
+  BKE_subdiv_mesh_interpolate_position_on_edge(ctx->coarse_verts,
+                                               ctx->coarse_edges,
+                                               ctx->vert_to_edge_map,
+                                               coarse_edge_index,
+                                               is_simple,
+                                               u,
+                                               subdiv_vertex->co);
 }
 
 /** \} */
@@ -1160,7 +1191,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
     }
   }
   /* Initialize subdivision mesh creation context. */
-  SubdivMeshContext subdiv_context = {0};
+  SubdivMeshContext subdiv_context{};
   subdiv_context.settings = settings;
 
   subdiv_context.coarse_mesh = coarse_mesh;
@@ -1175,7 +1206,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   SubdivForeachContext foreach_context;
   setup_foreach_callbacks(&subdiv_context, &foreach_context);
-  SubdivMeshTLS tls = {0};
+  SubdivMeshTLS tls{};
   foreach_context.user_data = &subdiv_context;
   foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
   foreach_context.user_data_tls = &tls;

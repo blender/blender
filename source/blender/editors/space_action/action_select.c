@@ -322,7 +322,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -449,7 +449,7 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* Get beztriple editing/validation funcs. */
+  /* Get beztriple editing/validation functions. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
 
   if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
@@ -563,7 +563,7 @@ static int actkeys_box_select_exec(bContext *C, wmOperator *op)
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -585,7 +585,7 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   ot->poll = ED_operator_action_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* rna */
   ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
@@ -693,7 +693,7 @@ static void region_select_action_keys(
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* Get beztriple editing/validation funcs. */
+  /* Get beztriple editing/validation functions. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
   sel_data.ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -800,7 +800,7 @@ static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
 
   /* send notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -868,7 +868,7 @@ static int action_circle_select_exec(bContext *C, wmOperator *op)
 
   /* send notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -936,7 +936,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
   min -= 0.5f;
   max += 0.5f;
 
-  /* get editing funcs + data */
+  /* Get editing functions + data. */
   ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
   select_cb = ANIM_editkeyframes_select(SELECT_ADD);
 
@@ -1107,7 +1107,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -1129,6 +1129,7 @@ void ACTION_OT_select_column(wmOperatorType *ot)
 
   /* props */
   ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 }
 
 /* ******************** Select Linked Operator *********************** */
@@ -1169,7 +1170,7 @@ static int actkeys_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* set notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -1255,7 +1256,7 @@ static int actkeys_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* set notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;
@@ -1292,7 +1293,7 @@ static int actkeys_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* set notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  if (ac.datatype == ANIMCONT_GPENCIL) {
+  if (ANIM_animdata_can_have_greasepencil(ac.datatype)) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
   }
   return OPERATOR_FINISHED;

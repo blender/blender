@@ -231,7 +231,7 @@ static void edgetag_add_adjacent(HeapSimple *heap,
     BM_ITER_ELEM (v, &viter, e_a, BM_VERTS_OF_EDGE) {
 
       /* Don't walk over previous vertex. */
-      if ((edges_prev[e_a_index]) && (BM_vert_in_edge(edges_prev[e_a_index], v))) {
+      if ((edges_prev[e_a_index]) && BM_vert_in_edge(edges_prev[e_a_index], v)) {
         continue;
       }
 

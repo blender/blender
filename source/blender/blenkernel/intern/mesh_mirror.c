@@ -152,8 +152,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* tmp is a transform from coords relative to the object's own origin,
      * to coords relative to the mirror object origin */
-    invert_m4_m4(tmp, mirror_ob->obmat);
-    mul_m4_m4m4(tmp, tmp, ob->obmat);
+    invert_m4_m4(tmp, mirror_ob->object_to_world);
+    mul_m4_m4m4(tmp, tmp, ob->object_to_world);
 
     /* itmp is the reverse transform back to origin-relative coordinates */
     invert_m4_m4(itmp, tmp);
@@ -169,9 +169,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
       /* Account for non-uniform scale in `ob`, see: T87592. */
       float ob_scale[3] = {
-          len_squared_v3(ob->obmat[0]),
-          len_squared_v3(ob->obmat[1]),
-          len_squared_v3(ob->obmat[2]),
+          len_squared_v3(ob->object_to_world[0]),
+          len_squared_v3(ob->object_to_world[1]),
+          len_squared_v3(ob->object_to_world[2]),
       };
       /* Scale to avoid precision loss with extreme values. */
       const float ob_scale_max = max_fff(UNPACK3(ob_scale));
@@ -208,8 +208,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, maxLoops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, maxPolys);
 
-  /* Subsurf for eg won't have mesh data in the custom-data arrays.
-   * now add mvert/medge/mpoly layers. */
+  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
+   * Now add #MVert/#MEdge/#MPoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
     memcpy(BKE_mesh_verts_for_write(result), BKE_mesh_verts(mesh), sizeof(MVert) * mesh->totvert);
   }
@@ -418,9 +418,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 totpoly,
                                 true,
                                 mesh->smoothresh,
+                                NULL,
                                 &lnors_spacearr,
-                                clnors,
-                                NULL);
+                                clnors);
 
     /* mirroring has to account for loops being reversed in polys in second half */
     MPoly *result_polys = BKE_mesh_polys_for_write(result);
@@ -450,7 +450,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result) + maxVerts;
     int *flip_map = NULL, flip_map_len = 0;
 
-    flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);
+    flip_map = BKE_object_defgroup_flip_map(ob, false, &flip_map_len);
 
     if (flip_map) {
       for (i = 0; i < maxVerts; dvert++, i++) {

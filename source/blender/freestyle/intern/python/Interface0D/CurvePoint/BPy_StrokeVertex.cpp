@@ -153,8 +153,8 @@ static int StrokeVertex_mathutils_check(BaseMathObject *bmo)
 static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int /*subtype*/)
 {
   BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
-  bmo->data[0] = (float)self->sv->x();
-  bmo->data[1] = (float)self->sv->y();
+  bmo->data[0] = float(self->sv->x());
+  bmo->data[1] = float(self->sv->y());
   return 0;
 }
 
@@ -171,10 +171,10 @@ static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/
   BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
   switch (index) {
     case 0:
-      bmo->data[0] = (float)self->sv->x();
+      bmo->data[0] = float(self->sv->x());
       break;
     case 1:
-      bmo->data[1] = (float)self->sv->y();
+      bmo->data[1] = float(self->sv->y());
       break;
     default:
       return -1;
@@ -206,7 +206,7 @@ static Mathutils_Callback StrokeVertex_mathutils_cb = {
     StrokeVertex_mathutils_set_index,
 };
 
-static unsigned char StrokeVertex_mathutils_cb_index = -1;
+static uchar StrokeVertex_mathutils_cb_index = -1;
 
 void StrokeVertex_mathutils_register_callback()
 {
@@ -220,14 +220,12 @@ PyDoc_STRVAR(StrokeVertex_attribute_doc,
              "\n"
              ":type: :class:`StrokeAttribute`");
 
-static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return BPy_StrokeAttribute_from_StrokeAttribute(self->sv->attribute());
 }
 
-static int StrokeVertex_attribute_set(BPy_StrokeVertex *self,
-                                      PyObject *value,
-                                      void *UNUSED(closure))
+static int StrokeVertex_attribute_set(BPy_StrokeVertex *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_StrokeAttribute_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be a StrokeAttribute object");
@@ -242,15 +240,14 @@ PyDoc_STRVAR(StrokeVertex_curvilinear_abscissa_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self,
-                                                       void *UNUSED(closure))
+static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->curvilinearAbscissa());
 }
 
 static int StrokeVertex_curvilinear_abscissa_set(BPy_StrokeVertex *self,
                                                  PyObject *value,
-                                                 void *UNUSED(closure))
+                                                 void * /*closure*/)
 {
   float scalar;
   if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -267,12 +264,12 @@ PyDoc_STRVAR(StrokeVertex_point_doc,
              "\n"
              ":type: :class:`mathutils.Vector`");
 
-static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeVertex_mathutils_cb_index, 0);
 }
 
-static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[2];
   if (mathutils_array_parse(v, 2, 2, value, "value must be a 2-dimensional vector") == -1) {
@@ -289,14 +286,14 @@ PyDoc_STRVAR(StrokeVertex_stroke_length_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->strokeLength());
 }
 
 static int StrokeVertex_stroke_length_set(BPy_StrokeVertex *self,
                                           PyObject *value,
-                                          void *UNUSED(closure))
+                                          void * /*closure*/)
 {
   float scalar;
   if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -313,7 +310,7 @@ PyDoc_STRVAR(StrokeVertex_u_doc,
              "\n"
              ":type: float");
 
-static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv->u());
 }
@@ -344,44 +341,45 @@ static PyGetSetDef BPy_StrokeVertex_getseters[] = {
 };
 
 /*-----------------------BPy_StrokeVertex type definition ------------------------------*/
+
 PyTypeObject StrokeVertex_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "StrokeVertex", /* tp_name */
-    sizeof(BPy_StrokeVertex),                         /* tp_basicsize */
-    0,                                                /* tp_itemsize */
-    nullptr,                                          /* tp_dealloc */
-    0,                                                /* tp_vectorcall_offset */
-    nullptr,                                          /* tp_getattr */
-    nullptr,                                          /* tp_setattr */
-    nullptr,                                          /* tp_reserved */
-    nullptr,                                          /* tp_repr */
-    nullptr,                                          /* tp_as_number */
-    nullptr,                                          /* tp_as_sequence */
-    nullptr,                                          /* tp_as_mapping */
-    nullptr,                                          /* tp_hash */
-    nullptr,                                          /* tp_call */
-    nullptr,                                          /* tp_str */
-    nullptr,                                          /* tp_getattro */
-    nullptr,                                          /* tp_setattro */
-    nullptr,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
-    StrokeVertex_doc,                                 /* tp_doc */
-    nullptr,                                          /* tp_traverse */
-    nullptr,                                          /* tp_clear */
-    nullptr,                                          /* tp_richcompare */
-    0,                                                /* tp_weaklistoffset */
-    nullptr,                                          /* tp_iter */
-    nullptr,                                          /* tp_iternext */
-    nullptr,                                          /* tp_methods */
-    nullptr,                                          /* tp_members */
-    BPy_StrokeVertex_getseters,                       /* tp_getset */
-    &CurvePoint_Type,                                 /* tp_base */
-    nullptr,                                          /* tp_dict */
-    nullptr,                                          /* tp_descr_get */
-    nullptr,                                          /* tp_descr_set */
-    0,                                                /* tp_dictoffset */
-    (initproc)StrokeVertex_init,                      /* tp_init */
-    nullptr,                                          /* tp_alloc */
-    nullptr,                                          /* tp_new */
+    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "StrokeVertex",
+    /*tp_basicsize*/ sizeof(BPy_StrokeVertex),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ StrokeVertex_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_StrokeVertex_getseters,
+    /*tp_base*/ &CurvePoint_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)StrokeVertex_init,
+    /*tp_alloc*/ nullptr,
+    nullptr, /*tp_new*/
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

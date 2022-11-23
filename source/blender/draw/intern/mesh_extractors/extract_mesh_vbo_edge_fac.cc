@@ -20,10 +20,10 @@ namespace blender::draw {
  * \{ */
 
 struct MeshExtract_EdgeFac_Data {
-  uchar *vbo_data;
+  uint8_t *vbo_data;
   bool use_edge_render;
   /* Number of loop per edge. */
-  uchar *edge_loop_count;
+  uint8_t *edge_loop_count;
 };
 
 static float loop_edge_factor_get(const float f_no[3],
@@ -43,7 +43,7 @@ static float loop_edge_factor_get(const float f_no[3],
 }
 
 static void extract_edge_fac_init(const MeshRenderData *mr,
-                                  MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache * /*cache*/,
                                   void *buf,
                                   void *tls_data)
 {
@@ -59,14 +59,13 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(tls_data);
 
   if (mr->extract_type == MR_EXTRACT_MESH) {
-    data->edge_loop_count = static_cast<uchar *>(
-        MEM_callocN(sizeof(uint32_t) * mr->edge_len, __func__));
+    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr->edge_len, __func__);
 
     /* HACK(@fclem): Detecting the need for edge render.
      * We could have a flag in the mesh instead or check the modifier stack. */
     const MEdge *med = mr->medge;
     for (int e_index = 0; e_index < mr->edge_len; e_index++, med++) {
-      if ((med->flag & ME_EDGERENDER) == 0) {
+      if ((med->flag & ME_EDGEDRAW) == 0) {
         data->use_edge_render = true;
         break;
       }
@@ -82,7 +81,7 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
 
 static void extract_edge_fac_iter_poly_bm(const MeshRenderData *mr,
                                           const BMFace *f,
-                                          const int UNUSED(f_index),
+                                          const int /*f_index*/,
                                           void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
@@ -118,7 +117,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
 
     if (data->use_edge_render) {
       const MEdge *med = &mr->medge[ml->e];
-      data->vbo_data[ml_index] = (med->flag & ME_EDGERENDER) ? 255 : 0;
+      data->vbo_data[ml_index] = (med->flag & ME_EDGEDRAW) ? 255 : 0;
     }
     else {
 
@@ -146,7 +145,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_iter_ledge_bm(const MeshRenderData *mr,
-                                           const BMEdge *UNUSED(eed),
+                                           const BMEdge * /*eed*/,
                                            const int ledge_index,
                                            void *_data)
 {
@@ -156,7 +155,7 @@ static void extract_edge_fac_iter_ledge_bm(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge *UNUSED(med),
+                                             const MEdge * /*med*/,
                                              const int ledge_index,
                                              void *_data)
 {
@@ -167,7 +166,7 @@ static void extract_edge_fac_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_finish(const MeshRenderData *mr,
-                                    MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache * /*cache*/,
                                     void *buf,
                                     void *_data)
 {
@@ -217,10 +216,10 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
 }
 
 static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                         const MeshRenderData *UNUSED(mr),
+                                         const MeshRenderData * /*mr*/,
                                          MeshBatchCache *cache,
                                          void *buffer,
-                                         void *UNUSED(data))
+                                         void * /*data*/)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   GPUVertBuf *edge_idx = cache->final.buff.vbo.edge_idx;
@@ -252,9 +251,9 @@ static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_edge_fac_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                               const MeshRenderData *UNUSED(mr),
+                                               const MeshRenderData * /*mr*/,
                                                void *buffer,
-                                               void *UNUSED(data))
+                                               void * /*data*/)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   if (loose_geom.edge_len == 0) {

@@ -302,111 +302,32 @@ GeometryManager::~GeometryManager()
 {
 }
 
-void GeometryManager::update_osl_attributes(Device *device,
-                                            Scene *scene,
-                                            vector<AttributeRequestSet> &geom_attributes)
+void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 {
 #ifdef WITH_OSL
-  /* for OSL, a hash map is used to lookup the attribute by name. */
   OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
 
   og->object_name_map.clear();
-  og->attribute_map.clear();
   og->object_names.clear();
-
-  og->attribute_map.resize(scene->objects.size() * ATTR_PRIM_TYPES);
 
   for (size_t i = 0; i < scene->objects.size(); i++) {
     /* set object name to object index map */
     Object *object = scene->objects[i];
     og->object_name_map[object->name] = i;
     og->object_names.push_back(object->name);
-
-    /* set object attributes */
-    foreach (ParamValue &attr, object->attributes) {
-      OSLGlobals::Attribute osl_attr;
-
-      osl_attr.type = attr.type();
-      osl_attr.desc.element = ATTR_ELEMENT_OBJECT;
-      osl_attr.value = attr;
-      osl_attr.desc.offset = 0;
-      osl_attr.desc.flags = 0;
-
-      og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][attr.name()] = osl_attr;
-      og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][attr.name()] = osl_attr;
-    }
-
-    /* find geometry attributes */
-    size_t j = object->geometry->index;
-    assert(j < scene->geometry.size() && scene->geometry[j] == object->geometry);
-
-    AttributeRequestSet &attributes = geom_attributes[j];
-
-    /* set mesh attributes */
-    foreach (AttributeRequest &req, attributes.requests) {
-      OSLGlobals::Attribute osl_attr;
-
-      if (req.desc.element != ATTR_ELEMENT_NONE) {
-        osl_attr.desc = req.desc;
-
-        if (req.type == TypeDesc::TypeFloat)
-          osl_attr.type = TypeDesc::TypeFloat;
-        else if (req.type == TypeDesc::TypeMatrix)
-          osl_attr.type = TypeDesc::TypeMatrix;
-        else if (req.type == TypeFloat2)
-          osl_attr.type = TypeFloat2;
-        else if (req.type == TypeRGBA)
-          osl_attr.type = TypeRGBA;
-        else
-          osl_attr.type = TypeDesc::TypeColor;
-
-        if (req.std != ATTR_STD_NONE) {
-          /* if standard attribute, add lookup by geom: name convention */
-          ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][stdname] = osl_attr;
-        }
-        else if (req.name != ustring()) {
-          /* add lookup by geometry attribute name */
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][req.name] = osl_attr;
-        }
-      }
-
-      if (req.subd_desc.element != ATTR_ELEMENT_NONE) {
-        osl_attr.desc = req.subd_desc;
-
-        if (req.subd_type == TypeDesc::TypeFloat)
-          osl_attr.type = TypeDesc::TypeFloat;
-        else if (req.subd_type == TypeDesc::TypeMatrix)
-          osl_attr.type = TypeDesc::TypeMatrix;
-        else if (req.subd_type == TypeFloat2)
-          osl_attr.type = TypeFloat2;
-        else if (req.subd_type == TypeRGBA)
-          osl_attr.type = TypeRGBA;
-        else
-          osl_attr.type = TypeDesc::TypeColor;
-
-        if (req.std != ATTR_STD_NONE) {
-          /* if standard attribute, add lookup by geom: name convention */
-          ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][stdname] = osl_attr;
-        }
-        else if (req.name != ustring()) {
-          /* add lookup by geometry attribute name */
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][req.name] = osl_attr;
-        }
-      }
-    }
   }
 #else
   (void)device;
   (void)scene;
-  (void)geom_attributes;
 #endif
 }
 
 /* Generate a normal attribute map entry from an attribute descriptor. */
-static void emit_attribute_map_entry(
-    AttributeMap *attr_map, int index, uint id, TypeDesc type, const AttributeDescriptor &desc)
+static void emit_attribute_map_entry(AttributeMap *attr_map,
+                                     size_t index,
+                                     uint64_t id,
+                                     TypeDesc type,
+                                     const AttributeDescriptor &desc)
 {
   attr_map[index].id = id;
   attr_map[index].element = desc.element;
@@ -431,7 +352,7 @@ static void emit_attribute_map_entry(
 /* Generate an attribute map end marker, optionally including a link to another map.
  * Links are used to connect object attribute maps to mesh attribute maps. */
 static void emit_attribute_map_terminator(AttributeMap *attr_map,
-                                          int index,
+                                          size_t index,
                                           bool chain,
                                           uint chain_link)
 {
@@ -446,15 +367,8 @@ static void emit_attribute_map_terminator(AttributeMap *attr_map,
 
 /* Generate all necessary attribute map entries from the attribute request. */
 static void emit_attribute_mapping(
-    AttributeMap *attr_map, int index, Scene *scene, AttributeRequest &req, Geometry *geom)
+    AttributeMap *attr_map, size_t index, uint64_t id, AttributeRequest &req, Geometry *geom)
 {
-  uint id;
-
-  if (req.std == ATTR_STD_NONE)
-    id = scene->shader_manager->get_attribute_id(req.name);
-  else
-    id = scene->shader_manager->get_attribute_id(req.std);
-
   emit_attribute_map_entry(attr_map, index, id, req.type, req.desc);
 
   if (geom->is_mesh()) {
@@ -475,12 +389,26 @@ void GeometryManager::update_svm_attributes(Device *,
    * attribute, based on a unique shader attribute id. */
 
   /* compute array stride */
-  int attr_map_size = 0;
+  size_t attr_map_size = 0;
 
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
     geom->attr_map_offset = attr_map_size;
-    attr_map_size += (geom_attributes[i].size() + 1) * ATTR_PRIM_TYPES;
+
+#ifdef WITH_OSL
+    size_t attr_count = 0;
+    foreach (AttributeRequest &req, geom_attributes[i].requests) {
+      if (req.std != ATTR_STD_NONE &&
+          scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
+        attr_count += 2;
+      else
+        attr_count += 1;
+    }
+#else
+    const size_t attr_count = geom_attributes[i].size();
+#endif
+
+    attr_map_size += (attr_count + 1) * ATTR_PRIM_TYPES;
   }
 
   for (size_t i = 0; i < scene->objects.size(); i++) {
@@ -512,11 +440,26 @@ void GeometryManager::update_svm_attributes(Device *,
     AttributeRequestSet &attributes = geom_attributes[i];
 
     /* set geometry attributes */
-    int index = geom->attr_map_offset;
+    size_t index = geom->attr_map_offset;
 
     foreach (AttributeRequest &req, attributes.requests) {
-      emit_attribute_mapping(attr_map, index, scene, req, geom);
+      uint64_t id;
+      if (req.std == ATTR_STD_NONE)
+        id = scene->shader_manager->get_attribute_id(req.name);
+      else
+        id = scene->shader_manager->get_attribute_id(req.std);
+
+      emit_attribute_mapping(attr_map, index, id, req, geom);
       index += ATTR_PRIM_TYPES;
+
+#ifdef WITH_OSL
+      /* Some standard attributes are explicitly referenced via their standard ID, so add those
+       * again in case they were added under a different attribute ID. */
+      if (req.std != ATTR_STD_NONE && id != (uint64_t)req.std) {
+        emit_attribute_mapping(attr_map, index, (uint64_t)req.std, req, geom);
+        index += ATTR_PRIM_TYPES;
+      }
+#endif
     }
 
     emit_attribute_map_terminator(attr_map, index, false, 0);
@@ -528,10 +471,16 @@ void GeometryManager::update_svm_attributes(Device *,
 
     /* set object attributes */
     if (attributes.size() > 0) {
-      int index = object->attr_map_offset;
+      size_t index = object->attr_map_offset;
 
       foreach (AttributeRequest &req, attributes.requests) {
-        emit_attribute_mapping(attr_map, index, scene, req, object->geometry);
+        uint64_t id;
+        if (req.std == ATTR_STD_NONE)
+          id = scene->shader_manager->get_attribute_id(req.name);
+        else
+          id = scene->shader_manager->get_attribute_id(req.std);
+
+        emit_attribute_mapping(attr_map, index, id, req, object->geometry);
         index += ATTR_PRIM_TYPES;
       }
 
@@ -982,7 +931,7 @@ void GeometryManager::device_update_attributes(Device *device,
 
   /* create attribute lookup maps */
   if (scene->shader_manager->use_osl())
-    update_osl_attributes(device, scene, geom_attributes);
+    update_osl_globals(device, scene);
 
   update_svm_attributes(device, dscene, scene, geom_attributes, object_attributes);
 
@@ -2188,7 +2137,6 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
 
   if (og) {
     og->object_name_map.clear();
-    og->attribute_map.clear();
     og->object_names.clear();
   }
 #else

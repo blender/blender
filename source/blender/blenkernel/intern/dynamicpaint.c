@@ -121,7 +121,7 @@ BLI_INLINE void value_dissolve(float *r_value,
                                const float scale,
                                const bool is_log)
 {
-  *r_value = (is_log) ? (*r_value) * (powf(MIN_WETNESS, 1.0f / (1.2f * time / scale))) :
+  *r_value = (is_log) ? (*r_value) * powf(MIN_WETNESS, 1.0f / (1.2f * time / scale)) :
                         (*r_value) - 1.0f / time * scale;
 }
 
@@ -212,13 +212,13 @@ typedef struct PaintBakeData {
 typedef struct PaintUVPoint {
   /* Pixel / mesh data */
   /** tri index on domain derived mesh */
-  unsigned int tri_index;
-  unsigned int pixel_index;
+  uint tri_index;
+  uint pixel_index;
   /* vertex indexes */
-  unsigned int v1, v2, v3;
+  uint v1, v2, v3;
 
   /** If this pixel isn't uv mapped to any face, but its neighboring pixel is. */
-  unsigned int neighbor_pixel;
+  uint neighbor_pixel;
 } PaintUVPoint;
 
 typedef struct ImgSeqFormatData {
@@ -514,7 +514,7 @@ static void scene_setSubframe(Scene *scene, float subframe)
 
 static int surface_getBrushFlags(DynamicPaintSurface *surface, Depsgraph *depsgraph)
 {
-  unsigned int numobjects;
+  uint numobjects;
   Object **objects = BKE_collision_objects_create(
       depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 
@@ -1496,7 +1496,7 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(
 
   for (int j = 3; j--;) {
     TexResult texres = {0};
-    const unsigned int vert = mloop[mlooptri[i].tri[j]].v;
+    const uint vert = mloop[mlooptri[i].tri[j]].v;
 
     /* remap to [-1.0, 1.0] */
     uv[0] = mloopuv[mlooptri[i].tri[j]].uv[0] * 2.0f - 1.0f;
@@ -1569,7 +1569,7 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
 
   /* collect color values */
   for (int j = 3; j--;) {
-    rgba_uchar_to_float(colors[j], (const unsigned char *)&mloopcol[mlooptri[tri_idx].tri[j]].r);
+    rgba_uchar_to_float(colors[j], (const uchar *)&mloopcol[mlooptri[tri_idx].tri[j]].r);
   }
 
   /* interpolate final color */
@@ -1669,7 +1669,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       }
 
       for (int i = 0; i < totloop; i++) {
-        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[i].r);
+        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const uchar *)&col[i].r);
       }
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
@@ -1698,7 +1698,7 @@ void dynamicPaint_clearSurface(const Scene *scene, DynamicPaintSurface *surface)
 {
   PaintSurfaceData *sData = surface->data;
   if (sData && sData->type_data) {
-    unsigned int data_size;
+    uint data_size;
 
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       data_size = sizeof(PaintPoint);
@@ -1762,7 +1762,7 @@ bool dynamicPaint_resetSurface(const Scene *scene, DynamicPaintSurface *surface)
 static bool dynamicPaint_checkSurfaceData(const Scene *scene, DynamicPaintSurface *surface)
 {
   if (!surface->data ||
-      ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
+      (dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points)) {
     return dynamicPaint_resetSurface(scene, surface);
   }
   return true;
@@ -1862,7 +1862,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
     /* save layer data to output layer */
     /* apply color */
     if (mloopcol) {
-      rgba_float_to_uchar((unsigned char *)&mloopcol[l_index].r, fcolor[v_index]);
+      rgba_float_to_uchar((uchar *)&mloopcol[l_index].r, fcolor[v_index]);
     }
     /* apply wetness */
     if (mloopcol_wet) {
@@ -2512,7 +2512,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
   const MLoopTri *mlooptri = data->mlooptri;
   const MLoopUV *mloopuv = data->mloopuv;
 
-  const unsigned int *loop_idx = mlooptri[tri_index].tri;
+  const uint *loop_idx = mlooptri[tri_index].tri;
 
   /* Enumerate all edges of the triangle, rotating the vertex list accordingly. */
   for (int edge_idx = 0; edge_idx < 3; edge_idx++) {
@@ -2566,7 +2566,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
         continue;
       }
 
-      const unsigned int *other_loop_idx = mlooptri[lt_index].tri;
+      const uint *other_loop_idx = mlooptri[lt_index].tri;
 
       /* Check edges for match, looping in the same order as the outer loop. */
       for (int j = 0; j < 3; j++) {
@@ -2790,7 +2790,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
 int dynamicPaint_createUVSurface(Scene *scene,
                                  DynamicPaintSurface *surface,
                                  float *progress,
-                                 short *do_update)
+                                 bool *do_update)
 {
   /* Antialias jitter point relative coords */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
@@ -3783,7 +3783,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   numOfVerts_p = mesh_p->totvert;
 
   mvert_p = BKE_mesh_verts_for_write(mesh_p);
-  copy_m4_m4(prev_obmat, ob->obmat);
+  copy_m4_m4(prev_obmat, ob->object_to_world);
 
   /* current frame mesh */
   scene->r.cfra = cur_fra;
@@ -3816,7 +3816,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
       .brush_vel = *brushVel,
       .mvert_p = mvert_p,
       .mvert_c = mvert_c,
-      .obmat = ob->obmat,
+      .obmat = ob->object_to_world,
       .prev_obmat = prev_obmat,
       .timescale = timescale,
   };
@@ -3856,7 +3856,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       SUBFRAME_RECURSION,
                                       BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
-  copy_m4_m4(prev_obmat, ob->obmat);
+  copy_m4_m4(prev_obmat, ob->object_to_world);
 
   /* current frame mesh */
   scene->r.cfra = cur_fra;
@@ -3871,7 +3871,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
 
   /* calculate speed */
   mul_m4_v3(prev_obmat, prev_loc);
-  mul_m4_v3(ob->obmat, cur_loc);
+  mul_m4_v3(ob->object_to_world, cur_loc);
 
   sub_v3_v3v3(brushVel->v, cur_loc, prev_loc);
   mul_v3_fl(brushVel->v, 1.0f / timescale);
@@ -4279,14 +4279,14 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
      * (Faster than transforming per surface point
      * coordinates and normals to object space) */
     for (ii = 0; ii < numOfVerts; ii++) {
-      mul_m4_v3(brushOb->obmat, mvert[ii].co);
+      mul_m4_v3(brushOb->object_to_world, mvert[ii].co);
       boundInsert(&mesh_bb, mvert[ii].co);
 
       /* for proximity project calculate average normal */
       if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
         float nor[3];
         copy_v3_v3(nor, vert_normals[ii]);
-        mul_mat3_m4_v3(brushOb->obmat, nor);
+        mul_mat3_m4_v3(brushOb->object_to_world, nor);
         normalize_v3(nor);
 
         add_v3_v3(avg_brushNor, nor);
@@ -5339,12 +5339,12 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
       float dir_factor, a_factor;
       const float speed_scale = eff_scale * force[index * 4 + 3] / bNeighs[n_idx].dist;
 
-      const unsigned int n_trgt = (unsigned int)n_target[n_idx];
+      const uint n_trgt = (uint)n_target[n_idx];
 
       /* Sort of spinlock, but only for given ePoint.
        * Since the odds a same ePoint is modified at the same time by several threads is very low,
        * this is much more efficient than a global spin lock. */
-      const unsigned int epointlock_idx = n_trgt / 8;
+      const uint epointlock_idx = n_trgt / 8;
       const uint8_t epointlock_bitmask = 1 << (n_trgt & 7); /* 7 == 0b111 */
       while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) &
              epointlock_bitmask) {
@@ -5391,7 +5391,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
   }
 
   {
-    const unsigned int ppointlock_idx = index / 8;
+    const uint ppointlock_idx = index / 8;
     const uint8_t ppointlock_bitmask = 1 << (index & 7); /* 7 == 0b111 */
     while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) &
            ppointlock_bitmask) {
@@ -5870,7 +5870,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   }
 
   /* matrix comparison */
-  if (!equals_m4m4(bData->prev_obmat, ob->obmat)) {
+  if (!equals_m4m4(bData->prev_obmat, ob->object_to_world)) {
     return true;
   }
 
@@ -5957,7 +5957,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
       mul_v3_v3v3(scaled_nor, temp_nor, ob->scale);
       bData->bNormal[index].normal_scale = len_v3(scaled_nor);
     }
-    mul_mat3_m4_v3(ob->obmat, temp_nor);
+    mul_mat3_m4_v3(ob->object_to_world, temp_nor);
     normalize_v3(temp_nor);
     negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
   }
@@ -5995,7 +5995,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
       mul_v3_v3v3(scaled_nor, temp_nor, ob->scale);
       bData->bNormal[index].normal_scale = len_v3(scaled_nor);
     }
-    mul_mat3_m4_v3(ob->obmat, temp_nor);
+    mul_mat3_m4_v3(ob->object_to_world, temp_nor);
     normalize_v3(temp_nor);
     negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
   }
@@ -6063,10 +6063,8 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
     /* Init bdata */
     bData->bNormal = (struct PaintBakeNormal *)MEM_mallocN(
         sData->total_points * sizeof(struct PaintBakeNormal), "Dynamic Paint step data");
-    bData->s_pos = MEM_mallocN(sData->total_points * sizeof(unsigned int),
-                               "Dynamic Paint bData s_pos");
-    bData->s_num = MEM_mallocN(sData->total_points * sizeof(unsigned int),
-                               "Dynamic Paint bData s_num");
+    bData->s_pos = MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_pos");
+    bData->s_num = MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_num");
     bData->realCoord = (struct Vec3f *)MEM_mallocN(surface_totalSamples(surface) * sizeof(Vec3f),
                                                    "Dynamic Paint point coords");
     bData->prev_verts = MEM_mallocN(canvasNumOfVerts * sizeof(MVert),
@@ -6115,7 +6113,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   bData->mesh_bounds.valid = false;
   for (index = 0; index < canvasNumOfVerts; index++) {
     copy_v3_v3(canvas_verts[index].v, mvert[index].co);
-    mul_m4_v3(ob->obmat, canvas_verts[index].v);
+    mul_m4_v3(ob->object_to_world, canvas_verts[index].v);
     boundInsert(&bData->mesh_bounds, canvas_verts[index].v);
   }
 
@@ -6145,7 +6143,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   dynamicPaint_prepareAdjacencyData(surface, false);
 
   /* Copy current frame vertices to check against in next frame */
-  copy_m4_m4(bData->prev_obmat, ob->obmat);
+  copy_m4_m4(bData->prev_obmat, ob->object_to_world);
   memcpy(bData->prev_verts, mvert, canvasNumOfVerts * sizeof(MVert));
 
   bData->clear = 0;
@@ -6189,7 +6187,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
    * Loop through surface's target paint objects and do painting
    */
   {
-    unsigned int numobjects;
+    uint numobjects;
     Object **objects = BKE_collision_objects_create(
         depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 

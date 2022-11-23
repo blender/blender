@@ -437,7 +437,7 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlp
 
   makeAttribList(iAttributes, stereoVisual, needAlpha);
 
-  UINT nNumFormats;
+  uint nNumFormats;
   WIN32_CHK(wglChoosePixelFormatARB(
       m_hDC, &(iAttributes[0]), NULL, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
 

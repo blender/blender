@@ -22,11 +22,8 @@ class PtexCache;
 
 CCL_NAMESPACE_BEGIN
 
-class Object;
 class Scene;
-class Shader;
 struct ShaderData;
-struct float3;
 struct KernelGlobalsCPU;
 
 /* OSL Texture Handle
@@ -73,8 +70,12 @@ typedef OIIO::unordered_map_concurrent<ustring, OSLTextureHandleRef, ustringHash
 
 class OSLRenderServices : public OSL::RendererServices {
  public:
-  OSLRenderServices(OSL::TextureSystem *texture_system);
+  OSLRenderServices(OSL::TextureSystem *texture_system, int device_type);
   ~OSLRenderServices();
+
+  static void register_closures(OSL::ShadingSystem *ss);
+
+  int supports(string_view feature) const override;
 
   bool get_matrix(OSL::ShaderGlobals *sg,
                   OSL::Matrix44 &result,
@@ -321,8 +322,10 @@ class OSLRenderServices : public OSL::RendererServices {
    * globals to be shared between different render sessions. This saves memory,
    * and is required because texture handles are cached as part of the shared
    * shading system. */
-  OSL::TextureSystem *texture_system;
   OSLTextureHandleMap textures;
+
+ private:
+  int device_type_;
 };
 
 CCL_NAMESPACE_END

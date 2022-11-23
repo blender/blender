@@ -203,7 +203,7 @@ static void fcm_generator_evaluate(
     case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial */
     {
       float value = 1.0f, *cp = NULL;
-      unsigned int i;
+      uint i;
 
       /* For each coefficient pair,
        * solve for that bracket before accumulating in value by multiplying. */
@@ -1283,7 +1283,7 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
   }
 }
 
-bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
+bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short acttype)
 {
   FModifier *fcm;
 

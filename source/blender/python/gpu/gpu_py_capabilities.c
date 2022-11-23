@@ -191,6 +191,40 @@ static PyObject *pygpu_extensions_get(PyObject *UNUSED(self))
   return ret;
 }
 
+PyDoc_STRVAR(pygpu_compute_shader_support_get_doc,
+             ".. function:: compute_shader_support_get()\n"
+             "\n"
+             "   Are compute shaders supported.\n"
+             "\n"
+             "   :return: True when supported, False when not supported.\n"
+             "   :rtype: bool\n");
+static PyObject *pygpu_compute_shader_support_get(PyObject *UNUSED(self))
+{
+  return PyBool_FromLong(GPU_compute_shader_support());
+}
+
+PyDoc_STRVAR(pygpu_shader_storage_buffer_objects_support_get_doc,
+             ".. function:: shader_storage_buffer_objects_support_get()\n"
+             "\n"
+             "   Are SSBO's supported.\n"
+             "\n"
+             "   :return: True when supported, False when not supported.\n"
+             "   :rtype: bool\n");
+static PyObject *pygpu_shader_storage_buffer_objects_support_get(PyObject *UNUSED(self))
+{
+  return PyBool_FromLong(GPU_shader_storage_buffer_objects_support());
+}
+PyDoc_STRVAR(pygpu_shader_image_load_store_support_get_doc,
+             ".. function:: shader_image_load_store_support_get()\n"
+             "\n"
+             "   Is image load/store supported.\n"
+             "\n"
+             "   :return: True when supported, False when not supported.\n"
+             "   :rtype: bool\n");
+static PyObject *pygpu_shader_image_load_store_support_get(PyObject *UNUSED(self))
+{
+  return PyBool_FromLong(GPU_shader_image_load_store_support());
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -247,15 +281,34 @@ static struct PyMethodDef pygpu_capabilities__tp_methods[] = {
      METH_NOARGS,
      pygpu_max_varying_floats_get_doc},
     {"extensions_get", (PyCFunction)pygpu_extensions_get, METH_NOARGS, pygpu_extensions_get_doc},
+
+    {"compute_shader_support_get",
+     (PyCFunction)pygpu_compute_shader_support_get,
+     METH_NOARGS,
+     pygpu_compute_shader_support_get_doc},
+    {"shader_storage_buffer_objects_support_get",
+     (PyCFunction)pygpu_shader_storage_buffer_objects_support_get,
+     METH_NOARGS,
+     pygpu_shader_storage_buffer_objects_support_get_doc},
+    {"shader_image_load_store_support_get",
+     (PyCFunction)pygpu_shader_image_load_store_support_get,
+     METH_NOARGS,
+     pygpu_shader_image_load_store_support_get_doc},
+
     {NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(pygpu_capabilities__tp_doc, "This module provides access to the GPU capabilities.");
 static PyModuleDef pygpu_capabilities_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.capabilities",
-    .m_doc = pygpu_capabilities__tp_doc,
-    .m_methods = pygpu_capabilities__tp_methods,
+    /*m_name*/ "gpu.capabilities",
+    /*m_doc*/ pygpu_capabilities__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_capabilities__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_capabilities_init(void)

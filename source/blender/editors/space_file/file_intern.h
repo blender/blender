@@ -95,11 +95,15 @@ int file_highlight_set(struct SpaceFile *sfile, struct ARegion *region, int mx, 
  * Use to set the file selector path from some arbitrary source.
  */
 void file_sfile_filepath_set(struct SpaceFile *sfile, const char *filepath);
-void file_sfile_to_operator_ex(struct Main *bmain,
+void file_sfile_to_operator_ex(struct bContext *C,
+                               struct Main *bmain,
                                struct wmOperator *op,
                                struct SpaceFile *sfile,
                                char *filepath);
-void file_sfile_to_operator(struct Main *bmain, struct wmOperator *op, struct SpaceFile *sfile);
+void file_sfile_to_operator(struct bContext *C,
+                            struct Main *bmain,
+                            struct wmOperator *op,
+                            struct SpaceFile *sfile);
 
 void file_operator_to_sfile(struct Main *bmain, struct SpaceFile *sfile, struct wmOperator *op);
 
@@ -113,7 +117,7 @@ void fileselect_refresh_params(struct SpaceFile *sfile);
 /**
  * Sets #FileSelectParams.file (name of selected file)
  */
-void fileselect_file_set(SpaceFile *sfile, int index);
+void fileselect_file_set(struct bContext *C, SpaceFile *sfile, int index);
 bool file_attribute_column_type_enabled(const FileSelectParams *params,
                                         FileAttributeColumnType column);
 /**
@@ -181,6 +185,19 @@ void file_on_reload_callback_register(struct SpaceFile *sfile,
                                       onReloadFn callback,
                                       onReloadFnData custom_data);
 
+/* folder_history.cc */
+
+/* not listbase itself */
+void folderlist_free(struct ListBase *folderlist);
+void folderlist_popdir(struct ListBase *folderlist, char *dir);
+void folderlist_pushdir(struct ListBase *folderlist, const char *dir);
+const char *folderlist_peeklastdir(struct ListBase *folderlist);
+bool folderlist_clear_next(struct SpaceFile *sfile);
+
+void folder_history_list_ensure_for_active_browse_mode(struct SpaceFile *sfile);
+void folder_history_list_free(struct SpaceFile *sfile);
+struct ListBase folder_history_list_duplicate(struct ListBase *listbase);
+
 /* file_panels.c */
 
 void file_tool_props_region_panels_register(struct ARegionType *art);
@@ -201,6 +218,17 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 /* C-handle for #ed::asset_browser::AssetCatalogFilterSettings. */
 typedef struct FileAssetCatalogFilterSettingsHandle FileAssetCatalogFilterSettingsHandle;
 
+void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_library,
+                                                   struct uiLayout *layout,
+                                                   SpaceFile *space_file,
+                                                   FileAssetSelectParams *params);
+
+#ifdef __cplusplus
+
+namespace blender::asset_system {
+class AssetLibrary;
+}
+
 FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings(void);
 void file_delete_asset_catalog_filter_settings(
     FileAssetCatalogFilterSettingsHandle **filter_settings_handle);
@@ -214,15 +242,12 @@ bool file_set_asset_catalog_filter_settings(
     bUUID catalog_id);
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const struct AssetLibrary *asset_library);
+    const blender::asset_system::AssetLibrary *asset_library);
 bool file_is_asset_visible_in_catalog_filter_settings(
     const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const AssetMetaData *asset_data);
 
-void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_library,
-                                                   struct uiLayout *layout,
-                                                   struct SpaceFile *space_file,
-                                                   struct FileAssetSelectParams *params);
+#endif
 
 #ifdef __cplusplus
 }

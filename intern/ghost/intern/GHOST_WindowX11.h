@@ -11,7 +11,7 @@
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-// For tablets
+/* For tablets. */
 #ifdef WITH_X11_XINPUT
 #  include <X11/extensions/XInput.h>
 #endif
@@ -234,7 +234,7 @@ class GHOST_WindowX11 : public GHOST_Window {
   Cursor m_visible_cursor;
 
   /** Cache of XC_* ID's to XCursor structures */
-  std::map<unsigned int, Cursor> m_standard_cursors;
+  std::map<uint, Cursor> m_standard_cursors;
 
   GHOST_TaskBarX11 m_taskbar;
 

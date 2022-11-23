@@ -42,8 +42,10 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNU
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->pd && ob->pd->forcefield) {
@@ -73,7 +75,9 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgr
 {
   wmGizmoWrapper *wwrapper = gzgroup->customdata;
   wmGizmo *gz = wwrapper->gizmo;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   PartDeflect *pd = ob->pd;
 
@@ -83,8 +87,8 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgr
     PointerRNA field_ptr;
 
     RNA_pointer_create(&ob->id, &RNA_FieldSettings, pd, &field_ptr);
-    WM_gizmo_set_matrix_location(gz, ob->obmat[3]);
-    WM_gizmo_set_matrix_rotation_from_z_axis(gz, ob->obmat[2]);
+    WM_gizmo_set_matrix_location(gz, ob->object_to_world[3]);
+    WM_gizmo_set_matrix_rotation_from_z_axis(gz, ob->object_to_world[2]);
     WM_gizmo_set_matrix_offset_location(gz, ofs);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     WM_gizmo_target_property_def_rna(gz, "offset", &field_ptr, "strength", -1);

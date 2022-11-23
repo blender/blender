@@ -308,7 +308,9 @@ static void undofont_free_data(UndoFont *uf)
 
 static Object *editfont_object_from_context(bContext *C)
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_FONT) {
     Curve *cu = obedit->data;

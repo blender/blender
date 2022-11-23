@@ -37,7 +37,7 @@ void main()
   vec3 world_pos = pos;
 #elif defined(POINTCLOUD_SHADER)
   pointcloud_get_pos_and_radius(pointPosition, pointRadius);
-  pointID = gl_VertexID;
+  pointID = pointcloud_get_point_id();
 #else
   vec3 world_pos = point_object_to_world(pos);
 #endif
@@ -45,7 +45,7 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
 
   /* Used for planar reflections */
-  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), clipPlanes[0]);
+  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), planarClipPlane);
 
 #ifdef MESH_SHADER
   worldPosition = world_pos;

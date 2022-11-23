@@ -47,6 +47,9 @@ typedef struct GPUOffScreen GPUOffScreen;
 GPUFrameBuffer *GPU_framebuffer_create(const char *name);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
+
+const char *GPU_framebuffer_get_name(GPUFrameBuffer *fb);
+
 /**
  * Workaround for binding a SRGB frame-buffer without doing the SRGB transform.
  */
@@ -188,6 +191,12 @@ void GPU_framebuffer_texture_layer_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip);
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip);
+
+/**
+ * Default size is used if the framebuffer contains no attachments.
+ * It needs to be re-specified each time an attachment is added.
+ */
+void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height);
 
 /* Frame-buffer operations. */
 

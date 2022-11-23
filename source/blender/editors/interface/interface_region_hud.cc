@@ -87,7 +87,7 @@ static void hud_region_hide(ARegion *region)
 /** \name Redo Panel
  * \{ */
 
-static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool hud_panel_operator_redo_poll(const bContext *C, PanelType * /*pt*/)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HUD);

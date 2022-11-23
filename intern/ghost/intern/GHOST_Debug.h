@@ -15,29 +15,41 @@
 #  endif
 #endif
 
-#if defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
-#  include <iostream>
-#  include <stdio.h>  //for printf()
-#endif                // WITH_GHOST_DEBUG
+#include <iostream>
+#include <stdio.h> /* For `printf()`. */
 
 #if defined(WITH_GHOST_DEBUG)
 #  define GHOST_PRINT(x) \
     { \
       std::cout << x; \
     } \
-    (void)0
+    ((void)0)
 #  define GHOST_PRINTF(x, ...) \
     { \
       printf(x, __VA_ARGS__); \
     } \
-    (void)0
+    ((void)0)
 #else
-#  define GHOST_PRINT(x)
-#  define GHOST_PRINTF(x, ...)
+/* Expand even when `WITH_GHOST_DEBUG` is disabled to prevent expressions
+ * becoming invalid even when the option is disable. */
+#  define GHOST_PRINT(x) \
+    { \
+      if (false) { \
+        std::cout << x; \
+      } \
+    } \
+    ((void)0)
+#  define GHOST_PRINTF(x, ...) \
+    { \
+      if (false) { \
+        printf(x, __VA_ARGS__); \
+      } \
+    } \
+    ((void)0)
+
 #endif /* `!defined(WITH_GHOST_DEBUG)` */
 
 #ifdef WITH_ASSERT_ABORT
-#  include <stdio.h>   //for fprintf()
 #  include <stdlib.h>  //for abort()
 #  define GHOST_ASSERT(x, info) \
     { \
@@ -48,7 +60,7 @@
         abort(); \
       } \
     } \
-    (void)0
+    ((void)0)
 /* Assert in non-release builds too. */
 #elif defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
 #  define GHOST_ASSERT(x, info) \
@@ -59,7 +71,7 @@
         GHOST_PRINT("\n"); \
       } \
     } \
-    (void)0
+    ((void)0)
 #else /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */
 #  define GHOST_ASSERT(x, info) ((void)0)
 #endif /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */

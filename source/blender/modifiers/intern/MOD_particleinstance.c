@@ -52,9 +52,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
@@ -275,7 +273,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       break;
     case eParticleInstanceSpace_Local:
       /* get particle states in the particle object's local space */
-      invert_m4_m4(spacemat, pimd->ob->obmat);
+      invert_m4_m4(spacemat, pimd->ob->object_to_world);
       break;
     default:
       /* should not happen */
@@ -305,7 +303,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     maxedge += totedge;
   }
 
-  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
     float min[3], max[3];
@@ -516,10 +514,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     p_skip++;
   }
 
-  if (psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 
   if (size) {
     MEM_freeN(size);

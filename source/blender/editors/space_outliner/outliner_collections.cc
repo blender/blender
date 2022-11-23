@@ -377,10 +377,8 @@ void outliner_collection_delete(
             if (parent->flag & COLLECTION_IS_MASTER) {
               BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
 
-              const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
-              BLI_assert(id_type->owner_get != nullptr);
-
-              ID *scene_owner = id_type->owner_get(&parent->id);
+              ID *scene_owner = BKE_id_owner_get(&parent->id);
+              BLI_assert(scene_owner != nullptr);
               BLI_assert(GS(scene_owner->name) == ID_SCE);
               if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
                 skip = true;
@@ -413,7 +411,8 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-  const Base *basact_prev = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  const Base *basact_prev = BKE_view_layer_active_base_get(view_layer);
 
   outliner_collection_delete(C, bmain, scene, op->reports, true);
 
@@ -422,7 +421,8 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
 
-  if (basact_prev != view_layer->basact) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  if (basact_prev != BKE_view_layer_active_base_get(view_layer)) {
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
@@ -493,6 +493,7 @@ static LayerCollection *outliner_active_layer_collection(bContext *C)
 
 static int collection_objects_select_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *layer_collection = outliner_active_layer_collection(C);
   bool deselect = STREQ(op->idname, "OUTLINER_OT_collection_objects_deselect");
@@ -501,9 +502,8 @@ static int collection_objects_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
+  BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
 
-  Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
   ED_outliner_select_sync_from_object_tag(C);
@@ -610,10 +610,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
   else if (parent != nullptr && (parent->flag & COLLECTION_IS_MASTER) != 0) {
     BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
 
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
-    BLI_assert(id_type->owner_get != nullptr);
-
-    Scene *scene_owner = (Scene *)id_type->owner_get(&parent->id);
+    Scene *scene_owner = reinterpret_cast<Scene *>(BKE_id_owner_get(&parent->id));
     BLI_assert(scene_owner != nullptr);
     BLI_assert(GS(scene_owner->id.name) == ID_SCE);
 
@@ -758,7 +755,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 /** \name Instance Collection
  * \{ */
 
-static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_instance_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -802,7 +799,6 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
     ob->instance_collection = collection;
     ob->transflag |= OB_DUPLICOLLECTION;
-    id_lib_extern(&collection->id);
     id_us_plus(&collection->id);
   }
 
@@ -965,7 +961,7 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 
   BLI_gset_free(data.collections_to_edit, nullptr);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_relations_tag_update(bmain);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
@@ -1114,7 +1110,7 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
   }
   BLI_gset_free(data.collections_to_edit, nullptr);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);
@@ -1194,11 +1190,11 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     LayerCollection *layer_collection = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
-    BKE_layer_collection_set_visible(view_layer, layer_collection, show, is_inside);
+    BKE_layer_collection_set_visible(scene, view_layer, layer_collection, show, is_inside);
   }
   BLI_gset_free(data.collections_to_edit, nullptr);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);
@@ -1388,7 +1384,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
     BLI_gset_free(data.collections_to_edit, nullptr);
   }
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   if (!is_render) {
@@ -1497,6 +1493,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     Object *ob = (Object *)tselem->id;
+    BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     Base *base = BKE_view_layer_base_find(data->view_layer, ob);
     BLI_gset_add(data->bases_to_edit, base);
   }
@@ -1504,7 +1501,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
   return TRAVERSE_CONTINUE;
 }
 
-static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_hide_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1527,7 +1524,7 @@ static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     LayerCollection *layer_collection = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
-    BKE_layer_collection_set_visible(view_layer, layer_collection, false, false);
+    BKE_layer_collection_set_visible(scene, view_layer, layer_collection, false, false);
   }
   BLI_gset_free(data.collections_to_edit, nullptr);
 
@@ -1538,7 +1535,7 @@ static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
   }
   BLI_gset_free(data.bases_to_edit, nullptr);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);
@@ -1560,7 +1557,7 @@ void OUTLINER_OT_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_unhide_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1572,11 +1569,12 @@ static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* Unhide all objects. */
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     base->flag &= ~BASE_HIDDEN;
   }
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);

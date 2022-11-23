@@ -32,7 +32,7 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_dblur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeDBlurData *ndbd = MEM_cnew<NodeDBlurData>(__func__);
   node->storage = ndbd;
@@ -41,7 +41,7 @@ static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
   ndbd->center_y = 0.5;
 }
 
-static void node_composit_buts_dblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_dblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -199,7 +199,7 @@ void register_node_type_cmp_dblur()
   cmp_node_type_base(&ntype, CMP_NODE_DBLUR, "Directional Blur", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_directional_blur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_dblur;
-  node_type_init(&ntype, file_ns::node_composit_init_dblur);
+  ntype.initfunc = file_ns::node_composit_init_dblur;
   node_type_storage(
       &ntype, "NodeDBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

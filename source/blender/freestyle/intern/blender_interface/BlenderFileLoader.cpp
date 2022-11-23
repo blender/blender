@@ -63,16 +63,18 @@ NodeGroup *BlenderFileLoader::Load()
   int id = 0;
   const eEvaluationMode eval_mode = DEG_get_mode(_depsgraph);
 
-  DEG_OBJECT_ITER_BEGIN (_depsgraph,
-                         ob,
-                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                             DEG_ITER_OBJECT_FLAG_DUPLI) {
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = _depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
       break;
     }
 
-    if (ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) {
+    if ((ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) ||
+        (ob->visibility_flag & OB_HOLDOUT)) {
       continue;
     }
 
@@ -272,7 +274,7 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls,
 #if 0
   float len;
 #endif
-  unsigned int i, j;
+  uint i, j;
   IndexedFaceSet::FaceEdgeMark marks = 0;
 
   // initialize the bounding box by the first vertex
@@ -429,13 +431,13 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   // Compute matrix including camera transform
   float obmat[4][4], nmat[4][4];
-  mul_m4_m4m4(obmat, viewmat, ob->obmat);
+  mul_m4_m4m4(obmat, viewmat, ob->object_to_world);
   invert_m4_m4(nmat, obmat);
   transpose_m4(nmat);
 
   // We count the number of triangles after the clipping by the near and far view
   // planes is applied (NOTE: mesh vertices are in the camera coordinate system).
-  unsigned numFaces = 0;
+  uint numFaces = 0;
   float v1[3], v2[3], v3[3];
   float n1[3], n2[3], n3[3], facenormal[3];
   int clip[3];
@@ -470,16 +472,16 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   NodeGroup *currentMesh = new NodeGroup;
   NodeShape *shape = new NodeShape;
 
-  unsigned vSize = 3 * 3 * numFaces;
+  uint vSize = 3 * 3 * numFaces;
   float *vertices = new float[vSize];
-  unsigned nSize = vSize;
+  uint nSize = vSize;
   float *normals = new float[nSize];
-  unsigned *numVertexPerFaces = new unsigned[numFaces];
+  uint *numVertexPerFaces = new uint[numFaces];
   vector<Material *> meshMaterials;
   vector<FrsMaterial> meshFrsMaterials;
 
   IndexedFaceSet::TRIANGLES_STYLE *faceStyle = new IndexedFaceSet::TRIANGLES_STYLE[numFaces];
-  unsigned i;
+  uint i;
   for (i = 0; i < numFaces; i++) {
     faceStyle[i] = IndexedFaceSet::TRIANGLES;
     numVertexPerFaces[i] = 3;
@@ -487,11 +489,11 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = new IndexedFaceSet::FaceEdgeMark[numFaces];
 
-  unsigned viSize = 3 * numFaces;
-  unsigned *VIndices = new unsigned[viSize];
-  unsigned niSize = viSize;
-  unsigned *NIndices = new unsigned[niSize];
-  unsigned *MIndices = new unsigned[viSize];  // Material Indices
+  uint viSize = 3 * numFaces;
+  uint *VIndices = new uint[viSize];
+  uint niSize = viSize;
+  uint *NIndices = new uint[niSize];
+  uint *MIndices = new uint[viSize];  // Material Indices
 
   struct LoaderState ls;
   ls.pv = vertices;
@@ -548,7 +550,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
       copy_v3_v3(n3, facenormal);
     }
 
-    unsigned int numTris = countClippedFaces(v1, v2, v3, clip);
+    uint numTris = countClippedFaces(v1, v2, v3, clip);
     if (numTris == 0) {
       continue;
     }
@@ -577,7 +579,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     }
     else {
       // find if the Blender material is already in the list
-      unsigned int i = 0;
+      uint i = 0;
       bool found = false;
 
       for (vector<Material *>::iterator it = meshMaterials.begin(), itend = meshMaterials.end();
@@ -623,22 +625,22 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // We might have several times the same vertex. We want a clean
   // shape with no real-vertex. Here, we are making a cleaning pass.
   float *cleanVertices = nullptr;
-  unsigned int cvSize;
-  unsigned int *cleanVIndices = nullptr;
+  uint cvSize;
+  uint *cleanVIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       vertices, vSize, VIndices, viSize, &cleanVertices, &cvSize, &cleanVIndices);
 
   float *cleanNormals = nullptr;
-  unsigned int cnSize;
-  unsigned int *cleanNIndices = nullptr;
+  uint cnSize;
+  uint *cleanNIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       normals, nSize, NIndices, niSize, &cleanNormals, &cnSize, &cleanNIndices);
 
   // format materials array
   FrsMaterial **marray = new FrsMaterial *[meshFrsMaterials.size()];
-  unsigned int mindex = 0;
+  uint mindex = 0;
   for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end();
        m != mend;
        ++m) {
@@ -661,7 +663,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // addressed later in WShape::MakeFace().
   vector<detri_t> detriList;
   Vec3r zero(0.0, 0.0, 0.0);
-  unsigned vi0, vi1, vi2;
+  uint vi0, vi1, vi2;
   for (i = 0; i < viSize; i += 3) {
     detri_t detri;
     vi0 = cleanVIndices[i];
@@ -694,7 +696,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
     detri.v = zero;
     detri.n = 0;
-    for (unsigned int j = 0; j < viSize; j += 3) {
+    for (uint j = 0; j < viSize; j += 3) {
       if (i == j) {
         continue;
       }
@@ -753,7 +755,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
              name,
-             (long unsigned int)detriList.size(),
+             ulong(detriList.size()),
              (detriList.size() > 1) ? "s" : "");
     }
   }

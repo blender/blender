@@ -829,13 +829,13 @@ struct BBPadData {
 
 static void pad_face_bb_range_func(void *__restrict userdata,
                                    const int iter,
-                                   const TaskParallelTLS *__restrict UNUSED(tls))
+                                   const TaskParallelTLS *__restrict /*tls*/)
 {
   BBPadData *pad_data = static_cast<BBPadData *>(userdata);
   (*pad_data->face_bounding_box)[iter].expand(pad_data->pad);
 }
 
-static void calc_face_bb_reduce(const void *__restrict UNUSED(userdata),
+static void calc_face_bb_reduce(const void *__restrict /*userdata*/,
                                 void *__restrict chunk_join,
                                 void *__restrict chunk)
 {
@@ -2032,10 +2032,10 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   }
   /* Project along negative face normal so (x,y) can be used in 2d. */ float axis_mat[3][3];
   float(*projverts)[2];
-  unsigned int(*tris)[3];
+  uint(*tris)[3];
   const int totfilltri = flen - 2;
   /* Prepare projected vertices and array to receive triangles in tessellation. */
-  tris = static_cast<unsigned int(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
+  tris = static_cast<uint(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
   projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
   axis_dominant_v3_to_m3_negate(axis_mat, no);
   for (int j = 0; j < flen; ++j) {
@@ -2047,7 +2047,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   /* Put tessellation triangles into Face form. Record original edges where they exist. */
   Array<Face *> ans(totfilltri);
   for (int t = 0; t < totfilltri; ++t) {
-    unsigned int *tri = tris[t];
+    uint *tri = tris[t];
     int eo[3];
     const Vert *v[3];
     for (int k = 0; k < 3; k++) {
@@ -2419,7 +2419,7 @@ class TriOverlaps {
       }
     }
     first_overlap_ = Array<int>(tm.face_size(), -1);
-    for (int i = 0; i < static_cast<int>(overlap_num_); ++i) {
+    for (int i = 0; i < int(overlap_num_); ++i) {
       int t = overlap_[i].indexA;
       if (first_overlap_[t] == -1) {
         first_overlap_[t] = i;
@@ -2451,7 +2451,7 @@ class TriOverlaps {
   }
 
  private:
-  static bool only_different_shapes(void *userdata, int index_a, int index_b, int UNUSED(thread))
+  static bool only_different_shapes(void *userdata, int index_a, int index_b, int /*thread*/)
   {
     CBData *cbdata = static_cast<CBData *>(userdata);
     return cbdata->tm.face(index_a)->orig != cbdata->tm.face(index_b)->orig;
@@ -2487,7 +2487,7 @@ static std::pair<int, int> canon_int_pair(int a, int b)
 
 static void calc_overlap_itts_range_func(void *__restrict userdata,
                                          const int iter,
-                                         const TaskParallelTLS *__restrict UNUSED(tls))
+                                         const TaskParallelTLS *__restrict /*tls*/)
 {
   constexpr int dbg_level = 0;
   OverlapIttsData *data = static_cast<OverlapIttsData *>(userdata);
@@ -2682,7 +2682,7 @@ static CDT_data calc_cluster_subdivided(const CoplanarClusterInfo &clinfo,
                                         const IMesh &tm,
                                         const TriOverlaps &ov,
                                         const Map<std::pair<int, int>, ITT_value> &itt_map,
-                                        IMeshArena *UNUSED(arena))
+                                        IMeshArena * /*arena*/)
 {
   constexpr int dbg_level = 0;
   BLI_assert(c < clinfo.tot_cluster());
@@ -2889,7 +2889,7 @@ static void degenerate_range_func(void *__restrict userdata,
   chunk_data->has_degenerate_tri |= is_degenerate;
 }
 
-static void degenerate_reduce(const void *__restrict UNUSED(userdata),
+static void degenerate_reduce(const void *__restrict /*userdata*/,
                               void *__restrict chunk_join,
                               void *__restrict chunk)
 {
@@ -2931,7 +2931,7 @@ static IMesh remove_degenerate_tris(const IMesh &tm_in)
 IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena)
 {
   return trimesh_nary_intersect(
-      tm_in, 1, [](int UNUSED(t)) { return 0; }, true, arena);
+      tm_in, 1, [](int /*t*/) { return 0; }, true, arena);
 }
 
 IMesh trimesh_nary_intersect(const IMesh &tm_in,

@@ -49,13 +49,13 @@ namespace blender::gpu::debug {
 #  define APIENTRY
 #endif
 
-static void APIENTRY debug_callback(GLenum UNUSED(source),
+static void APIENTRY debug_callback(GLenum /*source*/,
                                     GLenum type,
-                                    GLuint UNUSED(id),
+                                    GLuint /*id*/,
                                     GLenum severity,
-                                    GLsizei UNUSED(length),
+                                    GLsizei /*length*/,
                                     const GLchar *message,
-                                    const GLvoid *UNUSED(userParm))
+                                    const GLvoid * /*userParm*/)
 {
   if (ELEM(type, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_TYPE_POP_GROUP)) {
     /* The debug layer will emit a message each time a debug group is pushed or popped.
@@ -80,7 +80,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
   const bool use_color = CLG_color_support_get(&LOG);
 
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
-    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= CLG_SEVERITY_INFO))) {
+    if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= CLG_SEVERITY_INFO)) {
       const char *format = use_color ? "\033[2m%s\033[0m" : "%s";
       CLG_logf(LOG.type, CLG_SEVERITY_INFO, "Notification", "", format, message);
     }
@@ -110,7 +110,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
         break;
     }
 
-    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= clog_severity))) {
+    if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= clog_severity)) {
       CLG_logf(LOG.type, clog_severity, debug_groups, "", "%s", message);
       if (severity == GL_DEBUG_SEVERITY_HIGH) {
         /* Focus on error message. */

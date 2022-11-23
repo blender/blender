@@ -69,11 +69,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   }
   transform_object(obj, import_params);
 
-  /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-  const uint16_t autosmooth = (mesh->flag & ME_AUTOSMOOTH);
-  Mesh *dst = static_cast<Mesh *>(obj->data);
-  BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
-  dst->flag |= autosmooth;
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   create_vertex_groups(obj);
@@ -170,7 +166,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
     if (!mesh_geometry_.vertices_.contains(vi)) {
       continue;
     }
-    int local_vi = (int)mesh_geometry_.global_to_local_vertices_.size();
+    int local_vi = int(mesh_geometry_.global_to_local_vertices_.size());
     BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
     copy_v3_v3(verts[local_vi].co, global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
@@ -258,13 +254,11 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
     dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
     dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
     BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
-    dst_edge.flag = ME_LOOSEEDGE;
   }
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged
    * with the new ones created from polygons. */
   BKE_mesh_calc_edges(mesh, true, false);
-  BKE_mesh_calc_edges_loose(mesh);
 }
 
 void MeshFromGeometry::create_uv_verts(Mesh *mesh)
@@ -279,12 +273,13 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      if (curr_corner.uv_vert_index >= 0 &&
-          curr_corner.uv_vert_index < global_vertices_.uv_vertices.size()) {
-        const float2 &mluv_src = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
-        copy_v2_v2(mluv_dst[tot_loop_idx].uv, mluv_src);
-        tot_loop_idx++;
+      const int uv_index = curr_corner.uv_vert_index;
+      float2 uv(0, 0);
+      if (uv_index >= 0 && uv_index < global_vertices_.uv_vertices.size()) {
+        uv = global_vertices_.uv_vertices[uv_index];
       }
+      copy_v2_v2(mluv_dst[tot_loop_idx].uv, uv);
+      tot_loop_idx++;
     }
   }
 }

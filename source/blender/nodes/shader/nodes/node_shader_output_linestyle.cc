@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
 }
 
-static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_output_linestyle(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 

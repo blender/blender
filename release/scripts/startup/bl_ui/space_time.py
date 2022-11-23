@@ -120,6 +120,10 @@ class TIME_MT_view(Menu):
         scene = context.scene
         st = context.space_data
 
+        layout.prop(st, "show_region_hud")
+
+        layout.separator()
+
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
 

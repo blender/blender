@@ -11,6 +11,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "GPU_context.h"
 #include "GPU_platform.h"
 
 #include "gpu_py_platform.h" /* Own include. */
@@ -83,6 +84,30 @@ static PyObject *pygpu_platform_device_type_get(PyObject *UNUSED(self))
   return PyUnicode_FromString("UNKNOWN");
 }
 
+PyDoc_STRVAR(pygpu_platform_backend_type_get_doc,
+             ".. function:: backend_type_get()\n"
+             "\n"
+             "   Get actuve GPU backend.\n"
+             "\n"
+             "   :return: Backend type ('OPENGL', 'VULKAN', 'METAL', 'NONE', 'UNKNOWN').\n"
+             "   :rtype: str\n");
+static PyObject *pygpu_platform_backend_type_get(PyObject *UNUSED(self))
+{
+  switch (GPU_backend_get_type()) {
+    case GPU_BACKEND_VULKAN:
+      return PyUnicode_FromString("VULKAN");
+    case GPU_BACKEND_METAL:
+      return PyUnicode_FromString("METAL");
+    case GPU_BACKEND_NONE:
+      return PyUnicode_FromString("NONE");
+    case GPU_BACKEND_OPENGL:
+      return PyUnicode_FromString("OPENGL");
+    case GPU_BACKEND_ANY:
+      break;
+  }
+  return PyUnicode_FromString("UNKNOWN");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -106,15 +131,24 @@ static struct PyMethodDef pygpu_platform__tp_methods[] = {
      (PyCFunction)pygpu_platform_device_type_get,
      METH_NOARGS,
      pygpu_platform_device_type_get_doc},
+    {"backend_type_get",
+     (PyCFunction)pygpu_platform_backend_type_get,
+     METH_NOARGS,
+     pygpu_platform_backend_type_get_doc},
     {NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(pygpu_platform__tp_doc, "This module provides access to GPU Platform definitions.");
 static PyModuleDef pygpu_platform_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.platform",
-    .m_doc = pygpu_platform__tp_doc,
-    .m_methods = pygpu_platform__tp_methods,
+    /*m_name*/ "gpu.platform",
+    /*m_doc*/ pygpu_platform__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_platform__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_platform_init(void)

@@ -41,12 +41,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveBezierSegment *data =
       MEM_cnew<NodeGeometryCurvePrimitiveBezierSegment>(__func__);
@@ -119,7 +119,7 @@ void register_node_type_geo_curve_primitive_bezier_segment()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT, "Bezier Segment", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveBezierSegment",
                     node_free_standard_storage,

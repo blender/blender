@@ -46,7 +46,7 @@ static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
       ntree, angle_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
 }
 
-static void fn_node_rotate_euler_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void fn_node_rotate_euler_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
@@ -132,7 +132,7 @@ void register_node_type_fn_rotate_euler()
   fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_rotate_euler_declare;
   ntype.draw_buttons = file_ns::fn_node_rotate_euler_layout;
-  node_type_update(&ntype, file_ns::fn_node_rotate_euler_update);
+  ntype.updatefunc = file_ns::fn_node_rotate_euler_update;
   ntype.build_multi_function = file_ns::fn_node_rotate_euler_build_multi_function;
   nodeRegisterType(&ntype);
 }

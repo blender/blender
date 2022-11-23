@@ -44,7 +44,7 @@ void DepthOfField::init()
 {
   const SceneEEVEE &sce_eevee = inst_.scene->eevee;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera = (camera_object_eval) ?
+  const ::Camera *camera = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                nullptr;
   if (camera == nullptr) {
@@ -70,7 +70,7 @@ void DepthOfField::sync()
 {
   const Camera &camera = inst_.camera;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera_data = (camera_object_eval) ?
+  const ::Camera *camera_data = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                     reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                     nullptr;
 
@@ -637,8 +637,8 @@ void DepthOfField::render(View &view,
           /* Do not step over any unvisited tile. */
           int max_multiplier = dilation_radius + 1;
 
-          int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / (float)max_multiplier));
-          int multiplier = min_ii(max_multiplier, floorf(remainder / (float)ring_count));
+          int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / float(max_multiplier)));
+          int multiplier = min_ii(max_multiplier, floorf(remainder / float(ring_count)));
 
           dilation_radius += ring_count * multiplier;
 

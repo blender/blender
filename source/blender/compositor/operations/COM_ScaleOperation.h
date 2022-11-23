@@ -112,12 +112,12 @@ class ScaleRelativeOperation : public ScaleOperation {
                                             rcti *output) override;
   void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  float get_relative_scale_x_factor(float UNUSED(width)) override
+  float get_relative_scale_x_factor(float /*width*/) override
   {
     return 1.0f;
   }
 
-  float get_relative_scale_y_factor(float UNUSED(height)) override
+  float get_relative_scale_y_factor(float /*height*/) override
   {
     return 1.0f;
   }

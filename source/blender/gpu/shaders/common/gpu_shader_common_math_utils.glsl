@@ -5,11 +5,14 @@ float safe_divide(float a, float b)
   return (b != 0.0) ? a / b : 0.0;
 }
 
-/* fmod function compatible with OSL using nvidia reference example. */
+/* fmod function compatible with OSL (copy from OSL/dual.h) */
 float compatible_fmod(float a, float b)
 {
-  float c = (b != 0.0) ? fract(abs(a / b)) * abs(b) : 0.0;
-  return (a < 0.0) ? -c : c;
+  if (b != 0.0f) {
+    int N = int(a / b);
+    return a - N * b;
+  }
+  return 0.0f;
 }
 
 float compatible_pow(float x, float y)
@@ -132,7 +135,7 @@ vec3 fallback_pow(vec3 a, float b, vec3 fallback)
               fallback_pow(a.z, b, fallback.z));
 }
 
-/* Matirx Math */
+/* Matrix Math */
 
 /* Return a 2D rotation matrix with the angle that the input 2D vector makes with the x axis. */
 mat2 vector_to_rotation_matrix(vec2 vector)

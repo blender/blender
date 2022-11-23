@@ -110,7 +110,7 @@ void *lineart_mem_acquire(LineartStaticMemPool *smp, size_t size)
     smpn = lineart_mem_new_static_pool(smp, size);
   }
 
-  ret = ((unsigned char *)smpn) + smpn->used_byte;
+  ret = ((uchar *)smpn) + smpn->used_byte;
 
   smpn->used_byte += size;
 
@@ -128,7 +128,7 @@ void *lineart_mem_acquire_thread(LineartStaticMemPool *smp, size_t size)
     smpn = lineart_mem_new_static_pool(smp, size);
   }
 
-  ret = ((unsigned char *)smpn) + smpn->used_byte;
+  ret = ((uchar *)smpn) + smpn->used_byte;
 
   smpn->used_byte += size;
 

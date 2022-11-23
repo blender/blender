@@ -7,44 +7,30 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_ccg.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_view3d.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "bmesh.h"
@@ -100,6 +86,8 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
 
+  bool face_sets_changed = false;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
@@ -125,6 +113,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     if (data->mask_expand_create_face_set) {
       if (final_mask == 1.0f) {
         SCULPT_vertex_face_set_set(ss, vd.vertex, ss->filter_cache->new_face_set);
+        face_sets_changed = true;
       }
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -145,6 +134,10 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (face_sets_changed) {
+    SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_FACE_SETS);
+  }
 }
 
 static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -346,14 +339,17 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {UNPACK2(event->mval)};
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
   SCULPT_vertex_random_access_ensure(ss);
 
   op->customdata = MEM_mallocN(sizeof(float[2]), "initial mouse position");
   copy_v2_v2(op->customdata, mval_fl);
 
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   int vertex_count = SCULPT_vertex_count_get(ss);
 
@@ -364,9 +360,9 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   SCULPT_undo_push_begin(ob, op);
 
   if (create_face_set) {
-    SCULPT_undo_push_node(ob, ss->filter_cache->nodes[0], SCULPT_UNDO_FACE_SETS);
     for (int i = 0; i < ss->filter_cache->totnode; i++) {
       BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+      SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_FACE_SETS);
     }
   }
   else {
@@ -391,7 +387,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (create_face_set) {
     ss->filter_cache->prev_face_set = MEM_callocN(sizeof(float) * ss->totfaces, "prev face mask");
     for (int i = 0; i < ss->totfaces; i++) {
-      ss->filter_cache->prev_face_set[i] = ss->face_sets[i];
+      ss->filter_cache->prev_face_set[i] = ss->face_sets ? ss->face_sets[i] : 0;
     }
     ss->filter_cache->new_face_set = SCULPT_face_set_next_available_get(ss);
   }

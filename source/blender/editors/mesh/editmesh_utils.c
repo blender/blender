@@ -619,7 +619,45 @@ struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *elem
   return element_map->head_table;
 }
 
-#define INVALID_ISLAND ((unsigned int)-1)
+int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map)
+{
+  if (!element_map->unique_index_table) {
+    element_map->unique_index_table = MEM_callocN(
+        element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__);
+
+    int j = 0;
+    for (int i = 0; i < element_map->total_uvs; i++) {
+      UvElement *element = element_map->storage + i;
+      if (!element->separate) {
+        continue;
+      }
+      BLI_assert(0 <= j);
+      BLI_assert(j < element_map->total_unique_uvs);
+      while (element) {
+        element_map->unique_index_table[element - element_map->storage] = j;
+        element = element->next;
+        if (!element || element->separate) {
+          break;
+        }
+      }
+      j++;
+    }
+    BLI_assert(j == element_map->total_unique_uvs);
+  }
+
+  return element_map->unique_index_table;
+}
+
+int BM_uv_element_get_unique_index(struct UvElementMap *element_map, struct UvElement *child)
+{
+  int *unique_index = BM_uv_element_map_ensure_unique_index(element_map);
+  int index = child - element_map->storage;
+  BLI_assert(0 <= index);
+  BLI_assert(index < element_map->total_uvs);
+  return unique_index[index];
+}
+
+#define INVALID_ISLAND ((uint)-1)
 
 static void bm_uv_assign_island(UvElementMap *element_map,
                                 UvElement *element,
@@ -851,10 +889,99 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   MEM_SAFE_FREE(map);
 }
 
+/* return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b` */
+static bool loop_uv_match(BMLoop *loop, MLoopUV *luv_a, MLoopUV *luv_b, int cd_loop_uv_offset)
+{
+  MLoopUV *luv_c = BM_ELEM_CD_GET_VOID_P(loop, cd_loop_uv_offset);
+  MLoopUV *luv_d = BM_ELEM_CD_GET_VOID_P(loop->next, cd_loop_uv_offset);
+  return compare_v2v2(luv_a->uv, luv_c->uv, STD_UV_CONNECT_LIMIT) &&
+         compare_v2v2(luv_b->uv, luv_d->uv, STD_UV_CONNECT_LIMIT);
+}
+
+/* Given `anchor` and `edge`, return true if there are edges that fan between them that are
+ * seam-free. */
+static bool seam_connected_recursive(BMVert *anchor,
+                                     BMEdge *edge,
+                                     MLoopUV *luv_anchor,
+                                     MLoopUV *luv_fan,
+                                     BMLoop *needle,
+                                     GSet *visited,
+                                     int cd_loop_uv_offset)
+{
+  BLI_assert(edge->v1 == anchor || edge->v2 == anchor);
+  BLI_assert(needle->v == anchor || needle->next->v == anchor);
+
+  if (BM_elem_flag_test(edge, BM_ELEM_SEAM)) {
+    return false; /* Edge is a seam, don't traverse. */
+  }
+
+  if (!BLI_gset_add(visited, edge)) {
+    return false; /* Already visited. */
+  }
+
+  BMLoop *loop;
+  BMIter liter;
+  BM_ITER_ELEM (loop, &liter, edge, BM_LOOPS_OF_EDGE) {
+    if (loop->v == anchor) {
+      if (!loop_uv_match(loop, luv_anchor, luv_fan, cd_loop_uv_offset)) {
+        continue; /* `loop` is disjoint in UV space. */
+      }
+
+      if (loop->prev == needle) {
+        return true; /* Success. */
+      }
+
+      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->prev, cd_loop_uv_offset);
+      if (seam_connected_recursive(
+              anchor, loop->prev->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+        return true;
+      }
+    }
+    else {
+      BLI_assert(loop->next->v == anchor);
+      if (!loop_uv_match(loop, luv_fan, luv_anchor, cd_loop_uv_offset)) {
+        continue; /* `loop` is disjoint in UV space. */
+      }
+
+      if (loop->next == needle) {
+        return true; /* Success. */
+      }
+
+      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->next->next, cd_loop_uv_offset);
+      if (seam_connected_recursive(
+              anchor, loop->next->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/* Given `loop_a` and `loop_b` originate from the same vertex and share a UV,
+ * return true if there are edges that fan between them that are seam-free.
+ * return false otherwise.
+ */
+static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd_loop_uv_offset)
+{
+  BLI_assert(loop_a && loop_b);
+  BLI_assert(loop_a != loop_b);
+  BLI_assert(loop_a->v == loop_b->v);
+
+  BLI_gset_clear(visited, NULL);
+
+  MLoopUV *luv_anchor = BM_ELEM_CD_GET_VOID_P(loop_a, cd_loop_uv_offset);
+  MLoopUV *luv_fan = BM_ELEM_CD_GET_VOID_P(loop_a->next, cd_loop_uv_offset);
+  const bool result = seam_connected_recursive(
+      loop_a->v, loop_a->e, luv_anchor, luv_fan, loop_b, visited, cd_loop_uv_offset);
+  return result;
+}
+
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const Scene *scene,
                                        const bool uv_selected,
                                        const bool use_winding,
+                                       const bool use_seams,
                                        const bool do_islands)
 {
   /* In uv sync selection, all UVs are visible. */
@@ -956,6 +1083,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
   BLI_buffer_free(&tf_uv_buf);
 
+  GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : NULL;
+
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
   BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, ev_index) {
@@ -1001,6 +1130,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                       winding[BM_elem_index_get(v->l->f)];
         }
 
+        if (connected && use_seams) {
+          connected = seam_connected(iterv->l, v->l, seam_visited_gset, cd_loop_uv_offset);
+        }
+
         if (connected) {
           if (lastv) {
             lastv->next = next;
@@ -1026,6 +1159,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     element_map->vertex[ev_index] = newvlist;
   }
 
+  if (seam_visited_gset) {
+    BLI_gset_free(seam_visited_gset, NULL);
+    seam_visited_gset = NULL;
+  }
   MEM_SAFE_FREE(winding);
 
   /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
@@ -1064,6 +1201,7 @@ void BM_uv_element_map_free(UvElementMap *element_map)
     MEM_SAFE_FREE(element_map->storage);
     MEM_SAFE_FREE(element_map->vertex);
     MEM_SAFE_FREE(element_map->head_table);
+    MEM_SAFE_FREE(element_map->unique_index_table);
     MEM_SAFE_FREE(element_map->island_indices);
     MEM_SAFE_FREE(element_map->island_total_uvs);
     MEM_SAFE_FREE(element_map->island_total_unique_uvs);
@@ -1674,15 +1812,13 @@ BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index)
   return NULL;
 }
 
-int EDBM_elem_to_index_any_multi(ViewLayer *view_layer,
-                                 BMEditMesh *em,
-                                 BMElem *ele,
-                                 int *r_object_index)
+int EDBM_elem_to_index_any_multi(
+    const Scene *scene, ViewLayer *view_layer, BMEditMesh *em, BMElem *ele, int *r_object_index)
 {
   uint bases_len;
   int elem_index = -1;
   *r_object_index = -1;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, NULL, &bases_len);
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Base *base_iter = bases[base_index];
     if (BKE_editmesh_from_object(base_iter->object) == em) {
@@ -1695,13 +1831,14 @@ int EDBM_elem_to_index_any_multi(ViewLayer *view_layer,
   return elem_index;
 }
 
-BMElem *EDBM_elem_from_index_any_multi(ViewLayer *view_layer,
+BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
+                                       ViewLayer *view_layer,
                                        uint object_index,
                                        uint elem_index,
                                        Object **r_obedit)
 {
   uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, NULL, &bases_len);
   *r_obedit = NULL;
   Object *obedit = (object_index < bases_len) ? bases[object_index]->object : NULL;
   MEM_freeN(bases);
@@ -1760,7 +1897,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
 
   ED_view3d_win_to_segment_clipped(depsgraph, region, v3d, mval_f, origin, end, false);
 
-  invert_m4_m4(invmat, obedit->obmat);
+  invert_m4_m4(invmat, obedit->object_to_world);
   mul_m4_v3(invmat, origin);
 
   copy_v3_v3(co1, e->v1->co);
@@ -1844,7 +1981,7 @@ void EDBM_project_snap_verts(
                 NULL,
                 co_proj,
                 NULL)) {
-          mul_v3_m4v3(eve->co, obedit->imat, co_proj);
+          mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
       }
     }

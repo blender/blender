@@ -477,7 +477,7 @@ struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
                                        const char *name,
                                        const char *idname);
 
-/* copy/free funcs, need to manage ID users */
+/* Copy/free functions, need to manage ID users. */
 
 /**
  * Free (or release) any data used by this node-tree.
@@ -511,11 +511,6 @@ struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
-
-void ntreeGetDependencyList(struct bNodeTree *ntree,
-                            struct bNode ***r_deplist,
-                            int *r_deplist_len);
-void ntreeUpdateNodeLevels(struct bNodeTree *ntree);
 
 /**
  * XXX: old trees handle output flags automatically based on special output
@@ -572,6 +567,11 @@ struct bNodeSocket *ntreeInsertSocketInterface(struct bNodeTree *ntree,
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                       struct bNode *from_node,
                                                       struct bNodeSocket *from_sock);
+struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(struct bNodeTree *ntree,
+                                                              struct bNode *from_node,
+                                                              struct bNodeSocket *from_sock,
+                                                              const char *idname,
+                                                              const char *name);
 struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                          struct bNodeSocket *next_sock,
                                                          struct bNode *from_node,
@@ -683,6 +683,10 @@ void nodeRemoveNode(struct Main *bmain,
                     struct bNode *node,
                     bool do_id_user);
 
+void nodeDimensionsGet(const struct bNode *node, float *r_width, float *r_height);
+void nodeTagUpdateID(struct bNode *node);
+void nodeInternalLinks(struct bNode *node, struct bNodeLink ***r_links, int *r_len);
+
 #ifdef __cplusplus
 
 namespace blender::bke {
@@ -725,8 +729,8 @@ void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 void nodeToView(const struct bNode *node, float x, float y, float *rx, float *ry);
 void nodeFromView(const struct bNode *node, float x, float y, float *rx, float *ry);
 bool nodeAttachNodeCheck(const struct bNode *node, const struct bNode *parent);
-void nodeAttachNode(struct bNode *node, struct bNode *parent);
-void nodeDetachNode(struct bNode *node);
+void nodeAttachNode(struct bNodeTree *ntree, struct bNode *node, struct bNode *parent);
+void nodeDetachNode(struct bNodeTree *ntree, struct bNode *node);
 
 void nodePositionRelative(struct bNode *from_node,
                           struct bNode *to_node,
@@ -741,7 +745,14 @@ struct bNode *nodeFindNodebyName(struct bNodeTree *ntree, const char *name);
 /**
  * Finds a node based on given socket and returns true on success.
  */
-bool nodeFindNode(struct bNodeTree *ntree,
+bool nodeFindNodeTry(struct bNodeTree *ntree,
+                     struct bNodeSocket *sock,
+                     struct bNode **r_node,
+                     int *r_sockindex);
+/**
+ * Same as above but expects that the socket definitely is in the node tree.
+ */
+void nodeFindNode(struct bNodeTree *ntree,
                   struct bNodeSocket *sock,
                   struct bNode **r_node,
                   int *r_sockindex);
@@ -791,6 +802,12 @@ void nodeChainIterBackwards(const bNodeTree *ntree,
  * \note Recursive
  */
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata);
+
+/**
+ * A dangling reroute node is a reroute node that does *not* have a "data source", i.e. no
+ * non-reroute node is connected to its input.
+ */
+bool nodeIsDanglingReroute(const struct bNodeTree *ntree, const struct bNode *node);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,
                                const struct bNodeSocket *from,
@@ -843,7 +860,6 @@ void nodeSocketDeclarationsUpdate(struct bNode *node);
 /**
  * Node Clipboard.
  */
-void BKE_node_clipboard_init(const struct bNodeTree *ntree);
 void BKE_node_clipboard_clear(void);
 void BKE_node_clipboard_free(void);
 /**
@@ -854,7 +870,6 @@ void BKE_node_clipboard_add_node(struct bNode *node);
 void BKE_node_clipboard_add_link(struct bNodeLink *link);
 const struct ListBase *BKE_node_clipboard_get_nodes(void);
 const struct ListBase *BKE_node_clipboard_get_links(void);
-int BKE_node_clipboard_get_type(void);
 
 /**
  * Node Instance Hash.
@@ -960,8 +975,8 @@ void nodeLabel(const struct bNodeTree *ntree, const struct bNode *node, char *la
  */
 const char *nodeSocketLabel(const struct bNodeSocket *sock);
 
-bool nodeGroupPoll(struct bNodeTree *nodetree,
-                   struct bNodeTree *grouptree,
+bool nodeGroupPoll(const struct bNodeTree *nodetree,
+                   const struct bNodeTree *grouptree,
                    const char **r_disabled_hint);
 
 /**
@@ -977,8 +992,6 @@ void node_type_socket_templates(struct bNodeType *ntype,
                                 struct bNodeSocketTemplate *outputs);
 void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth);
 void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size);
-void node_type_init(struct bNodeType *ntype,
-                    void (*initfunc)(struct bNodeTree *ntree, struct bNode *node));
 /**
  * \warning Nodes defining a storage type _must_ allocate this for new nodes.
  * Otherwise nodes will reload as undefined (T46619).
@@ -989,17 +1002,6 @@ void node_type_storage(struct bNodeType *ntype,
                        void (*copyfunc)(struct bNodeTree *dest_ntree,
                                         struct bNode *dest_node,
                                         const struct bNode *src_node));
-void node_type_update(struct bNodeType *ntype,
-                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node));
-void node_type_group_update(struct bNodeType *ntype,
-                            void (*group_update_func)(struct bNodeTree *ntree,
-                                                      struct bNode *node));
-
-void node_type_exec(struct bNodeType *ntype,
-                    NodeInitExecFunction init_exec_fn,
-                    NodeFreeExecFunction free_exec_fn,
-                    NodeExecFunction exec_fn);
-void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn);
 
 /** \} */
 
@@ -1007,7 +1009,7 @@ void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn);
 /** \name Node Generic Functions
  * \{ */
 
-bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
+bool BKE_node_is_connected_to_output(const struct bNodeTree *ntree, const struct bNode *node);
 
 /* ************** COMMON NODES *************** */
 
@@ -1021,8 +1023,6 @@ bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node
 #define NODE_GROUP_INPUT 7
 #define NODE_GROUP_OUTPUT 8
 #define NODE_CUSTOM_GROUP 9
-
-void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
 
 /** \} */
 
@@ -1337,15 +1337,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_CHAN_RGB 1
 #define CMP_CHAN_A 2
 
-/* scale node type, in custom1 */
-#define CMP_SCALE_RELATIVE 0
-#define CMP_SCALE_ABSOLUTE 1
-#define CMP_SCALE_SCENEPERCENT 2
-#define CMP_SCALE_RENDERPERCENT 3
-/* custom2 */
-#define CMP_SCALE_RENDERSIZE_FRAME_ASPECT (1 << 0)
-#define CMP_SCALE_RENDERSIZE_FRAME_CROP (1 << 1)
-
 /* track position node, in custom1 */
 #define CMP_TRACKPOS_ABSOLUTE 0
 #define CMP_TRACKPOS_RELATIVE_START 1
@@ -1489,7 +1480,7 @@ struct TexResult;
 #define GEO_NODE_ROTATE_INSTANCES 1122
 #define GEO_NODE_SPLIT_EDGES 1123
 #define GEO_NODE_MESH_TO_CURVE 1124
-#define GEO_NODE_TRANSFER_ATTRIBUTE 1125
+#define GEO_NODE_TRANSFER_ATTRIBUTE_DEPRECATED 1125
 #define GEO_NODE_SUBDIVISION_SURFACE 1126
 #define GEO_NODE_CURVE_ENDPOINT_SELECTION 1127
 #define GEO_NODE_RAYCAST 1128
@@ -1534,6 +1525,25 @@ struct TexResult;
 #define GEO_NODE_INPUT_SHORTEST_EDGE_PATHS 1168
 #define GEO_NODE_EDGE_PATHS_TO_CURVES 1169
 #define GEO_NODE_EDGE_PATHS_TO_SELECTION 1170
+#define GEO_NODE_MESH_FACE_SET_BOUNDARIES 1171
+#define GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME 1172
+#define GEO_NODE_SELF_OBJECT 1173
+#define GEO_NODE_SAMPLE_INDEX 1174
+#define GEO_NODE_SAMPLE_NEAREST 1175
+#define GEO_NODE_SAMPLE_NEAREST_SURFACE 1176
+#define GEO_NODE_OFFSET_POINT_IN_CURVE 1177
+#define GEO_NODE_CURVE_TOPOLOGY_CURVE_OF_POINT 1178
+#define GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE 1179
+#define GEO_NODE_MESH_TOPOLOGY_OFFSET_CORNER_IN_FACE 1180
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_FACE 1181
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_VERTEX 1182
+#define GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER 1183
+#define GEO_NODE_MESH_TOPOLOGY_EDGES_OF_VERTEX 1184
+#define GEO_NODE_MESH_TOPOLOGY_FACE_OF_CORNER 1185
+#define GEO_NODE_MESH_TOPOLOGY_VERTEX_OF_CORNER 1186
+#define GEO_NODE_SAMPLE_UV_SURFACE 1187
+#define GEO_NODE_SET_CURVE_NORMAL 1188
+#define GEO_NODE_IMAGE_INFO 1189
 
 /** \} */
 

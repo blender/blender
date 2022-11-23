@@ -27,7 +27,7 @@ else()
 endif()
 
 # This builds `bin/tests/blender_test`, but does not add it as a single test.
-BLENDER_SRC_GTEST_EX(
+blender_src_gtest_ex(
   NAME blender
   SRC "${SRC}"
   EXTRA_LIBS "${TEST_LIBS}"

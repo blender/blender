@@ -78,24 +78,4 @@ class DenoiseParams : public Node {
   }
 };
 
-/* All the parameters needed to perform buffer denoising on a device.
- * Is not really a task in its canonical terms (as in, is not an asynchronous running task). Is
- * more like a wrapper for all the arguments and parameters needed to perform denoising. Is a
- * single place where they are all listed, so that it's not required to modify all device methods
- * when these parameters do change. */
-class DeviceDenoiseTask {
- public:
-  DenoiseParams params;
-
-  int num_samples;
-
-  RenderBuffers *render_buffers;
-  BufferParams buffer_params;
-
-  /* Allow to do in-place modification of the input passes (scaling them down i.e.). This will
-   * lower the memory footprint of the denoiser but will make input passes "invalid" (from path
-   * tracer) point of view. */
-  bool allow_inplace_modification;
-};
-
 CCL_NAMESPACE_END

@@ -55,8 +55,10 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_CAMERA) {
@@ -72,7 +74,9 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
 
 static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   float dir[3];
 
@@ -81,7 +85,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
   struct CameraWidgetGroup *cagzgroup = MEM_callocN(sizeof(struct CameraWidgetGroup), __func__);
   gzgroup->customdata = cagzgroup;
 
-  negate_v3_v3(dir, ob->obmat[2]);
+  negate_v3_v3(dir, ob->object_to_world[2]);
 
   /* dof distance */
   {
@@ -124,7 +128,9 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   struct CameraWidgetGroup *cagzgroup = gzgroup->customdata;
   View3D *v3d = CTX_wm_view3d(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Camera *ca = ob->data;
   PointerRNA camera_ptr;
@@ -132,11 +138,11 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   RNA_pointer_create(&ca->id, &RNA_Camera, ca, &camera_ptr);
 
-  negate_v3_v3(dir, ob->obmat[2]);
+  negate_v3_v3(dir, ob->object_to_world[2]);
 
   if ((ca->flag & CAM_SHOWLIMITS) && (v3d->gizmo_show_camera & V3D_GIZMO_SHOW_CAMERA_DOF_DIST)) {
-    WM_gizmo_set_matrix_location(cagzgroup->dop_dist, ob->obmat[3]);
-    WM_gizmo_set_matrix_rotation_from_yz_axis(cagzgroup->dop_dist, ob->obmat[1], dir);
+    WM_gizmo_set_matrix_location(cagzgroup->dop_dist, ob->object_to_world[3]);
+    WM_gizmo_set_matrix_rotation_from_yz_axis(cagzgroup->dop_dist, ob->object_to_world[1], dir);
     WM_gizmo_set_scale(cagzgroup->dop_dist, ca->drawsize);
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, false);
 
@@ -151,7 +157,6 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   /* TODO: make focal length/ortho ob_scale_inv widget optional. */
-  const Scene *scene = CTX_data_scene(C);
   const float aspx = (float)scene->r.xsch * scene->r.xasp;
   const float aspy = (float)scene->r.ysch * scene->r.yasp;
   const bool is_ortho = (ca->type == CAM_ORTHO);
@@ -178,17 +183,17 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     aspect[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
     unit_m4(widget->matrix_basis);
-    WM_gizmo_set_matrix_location(widget, ob->obmat[3]);
-    WM_gizmo_set_matrix_rotation_from_yz_axis(widget, ob->obmat[1], dir);
+    WM_gizmo_set_matrix_location(widget, ob->object_to_world[3]);
+    WM_gizmo_set_matrix_rotation_from_yz_axis(widget, ob->object_to_world[1], dir);
 
     if (is_ortho) {
       scale_matrix = ca->ortho_scale * 0.5f;
     }
     else {
       const float ob_scale_inv[3] = {
-          1.0f / len_v3(ob->obmat[0]),
-          1.0f / len_v3(ob->obmat[1]),
-          1.0f / len_v3(ob->obmat[2]),
+          1.0f / len_v3(ob->object_to_world[0]),
+          1.0f / len_v3(ob->object_to_world[1]),
+          1.0f / len_v3(ob->object_to_world[2]),
       };
       const float ob_scale_uniform_inv = (ob_scale_inv[0] + ob_scale_inv[1] + ob_scale_inv[2]) /
                                          3.0f;
@@ -241,7 +246,9 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
                                                  struct wmMsgBus *mbus)
 {
   ARegion *region = CTX_wm_region(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Camera *ca = ob->data;
 
@@ -370,6 +377,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
    * We could change the rules for when to show. */
   {
     ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     if (scene->camera != BKE_view_layer_active_object_get(view_layer)) {
       return false;
     }

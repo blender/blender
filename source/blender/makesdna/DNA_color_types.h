@@ -21,6 +21,9 @@ extern "C" {
 
 #define CM_TOT 4
 
+#define GPU_SKY_WIDTH 512
+#define GPU_SKY_HEIGHT 128
+
 typedef struct CurveMapPoint {
   float x, y;
   /** Shorty for result lookup. */
@@ -32,6 +35,8 @@ enum {
   CUMA_SELECT = (1 << 0),
   CUMA_HANDLE_VECTOR = (1 << 1),
   CUMA_HANDLE_AUTO_ANIM = (1 << 2),
+  /** Temporary tag for point deletion. */
+  CUMA_REMOVE = (1 << 3),
 };
 
 typedef struct CurveMap {

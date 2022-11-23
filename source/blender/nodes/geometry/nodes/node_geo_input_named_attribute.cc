@@ -20,14 +20,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Attribute"), "Attribute_Color").field_source();
   b.add_output<decl::Bool>(N_("Attribute"), "Attribute_Bool").field_source();
   b.add_output<decl::Int>(N_("Attribute"), "Attribute_Int").field_source();
+
+  b.add_output<decl::Bool>(N_("Exists")).field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryInputNamedAttribute *data = MEM_cnew<NodeGeometryInputNamedAttribute>(__func__);
   data->data_type = CD_PROP_FLOAT;
@@ -37,9 +39,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_vector = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *socket_vector = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *socket_float = socket_vector->next;
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
@@ -57,24 +59,56 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs());
 
+  const bNodeType &node_type = params.node_type();
   if (params.in_out() == SOCK_OUT) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-        static_cast<eNodeSocketDatatype>(params.other_socket().type));
+        eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
-      params.add_item(IFACE_("Attribute"), [type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeInputNamedAttribute");
+      params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
         node_storage(node).data_type = *type;
         params.update_and_connect_available_socket(node, "Attribute");
+      });
+      params.add_item(IFACE_("Exists"), [node_type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        params.update_and_connect_available_socket(node, "Exists");
       });
     }
   }
 }
 
+class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
+ private:
+  std::string name_;
+
+ public:
+  AttributeExistsFieldInput(std::string name, const CPPType &type)
+      : GeometryFieldInput(type, name), name_(std::move(name))
+  {
+    category_ = Category::Generated;
+  }
+
+  static Field<bool> Create(std::string name)
+  {
+    const CPPType &type = CPPType::get<bool>();
+    auto field_input = std::make_shared<AttributeExistsFieldInput>(std::move(name), type);
+    return Field<bool>(field_input);
+  }
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask /*mask*/) const final
+  {
+    const bool exists = context.attributes()->contains(name_);
+    const int domain_size = context.attributes()->domain_size(context.domain());
+    return VArray<bool>::ForSingle(exists, domain_size);
+  }
+};
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
   const std::string name = params.extract_input<std::string>("Name");
 
@@ -88,28 +122,29 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, eNamedAttrUsage::Read);
+  params.used_named_attribute(name, NamedAttributeUsage::Read);
 
   switch (data_type) {
     case CD_PROP_FLOAT:
-      params.set_output("Attribute_Float", AttributeFieldInput::Create<float>(std::move(name)));
+      params.set_output("Attribute_Float", AttributeFieldInput::Create<float>(name));
       break;
     case CD_PROP_FLOAT3:
-      params.set_output("Attribute_Vector", AttributeFieldInput::Create<float3>(std::move(name)));
+      params.set_output("Attribute_Vector", AttributeFieldInput::Create<float3>(name));
       break;
     case CD_PROP_COLOR:
-      params.set_output("Attribute_Color",
-                        AttributeFieldInput::Create<ColorGeometry4f>(std::move(name)));
+      params.set_output("Attribute_Color", AttributeFieldInput::Create<ColorGeometry4f>(name));
       break;
     case CD_PROP_BOOL:
-      params.set_output("Attribute_Bool", AttributeFieldInput::Create<bool>(std::move(name)));
+      params.set_output("Attribute_Bool", AttributeFieldInput::Create<bool>(name));
       break;
     case CD_PROP_INT32:
-      params.set_output("Attribute_Int", AttributeFieldInput::Create<int>(std::move(name)));
+      params.set_output("Attribute_Int", AttributeFieldInput::Create<int>(name));
       break;
     default:
       break;
   }
+
+  params.set_output("Exists", AttributeExistsFieldInput::Create(std::move(name)));
 }
 
 }  // namespace blender::nodes::node_geo_input_named_attribute_cc
@@ -126,7 +161,7 @@ void register_node_type_geo_input_named_attribute()
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.updatefunc = file_ns::node_update;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometryInputNamedAttribute",
                     node_free_standard_storage,

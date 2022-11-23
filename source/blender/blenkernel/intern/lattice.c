@@ -190,7 +190,7 @@ IDTypeInfo IDType_ID_LT = {
     .foreach_id = lattice_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = lattice_blend_write,
     .blend_read_data = lattice_blend_read_data,
@@ -245,7 +245,7 @@ int BKE_lattice_index_flip(
 void BKE_lattice_bitmap_from_flag(
     Lattice *lt, BLI_bitmap *bitmap, const uint8_t flag, const bool clear, const bool respecthide)
 {
-  const unsigned int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+  const uint tot = lt->pntsu * lt->pntsv * lt->pntsw;
   BPoint *bp;
 
   bp = lt->def;
@@ -355,10 +355,10 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
       BKE_displist_free(&ltOb->runtime.curve_cache->disp);
     }
 
-    copy_m4_m4(mat, ltOb->obmat);
-    unit_m4(ltOb->obmat);
+    copy_m4_m4(mat, ltOb->object_to_world);
+    unit_m4(ltOb->object_to_world);
     BKE_lattice_deform_coords(ltOb, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
-    copy_m4_m4(ltOb->obmat, mat);
+    copy_m4_m4(ltOb->object_to_world, mat);
 
     lt->typeu = typeu;
     lt->typev = typev;

@@ -39,12 +39,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveLine *data = MEM_cnew<NodeGeometryCurvePrimitiveLine>(__func__);
 
@@ -57,7 +57,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
   const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
-  bNodeSocket *p2_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *p2_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *direction_socket = p2_socket->next;
   bNodeSocket *length_socket = direction_socket->next;
 
@@ -119,8 +119,8 @@ void register_node_type_geo_curve_primitive_line()
 
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,

@@ -171,7 +171,7 @@ static void seq_sequence_free_ex(Scene *scene,
   }
 
   if (seq->sound && do_id_user) {
-    id_us_min(((ID *)seq->sound));
+    id_us_min((ID *)seq->sound);
   }
 
   if (seq->stereo3d_format) {

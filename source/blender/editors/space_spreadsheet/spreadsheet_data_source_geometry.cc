@@ -4,11 +4,13 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_global.h"
+#include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -26,7 +28,8 @@
 #include "ED_curves_sculpt.h"
 #include "ED_spreadsheet.h"
 
-#include "NOD_geometry_nodes_eval_log.hh"
+#include "NOD_geometry_nodes_lazy_function.hh"
+#include "NOD_geometry_nodes_log.hh"
 
 #include "BLT_translation.h"
 
@@ -40,8 +43,7 @@
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 
-namespace geo_log = blender::nodes::geometry_nodes_eval_log;
-using blender::fn::GField;
+using blender::nodes::geo_eval_log::ViewerNodeLog;
 
 namespace blender::ed::spreadsheet {
 
@@ -96,7 +98,8 @@ void GeometryDataSource::foreach_default_column_ids(
         }
         SpreadsheetColumnID column_id;
         column_id.name = (char *)attribute_id.name().data();
-        fn(column_id, false);
+        const bool is_front = attribute_id.name() == ".viewer";
+        fn(column_id, is_front);
         return true;
       });
 
@@ -140,29 +143,31 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   }
 
   if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
-    const InstancesComponent &instances = static_cast<const InstancesComponent &>(*component_);
-    if (STREQ(column_id.name, "Name")) {
-      Span<int> reference_handles = instances.instance_reference_handles();
-      Span<InstanceReference> references = instances.references();
-      return std::make_unique<ColumnValues>(
-          column_id.name,
-          VArray<InstanceReference>::ForFunc(domain_num,
-                                             [reference_handles, references](int64_t index) {
-                                               return references[reference_handles[index]];
-                                             }));
-    }
-    Span<float4x4> transforms = instances.instance_transforms();
-    if (STREQ(column_id.name, "Rotation")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].to_euler();
-          }));
-    }
-    if (STREQ(column_id.name, "Scale")) {
-      return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-            return transforms[index].scale();
-          }));
+    if (const bke::Instances *instances =
+            static_cast<const InstancesComponent &>(*component_).get_for_read()) {
+      if (STREQ(column_id.name, "Name")) {
+        Span<int> reference_handles = instances->reference_handles();
+        Span<bke::InstanceReference> references = instances->references();
+        return std::make_unique<ColumnValues>(
+            column_id.name,
+            VArray<bke::InstanceReference>::ForFunc(
+                domain_num, [reference_handles, references](int64_t index) {
+                  return references[reference_handles[index]];
+                }));
+      }
+      Span<float4x4> transforms = instances->transforms();
+      if (STREQ(column_id.name, "Rotation")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].to_euler();
+            }));
+      }
+      if (STREQ(column_id.name, "Scale")) {
+        return std::make_unique<ColumnValues>(
+            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+              return transforms[index].scale();
+            }));
+      }
     }
   }
   else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
@@ -226,7 +231,12 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     return {};
   }
 
-  return std::make_unique<ColumnValues>(column_id.name, std::move(varray));
+  StringRefNull column_display_name = column_id.name;
+  if (column_display_name == ".viewer") {
+    column_display_name = "Viewer";
+  }
+
+  return std::make_unique<ColumnValues>(column_display_name, std::move(varray));
 }
 
 int GeometryDataSource::tot_rows() const
@@ -269,6 +279,9 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
 {
   std::lock_guard lock{mutex_};
   const IndexMask full_range(this->tot_rows());
+  if (full_range.is_empty()) {
+    return full_range;
+  }
 
   switch (component_->type()) {
     case GEO_COMPONENT_TYPE_MESH: {
@@ -458,129 +471,22 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
       mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
     }
     else {
-      if (BLI_listbase_count(&sspreadsheet->context_path) == 1) {
+      if (BLI_listbase_count(&sspreadsheet->viewer_path.path) == 1) {
         /* Use final evaluated object. */
         if (object_eval->runtime.geometry_set_eval != nullptr) {
           geometry_set = *object_eval->runtime.geometry_set_eval;
         }
       }
       else {
-        const geo_log::NodeLog *node_log =
-            geo_log::ModifierLog::find_node_by_spreadsheet_editor_context(*sspreadsheet);
-        if (node_log != nullptr) {
-          for (const geo_log::SocketLog &input_log : node_log->input_logs()) {
-            if (const geo_log::GeometryValueLog *geo_value_log =
-                    dynamic_cast<const geo_log::GeometryValueLog *>(input_log.value())) {
-              const GeometrySet *full_geometry = geo_value_log->full_geometry();
-              if (full_geometry != nullptr) {
-                geometry_set = *full_geometry;
-                break;
-              }
-            }
-          }
+        if (const ViewerNodeLog *viewer_log =
+                nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_path(
+                    sspreadsheet->viewer_path)) {
+          geometry_set = viewer_log->geometry;
         }
       }
     }
   }
   return geometry_set;
-}
-
-static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
-                                    Map<std::string, GField> &r_fields)
-{
-  if (sspreadsheet->object_eval_state != SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
-    return;
-  }
-  if (BLI_listbase_count(&sspreadsheet->context_path) <= 1) {
-    /* No viewer is currently referenced by the context path. */
-    return;
-  }
-  const geo_log::NodeLog *node_log = geo_log::ModifierLog::find_node_by_spreadsheet_editor_context(
-      *sspreadsheet);
-  if (node_log == nullptr) {
-    return;
-  }
-  for (const geo_log::SocketLog &socket_log : node_log->input_logs()) {
-    const geo_log::ValueLog *value_log = socket_log.value();
-    if (value_log == nullptr) {
-      continue;
-    }
-    if (const geo_log::GFieldValueLog *field_value_log =
-            dynamic_cast<const geo_log::GFieldValueLog *>(value_log)) {
-      const GField &field = field_value_log->field();
-      if (field) {
-        r_fields.add("Viewer", std::move(field));
-      }
-    }
-    if (const geo_log::GenericValueLog *generic_value_log =
-            dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
-      GPointer value = generic_value_log->value();
-      r_fields.add("Viewer", fn::make_constant_field(*value.type(), value.get()));
-    }
-  }
-}
-
-class GeometryComponentCacheKey : public SpreadsheetCache::Key {
- public:
-  /* Use the pointer to the geometry component as a key to detect when the geometry changed. */
-  const GeometryComponent *component;
-
-  GeometryComponentCacheKey(const GeometryComponent &component) : component(&component)
-  {
-  }
-
-  uint64_t hash() const override
-  {
-    return get_default_hash(this->component);
-  }
-
-  bool is_equal_to(const Key &other) const override
-  {
-    if (const GeometryComponentCacheKey *other_geo =
-            dynamic_cast<const GeometryComponentCacheKey *>(&other)) {
-      return this->component == other_geo->component;
-    }
-    return false;
-  }
-};
-
-class GeometryComponentCacheValue : public SpreadsheetCache::Value {
- public:
-  /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
-   * to be reevaluated on every redraw. */
-  Map<std::pair<eAttrDomain, GField>, GArray<>> arrays;
-};
-
-static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
-                                        const GeometryComponent &component,
-                                        ExtraColumns &r_extra_columns)
-{
-  Map<std::string, GField> fields_to_show;
-  find_fields_to_evaluate(sspreadsheet, fields_to_show);
-
-  GeometryComponentCacheValue &cache =
-      sspreadsheet->runtime->cache.lookup_or_add<GeometryComponentCacheValue>(
-          std::make_unique<GeometryComponentCacheKey>(component));
-
-  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const int domain_num = component.attribute_domain_size(domain);
-  for (const auto item : fields_to_show.items()) {
-    const StringRef name = item.key;
-    const GField &field = item.value;
-
-    /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
-    GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
-      GArray<> evaluated_array(field.cpp_type(), domain_num);
-
-      bke::GeometryFieldContext field_context{component, domain};
-      fn::FieldEvaluator field_evaluator{field_context, domain_num};
-      field_evaluator.add_with_destination(field, evaluated_array);
-      field_evaluator.evaluate();
-      return evaluated_array;
-    });
-
-    r_extra_columns.add(name, evaluated_array.as_span());
-  }
 }
 
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
@@ -594,15 +500,11 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
     return {};
   }
 
-  const GeometryComponent &component = *geometry_set.get_component_for_read(component_type);
-  ExtraColumns extra_columns;
-  add_fields_as_extra_columns(sspreadsheet, component, extra_columns);
-
   if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(
-      object_eval, std::move(geometry_set), component_type, domain, std::move(extra_columns));
+      object_eval, std::move(geometry_set), component_type, domain);
 }
 
 }  // namespace blender::ed::spreadsheet

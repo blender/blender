@@ -65,6 +65,8 @@ struct FieldInferencingInterface {
   Vector<OutputFieldDependency> outputs;
 };
 
+using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
@@ -92,12 +94,20 @@ class SocketDeclaration {
    * realtime_compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
 
+  /** This input shouldn't be realized on the operation domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  bool compositor_skip_realization_ = false;
+
   /** This input expects a single value and can't operate on non-single values. See
    * realtime_compositor::InputDescriptor for more information. */
   bool compositor_expects_single_value_ = false;
 
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
+
+  /** Some input sockets can have non-trivial values in the case when they are unlinked. This
+   * callback computes the default input of a values in geometry nodes when nothing is linked. */
+  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn_;
 
   friend NodeDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
@@ -133,7 +143,13 @@ class SocketDeclaration {
   const OutputFieldDependency &output_field_dependency() const;
 
   int compositor_domain_priority() const;
+  bool compositor_skip_realization() const;
   bool compositor_expects_single_value() const;
+
+  const ImplicitInputValueFn *implicit_input_fn() const
+  {
+    return implicit_input_fn_.get();
+  }
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -220,10 +236,11 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   }
 
   /** The input supports a field and is a field by default when nothing is connected. */
-  Self &implicit_field()
+  Self &implicit_field(ImplicitInputValueFn fn)
   {
     this->hide_value();
     decl_->input_field_type_ = InputSocketFieldType::Implicit;
+    decl_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
     return *(Self *)this;
   }
 
@@ -254,6 +271,14 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &compositor_domain_priority(int priority)
   {
     decl_->compositor_domain_priority_ = priority;
+    return *(Self *)this;
+  }
+
+  /** This input shouldn't be realized on the operation domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  Self &compositor_skip_realization(bool value = true)
+  {
+    decl_->compositor_skip_realization_ = value;
     return *(Self *)this;
   }
 
@@ -334,6 +359,13 @@ class NodeDeclarationBuilder {
                                          StringRef identifier,
                                          eNodeSocketInOut in_out);
 };
+
+namespace implicit_field_inputs {
+void position(const bNode &node, void *r_value);
+void normal(const bNode &node, void *r_value);
+void index(const bNode &node, void *r_value);
+void id_or_index(const bNode &node, void *r_value);
+}  // namespace implicit_field_inputs
 
 /* -------------------------------------------------------------------- */
 /** \name #OutputFieldDependency Inline Methods
@@ -458,6 +490,11 @@ inline const OutputFieldDependency &SocketDeclaration::output_field_dependency()
 inline int SocketDeclaration::compositor_domain_priority() const
 {
   return compositor_domain_priority_;
+}
+
+inline bool SocketDeclaration::compositor_skip_realization() const
+{
+  return compositor_skip_realization_;
 }
 
 inline bool SocketDeclaration::compositor_expects_single_value() const

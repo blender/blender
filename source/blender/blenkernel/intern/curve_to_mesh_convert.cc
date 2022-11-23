@@ -46,14 +46,12 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[edge_offset + i];
       edge.v1 = vert_offset + i;
       edge.v2 = vert_offset + i + 1;
-      edge.flag = ME_LOOSEEDGE;
     }
 
     if (main_cyclic && main_segment_num > 1) {
       MEdge &edge = edges[edge_offset + main_segment_num - 1];
       edge.v1 = vert_offset + main_point_num - 1;
       edge.v2 = vert_offset;
-      edge.flag = ME_LOOSEEDGE;
     }
     return;
   }
@@ -71,7 +69,7 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[profile_edge_offset + i_ring];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = next_ring_vert_offset + i_profile;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -87,7 +85,7 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[ring_edge_offset + i_profile];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = ring_vert_offset + i_next_profile;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -332,7 +330,8 @@ static eAttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_a
 
 static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attributes,
                                          const AttributeAccessor &mesh_attributes,
-                                         const AttributeIDRef &id)
+                                         const AttributeIDRef &id,
+                                         const AttributeMetaData &meta_data)
 {
 
   /* The position attribute has special non-generic evaluation. */
@@ -344,6 +343,9 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
     return false;
   }
   if (!id.should_be_kept()) {
+    return false;
+  }
+  if (meta_data.data_type == CD_PROP_STRING) {
     return false;
   }
   return true;
@@ -714,7 +716,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   MutableAttributeAccessor mesh_attributes = mesh->attributes_for_write();
 
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
-    if (!should_add_attribute_to_mesh(main_attributes, mesh_attributes, id)) {
+    if (!should_add_attribute_to_mesh(main_attributes, mesh_attributes, id, meta_data)) {
       return true;
     }
     main_attributes_set.add_new(id);
@@ -751,7 +753,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     if (main_attributes.contains(id)) {
       return true;
     }
-    if (!should_add_attribute_to_mesh(profile_attributes, mesh_attributes, id)) {
+    if (!should_add_attribute_to_mesh(profile_attributes, mesh_attributes, id, meta_data)) {
       return true;
     }
     const eAttrDomain src_domain = meta_data.domain;

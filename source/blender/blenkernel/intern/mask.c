@@ -249,7 +249,7 @@ IDTypeInfo IDType_ID_MSK = {
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = mask_blend_write,
     .blend_read_data = mask_blend_read_data,
@@ -308,7 +308,7 @@ BezTriple *BKE_mask_spline_point_next_bezt(MaskSpline *spline,
     return NULL;
   }
 
-  return &((point + 1))->bezt;
+  return &(point + 1)->bezt;
 }
 
 MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
@@ -1298,8 +1298,8 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
         BKE_movieclip_user_set_frame(&user, ctime);
 
         if (parent->type == MASK_PARENT_POINT_TRACK) {
-          MovieTrackingTrack *track = BKE_tracking_track_get_named(
-              tracking, ob, parent->sub_parent);
+          MovieTrackingTrack *track = BKE_tracking_object_find_track_with_name(ob,
+                                                                               parent->sub_parent);
 
           if (track) {
             float marker_position[2], parent_co[2];
@@ -1309,8 +1309,8 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
           }
         }
         else /* if (parent->type == MASK_PARENT_PLANE_TRACK) */ {
-          MovieTrackingPlaneTrack *plane_track = BKE_tracking_plane_track_get_named(
-              tracking, ob, parent->sub_parent);
+          MovieTrackingPlaneTrack *plane_track = BKE_tracking_object_find_plane_track_with_name(
+              ob, parent->sub_parent);
 
           if (plane_track) {
             float corners[4][2];
@@ -1579,7 +1579,7 @@ void BKE_mask_parent_init(MaskParent *parent)
   parent->id_type = ID_MC;
 }
 
-/* *** own animation/shapekey implementation ***
+/* *** own animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

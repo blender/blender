@@ -235,7 +235,7 @@ static bool brush_draw_apply(tGP_BrushWeightpaintData *gso,
   if (gso->vrgroup == -1) {
     if (gso->object) {
       Object *ob_armature = BKE_modifiers_is_deformed_by_armature(gso->object);
-      if ((ob_armature != NULL)) {
+      if (ob_armature != NULL) {
         Bone *actbone = ((bArmature *)ob_armature->data)->act_bone;
         if (actbone != NULL) {
           bPoseChannel *pchan = BKE_pose_channel_find_name(ob_armature->pose, actbone->name);
@@ -413,12 +413,12 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gpencil_point_to_world_space(gps->points, diff_mat, &pt_temp);
     gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
     /* Do bound-box check first. */
-    if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
+    if (!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
       /* only check if point is inside */
       int mval_i[2];
       round_v2i_v2fl(mval_i, gso->mval);
@@ -440,15 +440,15 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
       pt2 = gps->points + i + 1;
 
       bGPDspoint npt;
-      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_world_space(pt1, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_world_space(pt2, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the bound-box of the selection stroke */
-      if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
-          ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
+      if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
+          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
         /* Check if point segment of stroke had anything to do with
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that line-width is irrelevant.
@@ -579,7 +579,7 @@ static bool gpencil_weightpaint_brush_apply_to_layers(bContext *C, tGP_BrushWeig
   /* Find visible strokes, and perform operations on those if hit */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* If locked or no active frame, don't do anything. */
-    if ((!BKE_gpencil_layer_is_editable(gpl)) || (gpl->actframe == NULL)) {
+    if (!BKE_gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
       continue;
     }
 

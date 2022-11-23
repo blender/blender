@@ -254,6 +254,10 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
       break;
   }
 
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
+  global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
+
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
@@ -292,15 +296,20 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   }
 
   source = global_defines + source;
+#  if 0
   metal_printf("================\n%s================\n\%s================\n",
                global_defines.c_str(),
                baked_constants.c_str());
+#  endif
 
   /* Generate an MD5 from the source and include any baked constants. This is used when caching
    * PSOs. */
   MD5Hash md5;
   md5.append(baked_constants);
   md5.append(source);
+  if (use_metalrt) {
+    md5.append(std::to_string(kernel_features & METALRT_FEATURE_MASK));
+  }
   source_md5[pso_type] = md5.get_hex();
 }
 
@@ -334,6 +343,14 @@ bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
   }
 
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
+
+#  if defined(MAC_OS_VERSION_13_0)
+  if (@available(macos 13.0, *)) {
+    if (device_vendor == METAL_GPU_INTEL) {
+      [options setOptimizationLevel:MTLLibraryOptimizationLevelSize];
+    }
+  }
+#  endif
 
   options.fastMathEnabled = YES;
   if (@available(macOS 12.0, *)) {

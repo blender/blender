@@ -145,7 +145,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
     name = "untitled";
   }
 
-  BLI_join_dirfile(tempfile, sizeof(tempfile), BKE_tempdir_session(), name);
+  BLI_path_join(tempfile, sizeof(tempfile), BKE_tempdir_session(), name);
 
   if (extension) {
     BLI_path_extension_ensure(tempfile, FILE_MAX, extension);

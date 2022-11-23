@@ -241,6 +241,17 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   return n;
 }
 
+int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
+{
+  va_list arg;
+
+  va_start(arg, format);
+  const int result = vsprintf(str, format, arg);
+  va_end(arg);
+
+  return result;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -314,7 +325,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
       break;
     }
     char c = *src;
-    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -329,7 +340,7 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
   size_t len = 0;
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
-    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -1114,17 +1125,17 @@ static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_
 size_t BLI_str_format_int_grouped(char dst[16], int num)
 {
   char src[16];
-  int num_len = sprintf(src, "%d", num);
+  const int num_len = BLI_snprintf(src, sizeof(src), "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
 {
-  /* NOTE: Buffer to hold maximum unsigned int64, which is 1.8e+19. but
+  /* NOTE: Buffer to hold maximum `uint64`, which is 1.8e+19. but
    * we also need space for commas and null-terminator. */
   char src[27];
-  int num_len = sprintf(src, "%" PRIu64 "", num);
+  const int num_len = BLI_snprintf(src, sizeof(src), "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1174,6 +1185,36 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
     decimals = 1;
   }
   BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
+}
+
+void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
+{
+  float number_to_format_converted = number_to_format;
+  int order = 0;
+  const float base = 1000;
+  const char *units[] = {"", "K", "M", "B"};
+  const int units_num = ARRAY_SIZE(units);
+
+  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {
+    number_to_format_converted /= base;
+    order++;
+  }
+
+  const bool add_dot = (abs(number_to_format) > 99999) && fabsf(number_to_format_converted) > 99;
+
+  if (add_dot) {
+    number_to_format_converted /= 100;
+    order++;
+  }
+
+  const size_t dst_len = 5;
+  BLI_snprintf(dst,
+               dst_len,
+               "%s%s%d%s",
+               number_to_format < 0 ? "-" : "",
+               add_dot ? "." : "",
+               (int)floorf(fabsf(number_to_format_converted)),
+               units[order]);
 }
 
 /** \} */

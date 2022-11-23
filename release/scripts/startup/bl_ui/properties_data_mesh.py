@@ -3,8 +3,10 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
-from bpy.app.translations import pgettext_tip as tip_
-
+from bpy.app.translations import (
+    pgettext_tip as iface_,
+    pgettext_tip as tip_,
+)
 
 class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
@@ -81,6 +83,7 @@ class MESH_MT_color_attribute_context_menu(Menu):
             "geometry.color_attribute_duplicate",
             icon='DUPLICATE',
         )
+        layout.operator("geometry.color_attribute_convert")
 
 
 class MESH_MT_attribute_context_menu(Menu):
@@ -493,13 +496,25 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
-        col = layout.column(heading="Store")
+        if me.has_bevel_weight_edge:
+            col.operator("mesh.customdata_bevel_weight_edge_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_bevel_weight_edge_add", icon='ADD')
 
-        col.enabled = obj is not None and obj.mode != 'EDIT'
-        col.prop(me, "use_customdata_vertex_bevel", text="Vertex Bevel Weight")
-        col.prop(me, "use_customdata_edge_bevel", text="Edge Bevel Weight")
-        col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
-        col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
+        if me.has_bevel_weight_vertex:
+            col.operator("mesh.customdata_bevel_weight_vertex_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_bevel_weight_vertex_add", icon='ADD')
+
+        if me.has_crease_edge:
+            col.operator("mesh.customdata_crease_edge_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_crease_edge_add", icon='ADD')
+
+        if me.has_crease_vertex:
+            col.operator("mesh.customdata_crease_vertex_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_crease_vertex_add", icon='ADD')
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
@@ -537,7 +552,8 @@ class MESH_UL_attributes(UIList):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
 
 class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
@@ -574,7 +590,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
     def draw_attribute_warnings(self, context, layout):
         ob = context.object
-        mesh = ob.data
+        mesh = context.mesh
 
         unique_names = set()
         colliding_names = []
@@ -583,8 +599,11 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
                 {"position": None, "shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
                 mesh.uv_layers,
-                ob.vertex_groups,
+                None if ob is None else ob.vertex_groups,
         ):
+            if collection is None:
+                colliding_names.append("Cannot check for object vertex groups when pinning mesh")
+                continue
             for name in collection.keys():
                 unique_names_len = len(unique_names)
                 unique_names.add(name)
@@ -635,7 +654,8 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
         active_render = _index == data.color_attributes.render_color_index
 

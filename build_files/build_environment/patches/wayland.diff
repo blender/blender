@@ -1,0 +1,11 @@
+--- meson.build.orig	2022-06-30 22:59:11.000000000 +0100
++++ meson.build	2022-09-27 13:21:26.428517668 +0100
+@@ -2,7 +2,7 @@
+ 	'wayland', 'c',
+ 	version: '1.21.0',
+ 	license: 'MIT',
+-	meson_version: '>= 0.56.0',
++	meson_version: '>= 0.55.1',
+ 	default_options: [
+ 		'warning_level=2',
+ 		'buildtype=debugoptimized',

@@ -29,7 +29,7 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_bokehimage(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBokehImage *data = MEM_cnew<NodeBokehImage>(__func__);
   data->angle = 0.0f;
@@ -40,7 +40,7 @@ static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_bokehimage(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "flaps", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
@@ -122,7 +122,7 @@ void register_node_type_cmp_bokehimage()
   ntype.declare = file_ns::cmp_node_bokehimage_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehimage;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_bokehimage);
+  ntype.initfunc = file_ns::node_composit_init_bokehimage;
   node_type_storage(
       &ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

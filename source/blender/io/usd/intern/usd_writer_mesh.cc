@@ -4,6 +4,7 @@
 #include "usd_hierarchy_iterator.h"
 
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -107,6 +108,8 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI(usd_mesh.GetPrim());
+
   const CustomData *ldata = &mesh->ldata;
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
@@ -119,7 +122,7 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
      * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
      * is the "standard" one. */
     pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
-    pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
+    pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
     MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
@@ -283,25 +286,22 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  const float factor = 1.0f / 255.0f;
+  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->edata, CD_CREASE));
+  if (!creases) {
+    return;
+  }
 
   const Span<MEdge> edges = mesh->edges();
-  float sharpness;
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if (edge.crease == 0) {
+    const float crease = creases[i];
+    if (crease == 0.0f) {
       continue;
     }
 
-    if (edge.crease == 255) {
-      sharpness = pxr::UsdGeomMesh::SHARPNESS_INFINITE;
-    }
-    else {
-      sharpness = static_cast<float>(edge.crease) * factor;
-    }
+    const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
 
-    usd_mesh_data.crease_vertex_indices.push_back(edge.v1);
-    usd_mesh_data.crease_vertex_indices.push_back(edge.v2);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v1);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v2);
     usd_mesh_data.crease_lengths.push_back(2);
     usd_mesh_data.crease_sharpnesses.push_back(sharpness);
   }

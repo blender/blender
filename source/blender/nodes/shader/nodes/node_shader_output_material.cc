@@ -16,10 +16,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static int node_shader_gpu_output_material(GPUMaterial *mat,
-                                           bNode *UNUSED(node),
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNode * /*node*/,
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
-                                           GPUNodeStack *UNUSED(out))
+                                           GPUNodeStack * /*out*/)
 {
   GPUNodeLink *outlink_surface, *outlink_volume, *outlink_displacement, *outlink_thickness;
   /* Passthrough node in order to do the right socket conversions (important for displacement). */
@@ -53,7 +53,7 @@ void register_node_type_sh_output_material()
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_output_material);
+  ntype.gpu_fn = file_ns::node_shader_gpu_output_material;
 
   ntype.no_muting = true;
 

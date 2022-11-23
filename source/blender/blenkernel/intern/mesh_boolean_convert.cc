@@ -114,7 +114,7 @@ class MeshesToIMeshInfo {
  * input `Mesh` that contained the `MVert` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_vert(int imesh_v) const
 {
-  int n = static_cast<int>(mesh_vert_offset.size());
+  int n = int(mesh_vert_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_v < mesh_vert_offset[i + 1]) {
       return i;
@@ -127,7 +127,7 @@ int MeshesToIMeshInfo::input_mesh_for_imesh_vert(int imesh_v) const
  * return the index of the input `Mesh` that contained the `MVert` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_edge(int imesh_e) const
 {
-  int n = static_cast<int>(mesh_edge_offset.size());
+  int n = int(mesh_edge_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_e < mesh_edge_offset[i + 1]) {
       return i;
@@ -140,7 +140,7 @@ int MeshesToIMeshInfo::input_mesh_for_imesh_edge(int imesh_e) const
  * input `Mesh` that contained the `MPoly` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_face(int imesh_f) const
 {
-  int n = static_cast<int>(mesh_poly_offset.size());
+  int n = int(mesh_poly_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_f < mesh_poly_offset[i + 1]) {
       return i;
@@ -375,15 +375,10 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
  * `mv` is in `dest_mesh` with index `mv_index`.
  * The `orig_mv` vertex came from Mesh `orig_me` and had index `index_in_orig_me` there. */
 static void copy_vert_attributes(Mesh *dest_mesh,
-                                 MVert *mv,
-                                 const MVert *orig_mv,
                                  const Mesh *orig_me,
                                  int mv_index,
                                  int index_in_orig_me)
 {
-  mv->bweight = orig_mv->bweight;
-  mv->flag = orig_mv->flag;
-
   /* For all layers in the orig mesh, copy the layer information. */
   CustomData *target_cd = &dest_mesh->vdata;
   const CustomData *source_cd = &orig_me->vdata;
@@ -415,16 +410,6 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  Span<short> material_remap,
                                  MutableSpan<int> dst_material_indices)
 {
-  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
-  const int src_index = src_material_indices[index_in_orig_me];
-  if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
-    dst_material_indices[mp_index] = material_remap[src_index];
-  }
-  else {
-    dst_material_indices[mp_index] = src_index;
-  }
-
   mp->flag = orig_mp->flag;
   CustomData *target_cd = &dest_mesh->pdata;
   const CustomData *source_cd = &orig_me->pdata;
@@ -440,6 +425,17 @@ static void copy_poly_attributes(Mesh *dest_mesh,
           source_cd, target_cd, source_layer_i, target_layer_i, index_in_orig_me, mp_index, 1);
     }
   }
+
+  /* Fix material indices after they have been transferred as a generic attribute. */
+  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  const int src_index = src_material_indices[index_in_orig_me];
+  if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
+    dst_material_indices[mp_index] = material_remap[src_index];
+  }
+  else {
+    dst_material_indices[mp_index] = src_index;
+  }
 }
 
 /* Similar to copy_vert_attributes but for edge attributes. */
@@ -450,8 +446,6 @@ static void copy_edge_attributes(Mesh *dest_mesh,
                                  int medge_index,
                                  int index_in_orig_me)
 {
-  medge->bweight = orig_medge->bweight;
-  medge->crease = orig_medge->crease;
   medge->flag = orig_medge->flag;
   CustomData *target_cd = &dest_mesh->edata;
   const CustomData *source_cd = &orig_me->edata;
@@ -726,14 +720,14 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   MutableSpan<MVert> verts = result->verts_for_write();
   for (int vi : im->vert_index_range()) {
     const Vert *v = im->vert(vi);
-    MVert *mv = &verts[vi];
-    copy_v3fl_v3db(mv->co, v->co);
     if (v->orig != NO_INDEX) {
       const Mesh *orig_me;
       int index_in_orig_me;
-      const MVert *orig_mv = mim.input_mvert_for_orig_index(v->orig, &orig_me, &index_in_orig_me);
-      copy_vert_attributes(result, mv, orig_mv, orig_me, vi, index_in_orig_me);
+      mim.input_mvert_for_orig_index(v->orig, &orig_me, &index_in_orig_me);
+      copy_vert_attributes(result, orig_me, vi, index_in_orig_me);
     }
+    MVert *mv = &verts[vi];
+    copy_v3fl_v3db(mv->co, v->co);
   }
 
   /* Set the loopstart and totloop for each output poly,
@@ -838,7 +832,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
         return mi;
       }
     }
-    return static_cast<int>(mim.mesh_poly_offset.size()) - 1;
+    return int(mim.mesh_poly_offset.size()) - 1;
   };
   IMesh m_out = boolean_mesh(m_in,
                              static_cast<BoolOpType>(boolean_mode),

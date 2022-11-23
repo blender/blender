@@ -32,7 +32,7 @@ static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Mask"));
 }
 
-static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_boxmask(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBoxMask *data = MEM_cnew<NodeBoxMask>(__func__);
   data->x = 0.5;
@@ -43,7 +43,7 @@ static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
 
@@ -157,7 +157,7 @@ void register_node_type_cmp_boxmask()
   cmp_node_type_base(&ntype, CMP_NODE_MASK_BOX, "Box Mask", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_boxmask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_boxmask;
-  node_type_init(&ntype, file_ns::node_composit_init_boxmask);
+  ntype.initfunc = file_ns::node_composit_init_boxmask;
   node_type_storage(&ntype, "NodeBoxMask", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

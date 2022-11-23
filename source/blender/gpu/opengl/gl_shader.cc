@@ -568,7 +568,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   std::string pre_main;
 
   ss << "\n/* Interfaces. */\n";
-  const Vector<StageInterfaceInfo *> &in_interfaces = (info.geometry_source_.is_empty()) ?
+  const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
                                                           info.vertex_out_interfaces_ :
                                                           info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {
@@ -1051,6 +1051,10 @@ bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
 
   GLVertBuf *buf = static_cast<GLVertBuf *>(unwrap(buf_));
 
+  if (buf->vbo_id_ == 0) {
+    buf->bind();
+  }
+
   BLI_assert(buf->vbo_id_ != 0);
 
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf->vbo_id_);
@@ -1138,7 +1142,7 @@ void GLShader::uniform_int(int location, int comp_len, int array_size, const int
 
 int GLShader::program_handle_get() const
 {
-  return (int)this->shader_program_;
+  return int(this->shader_program_);
 }
 
 /** \} */

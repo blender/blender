@@ -13,6 +13,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
+#include "ED_select_utils.h"
+
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
@@ -100,6 +102,8 @@ struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
 void *paint_stroke_mode_data(struct PaintStroke *stroke);
 float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
+bool paint_stroke_started(struct PaintStroke *stroke);
+
 bool PAINT_brush_tool_poll(struct bContext *C);
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
@@ -469,10 +473,17 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot);
 
 /* paint_mask.c */
 
+/* The gesture API doesn't write to this enum type,
+ * it writes to eSelectOp from ED_select_utils.h.
+ * We must thus map the modes here to the desired
+ * eSelectOp modes.
+ *
+ * Fixes T102349.
+ */
 typedef enum {
-  PAINT_MASK_FLOOD_VALUE,
-  PAINT_MASK_FLOOD_VALUE_INVERSE,
-  PAINT_MASK_INVERT,
+  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
+  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
+  PAINT_MASK_INVERT = SEL_OP_XOR,
 } PaintMaskFloodMode;
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot);

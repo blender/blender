@@ -132,16 +132,14 @@ struct DensityAddOperationExecutor {
 
     BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
-    surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
-                              BKE_mesh_runtime_looptri_len(surface_eval_)};
+    surface_looptris_eval_ = surface_eval_->looptris();
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
-      surface_uv_map = surface_orig_->attributes()
-                           .lookup<float2>(curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
-      surface_uv_map_eval_ = surface_eval_->attributes()
-                                 .lookup<float2>(curves_id_orig_->surface_uv_map,
-                                                 ATTR_DOMAIN_CORNER);
+      surface_uv_map = surface_orig_->attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
+                                                                  ATTR_DOMAIN_CORNER);
+      surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(
+          curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
     }
     if (surface_uv_map.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
@@ -236,7 +234,7 @@ struct DensityAddOperationExecutor {
           new_roots_kdtree,
           root_pos_cu,
           brush_settings_->minimum_distance,
-          [&](const int other_new_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_new_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_new_i == -1) {
               new_curve_skipped[new_i] = true;
               return false;
@@ -266,8 +264,7 @@ struct DensityAddOperationExecutor {
         reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig_->ldata, CD_NORMAL)),
         surface_orig_->totloop};
 
-    const Span<MLoopTri> surface_looptris_orig = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
-                                                  BKE_mesh_runtime_looptri_len(surface_orig_)};
+    const Span<MLoopTri> surface_looptris_orig = surface_orig_->looptris();
     const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};
 
     geometry::AddCurvesOnMeshInputs add_inputs;
@@ -283,6 +280,7 @@ struct DensityAddOperationExecutor {
     add_inputs.transforms = &transforms_;
     add_inputs.surface = surface_orig_;
     add_inputs.corner_normals_su = corner_normals_su;
+    add_inputs.surface_looptris = surface_looptris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.old_roots_kdtree = self_->original_curve_roots_kdtree_;
 
@@ -418,7 +416,7 @@ struct DensityAddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             selected_looptri_indices.append(index);
           });
 
@@ -645,7 +643,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng((int)(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
         if (curves_to_delete[curve_i]) {
@@ -690,7 +688,7 @@ struct DensitySubtractOperationExecutor {
           root_points_kdtree_,
           orig_pos_cu,
           minimum_distance_,
-          [&](const int other_curve_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_curve_i == curve_i) {
               return true;
             }
@@ -734,7 +732,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng((int)(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
         if (curves_to_delete[curve_i]) {
@@ -775,7 +773,7 @@ struct DensitySubtractOperationExecutor {
           root_points_kdtree_,
           pos_cu,
           minimum_distance_,
-          [&](const int other_curve_i, const float *UNUSED(co), float UNUSED(dist_sq)) {
+          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
             if (other_curve_i == curve_i) {
               return true;
             }

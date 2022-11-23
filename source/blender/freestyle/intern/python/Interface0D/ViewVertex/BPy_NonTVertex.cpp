@@ -63,7 +63,7 @@ PyDoc_STRVAR(NonTVertex_svertex_doc,
              "\n"
              ":type: :class:`SVertex`");
 
-static PyObject *NonTVertex_svertex_get(BPy_NonTVertex *self, void *UNUSED(closure))
+static PyObject *NonTVertex_svertex_get(BPy_NonTVertex *self, void * /*closure*/)
 {
   SVertex *v = self->ntv->svertex();
   if (v) {
@@ -72,7 +72,7 @@ static PyObject *NonTVertex_svertex_get(BPy_NonTVertex *self, void *UNUSED(closu
   Py_RETURN_NONE;
 }
 
-static int NonTVertex_svertex_set(BPy_NonTVertex *self, PyObject *value, void *UNUSED(closure))
+static int NonTVertex_svertex_set(BPy_NonTVertex *self, PyObject *value, void * /*closure*/)
 {
   if (!BPy_SVertex_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
@@ -92,44 +92,45 @@ static PyGetSetDef BPy_NonTVertex_getseters[] = {
 };
 
 /*-----------------------BPy_NonTVertex type definition ------------------------------*/
+
 PyTypeObject NonTVertex_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "NonTVertex", /* tp_name */
-    sizeof(BPy_NonTVertex),                         /* tp_basicsize */
-    0,                                              /* tp_itemsize */
-    nullptr,                                        /* tp_dealloc */
-    0,                                              /* tp_vectorcall_offset */
-    nullptr,                                        /* tp_getattr */
-    nullptr,                                        /* tp_setattr */
-    nullptr,                                        /* tp_reserved */
-    nullptr,                                        /* tp_repr */
-    nullptr,                                        /* tp_as_number */
-    nullptr,                                        /* tp_as_sequence */
-    nullptr,                                        /* tp_as_mapping */
-    nullptr,                                        /* tp_hash */
-    nullptr,                                        /* tp_call */
-    nullptr,                                        /* tp_str */
-    nullptr,                                        /* tp_getattro */
-    nullptr,                                        /* tp_setattro */
-    nullptr,                                        /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags */
-    NonTVertex_doc,                                 /* tp_doc */
-    nullptr,                                        /* tp_traverse */
-    nullptr,                                        /* tp_clear */
-    nullptr,                                        /* tp_richcompare */
-    0,                                              /* tp_weaklistoffset */
-    nullptr,                                        /* tp_iter */
-    nullptr,                                        /* tp_iternext */
-    nullptr,                                        /* tp_methods */
-    nullptr,                                        /* tp_members */
-    BPy_NonTVertex_getseters,                       /* tp_getset */
-    &ViewVertex_Type,                               /* tp_base */
-    nullptr,                                        /* tp_dict */
-    nullptr,                                        /* tp_descr_get */
-    nullptr,                                        /* tp_descr_set */
-    0,                                              /* tp_dictoffset */
-    (initproc)NonTVertex_init,                      /* tp_init */
-    nullptr,                                        /* tp_alloc */
-    nullptr,                                        /* tp_new */
+    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "NonTVertex",
+    /*tp_basicsize*/ sizeof(BPy_NonTVertex),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ NonTVertex_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_NonTVertex_getseters,
+    /*tp_base*/ &ViewVertex_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)NonTVertex_init,
+    /*tp_alloc*/ nullptr,
+    nullptr, /*tp_new*/
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

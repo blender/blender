@@ -11,9 +11,9 @@
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
 
-#define _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
-#define _CONCAT(MACRO_ARG1, MACRO_ARG2) _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
-#define BLI_kdtree_nd_(id) _CONCAT(KDTREE_PREFIX_ID, _##id)
+#define _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
+#define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
+#define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
 typedef struct KDTreeNode_head {
   uint left, right;

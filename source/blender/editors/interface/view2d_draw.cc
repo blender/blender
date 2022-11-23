@@ -319,11 +319,11 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     const float right_text_width = BLF_width(font_id, text, strlen(text));
     const float max_text_width = max_ff(left_text_width, right_text_width);
     const float max_label_count = BLI_rcti_size_x(&v2d->mask) / (max_text_width + 10.0f);
-    draw_frequency = ceil((float)steps / max_label_count);
+    draw_frequency = ceil(float(steps) / max_label_count);
   }
 
   if (draw_frequency != 0) {
-    const int start_index = abs((int)(start / distance)) % draw_frequency;
+    const int start_index = abs(int(start / distance)) % draw_frequency;
     for (uint i = start_index; i < steps; i += draw_frequency) {
       const float xpos_view = start + i * distance;
       const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
@@ -408,9 +408,9 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 }
 
 static void view_to_string__frame_number(
-    void *UNUSED(user_data), float v2d_pos, float UNUSED(v2d_step), uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, uint max_len, char *r_str)
 {
-  BLI_snprintf(r_str, max_len, "%d", (int)v2d_pos);
+  BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
 }
 
 static void view_to_string__time(
@@ -424,14 +424,14 @@ static void view_to_string__time(
   }
 
   BLI_timecode_string_from_time(
-      r_str, max_len, brevity_level, v2d_pos / (float)FPS, FPS, U.timecode_style);
+      r_str, max_len, brevity_level, v2d_pos / float(FPS), FPS, U.timecode_style);
 }
 
 static void view_to_string__value(
-    void *UNUSED(user_data), float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float v2d_step, uint max_len, char *r_str)
 {
   if (v2d_step >= 1.0f) {
-    BLI_snprintf(r_str, max_len, "%d", (int)v2d_pos);
+    BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
   }
   else if (v2d_step >= 0.1f) {
     BLI_snprintf(r_str, max_len, "%.1f", v2d_pos);

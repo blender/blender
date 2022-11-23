@@ -118,7 +118,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->obmat);
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   MTFace *mtface = (MTFace *)CustomData_get_layer(&mesh->fdata, CD_MTFACE);
   MFace *mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
@@ -151,7 +151,8 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
       if (num < mesh->totface) {
-        /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required */
+        /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required
+         */
         MFace *face = mface == nullptr ? nullptr : &mface[num];
         MTFace *tface = mtface + num;
 
@@ -190,7 +191,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       for (int n = 0; n < mesh->totface; n++) {
         MFace *face = &mface[n];
         MTFace *tface = mtface + n;
-        unsigned int vtx[4];
+        uint vtx[4];
         vtx[0] = face->v1;
         vtx[1] = face->v2;
         vtx[2] = face->v3;
@@ -241,7 +242,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->obmat);
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   MFace *mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   MTFace *mtface = (MTFace *)CustomData_get_layer(&mesh->fdata, CD_MTFACE);

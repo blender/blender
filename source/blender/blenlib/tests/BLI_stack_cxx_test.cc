@@ -118,19 +118,19 @@ TEST(stack, PushPopMany)
   Stack<int> stack;
   for (int i = 0; i < 1000; i++) {
     stack.push(i);
-    EXPECT_EQ(stack.size(), static_cast<unsigned int>(i + 1));
+    EXPECT_EQ(stack.size(), uint(i + 1));
   }
   for (int i = 999; i > 50; i--) {
     EXPECT_EQ(stack.pop(), i);
-    EXPECT_EQ(stack.size(), static_cast<unsigned int>(i));
+    EXPECT_EQ(stack.size(), uint(i));
   }
   for (int i = 51; i < 5000; i++) {
     stack.push(i);
-    EXPECT_EQ(stack.size(), static_cast<unsigned int>(i + 1));
+    EXPECT_EQ(stack.size(), uint(i + 1));
   }
   for (int i = 4999; i >= 0; i--) {
     EXPECT_EQ(stack.pop(), i);
-    EXPECT_EQ(stack.size(), static_cast<unsigned int>(i));
+    EXPECT_EQ(stack.size(), uint(i));
   }
 }
 
@@ -191,7 +191,7 @@ TEST(stack, OveralignedValues)
   Stack<AlignedBuffer<1, 512>, 2> stack;
   for (int i = 0; i < 100; i++) {
     stack.push({});
-    EXPECT_EQ((uintptr_t)&stack.peek() % 512, 0);
+    EXPECT_EQ(uintptr_t(&stack.peek()) % 512, 0);
   }
 }
 

@@ -560,8 +560,8 @@ TEST(map, PopExceptions)
 TEST(map, AddOrModifyExceptions)
 {
   Map<ExceptionThrower, ExceptionThrower> map;
-  auto create_fn = [](ExceptionThrower *UNUSED(v)) { throw std::runtime_error(""); };
-  auto modify_fn = [](ExceptionThrower *UNUSED(v)) {};
+  auto create_fn = [](ExceptionThrower * /*v*/) { throw std::runtime_error(""); };
+  auto modify_fn = [](ExceptionThrower * /*v*/) {};
   EXPECT_ANY_THROW({ map.add_or_modify(3, create_fn, modify_fn); });
 }
 
@@ -638,6 +638,24 @@ TEST(map, RemoveDuringIteration)
   EXPECT_EQ(map.lookup(2), 1);
   EXPECT_EQ(map.lookup(6), 0);
   EXPECT_EQ(map.lookup(3), 3);
+}
+
+TEST(map, RemoveIf)
+{
+  Map<int64_t, int64_t> map;
+  for (const int64_t i : IndexRange(100)) {
+    map.add(i * i, i);
+  }
+  map.remove_if([](auto item) { return item.key > 100; });
+  EXPECT_EQ(map.size(), 11);
+  for (const int64_t i : IndexRange(100)) {
+    if (i <= 10) {
+      EXPECT_EQ(map.lookup(i * i), i);
+    }
+    else {
+      EXPECT_FALSE(map.contains(i * i));
+    }
+  }
 }
 
 TEST(map, LookupKey)

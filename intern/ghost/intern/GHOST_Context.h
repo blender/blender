@@ -36,19 +36,19 @@ class GHOST_Context : public GHOST_IContext {
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess swapBuffers() = 0;
+  virtual GHOST_TSuccess swapBuffers() override = 0;
 
   /**
    * Activates the drawing context of this window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess activateDrawingContext() = 0;
+  virtual GHOST_TSuccess activateDrawingContext() override = 0;
 
   /**
    * Release the drawing context of the calling thread.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess releaseDrawingContext() = 0;
+  virtual GHOST_TSuccess releaseDrawingContext() override = 0;
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
@@ -130,9 +130,36 @@ class GHOST_Context : public GHOST_IContext {
    * Gets the OpenGL frame-buffer associated with the OpenGL context
    * \return The ID of an OpenGL frame-buffer object.
    */
-  virtual unsigned int getDefaultFramebuffer()
+  virtual unsigned int getDefaultFramebuffer() override
   {
     return 0;
+  }
+
+  /**
+   * Gets the Vulkan context related resource handles.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanHandles(void * /*r_instance*/,
+                                          void * /*r_physical_device*/,
+                                          void * /*r_device*/,
+                                          uint32_t * /*r_graphic_queue_familly*/) override
+  {
+    return GHOST_kFailure;
+  };
+
+  /**
+   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap events as the framebuffer will change.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanBackbuffer(void * /*image*/,
+                                             void * /*framebuffer*/,
+                                             void * /*command_buffer*/,
+                                             void * /*render_pass*/,
+                                             void * /*extent*/,
+                                             uint32_t * /*fb_id*/) override
+  {
+    return GHOST_kFailure;
   }
 
  protected:

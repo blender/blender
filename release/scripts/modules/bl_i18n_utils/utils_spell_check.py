@@ -243,6 +243,7 @@ class SpellChecker:
         "ungroup", "ungrouped",
         "unhide",
         "unindent",
+        "unitless",
         "unkeyed",
         "unlink", "unlinked",
         "unmute",
@@ -389,6 +390,8 @@ class SpellChecker:
         "albedo",
         "anamorphic",
         "anisotropic", "anisotropy",
+        "arcminute", "arcminutes",
+        "arcsecond", "arcseconds",
         "bimanual",  # OpenXR?
         "bitangent",
         "boid", "boids",
@@ -449,7 +452,7 @@ class SpellChecker:
         "superellipse",
         "thumbstick",
         "tooltip", "tooltips",
-        "trackpad",
+        "touchpad", "trackpad",
         "tuple",
         "unicode",
         "viewport", "viewports",
@@ -650,6 +653,7 @@ class SpellChecker:
         "mikktspace",
         "minkowski",
         "minnaert",
+        "mises",  # von Mises-Fisher
         "moskowitz",  # Pierson-Moskowitz
         "musgrave",
         "nayar",
@@ -665,6 +669,7 @@ class SpellChecker:
         "runge",
         "sobol",
         "verlet",
+        "von",  # von Mises-Fisher
         "wilkie",
         "worley",
 
@@ -723,7 +728,9 @@ class SpellChecker:
         "lhs",
         "lmb", "mmb", "rmb",
         "lscm",
+        "lx",  # Lux light unit
         "kb",
+        "mis",
         "mocap",
         "msgid", "msgids",
         "mux",
@@ -750,6 +757,8 @@ class SpellChecker:
         "unix",
         "uuid",
         "vbo", "vbos",
+        "vfx",
+        "vmm",
         "vr",
         "wxyz",
         "xr",

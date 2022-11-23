@@ -127,6 +127,7 @@ typedef enum ModifierApplyFlag {
    * See `OBJECT_OT_modifier_apply` operator. */
   MOD_APPLY_TO_BASE_MESH = 1 << 4,
 } ModifierApplyFlag;
+ENUM_OPERATORS(ModifierApplyFlag, MOD_APPLY_TO_BASE_MESH);
 
 typedef struct ModifierUpdateDepsgraphContext {
   struct Scene *scene;
@@ -265,9 +266,7 @@ typedef struct ModifierTypeInfo {
    *
    * This function is optional.
    */
-  void (*requiredDataMask)(struct Object *ob,
-                           struct ModifierData *md,
-                           struct CustomData_MeshMasks *r_cddata_masks);
+  void (*requiredDataMask)(struct ModifierData *md, struct CustomData_MeshMasks *r_cddata_masks);
 
   /**
    * Free internal modifier data variables, this function should
@@ -521,7 +520,6 @@ typedef struct CDMaskLink {
  * final_datamask is required at the end of the stack.
  */
 struct CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
-                                                struct Object *ob,
                                                 struct ModifierData *md,
                                                 struct CustomData_MeshMasks *final_datamask,
                                                 int required_mode,

@@ -297,7 +297,7 @@ real FEdge::z_discontinuity() const
   z_discontinuity_functor<SVertex> _functor;
   Evaluate<SVertex, z_discontinuity_functor<SVertex>>(&_functor, iCombination, result);
 #endif
-  Vec3r middle((_VertexB->point3d() - _VertexA->point3d()));
+  Vec3r middle(_VertexB->point3d() - _VertexA->point3d());
   middle /= 2;
   Vec3r disc_vec(middle - _occludeeIntersection);
   real res = disc_vec.norm() / bboxsize;

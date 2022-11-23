@@ -5,18 +5,32 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_assert.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_shader.h"
+#include "GPU_state.h"
+#include "GPU_texture.h"
+
 #include "COM_node_operation.hh"
+#include "COM_symmetric_blur_weights.hh"
+#include "COM_symmetric_separable_blur_weights.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
 /* **************** BLUR ******************** */
 
 namespace blender::nodes::node_composite_blur_cc {
+
+NODE_STORAGE_FUNCS(NodeBlurData)
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
@@ -25,14 +39,14 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBlurData *data = MEM_cnew<NodeBlurData>(__func__);
   data->filtertype = R_FILTER_GAUSS;
   node->storage = data;
 }
 
-static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col, *row;
 
@@ -81,7 +95,215 @@ class BlurOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
+    if (is_identity()) {
+      get_input("Image").pass_through(get_result("Image"));
+      return;
+    }
+
+    if (use_separable_filter()) {
+      GPUTexture *horizontal_pass_result = execute_separable_blur_horizontal_pass();
+      execute_separable_blur_vertical_pass(horizontal_pass_result);
+    }
+    else {
+      execute_blur();
+    }
+  }
+
+  void execute_blur()
+  {
+    GPUShader *shader = shader_manager().get("compositor_symmetric_blur");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
+    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamma);
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const float2 blur_radius = compute_blur_radius();
+
+    const SymmetricBlurWeights &weights = context().cache_manager().get_symmetric_blur_weights(
+        node_storage(bnode()).filtertype, blur_radius);
+    weights.bind_as_texture(shader, "weights_tx");
+
+    Domain domain = compute_domain();
+    if (get_extend_bounds()) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(math::ceil(blur_radius)) * 2;
+    }
+
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
+    weights.unbind_as_texture();
+  }
+
+  GPUTexture *execute_separable_blur_horizontal_pass()
+  {
+    GPUShader *shader = shader_manager().get("compositor_symmetric_separable_blur");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
+    GPU_shader_uniform_1b(shader, "gamma_correct_input", node_storage(bnode()).gamma);
+    GPU_shader_uniform_1b(shader, "gamma_uncorrect_output", false);
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const float2 blur_radius = compute_blur_radius();
+
+    const SymmetricSeparableBlurWeights &weights =
+        context().cache_manager().get_symmetric_separable_blur_weights(
+            node_storage(bnode()).filtertype, blur_radius.x);
+    weights.bind_as_texture(shader, "weights_tx");
+
+    Domain domain = compute_domain();
+    if (get_extend_bounds()) {
+      domain.size.x += int(math::ceil(blur_radius.x)) * 2;
+    }
+
+    /* We allocate an output image of a transposed size, that is, with a height equivalent to the
+     * width of the input and vice versa. This is done as a performance optimization. The shader
+     * will blur the image horizontally and write it to the intermediate output transposed. Then
+     * the vertical pass will execute the same horizontal blur shader, but since its input is
+     * transposed, it will effectively do a vertical blur and write to the output transposed,
+     * effectively undoing the transposition in the horizontal pass. This is done to improve
+     * spatial cache locality in the shader and to avoid having two separate shaders for each blur
+     * pass. */
+    const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+
+    GPUTexture *horizontal_pass_result = texture_pool().acquire_color(transposed_domain);
+    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    GPU_texture_image_bind(horizontal_pass_result, image_unit);
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    input_image.unbind_as_texture();
+    weights.unbind_as_texture();
+    GPU_texture_image_unbind(horizontal_pass_result);
+
+    return horizontal_pass_result;
+  }
+
+  void execute_separable_blur_vertical_pass(GPUTexture *horizontal_pass_result)
+  {
+    GPUShader *shader = shader_manager().get("compositor_symmetric_separable_blur");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
+    GPU_shader_uniform_1b(shader, "gamma_correct_input", false);
+    GPU_shader_uniform_1b(shader, "gamma_uncorrect_output", node_storage(bnode()).gamma);
+
+    GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+    const int texture_image_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    GPU_texture_bind(horizontal_pass_result, texture_image_unit);
+
+    const float2 blur_radius = compute_blur_radius();
+
+    const SymmetricSeparableBlurWeights &weights =
+        context().cache_manager().get_symmetric_separable_blur_weights(
+            node_storage(bnode()).filtertype, blur_radius.y);
+    weights.bind_as_texture(shader, "weights_tx");
+
+    Domain domain = compute_domain();
+    if (get_extend_bounds()) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(math::ceil(compute_blur_radius())) * 2;
+    }
+
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    /* Notice that the domain is transposed, see the note on the horizontal pass method for more
+     * information on the reasoning behind this. */
+    compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    weights.unbind_as_texture();
+    GPU_texture_unbind(horizontal_pass_result);
+  }
+
+  float2 compute_blur_radius()
+  {
+    const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 1.0f);
+
+    if (!node_storage(bnode()).relative) {
+      return float2(node_storage(bnode()).sizex, node_storage(bnode()).sizey) * size;
+    }
+
+    int2 image_size = get_input("Image").domain().size;
+    switch (node_storage(bnode()).aspect) {
+      case CMP_NODE_BLUR_ASPECT_Y:
+        image_size.y = image_size.x;
+        break;
+      case CMP_NODE_BLUR_ASPECT_X:
+        image_size.x = image_size.y;
+        break;
+      default:
+        BLI_assert(node_storage(bnode()).aspect == CMP_NODE_BLUR_ASPECT_NONE);
+        break;
+    }
+
+    return float2(image_size) * get_size_factor() * size;
+  }
+
+  /* Returns true if the operation does nothing and the input can be passed through. */
+  bool is_identity()
+  {
+    const Result &input = get_input("Image");
+    /* Single value inputs can't be blurred and are returned as is. */
+    if (input.is_single_value()) {
+      return true;
+    }
+
+    /* Zero blur radius. The operation does nothing and the input can be passed through. */
+    if (compute_blur_radius() == float2(0.0)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /* The blur node can operate with different filter types, evaluated on the normalized distance to
+   * the center of the filter. Some of those filters are separable and can be computed as such. If
+   * the bokeh member is disabled in the node, then the filter is always computed as separable even
+   * if it is not in fact separable, in which case, the used filter is a cheaper approximation to
+   * the actual filter. If the bokeh member is enabled, then the filter is computed as separable if
+   * it is in fact separable and as a normal 2D filter otherwise. */
+  bool use_separable_filter()
+  {
+    if (!node_storage(bnode()).bokeh) {
+      return true;
+    }
+
+    /* Both Box and Gaussian filters are separable. The rest is not. */
+    switch (node_storage(bnode()).filtertype) {
+      case R_FILTER_BOX:
+      case R_FILTER_GAUSS:
+      case R_FILTER_FAST_GAUSS:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  float2 get_size_factor()
+  {
+    return float2(node_storage(bnode()).percentx, node_storage(bnode()).percenty) / 100.0f;
+  }
+
+  bool get_extend_bounds()
+  {
+    return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
   }
 };
 
@@ -102,7 +324,7 @@ void register_node_type_cmp_blur()
   ntype.declare = file_ns::cmp_node_blur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_blur;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_blur);
+  ntype.initfunc = file_ns::node_composit_init_blur;
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

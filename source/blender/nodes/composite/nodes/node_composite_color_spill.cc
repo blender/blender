@@ -36,7 +36,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeColorspill *ncs = MEM_cnew<NodeColorspill>(__func__);
   node->storage = ncs;
@@ -47,7 +47,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
   ncs->unspill = 0;     /* do not use unspill */
 }
 
-static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row, *col;
 
@@ -196,7 +196,7 @@ void register_node_type_cmp_color_spill()
   cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_color_spill_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_color_spill;
-  node_type_init(&ntype, file_ns::node_composit_init_color_spill);
+  ntype.initfunc = file_ns::node_composit_init_color_spill;
   node_type_storage(
       &ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

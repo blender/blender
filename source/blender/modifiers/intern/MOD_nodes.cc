@@ -33,9 +33,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_customdata.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
@@ -73,22 +75,25 @@
 
 #include "MOD_modifiertypes.h"
 #include "MOD_nodes.h"
-#include "MOD_nodes_evaluator.hh"
 #include "MOD_ui_common.h"
 
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_spreadsheet.h"
 #include "ED_undo.h"
+#include "ED_viewer_path.hh"
 
-#include "NOD_derived_node_tree.hh"
 #include "NOD_geometry.h"
-#include "NOD_geometry_nodes_eval_log.hh"
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
+#include "FN_lazy_function_execute.hh"
+#include "FN_lazy_function_graph_executor.hh"
 #include "FN_multi_function.hh"
+
+namespace lf = blender::fn::lazy_function;
 
 using blender::Array;
 using blender::ColorGeometry4f;
@@ -106,22 +111,31 @@ using blender::MultiValueMap;
 using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
+using blender::Stack;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
 using blender::bke::AttributeMetaData;
+using blender::bke::AttributeValidator;
 using blender::fn::Field;
+using blender::fn::FieldOperation;
 using blender::fn::GField;
 using blender::fn::ValueOrField;
 using blender::fn::ValueOrFieldCPPType;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::GeoNodeExecParams;
 using blender::nodes::InputSocketFieldType;
+using blender::nodes::geo_eval_log::GeoModifierLog;
 using blender::threading::EnumerableThreadSpecific;
 using namespace blender::fn::multi_function_types;
-using namespace blender::nodes::derived_node_tree_types;
-using geo_log::eNamedAttrUsage;
-using geo_log::GeometryAttributeInfo;
+using blender::nodes::geo_eval_log::GeometryAttributeInfo;
+using blender::nodes::geo_eval_log::GeometryInfoLog;
+using blender::nodes::geo_eval_log::GeoNodeLog;
+using blender::nodes::geo_eval_log::GeoTreeLog;
+using blender::nodes::geo_eval_log::NamedAttributeUsage;
+using blender::nodes::geo_eval_log::NodeWarning;
+using blender::nodes::geo_eval_log::NodeWarningType;
+using blender::nodes::geo_eval_log::ValueLog;
 
 static void initData(ModifierData *md)
 {
@@ -191,6 +205,9 @@ static bool node_needs_own_transform_relation(const bNode &node)
     return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
   }
 
+  if (node.type == GEO_NODE_SELF_OBJECT) {
+    return true;
+  }
   if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
     return true;
   }
@@ -332,7 +349,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree,
   return false;
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -370,9 +387,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
@@ -428,8 +443,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = (double)value->min;
-      ui_data->max = ui_data->soft_max = (double)value->max;
+      ui_data->min = ui_data->soft_min = double(value->min);
+      ui_data->max = ui_data->soft_max = double(value->max);
       ui_data->default_value = value->value;
       return property;
     }
@@ -451,8 +466,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
           socket.identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = (double)value->min;
-      ui_data->max = ui_data->soft_max = (double)value->max;
+      ui_data->min = ui_data->soft_min = double(value->min);
+      ui_data->max = ui_data->soft_max = double(value->max);
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
       ui_data->default_array_len = 3;
       for (const int i : IndexRange(3)) {
@@ -564,7 +579,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
         value = IDP_Float(&property);
       }
       else if (property.type == IDP_DOUBLE) {
-        value = (float)IDP_Double(&property);
+        value = float(IDP_Double(&property));
       }
       new (r_value) ValueOrField<float>(value);
       break;
@@ -756,36 +771,37 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 }
 
 static void initialize_group_input(NodesModifierData &nmd,
-                                   const bNodeSocket &socket,
+                                   const bNodeSocket &interface_socket,
+                                   const int input_index,
                                    void *r_value)
 {
-  const bNodeSocketType &socket_type = *socket.typeinfo;
-  const bNodeSocket &bsocket = socket;
-  const eNodeSocketDatatype socket_data_type = static_cast<eNodeSocketDatatype>(bsocket.type);
+  const bNodeSocketType &socket_type = *interface_socket.typeinfo;
+  const eNodeSocketDatatype socket_data_type = static_cast<eNodeSocketDatatype>(
+      interface_socket.type);
   if (nmd.settings.properties == nullptr) {
-    socket_type.get_geometry_nodes_cpp_value(bsocket, r_value);
+    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
     return;
   }
   const IDProperty *property = IDP_GetPropertyFromGroup(nmd.settings.properties,
-                                                        socket.identifier);
+                                                        interface_socket.identifier);
   if (property == nullptr) {
-    socket_type.get_geometry_nodes_cpp_value(bsocket, r_value);
+    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
     return;
   }
-  if (!id_property_type_matches_socket(bsocket, *property)) {
-    socket_type.get_geometry_nodes_cpp_value(bsocket, r_value);
+  if (!id_property_type_matches_socket(interface_socket, *property)) {
+    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
     return;
   }
 
-  if (!input_has_attribute_toggle(*nmd.node_group, socket.runtime->index_in_node)) {
+  if (!input_has_attribute_toggle(*nmd.node_group, input_index)) {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
   }
 
   const IDProperty *property_use_attribute = IDP_GetPropertyFromGroup(
-      nmd.settings.properties, (socket.identifier + use_attribute_suffix).c_str());
+      nmd.settings.properties, (interface_socket.identifier + use_attribute_suffix).c_str());
   const IDProperty *property_attribute_name = IDP_GetPropertyFromGroup(
-      nmd.settings.properties, (socket.identifier + attribute_name_suffix).c_str());
+      nmd.settings.properties, (interface_socket.identifier + attribute_name_suffix).c_str());
   if (property_use_attribute == nullptr || property_attribute_name == nullptr) {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
@@ -801,121 +817,128 @@ static void initialize_group_input(NodesModifierData &nmd,
     auto attribute_input = std::make_shared<blender::bke::AttributeFieldInput>(
         attribute_name, *socket_type.base_cpp_type);
     GField attribute_field{std::move(attribute_input), 0};
-    const blender::fn::ValueOrFieldCPPType *cpp_type =
-        dynamic_cast<const blender::fn::ValueOrFieldCPPType *>(
-            socket_type.geometry_nodes_cpp_type);
-    BLI_assert(cpp_type != nullptr);
-    cpp_type->construct_from_field(r_value, std::move(attribute_field));
+    const auto *value_or_field_cpp_type = ValueOrFieldCPPType::get_from_self(
+        *socket_type.geometry_nodes_cpp_type);
+    BLI_assert(value_or_field_cpp_type != nullptr);
+    value_or_field_cpp_type->construct_from_field(r_value, std::move(attribute_field));
   }
   else {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
   }
 }
 
-static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
+static const lf::FunctionNode &find_viewer_lf_node(const bNode &viewer_bnode)
 {
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-  if (wm == nullptr) {
-    return {};
-  }
-  Vector<SpaceSpreadsheet *> spreadsheets;
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = (SpaceLink *)area->spacedata.first;
-      if (sl->spacetype == SPACE_SPREADSHEET) {
-        spreadsheets.append((SpaceSpreadsheet *)sl);
-      }
-    }
-  }
-  return spreadsheets;
+  return *blender::nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree())
+              ->mapping.viewer_node_map.lookup(&viewer_bnode);
+}
+static const lf::FunctionNode &find_group_lf_node(const bNode &group_bnode)
+{
+  return *blender::nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree())
+              ->mapping.group_node_map.lookup(&group_bnode);
 }
 
-static void find_sockets_to_preview_for_spreadsheet(SpaceSpreadsheet *sspreadsheet,
-                                                    NodesModifierData *nmd,
-                                                    const ModifierEvalContext *ctx,
-                                                    const DerivedNodeTree &tree,
-                                                    Set<DSocket> &r_sockets_to_preview)
+static void find_side_effect_nodes_for_viewer_path(
+    const ViewerPath &viewer_path,
+    const NodesModifierData &nmd,
+    const ModifierEvalContext &ctx,
+    MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> &r_side_effect_nodes)
 {
-  Vector<SpreadsheetContext *> context_path = sspreadsheet->context_path;
-  if (context_path.size() < 3) {
+  const std::optional<blender::ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
+      blender::ed::viewer_path::parse_geometry_nodes_viewer(viewer_path);
+  if (!parsed_path.has_value()) {
     return;
   }
-  if (context_path[0]->type != SPREADSHEET_CONTEXT_OBJECT) {
+  if (parsed_path->object != DEG_get_original_object(ctx.object)) {
     return;
   }
-  if (context_path[1]->type != SPREADSHEET_CONTEXT_MODIFIER) {
+  if (parsed_path->modifier_name != nmd.modifier.name) {
     return;
-  }
-  SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context_path[0];
-  if (object_context->object != DEG_get_original_object(ctx->object)) {
-    return;
-  }
-  SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context_path[1];
-  if (StringRef(modifier_context->modifier_name) != nmd->modifier.name) {
-    return;
-  }
-  for (SpreadsheetContext *context : context_path.as_span().drop_front(2)) {
-    if (context->type != SPREADSHEET_CONTEXT_NODE) {
-      return;
-    }
   }
 
-  Span<SpreadsheetContextNode *> nested_group_contexts =
-      context_path.as_span().drop_front(2).drop_back(1).cast<SpreadsheetContextNode *>();
-  SpreadsheetContextNode *last_context = (SpreadsheetContextNode *)context_path.last();
+  blender::ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<blender::bke::ModifierComputeContext>(parsed_path->modifier_name);
 
-  const DTreeContext *context = &tree.root_context();
-  for (SpreadsheetContextNode *node_context : nested_group_contexts) {
-    const bNodeTree &btree = context->btree();
+  const bNodeTree *group = nmd.node_group;
+  Stack<const bNode *> group_node_stack;
+  for (const StringRefNull group_node_name : parsed_path->group_node_names) {
     const bNode *found_node = nullptr;
-    for (const bNode *bnode : btree.all_nodes()) {
-      if (STREQ(bnode->name, node_context->node_name)) {
-        found_node = bnode;
+    for (const bNode *node : group->group_nodes()) {
+      if (node->name == group_node_name) {
+        found_node = node;
         break;
       }
     }
     if (found_node == nullptr) {
       return;
     }
-    context = context->child_context(*found_node);
-    if (context == nullptr) {
+    if (found_node->id == nullptr) {
       return;
     }
+    if (found_node->is_muted()) {
+      return;
+    }
+    group_node_stack.push(found_node);
+    group = reinterpret_cast<bNodeTree *>(found_node->id);
+    compute_context_builder.push<blender::bke::NodeGroupComputeContext>(group_node_name);
   }
 
-  const bNodeTree &btree = context->btree();
-  for (const bNode *bnode : btree.nodes_by_type("GeometryNodeViewer")) {
-    if (STREQ(bnode->name, last_context->node_name)) {
-      const DNode viewer_node{context, bnode};
-      for (const bNodeSocket *input_socket : bnode->input_sockets()) {
-        if (input_socket->is_available() && input_socket->is_logically_linked()) {
-          r_sockets_to_preview.add(DSocket{context, input_socket});
-        }
-      }
+  const bNode *found_viewer_node = nullptr;
+  for (const bNode *viewer_node : group->nodes_by_type("GeometryNodeViewer")) {
+    if (viewer_node->name == parsed_path->viewer_node_name) {
+      found_viewer_node = viewer_node;
+      break;
     }
+  }
+  if (found_viewer_node == nullptr) {
+    return;
+  }
+
+  /* Not only mark the viewer node as having side effects, but also all group nodes it is contained
+   * in. */
+  r_side_effect_nodes.add(compute_context_builder.hash(),
+                          &find_viewer_lf_node(*found_viewer_node));
+  compute_context_builder.pop();
+  while (!compute_context_builder.is_empty()) {
+    r_side_effect_nodes.add(compute_context_builder.hash(),
+                            &find_group_lf_node(*group_node_stack.pop()));
+    compute_context_builder.pop();
   }
 }
 
-static void find_sockets_to_preview(NodesModifierData *nmd,
-                                    const ModifierEvalContext *ctx,
-                                    const DerivedNodeTree &tree,
-                                    Set<DSocket> &r_sockets_to_preview)
+static void find_side_effect_nodes(
+    const NodesModifierData &nmd,
+    const ModifierEvalContext &ctx,
+    MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> &r_side_effect_nodes)
 {
-  Main *bmain = DEG_get_bmain(ctx->depsgraph);
-
-  /* Based on every visible spreadsheet context path, get a list of sockets that need to have their
-   * intermediate geometries cached for display. */
-  Vector<SpaceSpreadsheet *> spreadsheets = find_spreadsheet_editors(bmain);
-  for (SpaceSpreadsheet *sspreadsheet : spreadsheets) {
-    find_sockets_to_preview_for_spreadsheet(sspreadsheet, nmd, ctx, tree, r_sockets_to_preview);
+  Main *bmain = DEG_get_bmain(ctx.depsgraph);
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return;
+  }
+  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    const WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
+    find_side_effect_nodes_for_viewer_path(workspace->viewer_path, nmd, ctx, r_side_effect_nodes);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl->spacetype == SPACE_SPREADSHEET) {
+        const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
+        find_side_effect_nodes_for_viewer_path(
+            sspreadsheet.viewer_path, nmd, ctx, r_side_effect_nodes);
+      }
+      if (sl->spacetype == SPACE_VIEW3D) {
+        const View3D &v3d = *reinterpret_cast<const View3D *>(sl);
+        find_side_effect_nodes_for_viewer_path(v3d.viewer_path, nmd, ctx, r_side_effect_nodes);
+      }
+    }
   }
 }
 
 static void clear_runtime_data(NodesModifierData *nmd)
 {
   if (nmd->runtime_eval_log != nullptr) {
-    delete (geo_log::ModifierLog *)nmd->runtime_eval_log;
+    delete static_cast<GeoModifierLog *>(nmd->runtime_eval_log);
     nmd->runtime_eval_log = nullptr;
   }
 }
@@ -960,9 +983,9 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
 
     const int index = socket->index();
     const GPointer value = output_values[index];
-    const ValueOrFieldCPPType *cpp_type = dynamic_cast<const ValueOrFieldCPPType *>(value.type());
-    BLI_assert(cpp_type != nullptr);
-    const GField field = cpp_type->as_field(value.get());
+    const auto *value_or_field_type = ValueOrFieldCPPType::get_from_self(*value.type());
+    BLI_assert(value_or_field_type != nullptr);
+    const GField field = value_or_field_type->as_field(value.get());
 
     const bNodeSocket *interface_socket = (const bNodeSocket *)BLI_findlink(
         &nmd.node_group->outputs, index);
@@ -992,9 +1015,6 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       continue;
     }
     const GeometryComponent &component = *geometry.get_component_for_read(component_type);
-    if (component.is_empty()) {
-      continue;
-    }
     const blender::bke::AttributeAccessor attributes = *component.attributes();
     for (const auto item : outputs_by_domain.items()) {
       const eAttrDomain domain = item.key;
@@ -1007,13 +1027,15 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
+        const AttributeValidator validator = attributes.lookup_validator(output_info.name);
         OutputAttributeToStore store{
             component_type,
             domain,
             output_info.name,
             GMutableSpan{
                 type, MEM_malloc_arrayN(domain_size, type.size(), __func__), domain_size}};
-        field_evaluator.add_with_destination(output_info.field, store.data);
+        GField field = validator.validate_field_if_necessary(output_info.field);
+        field_evaluator.add_with_destination(std::move(field), store.data);
         attributes_to_store.append(store);
       }
       field_evaluator.evaluate();
@@ -1079,92 +1101,103 @@ static void store_output_attributes(GeometrySet &geometry,
 /**
  * Evaluate a node group to compute the output geometry.
  */
-static GeometrySet compute_geometry(const DerivedNodeTree &tree,
-                                    Span<const bNode *> group_input_nodes,
-                                    const bNode &output_node,
-                                    GeometrySet input_geometry_set,
-                                    NodesModifierData *nmd,
-                                    const ModifierEvalContext *ctx)
+static GeometrySet compute_geometry(
+    const bNodeTree &btree,
+    const blender::nodes::GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
+    const bNode &output_node,
+    GeometrySet input_geometry_set,
+    NodesModifierData *nmd,
+    const ModifierEvalContext *ctx)
 {
-  blender::ResourceScope scope;
-  blender::LinearAllocator<> &allocator = scope.linear_allocator();
-  blender::nodes::NodeMultiFunctions mf_by_node{tree};
+  const blender::nodes::GeometryNodeLazyFunctionGraphMapping &mapping = lf_graph_info.mapping;
 
-  Map<DOutputSocket, GMutablePointer> group_inputs;
+  Span<const lf::OutputSocket *> graph_inputs = mapping.group_input_sockets;
+  Vector<const lf::InputSocket *> graph_outputs;
+  for (const bNodeSocket *bsocket : output_node.input_sockets().drop_back(1)) {
+    const lf::InputSocket &socket = mapping.dummy_socket_map.lookup(bsocket)->as_input();
+    graph_outputs.append(&socket);
+  }
 
-  const DTreeContext *root_context = &tree.root_context();
-  for (const bNode *group_input_node : group_input_nodes) {
-    Span<const bNodeSocket *> group_input_sockets = group_input_node->output_sockets().drop_back(
-        1);
-    if (group_input_sockets.is_empty()) {
+  Array<GMutablePointer> param_inputs(graph_inputs.size());
+  Array<GMutablePointer> param_outputs(graph_outputs.size());
+  Array<std::optional<lf::ValueUsage>> param_input_usages(graph_inputs.size());
+  Array<lf::ValueUsage> param_output_usages(graph_outputs.size(), lf::ValueUsage::Used);
+  Array<bool> param_set_outputs(graph_outputs.size(), false);
+
+  blender::nodes::GeometryNodesLazyFunctionLogger lf_logger(lf_graph_info);
+  blender::nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider;
+
+  lf::GraphExecutor graph_executor{
+      lf_graph_info.graph, graph_inputs, graph_outputs, &lf_logger, &lf_side_effect_provider};
+
+  blender::nodes::GeoNodesModifierData geo_nodes_modifier_data;
+  geo_nodes_modifier_data.depsgraph = ctx->depsgraph;
+  geo_nodes_modifier_data.self_object = ctx->object;
+  auto eval_log = std::make_unique<GeoModifierLog>();
+  if (logging_enabled(ctx)) {
+    geo_nodes_modifier_data.eval_log = eval_log.get();
+  }
+  MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> r_side_effect_nodes;
+  find_side_effect_nodes(*nmd, *ctx, r_side_effect_nodes);
+  geo_nodes_modifier_data.side_effect_nodes = &r_side_effect_nodes;
+  blender::nodes::GeoNodesLFUserData user_data;
+  user_data.modifier_data = &geo_nodes_modifier_data;
+  blender::bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};
+  user_data.compute_context = &modifier_compute_context;
+
+  blender::LinearAllocator<> allocator;
+  Vector<GMutablePointer> inputs_to_destruct;
+
+  int input_index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, interface_socket, &btree.inputs, input_index) {
+    if (interface_socket->type == SOCK_GEOMETRY && input_index == 0) {
+      param_inputs[input_index] = &input_geometry_set;
       continue;
     }
 
-    Span<const bNodeSocket *> remaining_input_sockets = group_input_sockets;
-
-    /* If the group expects a geometry as first input, use the geometry that has been passed to
-     * modifier. */
-    const bNodeSocket *first_input_socket = group_input_sockets[0];
-    if (first_input_socket->type == SOCK_GEOMETRY) {
-      GeometrySet *geometry_set_in =
-          allocator.construct<GeometrySet>(input_geometry_set).release();
-      group_inputs.add_new({root_context, first_input_socket}, geometry_set_in);
-      remaining_input_sockets = remaining_input_sockets.drop_front(1);
-    }
-
-    /* Initialize remaining group inputs. */
-    for (const bNodeSocket *socket : remaining_input_sockets) {
-      const CPPType &cpp_type = *socket->typeinfo->geometry_nodes_cpp_type;
-      void *value_in = allocator.allocate(cpp_type.size(), cpp_type.alignment());
-      initialize_group_input(*nmd, *socket, value_in);
-      group_inputs.add_new({root_context, socket}, {cpp_type, value_in});
-    }
+    const CPPType *type = interface_socket->typeinfo->geometry_nodes_cpp_type;
+    BLI_assert(type != nullptr);
+    void *value = allocator.allocate(type->size(), type->alignment());
+    initialize_group_input(*nmd, *interface_socket, input_index, value);
+    param_inputs[input_index] = {type, value};
+    inputs_to_destruct.append({type, value});
   }
 
-  Vector<DInputSocket> group_outputs;
-  for (const bNodeSocket *socket_ref : output_node.input_sockets().drop_back(1)) {
-    group_outputs.append({root_context, socket_ref});
+  for (const int i : graph_outputs.index_range()) {
+    const lf::InputSocket &socket = *graph_outputs[i];
+    const CPPType &type = socket.type();
+    void *buffer = allocator.allocate(type.size(), type.alignment());
+    param_outputs[i] = {type, buffer};
   }
 
-  std::optional<geo_log::GeoLogger> geo_logger;
+  lf::Context lf_context;
+  lf_context.storage = graph_executor.init_storage(allocator);
+  lf_context.user_data = &user_data;
+  lf::BasicParams lf_params{graph_executor,
+                            param_inputs,
+                            param_outputs,
+                            param_input_usages,
+                            param_output_usages,
+                            param_set_outputs};
+  graph_executor.execute(lf_params, lf_context);
+  graph_executor.destruct_storage(lf_context.storage);
 
-  blender::modifiers::geometry_nodes::GeometryNodesEvaluationParams eval_params;
+  for (GMutablePointer &ptr : inputs_to_destruct) {
+    ptr.destruct();
+  }
+
+  GeometrySet output_geometry_set = std::move(*static_cast<GeometrySet *>(param_outputs[0].get()));
+  store_output_attributes(output_geometry_set, *nmd, output_node, param_outputs);
+
+  for (GMutablePointer &ptr : param_outputs) {
+    ptr.destruct();
+  }
 
   if (logging_enabled(ctx)) {
-    Set<DSocket> preview_sockets;
-    find_sockets_to_preview(nmd, ctx, tree, preview_sockets);
-    eval_params.force_compute_sockets.extend(preview_sockets.begin(), preview_sockets.end());
-    geo_logger.emplace(std::move(preview_sockets));
-
-    geo_logger->log_input_geometry(input_geometry_set);
-  }
-
-  /* Don't keep a reference to the input geometry components to avoid copies during evaluation. */
-  input_geometry_set.clear();
-
-  eval_params.input_values = group_inputs;
-  eval_params.output_sockets = group_outputs;
-  eval_params.mf_by_node = &mf_by_node;
-  eval_params.modifier_ = nmd;
-  eval_params.depsgraph = ctx->depsgraph;
-  eval_params.self_object = ctx->object;
-  eval_params.geo_logger = geo_logger.has_value() ? &*geo_logger : nullptr;
-  blender::modifiers::geometry_nodes::evaluate_geometry_nodes(eval_params);
-
-  GeometrySet output_geometry_set = std::move(*eval_params.r_output_values[0].get<GeometrySet>());
-
-  if (geo_logger.has_value()) {
-    geo_logger->log_output_geometry(output_geometry_set);
-    NodesModifierData *nmd_orig = (NodesModifierData *)BKE_modifier_get_original(ctx->object,
-                                                                                 &nmd->modifier);
-    clear_runtime_data(nmd_orig);
-    nmd_orig->runtime_eval_log = new geo_log::ModifierLog(*geo_logger);
-  }
-
-  store_output_attributes(output_geometry_set, *nmd, output_node, eval_params.r_output_values);
-
-  for (GMutablePointer value : eval_params.r_output_values) {
-    value.destruct();
+    NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(
+        BKE_modifier_get_original(ctx->object, &nmd->modifier));
+    delete static_cast<GeoModifierLog *>(nmd_orig->runtime_eval_log);
+    nmd_orig->runtime_eval_log = eval_log.release();
   }
 
   return output_geometry_set;
@@ -1225,27 +1258,18 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
+  const bNodeTree &tree = *nmd->node_group;
+  tree.ensure_topology_cache();
   check_property_socket_sync(ctx->object, md);
 
-  const bNodeTree &root_tree_ref = *nmd->node_group;
-  DerivedNodeTree tree{root_tree_ref};
-
-  if (tree.has_link_cycles()) {
-    BKE_modifier_set_error(ctx->object, md, "Node group has cycles");
+  const bNode *output_node = tree.group_output_node();
+  if (output_node == nullptr) {
+    BKE_modifier_set_error(ctx->object, md, "Node group must have a group output node");
     geometry_set.clear();
     return;
   }
 
-  Span<const bNode *> input_nodes = root_tree_ref.nodes_by_type("NodeGroupInput");
-  Span<const bNode *> output_nodes = root_tree_ref.nodes_by_type("NodeGroupOutput");
-  if (output_nodes.size() != 1) {
-    BKE_modifier_set_error(ctx->object, md, "Node group must have a single output node");
-    geometry_set.clear();
-    return;
-  }
-
-  const bNode &output_node = *output_nodes[0];
-  Span<const bNodeSocket *> group_outputs = output_node.input_sockets().drop_back(1);
+  Span<const bNodeSocket *> group_outputs = output_node->input_sockets().drop_back(1);
   if (group_outputs.is_empty()) {
     BKE_modifier_set_error(ctx->object, md, "Node group must have an output socket");
     geometry_set.clear();
@@ -1255,6 +1279,14 @@ static void modifyGeometry(ModifierData *md,
   const bNodeSocket *first_output_socket = group_outputs[0];
   if (!STREQ(first_output_socket->idname, "NodeSocketGeometry")) {
     BKE_modifier_set_error(ctx->object, md, "Node group's first output must be a geometry");
+    geometry_set.clear();
+    return;
+  }
+
+  const blender::nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+      blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree);
+  if (lf_graph_info == nullptr) {
+    BKE_modifier_set_error(ctx->object, md, "Cannot evaluate node group");
     geometry_set.clear();
     return;
   }
@@ -1270,7 +1302,7 @@ static void modifyGeometry(ModifierData *md,
   }
 
   geometry_set = compute_geometry(
-      tree, input_nodes, output_node, std::move(geometry_set), nmd, ctx);
+      tree, *lf_graph_info, *output_node, std::move(geometry_set), nmd, ctx);
 
   if (geometry_set.has_mesh()) {
     /* Add #CD_ORIGINDEX layers if they don't exist already. This is required because the
@@ -1342,6 +1374,16 @@ static NodesModifierData *get_modifier_data(Main &bmain,
   return reinterpret_cast<NodesModifierData *>(md);
 }
 
+static GeoTreeLog *get_root_tree_log(const NodesModifierData &nmd)
+{
+  if (nmd.runtime_eval_log == nullptr) {
+    return nullptr;
+  }
+  GeoModifierLog &modifier_log = *static_cast<GeoModifierLog *>(nmd.runtime_eval_log);
+  blender::bke::ModifierComputeContext compute_context{nullptr, nmd.modifier.name};
+  return &modifier_log.get_tree_log(compute_context.hash());
+}
+
 static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
@@ -1350,27 +1392,52 @@ static void attribute_search_update_fn(
   if (nmd == nullptr) {
     return;
   }
-  const geo_log::ModifierLog *modifier_log = static_cast<const geo_log::ModifierLog *>(
-      nmd->runtime_eval_log);
-  if (modifier_log == nullptr) {
+  if (nmd->node_group == nullptr) {
     return;
   }
-  const geo_log::GeometryValueLog *geometry_log = data.is_output ?
-                                                      modifier_log->output_geometry_log() :
-                                                      modifier_log->input_geometry_log();
-  if (geometry_log == nullptr) {
+  GeoTreeLog *tree_log = get_root_tree_log(*nmd);
+  if (tree_log == nullptr) {
     return;
   }
+  tree_log->ensure_existing_attributes();
+  nmd->node_group->ensure_topology_cache();
 
-  Span<GeometryAttributeInfo> infos = geometry_log->attributes();
-
-  /* The shared attribute search code expects a span of pointers, so convert to that. */
-  Array<const GeometryAttributeInfo *> info_ptrs(infos.size());
-  for (const int i : infos.index_range()) {
-    info_ptrs[i] = &infos[i];
+  Vector<const bNodeSocket *> sockets_to_check;
+  if (data.is_output) {
+    for (const bNode *node : nmd->node_group->nodes_by_type("NodeGroupOutput")) {
+      for (const bNodeSocket *socket : node->input_sockets()) {
+        if (socket->type == SOCK_GEOMETRY) {
+          sockets_to_check.append(socket);
+        }
+      }
+    }
+  }
+  else {
+    for (const bNode *node : nmd->node_group->nodes_by_type("NodeGroupInput")) {
+      for (const bNodeSocket *socket : node->output_sockets()) {
+        if (socket->type == SOCK_GEOMETRY) {
+          sockets_to_check.append(socket);
+        }
+      }
+    }
+  }
+  Set<StringRef> names;
+  Vector<const GeometryAttributeInfo *> attributes;
+  for (const bNodeSocket *socket : sockets_to_check) {
+    const ValueLog *value_log = tree_log->find_socket_value_log(*socket);
+    if (value_log == nullptr) {
+      continue;
+    }
+    if (const GeometryInfoLog *geo_log = dynamic_cast<const GeometryInfoLog *>(value_log)) {
+      for (const GeometryAttributeInfo &attribute : geo_log->attributes) {
+        if (names.add(attribute.name)) {
+          attributes.append(&attribute);
+        }
+      }
+    }
   }
   blender::ui::attribute_search_add_items(
-      str, data.is_output, info_ptrs.as_span(), items, is_first);
+      str, data.is_output, attributes.as_span(), items, is_first);
 }
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
@@ -1401,8 +1468,7 @@ static void add_attribute_search_button(const bContext &C,
                                         const bNodeSocket &socket,
                                         const bool is_output)
 {
-  const geo_log::ModifierLog *log = static_cast<geo_log::ModifierLog *>(nmd.runtime_eval_log);
-  if (log == nullptr) {
+  if (nmd.runtime_eval_log == nullptr) {
     uiItemR(layout, md_ptr, rna_path_attribute_name.c_str(), 0, "", ICON_NONE);
     return;
   }
@@ -1472,15 +1538,18 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
                                               attribute_name_suffix + "\"]";
 
+  /* We're handling this manually in this case. */
+  uiLayoutSetPropDecorate(layout, false);
+
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemL(name_row, socket.name, ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(split, true);
+  uiLayout *prop_row = uiLayoutRow(split, true);
 
   PointerRNA props;
-  uiItemFullO(row,
+  uiItemFullO(prop_row,
               "object.geometry_nodes_input_attribute_toggle",
               "",
               ICON_SPREADSHEET,
@@ -1493,12 +1562,12 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
 
   const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
   if (use_attribute) {
-    add_attribute_search_button(C, row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-    uiItemL(row, "", ICON_BLANK1);
+    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    uiItemR(row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), -1);
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
+    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 }
 
@@ -1528,44 +1597,39 @@ static void draw_property_for_socket(const bContext &C,
   char rna_path[sizeof(socket_id_esc) + 4];
   BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
 
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetPropDecorate(row, true);
+
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   switch (socket.type) {
     case SOCK_OBJECT: {
-      uiItemPointerR(
-          layout, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemPointerR(layout,
-                     md_ptr,
-                     rna_path,
-                     bmain_ptr,
-                     "collections",
-                     socket.name,
-                     ICON_OUTLINER_COLLECTION);
+      uiItemPointerR(
+          row, md_ptr, rna_path, bmain_ptr, "collections", socket.name, ICON_OUTLINER_COLLECTION);
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
       break;
     }
     case SOCK_TEXTURE: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
       break;
     }
     case SOCK_IMAGE: {
-      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
+      uiItemPointerR(row, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
       break;
     }
     default: {
       if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
-        add_attribute_search_or_value_buttons(C, layout, *nmd, md_ptr, socket);
+        add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
       }
       else {
-        uiLayout *row = uiLayoutRow(layout, false);
-        uiLayoutSetPropDecorate(row, true);
         uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
       }
     }
@@ -1627,15 +1691,14 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   /* Draw node warnings. */
-  if (nmd->runtime_eval_log != nullptr) {
-    const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
-    log.foreach_node_log([&](const geo_log::NodeLog &node_log) {
-      for (const geo_log::NodeWarning &warning : node_log.warnings()) {
-        if (warning.type != geo_log::NodeWarningType::Info) {
-          uiItemL(layout, warning.message.c_str(), ICON_ERROR);
-        }
+  GeoTreeLog *tree_log = get_root_tree_log(*nmd);
+  if (tree_log != nullptr) {
+    tree_log->ensure_node_warnings();
+    for (const NodeWarning &warning : tree_log->all_warnings) {
+      if (warning.type != NodeWarningType::Info) {
+        uiItemL(layout, warning.message.c_str(), ICON_ERROR);
       }
-    });
+    }
   }
 
   modifier_panel_end(layout, ptr);
@@ -1665,24 +1728,21 @@ static void output_attribute_panel_draw(const bContext *C, Panel *panel)
   }
 }
 
-static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void internal_dependencies_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
 
-  if (nmd->runtime_eval_log == nullptr) {
+  GeoTreeLog *tree_log = get_root_tree_log(*nmd);
+  if (tree_log == nullptr) {
     return;
   }
-  const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
-  Map<std::string, eNamedAttrUsage> usage_by_attribute;
-  log.foreach_node_log([&](const geo_log::NodeLog &node_log) {
-    for (const geo_log::UsedNamedAttribute &used_attribute : node_log.used_named_attributes()) {
-      usage_by_attribute.lookup_or_add_as(used_attribute.name,
-                                          used_attribute.usage) |= used_attribute.usage;
-    }
-  });
+
+  tree_log->ensure_used_named_attributes();
+  const Map<StringRefNull, NamedAttributeUsage> &usage_by_attribute =
+      tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {
     uiItemL(layout, IFACE_("No named attributes used"), ICON_INFO);
@@ -1691,7 +1751,7 @@ static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *p
 
   struct NameWithUsage {
     StringRefNull name;
-    eNamedAttrUsage usage;
+    NamedAttributeUsage usage;
   };
 
   Vector<NameWithUsage> sorted_used_attribute;
@@ -1706,20 +1766,20 @@ static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *p
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull attribute_name = attribute.name;
-    const eNamedAttrUsage usage = attribute.usage;
+    const NamedAttributeUsage usage = attribute.usage;
 
     /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
     uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
 
     std::stringstream ss;
     Vector<std::string> usages;
-    if ((usage & eNamedAttrUsage::Read) != eNamedAttrUsage::None) {
+    if ((usage & NamedAttributeUsage::Read) != NamedAttributeUsage::None) {
       usages.append(TIP_("Read"));
     }
-    if ((usage & eNamedAttrUsage::Write) != eNamedAttrUsage::None) {
+    if ((usage & NamedAttributeUsage::Write) != NamedAttributeUsage::None) {
       usages.append(TIP_("Write"));
     }
-    if ((usage & eNamedAttrUsage::Remove) != eNamedAttrUsage::None) {
+    if ((usage & NamedAttributeUsage::Remove) != NamedAttributeUsage::None) {
       usages.append(TIP_("Remove"));
     }
     for (const int i : usages.index_range()) {
@@ -1756,7 +1816,7 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
@@ -1807,9 +1867,7 @@ static void freeData(ModifierData *md)
   clear_runtime_data(nmd);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* We don't know what the node tree will need. If there are vertex groups, it is likely that the
    * node tree wants to access them. */

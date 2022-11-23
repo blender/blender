@@ -30,8 +30,8 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
   if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
     const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
         state, path, denoising_feature_throughput);
-    const float denoising_depth = ensure_finite(average(denoising_feature_throughput) *
-                                                sd->ray_length);
+    const float depth = sd->ray_length - INTEGRATOR_STATE(state, ray, tmin);
+    const float denoising_depth = ensure_finite(average(denoising_feature_throughput) * depth);
     film_write_pass_float(buffer + kernel_data.film.pass_denoising_depth, denoising_depth);
   }
 

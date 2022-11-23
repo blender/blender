@@ -48,7 +48,7 @@ static void cmp_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-static void node_composit_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 

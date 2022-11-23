@@ -75,16 +75,23 @@ CCL_NAMESPACE_BEGIN
 #define __VOLUME__
 
 /* Device specific features */
+#ifdef WITH_OSL
+#  define __OSL__
+#  ifdef __KERNEL_OPTIX__
+/* Kernels with OSL support are built separately in OptiX and don't need SVM. */
+#    undef __SVM__
+#  endif
+#endif
 #ifndef __KERNEL_GPU__
-#  ifdef WITH_OSL
-#    define __OSL__
+#  ifdef WITH_PATH_GUIDING
+#    define __PATH_GUIDING__
 #  endif
 #  define __VOLUME_RECORD_ALL__
 #endif /* !__KERNEL_GPU__ */
 
-/* MNEE currently causes "Compute function exceeds available temporary registers"
- * on Metal, disabled for now. */
-#ifndef __KERNEL_METAL__
+/* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a bug
+ * in spill buffer allocation sizing. */
+#if !defined(__KERNEL_METAL__) || (__KERNEL_METAL_MACOS__ >= 13)
 #  define __MNEE__
 #endif
 
@@ -146,12 +153,14 @@ enum PathTraceDimension {
   PRNG_SURFACE_BSDF = 3,
   PRNG_SURFACE_AO = 4,
   PRNG_SURFACE_BEVEL = 5,
+  PRNG_SURFACE_BSDF_GUIDING = 6,
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
   PRNG_VOLUME_PHASE_CHANNEL = 4,
   PRNG_VOLUME_SCATTER_DISTANCE = 5,
   PRNG_VOLUME_OFFSET = 6,
   PRNG_VOLUME_SHADE_OFFSET = 7,
+  PRNG_VOLUME_PHASE_GUIDING = 8,
 
   /* Subsurface random walk bounces */
   PRNG_SUBSURFACE_BSDF = 0,
@@ -387,6 +396,14 @@ typedef enum PassType {
   PASS_SHADOW_CATCHER_SAMPLE_COUNT,
   PASS_SHADOW_CATCHER_MATTE,
 
+  /* Guiding related debug rendering passes */
+  /* The estimated sample color from the PathSegmentStorage. If everything is integrated correctly
+   * the output should be similar to PASS_COMBINED. */
+  PASS_GUIDING_COLOR,
+  /* The guiding probability at the first bounce. */
+  PASS_GUIDING_PROBABILITY,
+  /* The avg. roughness at the first bounce. */
+  PASS_GUIDING_AVG_ROUGHNESS,
   PASS_CATEGORY_DATA_END = 63,
 
   PASS_BAKE_PRIMITIVE,
@@ -455,6 +472,16 @@ typedef enum LightType {
   LIGHT_TRIANGLE
 } LightType;
 
+/* Guiding Distribution Type */
+
+typedef enum GuidingDistributionType {
+  GUIDING_TYPE_PARALLAX_AWARE_VMM = 0,
+  GUIDING_TYPE_DIRECTIONAL_QUAD_TREE = 1,
+  GUIDING_TYPE_VMM = 2,
+
+  GUIDING_NUM_TYPES,
+} GuidingDistributionType;
+
 /* Camera Type */
 
 enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGRAPHIC, CAMERA_PANORAMA };
@@ -467,6 +494,7 @@ enum PanoramaType {
   PANORAMA_FISHEYE_EQUISOLID = 2,
   PANORAMA_MIRRORBALL = 3,
   PANORAMA_FISHEYE_LENS_POLYNOMIAL = 4,
+  PANORAMA_EQUIANGULAR_CUBEMAP_FACE = 5,
 
   PANORAMA_NUM_TYPES,
 };
@@ -655,12 +683,11 @@ typedef struct AttributeDescriptor {
 
 /* For looking up attributes on objects and geometry. */
 typedef struct AttributeMap {
-  uint id;       /* Global unique identifier. */
-  uint element;  /* AttributeElement. */
-  int offset;    /* Offset into __attributes global arrays. */
-  uint8_t type;  /* NodeAttributeType. */
-  uint8_t flags; /* AttributeFlag. */
-  uint8_t pad[2];
+  uint64_t id;      /* Global unique identifier. */
+  int offset;       /* Offset into __attributes global arrays. */
+  uint16_t element; /* AttributeElement. */
+  uint8_t type;     /* NodeAttributeType. */
+  uint8_t flags;    /* AttributeFlag. */
 } AttributeMap;
 
 /* Closure data */
@@ -894,9 +921,13 @@ typedef struct ccl_align(16) ShaderData
   float ray_dP;
 
 #ifdef __OSL__
+#  ifdef __KERNEL_GPU__
+  ccl_private uint8_t *osl_closure_pool;
+#  else
   const struct KernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
   const struct IntegratorShadowStateCPU *osl_shadow_path_state;
+#  endif
 #endif
 
   /* LCG state for closures that require additional random numbers. */
@@ -1138,7 +1169,7 @@ typedef struct KernelBake {
   int use;
   int object_index;
   int tri_offset;
-  int pad1;
+  int use_camera;
 } KernelBake;
 static_assert_align(KernelBake, 16);
 
@@ -1359,12 +1390,13 @@ static_assert_align(KernelShaderEvalInput, 16);
 
 /* Pre-computed sample table sizes for PMJ02 sampler.
  *
- * NOTE: divisions *must* be a power of two, and patterns
+ * NOTE: min and max samples *must* be a power of two, and patterns
  * ideally should be as well.
  */
-#define NUM_PMJ_DIVISIONS 32
-#define NUM_PMJ_SAMPLES ((NUM_PMJ_DIVISIONS) * (NUM_PMJ_DIVISIONS))
-#define NUM_PMJ_PATTERNS 64
+#define MIN_PMJ_SAMPLES 256
+#define MAX_PMJ_SAMPLES 8192
+#define NUM_PMJ_DIMENSIONS 2
+#define NUM_PMJ_PATTERNS 256
 
 /* Device kernels.
  *
@@ -1503,6 +1535,12 @@ enum KernelFeatureFlag : uint32_t {
 
   /* MNEE. */
   KERNEL_FEATURE_MNEE = (1U << 25U),
+
+  /* Path guiding. */
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+
+  /* OSL. */
+  KERNEL_FEATURE_OSL = (1U << 27U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

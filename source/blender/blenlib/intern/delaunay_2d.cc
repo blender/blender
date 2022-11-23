@@ -45,7 +45,7 @@ template<> double math_abs<double>(const double v)
   return fabs(v);
 }
 
-template<typename T> double math_to_double(const T UNUSED(v))
+template<typename T> double math_to_double(const T /*v*/)
 {
   BLI_assert(false); /* Need implementation for other type. */
   return 0.0;
@@ -520,10 +520,10 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   double height = maxy - miny;
   double aspect = height / width;
   int view_width = max_draw_width;
-  int view_height = static_cast<int>(view_width * aspect);
+  int view_height = int(view_width * aspect);
   if (view_height > max_draw_height) {
     view_height = max_draw_height;
-    view_width = static_cast<int>(view_height / aspect);
+    view_width = int(view_height / aspect);
   }
   double scale = view_width / width;
 
@@ -2645,7 +2645,7 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
 
 template<typename T>
 CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
-                             const CDT_input<T> UNUSED(input),
+                             const CDT_input<T> /*input*/,
                              CDT_output_type output_type)
 {
   CDT_output_type oty = output_type;
@@ -2822,8 +2822,8 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
   in.edge = blender::Array<std::pair<int, int>>(input->edges_len);
   in.face = blender::Array<blender::Vector<int>>(input->faces_len);
   for (int v = 0; v < input->verts_len; ++v) {
-    double x = static_cast<double>(input->vert_coords[v][0]);
-    double y = static_cast<double>(input->vert_coords[v][1]);
+    double x = double(input->vert_coords[v][0]);
+    double y = double(input->vert_coords[v][1]);
     in.vert[v] = blender::meshintersect::vec2<double>(x, y);
   }
   for (int e = 0; e < input->edges_len; ++e) {
@@ -2836,7 +2836,7 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
       in.face[f][j] = input->faces[fstart + j];
     }
   }
-  in.epsilon = static_cast<double>(input->epsilon);
+  in.epsilon = double(input->epsilon);
   in.need_ids = input->need_ids;
 
   blender::meshintersect::CDT_result<double> res = blender::meshintersect::delaunay_2d_calc(
@@ -2903,8 +2903,8 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
 
   int v_orig_index = 0;
   for (int v = 0; v < nv; ++v) {
-    output->vert_coords[v][0] = static_cast<float>(res.vert[v][0]);
-    output->vert_coords[v][1] = static_cast<float>(res.vert[v][1]);
+    output->vert_coords[v][0] = float(res.vert[v][0]);
+    output->vert_coords[v][1] = float(res.vert[v][1]);
     if (input->need_ids) {
       int this_start = v_orig_index;
       output->verts_orig_start_table[v] = this_start;

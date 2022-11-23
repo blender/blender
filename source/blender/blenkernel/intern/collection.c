@@ -169,10 +169,10 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID *collection_owner_get(ID *id)
+static ID **collection_owner_pointer_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
-    return id;
+    return NULL;
   }
   BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
@@ -182,7 +182,7 @@ static ID *collection_owner_get(ID *id)
   BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
   BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
 
-  return master_collection->owner_id;
+  return &master_collection->owner_id;
 }
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
@@ -234,8 +234,13 @@ void BKE_collection_compat_blend_read_data(BlendDataReader *reader, SceneCollect
 void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection, ID *owner_id)
 {
   /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
-   * for do_versioning, and ensures coherence of data in any case. */
-  BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == NULL);
+   * for do_versioning, and ensures coherence of data in any case.
+   *
+   * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
+   */
+  if (BLO_read_fileversion_get(reader) > 300) {
+    BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == NULL);
+  }
   BLI_assert(owner_id == NULL || owner_id->lib == collection->id.lib);
   if (owner_id != NULL && (collection->id.flag & LIB_EMBEDDED_DATA) == 0) {
     /* This is unfortunate, but currently a lot of existing files (including startup ones) have
@@ -244,11 +249,13 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
      * NOTE: Using do_version is not a solution here, since this code will be called before any
      * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
      * bugs won't go easily unnoticed. */
-    CLOG_WARN(&LOG,
-              "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
-              "re-saving your (startup) file",
-              collection->id.name,
-              owner_id->name);
+    if (BLO_read_fileversion_get(reader) > 300) {
+      CLOG_WARN(&LOG,
+                "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
+                "re-saving your (startup) file",
+                collection->id.name,
+                owner_id->name);
+    }
     collection->id.flag |= LIB_EMBEDDED_DATA;
   }
   collection->owner_id = owner_id;
@@ -393,7 +400,7 @@ IDTypeInfo IDType_ID_GR = {
     .foreach_id = collection_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = collection_owner_get,
+    .owner_pointer_get = collection_owner_pointer_get,
 
     .blend_write = collection_blend_write,
     .blend_read_data = collection_blend_read_data,
@@ -789,10 +796,10 @@ static void collection_object_cache_fill(ListBase *lb,
     /* Only collection flags are checked here currently, object restrict flag is checked
      * in FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN since it can be animated
      * without updating the cache. */
-    if (((child_restrict & COLLECTION_HIDE_VIEWPORT) == 0)) {
+    if ((child_restrict & COLLECTION_HIDE_VIEWPORT) == 0) {
       base->flag |= BASE_ENABLED_VIEWPORT;
     }
-    if (((child_restrict & COLLECTION_HIDE_RENDER) == 0)) {
+    if ((child_restrict & COLLECTION_HIDE_RENDER) == 0) {
       base->flag |= BASE_ENABLED_RENDER;
     }
   }
@@ -852,13 +859,15 @@ void BKE_collection_object_cache_free(Collection *collection)
   collection_object_cache_free(collection);
 }
 
-Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *collection)
+Base *BKE_collection_or_layer_objects(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      Collection *collection)
 {
   if (collection) {
     return BKE_collection_object_cache_get(collection).first;
   }
-
-  return view_layer->object_bases.first;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  return BKE_view_layer_object_bases_get(view_layer)->first;
 }
 
 /** \} */
@@ -937,7 +946,7 @@ bool BKE_collection_has_object(Collection *collection, const Object *ob)
     return false;
   }
 
-  return (BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob)));
+  return BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob));
 }
 
 bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
@@ -947,7 +956,7 @@ bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
   }
 
   const ListBase objects = BKE_collection_object_cache_get(collection);
-  return (BLI_findptr(&objects, ob, offsetof(Base, object)));
+  return BLI_findptr(&objects, ob, offsetof(Base, object));
 }
 
 bool BKE_collection_has_object_recursive_instanced(Collection *collection, Object *ob)
@@ -957,7 +966,7 @@ bool BKE_collection_has_object_recursive_instanced(Collection *collection, Objec
   }
 
   const ListBase objects = BKE_collection_object_cache_instanced_get(collection);
-  return (BLI_findptr(&objects, ob, offsetof(Base, object)));
+  return BLI_findptr(&objects, ob, offsetof(Base, object));
 }
 
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)
@@ -1742,7 +1751,10 @@ Collection *BKE_collection_from_index(Scene *scene, const int index)
   return collection_from_index_recursive(master_collection, index, &index_current);
 }
 
-static bool collection_objects_select(ViewLayer *view_layer, Collection *collection, bool deselect)
+static bool collection_objects_select(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      Collection *collection,
+                                      bool deselect)
 {
   bool changed = false;
 
@@ -1750,6 +1762,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
     return false;
   }
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
@@ -1770,7 +1783,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    if (collection_objects_select(view_layer, collection, deselect)) {
+    if (collection_objects_select(scene, view_layer, collection, deselect)) {
       changed = true;
     }
   }
@@ -1778,16 +1791,19 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
   return changed;
 }
 
-bool BKE_collection_objects_select(ViewLayer *view_layer, Collection *collection, bool deselect)
+bool BKE_collection_objects_select(const Scene *scene,
+                                   ViewLayer *view_layer,
+                                   Collection *collection,
+                                   bool deselect)
 {
   LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(view_layer,
                                                                                        collection);
 
   if (layer_collection != NULL) {
-    return BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
+    return BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
   }
 
-  return collection_objects_select(view_layer, collection, deselect);
+  return collection_objects_select(scene, view_layer, collection, deselect);
 }
 
 /** \} */

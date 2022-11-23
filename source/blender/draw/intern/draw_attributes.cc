@@ -44,13 +44,10 @@ void drw_attributes_clear(DRW_Attributes *attributes)
   memset(attributes, 0, sizeof(DRW_Attributes));
 }
 
-void drw_attributes_merge(DRW_Attributes *dst,
-                          const DRW_Attributes *src,
-                          ThreadMutex *render_mutex)
+void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, std::mutex &render_mutex)
 {
-  BLI_mutex_lock(render_mutex);
+  std::lock_guard lock{render_mutex};
   drw_attributes_merge_requests(src, dst);
-  BLI_mutex_unlock(render_mutex);
 }
 
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)

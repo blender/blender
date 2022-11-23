@@ -177,7 +177,7 @@ void rna_Image_generated_color_set(PointerRNA *ptr, const float values[4])
 {
   Image *ima = (Image *)(ptr->data);
   ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-  for (unsigned int i = 0; i < 4; i++) {
+  for (uint i = 0; i < 4; i++) {
     base_tile->gen_color[i] = CLAMPIS(values[i], 0.0f, FLT_MAX);
   }
 }
@@ -625,7 +625,7 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
     }
     else {
       for (i = 0; i < size; i++) {
-        values[i] = ((unsigned char *)ibuf->rect)[i] * (1.0f / 255.0f);
+        values[i] = ((uchar *)ibuf->rect)[i] * (1.0f / 255.0f);
       }
     }
   }
@@ -650,7 +650,7 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
     }
     else {
       for (i = 0; i < size; i++) {
-        ((unsigned char *)ibuf->rect)[i] = unit_float_to_uchar_clamp(values[i]);
+        ((uchar *)ibuf->rect)[i] = unit_float_to_uchar_clamp(values[i]);
       }
     }
 

@@ -22,7 +22,7 @@ bool wayland_dynload_egl_init(const bool verbose)
 {
   /* Library paths. */
   const char *paths[] = {
-      "libwayland-egl.so.0",
+      "libwayland-egl.so.1",
       "libwayland-egl.so",
   };
   const int paths_num = sizeof(paths) / sizeof(*paths);
@@ -36,7 +36,7 @@ bool wayland_dynload_egl_init(const bool verbose)
 
 #define WAYLAND_DYNLOAD_FN(symbol) \
   if (!(wayland_dynload_egl.symbol = dynamic_library_find_with_error( \
-            lib, #symbol, paths[path_found]))) { \
+            lib, #symbol, paths[path_found], verbose))) { \
     return false; \
   }
 #include "wayland_dynload_egl.h"

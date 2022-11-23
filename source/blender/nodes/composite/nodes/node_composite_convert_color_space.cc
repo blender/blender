@@ -24,7 +24,7 @@ static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_convert_colorspace(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(
       MEM_callocN(sizeof(NodeConvertColorSpace), "node colorspace"));
@@ -42,7 +42,7 @@ static void node_composit_init_convert_colorspace(bNodeTree *UNUSED(ntree), bNod
 }
 
 static void node_composit_buts_convert_colorspace(uiLayout *layout,
-                                                  bContext *UNUSED(C),
+                                                  bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
@@ -78,7 +78,7 @@ void register_node_type_cmp_convert_color_space(void)
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_composit_init_convert_colorspace);
+  ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
   node_type_storage(
       &ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

@@ -40,7 +40,7 @@ set(SRC
   transform_convert_mesh_uv.c
   transform_convert_mesh_vert_cdata.c
   transform_convert_nla.c
-  transform_convert_node.c
+  transform_convert_node.cc
   transform_convert_object.c
   transform_convert_object_texspace.c
   transform_convert_paintcurve.c
@@ -88,7 +88,7 @@ set(SRC
   transform_mode_vert_slide.c
   transform_ops.c
   transform_orientations.c
-  transform_snap.c
+  transform_snap.cc
   transform_snap_animation.c
   transform_snap_object.cc
   transform_snap_sequencer.c

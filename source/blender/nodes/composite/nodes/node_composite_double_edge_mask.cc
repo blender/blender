@@ -24,7 +24,7 @@ static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
 }
 
 static void node_composit_buts_double_edge_mask(uiLayout *layout,
-                                                bContext *UNUSED(C),
+                                                bContext * /*C*/,
                                                 PointerRNA *ptr)
 {
   uiLayout *col;

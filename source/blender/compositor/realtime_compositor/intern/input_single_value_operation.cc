@@ -38,7 +38,7 @@ void InputSingleValueOperation::execute()
       break;
     case ResultType::Vector:
       result.set_vector_value(
-          float3(bsocket->default_value_typed<bNodeSocketValueVector>()->value));
+          float4(float3(bsocket->default_value_typed<bNodeSocketValueVector>()->value), 0.0f));
       break;
     case ResultType::Color:
       result.set_color_value(float4(bsocket->default_value_typed<bNodeSocketValueRGBA>()->value));

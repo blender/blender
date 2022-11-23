@@ -13,9 +13,9 @@
 
 namespace blender::realtime_compositor {
 
-/* --------------------------------------------------------------------
- * Texture Pool Key.
- */
+/* -------------------------------------------------------------------- */
+/** \name Texture Pool Key
+ * \{ */
 
 TexturePoolKey::TexturePoolKey(int2 size, eGPUTextureFormat format) : size(size), format(format)
 {
@@ -37,9 +37,11 @@ bool operator==(const TexturePoolKey &a, const TexturePoolKey &b)
   return a.size == b.size && a.format == b.format;
 }
 
-/* --------------------------------------------------------------------
- * Texture Pool.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture Pool
+ * \{ */
 
 GPUTexture *TexturePool::acquire(int2 size, eGPUTextureFormat format)
 {
@@ -62,7 +64,7 @@ GPUTexture *TexturePool::acquire_color(int2 size)
 
 GPUTexture *TexturePool::acquire_vector(int2 size)
 {
-  /* Vectors are stored in RGBA textures because RGB textures have limited support. */
+  /* Vectors are 4D, and are thus stored in RGBA textures. */
   return acquire(size, GPU_RGBA16F);
 }
 
@@ -80,5 +82,7 @@ void TexturePool::reset()
 {
   textures_.clear();
 }
+
+/** \} */
 
 }  // namespace blender::realtime_compositor

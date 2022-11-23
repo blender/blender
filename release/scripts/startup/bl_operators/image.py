@@ -3,6 +3,7 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
+from bpy.app.translations import pgettext_tip as tip_
 
 
 class EditExternally(Operator):
@@ -52,8 +53,8 @@ class EditExternally(Operator):
 
         if not os.path.exists(filepath) or not os.path.isfile(filepath):
             self.report({'ERROR'},
-                        "Image path %r not found, image may be packed or "
-                        "unsaved" % filepath)
+                        tip_("Image path %r not found, image may be packed or "
+                             "unsaved") % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
@@ -183,7 +184,7 @@ class ProjectApply(Operator):
         except KeyError:
             import traceback
             traceback.print_exc()
-            self.report({'ERROR'}, "Could not find image '%s'" % image_name)
+            self.report({'ERROR'}, tip_("Could not find image '%s'") % image_name)
             return {'CANCELLED'}
 
         image.reload()

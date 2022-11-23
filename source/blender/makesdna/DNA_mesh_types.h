@@ -19,10 +19,15 @@ namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
 namespace bke {
+struct MeshRuntime;
 class AttributeAccessor;
 class MutableAttributeAccessor;
+struct LooseEdgeCache;
 }  // namespace bke
 }  // namespace blender
+using MeshRuntimeHandle = blender::bke::MeshRuntime;
+#else
+typedef struct MeshRuntimeHandle MeshRuntimeHandle;
 #endif
 
 #ifdef __cplusplus
@@ -30,133 +35,14 @@ extern "C" {
 #endif
 
 struct AnimData;
-struct BVHCache;
 struct Ipo;
 struct Key;
 struct MCol;
 struct MEdge;
 struct MFace;
-struct MLoopCol;
 struct MLoopTri;
 struct MVert;
 struct Material;
-struct Mesh;
-struct SubdivCCG;
-struct SubsurfRuntimeData;
-
-#
-#
-typedef struct EditMeshData {
-  /** when set, \a vertexNos, polyNos are lazy initialized */
-  const float (*vertexCos)[3];
-
-  /** lazy initialize (when \a vertexCos is set) */
-  float const (*vertexNos)[3];
-  float const (*polyNos)[3];
-  /** also lazy init but don't depend on \a vertexCos */
-  const float (*polyCos)[3];
-} EditMeshData;
-
-/**
- * \warning Typical access is done via
- * #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
- */
-struct MLoopTri_Store {
-  DNA_DEFINE_CXX_METHODS(MLoopTri_Store)
-
-  /* WARNING! swapping between array (ready-to-be-used data) and array_wip
-   * (where data is actually computed)
-   * shall always be protected by same lock as one used for looptris computing. */
-  struct MLoopTri *array, *array_wip;
-  int len;
-  int len_alloc;
-};
-
-/** Runtime data, not saved in files. */
-typedef struct Mesh_Runtime {
-  DNA_DEFINE_CXX_METHODS(Mesh_Runtime)
-
-  /* Evaluated mesh for objects which do not have effective modifiers.
-   * This mesh is used as a result of modifier stack evaluation.
-   * Since modifier stack evaluation is threaded on object level we need some synchronization. */
-  struct Mesh *mesh_eval;
-  void *eval_mutex;
-
-  /* A separate mutex is needed for normal calculation, because sometimes
-   * the normals are needed while #eval_mutex is already locked. */
-  void *normals_mutex;
-
-  /** Needed to ensure some thread-safety during render data pre-processing. */
-  void *render_mutex;
-
-  /** Lazily initialized SoA data from the #edit_mesh field in #Mesh. */
-  struct EditMeshData *edit_data;
-
-  /**
-   * Data used to efficiently draw the mesh in the viewport, especially useful when
-   * the same mesh is used in many objects or instances. See `draw_cache_impl_mesh.cc`.
-   */
-  void *batch_cache;
-
-  /** Cache for derived triangulation of the mesh. */
-  struct MLoopTri_Store looptris;
-
-  /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
-  struct BVHCache *bvh_cache;
-
-  /** Cache of non-manifold boundary data for Shrinkwrap Target Project. */
-  struct ShrinkwrapBoundaryData *shrinkwrap_data;
-
-  /** Needed in case we need to lazily initialize the mesh. */
-  CustomData_MeshMasks cd_mask_extra;
-
-  struct SubdivCCG *subdiv_ccg;
-  int subdiv_ccg_tot_level;
-
-  /** Set by modifier stack if only deformed from original. */
-  char deformed_only;
-  /**
-   * Copied from edit-mesh (hint, draw with edit-mesh data when true).
-   *
-   * Modifiers that edit the mesh data in-place must set this to false
-   * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
-   * data will be used for drawing, missing changes from modifiers. See T79517.
-   */
-  char is_original_bmesh;
-
-  /** #eMeshWrapperType and others. */
-  char wrapper_type;
-  /**
-   * A type mask from wrapper_type,
-   * in case there are differences in finalizing logic between types.
-   */
-  char wrapper_type_finalize;
-
-  /**
-   * Settings for lazily evaluating the subdivision on the CPU if needed. These are
-   * set in the modifier when GPU subdivision can be performed, and owned by the by
-   * the modifier in the object.
-   */
-  struct SubsurfRuntimeData *subsurf_runtime_data;
-  void *_pad1;
-
-  /**
-   * Caches for lazily computed vertex and polygon normals. These are stored here rather than in
-   * #CustomData because they can be calculated on a const mesh, and adding custom data layers on a
-   * const mesh is not thread-safe.
-   */
-  char _pad2[6];
-  char vert_normals_dirty;
-  char poly_normals_dirty;
-  float (*vert_normals)[3];
-  float (*poly_normals)[3];
-
-  /**
-   * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the
-   * subdivision surface modifier and used by drawing code instead of polygon center face dots.
-   */
-  uint32_t *subsurf_face_dot_tags;
-} Mesh_Runtime;
 
 typedef struct Mesh {
   DNA_DEFINE_CXX_METHODS(Mesh)
@@ -254,24 +140,23 @@ typedef struct Mesh {
   float smoothresh;
 
   /**
-   * Flag for choosing whether or not so store bevel weight and crease as custom data layers in the
-   * edit mesh (they are always stored in #MVert and #MEdge currently). In the future, this data
-   * may be stored as generic named attributes (see T89054 and T93602).
-   */
-  char cd_flag;
-
-  /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
    */
   char symmetry;
 
-  /** The length of the #mat array. */
-  short totcol;
-
   /** Choice between different remesh methods in the UI. */
   char remesh_mode;
 
+  /** The length of the #mat array. */
+  short totcol;
+
+  /**
+   * Deprecated flag for choosing whether to store specific custom data that was built into #Mesh
+   * structs in edit mode. Replaced by separating that data to separate layers. Kept for forward
+   * and backwards compatibility.
+   */
+  char cd_flag DNA_DEPRECATED;
   char subdiv DNA_DEPRECATED;
   char subdivr DNA_DEPRECATED;
   char subsurftype DNA_DEPRECATED;
@@ -285,7 +170,7 @@ typedef struct Mesh {
   struct MVert *mvert DNA_DEPRECATED;
   /** Deprecated array of mesh edges, kept for reading old files, now stored in #CustomData. */
   struct MEdge *medge DNA_DEPRECATED;
-  /** Deprecated "Vertex group" data. Kept for reading old files, now stored in #CustomData.*/
+  /** Deprecated "Vertex group" data. Kept for reading old files, now stored in #CustomData. */
   struct MDeformVert *dvert DNA_DEPRECATED;
   /** Deprecated runtime data for tessellation face UVs and texture, kept for reading old files. */
   struct MTFace *mtface DNA_DEPRECATED;
@@ -317,9 +202,13 @@ typedef struct Mesh {
 
   char _pad1[4];
 
-  void *_pad2;
-
-  Mesh_Runtime runtime;
+  /**
+   * Data that isn't saved in files, including caches of derived data, temporary data to improve
+   * the editing experience, etc. Runtime data is created when reading files and can be accessed
+   * without null checks, with the exception of some temporary meshes which should allocate and
+   * free the data if they are passed to functions that expect run-time data.
+   */
+  MeshRuntimeHandle *runtime;
 #ifdef __cplusplus
   /**
    * Array of vertex positions (and various other data). Edges and faces are defined by indices
@@ -361,6 +250,23 @@ typedef struct Mesh {
   /** Write access to vertex group data. */
   blender::MutableSpan<MDeformVert> deform_verts_for_write();
 
+  /**
+   * Cached triangulation of the mesh.
+   */
+  blender::Span<MLoopTri> looptris() const;
+
+  /**
+   * Cached information about loose edges, calculated lazily when necessary.
+   */
+  const blender::bke::LooseEdgeCache &loose_edges() const;
+  /**
+   * Explicitly set the cached number of loose edges to zero. This can improve performance
+   * later on, because finding loose edges lazily can be skipped entirely.
+   *
+   * \note To allow setting this status on meshes without changing them, this This does not tag the
+   * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
+   */
+  void loose_edges_tag_none() const;
 #endif
 } Mesh;
 
@@ -379,16 +285,6 @@ typedef struct TFace {
 #endif
 
 /* **************** MESH ********************* */
-
-/** #Mesh_Runtime.wrapper_type */
-typedef enum eMeshWrapperType {
-  /** Use mesh data (#Mesh.mvert, #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
-  ME_WRAPPER_TYPE_MDATA = 0,
-  /** Use edit-mesh data (#Mesh.edit_mesh, #Mesh_Runtime.edit_data). */
-  ME_WRAPPER_TYPE_BMESH = 1,
-  /** Use subdivision mesh data (#Mesh_Runtime.mesh_eval). */
-  ME_WRAPPER_TYPE_SUBD = 2,
-} eMeshWrapperType;
 
 /** #Mesh.texflag */
 enum {
@@ -438,6 +334,7 @@ enum {
   ME_REMESH_REPROJECT_SCULPT_FACE_SETS = 1 << 15,
 };
 
+#ifdef DNA_DEPRECATED_ALLOW
 /** #Mesh.cd_flag */
 enum {
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
@@ -445,6 +342,7 @@ enum {
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
   ME_CDFLAG_VERT_CREASE = 1 << 3,
 };
+#endif
 
 /** #Mesh.remesh_mode */
 enum {

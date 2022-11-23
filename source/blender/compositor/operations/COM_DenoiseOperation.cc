@@ -89,7 +89,7 @@ class DenoiseFilter {
   }
 
 #else
-  void init_and_lock_denoiser(MemoryBuffer *UNUSED(output))
+  void init_and_lock_denoiser(MemoryBuffer * /*output*/)
   {
   }
 
@@ -97,11 +97,11 @@ class DenoiseFilter {
   {
   }
 
-  void set_image(const StringRef UNUSED(name), MemoryBuffer *UNUSED(buffer))
+  void set_image(const StringRef /*name*/, MemoryBuffer * /*buffer*/)
   {
   }
 
-  template<typename T> void set(const StringRef UNUSED(option_name), T UNUSED(value))
+  template<typename T> void set(const StringRef /*option_name*/, T /*value*/)
   {
   }
 
@@ -132,8 +132,8 @@ bool DenoiseBaseOperation::determine_depending_area_of_interest(
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-void DenoiseBaseOperation::get_area_of_interest(const int UNUSED(input_idx),
-                                                const rcti &UNUSED(output_area),
+void DenoiseBaseOperation::get_area_of_interest(const int /*input_idx*/,
+                                                const rcti & /*output_area*/,
                                                 rcti &r_input_area)
 {
   r_input_area = this->get_canvas();
@@ -178,7 +178,7 @@ static bool are_guiding_passes_noise_free(const NodeDenoise *settings)
 void DenoiseOperation::hash_output_params()
 {
   if (settings_) {
-    hash_params((int)settings_->hdr, are_guiding_passes_noise_free(settings_));
+    hash_params(int(settings_->hdr), are_guiding_passes_noise_free(settings_));
   }
 }
 
@@ -251,7 +251,7 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
 }
 
 void DenoiseOperation::update_memory_buffer(MemoryBuffer *output,
-                                            const rcti &UNUSED(area),
+                                            const rcti & /*area*/,
                                             Span<MemoryBuffer *> inputs)
 {
   if (!output_rendered_) {
@@ -304,7 +304,7 @@ void DenoisePrefilterOperation::generate_denoise(MemoryBuffer *output, MemoryBuf
 }
 
 void DenoisePrefilterOperation::update_memory_buffer(MemoryBuffer *output,
-                                                     const rcti &UNUSED(area),
+                                                     const rcti & /*area*/,
                                                      Span<MemoryBuffer *> inputs)
 {
   if (!output_rendered_) {

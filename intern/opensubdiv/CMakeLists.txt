@@ -81,12 +81,6 @@ if(WITH_OPENSUBDIV)
     )
   endif()
 
-  OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_OPENMP)
-  OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_OPENCL)
-  OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_CUDA)
-  OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
-  OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_COMPUTE)
-
   if(WIN32)
     add_definitions(-DNOMINMAX)
     add_definitions(-D_USE_MATH_DEFINES)
@@ -110,7 +104,6 @@ if(WITH_GTESTS AND WITH_OPENSUBDIV)
 
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
-  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
   blender_add_test_executable(opensubdiv_mesh_topology_test "internal/topology/mesh_topology_test.cc" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
 endif()

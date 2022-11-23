@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("UV"));
 }
 
-static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_tips", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
 }

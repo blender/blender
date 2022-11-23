@@ -162,6 +162,7 @@ CPU:=$(shell uname -m)
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
+BLENDER_IS_PYTHON_MODULE:=
 
 # CMake arguments, assigned to local variable to make it mutable.
 CMAKE_CONFIG_ARGS := $(BUILD_CMAKE_ARGS)
@@ -229,9 +230,18 @@ endif
 
 
 # -----------------------------------------------------------------------------
-# additional targets for the build configuration
+# Additional targets for the build configuration
 
-# support 'make debug'
+# NOTE: These targets can be combined and are applied in reverse order listed here.
+# So it's important that `bpy` comes before `release` (for example)
+# `make bpy release` first loads `release` configuration, then `bpy`.
+# This is important as `bpy` will turn off some settings enabled by release.
+
+ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_bpy
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake" $(CMAKE_CONFIG_ARGS)
+	BLENDER_IS_PYTHON_MODULE:=1
+endif
 ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_debug
 	BUILD_TYPE:=Debug
@@ -255,10 +265,6 @@ endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_headless
 	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake" $(CMAKE_CONFIG_ARGS)
-endif
-ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
-	BUILD_DIR:=$(BUILD_DIR)_bpy
-	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 
 ifneq "$(findstring developer, $(MAKECMDGOALS))" ""
@@ -297,8 +303,10 @@ endif
 # use the default build path can still use utility helpers.
 ifeq ($(OS), Darwin)
 	BLENDER_BIN?="$(BUILD_DIR)/bin/Blender.app/Contents/MacOS/Blender"
+	BLENDER_BIN_DIR?="$(BUILD_DIR)/bin/Blender.app/Contents/MacOS/Blender"
 else
 	BLENDER_BIN?="$(BUILD_DIR)/bin/blender"
+	BLENDER_BIN_DIR?="$(BUILD_DIR)/bin"
 endif
 
 
@@ -355,8 +363,12 @@ all: .FORCE
 	@echo Building Blender ...
 	$(BUILD_COMMAND) -C "$(BUILD_DIR)" -j $(NPROCS) install
 	@echo
-	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
-	@echo Blender successfully built, run from: $(BLENDER_BIN)
+	@echo Edit build configuration with: \"$(BUILD_DIR)/CMakeCache.txt\" run make again to rebuild.
+	@if test -z "$(BLENDER_IS_PYTHON_MODULE)"; then \
+		echo Blender successfully built, run from: $(BLENDER_BIN); \
+	else \
+		echo Blender successfully built as a Python module, \"bpy\" can be imported from: $(BLENDER_BIN_DIR); \
+	fi
 	@echo
 
 debug: all

@@ -30,7 +30,7 @@
 using namespace blender;
 using namespace blender::ed::spreadsheet;
 
-static void filter_panel_id_fn(void *UNUSED(row_filter_v), char *r_name)
+static void filter_panel_id_fn(void * /*row_filter_v*/, char *r_name)
 {
   /* All row filters use the same panel ID. */
   BLI_snprintf(r_name, BKE_ST_MAXNAME, "SPREADSHEET_PT_filter");
@@ -304,15 +304,15 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
   BLI_listbase_link_move(row_filters, filter, new_index - current_index);
 }
 
-static short get_filter_expand_flag(const bContext *UNUSED(C), Panel *panel)
+static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 
-  return (short)filter->flag & SPREADSHEET_ROW_FILTER_UI_EXPAND;
+  return short(filter->flag) & SPREADSHEET_ROW_FILTER_UI_EXPAND;
 }
 
-static void set_filter_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)
+static void set_filter_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;

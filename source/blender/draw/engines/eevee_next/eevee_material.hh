@@ -120,7 +120,7 @@ struct MaterialKey {
   uint64_t hash() const
   {
     BLI_assert(options < sizeof(*mat));
-    return (uint64_t)mat + options;
+    return uint64_t(mat) + options;
   }
 
   bool operator<(const MaterialKey &k) const
@@ -154,7 +154,7 @@ struct ShaderKey {
 
   uint64_t hash() const
   {
-    return (uint64_t)shader + options;
+    return uint64_t(shader) + options;
   }
 
   bool operator<(const ShaderKey &k) const

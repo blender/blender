@@ -68,9 +68,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tamd->vert_coords_prev = NULL;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for vertexgroups */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;

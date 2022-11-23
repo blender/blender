@@ -44,7 +44,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("IOR")).default_value(1.55f).min(0.0f).max(1000.0f);
   b.add_input<decl::Float>(N_("Offset"))
-      .default_value(2.0f * ((float)M_PI) / 180.0f)
+      .default_value(2.0f * float(M_PI) / 180.0f)
       .min(-M_PI_2)
       .max(M_PI_2)
       .subtype(PROP_ANGLE);
@@ -63,15 +63,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
-static void node_shader_buts_principled_hair(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_shader_buts_principled_hair(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "parametrization", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 /* Initialize the custom Parametrization property to Color. */
-static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_hair_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_PRINCIPLED_HAIR_REFLECTANCE;
 }
@@ -110,7 +108,7 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 
 static int node_shader_gpu_hair_principled(GPUMaterial *mat,
                                            bNode *node,
-                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeExecData * /*execdata*/,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
@@ -131,9 +129,9 @@ void register_node_type_sh_bsdf_hair_principled()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
-  node_type_update(&ntype, file_ns::node_shader_update_hair_principled);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_hair_principled);
+  ntype.initfunc = file_ns::node_shader_init_hair_principled;
+  ntype.updatefunc = file_ns::node_shader_update_hair_principled;
+  ntype.gpu_fn = file_ns::node_shader_gpu_hair_principled;
 
   nodeRegisterType(&ntype);
 }

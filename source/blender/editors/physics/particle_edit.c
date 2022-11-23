@@ -169,6 +169,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 int PE_minmax(
     Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys;
@@ -3117,9 +3118,8 @@ static void subdivide_particle(PEData *data, int pa_index)
 
   pa->flag |= PARS_REKEY;
 
-  nkey = new_keys = MEM_callocN((pa->totkey + totnewkey) * (sizeof(HairKey)),
-                                "Hair subdivide keys");
-  nekey = new_ekeys = MEM_callocN((pa->totkey + totnewkey) * (sizeof(PTCacheEditKey)),
+  nkey = new_keys = MEM_callocN((pa->totkey + totnewkey) * sizeof(HairKey), "Hair subdivide keys");
+  nekey = new_ekeys = MEM_callocN((pa->totkey + totnewkey) * sizeof(PTCacheEditKey),
                                   "Hair subdivide edit keys");
 
   key = pa->hair;
@@ -3533,7 +3533,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
   }
 
   const bool use_dm_final_indices = (psys->part->use_modifier_stack &&
-                                     !psmd_eval->mesh_final->runtime.deformed_only);
+                                     !BKE_mesh_is_deformed_only(psmd_eval->mesh_final));
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
   BKE_mesh_tessface_ensure(me);
@@ -3920,8 +3920,8 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
       mul_m4_v3(mat, co);
 
       /* Use `kco` as the object space version of world-space `co`,
-       * `ob->imat` is set before calling. */
-      mul_v3_m4v3(kco, data->ob->imat, co);
+       * `ob->world_to_object` is set before calling. */
+      mul_v3_m4v3(kco, data->ob->world_to_object, co);
 
       point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, NULL);
       if (point_index == -1) {
@@ -3930,7 +3930,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
       copy_v3_v3(co_root, co);
       copy_v3_v3(no_root, &edit->emitter_cosnos[point_index * 6 + 3]);
-      mul_mat3_m4_v3(data->ob->obmat, no_root); /* normal into global-space */
+      mul_mat3_m4_v3(data->ob->object_to_world, no_root); /* normal into global-space */
       normalize_v3(no_root);
 
       if (puff_volume) {
@@ -3987,7 +3987,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
           /* Translate (not rotate) the rest of the hair if its not selected. */
           {
 /* NOLINTNEXTLINE: readability-redundant-preprocessor */
-#  if 0 /* kindof works but looks worse than what's below */
+#  if 0 /* Kind of works but looks worse than what's below. */
 
             /* Move the unselected point on a vector based on the
              * hair direction and the offset */
@@ -4010,14 +4010,14 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
             mul_m4_v3(mat, oco);
 
             /* Use `kco` as the object space version of world-space `co`,
-             * `ob->imat` is set before calling. */
-            mul_v3_m4v3(kco, data->ob->imat, oco);
+             * `ob->world_to_object` is set before calling. */
+            mul_v3_m4v3(kco, data->ob->world_to_object, oco);
 
             point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, NULL);
             if (point_index != -1) {
               copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
-              mul_mat3_m4_v3(data->ob->obmat, onor); /* Normal into world-space. */
-              mul_mat3_m4_v3(imat, onor);            /* World-space into particle-space. */
+              mul_mat3_m4_v3(data->ob->object_to_world, onor); /* Normal into world-space. */
+              mul_mat3_m4_v3(imat, onor); /* World-space into particle-space. */
               normalize_v3(onor);
             }
             else {
@@ -4353,7 +4353,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
                               0,
                               0,
                               0)) {
-    if (psys->part->use_modifier_stack && !psmd_eval->mesh_final->runtime.deformed_only) {
+    if (psys->part->use_modifier_stack && !BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
     }
@@ -4412,7 +4412,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
   short size = pset->brush[PE_BRUSH_ADD].size;
   RNG *rng;
 
-  invert_m4_m4(imat, ob->obmat);
+  invert_m4_m4(imat, ob->object_to_world);
 
   if (psys->flag & PSYS_GLOBAL_HAIR) {
     return 0;
@@ -4430,7 +4430,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   timestep = psys_get_timestep(&sim);
 
-  if (psys->part->use_modifier_stack || psmd_eval->mesh_final->runtime.deformed_only) {
+  if (psys->part->use_modifier_stack || BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
     mesh = psmd_eval->mesh_final;
   }
   else {
@@ -4797,7 +4797,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             data.combfac = 1.0f - data.combfac;
           }
 
-          invert_m4_m4(ob->imat, ob->obmat);
+          invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
           ED_view3d_win_to_delta(region, xy_delta, bedit->zfac, vec);
           data.dvec = vec;
@@ -4865,7 +4865,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             }
 
             data.invert = (brush->invert ^ flip);
-            invert_m4_m4(ob->imat, ob->obmat);
+            invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
             foreach_mouse_hit_point(&data, brush_puff, selected);
           }
@@ -4895,7 +4895,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
           data.smoothfac = brush->strength;
 
-          invert_m4_m4(ob->imat, ob->obmat);
+          invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
           foreach_mouse_hit_key(&data, brush_smooth_get, selected);
 
@@ -5112,7 +5112,7 @@ static bool shape_cut_test_point(PEData *data, ParticleEditSettings *pset, Parti
   userdata.num_hits = 0;
 
   float co_shape[3];
-  mul_v3_m4v3(co_shape, pset->shape_object->imat, key->co);
+  mul_v3_m4v3(co_shape, pset->shape_object->world_to_object, key->co);
 
   BLI_bvhtree_ray_cast_all(
       shape_bvh->tree, co_shape, dir, 0.0f, BVH_RAYCAST_DIST_MAX, point_inside_bvh_cb, &userdata);
@@ -5153,8 +5153,8 @@ static void shape_cut(PEData *data, int pa_index)
       float dir_shape[3];
       float len_shape;
 
-      mul_v3_m4v3(co_curr_shape, pset->shape_object->imat, key->co);
-      mul_v3_m4v3(co_next_shape, pset->shape_object->imat, (key + 1)->co);
+      mul_v3_m4v3(co_curr_shape, pset->shape_object->world_to_object, key->co);
+      mul_v3_m4v3(co_next_shape, pset->shape_object->world_to_object, (key + 1)->co);
 
       sub_v3_v3v3(dir_shape, co_next_shape, co_curr_shape);
       len_shape = normalize_v3(dir_shape);

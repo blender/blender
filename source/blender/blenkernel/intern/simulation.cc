@@ -149,7 +149,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* foreach_id */ simulation_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ simulation_blend_write,
     /* blend_read_data */ simulation_blend_read_data,
@@ -167,8 +167,8 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
-void BKE_simulation_data_update(Depsgraph *UNUSED(depsgraph),
-                                Scene *UNUSED(scene),
-                                Simulation *UNUSED(simulation))
+void BKE_simulation_data_update(Depsgraph * /*depsgraph*/,
+                                Scene * /*scene*/,
+                                Simulation * /*simulation*/)
 {
 }

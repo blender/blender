@@ -49,7 +49,7 @@ float ExtraTags::asFloat(std::string tag, bool *ok)
     return -1.0f;
   }
   *ok = true;
-  return (float)atof(tags[tag].c_str());
+  return float(atof(tags[tag].c_str()));
 }
 
 std::string ExtraTags::asString(std::string tag, bool *ok)
@@ -67,7 +67,7 @@ bool ExtraTags::setData(std::string tag, short *data)
   bool ok = false;
   int tmp = asInt(tag, &ok);
   if (ok) {
-    *data = (short)tmp;
+    *data = short(tmp);
   }
   return ok;
 }
@@ -97,7 +97,7 @@ bool ExtraTags::setData(std::string tag, char *data)
   bool ok = false;
   int tmp = asInt(tag, &ok);
   if (ok) {
-    *data = (char)tmp;
+    *data = char(tmp);
   }
   return ok;
 }

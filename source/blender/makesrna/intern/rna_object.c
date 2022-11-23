@@ -356,7 +356,8 @@ static void rna_Object_internal_update_draw(Main *UNUSED(bmain),
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* don't use compat so we get predictable rotation */
-  BKE_object_apply_mat4((Object *)ptr->owner_id, ((Object *)ptr->owner_id)->obmat, false, true);
+  BKE_object_apply_mat4(
+      (Object *)ptr->owner_id, ((Object *)ptr->owner_id)->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -381,7 +382,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
   Object *ob = (Object *)ptr->owner_id;
   if (ob && ob->type == OB_GPENCIL) {
-    /* notifying material property in topbar */
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
@@ -407,7 +408,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
   Object *ob = (Object *)ptr->owner_id;
   float local_mat[4][4];
 
-  /* Localspace matrix is truly relative to the parent,
+  /* Local-space matrix is truly relative to the parent,
    * but parameters stored in object are relative to parentinv matrix.
    * Undo the parent inverse part before applying it as local matrix. */
   if (ob->parent) {
@@ -497,12 +498,6 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 
 void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *object = (Object *)ptr->data;
-
-  if (object->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(scene, object);
-  }
-
   rna_Object_internal_update_data_dependency(bmain, scene, ptr);
 }
 
@@ -2928,6 +2923,11 @@ static void rna_def_object_lineart(BlenderRNA *brna)
        0,
        "No Intersection",
        "Include this object but do not generate intersection lines"},
+      {OBJECT_LRT_FORCE_INTERSECTION,
+       "FORCE_INTERSECTION",
+       0,
+       "Force Intersection",
+       "Generate intersection lines even with objects that disabled intersection"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3391,7 +3391,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
-  RNA_def_property_float_sdna(prop, NULL, "obmat");
+  RNA_def_property_float_sdna(prop, NULL, "object_to_world");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);

@@ -77,10 +77,10 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
       /* apply current transform from parent (not yet destroyed),
        * then calculate new parent inverse matrix
        */
-      BKE_object_apply_mat4(ob, ob->obmat, false, false);
+      BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
 
       BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-      invert_m4_m4(ob->parentinv, workob.obmat);
+      invert_m4_m4(ob->parentinv, workob.object_to_world);
     }
   }
 }
@@ -361,7 +361,7 @@ static void applyarmature_reset_constraints(bPose *pose, const bool use_selected
   }
 }
 
-/* set the current pose as the restpose */
+/* Set the current pose as the rest-pose. */
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -404,10 +404,10 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Get editbones of active armature to alter */
+  /* Get edit-bones of active armature to alter. */
   ED_armature_to_edit(arm);
 
-  /* get pose of active object and move it out of posemode */
+  /* Get pose of active object and move it out of pose-mode. */
   pose = ob->pose;
 
   if (use_selected) {
@@ -429,11 +429,11 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* convert editbones back to bones, and then free the edit-data */
+  /* Convert edit-bones back to bones, and then free the edit-data. */
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
 
-  /* flush positions of posebones */
+  /* Flush positions of pose-bones. */
   BKE_pose_where_is(depsgraph, scene, ob);
 
   /* fix parenting of objects which are bone-parented */
@@ -491,13 +491,14 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   /* Needed to ensure #bPoseChannel.pose_mat are up to date. */
   CTX_data_ensure_evaluated_depsgraph(C);
 
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     const bArmature *arm = ob->data;
 
     int chanbase_len = BLI_listbase_count(&ob->pose->chanbase);
@@ -787,7 +788,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
    * existing on its own.
    */
   BKE_copybuffer_copy_tag_ID(&ob_copy.id);
-  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
+  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
   BKE_copybuffer_copy_end(temp_bmain, str, op->reports);
   /* We clear the lists so no datablocks gets freed,
    * This is required because objects in temp bmain shares same pointers
@@ -843,7 +844,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   Main *tmp_bmain = BKE_main_new();
   STRNCPY(tmp_bmain->filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
+  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
   if (!BKE_copybuffer_read(tmp_bmain, str, op->reports, FILTER_ID_OB)) {
     BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
     BKE_main_free(tmp_bmain);
@@ -1115,7 +1116,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   }
 
   /* Clear also Bendy Bone stuff - Roll is obvious,
-   * but Curve X/Y stuff is also kindof rotational in nature... */
+   * but Curve X/Y stuff is also kind of rotational in nature... */
   pchan->roll1 = 0.0f;
   pchan->roll2 = 0.0f;
 
@@ -1168,7 +1169,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
   /* only clear relevant transforms for selected bones */
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
     /* XXX: UGLY HACK (for auto-key + clear transforms). */
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
     ListBase dsources = {NULL, NULL};
@@ -1347,7 +1348,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       depsgraph, (float)scene->r.cfra);
   const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     if ((ob->adt) && (ob->adt->action)) {
       /* XXX: this is just like this to avoid contaminating anything else;
        * just pose values should change, so this should be fine

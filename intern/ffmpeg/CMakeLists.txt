@@ -6,6 +6,7 @@ if(WITH_GTESTS)
     tests/ffmpeg_codecs.cc
   )
   set(TEST_INC
+    .
   )
   set(TEST_INC_SYS
     ${FFMPEG_INCLUDE_DIRS}

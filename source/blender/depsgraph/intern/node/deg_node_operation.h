@@ -165,6 +165,7 @@ enum class OperationCode {
 
   /* Node Tree. ----------------------------------------------------------- */
   NTREE_OUTPUT,
+  NTREE_GEOMETRY_PREPROCESS,
 
   /* Batch caches. -------------------------------------------------------- */
   GEOMETRY_SELECT_UPDATE,
@@ -175,7 +176,6 @@ enum class OperationCode {
 
   /* Movie clips. --------------------------------------------------------- */
   MOVIECLIP_EVAL,
-  MOVIECLIP_SELECT_UPDATE,
 
   /* Images. -------------------------------------------------------------- */
   IMAGE_ANIMATION,

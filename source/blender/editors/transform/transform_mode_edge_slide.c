@@ -360,7 +360,7 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
 }
 
 /**
- * Calculate screenspace `mval_start` / `mval_end`, optionally slide direction.
+ * Calculate screen-space `mval_start` / `mval_end`, optionally slide direction.
  */
 static void calcEdgeSlide_mval_range(TransInfo *t,
                                      TransDataContainer *tc,
@@ -954,7 +954,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       sv_table[i] = -1;
-      if ((v->e != NULL) && (BM_elem_flag_test(v, BM_ELEM_SELECT))) {
+      if ((v->e != NULL) && BM_elem_flag_test(v, BM_ELEM_SELECT)) {
         if (BM_elem_flag_test(v->e, BM_ELEM_SELECT) == 0) {
           TransDataEdgeSlideVert *sv;
           sv = &sv_array[j];
@@ -1105,18 +1105,6 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
             return TREDRAW_HARD;
           }
           break;
-        case EVT_MODAL_MAP:
-#if 0
-          switch (event->val) {
-            case TFM_MODAL_EDGESLIDE_DOWN:
-              sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
-              return TREDRAW_HARD;
-            case TFM_MODAL_EDGESLIDE_UP:
-              sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
-              return TREDRAW_HARD;
-          }
-#endif
-          break;
         case MOUSEMOVE:
           calcEdgeSlideCustomPoints(t);
           break;
@@ -1149,7 +1137,7 @@ void drawEdgeSlide(TransInfo *t)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
-  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 

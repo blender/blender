@@ -48,27 +48,32 @@ static PyObject *py_blf_position(PyObject *UNUSED(self), PyObject *args)
 }
 
 PyDoc_STRVAR(py_blf_size_doc,
-             ".. function:: size(fontid, size, dpi)\n"
+             ".. function:: size(fontid, size, dpi=72)\n"
              "\n"
-             "   Set the size and DPI for drawing text.\n"
+             "   Set the size for drawing text.\n"
              "\n"
              "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default "
              "font use 0.\n"
              "   :type fontid: int\n"
              "   :arg size: Point size of the font.\n"
              "   :type size: float\n"
-             "   :arg dpi: dots per inch value to use for drawing.\n"
+             "   :arg dpi: DEPRECATED: Defaults to 72 when omitted.\n"
              "   :type dpi: int\n");
 static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
-  int fontid, dpi;
+  int fontid, dpi = -1;
   float size;
 
-  if (!PyArg_ParseTuple(args, "ifi:blf.size", &fontid, &size, &dpi)) {
+  if (!PyArg_ParseTuple(args, "if|i:blf.size", &fontid, &size, &dpi)) {
     return NULL;
   }
 
-  BLF_size(fontid, size, dpi);
+  if (dpi != -1) {
+    size *= (float)dpi / 72.0f;
+    PyErr_WarnEx(PyExc_DeprecationWarning, "'dpi' is deprecated and assumed to be always 72.", 1);
+  }
+
+  BLF_size(fontid, size);
 
   Py_RETURN_NONE;
 }
@@ -461,14 +466,14 @@ static PyMethodDef BLF_methods[] = {
 PyDoc_STRVAR(BLF_doc, "This module provides access to Blender's text drawing functions.");
 static struct PyModuleDef BLF_module_def = {
     PyModuleDef_HEAD_INIT,
-    "blf",       /* m_name */
-    BLF_doc,     /* m_doc */
-    0,           /* m_size */
-    BLF_methods, /* m_methods */
-    NULL,        /* m_reload */
-    NULL,        /* m_traverse */
-    NULL,        /* m_clear */
-    NULL,        /* m_free */
+    /*m_name*/ "blf",
+    /*m_doc*/ BLF_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ BLF_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_blf(void)

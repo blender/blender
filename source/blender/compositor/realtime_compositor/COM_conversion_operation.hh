@@ -11,11 +11,13 @@
 
 namespace blender::realtime_compositor {
 
-/* -------------------------------------------------------------------------------------------------
- * Conversion Operation
+/* -------------------------------------------------------------------- */
+/** \name Conversion Operation
  *
  * A simple operation that converts a result from a certain type to another. See the derived
- * classes for more details. */
+ * classes for more details.
+ * \{ */
+
 class ConversionOperation : public SimpleOperation {
  public:
   using SimpleOperation::SimpleOperation;
@@ -37,13 +39,18 @@ class ConversionOperation : public SimpleOperation {
 
   /* Get the shader the will be used for conversion. */
   virtual GPUShader *get_conversion_shader() const = 0;
-};
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Float To Vector Operation
+  /** \} */
+
+};  // namespace blender::realtime_compositorclassConversionOperation:publicSimpleOperation
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Float to Vector Operation
  *
  * Takes a float result and outputs a vector result. All three components of the output are filled
- * with the input float. */
+ * with the input float.
+ * \{ */
+
 class ConvertFloatToVectorOperation : public ConversionOperation {
  public:
   ConvertFloatToVectorOperation(Context &context);
@@ -53,11 +60,15 @@ class ConvertFloatToVectorOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Float To Color Operation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Float to Color Operation
  *
  * Takes a float result and outputs a color result. All three color channels of the output are
- * filled with the input float and the alpha channel is set to 1. */
+ * filled with the input float and the alpha channel is set to 1.
+ * \{ */
+
 class ConvertFloatToColorOperation : public ConversionOperation {
  public:
   ConvertFloatToColorOperation(Context &context);
@@ -67,11 +78,15 @@ class ConvertFloatToColorOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Color To Float Operation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Color to Float Operation
  *
  * Takes a color result and outputs a float result. The output is the average of the three color
- * channels, the alpha channel is ignored. */
+ * channels, the alpha channel is ignored.
+ * \{ */
+
 class ConvertColorToFloatOperation : public ConversionOperation {
  public:
   ConvertColorToFloatOperation(Context &context);
@@ -81,11 +96,15 @@ class ConvertColorToFloatOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Color To Vector Operation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Color to Vector Operation
  *
  * Takes a color result and outputs a vector result. The output is a copy of the three color
- * channels to the three vector components. */
+ * channels to the three vector components.
+ * \{ */
+
 class ConvertColorToVectorOperation : public ConversionOperation {
  public:
   ConvertColorToVectorOperation(Context &context);
@@ -95,11 +114,18 @@ class ConvertColorToVectorOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Vector To Float Operation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Vector to Float Operation
  *
  * Takes a vector result and outputs a float result. The output is the average of the three
- * components. */
+ * components.
+ * \{ */
+
+/*
+ *
+ * */
 class ConvertVectorToFloatOperation : public ConversionOperation {
  public:
   ConvertVectorToFloatOperation(Context &context);
@@ -109,11 +135,15 @@ class ConvertVectorToFloatOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-/* -------------------------------------------------------------------------------------------------
- * Convert Vector To Color Operation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Vector to Color Operation
  *
  * Takes a vector result and outputs a color result. The output is a copy of the three vector
- * components to the three color channels with the alpha channel set to 1. */
+ * components to the three color channels with the alpha channel set to 1.
+ * \{ */
+
 class ConvertVectorToColorOperation : public ConversionOperation {
  public:
   ConvertVectorToColorOperation(Context &context);
@@ -122,5 +152,7 @@ class ConvertVectorToColorOperation : public ConversionOperation {
 
   GPUShader *get_conversion_shader() const override;
 };
+
+/** \} */
 
 }  // namespace blender::realtime_compositor

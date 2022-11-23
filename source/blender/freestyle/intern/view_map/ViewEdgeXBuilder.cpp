@@ -13,6 +13,8 @@
 
 #include "../winged_edge/WXEdge.h"
 
+#include "BLI_sys_types.h"
+
 using namespace std;
 
 namespace Freestyle {
@@ -57,7 +59,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
   WXFace *wxf;
   for (wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; wf++) {
     wxf = dynamic_cast<WXFace *>(*wf);
-    if (false == ((wxf))->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
+    if (false == (wxf)->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
       continue;
     }
     // parse all smooth layers:
@@ -68,7 +70,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
       if (!(*sl)->hasSmoothEdge()) {
         continue;
       }
-      if (stopSmoothViewEdge((*sl))) {  // has it been parsed already ?
+      if (stopSmoothViewEdge(*sl)) {  // has it been parsed already ?
         continue;
       }
       // here we know that we're dealing with a face layer that has not been processed yet and that
@@ -128,7 +130,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer)
   // bidirectional chaining.
   // first direction
   list<OWXFaceLayer> facesChain;
-  unsigned size = 0;
+  uint size = 0;
   while (!stopSmoothViewEdge(currentFace.fl)) {
     facesChain.push_back(currentFace);
     ++size;
@@ -210,7 +212,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   ViewEdge *newVEdge = new ViewEdge;
   newVEdge->setId(_currentViewId);
   ++_currentViewId;
-  unsigned size = 0;
+  uint size = 0;
 
   _pCurrentVShape->AddEdge(newVEdge);
 
@@ -350,7 +352,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
     vector<WXFaceLayer *> sameNatureLayers;
     nextFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
     // don't know how to deal with several edges of same nature on a single face
-    if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
+    if (sameNatureLayers.empty() || (sameNatureLayers.size() != 1)) {
       return OWXFaceLayer(nullptr, true);
     }
 
@@ -431,7 +433,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
     vector<WXFaceLayer *> sameNatureLayers;
     previousFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
     // don't know how to deal with several edges of same nature on a single face
-    if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
+    if (sameNatureLayers.empty() || (sameNatureLayers.size() != 1)) {
       return OWXFaceLayer(nullptr, true);
     }
 
@@ -685,26 +687,26 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe)
 
   // get the faces normals and the material indices
   Vec3r normalA, normalB;
-  unsigned matA(0), matB(0);
+  uint matA(0), matB(0);
   bool faceMarkA = false, faceMarkB = false;
   if (iwe.order) {
-    normalB = (iwe.e->GetbFace()->GetNormal());
-    matB = (iwe.e->GetbFace()->frs_materialIndex());
-    faceMarkB = (iwe.e->GetbFace()->GetMark());
+    normalB = iwe.e->GetbFace()->GetNormal();
+    matB = iwe.e->GetbFace()->frs_materialIndex();
+    faceMarkB = iwe.e->GetbFace()->GetMark();
     if (!(iwe.e->nature() & Nature::BORDER)) {
-      normalA = (iwe.e->GetaFace()->GetNormal());
-      matA = (iwe.e->GetaFace()->frs_materialIndex());
-      faceMarkA = (iwe.e->GetaFace()->GetMark());
+      normalA = iwe.e->GetaFace()->GetNormal();
+      matA = iwe.e->GetaFace()->frs_materialIndex();
+      faceMarkA = iwe.e->GetaFace()->GetMark();
     }
   }
   else {
-    normalA = (iwe.e->GetbFace()->GetNormal());
-    matA = (iwe.e->GetbFace()->frs_materialIndex());
-    faceMarkA = (iwe.e->GetbFace()->GetMark());
+    normalA = iwe.e->GetbFace()->GetNormal();
+    matA = iwe.e->GetbFace()->frs_materialIndex();
+    faceMarkA = iwe.e->GetbFace()->GetMark();
     if (!(iwe.e->nature() & Nature::BORDER)) {
-      normalB = (iwe.e->GetaFace()->GetNormal());
-      matB = (iwe.e->GetaFace()->frs_materialIndex());
-      faceMarkB = (iwe.e->GetaFace()->GetMark());
+      normalB = iwe.e->GetaFace()->GetNormal();
+      matB = iwe.e->GetaFace()->frs_materialIndex();
+      faceMarkB = iwe.e->GetaFace()->GetMark();
     }
   }
   // Creates the corresponding feature edge

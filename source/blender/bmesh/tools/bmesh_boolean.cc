@@ -187,7 +187,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       float co[3];
       const double3 &d_co = vertp->co;
       for (int i = 0; i < 3; ++i) {
-        co[i] = static_cast<float>(d_co[i]);
+        co[i] = float(d_co[i]);
       }
       BMVert *bmv = BM_vert_create(bm, co, nullptr, BM_CREATE_NOP);
       new_bmvs[v] = bmv;
@@ -466,16 +466,16 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                                                blender::meshintersect::BoolOpType::None);
 }
 #else
-bool BM_mesh_boolean(BMesh *UNUSED(bm),
+bool BM_mesh_boolean(BMesh * /*bm*/,
                      struct BMLoop *(*looptris)[3],
-                     const int UNUSED(looptris_tot),
+                     const int /*looptris_tot*/,
                      int (*test_fn)(BMFace *, void *),
-                     void *UNUSED(user_data),
-                     const int UNUSED(nshapes),
-                     const bool UNUSED(use_self),
-                     const bool UNUSED(keep_hidden),
-                     const bool UNUSED(hole_tolerant),
-                     const int UNUSED(boolean_mode))
+                     void * /*user_data*/,
+                     const int /*nshapes*/,
+                     const bool /*use_self*/,
+                     const bool /*keep_hidden*/,
+                     const bool /*hole_tolerant*/,
+                     const int /*boolean_mode*/)
 {
   UNUSED_VARS(looptris, test_fn);
   return false;
@@ -489,16 +489,16 @@ bool BM_mesh_boolean(BMesh *UNUSED(bm),
  * TODO: need to ensure that "selected/non-selected" flag of original faces gets propagated
  * to the intersection result faces.
  */
-bool BM_mesh_boolean_knife(BMesh *UNUSED(bm),
+bool BM_mesh_boolean_knife(BMesh * /*bm*/,
                            struct BMLoop *(*looptris)[3],
-                           const int UNUSED(looptris_tot),
+                           const int /*looptris_tot*/,
                            int (*test_fn)(BMFace *, void *),
-                           void *UNUSED(user_data),
-                           const int UNUSED(nshapes),
-                           const bool UNUSED(use_self),
-                           const bool UNUSED(use_separate_all),
-                           const bool UNUSED(hole_tolerant),
-                           const bool UNUSED(keep_hidden))
+                           void * /*user_data*/,
+                           const int /*nshapes*/,
+                           const bool /*use_self*/,
+                           const bool /*use_separate_all*/,
+                           const bool /*hole_tolerant*/,
+                           const bool /*keep_hidden*/)
 {
   UNUSED_VARS(looptris, test_fn);
   return false;

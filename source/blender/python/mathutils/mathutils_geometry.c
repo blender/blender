@@ -185,6 +185,13 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
     return NULL;
   }
 
+  /* Zero 3rd axis of 2D vectors. */
+  if (ix_vec_num == 2) {
+    lines[1][2] = 0.0f;
+    lines[2][2] = 0.0f;
+    lines[3][2] = 0.0f;
+  }
+
   result = isect_line_line_v3(UNPACK4(lines), i1, i2);
   /* The return-code isn't exposed,
    * this way we can check know how close the lines are. */
@@ -1465,7 +1472,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *poi
     int *index_map;
     Py_ssize_t len_ret, i;
 
-    index_map = MEM_mallocN(sizeof(*index_map) * len * 2, __func__);
+    index_map = MEM_mallocN(sizeof(*index_map) * len, __func__);
 
     /* Non Python function */
     len_ret = BLI_convexhull_2d(points, len, index_map);
@@ -1786,14 +1793,14 @@ static PyMethodDef M_Geometry_methods[] = {
 
 static struct PyModuleDef M_Geometry_module_def = {
     PyModuleDef_HEAD_INIT,
-    "mathutils.geometry", /* m_name */
-    M_Geometry_doc,       /* m_doc */
-    0,                    /* m_size */
-    M_Geometry_methods,   /* m_methods */
-    NULL,                 /* m_reload */
-    NULL,                 /* m_traverse */
-    NULL,                 /* m_clear */
-    NULL,                 /* m_free */
+    /*m_name*/ "mathutils.geometry",
+    /*m_doc*/ M_Geometry_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ M_Geometry_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /*----------------------------MODULE INIT-------------------------*/

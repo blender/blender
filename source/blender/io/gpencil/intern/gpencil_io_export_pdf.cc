@@ -37,7 +37,7 @@
 
 namespace blender ::io ::gpencil {
 
-static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *UNUSED(user_data))
+static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void * /*user_data*/)
 {
   printf("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
 }
@@ -177,7 +177,7 @@ void GpencilExporterPDF::export_gpencil_layers()
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
         /* Apply object scale to thickness. */
-        gps_duplicate->thickness *= mat4_to_scale(ob->obmat);
+        gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
         CLAMP_MIN(gps_duplicate->thickness, 1.0f);
         /* Fill. */
         if ((is_fill) && (params_.flag & GP_EXPORT_FILL)) {

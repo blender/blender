@@ -24,6 +24,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -43,7 +44,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_spreadsheet.h"
+#include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -89,8 +90,8 @@ struct CompoJob {
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
   /* Jon system integration. */
-  const short *stop;
-  short *do_update;
+  const bool *stop;
+  bool *do_update;
   float *progress;
 };
 
@@ -166,7 +167,7 @@ static int compo_get_recalc_flags(const bContext *C)
 }
 
 /* called by compo, only to check job 'stop' value */
-static int compo_breakjob(void *cjv)
+static bool compo_breakjob(void *cjv)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
@@ -179,7 +180,7 @@ static int compo_breakjob(void *cjv)
 }
 
 /* called by compo, wmJob sends notifier */
-static void compo_statsdrawjob(void *cjv, const char *UNUSED(str))
+static void compo_statsdrawjob(void *cjv, const char * /*str*/)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
@@ -234,7 +235,7 @@ static void compo_initjob(void *cjv)
 }
 
 /* called before redraw notifiers, it moves finished previews over */
-static void compo_updatejob(void *UNUSED(cjv))
+static void compo_updatejob(void * /*cjv*/)
 {
   WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
@@ -250,8 +251,8 @@ static void compo_progressjob(void *cjv, float progress)
 static void compo_startjob(void *cjv,
                            /* Cannot be const, this function implements wm_jobs_start_callback.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                           short *stop,
-                           short *do_update,
+                           bool *stop,
+                           bool *do_update,
                            float *progress)
 {
   CompoJob *cj = (CompoJob *)cjv;
@@ -443,11 +444,11 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
   }
 
   NodeTreeUpdateExtraParams params = {nullptr};
-  params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void *UNUSED(user_data)) {
+  params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void * /*user_data*/) {
     blender::ed::space_node::send_notifiers_after_tree_change(id, ntree);
     DEG_id_tag_update(&ntree->id, ID_RECALC_COPY_ON_WRITE);
   };
-  params.tree_output_changed_fn = [](ID *UNUSED(id), bNodeTree *ntree, void *UNUSED(user_data)) {
+  params.tree_output_changed_fn = [](ID * /*id*/, bNodeTree *ntree, void * /*user_data*/) {
     DEG_id_tag_update(&ntree->id, ID_RECALC_NTREE_OUTPUT);
   };
 
@@ -502,6 +503,12 @@ void ED_node_shader_default(const bContext *C, ID *id)
     }
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ma->nodetree->owner_id = &ma->id;
+    LISTBASE_FOREACH (bNode *, node_iter, &ma->nodetree->nodes) {
+      BLI_strncpy(node_iter->name, DATA_(node_iter->name), NODE_MAXSTR);
+      nodeUniqueName(ma->nodetree, node_iter);
+    }
+
     BKE_ntree_update_main_tree(bmain, ma->nodetree, nullptr);
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
@@ -713,10 +720,12 @@ void ED_node_set_active(
             /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
              * than we are looking at. */
             if (ma->texpaintslot) {
-              Image *image = (Image *)node->id;
-              for (int i = 0; i < ma->tot_slots; i++) {
-                if (ma->texpaintslot[i].ima == image) {
-                  ma->paint_active_slot = i;
+              if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+                Image *image = (Image *)node->id;
+                for (int i = 0; i < ma->tot_slots; i++) {
+                  if (ma->texpaintslot[i].ima == image) {
+                    ma->paint_active_slot = i;
+                  }
                 }
               }
             }
@@ -732,25 +741,9 @@ void ED_node_set_active(
         /* Sync to Image Editor under the following conditions:
          * - current image is not pinned
          * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
-        Image *image = (Image *)node->id;
-        wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-          const bScreen *screen = WM_window_get_active_screen(win);
-          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-            LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-              if (sl->spacetype != SPACE_IMAGE) {
-                continue;
-              }
-              SpaceImage *sima = (SpaceImage *)sl;
-              if (sima->pin) {
-                continue;
-              }
-              if (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-                continue;
-              }
-              ED_space_image_set(bmain, sima, image, true);
-            }
-          }
+        if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+          Image *image = (Image *)node->id;
+          ED_space_image_sync(bmain, image, true);
         }
 
         if (r_active_texture_changed) {
@@ -816,14 +809,14 @@ void ED_node_set_active(
             }
           }
           node->flag |= NODE_DO_OUTPUT;
-          ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
         }
+        blender::ed::viewer_path::activate_geometry_node(*bmain, *snode, *node);
       }
     }
   }
 }
 
-void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
+void ED_node_post_apply_transform(bContext * /*C*/, bNodeTree * /*ntree*/)
 {
   /* XXX This does not work due to layout functions relying on node->block,
    * which only exists during actual drawing. Can we rely on valid totr rects?
@@ -933,7 +926,7 @@ static bool socket_is_occluded(const float2 &location,
     rctf socket_hitbox;
     const float socket_hitbox_radius = NODE_SOCKSIZE - 0.1f * U.widget_unit;
     BLI_rctf_init_pt_radius(&socket_hitbox, location, socket_hitbox_radius);
-    if (BLI_rctf_inside_rctf(&node->totr, &socket_hitbox)) {
+    if (BLI_rctf_inside_rctf(&node->runtime->totr, &socket_hitbox)) {
       return true;
     }
   }
@@ -1327,7 +1320,8 @@ bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
 /** \name Node Duplicate Operator
  * \{ */
 
-static void node_duplicate_reparent_recursive(const Map<const bNode *, bNode *> &node_map,
+static void node_duplicate_reparent_recursive(bNodeTree *ntree,
+                                              const Map<const bNode *, bNode *> &node_map,
                                               bNode *node)
 {
   bNode *parent;
@@ -1338,15 +1332,15 @@ static void node_duplicate_reparent_recursive(const Map<const bNode *, bNode *> 
   for (parent = node->parent; parent; parent = parent->parent) {
     if (parent->flag & SELECT) {
       if (!(parent->flag & NODE_TEST)) {
-        node_duplicate_reparent_recursive(node_map, parent);
+        node_duplicate_reparent_recursive(ntree, node_map, parent);
       }
       break;
     }
   }
   /* reparent node copy to parent copy */
   if (parent) {
-    nodeDetachNode(node_map.lookup(node));
-    nodeAttachNode(node_map.lookup(node), node_map.lookup(parent));
+    nodeDetachNode(ntree, node_map.lookup(node));
+    nodeAttachNode(ntree, node_map.lookup(node), node_map.lookup(parent));
   }
 }
 
@@ -1356,12 +1350,15 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+  bool linked = RNA_boolean_get(op->ptr, "linked") || ((U.dupflag & USER_DUP_NTREE) == 0);
+  const bool dupli_node_tree = !linked;
   bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
+  Map<const ID *, ID *> duplicated_node_groups;
 
   bNode *lastnode = (bNode *)ntree->nodes.last;
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1369,6 +1366,18 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       bNode *new_node = bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
+
+      if (node->id && dupli_node_tree) {
+        ID *new_group = duplicated_node_groups.lookup_or_add_cb(node->id, [&]() {
+          ID *new_group = BKE_id_copy(bmain, node->id);
+          /* Remove user added by copying. */
+          id_us_min(new_group);
+          return new_group;
+        });
+        id_us_plus(new_group);
+        id_us_min(new_node->id);
+        new_node->id = new_group;
+      }
       changed = true;
     }
 
@@ -1425,7 +1434,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   /* reparent copied nodes */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if ((node->flag & SELECT) && !(node->flag & NODE_TEST)) {
-      node_duplicate_reparent_recursive(node_map, node);
+      node_duplicate_reparent_recursive(ntree, node_map, node);
     }
 
     /* only has to check old nodes */
@@ -1457,6 +1466,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Duplicate Nodes";
   ot->description = "Duplicate selected nodes";
@@ -1471,12 +1482,19 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
+
+  prop = RNA_def_boolean(ot->srna,
+                         "linked",
+                         true,
+                         "Linked",
+                         "Duplicate node but not node trees, linking to the original data");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* XXX: some code needing updating to operators. */
 
 /* goes over all scenes, reads render layers */
-static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1524,7 +1542,7 @@ void NODE_OT_read_viewlayers(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
+int node_render_changed_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *sce = CTX_data_scene(C);
 
@@ -1631,7 +1649,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
   }
 }
 
-static int node_hide_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_hide_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1662,7 +1680,7 @@ void NODE_OT_hide_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int node_preview_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_preview_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1695,7 +1713,47 @@ void NODE_OT_preview_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_deactivate_viewer_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  WorkSpace &workspace = *CTX_wm_workspace(C);
+
+  bNode *active_viewer = viewer_path::find_geometry_nodes_viewer(workspace.viewer_path, snode);
+
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+    if (node->type != GEO_NODE_VIEWER) {
+      continue;
+    }
+    if (!(node->flag & SELECT)) {
+      continue;
+    }
+    if (node == active_viewer) {
+      node->flag &= ~NODE_DO_OUTPUT;
+      BKE_ntree_update_tag_node_property(snode.edittree, node);
+    }
+  }
+
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_deactivate_viewer(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Deactivate Viewer Node";
+  ot->description = "Deactivate selected viewer node in geometry nodes";
+  ot->idname = __func__;
+
+  /* callbacks */
+  ot->exec = node_deactivate_viewer_exec;
+  ot->poll = ED_operator_node_active;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int node_options_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1726,7 +1784,7 @@ void NODE_OT_options_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -1782,7 +1840,7 @@ void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 /** \name Node Mute Operator
  * \{ */
 
-static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_mute_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1822,7 +1880,7 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 /** \name Node Delete Operator
  * \{ */
 
-static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1872,14 +1930,14 @@ static bool node_switch_view_poll(bContext *C)
   return false;
 }
 
-static int node_switch_view_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_switch_view_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
       /* call the update function from the Switch View node */
-      node->update = NODE_UPDATE_OPERATOR;
+      node->runtime->update = NODE_UPDATE_OPERATOR;
     }
   }
 
@@ -1909,7 +1967,7 @@ void NODE_OT_switch_view_update(wmOperatorType *ot)
 /** \name Node Delete with Reconnect Operator
  * \{ */
 
-static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_delete_reconnect_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -2003,7 +2061,7 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 /** \name Node Multi File Output Remove Socket Operator
  * \{ */
 
-static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   PointerRNA ptr = CTX_data_pointer_get(C, "node");
@@ -2129,7 +2187,7 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 /** \name Node Copy Node Color Operator
  * \{ */
 
-static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_copy_color_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -2177,7 +2235,7 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 /** \name Node Copy to Clipboard Operator
  * \{ */
 
-static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
@@ -2186,7 +2244,6 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* clear current clipboard */
   BKE_node_clipboard_clear();
-  BKE_node_clipboard_init(ntree);
 
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
@@ -2214,7 +2271,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
         new_node->parent = node_map.lookup(new_node->parent);
       }
       else {
-        nodeDetachNode(new_node);
+        nodeDetachNode(ntree, new_node);
       }
     }
   }
@@ -2230,6 +2287,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
       newlink->tosock = socket_map.lookup(link->tosock);
       newlink->fromnode = node_map.lookup(link->fromnode);
       newlink->fromsock = socket_map.lookup(link->fromsock);
+      newlink->multi_input_socket_index = link->multi_input_socket_index;
 
       BKE_node_clipboard_add_link(newlink);
     }
@@ -2274,11 +2332,6 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_node_clipboard_get_type() != ntree->type) {
-    BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
-    return OPERATOR_CANCELLED;
-  }
-
   /* only warn */
   if (is_clipboard_valid == false) {
     BKE_report(op->reports,
@@ -2286,17 +2339,37 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
                "Some nodes references could not be restored, will be left empty");
   }
 
-  /* make sure all clipboard nodes would be valid in the target tree */
-  bool all_nodes_valid = true;
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  /* deselect old nodes */
+  node_deselect_all(*snode);
+
+  /* calculate "barycenter" for placing on mouse cursor */
+  float2 center = {0.0f, 0.0f};
+  int num_nodes = 0;
+  LISTBASE_FOREACH_INDEX (bNode *, node, clipboard_nodes_lb, num_nodes) {
+    center.x += BLI_rctf_cent_x(&node->runtime->totr);
+    center.y += BLI_rctf_cent_y(&node->runtime->totr);
+  }
+  mul_v2_fl(center, 1.0 / num_nodes);
+
+  Map<const bNode *, bNode *> node_map;
+  Map<const bNodeSocket *, bNodeSocket *> socket_map;
+
+  /* copy valid nodes from clipboard */
   LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
     const char *disabled_hint = nullptr;
-    if (!node->typeinfo->poll_instance ||
-        !node->typeinfo->poll_instance(node, ntree, &disabled_hint)) {
-      all_nodes_valid = false;
+    if (node->typeinfo->poll_instance &&
+        node->typeinfo->poll_instance(node, ntree, &disabled_hint)) {
+      bNode *new_node = bke::node_copy_with_mapping(
+          ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      node_map.add_new(node, new_node);
+    }
+    else {
       if (disabled_hint) {
         BKE_reportf(op->reports,
                     RPT_ERROR,
-                    "Cannot add node %s into node tree %s:\n  %s",
+                    "Cannot add node %s into node tree %s: %s",
                     node->name,
                     ntree->id.name + 2,
                     disabled_hint);
@@ -2309,33 +2382,6 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
                     ntree->id.name + 2);
       }
     }
-  }
-  if (!all_nodes_valid) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
-
-  /* deselect old nodes */
-  node_deselect_all(*snode);
-
-  /* calculate "barycenter" for placing on mouse cursor */
-  float2 center = {0.0f, 0.0f};
-  int num_nodes = 0;
-  LISTBASE_FOREACH_INDEX (bNode *, node, clipboard_nodes_lb, num_nodes) {
-    center.x += BLI_rctf_cent_x(&node->totr);
-    center.y += BLI_rctf_cent_y(&node->totr);
-  }
-  mul_v2_fl(center, 1.0 / num_nodes);
-
-  Map<const bNode *, bNode *> node_map;
-  Map<const bNodeSocket *, bNodeSocket *> socket_map;
-
-  /* copy nodes from clipboard */
-  LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
-    bNode *new_node = bke::node_copy_with_mapping(
-        ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
-    node_map.add_new(node, new_node);
   }
 
   for (bNode *new_node : node_map.values()) {
@@ -2350,12 +2396,24 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Add links between existing nodes. */
   LISTBASE_FOREACH (bNodeLink *, link, clipboard_links_lb) {
-    nodeAddLink(ntree,
-                node_map.lookup(link->fromnode),
-                socket_map.lookup(link->fromsock),
-                node_map.lookup(link->tonode),
-                socket_map.lookup(link->tosock));
+    const bNode *fromnode = link->fromnode;
+    const bNode *tonode = link->tonode;
+    if (node_map.lookup_key_ptr(fromnode) && node_map.lookup_key_ptr(tonode)) {
+      bNodeLink *new_link = nodeAddLink(ntree,
+                                        node_map.lookup(fromnode),
+                                        socket_map.lookup(link->fromsock),
+                                        node_map.lookup(tonode),
+                                        socket_map.lookup(link->tosock));
+      new_link->multi_input_socket_index = link->multi_input_socket_index;
+    }
+  }
+  ntree->ensure_topology_cache();
+
+  for (bNode *new_node : node_map.values()) {
+    /* Update multi input socket indices in case all connected nodes weren't copied. */
+    update_multi_input_indices_for_removed_links(*new_node);
   }
 
   Main *bmain = CTX_data_main(C);
@@ -2532,7 +2590,7 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /* Don't handle subtypes for now. */
+  /* Don't handle sub-types for now. */
   nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
 
   /* Need the extra update here because the loop above does not check for valid links in the node
@@ -2570,8 +2628,8 @@ static bool socket_change_poll_type(void *userdata, bNodeSocketType *socket_type
 }
 
 static const EnumPropertyItem *socket_change_type_itemf(bContext *C,
-                                                        PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop),
+                                                        PointerRNA * /*ptr*/,
+                                                        PropertyRNA * /*prop*/,
                                                         bool *r_free)
 {
   if (!C) {
@@ -2854,8 +2912,8 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode,
   float bufx = backdrop_width * snode->zoom;
   float bufy = backdrop_height * snode->zoom;
 
-  *fx = (bufx > 0.0f ? ((float)x - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  *fy = (bufy > 0.0f ? ((float)y - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  *fx = (bufx > 0.0f ? (float(x) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  *fy = (bufy > 0.0f ? (float(y) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 }
 
 static int viewer_border_exec(bContext *C, wmOperator *op)
@@ -2935,7 +2993,7 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
   WM_operator_properties_gesture_box(ot);
 }
 
-static int clear_viewer_border_exec(bContext *C, wmOperator *UNUSED(op))
+static int clear_viewer_border_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *btree = snode->nodetree;
@@ -2968,7 +3026,7 @@ void NODE_OT_clear_viewer_border(wmOperatorType *ot)
 /** \name Cryptomatte Add Socket
  * \{ */
 
-static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   PointerRNA ptr = CTX_data_pointer_get(C, "node");
@@ -3016,7 +3074,7 @@ void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot)
 /** \name Cryptomatte Remove Socket
  * \{ */
 
-static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   PointerRNA ptr = CTX_data_pointer_get(C, "node");

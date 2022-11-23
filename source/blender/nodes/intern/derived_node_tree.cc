@@ -58,7 +58,7 @@ void DerivedNodeTree::destruct_context_recursively(DTreeContext *context)
 bool DerivedNodeTree::has_link_cycles() const
 {
   for (const bNodeTree *btree : used_btrees_) {
-    if (btree->has_link_cycle()) {
+    if (btree->has_available_link_cycle()) {
       return true;
     }
   }
@@ -236,7 +236,7 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
       path_info.sockets.pop_last();
     }
     else if (linked_node->is_muted()) {
-      for (const bNodeLink *internal_link : linked_node->internal_links_span()) {
+      for (const bNodeLink *internal_link : linked_node->internal_links()) {
         if (internal_link->fromsock != linked_socket.bsocket()) {
           continue;
         }

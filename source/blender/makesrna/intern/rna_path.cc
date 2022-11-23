@@ -16,6 +16,7 @@
 
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 
 #include "DNA_ID.h" /* For ID properties. */
 
@@ -582,7 +583,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_el
 }
 
 char *RNA_path_append(const char *path,
-                      const PointerRNA *UNUSED(ptr),
+                      const PointerRNA * /*ptr*/,
                       PropertyRNA *prop,
                       int intkey,
                       const char *strkey)
@@ -707,7 +708,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
   if (UNLIKELY(rna_path[0] == '\0')) {
     return nullptr;
   }
-  size_t rna_path_len = (size_t)strlen(rna_path) - 1;
+  size_t rna_path_len = size_t(strlen(rna_path)) - 1;
   if (rna_path[rna_path_len] != ']') {
     return nullptr;
   }
@@ -860,7 +861,7 @@ static char *rna_idp_path(PointerRNA *ptr,
         IDProperty *array = IDP_IDPArray(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
-          link.index = (int)(needle - array);
+          link.index = int(needle - array);
           path = rna_idp_path_create(&link);
           break;
         }
@@ -926,7 +927,6 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     return id;
   }
 
-  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
   if (r_path) {
     switch (GS(id->name)) {
       case ID_NT:
@@ -940,11 +940,9 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     }
   }
 
-  if (id_type->owner_get == nullptr) {
-    BLI_assert_msg(0, "Missing handling of embedded id type.");
-    return id;
-  }
-  return id_type->owner_get(id);
+  ID *owner_id = BKE_id_owner_get(id);
+  BLI_assert_msg(owner_id != nullptr, "Missing handling of embedded id type.");
+  return (owner_id != nullptr) ? owner_id : id;
 }
 
 static char *rna_prepend_real_ID_path(Main * /*bmain*/, ID *id, char *path, ID **r_real_id)
@@ -1335,7 +1333,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
   return ret;
 }
 
-char *RNA_path_property_py(const PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
+char *RNA_path_property_py(const PointerRNA * /*ptr*/, PropertyRNA *prop, int index)
 {
   const bool is_rna = (prop->magic == RNA_MAGIC);
   const char *propname = RNA_property_identifier(prop);

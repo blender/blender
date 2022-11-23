@@ -354,7 +354,7 @@ struct LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
   while (!BLI_heapsimple_is_empty(heap)) {
     l = BLI_heapsimple_pop_min(heap);
 
-    if ((l->e == l_dst->e) && (BM_loop_uv_share_edge_check(l, l_dst, params->cd_loop_uv_offset))) {
+    if ((l->e == l_dst->e) && BM_loop_uv_share_edge_check(l, l_dst, params->cd_loop_uv_offset)) {
       break;
     }
 
@@ -364,7 +364,7 @@ struct LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
     }
   }
 
-  if ((l->e == l_dst->e) && (BM_loop_uv_share_edge_check(l, l_dst, params->cd_loop_uv_offset))) {
+  if ((l->e == l_dst->e) && BM_loop_uv_share_edge_check(l, l_dst, params->cd_loop_uv_offset)) {
     do {
       BLI_linklist_prepend(&path, l);
     } while ((l = loops_prev[BM_elem_index_get(l)]));

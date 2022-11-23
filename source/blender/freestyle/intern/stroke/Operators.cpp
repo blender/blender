@@ -14,6 +14,8 @@
 #include "Stroke.h"
 #include "StrokeIterators.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 namespace Freestyle {
@@ -73,7 +75,7 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator &it,
     return 0;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   ViewEdge *edge;
   I1DContainer new_chains_set;
 
@@ -137,7 +139,7 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator &it, UnaryPredicate1D &p
     return 0;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp() + 1);
   ViewEdge *edge;
@@ -318,7 +320,7 @@ int Operators::bidirectionalChain(ChainingIterator &it, UnaryPredicate1D &pred)
     return 0;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp() + 1);
   ViewEdge *edge;
@@ -421,7 +423,7 @@ int Operators::bidirectionalChain(ChainingIterator &it)
     return 0;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp() + 1);
   ViewEdge *edge;
@@ -873,7 +875,7 @@ static int __recursiveSplit(Chain *_curve,
   ++it;
   // real mean = 0.0f;
   // soc unused - real variance                              = 0.0f;
-  unsigned count = 0;
+  uint count = 0;
   CurveInternal::CurvePointIterator next = it;
   ++next;
 

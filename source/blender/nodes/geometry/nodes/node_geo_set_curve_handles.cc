@@ -17,17 +17,21 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field([](const bNode &node, void *r_value) {
+    const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ? "handle_left" :
+                                                                                   "handle_right";
+    new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
+  });
   b.add_input<decl::Vector>(N_("Offset")).default_value(float3(0.0f, 0.0f, 0.0f)).supports_field();
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometrySetCurveHandlePositions *data = MEM_cnew<NodeGeometrySetCurveHandlePositions>(
       __func__);
@@ -170,7 +174,7 @@ void register_node_type_geo_set_curve_handles()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.minwidth = 100.0f;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometrySetCurveHandlePositions",
                     node_free_standard_storage,

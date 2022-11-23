@@ -45,7 +45,7 @@ bool deg_foreach_needs_visit(const OperationNode *op_node, const int flags)
   return true;
 }
 
-void deg_foreach_dependent_operation(const Depsgraph *UNUSED(graph),
+void deg_foreach_dependent_operation(const Depsgraph * /*graph*/,
                                      const IDNode *target_id_node,
                                      eDepsObjectComponentType source_component_type,
                                      int flags,

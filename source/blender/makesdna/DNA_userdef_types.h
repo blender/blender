@@ -581,7 +581,6 @@ typedef struct bUserAssetLibrary {
 typedef struct SolidLight {
   int flag;
   float smooth;
-  char _pad0[8];
   float col[4], spec[4], vec[4];
 } SolidLight;
 
@@ -652,9 +651,7 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
-  char use_draw_manager_acquire_lock;
   char use_realtime_compositor;
-  char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1076,7 +1073,7 @@ typedef enum eWalkNavigation_Flag {
 
 /** #UserDef.uiflag */
 typedef enum eUserpref_UI_Flag {
-  USER_UIFLAG_UNUSED_0 = (1 << 0), /* cleared */
+  USER_NO_MULTITOUCH_GESTURES = (1 << 0),
   USER_UIFLAG_UNUSED_1 = (1 << 1), /* cleared */
   USER_WHEELZOOMDIR = (1 << 2),
   USER_FILTERFILEEXTS = (1 << 3),

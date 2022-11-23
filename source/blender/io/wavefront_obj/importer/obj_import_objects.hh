@@ -110,7 +110,7 @@ struct Geometry {
 
   int get_vertex_count() const
   {
-    return (int)vertices_.size();
+    return int(vertices_.size());
   }
   void track_vertex_index(int index)
   {

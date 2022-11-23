@@ -1780,7 +1780,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
 
         /* Note that we only handle unselected neighbor vertices here, main loop will take care of
          * selected ones. */
-        if ((!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT)) &&
+        if (!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT) &&
             !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v))) {
 
           BMLoop *l_prev;
@@ -1791,7 +1791,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
           BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_prev->v));
         }
 
-        if ((!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT)) &&
+        if (!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT) &&
             !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v))) {
 
           BMLoop *l_next;

@@ -401,7 +401,7 @@ static bool delete_recursive(const char *dir)
 
       /* dir listing produces dir path without trailing slash... */
       BLI_strncpy(path, fl->path, sizeof(path));
-      BLI_path_slash_ensure(path);
+      BLI_path_slash_ensure(path, sizeof(path));
 
       if (delete_recursive(path)) {
         err = true;
@@ -627,7 +627,7 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
 
   *alloc_len = len;
 
-  BLI_join_dirfile(*dst, len + 1, dir, file);
+  BLI_path_join(*dst, len + 1, dir, file);
 }
 
 static char *strip_last_slash(const char *dir)
@@ -1184,7 +1184,7 @@ static const char *check_destination(const char *file, const char *to)
 
       len = strlen(to) + strlen(filename) + 1;
       path = MEM_callocN(len + 1, "check_destination path");
-      BLI_join_dirfile(path, len + 1, to, filename);
+      BLI_path_join(path, len + 1, to, filename);
 
       MEM_freeN(str);
 

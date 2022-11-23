@@ -232,8 +232,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
    * and set the relevant transform flags. */
   poseAnim_mapping_get(C, &pso->pfLinks);
 
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      CTX_data_view_layer(C), CTX_wm_view3d(C), &pso->objects_len, OB_MODE_POSE);
+  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(CTX_data_scene(C),
+                                                                           CTX_data_view_layer(C),
+                                                                           CTX_wm_view3d(C),
+                                                                           &pso->objects_len,
+                                                                           OB_MODE_POSE);
   pso->ob_data_array = MEM_callocN(pso->objects_len * sizeof(tPoseSlideObject),
                                    "pose slide objects data");
 
@@ -2081,7 +2084,7 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
   }
 
   /* Updates + notifiers. */
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     poseAnim_mapping_refresh(C, scene, ob);
   }
   FOREACH_OBJECT_IN_MODE_END;

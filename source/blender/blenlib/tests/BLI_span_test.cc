@@ -143,7 +143,7 @@ TEST(span, SliceLargeN)
 {
   Vector<int> a = {1, 2, 3, 4, 5};
   Span<int> slice1 = Span<int>(a).slice(3, 100);
-  MutableSpan<int> slice2 = MutableSpan<int>(a).slice(3, 100);
+  MutableSpan<int> slice2 = MutableSpan<int>(a).slice_safe(3, 100);
   EXPECT_EQ(slice1.size(), 2);
   EXPECT_EQ(slice2.size(), 2);
   EXPECT_EQ(slice1[0], 4);
@@ -237,7 +237,7 @@ TEST(span, SizeInBytes)
 {
   std::array<int, 10> a{};
   Span<int> a_span(a);
-  EXPECT_EQ(a_span.size_in_bytes(), static_cast<int64_t>(sizeof(a)));
+  EXPECT_EQ(a_span.size_in_bytes(), int64_t(sizeof(a)));
   EXPECT_EQ(a_span.size_in_bytes(), 40);
 }
 
@@ -280,7 +280,7 @@ TEST(span, ContainsPtr)
   EXPECT_TRUE(a_span.contains_ptr(&a[0] + 1));
   EXPECT_TRUE(a_span.contains_ptr(&a[0] + 2));
   EXPECT_FALSE(a_span.contains_ptr(&a[0] + 3));
-  int *ptr_before = reinterpret_cast<int *>(reinterpret_cast<uintptr_t>(a.data()) - 1);
+  int *ptr_before = reinterpret_cast<int *>(uintptr_t(a.data()) - 1);
   EXPECT_FALSE(a_span.contains_ptr(ptr_before));
   EXPECT_FALSE(a_span.contains_ptr(&other));
 }

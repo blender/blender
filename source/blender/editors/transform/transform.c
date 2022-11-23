@@ -60,14 +60,12 @@
  * and being able to set it to zero is handy. */
 /* #define USE_NUM_NO_ZERO */
 
-static void initSnapSpatial(TransInfo *t, float r_snap[2]);
-
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
     return false;
   }
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->obedit_type, OB_MESH, OB_GPENCIL)));
+  return ((around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->obedit_type, OB_MESH, OB_GPENCIL));
 }
 
 /* ************************** SPACE DEPENDENT CODE **************************** */
@@ -485,6 +483,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       /* XXX how to deal with lock? */
       SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
       if (sima->lock) {
+        BKE_view_layer_synced_ensure(t->scene, t->view_layer);
         WM_event_add_notifier(
             C, NC_GEOM | ND_DATA, BKE_view_layer_edit_object_get(t->view_layer)->data);
       }
@@ -621,13 +620,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_EDGESLIDE_UP:
-    case TFM_MODAL_EDGESLIDE_DOWN: {
-      if (t->mode != TFM_EDGE_SLIDE) {
-        return false;
-      }
-      break;
-    }
     case TFM_MODAL_INSERTOFS_TOGGLE_DIR: {
       if (t->spacetype != SPACE_NODE) {
         return false;
@@ -684,8 +676,6 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Decrease Max AutoIK Chain Length",
        ""},
-      {TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select Next Edge Slide Edge", ""},
-      {TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select Previous Edge Slide Edge", ""},
       {TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
       {TFM_MODAL_INSERTOFS_TOGGLE_DIR,
        "INSERTOFS_TOGGLE_DIR",
@@ -1207,9 +1197,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_HARD;
         }
         break;
-      /* Those two are only handled in transform's own handler, see T44634! */
-      case TFM_MODAL_EDGESLIDE_UP:
-      case TFM_MODAL_EDGESLIDE_DOWN:
       default:
         break;
     }
@@ -1478,6 +1465,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
   if (region == t->region) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
 
     /* draw auto-key-framing hint in the corner
@@ -1516,28 +1504,29 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  bool use_prop_edit = false;
-  int prop_edit_flag = 0;
-  if (t->flag & T_PROP_EDIT_ALL) {
-    if (t->flag & T_PROP_EDIT) {
-      use_prop_edit = true;
+  /* Save proportional edit settings.
+   * Skip saving proportional edit if it was not actually used. */
+  if (!(t->options & CTX_NO_PET)) {
+    bool use_prop_edit = false;
+    int prop_edit_flag = 0;
+    if (t->flag & T_PROP_EDIT_ALL) {
+      if (t->flag & T_PROP_EDIT) {
+        use_prop_edit = true;
+      }
+      if (t->flag & T_PROP_CONNECTED) {
+        prop_edit_flag |= PROP_EDIT_CONNECTED;
+      }
+      if (t->flag & T_PROP_PROJECTED) {
+        prop_edit_flag |= PROP_EDIT_PROJECTED;
+      }
     }
-    if (t->flag & T_PROP_CONNECTED) {
-      prop_edit_flag |= PROP_EDIT_CONNECTED;
-    }
-    if (t->flag & T_PROP_PROJECTED) {
-      prop_edit_flag |= PROP_EDIT_PROJECTED;
-    }
-  }
 
-  /* If modal, save settings back in scene if not set as operator argument */
-  if ((t->flag & T_MODAL) || (op->flag & OP_IS_REPEAT)) {
-    /* save settings if not set in operator */
-
-    /* skip saving proportional edit if it was not actually used */
-    if (!(t->options & CTX_NO_PET)) {
+    /* If modal, save settings back in scene if not set as operator argument */
+    if ((t->flag & T_MODAL) || (op->flag & OP_IS_REPEAT)) {
+      /* save settings if not set in operator */
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
+        BKE_view_layer_synced_ensure(t->scene, t->view_layer);
         const Object *obact = BKE_view_layer_active_object_get(t->view_layer);
 
         if (t->spacetype == SPACE_GRAPH) {
@@ -1573,52 +1562,71 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         ts->prop_mode = t->prop_mode;
       }
     }
-  }
 
-  if (t->flag & T_MODAL) {
-    /* do we check for parameter? */
-    if (transformModeUseSnap(t)) {
-      if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
-        /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-        short *snap_flag_ptr;
-
-        wmMsgParams_RNA msg_key_params = {{0}};
-        RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
-
-        if (t->spacetype == SPACE_NODE) {
-          snap_flag_ptr = &ts->snap_flag_node;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_node;
-        }
-        else if (t->spacetype == SPACE_IMAGE) {
-          snap_flag_ptr = &ts->snap_uv_flag;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_uv;
-        }
-        else if (t->spacetype == SPACE_SEQ) {
-          snap_flag_ptr = &ts->snap_flag_seq;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_sequencer;
-        }
-        else {
-          snap_flag_ptr = &ts->snap_flag;
-          msg_key_params.prop = &rna_ToolSettings_use_snap;
-        }
-
-        if (t->modifiers & MOD_SNAP) {
-          *snap_flag_ptr |= SCE_SNAP;
-        }
-        else {
-          *snap_flag_ptr &= ~SCE_SNAP;
-        }
-        WM_msg_publish_rna_params(t->mbus, &msg_key_params);
-      }
+    if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
+      RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
+      RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
+      RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
+      RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
+      RNA_float_set(op->ptr, "proportional_size", t->prop_size);
     }
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
-    RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
-    RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
-    RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
-    RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
-    RNA_float_set(op->ptr, "proportional_size", t->prop_size);
+  /* Save snapping settings. */
+  if ((prop = RNA_struct_find_property(op->ptr, "snap"))) {
+    RNA_property_boolean_set(op->ptr, prop, (t->modifiers & MOD_SNAP) != 0);
+
+    if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
+      RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
+      RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
+      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_select);
+
+      eSnapTargetSelect target = t->tsnap.target_select;
+      RNA_boolean_set(op->ptr, "use_snap_self", (target & SCE_SNAP_TARGET_NOT_ACTIVE) == 0);
+      RNA_boolean_set(op->ptr, "use_snap_edit", (target & SCE_SNAP_TARGET_NOT_EDITED) == 0);
+      RNA_boolean_set(op->ptr, "use_snap_nonedit", (target & SCE_SNAP_TARGET_NOT_NONEDITED) == 0);
+      RNA_boolean_set(
+          op->ptr, "use_snap_selectable", (target & SCE_SNAP_TARGET_ONLY_SELECTABLE) != 0);
+    }
+
+    /* Update `ToolSettings` for properties that change during modal. */
+    if (t->flag & T_MODAL) {
+      /* Do we check for parameter? */
+      if (transformModeUseSnap(t)) {
+        if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
+          /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
+          short *snap_flag_ptr;
+
+          wmMsgParams_RNA msg_key_params = {{0}};
+          RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
+
+          if (t->spacetype == SPACE_NODE) {
+            snap_flag_ptr = &ts->snap_flag_node;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_node;
+          }
+          else if (t->spacetype == SPACE_IMAGE) {
+            snap_flag_ptr = &ts->snap_uv_flag;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_uv;
+          }
+          else if (t->spacetype == SPACE_SEQ) {
+            snap_flag_ptr = &ts->snap_flag_seq;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_sequencer;
+          }
+          else {
+            snap_flag_ptr = &ts->snap_flag;
+            msg_key_params.prop = &rna_ToolSettings_use_snap;
+          }
+
+          if (t->modifiers & MOD_SNAP) {
+            *snap_flag_ptr |= SCE_SNAP;
+          }
+          else {
+            *snap_flag_ptr &= ~SCE_SNAP;
+          }
+          WM_msg_publish_rna_params(t->mbus, &msg_key_params);
+        }
+      }
+    }
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
@@ -1655,8 +1663,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       orient_type_set = orient_type_curr;
     }
 
-    if (((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
-         !RNA_property_is_set(op->ptr, prop))) {
+    if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
+        !RNA_property_is_set(op->ptr, prop)) {
       /* Set the first time to register on redo. */
       RNA_property_enum_set(op->ptr, prop, orient_type_set);
       RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
@@ -1701,13 +1709,18 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 }
 
-static void initSnapSpatial(TransInfo *t, float r_snap[2])
+static void initSnapSpatial(TransInfo *t, float r_snap[3], float *r_snap_precision)
 {
+  /* Default values. */
+  r_snap[0] = r_snap[1] = 1.0f;
+  r_snap[2] = 0.0f;
+  *r_snap_precision = 0.1f;
+
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->region->regiondata) {
       View3D *v3d = t->area->spacedata.first;
-      r_snap[0] = ED_view3d_grid_view_scale(t->scene, v3d, t->region, NULL) * 1.0f;
-      r_snap[1] = r_snap[0] * 0.1f;
+      r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
+          t->scene, v3d, t->region, NULL);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -1715,26 +1728,21 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
     View2D *v2d = &t->region->v2d;
     int grid_size = SI_GRID_STEPS_LEN;
     float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
-    float grid_steps[SI_GRID_STEPS_LEN];
+    float grid_steps_x[SI_GRID_STEPS_LEN];
+    float grid_steps_y[SI_GRID_STEPS_LEN];
 
-    ED_space_image_grid_steps(sima, grid_steps, grid_size);
+    ED_space_image_grid_steps(sima, grid_steps_x, grid_steps_y, grid_size);
     /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
-    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps, zoom_factor);
-    r_snap[1] = r_snap[0] / 2.0f;
+    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_x, zoom_factor);
+    r_snap[1] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+    *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    r_snap[0] = 0.125f;
-    r_snap[1] = 0.0625f;
+    r_snap[0] = r_snap[1] = 0.125f;
+    *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_NODE) {
     r_snap[0] = r_snap[1] = ED_node_grid_size();
-  }
-  else if (t->spacetype == SPACE_GRAPH) {
-    r_snap[0] = 1.0;
-    r_snap[1] = 0.1f;
-  }
-  else {
-    r_snap[0] = r_snap[1] = 1.0f;
   }
 }
 
@@ -1875,7 +1883,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   initSnapping(t, op); /* Initialize snapping data AFTER mode flags */
 
-  initSnapSpatial(t, t->snap_spatial);
+  initSnapSpatial(t, t->snap_spatial, &t->snap_spatial_precision);
 
   /* EVIL! posemode code can switch translation to rotate when 1 bone is selected.
    * will be removed (ton) */
@@ -2047,7 +2055,7 @@ bool checkUseAxisMatrix(TransInfo *t)
   /* currently only checks for editmode */
   if (t->flag & T_EDIT) {
     if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-        (ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE))) {
+        ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE)) {
       /* not all editmode supports axis-matrix */
       return true;
     }

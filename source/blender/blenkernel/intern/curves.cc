@@ -14,7 +14,6 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bounds.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -63,7 +62,7 @@ static void curves_init_data(ID *id)
   new (&curves->geometry) blender::bke::CurvesGeometry();
 }
 
-static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   using namespace blender;
 
@@ -94,6 +93,7 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->bounds_cache = src.runtime->bounds_cache;
 
   curves_dst->batch_cache = nullptr;
 }
@@ -216,7 +216,7 @@ IDTypeInfo IDType_ID_CV = {
     /* foreach_id */ curves_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ curves_blend_write,
     /* blend_read_data */ curves_blend_read_data,
@@ -263,7 +263,7 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_curves_customdata_required(const Curves *UNUSED(curves), const char *name)
+bool BKE_curves_attribute_required(const Curves * /*curves*/, const char *name)
 {
   return STREQ(name, ATTR_POSITION);
 }
@@ -287,7 +287,10 @@ static void curves_evaluate_modifiers(struct Depsgraph *depsgraph,
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-  const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  if (BKE_object_is_in_editmode(object)) {
+    required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
+  }
   ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
   const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
 
@@ -409,11 +412,11 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
 {
-  this->curves_to_world = curves_ob.obmat;
+  this->curves_to_world = curves_ob.object_to_world;
   this->world_to_curves = this->curves_to_world.inverted();
 
   if (surface_ob != nullptr) {
-    this->surface_to_world = surface_ob->obmat;
+    this->surface_to_world = surface_ob->object_to_world;
     this->world_to_surface = this->surface_to_world.inverted();
     this->surface_to_curves = this->world_to_curves * this->surface_to_world;
     this->curves_to_surface = this->world_to_surface * this->curves_to_world;

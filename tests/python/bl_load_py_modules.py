@@ -42,7 +42,7 @@ if not bpy.app.build_options.xr_openxr:
     BLACKLIST.add("viewport_vr_preview")
 
 BLACKLIST_DIRS = (
-    os.path.join(bpy.utils.resource_path('USER'), "scripts"),
+    os.path.join(bpy.utils.user_resource('SCRIPTS')),
 ) + tuple(addon_utils.paths()[1:])
 
 
@@ -161,7 +161,7 @@ def load_modules():
                     sys.path[:] = sys_path_back
 
                     # check we load what we ask for.
-                    assert(os.path.samefile(mod_imp.__file__, submod_full))
+                    assert os.path.samefile(mod_imp.__file__, submod_full)
 
                     modules.append(mod_imp)
                 except Exception:

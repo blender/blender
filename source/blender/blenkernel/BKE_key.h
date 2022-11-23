@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * Free (or release) any data used by this shapekey (does not free the key itself).
+ * Free (or release) any data used by this shape-key (does not free the key itself).
  */
 void BKE_key_free_data(struct Key *key);
 void BKE_key_free_nolib(struct Key *key);
@@ -95,6 +95,9 @@ struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
  * Get the appropriate #KeyBlock given a name to search for.
  */
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
+
+struct KeyBlock *BKE_keyblock_find_uid(struct Key *key, int uid);
+
 /**
  * \brief copy shape-key attributes, but not key data or name/UID.
  */
@@ -164,9 +167,9 @@ void BKE_keyblock_update_from_offset(const struct Object *ob,
  * Move shape key from org_index to new_index. Safe, clamps index to valid range,
  * updates reference keys, the object's active shape index,
  * the 'frame' value in case of absolute keys, etc.
- * Note indices are expected in real values (not 'fake' shapenr +1 ones).
+ * Note indices are expected in real values (not *fake* `shapenr +1` ones).
  *
- * \param org_index: if < 0, current object's active shape will be used as skey to move.
+ * \param org_index: if < 0, current object's active shape will be used as shape-key to move.
  * \return true if something was done, else false.
  */
 bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);

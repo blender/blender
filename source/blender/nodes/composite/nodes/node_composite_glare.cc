@@ -22,7 +22,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
   ndg->quality = 1;
@@ -39,7 +39,7 @@ static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
-static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -105,7 +105,7 @@ void register_node_type_cmp_glare()
   cmp_node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_glare;
-  node_type_init(&ntype, file_ns::node_composit_init_glare);
+  ntype.initfunc = file_ns::node_composit_init_glare;
   node_type_storage(&ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

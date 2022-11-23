@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import argparse
-import dataclasses
+import make_utils
 import os
 import re
 import subprocess
@@ -19,6 +19,8 @@ from typing import Iterable, TextIO, Optional, Any, Union
 SKIP_NAMES = {
     ".gitignore",
     ".gitmodules",
+    ".gitattributes",
+    ".git-blame-ignore-revs",
     ".arcconfig",
     ".svn",
 }
@@ -50,7 +52,7 @@ def main() -> None:
 
     print(f"Output dir: {curdir}")
 
-    version = parse_blender_version(blender_srcdir)
+    version = make_utils.parse_blender_version()
     tarball = tarball_path(curdir, version, cli_args)
     manifest = manifest_path(tarball)
     packages_dir = packages_path(curdir, cli_args)
@@ -62,53 +64,7 @@ def main() -> None:
     print("Done!")
 
 
-@dataclasses.dataclass
-class BlenderVersion:
-    version: int  # 293 for 2.93.1
-    patch: int  # 1 for 2.93.1
-    cycle: str  # 'alpha', 'beta', 'release', maybe others.
-
-    @property
-    def is_release(self) -> bool:
-        return self.cycle == "release"
-
-    def __str__(self) -> str:
-        """Convert to version string.
-
-        >>> str(BlenderVersion(293, 1, "alpha"))
-        '2.93.1-alpha'
-        >>> str(BlenderVersion(327, 0, "release"))
-        '3.27.0'
-        """
-        version_major = self.version // 100
-        version_minor = self.version % 100
-        as_string = f"{version_major}.{version_minor}.{self.patch}"
-        if self.is_release:
-            return as_string
-        return f"{as_string}-{self.cycle}"
-
-
-def parse_blender_version(blender_srcdir: Path) -> BlenderVersion:
-    version_path = blender_srcdir / "source/blender/blenkernel/BKE_blender_version.h"
-
-    version_info = {}
-    line_re = re.compile(r"^#define (BLENDER_VERSION[A-Z_]*)\s+([0-9a-z]+)$")
-
-    with version_path.open(encoding="utf-8") as version_file:
-        for line in version_file:
-            match = line_re.match(line.strip())
-            if not match:
-                continue
-            version_info[match.group(1)] = match.group(2)
-
-    return BlenderVersion(
-        int(version_info["BLENDER_VERSION"]),
-        int(version_info["BLENDER_VERSION_PATCH"]),
-        version_info["BLENDER_VERSION_CYCLE"],
-    )
-
-
-def tarball_path(output_dir: Path, version: BlenderVersion, cli_args: Any) -> Path:
+def tarball_path(output_dir: Path, version: make_utils.BlenderVersion, cli_args: Any) -> Path:
     extra = ""
     if cli_args.include_packages:
         extra = "-with-libraries"
@@ -148,7 +104,7 @@ def packages_path(current_directory: Path, cli_args: Any) -> Optional[Path]:
 
 
 def create_manifest(
-    version: BlenderVersion,
+    version: make_utils.BlenderVersion,
     outpath: Path,
     blender_srcdir: Path,
     packages_dir: Optional[Path],
@@ -170,9 +126,9 @@ def main_files_to_manifest(blender_srcdir: Path, outfile: TextIO) -> None:
 
 
 def submodules_to_manifest(
-    blender_srcdir: Path, version: BlenderVersion, outfile: TextIO
+    blender_srcdir: Path, version: make_utils.BlenderVersion, outfile: TextIO
 ) -> None:
-    skip_addon_contrib = version.is_release
+    skip_addon_contrib = version.is_release()
     assert not blender_srcdir.is_absolute()
 
     for line in git_command("-C", blender_srcdir, "submodule"):
@@ -200,7 +156,11 @@ def packages_to_manifest(outfile: TextIO, packages_dir: Path) -> None:
 
 
 def create_tarball(
-    version: BlenderVersion, tarball: Path, manifest: Path, blender_srcdir: Path, packages_dir: Optional[Path]
+    version: make_utils.BlenderVersion,
+    tarball: Path,
+    manifest: Path,
+    blender_srcdir: Path,
+    packages_dir: Optional[Path],
 ) -> None:
     print(f'Creating archive:            "{tarball}" ...', end="", flush=True)
     command = ["tar"]

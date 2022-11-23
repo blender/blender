@@ -59,19 +59,10 @@ ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
   }
 }
 
-ccl_device Spectrum bsdf_transparent_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
-
-ccl_device Spectrum bsdf_transparent_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
-                                                   ccl_private float *pdf)
+ccl_device Spectrum bsdf_transparent_eval(ccl_private const ShaderClosure *sc,
+                                          const float3 I,
+                                          const float3 omega_in,
+                                          ccl_private float *pdf)
 {
   *pdf = 0.0f;
   return zero_spectrum();

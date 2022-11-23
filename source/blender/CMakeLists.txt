@@ -82,6 +82,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view2d_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_viewer_path_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_volume_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_windowmanager_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_workspace_types.h
@@ -128,6 +129,7 @@ set(SRC_DNA_DEFAULTS_INC
 add_subdirectory(datatoc)
 add_subdirectory(editors)
 add_subdirectory(windowmanager)
+add_subdirectory(asset_system)
 add_subdirectory(blenkernel)
 add_subdirectory(blenlib)
 add_subdirectory(bmesh)

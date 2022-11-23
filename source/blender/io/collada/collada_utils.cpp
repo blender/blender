@@ -66,7 +66,7 @@
 #include "ExportSettings.h"
 #include "collada_utils.h"
 
-float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index)
+float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, uint index)
 {
   if (index >= array.getValuesCount()) {
     return 0.0f;
@@ -129,7 +129,7 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
   const bool keep_transform = false;
 
   if (par && is_parent_space) {
-    mul_m4_m4m4(ob->obmat, par->obmat, ob->obmat);
+    mul_m4_m4m4(ob->object_to_world, par->object_to_world, ob->object_to_world);
   }
 
   bool ok = ED_object_parent_set(
@@ -197,6 +197,7 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   /* TODO: is setting active needed? */
   BKE_view_layer_base_select_and_set_active(view_layer, base);
@@ -347,10 +348,10 @@ std::string bc_replace_string(std::string data,
 void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene)
 {
   if (scale_to_scene) {
-    mul_m4_m4m4(ob->obmat, bc_unit.get_scale(), ob->obmat);
+    mul_m4_m4m4(ob->object_to_world, bc_unit.get_scale(), ob->object_to_world);
   }
-  mul_m4_m4m4(ob->obmat, bc_unit.get_rotation(), ob->obmat);
-  BKE_object_apply_mat4(ob, ob->obmat, false, false);
+  mul_m4_m4m4(ob->object_to_world, bc_unit.get_rotation(), ob->object_to_world);
+  BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
 }
 
 void bc_match_scale(std::vector<Object *> *objects_done,
@@ -709,13 +710,13 @@ float bc_get_property(Bone *bone, std::string key, float def)
   if (property) {
     switch (property->type) {
       case IDP_INT:
-        result = (float)(IDP_Int(property));
+        result = float(IDP_Int(property));
         break;
       case IDP_FLOAT:
-        result = (float)(IDP_Float(property));
+        result = float(IDP_Float(property));
         break;
       case IDP_DOUBLE:
-        result = (float)(IDP_Double(property));
+        result = float(IDP_Double(property));
         break;
       default:
         result = def;
@@ -1007,9 +1008,9 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 void bc_sanitize_v3(float v[3], int precision)
 {
   for (int i = 0; i < 3; i++) {
-    double val = (double)v[i];
+    double val = double(v[i]);
     val = double_round(val, precision);
-    v[i] = (float)val;
+    v[i] = float(val);
   }
 }
 
@@ -1338,7 +1339,7 @@ bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
-    val = (double)ref->value;
+    val = double(ref->value);
     return true;
   }
   return false;

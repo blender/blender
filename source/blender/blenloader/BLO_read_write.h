@@ -219,8 +219,8 @@ void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_a
 
 typedef void (*BlendReadListFn)(BlendDataReader *reader, void *data);
 /**
- * Updates all ->prev and ->next pointers of the list elements.
- * Updates the list->first and list->last pointers.
+ * Updates all `->prev` and `->next` pointers of the list elements.
+ * Updates the `list->first` and `list->last` pointers.
  * When not NULL, calls the callback on every element.
  */
 void BLO_read_list_cb(BlendDataReader *reader, struct ListBase *list, BlendReadListFn callback);
@@ -237,6 +237,7 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p);
 
 /* Misc. */
 
+int BLO_read_fileversion_get(BlendDataReader *reader);
 bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);

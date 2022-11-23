@@ -32,7 +32,7 @@ OIIO_NAMESPACE_USING
 using std::string;
 using std::unique_ptr;
 
-using uchar = unsigned char;
+using uchar = uchar;
 
 template<class T, class Q>
 static void fill_all_channels(T *pixels, int width, int height, int components, Q alpha)
@@ -147,9 +147,9 @@ static ImBuf *imb_oiio_load_image_float(
 
 extern "C" {
 
-bool imb_is_a_photoshop(const unsigned char *mem, size_t size)
+bool imb_is_a_photoshop(const uchar *mem, size_t size)
 {
-  const unsigned char magic[4] = {'8', 'B', 'P', 'S'};
+  const uchar magic[4] = {'8', 'B', 'P', 'S'};
   if (size < sizeof(magic)) {
     return false;
   }
@@ -193,7 +193,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   }
 
   ImageSpec spec, config;
-  config.attribute("oiio:UnassociatedAlpha", (int)1);
+  config.attribute("oiio:UnassociatedAlpha", int(1));
 
   if (!in->open(filename, spec, config)) {
     std::cerr << __func__ << ": ImageInput::open() failed:" << std::endl

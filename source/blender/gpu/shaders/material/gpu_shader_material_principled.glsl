@@ -91,7 +91,7 @@ void node_bsdf_principled(vec4 base_color,
   diffuse_data.sss_id = uint(do_sss);
 
   /* NOTE(@fclem): We need to blend the reflection color but also need to avoid applying the
-   * weights so we compule the ratio. */
+   * weights so we compute the ratio. */
   float reflection_weight = specular_weight + glass_reflection_weight;
   float reflection_weight_inv = safe_rcp(reflection_weight);
   specular_weight *= reflection_weight_inv;
@@ -150,7 +150,7 @@ void node_bsdf_principled(vec4 base_color,
   refraction_data.ior = ior;
 
   /* Ref. T98190: Defines are optimizations for old compilers.
-   * Might become unecessary with EEVEE-Next. */
+   * Might become unnecessary with EEVEE-Next. */
   if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat != 0.0) {
 #ifdef PRINCIPLED_CLEARCOAT
     /* Metallic & Clearcoat case. */

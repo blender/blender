@@ -59,9 +59,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DisplaceModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -324,7 +322,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
   else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
            use_global_direction) {
-    copy_m4_m4(local_mat, ob->obmat);
+    copy_m4_m4(local_mat, ob->object_to_world);
   }
 
   DisplaceUserdata data = {NULL};

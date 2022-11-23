@@ -7,9 +7,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_hash.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -18,12 +15,10 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -31,25 +26,14 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_undo.h"
-#include "ED_view3d.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -88,45 +72,6 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
-{
-  int cd_node_layer_index;
-
-  char node_vertex_id[] = "_dyntopo_vnode_id";
-  char node_face_id[] = "_dyntopo_fnode_id";
-
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-  }
-
-  ss->cd_vert_node_offset = CustomData_get_n_offset(
-      &ss->bm->vdata,
-      CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT32));
-
-  ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
-
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-  }
-
-  ss->cd_face_node_offset = CustomData_get_n_offset(
-      &ss->bm->pdata,
-      CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
-
-  ss->bm->pdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
-}
-
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -156,8 +101,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                          .active_shapekey = ob->shapenr,
                      }));
   SCULPT_dynamic_topology_triangulate(ss->bm);
+
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-  SCULPT_dyntopo_node_layers_add(ss);
+
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
@@ -184,6 +130,14 @@ static void SCULPT_dynamic_topology_disable_ex(
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
+
+  if (ss->attrs.dyntopo_node_id_vertex) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  }
+
+  if (ss->attrs.dyntopo_node_id_face) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
+  }
 
   SCULPT_pbvh_clear(ob);
 
@@ -215,13 +169,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Reset Face Sets as they are no longer valid. */
-    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      CustomData_add_layer(&me->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, NULL, me->totpoly);
-    }
-    ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
-    for (int i = 0; i < me->totpoly; i++) {
-      ss->face_sets[i] = 1;
-    }
+    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */

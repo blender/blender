@@ -42,7 +42,7 @@ void DRW_curve_batch_cache_free(struct Curve *cu);
 
 void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
 void DRW_mesh_batch_cache_validate(struct Object *object, struct Mesh *me);
-void DRW_mesh_batch_cache_free(struct Mesh *me);
+void DRW_mesh_batch_cache_free(void *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void DRW_lattice_batch_cache_validate(struct Lattice *lt);
@@ -80,6 +80,7 @@ void DRW_batch_cache_free_old(struct Object *ob, int ctime);
  */
 void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
 void DRW_curves_batch_cache_free_old(struct Curves *curves, int ctime);
+void DRW_pointcloud_batch_cache_free_old(struct PointCloud *pointcloud, int ctime);
 
 /** \} */
 
@@ -100,6 +101,7 @@ void DRW_curve_batch_cache_create_requested(struct Object *ob, const struct Scen
 int DRW_curve_material_count_get(struct Curve *cu);
 
 struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu);
@@ -130,7 +132,7 @@ int DRW_curves_material_count_get(struct Curves *curves);
  * \return A pointer to location where the texture will be
  * stored, which will be filled by #DRW_shgroup_curves_create_sub.
  */
-struct GPUTexture **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
+struct GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(struct Curves *curves,
                                                                const char *name,
                                                                bool *r_is_point_domain);
 
@@ -146,11 +148,11 @@ void DRW_curves_batch_cache_create_requested(struct Object *ob);
 
 int DRW_pointcloud_material_count_get(struct PointCloud *pointcloud);
 
+struct GPUVertBuf **DRW_pointcloud_evaluated_attribute(struct PointCloud *pointcloud,
+                                                       const char *name);
 struct GPUBatch *DRW_pointcloud_batch_cache_get_dots(struct Object *ob);
-struct GPUBatch *DRW_pointcloud_batch_cache_get_surface(struct Object *ob);
-struct GPUBatch **DRW_cache_pointcloud_surface_shaded_get(struct Object *ob,
-                                                          struct GPUMaterial **gpumat_array,
-                                                          uint gpumat_array_len);
+
+void DRW_pointcloud_batch_cache_create_requested(struct Object *ob);
 
 /** \} */
 
@@ -189,6 +191,7 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(struct Object *object,
                                                           struct Mesh *me,
                                                           struct GPUMaterial **gpumat_array,
                                                           uint gpumat_array_len);
+
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Object *object,
                                                             struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Object *object,
@@ -198,6 +201,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Object *objec
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(struct Object *object, struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(struct Mesh *me);
 
 /** \} */
 
@@ -274,8 +278,6 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 struct GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(struct Mesh *me);
 
 int DRW_mesh_material_count_get(const struct Object *object, const struct Mesh *me);
-
-/* See 'common_globals_lib.glsl' for duplicate defines. */
 
 /* Edit mesh bitflags (is this the right place?) */
 enum {

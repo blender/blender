@@ -60,6 +60,6 @@ GPU_SHADER_CREATE_INFO(basic_curves)
 
 GPU_SHADER_CREATE_INFO(basic_depth).fragment_source("basic_depth_frag.glsl");
 
-BASIC_OBTYPE_VARIATIONS(basic_depth, "basic_depth");
+BASIC_OBTYPE_VARIATIONS(basic_depth, "basic_depth", "draw_globals");
 
 /** \} */

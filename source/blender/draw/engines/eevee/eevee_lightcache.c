@@ -142,7 +142,7 @@ typedef struct EEVEE_LightBake {
   struct GPUTexture *dummy_layer_color;
 
   int total, done; /* to compute progress */
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   /** For only handling the resources. */
@@ -591,23 +591,26 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
     GPU_context_main_lock();
     DRW_opengl_context_enable();
+    GPU_render_begin();
     return;
   }
 
   if (lbake->gl_context) {
     DRW_opengl_render_context_enable(lbake->gl_context);
     if (lbake->gpu_context == NULL) {
-      lbake->gpu_context = GPU_context_create(NULL);
+      lbake->gpu_context = GPU_context_create(NULL, lbake->gl_context);
     }
     DRW_gpu_render_context_enable(lbake->gpu_context);
   }
   else {
     DRW_opengl_context_enable();
   }
+  GPU_render_begin();
 }
 
 static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 {
+  GPU_render_end();
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
     DRW_opengl_context_disable();
     GPU_context_main_unlock();
@@ -636,7 +639,10 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
   /* At least one of each for the world */
   lbake->grid_len = lbake->cube_len = lbake->total_irr_samples = 1;
 
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     const int ob_visibility = BKE_object_visibility(ob, DAG_EVAL_RENDER);
     if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
       continue;
@@ -655,7 +661,7 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
       }
     }
   }
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+  DEG_OBJECT_ITER_END;
 }
 
 static void eevee_lightbake_create_render_target(EEVEE_LightBake *lbake, int rt_res)
@@ -772,7 +778,7 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
     }
 
     if (old_lbake->stop != NULL) {
-      *old_lbake->stop = 1;
+      *old_lbake->stop = true;
     }
     BLI_mutex_unlock(old_lbake->mutex);
   }
@@ -849,7 +855,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
     DRW_opengl_context_enable();
   }
 
-  /* XXX Free the resources contained in the viewlayer data
+  /* XXX: Free the resources contained in the view-layer data
    * to be able to free the context before deleting the depsgraph. */
   if (lbake->sldata) {
     EEVEE_view_layer_data_free(lbake->sldata);
@@ -1279,7 +1285,10 @@ static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
 
   /* Convert all lightprobes to tight UBO data from all lightprobes in the scene.
    * This allows a large number of probe to be precomputed (even dupli ones). */
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
+  DEGObjectIterSettings deg_iter_settings = {0};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     const int ob_visibility = BKE_object_visibility(ob, DAG_EVAL_RENDER);
     if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
       continue;
@@ -1300,7 +1309,7 @@ static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
       }
     }
   }
-  DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+  DEG_OBJECT_ITER_END;
 
   SORT_PROBE(EEVEE_LightGrid,
              lbake->grid_prb + 1,
@@ -1350,13 +1359,13 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   DRW_custom_pipeline(&draw_engine_eevee_type, depsgraph, render_callback, lbake);
   lbake->done += 1;
   *lbake->progress = lbake->done / (float)lbake->total;
-  *lbake->do_update = 1;
+  *lbake->do_update = true;
   eevee_lightbake_context_disable(lbake);
 
   return true;
 }
 
-void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float *progress)
+void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *progress)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Depsgraph *depsgraph = lbake->depsgraph;
@@ -1385,8 +1394,8 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 
   /* Resource allocation can fail. Early exit in this case. */
   if (lbake->lcache->flag & LIGHTCACHE_INVALID) {
-    *lbake->stop = 1;
-    *lbake->do_update = 1;
+    *lbake->stop = true;
+    *lbake->do_update = true;
     lbake->lcache->flag &= ~LIGHTCACHE_BAKING;
     eevee_lightbake_context_disable(lbake);
     eevee_lightbake_delete_resources(lbake);

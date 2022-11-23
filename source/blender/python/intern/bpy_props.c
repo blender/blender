@@ -307,6 +307,7 @@ static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *k
     Py_INCREF(kw);
   }
   self->kw = kw;
+  BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   PyObject_GC_Track(self);
   return (PyObject *)self;
 }
@@ -394,7 +395,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
 
   if (PyLong_CheckExact(o)) {
     int size;
-    if (((size = PyLong_AsLong(o)) == -1)) {
+    if ((size = PyLong_AsLong(o)) == -1) {
       PyErr_Format(
           PyExc_ValueError, "expected number or sequence of numbers, got %s", Py_TYPE(o)->tp_name);
       return 0;
@@ -427,7 +428,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
     PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
     for (int i = 0; i < seq_len; i++) {
       int size;
-      if (((size = PyLong_AsLong(seq_items[i])) == -1)) {
+      if ((size = PyLong_AsLong(seq_items[i])) == -1) {
         Py_DECREF(seq_fast);
         PyErr_Format(PyExc_ValueError,
                      "expected number in sequence, got %s at index %d",
@@ -4620,21 +4621,25 @@ static int props_clear(PyObject *UNUSED(self))
   return 0;
 }
 
-static struct PyModuleDef props_module = {
-    PyModuleDef_HEAD_INIT,
-    "bpy.props",
+PyDoc_STRVAR(
+    props_module_doc,
     "This module defines properties to extend Blender's internal data. The result of these "
     "functions"
     " is used to assign properties to classes registered with Blender and can't be used "
     "directly.\n"
     "\n"
-    ".. note:: All parameters to these functions must be passed as keywords.\n",
-    -1, /* multiple "initialization" just copies the module dict. */
-    props_methods,
-    NULL,
-    props_visit,
-    props_clear,
-    NULL,
+    ".. note:: All parameters to these functions must be passed as keywords.\n");
+
+static struct PyModuleDef props_module = {
+    PyModuleDef_HEAD_INIT,
+    /*m_name*/ "bpy.props",
+    /*m_doc*/ props_module_doc,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ props_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ props_visit,
+    /*m_clear*/ props_clear,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_rna_props(void)

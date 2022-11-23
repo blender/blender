@@ -28,8 +28,7 @@ std::string path_reference(StringRefNull filepath,
   }
   else if (mode == PATH_REFERENCE_COPY) {
     char filepath_cpy[PATH_MAX];
-    BLI_path_join(
-        filepath_cpy, PATH_MAX, base_dst.c_str(), BLI_path_basename(filepath_abs), nullptr);
+    BLI_path_join(filepath_cpy, PATH_MAX, base_dst.c_str(), BLI_path_basename(filepath_abs));
     copy_set->add(std::make_pair(filepath_abs, filepath_cpy));
     BLI_strncpy(filepath_abs, filepath_cpy, PATH_MAX);
     mode = PATH_REFERENCE_RELATIVE;

@@ -23,6 +23,10 @@ unique_ptr<PathTraceWork> PathTraceWork::create(Device *device,
   if (device->info.type == DEVICE_CPU) {
     return make_unique<PathTraceWorkCPU>(device, film, device_scene, cancel_requested_flag);
   }
+  if (device->info.type == DEVICE_DUMMY) {
+    /* Dummy devices can't perform any work. */
+    return nullptr;
+  }
 
   return make_unique<PathTraceWorkGPU>(device, film, device_scene, cancel_requested_flag);
 }

@@ -12,7 +12,7 @@ CombineXYZNode::CombineXYZNode(bNode *editor_node) : Node(editor_node)
 }
 
 void CombineXYZNode::convert_to_operations(NodeConverter &converter,
-                                           const CompositorContext &UNUSED(context)) const
+                                           const CompositorContext & /*context*/) const
 {
   NodeInput *input_x_socket = this->get_input_socket(0);
   NodeInput *input_y_socket = this->get_input_socket(1);

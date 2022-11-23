@@ -9,6 +9,8 @@
 
 #include "../stroke/ContextFunctions.h"
 
+#include "BLI_sys_types.h"
+
 using namespace Freestyle;
 
 #ifdef __cplusplus
@@ -98,7 +100,7 @@ static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, 
 {
   static const char *kwlist[] = {"file_name", "map_name", "num_levels", "sigma", nullptr};
   char *fileName, *mapName;
-  unsigned nbLevels = 4;
+  uint nbLevels = 4;
   float sigma = 1.0;
 
   if (!PyArg_ParseTupleAndKeywords(
@@ -135,7 +137,7 @@ static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
   static const char *kwlist[] = {"map_name", "level", "x", "y", nullptr};
   char *mapName;
   int level;
-  unsigned x, y;
+  uint x, y;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "siII", (char **)kwlist, &mapName, &level, &x, &y)) {
@@ -167,7 +169,7 @@ static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self
 {
   static const char *kwlist[] = {"level", "x", "y", nullptr};
   int level;
-  unsigned x, y;
+  uint x, y;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "iII", (char **)kwlist, &level, &x, &y)) {
     return nullptr;
@@ -201,7 +203,7 @@ static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*s
 {
   static const char *kwlist[] = {"orientation", "level", "x", "y", nullptr};
   int orientation, level;
-  unsigned x, y;
+  uint x, y;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "iiII", (char **)kwlist, &orientation, &level, &x, &y)) {
@@ -278,10 +280,14 @@ static PyMethodDef module_functions[] = {
 
 static PyModuleDef module_definition = {
     PyModuleDef_HEAD_INIT,
-    "Freestyle.ContextFunctions",
-    module_docstring,
-    -1,
-    module_functions,
+    /*m_name*/ "Freestyle.ContextFunctions",
+    /*m_doc*/ module_docstring,
+    /*m_size*/ -1,
+    /*m_methods*/ module_functions,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 //------------------- MODULE INITIALIZATION --------------------------------

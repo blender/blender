@@ -36,6 +36,10 @@ extern GHOST_SystemHandle GHOST_CreateSystemBackground(void);
  */
 extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug);
 
+#if !(defined(WIN32) || defined(__APPLE__))
+extern const char *GHOST_SystemBackend(void);
+#endif
+
 /**
  * Disposes the one and only system.
  * \param systemhandle: The handle to the system.
@@ -158,7 +162,6 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
@@ -171,7 +174,6 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
 
 /**
@@ -559,6 +561,13 @@ extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandl
                                                   GHOST_TDrawingContextType type);
 
 /**
+ * Returns the drawing context used in the this window.
+ * \param windowhandle: The handle to the window.
+ * \return The window drawing context.
+ */
+extern GHOST_ContextHandle GHOST_GetDrawingContext(GHOST_WindowHandle windowhandle);
+
+/**
  * Sets the title displayed in the title bar.
  * \param windowhandle: The handle to the window.
  * \param title: The title to display in the title bar.
@@ -739,6 +748,13 @@ extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle
  * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
  */
 extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle);
+
+/**
+ * Use multi-touch gestures if supported.
+ * \param systemhandle: The handle to the system.
+ * \param use: Enable or disable.
+ */
+extern void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use);
 
 /**
  * Set which tablet API to use. Only affects Windows, other platforms have a single API.
@@ -1175,6 +1191,30 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
                                    GHOST_XrControllerModelData *r_data);
 
 #endif /* WITH_XR_OPENXR */
+
+#ifdef WITH_VULKAN_BACKEND
+
+/**
+ * Return vulkan handles for the given context.
+ */
+void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
+                            void *r_instance,
+                            void *r_physical_device,
+                            void *r_device,
+                            uint32_t *r_graphic_queue_familly);
+
+/**
+ * Return vulkan backbuffer resources handles for the given window.
+ */
+void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
+                               void *image,
+                               void *framebuffer,
+                               void *command_buffer,
+                               void *render_pass,
+                               void *extent,
+                               uint32_t *fb_id);
+
+#endif
 
 #ifdef __cplusplus
 }

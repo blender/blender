@@ -8,7 +8,7 @@
 #include "GHOST_System.h"
 
 #include <chrono>
-#include <cstdio> /* just for printf */
+#include <cstdio> /* Just for #printf. */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
@@ -30,6 +30,7 @@ GHOST_System::GHOST_System()
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(0),
 #endif
+      m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),
       m_is_debug_enabled(false)
 {
@@ -305,6 +306,11 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButton mask, bool &isDown) co
   return success;
 }
 
+void GHOST_System::setMultitouchGestures(const bool use)
+{
+  m_multitouchGestures = use;
+}
+
 void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)
 {
   m_tabletAPI = api;
@@ -378,6 +384,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   if (stereoVisual) {
     glSettings.flags |= GHOST_glStereoVisual;
   }
+  glSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
@@ -389,7 +396,6 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          settings.xPixels,
                                          settings.yPixels,
                                          GHOST_kWindowStateNormal,
-                                         GHOST_kDrawingContextTypeOpenGL,
                                          glSettings,
                                          true /* exclusive */);
   return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;

@@ -3,8 +3,8 @@
 /** \file
  * \ingroup edasset
  *
- * UI/Editor level API for catalog operations, creating richer functionality than the BKE catalog
- * API provides (which this uses internally).
+ * UI/Editor level API for catalog operations, creating richer functionality than the asset system
+ * catalog API provides (which this uses internally).
  *
  * Note that `ED_asset_catalog.h` is part of this API.
  */
@@ -13,22 +13,19 @@
 
 #include <optional>
 
-#include "BKE_asset_catalog.hh"
+#include "AS_asset_catalog.hh"
 
 #include "BLI_string_ref.hh"
 
 struct AssetLibrary;
-namespace blender::bke {
-class AssetCatalog;
-}  // namespace blender::bke
 
-blender::bke::AssetCatalog *ED_asset_catalog_add(AssetLibrary *library,
-                                                 blender::StringRefNull name,
-                                                 blender::StringRef parent_path = nullptr);
-void ED_asset_catalog_remove(AssetLibrary *library, const blender::bke::CatalogID &catalog_id);
+blender::asset_system::AssetCatalog *ED_asset_catalog_add(
+    AssetLibrary *library, blender::StringRefNull name, blender::StringRef parent_path = nullptr);
+void ED_asset_catalog_remove(AssetLibrary *library,
+                             const blender::asset_system::CatalogID &catalog_id);
 
 void ED_asset_catalog_rename(AssetLibrary *library,
-                             blender::bke::CatalogID catalog_id,
+                             blender::asset_system::CatalogID catalog_id,
                              blender::StringRefNull new_name);
 /**
  * Reinsert catalog identified by \a src_catalog_id as child to catalog identified by \a
@@ -43,5 +40,5 @@ void ED_asset_catalog_rename(AssetLibrary *library,
  */
 void ED_asset_catalog_move(
     AssetLibrary *library,
-    blender::bke::CatalogID src_catalog_id,
-    std::optional<blender::bke::CatalogID> dst_parent_catalog_id = std::nullopt);
+    blender::asset_system::CatalogID src_catalog_id,
+    std::optional<blender::asset_system::CatalogID> dst_parent_catalog_id = std::nullopt);

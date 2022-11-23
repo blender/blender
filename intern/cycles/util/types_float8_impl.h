@@ -10,45 +10,45 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __KERNEL_AVX2__
-__forceinline float8_t::float8_t()
+#ifdef __KERNEL_AVX__
+__forceinline vfloat8::vfloat8()
 {
 }
 
-__forceinline float8_t::float8_t(const float8_t &f) : m256(f.m256)
+__forceinline vfloat8::vfloat8(const vfloat8 &f) : m256(f.m256)
 {
 }
 
-__forceinline float8_t::float8_t(const __m256 &f) : m256(f)
+__forceinline vfloat8::vfloat8(const __m256 &f) : m256(f)
 {
 }
 
-__forceinline float8_t::operator const __m256 &() const
-{
-  return m256;
-}
-
-__forceinline float8_t::operator __m256 &()
+__forceinline vfloat8::operator const __m256 &() const
 {
   return m256;
 }
 
-__forceinline float8_t &float8_t::operator=(const float8_t &f)
+__forceinline vfloat8::operator __m256 &()
+{
+  return m256;
+}
+
+__forceinline vfloat8 &vfloat8::operator=(const vfloat8 &f)
 {
   m256 = f.m256;
   return *this;
 }
-#endif /* __KERNEL_AVX2__ */
+#endif /* __KERNEL_AVX__ */
 
 #ifndef __KERNEL_GPU__
-__forceinline float float8_t::operator[](int i) const
+__forceinline float vfloat8::operator[](int i) const
 {
   util_assert(i >= 0);
   util_assert(i < 8);
   return *(&a + i);
 }
 
-__forceinline float &float8_t::operator[](int i)
+__forceinline float &vfloat8::operator[](int i)
 {
   util_assert(i >= 0);
   util_assert(i < 8);
@@ -56,25 +56,50 @@ __forceinline float &float8_t::operator[](int i)
 }
 #endif
 
-ccl_device_inline float8_t make_float8_t(float f)
+ccl_device_inline vfloat8 make_vfloat8(float f)
 {
-#ifdef __KERNEL_AVX2__
-  float8_t r(_mm256_set1_ps(f));
+#ifdef __KERNEL_AVX__
+  vfloat8 r(_mm256_set1_ps(f));
 #else
-  float8_t r = {f, f, f, f, f, f, f, f};
+  vfloat8 r = {f, f, f, f, f, f, f, f};
 #endif
   return r;
 }
 
-ccl_device_inline float8_t
-make_float8_t(float a, float b, float c, float d, float e, float f, float g, float h)
+ccl_device_inline vfloat8
+make_vfloat8(float a, float b, float c, float d, float e, float f, float g, float h)
 {
-#ifdef __KERNEL_AVX2__
-  float8_t r(_mm256_setr_ps(a, b, c, d, e, f, g, h));
+#ifdef __KERNEL_AVX__
+  vfloat8 r(_mm256_setr_ps(a, b, c, d, e, f, g, h));
 #else
-  float8_t r = {a, b, c, d, e, f, g, h};
+  vfloat8 r = {a, b, c, d, e, f, g, h};
 #endif
   return r;
+}
+
+ccl_device_inline vfloat8 make_vfloat8(const float4 a, const float4 b)
+{
+#ifdef __KERNEL_AVX__
+  return vfloat8(_mm256_insertf128_ps(_mm256_castps128_ps256(a), b, 1));
+#else
+  return make_vfloat8(a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w);
+#endif
+}
+
+ccl_device_inline void print_vfloat8(ccl_private const char *label, const vfloat8 a)
+{
+#ifdef __KERNEL_PRINTF__
+  printf("%s: %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f\n",
+         label,
+         (double)a.a,
+         (double)a.b,
+         (double)a.c,
+         (double)a.d,
+         (double)a.e,
+         (double)a.f,
+         (double)a.g,
+         (double)a.h);
+#endif
 }
 
 CCL_NAMESPACE_END

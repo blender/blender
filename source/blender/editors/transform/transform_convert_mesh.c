@@ -1423,8 +1423,7 @@ static void VertsToTransData(TransInfo *t,
   copy_v3_v3(td->iloc, td->loc);
 
   if ((t->mode == TFM_SHRINKFATTEN) && (em->selectmode & SCE_SELECT_FACE) &&
-      BM_elem_flag_test(eve, BM_ELEM_SELECT) &&
-      (BM_vert_calc_normal_ex(eve, BM_ELEM_SELECT, _no))) {
+      BM_elem_flag_test(eve, BM_ELEM_SELECT) && BM_vert_calc_normal_ex(eve, BM_ELEM_SELECT, _no)) {
     no = _no;
   }
   else {
@@ -1528,7 +1527,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
           em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
     }
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
      * matrix inversion still works and we can still moving along the other */
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
@@ -2069,7 +2068,7 @@ static void recalcData_mesh(TransInfo *t)
 /** \name Special After Transform Mesh
  * \{ */
 
-void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
   const bool is_canceling = (t->state == TRANS_CANCEL);
   const bool use_automerge = !is_canceling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;

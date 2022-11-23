@@ -22,7 +22,7 @@ struct wmMsgSubscribeValue;
 struct wmRegionMessageSubscribeParams;
 struct wmOperator;
 
-/* sculpt.c */
+/* sculpt.cc */
 
 void ED_operatortypes_sculpt(void);
 void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *region, struct Object *ob);
@@ -34,7 +34,10 @@ bool ED_sculpt_mask_box_select(struct bContext *C,
 /* sculpt_transform.c */
 
 void ED_sculpt_update_modal_transform(struct bContext *C, struct Object *ob);
-void ED_sculpt_init_transform(struct bContext *C, struct Object *ob, const char *undo_name);
+void ED_sculpt_init_transform(struct bContext *C,
+                              struct Object *ob,
+                              const int mval[2],
+                              const char *undo_name);
 void ED_sculpt_end_transform(struct bContext *C, struct Object *ob);
 
 /* sculpt_undo.c */

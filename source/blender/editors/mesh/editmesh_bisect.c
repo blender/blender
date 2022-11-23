@@ -99,6 +99,7 @@ static void mesh_bisect_interactive_calc(bContext *C,
 
 static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int valid_objects = 0;
 
@@ -111,7 +112,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -284,7 +285,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -313,9 +314,9 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
     copy_v3_v3(plane_co_local, plane_co);
     copy_v3_v3(plane_no_local, plane_no);
 
-    invert_m4_m4(imat, obedit->obmat);
+    invert_m4_m4(imat, obedit->object_to_world);
     mul_m4_v3(imat, plane_co_local);
-    mul_transposed_mat3_m4_v3(obedit->obmat, plane_no_local);
+    mul_transposed_mat3_m4_v3(obedit->object_to_world, plane_no_local);
 
     BMOperator bmop;
     EDBM_op_init(

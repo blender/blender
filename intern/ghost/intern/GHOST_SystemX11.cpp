@@ -36,6 +36,10 @@
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextGLX.h"
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
+
 #ifdef WITH_XF86KEYSYM
 #  include <X11/XF86keysym.h>
 #endif
@@ -308,7 +312,6 @@ void GHOST_SystemX11::getAllDisplayDimensions(uint32_t &width, uint32_t &height)
  * \param width: The width the window.
  * \param height: The height the window.
  * \param state: The state of the window when opened.
- * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL settings.
  * \param exclusive: Use to show the window on top and ignore others (used full-screen).
  * \param parentWindow: Parent window.
@@ -320,7 +323,6 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings,
                                              const bool exclusive,
                                              const bool is_dialog,
@@ -341,7 +343,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                height,
                                state,
                                (GHOST_WindowX11 *)parentWindow,
-                               type,
+                               glSettings.context_type,
                                is_dialog,
                                ((glSettings.flags & GHOST_glStereoVisual) != 0),
                                exclusive,
@@ -433,8 +435,20 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
    *   no fall-backs. */
 
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  GHOST_Context *context = nullptr;
 
-  GHOST_Context *context;
+#ifdef WITH_VULKAN_BACKEND
+  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+    context = new GHOST_ContextVK(
+        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 0, debug_context);
+
+    if (!context->initializeDrawingContext()) {
+      delete context;
+      return nullptr;
+    }
+    return context;
+  }
+#endif
 
 #ifdef USE_EGL
   /* Try to initialize an EGL context. */
@@ -660,7 +674,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       }
 
       /* dispatch event to XIM server */
-      if ((XFilterEvent(&xevent, (Window) nullptr) == True)) {
+      if (XFilterEvent(&xevent, (Window) nullptr) == True) {
         /* do nothing now, the event is consumed by XIM. */
         continue;
       }
@@ -673,7 +687,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       }
       else if (xevent.type == KeyPress) {
         if ((xevent.xkey.keycode == m_last_release_keycode) &&
-            ((xevent.xkey.time <= m_last_release_time))) {
+            (xevent.xkey.time <= m_last_release_time)) {
           continue;
         }
       }
@@ -715,7 +729,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                   XK_Super_R,
               };
 
-              for (int i = 0; i < (int)ARRAY_SIZE(modifiers); i++) {
+              for (int i = 0; i < int(ARRAY_SIZE(modifiers)); i++) {
                 KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(getMilliSeconds(),
@@ -845,14 +859,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
       else {
         if (m_keycode_last_repeat_key == xke->keycode) {
-          m_keycode_last_repeat_key = (uint)-1;
+          m_keycode_last_repeat_key = uint(-1);
         }
       }
     }
   }
   else if (xe->type == EnterNotify) {
     /* We can't tell how the key state changed, clear it to avoid stuck keys. */
-    m_keycode_last_repeat_key = (uint)-1;
+    m_keycode_last_repeat_key = uint(-1);
   }
 
 #ifdef USE_XINPUT_HOTPLUG
@@ -936,16 +950,47 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         int32_t x_new = xme.x_root;
         int32_t y_new = xme.y_root;
         int32_t x_accum, y_accum;
-        GHOST_Rect bounds;
 
-        /* fallback to window bounds */
-        if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          window->getClientBounds(bounds);
+        /* Warp within bounds. */
+        {
+          GHOST_Rect bounds;
+          int32_t bounds_margin = 0;
+          GHOST_TAxisFlag bounds_axis = GHOST_kAxisNone;
+
+          if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+            window->getClientBounds(bounds);
+
+            /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
+             * on every motion event, see: D16557 (alternative fix for T102346). */
+            const int32_t subregion_div = 4; /* One quarter of the region. */
+            const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
+            const int32_t center[2] = {
+                (bounds.m_l + bounds.m_r) / 2,
+                (bounds.m_t + bounds.m_b) / 2,
+            };
+            /* Shrink the box to prevent the cursor escaping. */
+            bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
+            bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
+            bounds.m_t = center[1] - (size[1] / (subregion_div * 2));
+            bounds.m_b = center[1] + (size[1] / (subregion_div * 2));
+            bounds_margin = 0;
+            bounds_axis = GHOST_TAxisFlag(GHOST_kAxisX | GHOST_kAxisY);
+          }
+          else {
+            /* Fallback to window bounds. */
+            if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+              window->getClientBounds(bounds);
+            }
+            /* Could also clamp to screen bounds wrap with a window outside the view will
+             * fail at the moment. Use offset of 8 in case the window is at screen bounds. */
+            bounds_margin = 8;
+            bounds_axis = window->getCursorGrabAxis();
+          }
+
+          /* Could also clamp to screen bounds wrap with a window outside the view will
+           * fail at the moment. Use inset in case the window is at screen bounds. */
+          bounds.wrapPoint(x_new, y_new, bounds_margin, bounds_axis);
         }
-
-        /* Could also clamp to screen bounds wrap with a window outside the view will
-         * fail at the moment. Use offset of 8 in case the window is at screen bounds. */
-        bounds.wrapPoint(x_new, y_new, 8, window->getCursorGrabAxis());
 
         window->getCursorGrabAccum(x_accum, y_accum);
 
@@ -1038,8 +1083,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       KeySym key_sym_str;
       /* Mode_switch 'modifier' is `AltGr` - when this one or Shift are enabled,
        * we do not want to apply that 'forced number' hack. */
-      const unsigned int mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
-      const unsigned int number_hack_forbidden_kmods_mask = mode_switch_mask | ShiftMask;
+      const uint mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
+      const uint number_hack_forbidden_kmods_mask = mode_switch_mask | ShiftMask;
       if ((xke->keycode >= 10 && xke->keycode < 20) &&
           ((xke->state & number_hack_forbidden_kmods_mask) == 0)) {
         key_sym = XLookupKeysym(xke, ShiftMask);
@@ -1065,7 +1110,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         case GHOST_kKeyLeftShift:
         case GHOST_kKeyRightControl:
         case GHOST_kKeyLeftControl:
-        case GHOST_kKeyOS:
+        case GHOST_kKeyLeftOS:
+        case GHOST_kKeyRightOS:
         case GHOST_kKey0:
         case GHOST_kKey1:
         case GHOST_kKey2:
@@ -1151,7 +1197,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
 
           if (ELEM(status, XLookupChars, XLookupBoth)) {
-            if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
+            if (uchar(utf8_buf[0]) >= 32) { /* not an ascii control character */
               /* do nothing for now, this is valid utf8 */
             }
             else {
@@ -1164,7 +1210,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
           else {
             printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
-                   (unsigned int)key_sym,
+                   uint(key_sym),
                    (status == XLookupNone   ? "XLookupNone" :
                     status == XLookupKeySym ? "XLookupKeySym" :
                                               "Unknown status"));
@@ -1188,11 +1234,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* when using IM for some languages such as Japanese,
        * one event inserts multiple utf8 characters */
       if (xke->type == KeyPress && xic) {
-        unsigned char c;
+        uchar c;
         int i = 0;
         while (true) {
           /* Search character boundary. */
-          if ((uchar)utf8_buf[i++] > 0x7f) {
+          if (uchar(utf8_buf[i++]) > 0x7f) {
             for (; i < len; ++i) {
               c = utf8_buf[i];
               if (c < 0x80 || c > 0xbf) {
@@ -1451,7 +1497,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                           xse->target,
                           8,
                           PropModeReplace,
-                          (unsigned char *)txt_select_buffer,
+                          (uchar *)txt_select_buffer,
                           strlen(txt_select_buffer));
         }
         else if (xse->selection == XInternAtom(m_display, "CLIPBOARD", False)) {
@@ -1461,7 +1507,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                           xse->target,
                           8,
                           PropModeReplace,
-                          (unsigned char *)txt_cut_buffer,
+                          (uchar *)txt_cut_buffer,
                           strlen(txt_cut_buffer));
         }
       }
@@ -1478,7 +1524,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                         xse->target,
                         32,
                         PropModeReplace,
-                        (unsigned char *)alist,
+                        (uchar *)alist,
                         5);
         XFlush(m_display);
       }
@@ -1502,8 +1548,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             continue;
           }
 
-          const unsigned char axis_first = data->first_axis;
-          const unsigned char axes_end = axis_first + data->axes_count; /* after the last */
+          const uchar axis_first = data->first_axis;
+          const uchar axes_end = axis_first + data->axes_count; /* after the last */
           int axis_value;
 
           /* stroke might begin without leading ProxyIn event,
@@ -1522,7 +1568,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
      ((void)(val = data->axis_data[axis - axis_first]), true))
 
           if (AXIS_VALUE_GET(2, axis_value)) {
-            window->GetTabletData().Pressure = axis_value / ((float)xtablet.PressureLevels);
+            window->GetTabletData().Pressure = axis_value / float(xtablet.PressureLevels);
           }
 
           /* NOTE(@broken): the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
@@ -1534,12 +1580,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * I don't think we need to cast to short here, but do not have a device to check this.
            */
           if (AXIS_VALUE_GET(3, axis_value)) {
-            window->GetTabletData().Xtilt = (short)(axis_value & 0xffff) /
-                                            ((float)xtablet.XtiltLevels);
+            window->GetTabletData().Xtilt = short(axis_value & 0xffff) /
+                                            float(xtablet.XtiltLevels);
           }
           if (AXIS_VALUE_GET(4, axis_value)) {
-            window->GetTabletData().Ytilt = (short)(axis_value & 0xffff) /
-                                            ((float)xtablet.YtiltLevels);
+            window->GetTabletData().Ytilt = short(axis_value & 0xffff) /
+                                            float(xtablet.YtiltLevels);
           }
 
 #  undef AXIS_VALUE_GET
@@ -1600,9 +1646,10 @@ GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
   keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
   /* super (windows) - only one GHOST-kModifierKeyOS, so mapping to either */
-  keys.set(GHOST_kModifierKeyOS,
-           (((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) ||
-            ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1)) != 0);
+  keys.set(GHOST_kModifierKeyLeftOS,
+           ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyRightOS,
+           ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) != 0);
 
   return GHOST_kSuccess;
 }
@@ -1611,7 +1658,7 @@ GHOST_TSuccess GHOST_SystemX11::getButtons(GHOST_Buttons &buttons) const
 {
   Window root_return, child_return;
   int rx, ry, wx, wy;
-  unsigned int mask_return;
+  uint mask_return;
 
   if (XQueryPointer(m_display,
                     RootWindow(m_display, DefaultScreen(m_display)),
@@ -1641,7 +1688,7 @@ static GHOST_TSuccess getCursorPosition_impl(Display *display,
                                              Window *child_return)
 {
   int rx, ry, wx, wy;
-  unsigned int mask_return;
+  uint mask_return;
   Window root_return;
 
   if (XQueryPointer(display,
@@ -1818,8 +1865,8 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
       GXMAP(type, XK_Control_R, GHOST_kKeyRightControl);
       GXMAP(type, XK_Alt_L, GHOST_kKeyLeftAlt);
       GXMAP(type, XK_Alt_R, GHOST_kKeyRightAlt);
-      GXMAP(type, XK_Super_L, GHOST_kKeyOS);
-      GXMAP(type, XK_Super_R, GHOST_kKeyOS);
+      GXMAP(type, XK_Super_L, GHOST_kKeyLeftOS);
+      GXMAP(type, XK_Super_R, GHOST_kKeyRightOS);
 
       GXMAP(type, XK_Insert, GHOST_kKeyInsert);
       GXMAP(type, XK_Delete, GHOST_kKeyDelete);
@@ -1895,7 +1942,7 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
 
 #undef GXMAP
 
-#define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 
 static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
 {
@@ -1932,18 +1979,14 @@ static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCo
 #define XCLIB_XCOUT_FALLBACK_TEXT 6
 
 /* Retrieves the contents of a selections. */
-void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
-                                         Atom sel,
-                                         Atom target,
-                                         unsigned char **txt,
-                                         unsigned long *len,
-                                         unsigned int *context) const
+void GHOST_SystemX11::getClipboard_xcout(
+    const XEvent *evt, Atom sel, Atom target, uchar **txt, ulong *len, uint *context) const
 {
   Atom pty_type;
   int pty_format;
-  unsigned char *buffer;
-  unsigned long pty_size, pty_items;
-  unsigned char *ltxt = *txt;
+  uchar *buffer;
+  ulong pty_size, pty_items;
+  uchar *ltxt = *txt;
 
   const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
   vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
@@ -2018,7 +2061,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
                          win,
                          m_atom.XCLIP_OUT,
                          0,
-                         (long)pty_size,
+                         long(pty_size),
                          False,
                          AnyPropertyType,
                          &pty_type,
@@ -2031,7 +2074,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
       XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 
       /* copy the buffer to the pointer for returned data */
-      ltxt = (unsigned char *)malloc(pty_items);
+      ltxt = (uchar *)malloc(pty_items);
       memcpy(ltxt, buffer, pty_items);
 
       /* set the length of the returned data */
@@ -2104,7 +2147,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
                          win,
                          m_atom.XCLIP_OUT,
                          0,
-                         (long)pty_size,
+                         long(pty_size),
                          False,
                          AnyPropertyType,
                          &pty_type,
@@ -2116,11 +2159,11 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
       /* allocate memory to accommodate data in *txt */
       if (*len == 0) {
         *len = pty_items;
-        ltxt = (unsigned char *)malloc(*len);
+        ltxt = (uchar *)malloc(*len);
       }
       else {
         *len += pty_items;
-        ltxt = (unsigned char *)realloc(ltxt, *len);
+        ltxt = (uchar *)realloc(ltxt, *len);
       }
 
       /* add data to ltxt */
@@ -2144,9 +2187,9 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
 
   /* from xclip.c doOut() v0.11 */
   char *sel_buf;
-  unsigned long sel_len = 0;
+  ulong sel_len = 0;
   XEvent evt;
-  unsigned int context = XCLIB_XCOUT_NONE;
+  uint context = XCLIB_XCOUT_NONE;
 
   if (selection == True) {
     sseln = m_atom.PRIMARY;
@@ -2188,7 +2231,7 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
     }
 
     /* fetch the selection, or part of it */
-    getClipboard_xcout(&evt, sseln, target, (unsigned char **)&sel_buf, &sel_len, &context);
+    getClipboard_xcout(&evt, sseln, target, (uchar **)&sel_buf, &sel_len, &context);
 
     if (restore_this_event) {
       restore_events.push_back(evt);
@@ -2361,10 +2404,10 @@ class DialogData {
   bool isInsideButton(XEvent &e, uint button_num)
   {
     return (
-        (e.xmotion.y > (int)(height - padding_y - button_height)) &&
-        (e.xmotion.y < (int)(height - padding_y)) &&
-        (e.xmotion.x > (int)(width - (padding_x + button_width) * button_num)) &&
-        (e.xmotion.x < (int)(width - padding_x - (padding_x + button_width) * (button_num - 1))));
+        (e.xmotion.y > int(height - padding_y - button_height)) &&
+        (e.xmotion.y < int(height - padding_y)) &&
+        (e.xmotion.x > int(width - (padding_x + button_width) * button_num)) &&
+        (e.xmotion.x < int(width - padding_x - (padding_x + button_width) * (button_num - 1))));
   }
 };
 
@@ -2381,7 +2424,7 @@ static void split(const char *text, const char *seps, char ***str, int *count)
   free(data);
 
   data = strdup(text);
-  *str = (char **)malloc((size_t)(*count) * sizeof(char *));
+  *str = (char **)malloc(size_t(*count) * sizeof(char *));
   for (i = 0, tok = strtok(data, seps); tok != nullptr; tok = strtok(nullptr, seps), i++) {
     (*str)[i] = strdup(tok);
   }
@@ -2437,11 +2480,11 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     utf8Str,
                     8,
                     PropModeReplace,
-                    (const unsigned char *)title,
-                    (int)strlen(title));
+                    (const uchar *)title,
+                    int(strlen(title)));
 
     XChangeProperty(
-        m_display, window, winType, XA_ATOM, 32, PropModeReplace, (unsigned char *)&typeDialog, 1);
+        m_display, window, winType, XA_ATOM, 32, PropModeReplace, (uchar *)&typeDialog, 1);
   }
 
   /* Create buttons GC */
@@ -2468,7 +2511,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     dialog_data.padding_x,
                     dialog_data.padding_x + (i + 1) * dialog_data.line_height,
                     text_splitted[i],
-                    (int)strlen(text_splitted[i]));
+                    int(strlen(text_splitted[i])));
       }
       dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 1, continue_label);
       if (strlen(link)) {

@@ -24,7 +24,7 @@ TEST(bmesh_core, BMVertCreate)
   EXPECT_EQ(bv1->co[1], 2.0f);
   EXPECT_EQ(bv1->co[2], 0.0f);
   EXPECT_TRUE(is_zero_v3(bv1->no));
-  EXPECT_EQ(bv1->head.htype, (char)BM_VERT);
+  EXPECT_EQ(bv1->head.htype, char(BM_VERT));
   EXPECT_EQ(bv1->head.hflag, 0);
   EXPECT_EQ(bv1->head.api_flag, 0);
   bv2 = BM_vert_create(bm, nullptr, nullptr, BM_CREATE_NOP);

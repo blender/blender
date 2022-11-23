@@ -128,7 +128,7 @@ class Params:
         self.legacy = legacy
 
         if use_mouse_emulate_3_button:
-            assert(use_alt_tool_or_cursor is False)
+            assert use_alt_tool_or_cursor is False
 
         if select_mouse == 'RIGHT':
             # Right mouse select.
@@ -2073,6 +2073,8 @@ def km_node_editor(params):
         op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
+        ("node.duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True},
+         {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.duplicate_move_keep_inputs", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -3967,6 +3969,9 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'I', "value": 'PRESS'}),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
+        # Automasking Pie menu
+        op_menu_pie("VIEW3D_MT_sculpt_gpencil_automasking_pie", {
+                    "type": 'A', "shift": True, "alt": True, "value": 'PRESS'}),
     ])
 
     return keymap
@@ -5069,8 +5074,8 @@ def km_sculpt(params):
          {"properties": [("mode", 'TOGGLE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
-        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'SHOW_ALL')]}),
+        ("sculpt.reveal_all", {"type": 'H', "value": 'PRESS', "alt": True},
+         {"properties": []}),
 
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'GROW')]}),
@@ -5768,8 +5773,6 @@ def km_transform_modal_map(_params):
         ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
         ("PROPORTIONAL_SIZE", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
-        ("EDGESLIDE_EDGE_NEXT", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "alt": True}, None),
-        ("EDGESLIDE_PREV_NEXT", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "alt": True}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "shift": True, "repeat": True}, None),

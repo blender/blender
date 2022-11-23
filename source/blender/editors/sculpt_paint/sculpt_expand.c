@@ -7,16 +7,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_brush.h"
@@ -26,9 +24,6 @@
 #include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_report.h"
@@ -38,17 +33,13 @@
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -176,15 +167,16 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
   if (expand_cache->texture_distortion_strength == 0.0f) {
     return expand_cache->vert_falloff[v_i];
   }
-
-  if (!expand_cache->brush->mtex.tex) {
+  const Brush *brush = expand_cache->brush;
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
+  if (!mtex->tex) {
     return expand_cache->vert_falloff[v_i];
   }
 
   float rgba[4];
   const float *vertex_co = SCULPT_vertex_co_get(ss, v);
   const float avg = BKE_brush_sample_tex_3d(
-      expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
+      expand_cache->scene, brush, mtex, vertex_co, rgba, 0, ss->tex_pool);
 
   const float distortion = (avg - 0.5f) * expand_cache->texture_distortion_strength *
                            expand_cache->max_vert_falloff;
@@ -616,7 +608,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
 
     for (int i = 0; i < boundary->verts_num; i++) {
       BLI_gsqueue_push(queue, &boundary->verts[i]);
-      BLI_BITMAP_ENABLE(visited_verts, boundary->verts_i[i]);
+      BLI_BITMAP_ENABLE(visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i]));
     }
     SCULPT_boundary_data_free(boundary);
   }
@@ -1390,9 +1382,15 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   /* Face Sets are always stored as they are needed for snapping. */
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "initial face set");
   expand_cache->original_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "original face set");
-  for (int i = 0; i < totface; i++) {
-    expand_cache->initial_face_sets[i] = ss->face_sets[i];
-    expand_cache->original_face_sets[i] = ss->face_sets[i];
+  if (ss->face_sets) {
+    for (int i = 0; i < totface; i++) {
+      expand_cache->initial_face_sets[i] = ss->face_sets[i];
+      expand_cache->original_face_sets[i] = ss->face_sets[i];
+    }
+  }
+  else {
+    memset(expand_cache->initial_face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * totface);
+    memset(expand_cache->original_face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * totface);
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
@@ -2076,7 +2074,9 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+      }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (int i = 0; i < totnode; i++) {
@@ -2095,6 +2095,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  SCULPT_stroke_id_next(ob);
+
   /* Create and configure the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
   sculpt_expand_cache_initial_config_set(C, op, ss->expand_cache);
@@ -2109,6 +2111,11 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   }
 
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
+    BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
 
   /* Do nothing when the mesh has 0 vertices. */
@@ -2116,6 +2123,11 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (totvert == 0) {
     sculpt_expand_cache_free(ss);
     return OPERATOR_CANCELLED;
+  }
+
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    Mesh *mesh = ob->data;
+    ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
   }
 
   /* Face Set operations are not supported in dyntopo. */
@@ -2227,7 +2239,7 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
   static const char *name = "Sculpt Expand Modal";
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
 
-  /* This function is called for each spacetype, only needs to add map once. */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return;
   }

@@ -482,13 +482,14 @@ static bool is_crease_supported(const MultiresReshapeSmoothContext *reshape_smoo
 
 /* Get crease which will be used for communication to OpenSubdiv topology.
  * Note that simple subdivision treats all base edges as infinitely sharp. */
-static char get_effective_crease_char(const MultiresReshapeSmoothContext *reshape_smooth_context,
-                                      const MEdge *base_edge)
+static float get_effective_crease(const MultiresReshapeSmoothContext *reshape_smooth_context,
+                                  const int base_edge_index)
 {
   if (!is_crease_supported(reshape_smooth_context)) {
     return 255;
   }
-  return base_edge->crease;
+  const float *creases = reshape_smooth_context->reshape_context->cd_vertex_crease;
+  return creases ? creases[base_edge_index] : 0.0f;
 }
 
 static float get_effective_crease_float(const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -812,7 +813,6 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
                          const int subdiv_v2)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
     if (!is_loose) {
@@ -832,8 +832,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
     return;
   }
   /* Edges without crease are to be ignored as well. */
-  const MEdge *base_edge = &reshape_context->base_edges[coarse_edge_index];
-  const char crease = get_effective_crease_char(reshape_smooth_context, base_edge);
+  const char crease = get_effective_crease(reshape_smooth_context, coarse_edge_index);
   if (crease == 0) {
     return;
   }
@@ -846,7 +845,6 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
   const Mesh *base_mesh = reshape_context->base_mesh;
   const MPoly *base_mpoly = reshape_context->base_polys;
   const MLoop *base_mloop = reshape_context->base_loops;
-  const MEdge *base_edge = reshape_context->base_edges;
 
   reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
                                                                    "non_loose_base_edge_map");
@@ -859,8 +857,8 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
 
-        const char crease = get_effective_crease_char(reshape_smooth_context, &base_edge[loop->e]);
-        if (crease != 0) {
+        const float crease = get_effective_crease(reshape_smooth_context, loop->e);
+        if (crease > 0.0f) {
           ++num_used_edges;
         }
       }

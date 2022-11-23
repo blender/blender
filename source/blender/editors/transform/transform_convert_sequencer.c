@@ -94,7 +94,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
     int left = SEQ_time_left_handle_frame_get(scene, seq);
     int right = SEQ_time_right_handle_frame_get(scene, seq);
 
-    if (((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq))) {
+    if ((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq)) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -615,7 +615,6 @@ static void flushTransSeq(TransInfo *t)
       case SEQ_LEFTSEL: { /* No vertical transform. */
         int old_startdisp = SEQ_time_left_handle_frame_get(scene, seq);
         SEQ_time_left_handle_frame_set(t->scene, seq, new_frame);
-        SEQ_transform_fix_single_image_seq_offsets(t->scene, seq);
 
         if (abs(SEQ_time_left_handle_frame_get(scene, seq) - old_startdisp) > abs(max_offset)) {
           max_offset = SEQ_time_left_handle_frame_get(scene, seq) - old_startdisp;
@@ -625,7 +624,6 @@ static void flushTransSeq(TransInfo *t)
       case SEQ_RIGHTSEL: { /* No vertical transform. */
         int old_enddisp = SEQ_time_right_handle_frame_get(scene, seq);
         SEQ_time_right_handle_frame_set(t->scene, seq, new_frame);
-        SEQ_transform_fix_single_image_seq_offsets(t->scene, seq);
 
         if (abs(SEQ_time_right_handle_frame_get(scene, seq) - old_enddisp) > abs(max_offset)) {
           max_offset = SEQ_time_right_handle_frame_get(scene, seq) - old_enddisp;
@@ -708,12 +706,12 @@ static void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo 
     if (t->mode == TFM_SEQ_SLIDE) {
       if (t->frame_side == 'B') {
         ED_markers_post_apply_transform(
-            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values[0], t->frame_side);
+            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values_final[0], t->frame_side);
       }
     }
     else if (ELEM(t->frame_side, 'L', 'R')) {
       ED_markers_post_apply_transform(
-          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
+          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values_final[0], t->frame_side);
     }
   }
 }

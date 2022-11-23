@@ -14,6 +14,8 @@
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetOccludersF1D.h"
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetShapeF1D.h"
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -136,9 +138,9 @@ static PyObject *UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVect
     return nullptr;
   }
 
-  const unsigned int list_len = self->uf1D_vectorviewshape->result.size();
+  const uint list_len = self->uf1D_vectorviewshape->result.size();
   PyObject *list = PyList_New(list_len);
-  for (unsigned int i = 0; i < list_len; i++) {
+  for (uint i = 0; i < list_len; i++) {
     ViewShape *v = self->uf1D_vectorviewshape->result[i];
     PyList_SET_ITEM(list, i, v ? BPy_ViewShape_from_ViewShape(*v) : (Py_INCREF(Py_None), Py_None));
   }
@@ -153,8 +155,7 @@ PyDoc_STRVAR(integration_type_doc,
              "\n"
              ":type: :class:`IntegrationType`");
 
-static PyObject *integration_type_get(BPy_UnaryFunction1DVectorViewShape *self,
-                                      void *UNUSED(closure))
+static PyObject *integration_type_get(BPy_UnaryFunction1DVectorViewShape *self, void * /*closure*/)
 {
   return BPy_IntegrationType_from_IntegrationType(
       self->uf1D_vectorviewshape->getIntegrationType());
@@ -162,7 +163,7 @@ static PyObject *integration_type_get(BPy_UnaryFunction1DVectorViewShape *self,
 
 static int integration_type_set(BPy_UnaryFunction1DVectorViewShape *self,
                                 PyObject *value,
-                                void *UNUSED(closure))
+                                void * /*closure*/)
 {
   if (!BPy_IntegrationType_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "value must be an IntegrationType");
@@ -184,43 +185,44 @@ static PyGetSetDef BPy_UnaryFunction1DVectorViewShape_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DVectorViewShape type definition ---------------------*/
 
 PyTypeObject UnaryFunction1DVectorViewShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "UnaryFunction1DVectorViewShape", /* tp_name */
-    sizeof(BPy_UnaryFunction1DVectorViewShape),                         /* tp_basicsize */
-    0,                                                                  /* tp_itemsize */
-    (destructor)UnaryFunction1DVectorViewShape___dealloc__,             /* tp_dealloc */
-    0,                                                                  /* tp_vectorcall_offset */
-    nullptr,                                                            /* tp_getattr */
-    nullptr,                                                            /* tp_setattr */
-    nullptr,                                                            /* tp_reserved */
-    (reprfunc)UnaryFunction1DVectorViewShape___repr__,                  /* tp_repr */
-    nullptr,                                                            /* tp_as_number */
-    nullptr,                                                            /* tp_as_sequence */
-    nullptr,                                                            /* tp_as_mapping */
-    nullptr,                                                            /* tp_hash */
-    (ternaryfunc)UnaryFunction1DVectorViewShape___call__,               /* tp_call */
-    nullptr,                                                            /* tp_str */
-    nullptr,                                                            /* tp_getattro */
-    nullptr,                                                            /* tp_setattro */
-    nullptr,                                                            /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                           /* tp_flags */
-    UnaryFunction1DVectorViewShape___doc__,                             /* tp_doc */
-    nullptr,                                                            /* tp_traverse */
-    nullptr,                                                            /* tp_clear */
-    nullptr,                                                            /* tp_richcompare */
-    0,                                                                  /* tp_weaklistoffset */
-    nullptr,                                                            /* tp_iter */
-    nullptr,                                                            /* tp_iternext */
-    nullptr,                                                            /* tp_methods */
-    nullptr,                                                            /* tp_members */
-    BPy_UnaryFunction1DVectorViewShape_getseters,                       /* tp_getset */
-    &UnaryFunction1D_Type,                                              /* tp_base */
-    nullptr,                                                            /* tp_dict */
-    nullptr,                                                            /* tp_descr_get */
-    nullptr,                                                            /* tp_descr_set */
-    0,                                                                  /* tp_dictoffset */
-    (initproc)UnaryFunction1DVectorViewShape___init__,                  /* tp_init */
-    nullptr,                                                            /* tp_alloc */
-    nullptr,                                                            /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "UnaryFunction1DVectorViewShape",
+    /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DVectorViewShape),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)UnaryFunction1DVectorViewShape___dealloc__,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ (reprfunc)UnaryFunction1DVectorViewShape___repr__,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ (ternaryfunc)UnaryFunction1DVectorViewShape___call__,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ UnaryFunction1DVectorViewShape___doc__,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_UnaryFunction1DVectorViewShape_getseters,
+    /*tp_base*/ &UnaryFunction1D_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)UnaryFunction1DVectorViewShape___init__,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -98,7 +98,7 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
 
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
  private:
-  /** YCbCr mode (Jpeg, ITU601, ITU709) */
+  /** YCbCr mode (JPEG, ITU601, ITU709) */
   int mode_;
 
  public:
@@ -116,7 +116,7 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
 
 class ConvertYCCToRGBOperation : public ConvertBaseOperation {
  private:
-  /** YCbCr mode (Jpeg, ITU601, ITU709) */
+  /** YCbCr mode (JPEG, ITU601, ITU709) */
   int mode_;
 
  public:

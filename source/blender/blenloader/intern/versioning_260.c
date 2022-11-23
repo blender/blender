@@ -44,6 +44,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h" /* for Main */
 #include "BKE_mesh.h" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -279,10 +280,9 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         BLI_strncpy(filename, old_image->name, sizeof(filename));
       }
 
-      /* if z buffer is saved, change the image type to multilayer exr.
-       * XXX this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
-       * I'm just assuming here that IRIZ means IRIS with z buffer ...
-       */
+      /* If Z buffer is saved, change the image type to multi-layer EXR.
+       * XXX: this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
+       * I'm just assuming here that IRIZ means IRIS with z buffer. */
       if (old_data && ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
         char sockpath[FILE_MAX];
 
@@ -392,9 +392,8 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
       for (sock = node->inputs.first; sock; sock = sock->next) {
         NodeImageMultiFileSocket *input = sock->storage;
 
-        /* multilayer names are stored as separate strings now,
-         * used the path string before, so copy it over.
-         */
+        /* Multi-layer names are stored as separate strings now,
+         * used the path string before, so copy it over. */
         BLI_strncpy(input->layer, input->path, sizeof(input->layer));
 
         /* paths/layer names also have to be unique now, initial check */
@@ -857,7 +856,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
           clip->tracking.camera.pixel_aspect = 1.0f;
         }
 
-        track = clip->tracking.tracks.first;
+        track = clip->tracking.tracks_legacy.first;
         while (track) {
           if (track->minimum_correlation == 0.0f) {
             track->minimum_correlation = 0.75f;
@@ -1443,7 +1442,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
       MovieTrackingTrack *track;
 
-      track = clip->tracking.tracks.first;
+      track = clip->tracking.tracks_legacy.first;
       while (track) {
         do_versions_affine_tracker_track(track);
 
@@ -1708,26 +1707,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 264, 6)) {
-    /* Fix for bug T32982, internal_links list could get corrupted from r51630 onward.
-     * Simply remove bad internal_links lists to avoid NULL pointers.
-     */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      bNode *node;
-      bNodeLink *link, *nextlink;
-
-      for (node = ntree->nodes.first; node; node = node->next) {
-        for (link = node->internal_links.first; link; link = nextlink) {
-          nextlink = link->next;
-          if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
-            BLI_remlink(&node->internal_links, link);
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
     /* convert tiles size from resolution and number of tiles */
     {
@@ -1753,18 +1732,13 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
-    MovieClip *clip;
-
-    for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-      MovieTrackingTrack *track;
-      MovieTrackingObject *object;
-
-      for (track = clip->tracking.tracks.first; track; track = track->next) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &clip->tracking.tracks_legacy) {
         do_versions_affine_tracker_track(track);
       }
 
-      for (object = clip->tracking.objects.first; object; object = object->next) {
-        for (track = object->tracks.first; track; track = track->next) {
+      LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &clip->tracking.objects) {
+        LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
           do_versions_affine_tracker_track(track);
         }
       }
@@ -2367,15 +2341,13 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
-      MovieClip *clip;
-      for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-        MovieTracking *tracking = &clip->tracking;
-        MovieTrackingObject *tracking_object;
-        for (tracking_object = tracking->objects.first; tracking_object;
-             tracking_object = tracking_object->next) {
-          ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-          MovieTrackingTrack *track;
-          for (track = tracksbase->first; track; track = track->next) {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        const MovieTracking *tracking = &clip->tracking;
+        LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
+                                           &tracking->tracks_legacy :
+                                           &tracking_object->tracks;
+          LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
             track->weight = 1.0f;
           }
         }
@@ -2480,7 +2452,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       MovieClip *clip;
       for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
         MovieTrackingPlaneTrack *plane_track;
-        for (plane_track = clip->tracking.plane_tracks.first; plane_track;
+        for (plane_track = clip->tracking.plane_tracks_legacy.first; plane_track;
              plane_track = plane_track->next) {
           plane_track->image_opacity = 1.0f;
         }

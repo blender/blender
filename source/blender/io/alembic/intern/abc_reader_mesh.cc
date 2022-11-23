@@ -133,10 +133,8 @@ static void read_mverts_interp(MVert *mverts,
     const Imath::V3f &floor_pos = (*positions)[i];
     const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
-    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
+    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), float(weight));
     copy_zup_from_yup(mvert.co, tmp);
-
-    mvert.bweight = 0;
   }
 }
 
@@ -149,6 +147,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
       mesh_data.ceil_positions != nullptr &&
       mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
+    BKE_mesh_tag_coords_changed(config.mesh);
     return;
   }
 
@@ -163,9 +162,9 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
-
-    mvert.bweight = 0;
   }
+  BKE_mesh_tag_coords_changed(&mesh);
+
   if (normals) {
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
     for (const int64_t i : IndexRange(normals->size())) {
@@ -192,9 +191,9 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const bool do_uvs = (mloopuvs && uvs && uvs_indices);
   const bool do_uvs_per_loop = do_uvs && mesh_data.uv_scope == ABC_UV_SCOPE_LOOP;
   BLI_assert(!do_uvs || mesh_data.uv_scope != ABC_UV_SCOPE_NONE);
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
   bool seen_invalid_geometry = false;
 
   for (int i = 0; i < face_counts->size(); i++) {
@@ -247,10 +246,9 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   }
 }
 
-static void process_no_normals(CDStreamConfig &config)
+static void process_no_normals(CDStreamConfig & /*config*/)
 {
   /* Absence of normals in the Alembic mesh is interpreted as 'smooth'. */
-  BKE_mesh_normals_tag_dirty(config.mesh);
 }
 
 static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr loop_normals_ptr)
@@ -452,7 +450,7 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
                           const CDStreamConfig &config,
                           const float velocity_scale)
 {
-  const int num_velocity_vectors = static_cast<int>(velocities->size());
+  const int num_velocity_vectors = int(velocities->size());
   if (num_velocity_vectors != config.mesh->totvert) {
     /* Files containing videogrammetry data may be malformed and export velocity data on missing
      * frames (most likely by copying the last valid data). */
@@ -619,11 +617,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
-    /* XXX FIXME: after 2.80; mesh->flag isn't copied by #BKE_mesh_nomain_to_mesh(). */
-    /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
-    mesh->flag |= autosmooth;
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
 
   if (m_settings->validate_meshes) {
@@ -771,7 +765,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<std::string, int> mat_map;
       bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
       material_indices.finish();
     }
@@ -831,8 +825,8 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSel
 {
   std::map<std::string, int> mat_map;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
   assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
   material_indices.finish();
   utils::assign_materials(bmain, m_object, mat_map);
@@ -911,8 +905,6 @@ static void read_vertex_creases(Mesh *mesh,
 
     vertex_crease_data[idx] = (*sharpnesses)[i];
   }
-
-  mesh->cd_flag |= ME_CDFLAG_VERT_CREASE;
 }
 
 static void read_edge_creases(Mesh *mesh,
@@ -925,6 +917,9 @@ static void read_edge_creases(Mesh *mesh,
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
+
+  float *creases = static_cast<float *>(
+      CustomData_add_layer(&mesh->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, edges.size()));
 
   for (const int i : edges.index_range()) {
     MEdge *edge = &edges[i];
@@ -947,13 +942,11 @@ static void read_edge_creases(Mesh *mesh,
     }
 
     if (edge) {
-      edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
+      creases[edge - edges.data()] = unit_float_to_uchar_clamp((*sharpnesses)[s]);
     }
   }
 
   BLI_edgehash_free(edge_hash, nullptr);
-
-  mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 }
 
 /* ************************************************************************** */
@@ -1003,7 +996,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
 
   ISubDSchema::Sample sample;

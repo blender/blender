@@ -95,5 +95,5 @@ int main(int argc, char *argv[])
 
   eThumbStatus ret = extract_png_from_blend_file(argv[1], argv[2]);
 
-  return (int)ret;
+  return int(ret);
 }

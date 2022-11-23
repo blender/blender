@@ -87,7 +87,7 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
                                                         ccl_private float *dx,
                                                         ccl_private float *dy)
 {
-  int patch = subd_triangle_patch(kg, sd);
+  int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
@@ -226,7 +226,7 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
                                                           ccl_private float2 *dx,
                                                           ccl_private float2 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd);
+  int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
@@ -368,7 +368,7 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
                                                           ccl_private float3 *dx,
                                                           ccl_private float3 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd);
+  int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
@@ -509,7 +509,7 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
                                                           ccl_private float4 *dx,
                                                           ccl_private float4 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd);
+  int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {

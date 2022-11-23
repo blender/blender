@@ -968,7 +968,7 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
   const double time_now = PIL_check_seconds_timer();
 
   mode = (eXrFlyMode)RNA_enum_get(op->ptr, "mode");
-  turn = (ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT));
+  turn = ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT);
 
   locz_lock = RNA_boolean_get(op->ptr, "lock_location_z");
   dir_lock = RNA_boolean_get(op->ptr, "lock_direction");
@@ -1766,7 +1766,7 @@ static bool wm_xr_select_raycast(bContext *C,
 
     if (!hit) {
       if (deselect_all) {
-        changed = ED_view3d_object_deselect_all_except(vc.view_layer, NULL);
+        changed = ED_view3d_object_deselect_all_except(vc.scene, vc.view_layer, NULL);
       }
     }
     else {
@@ -1775,7 +1775,7 @@ static bool wm_xr_select_raycast(bContext *C,
         bool set = false;
         wm_xr_select_op_apply(base, NULL, XR_SEL_BASE, select_op, &changed, &set);
         if (set) {
-          ED_view3d_object_deselect_all_except(vc.view_layer, base);
+          ED_view3d_object_deselect_all_except(vc.scene, vc.view_layer, base);
         }
       }
     }
@@ -2039,7 +2039,7 @@ static int wm_xr_transform_grab_invoke(bContext *C, wmOperator *op, const wmEven
 
       if (ob->parent) {
         invert_m4_m4(m0, ob->parentinv);
-        mul_m4_m4m4(m1, ob->parent->imat, controller_mat);
+        mul_m4_m4m4(m1, ob->parent->world_to_object, controller_mat);
         mul_m4_m4m4(m2, m0, m1);
         mat4_to_loc_quat(controller_loc, controller_rot, m2);
 
@@ -2152,10 +2152,11 @@ static void wm_xr_transform_grab_apply(bContext *C,
       BMIter iter;
 
       if (bimanual) {
-        wm_xr_grab_compute_bimanual(actiondata, data, NULL, NULL, obedit->imat, false, delta);
+        wm_xr_grab_compute_bimanual(
+            actiondata, data, NULL, NULL, obedit->world_to_object, false, delta);
       }
       else {
-        wm_xr_grab_compute(actiondata, data, NULL, NULL, obedit->imat, false, delta);
+        wm_xr_grab_compute(actiondata, data, NULL, NULL, obedit->world_to_object, false, delta);
       }
 
       if ((ts->selectmode & SCE_SELECT_VERTEX) != 0) {
@@ -2220,11 +2221,11 @@ static void wm_xr_transform_grab_apply(bContext *C,
 
     CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
       if (apply_transform) {
-        mul_m4_m4m4(out, delta, ob->obmat);
+        mul_m4_m4m4(out, delta, ob->object_to_world);
 
         if (ob->parent) {
           invert_m4_m4(m0, ob->parentinv);
-          mul_m4_m4m4(m1, ob->parent->imat, out);
+          mul_m4_m4m4(m1, ob->parent->world_to_object, out);
           mul_m4_m4m4(out, m0, m1);
         }
 

@@ -608,7 +608,7 @@ static AnimKeylistDrawListElem *ed_keylist_draw_list_add_elem(
   return draw_elem;
 }
 
-/* *************************** Channel Drawing Funcs *************************** */
+/* *************************** Channel Drawing Functions *************************** */
 
 void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
                           bAnimContext *ac,

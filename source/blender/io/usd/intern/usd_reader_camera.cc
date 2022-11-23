@@ -71,7 +71,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   bcam->clip_end = clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[1];
 
   bcam->dof.focus_distance = focalDistanceVal.Get<float>();
-  bcam->dof.aperture_fstop = static_cast<float>(fstopVal.Get<float>());
+  bcam->dof.aperture_fstop = float(fstopVal.Get<float>());
 
   if (bcam->type == CAM_ORTHO) {
     bcam->ortho_scale = max_ff(verAp.Get<float>(), horAp.Get<float>());

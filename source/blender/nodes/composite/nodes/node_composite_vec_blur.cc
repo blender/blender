@@ -29,7 +29,7 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 }
 
 /* custom1: iterations, custom2: max_speed (0 = no_limit). */
-static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_vecblur(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeBlurData *nbd = MEM_cnew<NodeBlurData>(__func__);
   node->storage = nbd;
@@ -37,7 +37,7 @@ static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
   nbd->fac = 1.0f;
 }
 
-static void node_composit_buts_vecblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_vecblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col;
 
@@ -81,7 +81,7 @@ void register_node_type_cmp_vecblur()
   cmp_node_type_base(&ntype, CMP_NODE_VECBLUR, "Vector Blur", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_vec_blur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_vecblur;
-  node_type_init(&ntype, file_ns::node_composit_init_vecblur);
+  ntype.initfunc = file_ns::node_composit_init_vecblur;
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

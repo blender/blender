@@ -5,36 +5,22 @@
  * \ingroup edsculpt
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_ccg.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_scene.h"
 
-#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
-#include "GPU_state.h"
 
 #include "bmesh.h"
 
@@ -69,6 +55,10 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   test_radius *= brush->normal_radius_factor;
   test.radius_squared = test_radius * test_radius;
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -78,6 +68,9 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
     float normal[3];
     copy_v3_v3(normal, vd.no ? vd.no : vd.fno);
     mul_v3_m4v3(local_co, mat, vd.co);
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     /* Use the brush falloff to weight the sampled normals. */
     const float fade = SCULPT_brush_strength_factor(ss,
                                                     brush,
@@ -87,7 +80,8 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
-                                                    thread_id);
+                                                    thread_id,
+                                                    &automask_data);
 
     /* Sample the normal and area of the +X and -X axis individually. */
     if (local_co[0] > 0.0f) {
@@ -144,6 +138,10 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -184,6 +182,9 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
     if (!SCULPT_plane_trim(ss->cache, brush, val)) {
       continue;
     }
+
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
     /* Deform the local space along the Y axis to avoid artifacts on curved strokes. */
     /* This produces a not round brush tip. */
     local_co[1] *= 2.0f;
@@ -195,7 +196,8 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
-                                                                thread_id);
+                                                                thread_id,
+                                                                &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
 

@@ -484,6 +484,7 @@ float ED_slider_factor_get(struct tSlider *slider)
 
 void ED_slider_factor_set(struct tSlider *slider, const float factor)
 {
+  slider->raw_factor = factor;
   slider->factor = factor;
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, 0, 1);
@@ -768,7 +769,7 @@ void ED_region_image_metadata_draw(
   GPU_matrix_translate_2f(x, y);
   GPU_matrix_scale_2f(zoomx, zoomy);
 
-  BLF_size(blf_mono_font, style->widgetlabel.points * 1.5f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, style->widgetlabel.points * U.dpi_fac);
 
   /* *** upper box*** */
 

@@ -13,7 +13,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -35,9 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_undo_system.h"
 
 #include "NOD_texture.h"
 
@@ -50,7 +47,6 @@
 #include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -59,9 +55,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "GPU_immediate.h"
-#include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
 
@@ -328,7 +321,7 @@ bool paint_use_opacity_masking(Brush *brush)
 {
   return ((brush->flag & BRUSH_AIRBRUSH) || (brush->flag & BRUSH_DRAG_DOT) ||
                   (brush->flag & BRUSH_ANCHORED) ||
-                  (ELEM(brush->imagepaint_tool, PAINT_TOOL_SMEAR, PAINT_TOOL_SOFTEN)) ||
+                  ELEM(brush->imagepaint_tool, PAINT_TOOL_SMEAR, PAINT_TOOL_SOFTEN) ||
                   (brush->imagepaint_tool == PAINT_TOOL_FILL) ||
                   (brush->flag & BRUSH_USE_GRADIENT) ||
                   (brush->mtex.tex && !ELEM(brush->mtex.brush_map_mode,
@@ -546,7 +539,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void grab_clone_cancel(bContext *UNUSED(C), wmOperator *op)
+static void grab_clone_cancel(bContext * /*C*/, wmOperator *op)
 {
   GrabClone *cmv = static_cast<GrabClone *>(op->customdata);
   MEM_delete(cmv);
@@ -787,20 +780,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
   }
 
   if (ima) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      const bScreen *screen = WM_window_get_active_screen(win);
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-        if (sl->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = (SpaceImage *)sl;
-
-          if (!sima->pin) {
-            ED_space_image_set(bmain, sima, ima, true);
-          }
-        }
-      }
-    }
+    ED_space_image_sync(bmain, ima, false);
   }
 
   ob->mode |= OB_MODE_TEXTURE_PAINT;
@@ -911,7 +891,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -980,7 +960,7 @@ void ED_imapaint_bucket_fill(struct bContext *C,
 
     ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 
-    const float mouse_init[2] = {static_cast<float>(mouse[0]), static_cast<float>(mouse[1])};
+    const float mouse_init[2] = {float(mouse[0]), float(mouse[1])};
     paint_2d_bucket_fill(C, color, nullptr, mouse_init, nullptr, nullptr);
 
     ED_image_undo_push_end();

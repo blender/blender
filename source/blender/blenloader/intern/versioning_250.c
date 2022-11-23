@@ -630,7 +630,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
     char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_join(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
     BLI_path_abs(str, BKE_main_blendfile_path(bmain));
     seq->sound = BKE_sound_new_file(bmain, str);
   }
@@ -2316,7 +2316,6 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
         /* deprecated */
         sock->own_index = link->fromsock->own_index;
         sock->to_index = 0;
-        sock->groupsock = NULL;
       }
     }
   }
@@ -2329,7 +2328,6 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
         /* deprecated */
         sock->own_index = link->tosock->own_index;
         sock->to_index = 0;
-        sock->groupsock = NULL;
       }
     }
   }

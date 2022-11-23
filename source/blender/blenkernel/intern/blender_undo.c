@@ -116,7 +116,7 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     counter = counter % U.undosteps;
 
     BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
-    BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_session(), numstr);
+    BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_session(), numstr);
 
     /* success = */ /* UNUSED */ BLO_write_file(
         bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);

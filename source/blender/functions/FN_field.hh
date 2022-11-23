@@ -412,7 +412,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     const int field_index = fields_to_evaluate_.append_and_get_index(std::move(field));
     dst_varrays_.append({});
     output_pointer_infos_.append(OutputPointerInfo{
-        varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &UNUSED(scope)) {
+        varray_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
           *(VArray<T> *)dst = varray.typed<T>();
         }});
     return field_index;
@@ -546,7 +546,7 @@ template<typename T> struct ValueOrField {
 
   bool is_field() const
   {
-    return (bool)this->field;
+    return bool(this->field);
   }
 
   Field<T> as_field() const
@@ -564,6 +564,17 @@ template<typename T> struct ValueOrField {
       return evaluate_constant_field(this->field);
     }
     return this->value;
+  }
+
+  friend std::ostream &operator<<(std::ostream &stream, const ValueOrField<T> &value_or_field)
+  {
+    if (value_or_field.field) {
+      stream << "ValueOrField<T>";
+    }
+    else {
+      stream << value_or_field.value;
+    }
+    return stream;
   }
 };
 

@@ -7,7 +7,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "DNA_brush_types.h"
@@ -445,7 +444,6 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-  const MVert *verts = BKE_mesh_verts(me);
   const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
@@ -464,10 +462,15 @@ static bool weight_paint_set(Object *ob, float paintweight)
   struct WPaintPrev wpp;
   wpaint_prev_create(&wpp, dvert, me->totvert);
 
+  const bool *select_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".select_vert");
+  const bool *select_poly = (const bool *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_BOOL, ".select_poly");
+
   for (index = 0, mp = polys; index < me->totpoly; index++, mp++) {
     uint fidx = mp->totloop - 1;
 
-    if ((paint_selmode == SCE_SELECT_FACE) && !(mp->flag & ME_FACE_SEL)) {
+    if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[index])) {
       continue;
     }
 
@@ -475,7 +478,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
       uint vidx = loops[mp->loopstart + fidx].v;
 
       if (!dvert[vidx].flag) {
-        if ((paint_selmode == SCE_SELECT_VERTEX) && !(verts[vidx].flag & SELECT)) {
+        if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {
           continue;
         }
 
@@ -584,6 +587,7 @@ typedef struct WPGradient_userData {
   Scene *scene;
   Mesh *me;
   MDeformVert *dvert;
+  const bool *select_vert;
   Brush *brush;
   const float *sco_start; /* [2] */
   const float *sco_end;   /* [2] */
@@ -680,7 +684,7 @@ static void gradientVertInit__mapFunc(void *userData,
   WPGradient_userData *grad_data = userData;
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-  if (grad_data->use_select && !(grad_data->dvert[index].flag & SELECT)) {
+  if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
     copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }
@@ -808,6 +812,8 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.scene = scene;
   data.me = ob->data;
   data.dvert = dverts;
+  data.select_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".select_vert");
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);

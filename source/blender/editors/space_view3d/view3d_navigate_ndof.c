@@ -32,7 +32,7 @@ static bool ndof_has_translate(const wmNDOFMotionData *ndof,
                                const View3D *v3d,
                                const RegionView3D *rv3d)
 {
-  return !is_zero_v3(ndof->tvec) && (!ED_view3d_offset_lock_check(v3d, rv3d));
+  return !is_zero_v3(ndof->tvec) && !ED_view3d_offset_lock_check(v3d, rv3d);
 }
 
 static bool ndof_has_rotate(const wmNDOFMotionData *ndof, const RegionView3D *rv3d)
@@ -363,18 +363,24 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
 
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
-  if ((v3d->camera && (rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0)) {
+  if (v3d->camera && (rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0) {
     /* pass */
   }
   else {
     return OPERATOR_PASS_THROUGH;
   }
 
+  const float pan_speed = NDOF_PIXELS_PER_SECOND;
   const bool has_translate = !is_zero_v2(ndof->tvec);
   const bool has_zoom = ndof->tvec[2] != 0.0f;
 
   float pan_vec[3];
   WM_event_ndof_pan_get(ndof, pan_vec, true);
+
+  mul_v3_fl(pan_vec, ndof->dt);
+  /* NOTE: unlike image and clip views, the 2D pan doesn't have to be scaled by the zoom level.
+   * #ED_view3d_camera_view_pan already takes the zoom level into account. */
+  mul_v2_fl(pan_vec, pan_speed);
 
   /* NOTE(@campbellbarton): In principle rotating could pass through to regular
    * non-camera NDOF behavior (exiting the camera-view and rotating).
@@ -390,16 +396,14 @@ static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
   bool changed = false;
 
   if (has_translate) {
-    const float speed = ndof->dt * NDOF_PIXELS_PER_SECOND;
-    float event_ofs[2] = {pan_vec[0] * speed, pan_vec[1] * speed};
-    if (ED_view3d_camera_view_pan(region, event_ofs)) {
+    /* Use the X & Y of `pan_vec`. */
+    if (ED_view3d_camera_view_pan(region, pan_vec)) {
       changed = true;
     }
   }
 
   if (has_zoom) {
-    const float scale = 1.0f + (ndof->dt * pan_vec[2]);
-    if (ED_view3d_camera_view_zoom_scale(rv3d, scale)) {
+    if (ED_view3d_camera_view_zoom_scale(rv3d, max_ff(0.0f, 1.0f - pan_vec[2]))) {
       changed = true;
     }
   }

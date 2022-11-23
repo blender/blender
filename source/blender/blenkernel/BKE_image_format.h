@@ -52,7 +52,7 @@ int BKE_image_path_ensure_ext_from_imtype(char *string, char imtype);
 
 #define IMA_CHAN_FLAG_BW 1
 #define IMA_CHAN_FLAG_RGB 2
-#define IMA_CHAN_FLAG_ALPHA 4
+#define IMA_CHAN_FLAG_RGBA 4
 
 char BKE_ftype_to_imtype(int ftype, const struct ImbFormatOptions *options);
 int BKE_imtype_to_ftype(char imtype, struct ImbFormatOptions *r_options);

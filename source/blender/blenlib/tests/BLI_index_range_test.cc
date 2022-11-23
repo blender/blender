@@ -126,6 +126,17 @@ TEST(index_range, Slice)
   EXPECT_EQ(slice.last(), 12);
 }
 
+TEST(index_range, Intersect)
+{
+  IndexRange range = IndexRange(5, 15);
+  EXPECT_EQ(range.intersect(IndexRange(2, 2)), IndexRange(5, 0));
+  EXPECT_EQ(range.intersect(IndexRange(4, 2)), IndexRange(5, 1));
+  EXPECT_EQ(range.intersect(IndexRange(3, 20)), IndexRange(5, 15));
+  EXPECT_EQ(range.intersect(IndexRange(5, 15)), IndexRange(5, 15));
+  EXPECT_EQ(range.intersect(IndexRange(15, 10)), IndexRange(15, 5));
+  EXPECT_EQ(range.intersect(IndexRange(22, 2)), IndexRange(20, 0));
+}
+
 TEST(index_range, SliceRange)
 {
   IndexRange range = IndexRange(5, 15);

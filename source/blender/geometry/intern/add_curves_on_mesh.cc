@@ -51,7 +51,7 @@ static void initialize_straight_curve_positions(const float3 &p1,
                                                 const float3 &p2,
                                                 MutableSpan<float3> r_positions)
 {
-  const float step = 1.0f / (float)(r_positions.size() - 1);
+  const float step = 1.0f / float(r_positions.size() - 1);
   for (const int i : r_positions.index_range()) {
     r_positions[i] = math::interpolate(p1, p2, i * step);
   }
@@ -140,6 +140,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
                                                     const Span<float> new_lengths_cu,
                                                     const Span<float3> new_normals_su,
                                                     const bke::CurvesSurfaceTransforms &transforms,
+                                                    const Span<MLoopTri> looptris,
                                                     const ReverseUVSampler &reverse_uv_sampler,
                                                     const Span<float3> corner_normals_su)
 {
@@ -178,7 +179,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
         }
 
         const float3 neighbor_normal_su = compute_surface_point_normal(
-            *result.looptri, result.bary_weights, corner_normals_su);
+            looptris[result.looptri_index], result.bary_weights, corner_normals_su);
         const float3 neighbor_normal_cu = math::normalize(transforms.surface_to_curves_normal *
                                                           neighbor_normal_su);
 
@@ -254,7 +255,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
       outputs.uv_error = true;
       continue;
     }
-    const MLoopTri &looptri = *result.looptri;
+    const MLoopTri &looptri = inputs.surface_looptris[result.looptri_index];
     bary_coords.append(result.bary_weights);
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
@@ -358,6 +359,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                             new_lengths_cu,
                                             new_normals_su,
                                             *inputs.transforms,
+                                            inputs.surface_looptris,
                                             *inputs.reverse_uv_sampler,
                                             inputs.corner_normals_su);
   }
@@ -371,6 +373,29 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   }
 
   curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
+
+  /* Explicitly set all other attributes besides those processed above to default values. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  Set<std::string> attributes_to_skip{{"position",
+                                       "curve_type",
+                                       "surface_uv_coordinate",
+                                       ".selection_point_float",
+                                       ".selection_curve_float"}};
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+          return true;
+        }
+        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+        /* The new elements are added at the end of the array. */
+        const int old_elements_num = attribute.domain == ATTR_DOMAIN_POINT ? old_points_num :
+                                                                             old_curves_num;
+        const CPPType &type = attribute.span.type();
+        GMutableSpan new_data = attribute.span.drop_front(old_elements_num);
+        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+        attribute.finish();
+        return true;
+      });
 
   return outputs;
 }

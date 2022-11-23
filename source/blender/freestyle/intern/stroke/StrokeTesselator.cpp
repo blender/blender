@@ -64,7 +64,7 @@ NodeGroup *StrokeTesselator::Tesselate(StrokeVertexIterator begin, StrokeVertexI
   tshape->setFrsMaterial(_FrsMaterial);
 
   for (StrokeVertexIterator c = begin, cend = end; c != cend; c++) {
-    tshape->AddRep(Tesselate((*c)));
+    tshape->AddRep(Tesselate(*c));
   }
 
   return group;

@@ -293,8 +293,6 @@ static void mesh_merge_transform(Mesh *result,
 
   for (i = 0; i < cap_nverts; i++, mv++) {
     mul_m4_v3(cap_offset, mv->co);
-    /* Reset MVert flags for caps */
-    mv->flag = mv->bweight = 0;
   }
 
   /* We have to correct normals too, if we do not tag them as dirty later! */
@@ -458,13 +456,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     float result_mat[4][4];
 
     if (ctx->object) {
-      invert_m4_m4(obinv, ctx->object->obmat);
+      invert_m4_m4(obinv, ctx->object->object_to_world);
     }
     else {
       unit_m4(obinv);
     }
 
-    mul_m4_series(result_mat, offset, obinv, amd->offset_ob->obmat);
+    mul_m4_series(result_mat, offset, obinv, amd->offset_ob->object_to_world);
     copy_m4_m4(offset, result_mat);
   }
 
@@ -476,7 +474,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     Object *curve_ob = amd->curve_ob;
     CurveCache *curve_cache = curve_ob->runtime.curve_cache;
     if (curve_cache != NULL && curve_cache->anim_path_accum_length != NULL) {
-      float scale_fac = mat4_to_scale(curve_ob->obmat);
+      float scale_fac = mat4_to_scale(curve_ob->object_to_world);
       length = scale_fac * BKE_anim_path_get_length(curve_cache);
     }
   }
@@ -560,8 +558,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
 
-  /* Subsurf for eg won't have mesh data in the custom data arrays.
-   * now add mvert/medge/mpoly layers. */
+  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
+   * Now add #MVert/#MEdge/#MPoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
     memcpy(result_verts, src_verts, sizeof(MVert) * mesh->totvert);
   }

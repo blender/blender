@@ -589,7 +589,7 @@ ccl_device_inline float fast_erfcf(float x)
 ccl_device_inline float fast_ierff(float x)
 {
   /* From: Approximating the `erfinv` function by Mike Giles. */
-  /* To avoid trouble at the limit, clamp input to 1-eps. */
+  /* To avoid trouble at the limit, clamp input to 1-epsilon. */
   float a = fabsf(x);
   if (a > 0.99999994f) {
     a = 0.99999994f;

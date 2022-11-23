@@ -71,7 +71,7 @@ bool is_output_linked_to_node_conditioned(DOutputSocket output, FunctionRef<bool
 {
   bool condition_satisfied = false;
   output.foreach_target_socket(
-      [&](DInputSocket target, const TargetSocketPathInfo &UNUSED(path_info)) {
+      [&](DInputSocket target, const TargetSocketPathInfo & /*path_info*/) {
         if (condition(target.node())) {
           condition_satisfied = true;
           return;
@@ -85,7 +85,7 @@ int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
 {
   int count = 0;
   output.foreach_target_socket(
-      [&](DInputSocket target, const TargetSocketPathInfo &UNUSED(path_info)) {
+      [&](DInputSocket target, const TargetSocketPathInfo & /*path_info*/) {
         if (condition(target)) {
           count++;
         }
@@ -116,6 +116,7 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   }
   const SocketDeclarationPtr &socket_declaration = node_declaration->inputs()[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
+  input_descriptor.skip_realization = socket_declaration->compositor_skip_realization();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
   return input_descriptor;
 }

@@ -7,13 +7,15 @@
 #  include "GPU_shader_shared_utils.h"
 #  include "draw_defines.h"
 
-typedef struct ViewInfos ViewInfos;
+typedef struct ViewCullingData ViewCullingData;
+typedef struct ViewMatrices ViewMatrices;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
 typedef struct ObjectBounds ObjectBounds;
 typedef struct VolumeInfos VolumeInfos;
 typedef struct CurvesInfos CurvesInfos;
 typedef struct ObjectAttribute ObjectAttribute;
+typedef struct LayerAttribute LayerAttribute;
 typedef struct DrawCommand DrawCommand;
 typedef struct DispatchCommand DispatchCommand;
 typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
@@ -23,8 +25,10 @@ typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 #  ifdef __cplusplus
 /* C++ only forward declarations. */
 struct Object;
+struct ViewLayer;
 struct ID;
 struct GPUUniformAttr;
+struct GPULayerAttr;
 
 namespace blender::draw {
 
@@ -50,51 +54,69 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
  * This should be kept in sync with `GPU_ATTR_MAX` */
 #define DRW_ATTRIBUTE_PER_CURVES_MAX 15
 
-struct ViewInfos {
-  /* View matrices */
-  float4x4 persmat;
-  float4x4 persinv;
+/* -------------------------------------------------------------------- */
+/** \name Views
+ * \{ */
+
+/**
+ * The maximum of indexable views is dictated by:
+ * - The UBO limit (16KiB) of the ViewMatrices container.
+ * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
+ */
+#define DRW_VIEW_MAX 64
+
+#ifndef DRW_VIEW_LEN
+/* Single-view case (default). */
+#  define drw_view_id 0
+#  define DRW_VIEW_LEN 1
+#  define DRW_VIEW_SHIFT 0
+#else
+
+/* Multi-view case. */
+/** This should be already defined at shaderCreateInfo level. */
+// #  define DRW_VIEW_LEN 64
+/** Global that needs to be set correctly in each shader stage. */
+uint drw_view_id = 0;
+/**
+ * In order to reduce the memory requirements, the view id is merged with resource id to avoid
+ * doubling the memory required only for view indexing.
+ */
+/** \note This is simply log2(DRW_VIEW_LEN) but making sure it is optimized out. */
+#  define DRW_VIEW_SHIFT \
+    ((DRW_VIEW_LEN > 32) ? 6 : \
+     (DRW_VIEW_LEN > 16) ? 5 : \
+     (DRW_VIEW_LEN > 8)  ? 4 : \
+     (DRW_VIEW_LEN > 4)  ? 3 : \
+     (DRW_VIEW_LEN > 2)  ? 2 : \
+                           1)
+#  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
+#  define DRW_VIEW_FROM_RESOURCE_ID (drw_ResourceID & DRW_VIEW_MASK)
+#endif
+
+struct ViewCullingData {
+  /** \note vec3 array padded to vec4. */
+  /** Frustum corners. */
+  float4 corners[8];
+  float4 planes[6];
+  float4 bound_sphere;
+};
+BLI_STATIC_ASSERT_ALIGN(ViewCullingData, 16)
+
+struct ViewMatrices {
   float4x4 viewmat;
   float4x4 viewinv;
   float4x4 winmat;
   float4x4 wininv;
-
-  float4 clip_planes[6];
-  float4 viewvecs[2];
-  /* Should not be here. Not view dependent (only main view). */
-  float4 viewcamtexcofac;
-
-  float2 viewport_size;
-  float2 viewport_size_inverse;
-
-  /** Frustum culling data. */
-  /** \note vec3 array padded to vec4. */
-  float4 frustum_corners[8];
-  float4 frustum_planes[6];
-  float4 frustum_bound_sphere;
-
-  /** For debugging purpose */
-  /* Mouse pixel. */
-  int2 mouse_pixel;
-
-  /** True if facing needs to be inverted. */
-  bool1 is_inverted;
-  int _pad0;
 };
-BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
+BLI_STATIC_ASSERT_ALIGN(ViewMatrices, 16)
 
 /* Do not override old definitions if the shader uses this header but not shader info. */
 #ifdef USE_GPU_SHADER_CREATE_INFO
 /* TODO(@fclem): Mass rename. */
-#  define ViewProjectionMatrix drw_view.persmat
-#  define ViewProjectionMatrixInverse drw_view.persinv
 #  define ViewMatrix drw_view.viewmat
 #  define ViewMatrixInverse drw_view.viewinv
 #  define ProjectionMatrix drw_view.winmat
 #  define ProjectionMatrixInverse drw_view.wininv
-#  define clipPlanes drw_view.clip_planes
-#  define ViewVecs drw_view.viewvecs
-#  define CameraTexCoFactors drw_view.viewcamtexcofac
 #endif
 
 /** \} */
@@ -205,13 +227,26 @@ struct ObjectAttribute {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
-  bool id_property_lookup(ID *id, const char *name);
 #endif
 };
 #pragma pack(pop)
 /** \note we only align to 4 bytes and fetch data manually so make sure
  * C++ compiler gives us the same size. */
 BLI_STATIC_ASSERT_ALIGN(ObjectAttribute, 20)
+
+#pragma pack(push, 4)
+struct LayerAttribute {
+  float4 data;
+  uint hash_code;
+  uint buffer_length; /* Only in the first record. */
+  uint _pad1, _pad2;
+
+#if !defined(GPU_SHADER) && defined(__cplusplus)
+  bool sync(Scene *scene, ViewLayer *layer, const GPULayerAttr &attr);
+#endif
+};
+#pragma pack(pop)
+BLI_STATIC_ASSERT_ALIGN(LayerAttribute, 32)
 
 /** \} */
 

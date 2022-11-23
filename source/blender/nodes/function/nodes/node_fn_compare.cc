@@ -44,7 +44,7 @@ static void fn_node_compare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Result"));
 }
 
-static void geo_node_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void geo_node_compare_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeFunctionCompare &data = node_storage(*static_cast<const bNode *>(ptr->data));
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
@@ -82,7 +82,7 @@ static void node_compare_update(bNodeTree *ntree, bNode *node)
                                 data->data_type == SOCK_VECTOR);
 }
 
-static void node_compare_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_compare_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeFunctionCompare *data = MEM_cnew<NodeFunctionCompare>(__func__);
   data->operation = NODE_COMPARE_GREATER_THAN;
@@ -148,7 +148,7 @@ static void node_compare_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_compare_label(const bNodeTree *UNUSED(ntree),
+static void node_compare_label(const bNodeTree * /*tree*/,
                                const bNode *node,
                                char *label,
                                int maxlen)
@@ -582,8 +582,8 @@ void register_node_type_fn_compare()
   fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_compare_declare;
   ntype.labelfunc = file_ns::node_compare_label;
-  node_type_update(&ntype, file_ns::node_compare_update);
-  node_type_init(&ntype, file_ns::node_compare_init);
+  ntype.updatefunc = file_ns::node_compare_update;
+  ntype.initfunc = file_ns::node_compare_init;
   node_type_storage(
       &ntype, "NodeFunctionCompare", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = file_ns::fn_node_compare_build_multi_function;

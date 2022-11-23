@@ -380,7 +380,7 @@ static void export_in_memory_texture(Image *ima,
   BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
 
   char export_path[FILE_MAX];
-  BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name, nullptr);
+  BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
 
   if (!allow_overwrite && BLI_exists(export_path)) {
     return;
@@ -455,7 +455,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
 static bNode *find_bsdf_node(Material *material)
 {
   LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
-    if (node->type == SH_NODE_BSDF_PRINCIPLED || node->type == SH_NODE_BSDF_DIFFUSE) {
+    if (ELEM(node->type, SH_NODE_BSDF_PRINCIPLED, SH_NODE_BSDF_DIFFUSE)) {
       return node;
     }
   }
@@ -576,7 +576,7 @@ static std::string get_tex_image_asset_path(bNode *node,
     BLI_split_file_part(path.c_str(), file_path, FILE_MAX);
 
     if (export_params.relative_paths) {
-      BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path, nullptr);
+      BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
     }
     else {
       /* Create absolute path in the textures directory. */
@@ -588,7 +588,7 @@ static std::string get_tex_image_asset_path(bNode *node,
 
       char dir_path[FILE_MAX];
       BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
-      BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path, nullptr);
+      BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
     BLI_str_replace_char(exp_path, '\\', '/');
     return exp_path;
@@ -645,7 +645,7 @@ static void copy_tiled_textures(Image *ima,
     BLI_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
 
     char dest_tile_path[FILE_MAX];
-    BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename, nullptr);
+    BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename);
 
     if (!allow_overwrite && BLI_exists(dest_tile_path)) {
       continue;
@@ -680,7 +680,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   BLI_split_file_part(source_path, file_name, FILE_MAX);
 
   char dest_path[FILE_MAX];
-  BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name, nullptr);
+  BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name);
 
   if (!allow_overwrite && BLI_exists(dest_path)) {
     return;
@@ -707,7 +707,7 @@ static void export_texture(bNode *node,
                            const pxr::UsdStageRefPtr stage,
                            const bool allow_overwrite)
 {
-  if (node->type != SH_NODE_TEX_IMAGE && node->type != SH_NODE_TEX_ENVIRONMENT) {
+  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
   }
 
@@ -726,7 +726,7 @@ static void export_texture(bNode *node,
   BLI_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
 
   char tex_dir_path[FILE_MAX];
-  BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR, nullptr);
+  BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);
 
   BLI_dir_create_recursive(tex_dir_path);
 

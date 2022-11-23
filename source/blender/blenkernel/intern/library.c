@@ -97,7 +97,7 @@ IDTypeInfo IDType_ID_LI = {
     .foreach_id = library_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = library_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = library_blend_read_data,

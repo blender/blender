@@ -118,7 +118,7 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
 
   uint bases_len;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc->view_layer, vc->v3d, &bases_len);
+      vc->scene, vc->view_layer, vc->v3d, &bases_len);
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Base *base = bases[base_index];
     data.is_changed = false;

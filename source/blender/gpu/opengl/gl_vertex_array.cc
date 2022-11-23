@@ -47,7 +47,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
     }
 
     /* This is in fact an offset in memory. */
-    const GLvoid *pointer = (const GLubyte *)(intptr_t)(offset + v_first * stride);
+    const GLvoid *pointer = (const GLubyte *)intptr_t(offset + v_first * stride);
     const GLenum type = to_gl(static_cast<GPUVertCompType>(a->comp_type));
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
@@ -137,7 +137,7 @@ void GLVertArray::update_bindings(const GLuint vao,
         GLContext *ctx = GLContext::get();
         /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
          * Fix issues for some drivers (see T75069). */
-        glBindVertexBuffer(a, ctx->default_attr_vbo_, (intptr_t)0, (intptr_t)0);
+        glBindVertexBuffer(a, ctx->default_attr_vbo_, intptr_t(0), intptr_t(0));
         glEnableVertexAttribArray(a);
         glVertexAttribFormat(a, 4, GL_FLOAT, GL_FALSE, 0);
         glVertexAttribBinding(a, a);

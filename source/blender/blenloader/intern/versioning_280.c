@@ -53,6 +53,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
@@ -512,12 +513,13 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       }
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* for convenience set the same active object in all the layers */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }
@@ -537,13 +539,14 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       view_layer->flag &= ~VIEW_LAYER_RENDER;
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* convert active base */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
     /* convert selected bases */
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }
@@ -592,7 +595,7 @@ static void do_versions_fix_annotations(bGPdata *gpd)
 
         LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
           LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-            if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+            if ((gps->colorname[0] != '\0') && STREQ(gps->colorname, palcolor->info)) {
               /* copy color settings */
               copy_v4_v4(gpl->color, palcolor->color);
             }
@@ -1611,12 +1614,13 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       if (me->totface && !me->totpoly) {
         /* temporarily switch main so that reading from
          * external CustomData works */
-        Main *gmain = G_MAIN;
-        G_MAIN = bmain;
+        Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
 
         BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
 
-        G_MAIN = gmain;
+        Main *tmp_gmain = BKE_blender_globals_main_swap(orig_gmain);
+        BLI_assert(tmp_gmain == bmain);
+        UNUSED_VARS_NDEBUG(tmp_gmain);
       }
 
       /* Deprecated, only kept for conversion. */
@@ -2965,12 +2969,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 28)) {
-    for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-      BKE_mesh_calc_edges_loose(mesh);
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 29)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -3375,7 +3373,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               SpaceImage *sima = (SpaceImage *)sl;
               sima->flag &= ~(SI_FLAG_UNUSED_0 | SI_FLAG_UNUSED_1 | SI_FLAG_UNUSED_3 |
                               SI_FLAG_UNUSED_6 | SI_FLAG_UNUSED_7 | SI_FLAG_UNUSED_8 |
-                              SI_FLAG_UNUSED_17 | SI_CUSTOM_GRID | SI_FLAG_UNUSED_23 |
+                              SI_FLAG_UNUSED_17 | SI_FLAG_UNUSED_18 | SI_FLAG_UNUSED_23 |
                               SI_FLAG_UNUSED_24);
               break;
             }
@@ -3383,7 +3381,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               View3D *v3d = (View3D *)sl;
               v3d->flag &= ~(V3D_LOCAL_COLLECTIONS | V3D_FLAG_UNUSED_1 | V3D_FLAG_UNUSED_10 |
                              V3D_FLAG_UNUSED_12);
-              v3d->flag2 &= ~(V3D_FLAG2_UNUSED_3 | V3D_FLAG2_UNUSED_6 | V3D_FLAG2_UNUSED_12 |
+              v3d->flag2 &= ~((1 << 3) | V3D_FLAG2_UNUSED_6 | V3D_FLAG2_UNUSED_12 |
                               V3D_FLAG2_UNUSED_13 | V3D_FLAG2_UNUSED_14 | V3D_FLAG2_UNUSED_15);
               break;
             }

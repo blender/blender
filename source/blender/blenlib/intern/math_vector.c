@@ -499,7 +499,7 @@ float angle_signed_on_axis_v3v3_v3(const float v1[3], const float v2[3], const f
   /* calculate the sign (reuse 'tproj') */
   cross_v3_v3v3(tproj, v2_proj, v1_proj);
   if (dot_v3v3(tproj, axis) < 0.0f) {
-    angle = ((float)(M_PI * 2.0)) - angle;
+    angle = (float)(M_PI * 2.0) - angle;
   }
 
   return angle;
@@ -901,16 +901,6 @@ void minmax_v2v2_v2(float min[2], float max[2], const float vec[2])
   }
   if (max[1] < vec[1]) {
     max[1] = vec[1];
-  }
-}
-
-void minmax_v3v3_v3_array(float r_min[3],
-                          float r_max[3],
-                          const float (*vec_arr)[3],
-                          int var_arr_num)
-{
-  while (var_arr_num--) {
-    minmax_v3v3_v3(r_min, r_max, *vec_arr++);
   }
 }
 

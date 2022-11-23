@@ -21,11 +21,19 @@ extern "C" {
 /**
  * Mesh Vertices.
  *
- * Typically accessed from #Mesh.mvert
+ * Typically accessed from #Mesh.verts()
  */
 typedef struct MVert {
   float co[3];
-  char flag, bweight;
+  /**
+   * Deprecated flag for storing hide status and selection, which are now stored in separate
+   * generic attributes. Kept for file read and write.
+   */
+  char flag_legacy;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
   char _pad[2];
 } MVert;
 
@@ -33,6 +41,7 @@ typedef struct MVert {
 
 #ifdef DNA_DEPRECATED_ALLOW
 enum {
+  /** Deprecated selection status. Now stored in ".select_vert" attribute. */
   /*  SELECT = (1 << 0), */
   /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
   ME_HIDE = (1 << 4),
@@ -42,32 +51,40 @@ enum {
 /**
  * Mesh Edges.
  *
- * Typically accessed from #Mesh.medge
+ * Typically accessed with #Mesh.edges()
  */
 typedef struct MEdge {
   /** Un-ordered vertex indices (cannot match). */
   unsigned int v1, v2;
-  char crease, bweight;
+  /** Deprecated edge crease, now located in #CD_CREASE, except for file read and write. */
+  char crease_legacy;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
   short flag;
 } MEdge;
 
 /** #MEdge.flag */
 enum {
+  /** Deprecated selection status. Now stored in ".select_edge" attribute. */
   /*  SELECT = (1 << 0), */
   ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
-  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-  /*  ME_HIDE = (1 << 4), */
-  ME_EDGERENDER = (1 << 5),
+/** Deprecated hide status. Now stored in ".hide_edge" attribute. */
+/*  ME_HIDE = (1 << 4), */
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
+#endif
   ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 
 /**
- * Mesh Faces
+ * Mesh Faces.
  * This only stores the polygon size & flags, the vertex & edge indices are stored in the #MLoop.
  *
- * Typically accessed from #Mesh.mpoly.
+ * Typically accessed with #Mesh.polys().
  */
 typedef struct MPoly {
   /** Offset into loop array and number of loops in the face. */
@@ -75,14 +92,17 @@ typedef struct MPoly {
   /** Keep signed since we need to subtract when getting the previous loop. */
   int totloop;
   /** Deprecated material index. Now stored in the "material_index" attribute, but kept for IO. */
-  short mat_nr DNA_DEPRECATED;
+  short mat_nr_legacy;
   char flag, _pad;
 } MPoly;
 
 /** #MPoly.flag */
 enum {
   ME_SMOOTH = (1 << 0),
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Deprecated selection status. Now stored in ".select_poly" attribute. */
   ME_FACE_SEL = (1 << 1),
+#endif
   /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
   /* ME_HIDE = (1 << 4), */
 };
@@ -91,7 +111,7 @@ enum {
  * Mesh Face Corners.
  * "Loop" is an internal name for the corner of a polygon (#MPoly).
  *
- * Typically accessed from #Mesh.mloop.
+ * Typically accessed with #Mesh.loops().
  */
 typedef struct MLoop {
   /** Vertex index into an #MVert array. */
@@ -358,7 +378,7 @@ typedef struct MDisps {
 
   /**
    * Used for hiding parts of a multires mesh.
-   * Essentially the multires equivalent of the mesh ".hide_vert" boolean layer.
+   * Essentially the multires equivalent of the mesh ".hide_vert" boolean attribute.
    *
    * \note This is a bitmap, keep in sync with type used in BLI_bitmap.h
    */

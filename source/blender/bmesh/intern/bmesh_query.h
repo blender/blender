@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Returns true if the vertex is used in a given face.
  */
@@ -708,7 +712,7 @@ double BM_mesh_calc_volume(BMesh *bm, bool is_signed) ATTR_WARN_UNUSED_RESULT AT
  * Calculate isolated groups of faces with optional filtering.
  *
  * \param bm: the BMesh.
- * \param r_groups_array: Array of ints to fill in, length of bm->totface
+ * \param r_groups_array: Array of integers to fill in, length of `bm->totface`
  *        (or when hflag_test is set, the number of flagged faces).
  * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).
@@ -771,3 +775,7 @@ int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
 float bmesh_subd_falloff_calc(int falloff, float val) ATTR_WARN_UNUSED_RESULT;
 
 #include "bmesh_query_inline.h"
+
+#ifdef __cplusplus
+}
+#endif

@@ -16,6 +16,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -61,7 +62,7 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name High Level `.blend` file read/write.
+/** \name Blend File IO (High Level)
  * \{ */
 
 static bool blendfile_or_libraries_versions_atleast(Main *bmain,
@@ -185,7 +186,7 @@ static void setup_app_data(bContext *C,
     clean_paths(bfd->main);
   }
 
-  /* XXX here the complex windowmanager matching */
+  /* The following code blocks performs complex window-manager matching. */
 
   /* no load screens? */
   if (mode != LOAD_UI) {
@@ -286,11 +287,8 @@ static void setup_app_data(bContext *C,
     }
   }
 
-  /* free G_MAIN Main database */
-  //  CTX_wm_manager_set(C, NULL);
-  BKE_blender_globals_clear();
-
-  bmain = G_MAIN = bfd->main;
+  BKE_blender_globals_main_replace(bfd->main);
+  bmain = G_MAIN;
   bfd->main = NULL;
 
   CTX_data_main_set(C, bmain);
@@ -364,7 +362,7 @@ static void setup_app_data(bContext *C,
     BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
   }
 
-  bmain->recovered = 0;
+  bmain->recovered = false;
 
   /* startup.blend or recovered startup */
   if (is_startup) {
@@ -372,7 +370,7 @@ static void setup_app_data(bContext *C,
   }
   else if (recover) {
     /* In case of autosave or quit.blend, use original filepath instead. */
-    bmain->recovered = 1;
+    bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
 
@@ -559,6 +557,34 @@ void BKE_blendfile_read_make_empty(bContext *C)
   FOREACH_MAIN_LISTBASE_END;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File IO (Preferences)
+ *
+ * Application Templates
+ * =====================
+ *
+ * When using app-templates, both regular & app-template preferences are used.
+ * Note that "regular" preferences refers to the preferences used with no app-template is active.
+ *
+ * - Reading preferences is performed for both the app-template & regular preferences.
+ *
+ *   The preferences are merged by using some from the app-template and other settings from the
+ *   regular preferences (add-ons from the app-template for example are used),
+ *   undo-memory uses the regular preferences (for e.g.).
+ *
+ * - Writing preferences is performed for both the app-template & regular preferences.
+ *
+ *   Writing unmodified preference (#U) into the regular preferences
+ *   would loose any settings the app-template overrides.
+ *   To keep default settings the regular preferences is read, add-ons etc temporarily swapped
+ *   into #U for writing, then swapped back out so as not to change the run-time preferences.
+ *
+ * \note The function #BKE_blender_userdef_app_template_data_swap determines which settings
+ * the app-template overrides.
+ * \{ */
+
 UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
 {
   BlendFileData *bfd;
@@ -683,10 +709,15 @@ bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 
 bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports)
 {
-  /* if it fails, overwrite is OK. */
-  UserDef *userdef_default = BKE_blendfile_userdef_read(filepath, NULL);
+  /* Checking that `filepath` exists is not essential, it just avoids printing a warning that
+   * the file can't be found. In this case it's not an error - as the file is used if it exists,
+   * falling back to the defaults.
+   * If the preferences exists but file reading fails - the file can be assumed corrupt
+   * so overwriting the file is OK. */
+  UserDef *userdef_default = BLI_exists(filepath) ? BKE_blendfile_userdef_read(filepath, NULL) :
+                                                    NULL;
   if (userdef_default == NULL) {
-    return BKE_blendfile_userdef_write(filepath, reports);
+    userdef_default = BKE_blendfile_userdef_from_defaults();
   }
 
   BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
@@ -706,7 +737,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
 
   if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL))) {
     bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
     printf("Writing userprefs: '%s' ", filepath);
     if (use_template_userpref) {
@@ -733,7 +764,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   if (use_template_userpref) {
     if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
       /* Also save app-template prefs */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
       printf("Writing userprefs app-template: '%s' ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {
@@ -755,6 +786,12 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   }
   return ok;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File IO (WorkSpace)
+ * \{ */
 
 WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
                                                              const void *filebuf,
@@ -818,7 +855,7 @@ void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Partial `.blend` file save.
+/** \name Blend File Write (Partial)
  * \{ */
 
 void BKE_blendfile_write_partial_begin(Main *bmain_src)

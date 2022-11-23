@@ -67,6 +67,30 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
+void ED_space_image_sync(struct Main *bmain, struct Image *image, bool ignore_render_viewer)
+{
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype != SPACE_IMAGE) {
+          continue;
+        }
+        SpaceImage *sima = (SpaceImage *)sl;
+        if (sima->pin) {
+          continue;
+        }
+        if (ignore_render_viewer && sima->image &&
+            ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          continue;
+        }
+        ED_space_image_set(bmain, sima, image, true);
+      }
+    }
+  }
+}
+
 void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
 {
   if (sima->mode != SI_MODE_UV || sima->pin) {
@@ -383,7 +407,7 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
     image->render_slot = ((cur == 1) ? 0 : 1);
   }
 
-  if ((cur != image->render_slot)) {
+  if (cur != image->render_slot) {
     BKE_image_partial_update_mark_full_update(image);
   }
   return (cur != image->render_slot);
@@ -408,7 +432,7 @@ void ED_space_image_scopes_update(const struct bContext *C,
   /* We also don't update scopes of render result during render. */
   if (G.is_rendering) {
     const Image *image = sima->image;
-    if (image != NULL && (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))) {
+    if (image != NULL && ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
       return;
     }
   }
@@ -471,7 +495,9 @@ bool ED_space_image_maskedit_poll(bContext *C)
   SpaceImage *sima = CTX_wm_space_image(C);
 
   if (sima) {
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     return ED_space_image_check_show_maskedit(sima, obedit);
   }

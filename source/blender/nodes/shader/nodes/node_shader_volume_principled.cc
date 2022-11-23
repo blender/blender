@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("Volume"));
 }
 
-static void node_shader_init_volume_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_volume_principled(bNodeTree * /*ntree*/, bNode *node)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Density Attribute")) {
@@ -59,7 +59,7 @@ static void attribute_post_process(GPUMaterial *mat,
 
 static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                                              bNode *node,
-                                             bNodeExecData *UNUSED(execdata),
+                                             bNodeExecData * /*execdata*/,
                                              GPUNodeStack *in,
                                              GPUNodeStack *out)
 {
@@ -142,8 +142,8 @@ void register_node_type_sh_volume_principled()
   sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, file_ns::node_shader_init_volume_principled);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_principled);
+  ntype.initfunc = file_ns::node_shader_init_volume_principled;
+  ntype.gpu_fn = file_ns::node_shader_gpu_volume_principled;
 
   nodeRegisterType(&ntype);
 }

@@ -10,7 +10,7 @@
 #  include "device/queue.h"
 
 #  include "device/oneapi/device.h"
-#  include "device/oneapi/dll_interface.h"
+#  include "kernel/device/oneapi/kernel.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -25,7 +25,7 @@ class OneapiDeviceQueue : public DeviceQueue {
 
   virtual int num_concurrent_states(const size_t state_size) const override;
 
-  virtual int num_concurrent_busy_states() const override;
+  virtual int num_concurrent_busy_states(const size_t state_size) const override;
 
   virtual void init_execution() override;
 
@@ -41,9 +41,7 @@ class OneapiDeviceQueue : public DeviceQueue {
 
  protected:
   OneapiDevice *oneapi_device_;
-  OneAPIDLLInterface oneapi_dll_;
   KernelContext *kernel_context_;
-  bool with_kernel_statistics_;
 };
 
 CCL_NAMESPACE_END

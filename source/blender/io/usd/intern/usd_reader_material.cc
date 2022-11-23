@@ -562,7 +562,7 @@ void USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
   /* For now, only convert UsdUVTexture and UsdPrimvarReader_float2 inputs. */
   if (shader_id == usdtokens::UsdUVTexture) {
 
-    if (strcmp(dest_socket_name, "Normal") == 0) {
+    if (STREQ(dest_socket_name, "Normal")) {
 
       /* The normal texture input requires creating a normal map node. */
       float locx = 0.0f;

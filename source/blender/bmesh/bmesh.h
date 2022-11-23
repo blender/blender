@@ -148,7 +148,7 @@
  *
  * These conventions should be used throughout the bmesh module.
  *
- * - `bmesh_kernel_*()` - Low level API, for primitive functions that others are built ontop of.
+ * - `bmesh_kernel_*()` - Low level API, for primitive functions that others are built on top of.
  * - `bmesh_***()` - Low level API function.
  * - `bm_***()` -     'static' functions, not a part of the API at all,
  *   but use prefix since they operate on BMesh data.
@@ -178,10 +178,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "bmesh_class.h"
 
@@ -215,7 +211,3 @@ extern "C" {
 #include "intern/bmesh_walkers.h"
 
 #include "intern/bmesh_inline.h"
-
-#ifdef __cplusplus
-}
-#endif

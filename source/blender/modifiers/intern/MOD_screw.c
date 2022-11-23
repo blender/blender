@@ -41,6 +41,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
+#include "BLI_strict_flags.h"
+
 static void initData(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
@@ -50,16 +52,12 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
 }
 
-#include "BLI_strict_flags.h"
-
 /** Used for gathering edge connectivity. */
 typedef struct ScrewVertConnect {
   /** Distance from the center axis. */
   float dist_sq;
   /** Location relative to the transformed axis. */
   float co[3];
-  /** Calc normal of the vertex. */
-  float no[3];
   /** 2 verts on either side of this one. */
   uint v[2];
   /** Edges on either side, a bit of a waste since each edge ref's 2 edges. */
@@ -276,8 +274,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (ob_axis != NULL) {
     /* Calculate the matrix relative to the axis object. */
-    invert_m4_m4(mtx_tmp_a, ctx->object->obmat);
-    copy_m4_m4(mtx_tx_inv, ob_axis->obmat);
+    invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world);
+    copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world);
     mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
     /* Calculate the axis vector. */
@@ -381,9 +379,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* The `screw_ofs` cannot change from now on. */
   const bool do_remove_doubles = (ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f);
-  /* Only calculate normals if `do_remove_doubles` since removing doubles frees the normals. */
-  const bool do_normal_create = (ltmd->flag & MOD_SCREW_NORMAL_CALC) &&
-                                (do_remove_doubles == false);
 
   result = BKE_mesh_new_nomain_from_template(
       mesh, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
@@ -436,20 +431,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   mv_new = mvert_new;
   mv_orig = mvert_orig;
 
-  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
-
   /* Copy the first set of edges */
   const MEdge *med_orig = medge_orig;
   med_new = medge_new;
   for (i = 0; i < totedge; i++, med_orig++, med_new++) {
     med_new->v1 = med_orig->v1;
     med_new->v2 = med_orig->v2;
-    med_new->crease = med_orig->crease;
-    med_new->flag = med_orig->flag & ~ME_LOOSEEDGE;
-
-    /* Tag #MVert as not loose. */
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v2);
+    med_new->flag = med_orig->flag;
   }
 
   /* build polygon -> edge map */
@@ -480,9 +468,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  float(*vert_normals_new)[3] = do_normal_create ? BKE_mesh_vertex_normals_for_write(result) :
-                                                   NULL;
-
   if (ltmd->flag & MOD_SCREW_NORMAL_CALC) {
 
     /* Normal Calculation (for face flipping)
@@ -511,15 +496,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     vc = vert_connect;
 
     /* Copy Vert Locations */
-    /* - We can do this in a later loop - only do here if no normal calc */
-    if (!totedge) {
-      for (i = 0; i < totvert; i++, mv_orig++, mv_new++) {
-        copy_v3_v3(mv_new->co, mv_orig->co);
-        /* No edges: this is really a dummy normal. */
-        normalize_v3_v3(vc->no, mv_new->co);
-      }
-    }
-    else {
+    if (totedge != 0) {
       // printf("\n\n\n\n\nStarting Modifier\n");
       /* set edge users */
       med_new = medge_new;
@@ -771,77 +748,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
             }
           }
         }
-
-        /* *VERTEX NORMALS*
-         * we know the surrounding edges are ordered correctly now
-         * so its safe to create vertex normals.
-         *
-         * calculate vertex normals that can be propagated on lathing
-         * use edge connectivity work this out */
-        if (do_normal_create) {
-          if (SV_IS_VALID(vc->v[0])) {
-            if (SV_IS_VALID(vc->v[1])) {
-              /* 2 edges connected. */
-              /* make 2 connecting vert locations relative to the middle vert */
-              sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
-              sub_v3_v3v3(tmp_vec2, mvert_new[vc->v[1]].co, mvert_new[i].co);
-              /* normalize so both edges have the same influence, no matter their length */
-              normalize_v3(tmp_vec1);
-              normalize_v3(tmp_vec2);
-
-              /* vc_no_tmp1 - this line is the average direction of both connecting edges
-               *
-               * Use the edge order to make the subtraction, flip the normal the right way
-               * edge should be there but check just in case... */
-              if (vc->e[0]->v1 == i) {
-                sub_v3_v3(tmp_vec1, tmp_vec2);
-              }
-              else {
-                sub_v3_v3v3(tmp_vec1, tmp_vec2, tmp_vec1);
-              }
-            }
-            else {
-              /* only 1 edge connected - same as above except
-               * don't need to average edge direction */
-              if (vc->e[0]->v2 == i) {
-                sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
-              }
-              else {
-                sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
-              }
-            }
-
-            /* tmp_vec2 - is a line 90d from the pivot to the vec
-             * This is used so the resulting normal points directly away from the middle */
-            cross_v3_v3v3(tmp_vec2, axis_vec, vc->co);
-
-            if (UNLIKELY(is_zero_v3(tmp_vec2))) {
-              /* we're _on_ the axis, so copy it based on our winding */
-              if (vc->e[0]->v2 == i) {
-                negate_v3_v3(vc->no, axis_vec);
-              }
-              else {
-                copy_v3_v3(vc->no, axis_vec);
-              }
-            }
-            else {
-              /* edge average vector and right angle to the pivot make the normal */
-              cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
-            }
-          }
-          else {
-            copy_v3_v3(vc->no, vc->co);
-          }
-
-          /* we won't be looping on this data again so copy normals here */
-          if ((angle < 0.0f) != do_flip) {
-            negate_v3(vc->no);
-          }
-
-          normalize_v3(vc->no);
-          copy_v3_v3(vert_normals_new[i], vc->no);
-        }
-        /* Done with normals */
       }
     }
   }
@@ -882,14 +788,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     mv_new = &mvert_new[varray_stride]; /* advance to the next slice */
 
     for (j = 0; j < totvert; j++, mv_new_base++, mv_new++) {
-      /* set normal */
-      if (vert_connect) {
-        if (do_normal_create) {
-          /* Set the normal now its transformed. */
-          mul_v3_m3v3(vert_normals_new[mv_new - mvert_new], mat3, vert_connect[j].no);
-        }
-      }
-
       /* set location */
       copy_v3_v3(mv_new->co, mv_new_base->co);
 
@@ -910,10 +808,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* add the new edge */
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if (!BLI_BITMAP_TEST(vert_tag, j)) {
-        med_new->flag |= ME_LOOSEEDGE;
-      }
+      med_new->flag = ME_EDGEDRAW;
       med_new++;
     }
   }
@@ -931,10 +826,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (i = 0; i < totvert; i++) {
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
-      med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if (!BLI_BITMAP_TEST(vert_tag, i)) {
-        med_new->flag |= ME_LOOSEEDGE;
-      }
+      med_new->flag = ME_EDGEDRAW;
       med_new++;
     }
   }
@@ -1064,7 +956,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           med_new->v1 = i1;
           med_new->v2 = i2;
           med_new->flag = med_new_firstloop->flag;
-          med_new->crease = med_new_firstloop->crease;
           med_new++;
         }
         i1 += totvert;
@@ -1091,8 +982,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* new vertical edge */
     med_new->v1 = i1;
     med_new->v2 = i2;
-    med_new->flag = med_new_firstloop->flag & ~ME_LOOSEEDGE;
-    med_new->crease = med_new_firstloop->crease;
+    med_new->flag = med_new_firstloop->flag;
     med_new++;
   }
 
@@ -1123,18 +1013,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 #endif
 
-  MEM_freeN(vert_tag);
-
   if (edge_poly_map) {
     MEM_freeN(edge_poly_map);
   }
 
   if (vert_loop_map) {
     MEM_freeN(vert_loop_map);
-  }
-
-  if (do_normal_create) {
-    BKE_mesh_vertex_normals_clear_dirty(result);
   }
 
   if (do_remove_doubles) {

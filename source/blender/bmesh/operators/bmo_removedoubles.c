@@ -563,7 +563,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
           CustomData_data_multiply(type, &max, 0.5f);
           CustomData_data_add(type, &min, &max);
 
-          /* snap CD (uv, vcol) points to their centroid */
+          /* Snap custom-data (UV, vertex-colors) points to their centroid. */
           while (!BLI_stack_is_empty(block_stack)) {
             void *block;
             BLI_stack_pop(block_stack, &block);
@@ -657,10 +657,10 @@ static void bmesh_find_doubles_common(BMesh *bm,
     for (int i = 0; i < verts_len; i++) {
       BMVert *v_check = verts[i];
       if (duplicates[i] == -1) {
-        /* nop (others can use as target) */
+        /* NOP (others can use as target). */
       }
       else if (duplicates[i] == i) {
-        /* keep (others can use as target) */
+        /* Keep (others can use as target). */
       }
       else {
         BMVert *v_other = verts[duplicates[i]];

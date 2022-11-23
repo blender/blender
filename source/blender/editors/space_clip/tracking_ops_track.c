@@ -56,11 +56,11 @@ static bool track_markers_testbreak(void)
   return G.is_break;
 }
 
-static int track_count_markers(SpaceClip *sc, MovieClip *clip, int framenr)
+static int track_count_markers(SpaceClip *sc, MovieClip *clip, const int framenr)
 {
   int tot = 0;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     bool selected = (sc != NULL) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
     if (selected && (track->flag & TRACK_LOCKED) == 0) {
       MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
@@ -72,14 +72,17 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip, int framenr)
   return tot;
 }
 
-static void track_init_markers(SpaceClip *sc, MovieClip *clip, int framenr, int *r_frames_limit)
+static void track_init_markers(SpaceClip *sc,
+                               MovieClip *clip,
+                               const int framenr,
+                               int *r_frames_limit)
 {
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   int frames_limit = 0;
   if (sc != NULL) {
     clip_tracking_clear_invisible_track_selection(sc, clip);
   }
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     bool selected = (sc != NULL) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
     if (selected) {
       if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
@@ -204,8 +207,8 @@ static void track_markers_startjob(
     void *tmv,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
-    short *stop,
-    short *do_update,
+    bool *stop,
+    bool *do_update,
     float *progress)
 {
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
@@ -353,7 +356,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     return OPERATOR_RUNNING_MODAL;
   }
 
-  short stop = 0, do_update = 0;
+  bool stop = false, do_update = false;
   float progress = 0.0f;
   track_markers_startjob(tmj, &stop, &do_update, &progress);
   track_markers_endjob(tmj);
@@ -442,12 +445,11 @@ static int refine_marker_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  bool backwards = RNA_boolean_get(op->ptr, "backwards");
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  const bool backwards = RNA_boolean_get(op->ptr, "backwards");
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track)) {
       MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
       BKE_tracking_refine_marker(clip, track, marker, backwards);

@@ -334,7 +334,7 @@ static bool clip_uv_transform_rotate(const TransInfo *t, float *vec, float *vec_
   for (int i = 0; i < max_i; i++) {
     /* Binary search. */
     const float angle_mid = (angle_inside_bounds + angle) / 2.0f;
-    if (angle_mid == angle_inside_bounds || angle_mid == angle) {
+    if (ELEM(angle_mid, angle_inside_bounds, angle)) {
       break; /* float precision reached. */
     }
     if (uv_rotation_in_clip_bounds_test(t, angle_mid)) {

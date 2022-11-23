@@ -7,8 +7,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "BKE_attribute.hh"
 #include "BKE_blender_version.h"
-#include "BKE_geometry_set.hh"
+#include "BKE_mesh.h"
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -261,7 +262,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 
     BLI_assert(tot_count == attribute.size());
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
       ColorGeometry4f linear = attribute.get(i);
       float srgb[3];
       linearrgb_to_srgb_v3_v3(srgb, linear);
@@ -270,7 +271,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   }
   else {
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
       buf.write_obj_vertex(vertex[0], vertex[1], vertex[2]);
     });
   }
@@ -415,16 +416,18 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data) const
 {
-  /* NOTE: ensure_mesh_edges should be called before. */
-  const int tot_edges = obj_mesh_data.tot_edges();
-  for (int edge_index = 0; edge_index < tot_edges; edge_index++) {
-    const std::optional<std::array<int, 2>> vertex_indices =
-        obj_mesh_data.calc_loose_edge_vert_indices(edge_index);
-    if (!vertex_indices) {
-      continue;
+  const Mesh &mesh = *obj_mesh_data.get_mesh();
+  const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+  if (loose_edges.count == 0) {
+    return;
+  }
+
+  const Span<MEdge> edges = mesh.edges();
+  for (const int64_t i : edges.index_range()) {
+    if (loose_edges.is_loose_bits[i]) {
+      const MEdge &edge = edges[i];
+      fh.write_obj_edge(edge.v1 + offsets.vertex_offset + 1, edge.v2 + offsets.vertex_offset + 1);
     }
-    fh.write_obj_edge((*vertex_indices)[0] + offsets.vertex_offset + 1,
-                      (*vertex_indices)[1] + offsets.vertex_offset + 1);
   }
 }
 
@@ -435,7 +438,7 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
     const int total_vertices = obj_nurbs_data.total_spline_vertices(spline_idx);
     for (int vertex_idx = 0; vertex_idx < total_vertices; vertex_idx++) {
       const float3 vertex_coords = obj_nurbs_data.vertex_coordinates(
-          spline_idx, vertex_idx, export_params_.scaling_factor);
+          spline_idx, vertex_idx, export_params_.global_scale);
       fh.write_obj_vertex(vertex_coords[0], vertex_coords[1], vertex_coords[2]);
     }
 
@@ -493,14 +496,17 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
 
 static const char *tex_map_type_to_string[] = {
     "map_Kd",
+    "map_Pm",
     "map_Ks",
     "map_Ns",
-    "map_d",
+    "map_Pr",
+    "map_Ps",
     "map_refl",
     "map_Ke",
+    "map_d",
     "map_Bump",
 };
-BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_string) == (int)MTLTexMapType::Count,
+BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_string) == int(MTLTexMapType::Count),
                   "array size mismatch");
 
 /**
@@ -553,29 +559,64 @@ StringRefNull MTLWriter::mtl_file_path() const
   return mtl_filepath_;
 }
 
-void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl)
+void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl, bool write_pbr)
 {
   /* For various material properties, we only capture information
    * coming from the texture, or the default value of the socket.
    * When the texture is present, do not emit the default value. */
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ns).is_valid()) {
-    fmt_handler_.write_mtl_float("Ns", mtl.Ns);
+
+  /* Do not write Ns & Ka when writing in PBR mode. */
+  if (!write_pbr) {
+    if (!mtl.tex_map_of_type(MTLTexMapType::SpecularExponent).is_valid()) {
+      fmt_handler_.write_mtl_float("Ns", mtl.spec_exponent);
+    }
+    fmt_handler_.write_mtl_float3(
+        "Ka", mtl.ambient_color.x, mtl.ambient_color.y, mtl.ambient_color.z);
   }
-  fmt_handler_.write_mtl_float3("Ka", mtl.Ka.x, mtl.Ka.y, mtl.Ka.z);
-  if (!mtl.tex_map_of_type(MTLTexMapType::Kd).is_valid()) {
-    fmt_handler_.write_mtl_float3("Kd", mtl.Kd.x, mtl.Kd.y, mtl.Kd.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Color).is_valid()) {
+    fmt_handler_.write_mtl_float3("Kd", mtl.color.x, mtl.color.y, mtl.color.z);
   }
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ks).is_valid()) {
-    fmt_handler_.write_mtl_float3("Ks", mtl.Ks.x, mtl.Ks.y, mtl.Ks.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Specular).is_valid()) {
+    fmt_handler_.write_mtl_float3("Ks", mtl.spec_color.x, mtl.spec_color.y, mtl.spec_color.z);
   }
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
-    fmt_handler_.write_mtl_float3("Ke", mtl.Ke.x, mtl.Ke.y, mtl.Ke.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
+    fmt_handler_.write_mtl_float3(
+        "Ke", mtl.emission_color.x, mtl.emission_color.y, mtl.emission_color.z);
   }
-  fmt_handler_.write_mtl_float("Ni", mtl.Ni);
-  if (!mtl.tex_map_of_type(MTLTexMapType::d).is_valid()) {
-    fmt_handler_.write_mtl_float("d", mtl.d);
+  fmt_handler_.write_mtl_float("Ni", mtl.ior);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Alpha).is_valid()) {
+    fmt_handler_.write_mtl_float("d", mtl.alpha);
   }
-  fmt_handler_.write_mtl_illum(mtl.illum);
+  fmt_handler_.write_mtl_illum(mtl.illum_mode);
+
+  if (write_pbr) {
+    if (!mtl.tex_map_of_type(MTLTexMapType::Roughness).is_valid() && mtl.roughness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pr", mtl.roughness);
+    }
+    if (!mtl.tex_map_of_type(MTLTexMapType::Metallic).is_valid() && mtl.metallic >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pm", mtl.metallic);
+    }
+    if (!mtl.tex_map_of_type(MTLTexMapType::Sheen).is_valid() && mtl.sheen >= 0.0f) {
+      fmt_handler_.write_mtl_float("Ps", mtl.sheen);
+    }
+    if (mtl.cc_thickness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pc", mtl.cc_thickness);
+    }
+    if (mtl.cc_roughness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pcr", mtl.cc_roughness);
+    }
+    if (mtl.aniso >= 0.0f) {
+      fmt_handler_.write_mtl_float("aniso", mtl.aniso);
+    }
+    if (mtl.aniso_rot >= 0.0f) {
+      fmt_handler_.write_mtl_float("anisor", mtl.aniso_rot);
+    }
+    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f ||
+        mtl.transmit_color.z > 0.0f) {
+      fmt_handler_.write_mtl_float3(
+          "Tf", mtl.transmit_color.x, mtl.transmit_color.y, mtl.transmit_color.z);
+    }
+  }
 }
 
 void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
@@ -594,8 +635,8 @@ void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
   if (texture_map.scale != float3{1.0f, 1.0f, 1.0f}) {
     options.append(" -s ").append(float3_to_string(texture_map.scale));
   }
-  if (texture_key == MTLTexMapType::bump && mtl_material.map_Bump_strength > 0.0001f) {
-    options.append(" -bm ").append(std::to_string(mtl_material.map_Bump_strength));
+  if (texture_key == MTLTexMapType::Normal && mtl_material.normal_strength > 0.0001f) {
+    options.append(" -bm ").append(std::to_string(mtl_material.normal_strength));
   }
 
   std::string path = path_reference(
@@ -603,12 +644,24 @@ void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
   /* Always emit forward slashes for cross-platform compatibility. */
   std::replace(path.begin(), path.end(), '\\', '/');
 
-  fmt_handler_.write_mtl_map(tex_map_type_to_string[(int)texture_key], options, path);
+  fmt_handler_.write_mtl_map(tex_map_type_to_string[int(texture_key)], options, path);
+}
+
+static bool is_pbr_map(MTLTexMapType type)
+{
+  return type == MTLTexMapType::Metallic || type == MTLTexMapType::Roughness ||
+         type == MTLTexMapType::Sheen;
+}
+
+static bool is_non_pbr_map(MTLTexMapType type)
+{
+  return type == MTLTexMapType::SpecularExponent || type == MTLTexMapType::Reflection;
 }
 
 void MTLWriter::write_materials(const char *blen_filepath,
                                 ePathReferenceMode path_mode,
-                                const char *dest_dir)
+                                const char *dest_dir,
+                                bool write_pbr)
 {
   if (mtlmaterials_.size() == 0) {
     return;
@@ -626,10 +679,16 @@ void MTLWriter::write_materials(const char *blen_filepath,
   for (const MTLMaterial &mtlmat : mtlmaterials_) {
     fmt_handler_.write_string("");
     fmt_handler_.write_mtl_newmtl(mtlmat.name);
-    write_bsdf_properties(mtlmat);
-    for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
+    write_bsdf_properties(mtlmat, write_pbr);
+    for (int key = 0; key < int(MTLTexMapType::Count); key++) {
       const MTLTexMap &tex = mtlmat.texture_maps[key];
       if (!tex.is_valid()) {
+        continue;
+      }
+      if (!write_pbr && is_pbr_map((MTLTexMapType)key)) {
+        continue;
+      }
+      if (write_pbr && is_non_pbr_map((MTLTexMapType)key)) {
         continue;
       }
       write_texture_map(

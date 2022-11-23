@@ -198,7 +198,7 @@ IDTypeInfo IDType_ID_WO = {
     .foreach_id = world_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = world_blend_write,
     .blend_read_data = world_blend_read_data,

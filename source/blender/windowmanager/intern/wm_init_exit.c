@@ -310,9 +310,6 @@ void WM_init(bContext *C, int argc, const char **argv)
   /* For file-system. Called here so can include user preference paths if needed. */
   ED_file_init();
 
-  /* That one is generated on demand, we need to be sure it's clear on init. */
-  IMB_thumb_clear_translations();
-
   if (!G.background) {
     GPU_render_begin();
 
@@ -431,6 +428,8 @@ void wm_exit_schedule_delayed(const bContext *C)
   WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
+void UV_clipboard_free(void);
+
 void WM_exit_ex(bContext *C, const bool do_python)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
@@ -450,14 +449,14 @@ void WM_exit_ex(bContext *C, const bool do_python)
         bool has_edited;
         const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
-        BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+        BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
         has_edited = ED_editors_flush_edits(bmain);
 
         if ((has_edited &&
              BLO_write_file(
                  bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
-            (BLO_memfile_write_file(undo_memfile, filepath))) {
+            BLO_memfile_write_file(undo_memfile, filepath)) {
           printf("Saved session recovery to '%s'\n", filepath);
         }
       }
@@ -539,6 +538,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
   BKE_node_clipboard_free();
+  UV_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();
@@ -634,13 +634,16 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_sound_exit();
 
   BKE_appdir_exit();
-  CLG_exit();
 
   BKE_blender_atexit();
 
   wm_autosave_delete();
 
   BKE_tempdir_session_purge();
+
+  /* Logging cannot be called after exiting (#CLOG_INFO, #CLOG_WARN etc will crash).
+   * So postpone exiting until other sub-systems that may use logging have shut down. */
+  CLG_exit();
 }
 
 void WM_exit(bContext *C)

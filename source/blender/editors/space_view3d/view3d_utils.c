@@ -271,8 +271,8 @@ void ED_view3d_clipping_calc(
   /* four clipping planes and bounding volume */
   /* first do the bounding volume */
   for (int val = 0; val < 4; val++) {
-    float xs = (ELEM(val, 0, 3)) ? rect->xmin : rect->xmax;
-    float ys = (ELEM(val, 0, 1)) ? rect->ymin : rect->ymax;
+    float xs = ELEM(val, 0, 3) ? rect->xmin : rect->xmax;
+    float ys = ELEM(val, 0, 1) ? rect->ymin : rect->ymax;
 
     ED_view3d_unproject_v3(region, xs, ys, 0.0, bb->vec[val]);
     ED_view3d_unproject_v3(region, xs, ys, 1.0, bb->vec[4 + val]);
@@ -281,7 +281,7 @@ void ED_view3d_clipping_calc(
   /* optionally transform to object space */
   if (ob) {
     float imat[4][4];
-    invert_m4_m4(imat, ob->obmat);
+    invert_m4_m4(imat, ob->object_to_world);
 
     for (int val = 0; val < 8; val++) {
       mul_m4_v3(imat, bb->vec[val]);
@@ -291,7 +291,7 @@ void ED_view3d_clipping_calc(
   /* verify if we have negative scale. doing the transform before cross
    * product flips the sign of the vector compared to doing cross product
    * before transform then, so we correct for that. */
-  int flip_sign = (ob) ? is_negative_m4(ob->obmat) : false;
+  int flip_sign = (ob) ? is_negative_m4(ob->object_to_world) : false;
 
   ED_view3d_clipping_calc_from_boundbox(planes, bb, flip_sign);
 }
@@ -466,7 +466,8 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
 
   if (v3d->camera) {
     Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
-    rv3d->dist = ED_view3d_offset_distance(ob_camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+    rv3d->dist = ED_view3d_offset_distance(
+        ob_camera_eval->object_to_world, rv3d->ofs, VIEW3D_DIST_FALLBACK);
     ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
   }
 
@@ -544,7 +545,7 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
 
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
-  return ((v3d->camera) && (!ID_IS_LINKED(v3d->camera)) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
+  return ((v3d->camera) && !ID_IS_LINKED(v3d->camera) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
           (rv3d->persp == RV3D_CAMOB));
 }
 
@@ -558,7 +559,7 @@ void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
     if (calc_dist) {
       /* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
       rv3d->dist = ED_view3d_offset_distance(
-          ob_camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+          ob_camera_eval->object_to_world, rv3d->ofs, VIEW3D_DIST_FALLBACK);
     }
     ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
   }
@@ -592,12 +593,12 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 
       ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-      normalize_m4_m4(tmat, ob_camera_eval->obmat);
+      normalize_m4_m4(tmat, ob_camera_eval->object_to_world);
 
       invert_m4_m4(imat, tmat);
       mul_m4_m4m4(diff_mat, view_mat, imat);
 
-      mul_m4_m4m4(parent_mat, diff_mat, root_parent_eval->obmat);
+      mul_m4_m4m4(parent_mat, diff_mat, root_parent_eval->object_to_world);
 
       BKE_object_tfm_protected_backup(root_parent, &obtfm);
       BKE_object_apply_mat4(root_parent, parent_mat, true, false);
@@ -1508,7 +1509,7 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
 
 void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
 {
-  ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
+  ED_view3d_from_m4(ob->object_to_world, ofs, quat, dist);
 
   if (lens) {
     CameraParams params;
@@ -1555,7 +1556,7 @@ static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
       is_ortho_camera = true;
     }
 
-    copy_m4_m4(obmat_new, camera_ob_eval->obmat);
+    copy_m4_m4(obmat_new, camera_ob_eval->object_to_world);
     copy_v3_v3(obmat_new[3], co);
 
     /* only touch location */

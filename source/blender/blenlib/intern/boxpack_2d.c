@@ -491,7 +491,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
              * flag verts on one or both of the boxes
              * as being used by checking the width or
              * height of both boxes */
-            if (vert->tlb && vert->trb && (ELEM(box, vert->tlb, vert->trb))) {
+            if (vert->tlb && vert->trb && ELEM(box, vert->tlb, vert->trb)) {
               if (UNLIKELY(fabsf(vert->tlb->h - vert->trb->h) < EPSILON_MERGE)) {
 #ifdef USE_MERGE
 #  define A (vert->trb->v[TL])
@@ -522,7 +522,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
                 vert->tlb->v[TR]->free &= ~(TRF | BRF);
               }
             }
-            else if (vert->blb && vert->brb && (ELEM(box, vert->blb, vert->brb))) {
+            else if (vert->blb && vert->brb && ELEM(box, vert->blb, vert->brb)) {
               if (UNLIKELY(fabsf(vert->blb->h - vert->brb->h) < EPSILON_MERGE)) {
 #ifdef USE_MERGE
 #  define A (vert->blb->v[BR])
@@ -554,7 +554,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
               }
             }
             /* Horizontal */
-            if (vert->tlb && vert->blb && (ELEM(box, vert->tlb, vert->blb))) {
+            if (vert->tlb && vert->blb && ELEM(box, vert->tlb, vert->blb)) {
               if (UNLIKELY(fabsf(vert->tlb->w - vert->blb->w) < EPSILON_MERGE)) {
 #ifdef USE_MERGE
 #  define A (vert->blb->v[TL])
@@ -585,7 +585,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
                 vert->tlb->v[BL]->free &= ~(BLF | BRF);
               }
             }
-            else if (vert->trb && vert->brb && (ELEM(box, vert->trb, vert->brb))) {
+            else if (vert->trb && vert->brb && ELEM(box, vert->trb, vert->brb)) {
               if (UNLIKELY(fabsf(vert->trb->w - vert->brb->w) < EPSILON_MERGE)) {
 
 #ifdef USE_MERGE

@@ -15,6 +15,9 @@
 #include "utfconv.h"
 
 #include "GHOST_ContextWGL.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 #include <Dwmapi.h>
 
@@ -89,7 +92,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
      */
   }
 
-  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
+  RECT win_rect = {left, top, long(left + width), long(top + height)};
   adjustWindowRectForClosestMonitor(&win_rect, style, extended_style);
 
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
@@ -631,6 +634,19 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 
     return context;
   }
+
+#ifdef WITH_VULKAN_BACKEND
+  else if (type == GHOST_kDrawingContextTypeVulkan) {
+    GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 0, m_debug_context);
+
+    if (context->initializeDrawingContext()) {
+      return context;
+    }
+    else {
+      delete context;
+    }
+  }
+#endif
 
   return NULL;
 }

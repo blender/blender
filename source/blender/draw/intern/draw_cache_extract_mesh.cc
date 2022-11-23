@@ -110,7 +110,7 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
   uint iter_types_len() const
   {
     const eMRIterType iter_type = iter_types();
-    uint bits = static_cast<uint>(iter_type);
+    uint bits = uint(iter_type);
     return count_bits_i(bits);
   }
 
@@ -204,7 +204,7 @@ BLI_INLINE void extract_init(const MeshRenderData *mr,
     run_data.buffer = mesh_extract_buffer_get(extractor, mbuflist);
     run_data.data_offset = data_offset;
     extractor->init(mr, cache, run_data.buffer, POINTER_OFFSET(data_stack, data_offset));
-    data_offset += (uint32_t)extractor->data_size;
+    data_offset += uint32_t(extractor->data_size);
   }
 }
 
@@ -640,6 +640,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
+  EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
 
   EXTRACT_ADD_REQUESTED(ibo, tris);
   if (DRW_ibo_requested(mbuflist->ibo.lines_loose)) {
@@ -685,7 +686,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   MeshRenderData *mr = mesh_render_data_create(
       object, me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
-  mr->use_subsurf_fdots = mr->me && mr->me->runtime.subsurf_face_dot_tags != nullptr;
+  mr->use_subsurf_fdots = mr->me && mr->me->runtime->subsurf_face_dot_tags != nullptr;
   mr->use_final_mesh = do_final;
 
 #ifdef DEBUG_TIME

@@ -57,6 +57,25 @@ macro(path_ensure_trailing_slash
   unset(_path_sep)
 endmacro()
 
+# Our own version of `cmake_path(IS_PREFIX ..)`.
+# This can be removed when 3.20 or greater is the minimum supported version.
+macro(path_is_prefix
+  path_prefix path result_var
+  )
+  # Remove when CMAKE version is bumped to "3.20" or greater.
+  # `cmake_path(IS_PREFIX ${path_prefix} ${path} NORMALIZE result_var)`
+  # Get the normalized paths (needed to remove `..`).
+  get_filename_component(_abs_prefix "${${path_prefix}}" ABSOLUTE)
+  get_filename_component(_abs_suffix "${${path}}" ABSOLUTE)
+  string(LENGTH "${_abs_prefix}" _len)
+  string(SUBSTRING "${_abs_suffix}" 0 "${_len}" _substr)
+  string(COMPARE EQUAL "${_abs_prefix}" "${_substr}" "${result_var}")
+  unset(_abs_prefix)
+  unset(_abs_suffix)
+  unset(_len)
+  unset(_substr)
+endmacro()
+
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix
   file_name_new file_name file_suffix
@@ -134,12 +153,11 @@ endfunction()
 
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
-function(blender_include_dirs
-  includes
-  )
+function(absolute_include_dirs
+  includes_absolute)
 
   set(_ALL_INCS "")
-  foreach(_INC ${ARGV})
+  foreach(_INC ${ARGN})
     get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
     list(APPEND _ALL_INCS ${_ABS_INC})
     # for checking for invalid includes, disable for regular use
@@ -147,22 +165,24 @@ function(blender_include_dirs
     #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
     # endif()
   endforeach()
-  include_directories(${_ALL_INCS})
+
+  set(${includes_absolute} ${_ALL_INCS} PARENT_SCOPE)
 endfunction()
 
-function(blender_include_dirs_sys
-  includes
+function(blender_target_include_dirs
+  name
   )
 
-  set(_ALL_INCS "")
-  foreach(_INC ${ARGV})
-    get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
-    list(APPEND _ALL_INCS ${_ABS_INC})
-    # if(NOT EXISTS "${_ABS_INC}/")
-    #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
-    # endif()
-  endforeach()
-  include_directories(SYSTEM ${_ALL_INCS})
+  absolute_include_dirs(_ALL_INCS ${ARGN})
+  target_include_directories(${name} PRIVATE ${_ALL_INCS})
+endfunction()
+
+function(blender_target_include_dirs_sys
+  name
+  )
+
+  absolute_include_dirs(_ALL_INCS ${ARGN})
+  target_include_directories(${name} SYSTEM PRIVATE ${_ALL_INCS})
 endfunction()
 
 # Set include paths for header files included with "*.h" syntax.
@@ -268,12 +288,10 @@ function(blender_add_lib__impl
 
   # message(STATUS "Configuring library ${name}")
 
-  # include_directories(${includes})
-  # include_directories(SYSTEM ${includes_sys})
-  blender_include_dirs("${includes}")
-  blender_include_dirs_sys("${includes_sys}")
-
   add_library(${name} ${sources})
+
+  blender_target_include_dirs(${name} ${includes})
+  blender_target_include_dirs_sys(${name} ${includes_sys})
 
   # On Windows certain libraries have two sets of binaries: one for debug builds and one for
   # release builds. The root of this requirement goes into ABI, I believe, but that's outside
@@ -382,7 +400,7 @@ function(blender_add_test_suite)
   cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # Figure out the release dir, as some tests need files from there.
-  GET_BLENDER_TEST_INSTALL_DIR(TEST_INSTALL_DIR)
+  get_blender_test_install_dir(TEST_INSTALL_DIR)
   if(APPLE)
     set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
   else()
@@ -425,20 +443,20 @@ function(blender_add_test_lib
 
   # This duplicates logic that's also in GTestTesting.cmake, macro BLENDER_SRC_GTEST_EX.
   # TODO(Sybren): deduplicate after the general approach in D7649 has been approved.
-  LIST(APPEND includes
+  list(APPEND includes
     ${CMAKE_SOURCE_DIR}/tests/gtests
   )
-  LIST(APPEND includes_sys
+  list(APPEND includes_sys
     ${GLOG_INCLUDE_DIRS}
     ${GFLAGS_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/extern/gtest/include
     ${CMAKE_SOURCE_DIR}/extern/gmock/include
   )
-  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
-  add_definitions(${GFLAGS_DEFINES})
-  add_definitions(${GLOG_DEFINES})
 
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
+
+  target_compile_definitions(${name} PRIVATE ${GFLAGS_DEFINES})
+  target_compile_definitions(${name} PRIVATE ${GLOG_DEFINES})
 
   set_property(GLOBAL APPEND PROPERTY BLENDER_TEST_LIBS ${name})
 
@@ -469,15 +487,15 @@ function(blender_add_test_executable
   ## Otherwise external projects will produce warnings that we cannot fix.
   remove_strict_flags()
 
-  include_directories(${includes})
-  include_directories(${includes_sys})
-
-  BLENDER_SRC_GTEST_EX(
+  blender_src_gtest_ex(
     NAME ${name}
     SRC "${sources}"
     EXTRA_LIBS "${library_deps}"
     SKIP_ADD_TEST
   )
+
+  blender_target_include_dirs(${name}_test ${includes})
+  blender_target_include_dirs_sys(${name}_test ${includes_sys})
 
   blender_add_test_suite(
     TARGET ${name}_test
@@ -513,6 +531,11 @@ function(setup_platform_linker_flags
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS}")
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " ${PLATFORM_LINKFLAGS_RELEASE}")
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " ${PLATFORM_LINKFLAGS_DEBUG}")
+
+  get_target_property(target_type ${target} TYPE)
+  if (target_type STREQUAL "EXECUTABLE")
+    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS_EXECUTABLE}")
+  endif()
 endfunction()
 
 # Platform specific libraries for targets.
@@ -760,7 +783,7 @@ function(ADD_CHECK_C_COMPILER_FLAG
 
   include(CheckCCompilerFlag)
 
-  CHECK_C_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
+  check_c_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CFLAG: ${_FLAG}")
     set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}" PARENT_SCOPE)
@@ -777,7 +800,7 @@ function(ADD_CHECK_CXX_COMPILER_FLAG
 
   include(CheckCXXCompilerFlag)
 
-  CHECK_CXX_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
+  check_cxx_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CXXFLAG: ${_FLAG}")
     set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}" PARENT_SCOPE)
@@ -795,9 +818,11 @@ function(get_blender_version)
   # - BLENDER_VERSION_PATCH
   # - BLENDER_VERSION_CYCLE (alpha, beta, rc, release)
 
-  # So cmake depends on BKE_blender.h, beware of inf-loops!
-  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
-                 ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done)
+  # So CMAKE depends on `BKE_blender.h`, beware of infinite-loops!
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
+    ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done
+  )
 
   file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
 
@@ -989,7 +1014,8 @@ function(data_to_c_simple_icons
   add_custom_command(
     OUTPUT  ${_file_from} ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
+    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py
+    #         ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc_icon>" ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
     DEPENDS
@@ -1067,23 +1093,27 @@ function(msgfmt_simple
 endfunction()
 
 function(find_python_package
-  package
-  relative_include_dir
+    package
+    relative_include_dir
   )
 
   string(TOUPPER ${package} _upper_package)
 
-  # set but invalid
+  # Set but invalid.
   if((NOT ${PYTHON_${_upper_package}_PATH} STREQUAL "") AND
      (NOT ${PYTHON_${_upper_package}_PATH} MATCHES NOTFOUND))
-#       if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
-#           message(WARNING "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in '${PYTHON_${_upper_package}_PATH}' "
-#                           "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing python")
-#           set(WITH_PYTHON_INSTALL${_upper_package} OFF)
-#       endif()
-  # not set, so initialize
+    # if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
+    #   message(
+    #     WARNING
+    #     "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in "
+    #     "'${PYTHON_${_upper_package}_PATH}' "
+    #     "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing Python"
+    #   )
+    #   set(WITH_PYTHON_INSTALL${_upper_package} OFF)
+    # endif()
+    # Not set, so initialize.
   else()
-    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache
@@ -1184,8 +1214,6 @@ macro(openmp_delayload
     if(WITH_OPENMP)
       if(MSVC_CLANG)
         set(OPENMP_DLL_NAME "libomp")
-      elseif(MSVC_VERSION EQUAL 1800)
-        set(OPENMP_DLL_NAME "vcomp120")
       else()
         set(OPENMP_DLL_NAME "vcomp140")
       endif()
@@ -1201,23 +1229,31 @@ macro(set_and_warn_dependency
   _dependency _setting _val)
   # when $_dependency is disabled, forces $_setting = $_val
   if(NOT ${${_dependency}} AND ${${_setting}})
-    message(STATUS "'${_dependency}' is disabled: forcing 'set(${_setting} ${_val})'")
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR "${_dependency} disabled but required by ${_setting}")
+    else()
+      message(STATUS "${_dependency} is disabled, setting ${_setting}=${_val}")
+    endif()
     set(${_setting} ${_val})
+  endif()
+endmacro()
+
+macro(set_and_warn_library_found
+  _library_name _library_found _setting)
+  if(((NOT ${_library_found}) OR (NOT ${${_library_found}})) AND ${${_setting}})
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR "${_library_name} required but not found")
+    else()
+      message(STATUS "${_library_name} not found, disabling ${_setting}")
+    endif()
+    set(${_setting} OFF)
   endif()
 endmacro()
 
 macro(without_system_libs_begin)
   set(CMAKE_IGNORE_PATH "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES};${CMAKE_SYSTEM_INCLUDE_PATH};${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES};${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
-  if(APPLE)
-    # Avoid searching for headers in frameworks (like Mono), and libraries in LIBDIR.
-    set(CMAKE_FIND_FRAMEWORK NEVER)
-  endif()
 endmacro()
 
 macro(without_system_libs_end)
   unset(CMAKE_IGNORE_PATH)
-  if(APPLE)
-    # FIRST is the default.
-    set(CMAKE_FIND_FRAMEWORK FIRST)
-  endif()
 endmacro()

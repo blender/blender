@@ -71,3 +71,12 @@ void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaDat
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+#  include <memory>
+
+[[nodiscard]] std::unique_ptr<AssetMetaData> BKE_asset_metadata_move_to_unique_ptr(
+    AssetMetaData *asset_data);
+
+#endif

@@ -1310,8 +1310,8 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *screen_opengl_render_description(struct bContext *UNUSED(C),
-                                              struct wmOperatorType *UNUSED(ot),
+static char *screen_opengl_render_description(struct bContext * /*C*/,
+                                              struct wmOperatorType * /*ot*/,
                                               struct PointerRNA *ptr)
 {
   if (!RNA_boolean_get(ptr, "animation")) {

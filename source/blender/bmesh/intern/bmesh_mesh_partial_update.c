@@ -52,7 +52,7 @@
 #define GROW(len_alloc) ((len_alloc) + ((len_alloc) - ((len_alloc) / 2)))
 #define GROW_ARRAY(mem, len_alloc) \
   { \
-    mem = MEM_reallocN(mem, (sizeof(*mem)) * ((len_alloc) = GROW(len_alloc))); \
+    mem = MEM_reallocN(mem, sizeof(*mem) * ((len_alloc) = GROW(len_alloc))); \
   } \
   ((void)0)
 

@@ -14,6 +14,8 @@
 
 #include "../geometry/GeomUtils.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 using namespace std;
@@ -66,7 +68,7 @@ void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4],
                                         const int iViewport[4],
                                         real iFocal)
 {
-  unsigned int i, j;
+  uint i, j;
   _translation[0] = iModelViewMatrix[3][0];
   _translation[1] = iModelViewMatrix[3][1];
   _translation[2] = iModelViewMatrix[3][2];
@@ -88,7 +90,7 @@ void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4],
   for (i = 0; i < 4; i++) {
     for (j = 0; j < 4; j++) {
       _transform[i][j] = 0;
-      for (unsigned int k = 0; k < 4; k++) {
+      for (uint k = 0; k < 4; k++) {
         _transform[i][j] += _projectionMatrix[i][k] * _modelViewMatrix[k][j];
       }
     }

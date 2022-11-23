@@ -645,10 +645,10 @@ bGPDcurve *BKE_gpencil_stroke_editcurve_generate(bGPDstroke *gps,
   }
 
   float *r_cubic_array = NULL;
-  unsigned int r_cubic_array_len = 0;
-  unsigned int *r_cubic_orig_index = NULL;
-  unsigned int *r_corners_index_array = NULL;
-  unsigned int r_corners_index_len = 0;
+  uint r_cubic_array_len = 0;
+  uint *r_cubic_orig_index = NULL;
+  uint *r_corners_index_array = NULL;
+  uint r_corners_index_len = 0;
   int r = curve_fit_cubic_to_points_refit_fl(points,
                                              gps->totpoints,
                                              POINT_DIM,
@@ -992,7 +992,7 @@ static float *gpencil_stroke_points_from_editcurve_fixed_resolu(bGPDcurve_point 
 
   float(*r_points)[9] = MEM_callocN((stride * points_len * (is_cyclic ? 2 : 1)), __func__);
   float *points_offset = &r_points[0][0];
-  for (unsigned int i = 0; i < array_last; i++) {
+  for (uint i = 0; i < array_last; i++) {
     bGPDcurve_point *cpt_curr = &curve_point_array[i];
     bGPDcurve_point *cpt_next = &curve_point_array[i + 1];
 

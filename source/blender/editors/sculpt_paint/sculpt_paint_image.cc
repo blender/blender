@@ -2,13 +2,9 @@
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
 #include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_paint.h"
-#include "ED_uvedit.h"
 
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
@@ -19,13 +15,10 @@
 
 #include "BKE_brush.h"
 #include "BKE_image_wrappers.hh"
-#include "BKE_material.h"
 #include "BKE_pbvh.h"
 #include "BKE_pbvh_pixels.hh"
 
 #include "bmesh.h"
-
-#include "NOD_shader.h"
 
 #include "sculpt_intern.h"
 
@@ -153,7 +146,10 @@ template<typename ImageBuffer> class PaintingKernel {
     init_brush_test();
   }
 
-  bool paint(const Triangles &triangles, const PackedPixelRow &pixel_row, ImBuf *image_buffer)
+  bool paint(const Triangles &triangles,
+             const PackedPixelRow &pixel_row,
+             ImBuf *image_buffer,
+             AutomaskingNodeData *automask_data)
   {
     image_accessor.set_image_position(image_buffer, pixel_row.start_image_coordinate);
     const TrianglePaintInput triangle = triangles.get_paint_input(pixel_row.triangle_index);
@@ -171,6 +167,7 @@ template<typename ImageBuffer> class PaintingKernel {
       const float3 normal(0.0f, 0.0f, 0.0f);
       const float3 face_normal(0.0f, 0.0f, 0.0f);
       const float mask = 0.0f;
+
       const float falloff_strength = SCULPT_brush_strength_factor(
           ss,
           brush,
@@ -180,7 +177,8 @@ template<typename ImageBuffer> class PaintingKernel {
           face_normal,
           mask,
           BKE_pbvh_make_vref(PBVH_REF_NONE),
-          thread_id);
+          thread_id,
+          automask_data);
       float4 paint_color = brush_color * falloff_strength * brush_strength;
       float4 buffer_color;
       blend_color_mix_float(buffer_color, color, paint_color);
@@ -321,6 +319,9 @@ static void do_paint_pixels(void *__restrict userdata,
   PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, mvert);
   PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, mvert);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+
   ImageUser image_user = *data->image_data.image_user;
   bool pixels_updated = false;
   for (UDIMTilePixels &tile_data : node_data.tiles) {
@@ -347,10 +348,12 @@ static void do_paint_pixels(void *__restrict userdata,
           }
           bool pixels_painted = false;
           if (image_buffer->rect_float != nullptr) {
-            pixels_painted = kernel_float4.paint(node_data.triangles, pixel_row, image_buffer);
+            pixels_painted = kernel_float4.paint(
+                node_data.triangles, pixel_row, image_buffer, &automask_data);
           }
           else {
-            pixels_painted = kernel_byte4.paint(node_data.triangles, pixel_row, image_buffer);
+            pixels_painted = kernel_byte4.paint(
+                node_data.triangles, pixel_row, image_buffer, &automask_data);
           }
 
           if (pixels_painted) {
@@ -421,7 +424,7 @@ static void push_undo(const NodeData &node_data,
 
 static void do_push_undo_tile(void *__restrict userdata,
                               const int n,
-                              const TaskParallelTLS *__restrict UNUSED(tls))
+                              const TaskParallelTLS *__restrict /*tls*/)
 {
   TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   PBVHNode *node = data->nodes[n];
@@ -450,7 +453,7 @@ static void do_push_undo_tile(void *__restrict userdata,
 
 static void do_mark_dirty_regions(void *__restrict userdata,
                                   const int n,
-                                  const TaskParallelTLS *__restrict UNUSED(tls))
+                                  const TaskParallelTLS *__restrict /*tls*/)
 {
   TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   PBVHNode *node = data->nodes[n];

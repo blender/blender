@@ -42,7 +42,7 @@ def get_root_modules():
     """
     global ROOT_MODULES
     modules = []
-    if not(ROOT_MODULES is None):
+    if not (ROOT_MODULES is None):
         return ROOT_MODULES
     from time import time
     t = time()
@@ -76,7 +76,7 @@ def module_list(path):
     Return the list containing the names of the modules available in
     the given folder.
 
-    :param path: folder path
+    :arg path: folder path
     :type path: str
     :returns: modules
     :rtype: list
@@ -107,7 +107,7 @@ def complete(line):
     """
     Returns a list containing the completion possibilities for an import line.
 
-    :param line:
+    :arg line:
 
         incomplete line which contains an import statement::
 
@@ -131,7 +131,7 @@ def complete(line):
             if only_modules:
                 return inspect.ismodule(getattr(module, attr))
             else:
-                return not(attr[:2] == '__' and attr[-2:] == '__')
+                return not (attr[:2] == '__' and attr[-2:] == '__')
 
         try:
             m = __import__(mod)

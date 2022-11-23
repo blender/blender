@@ -60,8 +60,8 @@ class TexturePool {
   /* Shorthand for acquire with GPU_RGBA16F format. */
   GPUTexture *acquire_color(int2 size);
 
-  /* Shorthand for acquire with GPU_RGBA16F format. Identical to acquire_color because vectors
-   * are stored in RGBA textures, due to the limited support for RGB textures. */
+  /* Shorthand for acquire with GPU_RGBA16F format. Identical to acquire_color because vectors are
+   * 4D, and are thus stored in RGBA textures. */
   GPUTexture *acquire_vector(int2 size);
 
   /* Shorthand for acquire with GPU_R16F format. */

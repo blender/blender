@@ -15,6 +15,7 @@ extern "C" {
 struct Base;
 struct CLG_LogRef;
 struct Object;
+struct Scene;
 struct UndoStack;
 struct ViewLayer;
 struct bContext;
@@ -79,9 +80,12 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
                                             uint object_array_len,
                                             uint object_array_stride);
 
-struct Object **ED_undo_editmode_objects_from_view_layer(struct ViewLayer *view_layer,
+struct Object **ED_undo_editmode_objects_from_view_layer(const struct Scene *scene,
+                                                         struct ViewLayer *view_layer,
                                                          uint *r_len);
-struct Base **ED_undo_editmode_bases_from_view_layer(struct ViewLayer *view_layer, uint *r_len);
+struct Base **ED_undo_editmode_bases_from_view_layer(const struct Scene *scene,
+                                                     struct ViewLayer *view_layer,
+                                                     uint *r_len);
 
 /**
  * Ideally we won't access the stack directly,

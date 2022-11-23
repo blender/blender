@@ -3,6 +3,7 @@
 
 set(INC
   .
+  ../asset_system
   ../blenfont
   ../blenlib
   ../blenloader
@@ -71,10 +72,6 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
-  intern/asset_catalog.cc
-  intern/asset_catalog_path.cc
-  intern/asset_library.cc
-  intern/asset_library_service.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -93,13 +90,15 @@ set(SRC
   intern/callbacks.c
   intern/camera.c
   intern/cdderivedmesh.c
-  intern/cloth.c
+  intern/cloth.cc
   intern/collection.c
   intern/collision.c
   intern/colorband.c
   intern/colortools.c
+  intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
+  intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
@@ -109,7 +108,6 @@ set(SRC
   intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
-  intern/curve_eval.cc
   intern/curve_legacy_convert.cc
   intern/curve_nurbs.cc
   intern/curve_poly.cc
@@ -125,7 +123,7 @@ set(SRC
   intern/displist.cc
   intern/dynamicpaint.c
   intern/editlattice.c
-  intern/editmesh.c
+  intern/editmesh.cc
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
   intern/editmesh_tangent.cc
@@ -136,7 +134,6 @@ set(SRC
   intern/fluid.c
   intern/fmodifier.c
   intern/freestyle.c
-  intern/geometry_component_curve.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_edit_data.cc
   intern/geometry_component_instances.cc
@@ -164,13 +161,14 @@ set(SRC
   intern/image_gpu.cc
   intern/image_partial_update.cc
   intern/image_save.cc
+  intern/instances.cc
   intern/ipo.c
   intern/kelvinlet.c
   intern/key.c
   intern/keyconfig.c
   intern/lattice.c
   intern/lattice_deform.c
-  intern/layer.c
+  intern/layer.cc
   intern/layer_utils.c
   intern/lib_id.c
   intern/lib_id_delete.c
@@ -183,16 +181,16 @@ set(SRC
   intern/library.c
   intern/light.c
   intern/lightprobe.c
-  intern/linestyle.c
+  intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
-  intern/material.c
+  intern/material.cc
   intern/mball.cc
-  intern/mball_tessellate.c
+  intern/mball_tessellate.cc
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
@@ -200,14 +198,14 @@ set(SRC
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
-  intern/mesh_iterators.c
+  intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
-  intern/mesh_mapping.c
+  intern/mesh_mapping.cc
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
-  intern/mesh_remap.c
+  intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
@@ -215,9 +213,9 @@ set(SRC
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
-  intern/modifier.c
+  intern/modifier.cc
   intern/movieclip.c
-  intern/multires.c
+  intern/multires.cc
   intern/multires_reshape.c
   intern/multires_reshape_apply_base.c
   intern/multires_reshape_ccg.c
@@ -236,7 +234,7 @@ set(SRC
   intern/object_deform.c
   intern/object_dupli.cc
   intern/object_facemap.c
-  intern/object_update.c
+  intern/object_update.cc
   intern/ocean.c
   intern/ocean_spectrum.c
   intern/outliner_treehash.cc
@@ -260,18 +258,14 @@ set(SRC
   intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
-  intern/shrinkwrap.c
+  intern/shrinkwrap.cc
   intern/simulation.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
-  intern/spline_base.cc
-  intern/spline_bezier.cc
-  intern/spline_nurbs.cc
-  intern/spline_poly.cc
   intern/studiolight.c
   intern/subdiv.c
-  intern/subdiv_ccg.c
+  intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.c
   intern/subdiv_ccg_material.c
   intern/subdiv_converter.c
@@ -282,13 +276,13 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.cc
-  intern/subdiv_modifier.c
+  intern/subdiv_modifier.cc
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
   intern/text.c
   intern/text_suggestions.c
-  intern/texture.c
+  intern/texture.cc
   intern/tracking.c
   intern/tracking_auto.c
   intern/tracking_detect.c
@@ -302,10 +296,11 @@ set(SRC
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c
+  intern/viewer_path.cc
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
-  intern/workspace.c
+  intern/workspace.cc
   intern/world.c
   intern/writeavi.c
 
@@ -323,10 +318,6 @@ set(SRC
   BKE_armature.h
   BKE_armature.hh
   BKE_asset.h
-  BKE_asset_catalog.hh
-  BKE_asset_catalog_path.hh
-  BKE_asset_library.h
-  BKE_asset_library.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -352,8 +343,10 @@ set(SRC
   BKE_collision.h
   BKE_colorband.h
   BKE_colortools.h
+  BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
+  BKE_cpp_types.h
   BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h
@@ -401,6 +394,7 @@ set(SRC
   BKE_image_partial_update.hh
   BKE_image_save.h
   BKE_image_wrappers.hh
+  BKE_instances.hh
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -467,7 +461,6 @@ set(SRC
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
-  BKE_spline.hh
   BKE_studiolight.h
   BKE_subdiv.h
   BKE_subdiv_ccg.h
@@ -487,6 +480,7 @@ set(SRC
   BKE_unit.h
   BKE_vfont.h
   BKE_vfontdata.h
+  BKE_viewer_path.h
   BKE_volume.h
   BKE_volume_render.h
   BKE_volume_to_mesh.hh
@@ -500,7 +494,6 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
-  intern/asset_library_service.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -514,6 +507,7 @@ set(SRC
 )
 
 set(LIB
+  bf_asset_system
   bf_blenfont
   bf_blenlib
   bf_blenloader
@@ -658,6 +652,10 @@ if(WITH_PYTHON)
     bf_python_bmesh
   )
   add_definitions(-DWITH_PYTHON)
+
+  if(WITH_PYTHON_MODULE)
+    add_definitions(-DWITH_PYTHON_MODULE)
+  endif()
 
   if(WITH_PYTHON_SAFETY)
     add_definitions(-DWITH_PYTHON_SAFETY)
@@ -827,11 +825,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
-    intern/asset_catalog_path_test.cc
-    intern/asset_catalog_test.cc
-    intern/asset_library_service_test.cc
-    intern/asset_library_test.cc
-    intern/asset_test.cc
+    intern/asset_metadata_test.cc
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc

@@ -117,9 +117,7 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
 
   MTLShaderUniformBlock &uni_block = ubos_[total_uniform_blocks_];
   uni_block.name_offset = name_offset;
-  /* We offset the buffer binding index by one, as the first slot is reserved for push constant
-   * data. */
-  uni_block.buffer_index = buffer_index + 1;
+  uni_block.buffer_index = buffer_index;
   uni_block.size = size;
   uni_block.current_offset = 0;
   uni_block.stage_mask = ShaderStage::BOTH;
@@ -297,8 +295,10 @@ void MTLShaderInterface::prepare_common_shader_inputs()
     current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_ubo.name_offset));
     /* Location refers to the index in the ubos_ array. */
     current_input->location = ubo_index;
-    /* Final binding location refers to the buffer binding index within the shader (Relative to
-     * MTL_uniform_buffer_base_index). */
+    /* Binding location refers to the UBO bind slot in
+     * #MTLContextGlobalShaderPipelineState::ubo_bindings. The buffer bind index [[buffer(N)]]
+     * within the shader will apply an offset for bound vertex buffers and the default uniform
+     * PushConstantBlock. */
     current_input->binding = shd_ubo.buffer_index;
     current_input++;
   }

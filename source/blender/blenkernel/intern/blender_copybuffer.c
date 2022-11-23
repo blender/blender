@@ -150,7 +150,7 @@ int BKE_copybuffer_paste(bContext *C,
     return 0;
   }
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   copybuffer_append(lapp_context, bmain, reports);
 

@@ -62,17 +62,21 @@ static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 
     td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransCrease");
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* create data we need */
     if (t->mode == TFM_BWEIGHT) {
-      BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
+      if (!CustomData_has_layer(&em->bm->edata, CD_BWEIGHT)) {
+        BM_data_layer_add(em->bm, &em->bm->edata, CD_BWEIGHT);
+      }
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
     }
     else { /* if (t->mode == TFM_EDGE_CREASE) { */
       BLI_assert(t->mode == TFM_EDGE_CREASE);
-      BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_CREASE);
+      if (!CustomData_has_layer(&em->bm->edata, CD_CREASE)) {
+        BM_data_layer_add(em->bm, &em->bm->edata, CD_CREASE);
+      }
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
     }
 
@@ -121,5 +125,5 @@ TransConvertTypeInfo TransConvertType_MeshEdge = {
     /* flags */ T_EDIT,
     /* createTransData */ createTransEdge,
     /* recalcData */ recalcData_mesh_edge,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /* special_aftertrans_update */ NULL,
 };

@@ -16,8 +16,8 @@ void CropNode::convert_to_operations(NodeConverter &converter,
 {
   const bNode *node = get_bnode();
   NodeTwoXYs *crop_settings = (NodeTwoXYs *)node->storage;
-  bool relative = (bool)node->custom2;
-  bool crop_image = (bool)node->custom1;
+  bool relative = bool(node->custom2);
+  bool crop_image = bool(node->custom1);
   CropBaseOperation *operation;
   if (crop_image) {
     operation = new CropImageOperation();

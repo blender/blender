@@ -41,7 +41,7 @@ class SplineCountFieldInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+                                 const IndexMask /*mask*/) const final
   {
     return construct_curve_point_count_gvarray(curves, domain);
   }
@@ -55,6 +55,11 @@ class SplineCountFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const SplineCountFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  {
+    return ATTR_DOMAIN_CURVE;
   }
 };
 

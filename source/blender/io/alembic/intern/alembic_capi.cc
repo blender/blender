@@ -427,8 +427,8 @@ struct ImportJobData {
   ArchiveReader *archive;
   std::vector<AbcObjectReader *> readers;
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 
   char error_code;
@@ -446,7 +446,7 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
+static void import_startjob(void *user_data, bool *stop, bool *do_update, float *progress)
 {
   SCOPE_TIMER("Alembic import, objects reading and creation");
 
@@ -502,7 +502,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   /* Create objects and set scene frame range. */
 
-  const float size = static_cast<float>(data->readers.size());
+  const float size = float(data->readers.size());
   size_t i = 0;
 
   chrono_t min_time = std::numeric_limits<chrono_t>::max();
@@ -542,8 +542,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
       scene->r.cfra = scene->r.sfra;
     }
     else if (min_time < max_time) {
-      scene->r.sfra = static_cast<int>(round(min_time * FPS));
-      scene->r.efra = static_cast<int>(round(max_time * FPS));
+      scene->r.sfra = int(round(min_time * FPS));
+      scene->r.efra = int(round(max_time * FPS));
       scene->r.cfra = scene->r.sfra;
     }
   }
@@ -601,21 +601,19 @@ static void import_endjob(void *user_data)
   else {
     Base *base;
     LayerCollection *lc;
+    const Scene *scene = data->scene;
     ViewLayer *view_layer = data->view_layer;
 
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-    /* Add all objects to the collection (don't do sync for each object). */
-    BKE_layer_collection_resync_forbid();
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();
       BKE_collection_object_add(data->bmain, lc->collection, ob);
     }
-    /* Sync the collection, and do view layer operations. */
-    BKE_layer_collection_resync_allow();
-    BKE_main_collection_sync(data->bmain);
+    /* Sync and do the view layer operations. */
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();
       base = BKE_view_layer_base_find(view_layer, ob);
@@ -717,7 +715,7 @@ bool ABC_import(bContext *C,
   }
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
-    short stop = 0, do_update = 0;
+    bool stop = false, do_update = false;
     float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);

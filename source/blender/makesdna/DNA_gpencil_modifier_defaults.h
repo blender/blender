@@ -172,6 +172,19 @@
     .curve_intensity = NULL, \
   }
 
+#define _DNA_DEFAULT_OutlineGpencilModifierData \
+  { \
+    .material = NULL, \
+    .layername = "", \
+    .pass_index = 0, \
+    .flag = GP_OUTLINE_KEEP_SHAPE, \
+    .thickness = 1, \
+    .sample_length = 0.0f, \
+    .subdiv = 3, \
+    .layer_pass = 0, \
+    .outline_material = NULL, \
+  }
+
 #define _DNA_DEFAULT_SimplifyGpencilModifierData \
   { \
     .material = NULL, \
@@ -249,6 +262,18 @@
     .mode = 0, \
     .sfra = 1, \
     .efra = 250, \
+    .segments = NULL, \
+    .segments_len = 1, \
+    .segment_active_index = 0, \
+  }
+
+  #define _DNA_DEFAULT_TimeGpencilModifierSegment \
+  { \
+    .name = "", \
+    .seg_start = 1, \
+    .seg_end = 2, \
+    .seg_mode = 0, \
+    .seg_repeat = 1, \
   }
 
 #define _DNA_DEFAULT_TintGpencilModifierData \

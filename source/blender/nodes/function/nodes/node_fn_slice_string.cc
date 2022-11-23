@@ -16,7 +16,7 @@ static void fn_node_slice_string_declare(NodeDeclarationBuilder &b)
 
 static void fn_node_slice_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> slice_fn{
+  static fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> slice_fn{
       "Slice", [](const std::string &str, int a, int b) {
         const int len = BLI_strlen_utf8(str.c_str());
         const int start = BLI_str_utf8_offset_from_index(str.c_str(), std::clamp(a, 0, len));

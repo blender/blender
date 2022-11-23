@@ -170,7 +170,7 @@ int BKE_sound_scene_playing(struct Scene *scene);
 
 void BKE_sound_free_waveform(struct bSound *sound);
 
-void BKE_sound_read_waveform(struct Main *bmain, struct bSound *sound, short *stop);
+void BKE_sound_read_waveform(struct Main *bmain, struct bSound *sound, bool *stop);
 
 void BKE_sound_update_scene(struct Depsgraph *depsgraph, struct Scene *scene);
 

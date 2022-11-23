@@ -12,6 +12,10 @@
 #pragma once
 
 #define DRW_VIEW_UBO_SLOT 0
+#define DRW_VIEW_CULLING_UBO_SLOT 1
+#define DRW_CLIPPING_UBO_SLOT 2
+
+#define DRW_LAYER_ATTR_UBO_SLOT 3
 
 #define DRW_RESOURCE_ID_SLOT 11
 #define DRW_OBJ_MAT_SLOT 10

@@ -30,7 +30,7 @@ static void cmp_node_composite_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Z")).default_value(1.0f).min(0.0f).max(1.0f);
 }
 
-static void node_composit_buts_composite(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_composite(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }

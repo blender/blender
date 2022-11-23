@@ -150,7 +150,7 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 
   /* don't do translations here yet */
 #if 0
-  /* Use i18n context from rna_ext.srna if possible (py gizmogroups). */
+  /* Use i18n context from rna_ext.srna if possible (py gizmo-groups). */
   if (gt->rna_ext.srna) {
     RNA_def_struct_translation_context(gt->srna, RNA_struct_translation_context(gt->rna_ext.srna));
   }

@@ -69,7 +69,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
-void BLF_size(int fontid, float size, int dpi);
+void BLF_size(int fontid, float size);
 
 /* Goal: small but useful color API. */
 
@@ -118,10 +118,7 @@ int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth) ATTR_
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   size_t str_step_ofs,
-                                  const struct rcti *glyph_step_bounds,
-                                  int glyph_advance_x,
-                                  const struct rcti *glyph_bounds,
-                                  const int glyph_bearing[2],
+                                  const struct rcti *bounds,
                                   void *user_data);
 
 /**
@@ -132,17 +129,27 @@ typedef bool (*BLF_GlyphBoundsFn)(const char *str,
  *
  * \note The font position, clipping, matrix and rotation are not applied.
  */
-void BLF_boundbox_foreach_glyph_ex(int fontid,
-                                   const char *str,
-                                   size_t str_len,
-                                   BLF_GlyphBoundsFn user_fn,
-                                   void *user_data,
-                                   struct ResultBLF *r_info) ATTR_NONNULL(2);
 void BLF_boundbox_foreach_glyph(int fontid,
                                 const char *str,
                                 size_t str_len,
                                 BLF_GlyphBoundsFn user_fn,
                                 void *user_data) ATTR_NONNULL(2);
+
+/**
+ * Get the byte offset within a string, selected by mouse at a horizontal location.
+ */
+size_t BLF_str_offset_from_cursor_position(int fontid,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x);
+
+/**
+ * Return bounds of the glyph rect at the string offset.
+ */
+bool BLF_str_offset_to_glyph_bounds(int fontid,
+                                    const char *str,
+                                    size_t str_offset,
+                                    struct rcti *glyph_bounds);
 
 /**
  * Get the string byte offset that fits within a given width.
@@ -290,20 +297,11 @@ void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
  *
  * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
  */
-void BLF_thumb_preview(const char *filepath,
-                       const char **draw_str,
-                       const char **i18n_draw_str,
-                       unsigned char draw_str_lines,
-                       const float font_color[4],
-                       int font_size,
-                       unsigned char *buf,
-                       int w,
-                       int h,
-                       int channels) ATTR_NONNULL();
+bool BLF_thumb_preview(const char *filename, unsigned char *buf, int w, int h, int channels)
+    ATTR_NONNULL();
 
 /* blf_default.c */
 
-void BLF_default_dpi(int dpi);
 void BLF_default_size(float size);
 void BLF_default_set(int fontid);
 /**

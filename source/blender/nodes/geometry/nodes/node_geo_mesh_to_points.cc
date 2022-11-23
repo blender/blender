@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_task.hh"
 
 #include "DNA_mesh_types.h"
@@ -23,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
@@ -32,27 +33,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Points"));
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryMeshToPoints *data = MEM_cnew<NodeGeometryMeshToPoints>(__func__);
   data->mode = GEO_NODE_MESH_TO_POINTS_VERTICES;
   node->storage = data;
-}
-
-static void materialize_compressed_to_uninitialized_threaded(const GVArray &src,
-                                                             const IndexMask mask,
-                                                             GMutableSpan dst)
-{
-  BLI_assert(src.type() == dst.type());
-  BLI_assert(mask.size() == dst.size());
-  threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-    src.materialize_compressed_to_uninitialized(mask.slice(range), dst.slice(range).data());
-  });
 }
 
 static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
@@ -88,14 +78,12 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   GSpanAttributeWriter position = dst_attributes.lookup_or_add_for_write_only_span(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-  materialize_compressed_to_uninitialized_threaded(
-      evaluator.get_evaluated(0), selection, position.span);
+  array_utils::gather(evaluator.get_evaluated(0), selection, position.span);
   position.finish();
 
   GSpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span(
       "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
-  materialize_compressed_to_uninitialized_threaded(
-      evaluator.get_evaluated(1), selection, radius.span);
+  array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
   radius.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes;
@@ -112,7 +100,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      materialize_compressed_to_uninitialized_threaded(src, selection, dst.span);
+      array_utils::gather(src, selection, dst.span);
       dst.finish();
     }
   }
@@ -175,7 +163,7 @@ void register_node_type_geo_mesh_to_points()
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_POINTS, "Mesh to Points", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);

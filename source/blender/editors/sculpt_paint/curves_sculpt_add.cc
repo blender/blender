@@ -144,8 +144,7 @@ struct AddOperationExecutor {
     }
     surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
-    surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
-                              BKE_mesh_runtime_looptri_len(surface_eval_)};
+    surface_looptris_eval_ = surface_eval_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
@@ -206,8 +205,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    const Span<MLoopTri> surface_looptris_orig = {BKE_mesh_runtime_looptri_ensure(&surface_orig),
-                                                  BKE_mesh_runtime_looptri_len(&surface_orig)};
+    const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
 
     /* Find normals. */
     if (!CustomData_has_layer(&surface_orig.ldata, CD_NORMAL)) {
@@ -230,6 +228,7 @@ struct AddOperationExecutor {
     add_inputs.fallback_curve_length = brush_settings_->curve_length;
     add_inputs.fallback_point_count = std::max(2, brush_settings_->points_per_curve);
     add_inputs.transforms = &transforms_;
+    add_inputs.surface_looptris = surface_looptris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.surface = &surface_orig;
     add_inputs.corner_normals_su = corner_normals_su;
@@ -420,7 +419,7 @@ struct AddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             const MLoopTri &looptri = surface_looptris_eval_[index];
             const float3 v0_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[0]].v].co;
             const float3 v1_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[1]].v].co;
@@ -438,7 +437,7 @@ struct AddOperationExecutor {
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
-          [&](const int index, const float3 &UNUSED(co), const float UNUSED(dist_sq)) {
+          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             selected_looptri_indices.append(index);
           });
     }

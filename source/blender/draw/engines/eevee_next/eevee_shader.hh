@@ -28,6 +28,7 @@ namespace blender::eevee {
 enum eShaderType {
   FILM_FRAG = 0,
   FILM_COMP,
+  FILM_CRYPTOMATTE_POST,
 
   DOF_BOKEH_LUT,
   DOF_DOWNSAMPLE,

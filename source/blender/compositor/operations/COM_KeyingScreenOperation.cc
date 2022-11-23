@@ -65,10 +65,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
   MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   TriangulationData *triangulation;
   MovieTracking *tracking = &movie_clip_->tracking;
-  MovieTrackingTrack *track;
-  VoronoiSite *sites, *site;
   ImBuf *ibuf;
-  ListBase *tracksbase;
   ListBase edges = {nullptr, nullptr};
   int sites_total;
   int i;
@@ -76,29 +73,28 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
   int height = this->get_height();
   int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_, framenumber_);
 
+  const MovieTrackingObject *tracking_object = nullptr;
   if (tracking_object_[0]) {
-    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, tracking_object_);
-
-    if (!object) {
+    tracking_object = BKE_tracking_object_get_named(tracking, tracking_object_);
+    if (!tracking_object) {
       return nullptr;
     }
-
-    tracksbase = BKE_tracking_object_get_tracks(tracking, object);
   }
   else {
-    tracksbase = BKE_tracking_get_active_tracks(tracking);
+    tracking_object = BKE_tracking_object_get_active(tracking);
   }
+  BLI_assert(tracking_object != 0);
 
   /* count sites */
-  for (track = (MovieTrackingTrack *)tracksbase->first, sites_total = 0; track;
-       track = track->next) {
-    MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
-    float pos[2];
+  sites_total = 0;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
 
     if (marker->flag & MARKER_DISABLED) {
       continue;
     }
 
+    float pos[2];
     add_v2_v2v2(pos, marker->pos, track->offset);
 
     if (!IN_RANGE_INCL(pos[0], 0.0f, 1.0f) || !IN_RANGE_INCL(pos[1], 0.0f, 1.0f)) {
@@ -121,40 +117,38 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
 
   triangulation = MEM_cnew<TriangulationData>("keying screen triangulation data");
 
-  sites = (VoronoiSite *)MEM_callocN(sizeof(VoronoiSite) * sites_total,
-                                     "keyingscreen voronoi sites");
-  track = (MovieTrackingTrack *)tracksbase->first;
-  for (track = (MovieTrackingTrack *)tracksbase->first, site = sites; track; track = track->next) {
-    MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
-    ImBuf *pattern_ibuf;
-    int j;
-    float pos[2];
-
+  VoronoiSite *sites = (VoronoiSite *)MEM_callocN(sizeof(VoronoiSite) * sites_total,
+                                                  "keyingscreen voronoi sites");
+  int track_index = 0;
+  LISTBASE_FOREACH_INDEX (MovieTrackingTrack *, track, &tracking_object->tracks, track_index) {
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
     if (marker->flag & MARKER_DISABLED) {
       continue;
     }
 
+    float pos[2];
     add_v2_v2v2(pos, marker->pos, track->offset);
 
     if (!IN_RANGE_INCL(pos[0], 0.0f, 1.0f) || !IN_RANGE_INCL(pos[1], 0.0f, 1.0f)) {
       continue;
     }
 
-    pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, true, false);
+    ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, true, false);
 
+    VoronoiSite *site = &sites[track_index];
     zero_v3(site->color);
 
     if (pattern_ibuf) {
-      for (j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
+      for (int j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
         if (pattern_ibuf->rect_float) {
           add_v3_v3(site->color, &pattern_ibuf->rect_float[4 * j]);
         }
         else {
-          unsigned char *rrgb = (unsigned char *)pattern_ibuf->rect;
+          uchar *rrgb = (uchar *)pattern_ibuf->rect;
 
-          site->color[0] += srgb_to_linearrgb((float)rrgb[4 * j + 0] / 255.0f);
-          site->color[1] += srgb_to_linearrgb((float)rrgb[4 * j + 1] / 255.0f);
-          site->color[2] += srgb_to_linearrgb((float)rrgb[4 * j + 2] / 255.0f);
+          site->color[0] += srgb_to_linearrgb(float(rrgb[4 * j + 0]) / 255.0f);
+          site->color[1] += srgb_to_linearrgb(float(rrgb[4 * j + 1]) / 255.0f);
+          site->color[2] += srgb_to_linearrgb(float(rrgb[4 * j + 2]) / 255.0f);
         }
       }
 
@@ -204,11 +198,11 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
       minmax_v2v2_v2(min, max, b->co);
       minmax_v2v2_v2(min, max, c->co);
 
-      rect->xmin = (int)min[0];
-      rect->ymin = (int)min[1];
+      rect->xmin = int(min[0]);
+      rect->ymin = int(min[1]);
 
-      rect->xmax = (int)max[0] + 1;
-      rect->ymax = (int)max[1] + 1;
+      rect->xmax = int(max[0]) + 1;
+      rect->ymax = int(max[1]) + 1;
     }
   }
 
@@ -311,7 +305,7 @@ void KeyingScreenOperation::execute_pixel(float output[4], int x, int y, void *d
     TriangulationData *triangulation = cached_triangulation_;
     TileData *tile_data = (TileData *)data;
     int i;
-    float co[2] = {(float)x, (float)y};
+    float co[2] = {float(x), float(y)};
 
     for (i = 0; i < tile_data->triangles_total; i++) {
       int triangle_idx = tile_data->triangles[i];
@@ -356,7 +350,7 @@ void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(it.out, COM_COLOR_BLACK);
 
-    const float co[2] = {(float)it.x, (float)it.y};
+    const float co[2] = {float(it.x), float(it.y)};
     for (int i = 0; i < num_triangles; i++) {
       const int triangle_idx = triangles[i];
       const rcti *rect = &triangulation->triangles_AABB[triangle_idx];

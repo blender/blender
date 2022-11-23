@@ -13,6 +13,11 @@ set(INC_SYS
 set(SRC
   intern/cpp_types.cc
   intern/field.cc
+  intern/field_cpp_type.cc
+  intern/lazy_function.cc
+  intern/lazy_function_execute.cc
+  intern/lazy_function_graph.cc
+  intern/lazy_function_graph_executor.cc
   intern/multi_function.cc
   intern/multi_function_builder.cc
   intern/multi_function_params.cc
@@ -23,6 +28,12 @@ set(SRC
 
   FN_field.hh
   FN_field_cpp_type.hh
+  FN_field_cpp_type_make.hh
+  FN_init.h
+  FN_lazy_function.hh
+  FN_lazy_function_execute.hh
+  FN_lazy_function_graph.hh
+  FN_lazy_function_graph_executor.hh
   FN_multi_function.hh
   FN_multi_function_builder.hh
   FN_multi_function_context.hh
@@ -61,6 +72,7 @@ blender_add_lib(bf_functions "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/FN_field_test.cc
+    tests/FN_lazy_function_test.cc
     tests/FN_multi_function_procedure_test.cc
     tests/FN_multi_function_test.cc
 

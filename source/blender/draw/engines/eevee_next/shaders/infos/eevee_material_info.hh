@@ -20,6 +20,8 @@ GPU_SHADER_CREATE_INFO(eevee_sampling_data)
 GPU_SHADER_CREATE_INFO(eevee_utility_texture)
     .sampler(RBUFS_UTILITY_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "utility_tx");
 
+GPU_SHADER_CREATE_INFO(eevee_camera).uniform_buf(CAMERA_BUF_SLOT, "CameraData", "camera_buf");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -92,6 +94,10 @@ GPU_SHADER_CREATE_INFO(eevee_render_pass_out)
     .image_out(RBUFS_SPEC_COLOR_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
     .image_out(RBUFS_EMISSION_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img");
 
+GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
+    .storage_buf(7, Qualifier::READ, "vec2", "cryptomatte_object_buf[]", Frequency::PASS)
+    .image_out(7, Qualifier::WRITE, GPU_RGBA32F, "rp_cryptomatte_img");
+
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
     /* NOTE: This removes the possibility of using gl_FragDepth. */
@@ -108,10 +114,11 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     // .image_out(5, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_emission")
     /* Render-passes. */
     // .image_out(6, Qualifier::READ_WRITE, GPU_RGBA16F, "rpass_volume_light")
-    /* TODO: AOVs maybe? */
     .fragment_source("eevee_surf_deferred_frag.glsl")
-    // .additional_info("eevee_aov_out", "eevee_sampling_data", "eevee_utility_texture")
-    ;
+    .additional_info("eevee_camera",
+                     "eevee_utility_texture",
+                     "eevee_sampling_data",
+                     "eevee_aov_out");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .vertex_out(eevee_surf_iface)
@@ -121,7 +128,11 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
     .fragment_source("eevee_surf_forward_frag.glsl")
-    .additional_info("eevee_light_data", "eevee_utility_texture", "eevee_sampling_data"
+    .additional_info("eevee_cryptomatte_out",
+                     "eevee_light_data",
+                     "eevee_camera",
+                     "eevee_utility_texture",
+                     "eevee_sampling_data"
                      // "eevee_lightprobe_data",
                      // "eevee_shadow_data"
                      /* Optionally added depending on the material. */
@@ -134,14 +145,18 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
 GPU_SHADER_CREATE_INFO(eevee_surf_depth)
     .vertex_out(eevee_surf_iface)
     .fragment_source("eevee_surf_depth_frag.glsl")
-    .additional_info("eevee_sampling_data", "eevee_utility_texture");
+    .additional_info("eevee_sampling_data", "eevee_camera", "eevee_utility_texture");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .vertex_out(eevee_surf_iface)
     .push_constant(Type::FLOAT, "world_opacity_fade")
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
-    .additional_info("eevee_aov_out", "eevee_render_pass_out", "eevee_utility_texture");
+    .additional_info("eevee_aov_out",
+                     "eevee_cryptomatte_out",
+                     "eevee_render_pass_out",
+                     "eevee_camera",
+                     "eevee_utility_texture");
 
 #undef image_out
 #undef image_array_out

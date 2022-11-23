@@ -23,9 +23,9 @@ namespace blender::draw {
  * \{ */
 
 static void extract_mesh_analysis_init(const MeshRenderData *mr,
-                                       MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache * /*cache*/,
                                        void *buf,
-                                       void *UNUSED(tls_data))
+                                       void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -67,8 +67,8 @@ BLI_INLINE float overhang_remap(float fac, float min, float max, float minmax_ir
 static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
 {
   const MeshStatVis *statvis = &mr->toolsettings->statvis;
-  const float min = statvis->overhang_min / (float)M_PI;
-  const float max = statvis->overhang_max / (float)M_PI;
+  const float min = statvis->overhang_min / float(M_PI);
+  const float max = statvis->overhang_max / float(M_PI);
   const char axis = statvis->overhang_axis;
   BMEditMesh *em = mr->edit_bmesh;
   BMIter iter;
@@ -88,7 +88,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     int l_index = 0;
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      float fac = angle_normalized_v3v3(bm_face_no_get(mr, f), dir) / (float)M_PI;
+      float fac = angle_normalized_v3v3(bm_face_no_get(mr, f), dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
       for (int i = 0; i < f->len; i++, l_index++) {
         r_overhang[l_index] = fac;
@@ -98,7 +98,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   else {
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float fac = angle_normalized_v3v3(mr->poly_normals[mp_index], dir) / (float)M_PI;
+      float fac = angle_normalized_v3v3(mr->poly_normals[mp_index], dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
       for (int i = 0; i < mp->totloop; i++, l_index++) {
         r_overhang[l_index] = fac;
@@ -265,7 +265,7 @@ struct BVHTree_OverlapData {
   float epsilon;
 };
 
-static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
+static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*thread*/)
 {
   struct BVHTree_OverlapData *data = static_cast<struct BVHTree_OverlapData *>(userdata);
 
@@ -367,7 +367,7 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
   }
 }
 
-BLI_INLINE float distort_remap(float fac, float min, float UNUSED(max), float minmax_irange)
+BLI_INLINE float distort_remap(float fac, float min, float /*max*/, float minmax_irange)
 {
   if (fac >= min) {
     fac = (fac - min) * minmax_irange;
@@ -474,7 +474,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
   }
 }
 
-BLI_INLINE float sharp_remap(float fac, float min, float UNUSED(max), float minmax_irange)
+BLI_INLINE float sharp_remap(float fac, float min, float /*max*/, float minmax_irange)
 {
   /* important not '>=' */
   if (fac > min) {
@@ -588,9 +588,9 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 }
 
 static void extract_analysis_iter_finish_mesh(const MeshRenderData *mr,
-                                              MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache * /*cache*/,
                                               void *buf,
-                                              void *UNUSED(data))
+                                              void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   BLI_assert(mr->edit_bmesh);

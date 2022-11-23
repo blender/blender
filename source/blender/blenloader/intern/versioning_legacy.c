@@ -58,6 +58,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h" /* for Main */
 #include "BKE_mesh.h" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -2531,7 +2532,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       if (ob->pd) {
-        ob->pd->seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
+        ob->pd->seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
       }
     }
   }

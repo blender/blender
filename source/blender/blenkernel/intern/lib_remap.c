@@ -27,6 +27,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -117,6 +118,11 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
                            id_owner,
                            ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
+    if (GS(id_owner->name) == ID_NT) {
+      /* Make sure that the node tree is updated after a property in it changed. Ideally, we would
+       * know which nodes property was changed so that only this node is tagged. */
+      BKE_ntree_update_tag_all((bNodeTree *)id_owner);
+    }
   }
   /* Get the new_id pointer. When the mapping is violating never null we should use a NULL
    * pointer otherwise the incorrect users are decreased and increased on the same instance. */
@@ -183,7 +189,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
   /* Better remap to NULL than not remapping at all,
    * then we can handle it as a regular remap-to-NULL case. */
-  if ((cb_flag & IDWALK_CB_NEVER_SELF)) {
+  if (cb_flag & IDWALK_CB_NEVER_SELF) {
     id_remapper_options |= ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF;
   }
 
@@ -817,7 +823,7 @@ void BKE_libblock_relink_ex(
     Main *bmain, void *idv, void *old_idv, void *new_idv, const short remap_flags)
 {
 
-  /* Should be able to replace all _relink() funcs (constraints, rigidbody, etc.) ? */
+  /* Should be able to replace all _relink() functions (constraints, rigidbody, etc.) ? */
 
   ID *id = idv;
   ID *old_id = old_idv;

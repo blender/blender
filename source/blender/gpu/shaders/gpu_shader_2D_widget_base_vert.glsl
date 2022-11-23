@@ -124,8 +124,8 @@ vec2 do_tria()
   }
   else if (triaType == 4.0) {
     /* ROUNDBOX_TRIA_CHECK */
-    /* A bit more hacky: We use the two trias joined together to render
-     * both sides of the checkmark with different length. */
+    /* A bit more hacky: We use the two triangles joined together to render
+     * both sides of the check-mark with different length. */
     pos = arrow_pos[min(vidx, 2)];                                    /* Only keep 1 triangle. */
     pos.y = tria2 ? -pos.y : pos.y;                                   /* Mirror along X */
     pos = pos.x * vec2(0.0872, -0.996) + pos.y * vec2(0.996, 0.0872); /* Rotate (85deg) */

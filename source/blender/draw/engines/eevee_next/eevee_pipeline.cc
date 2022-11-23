@@ -44,6 +44,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_image("rp_diffuse_color_img", &rbufs.diffuse_color_tx);
   world_ps_.bind_image("rp_specular_color_img", &rbufs.specular_color_tx);
   world_ps_.bind_image("rp_emission_img", &rbufs.emission_tx);
+  world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
 
   world_ps_.draw(DRW_cache_fullscreen_quad_get(), handle);
   /* To allow opaque pass rendering over it. */
@@ -78,6 +79,8 @@ void ForwardPipeline::sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      /* Uniform Buf. */
+      prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.velocity.bind_resources(&prepass_ps_);
       inst_.sampling.bind_resources(&prepass_ps_);
@@ -110,13 +113,18 @@ void ForwardPipeline::sync()
       /* AOVs. */
       opaque_ps_.bind_image(RBUFS_AOV_COLOR_SLOT, &inst_.render_buffers.aov_color_tx);
       opaque_ps_.bind_image(RBUFS_AOV_VALUE_SLOT, &inst_.render_buffers.aov_value_tx);
+      /* Cryptomatte. */
+      opaque_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
       /* Storage Buf. */
       opaque_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
       /* Textures. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      /* Uniform Buf. */
+      opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
+      inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
@@ -136,6 +144,8 @@ void ForwardPipeline::sync()
 
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    /* Uniform Buf. */
+    opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
     inst_.lights.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);
@@ -169,10 +179,10 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
     return nullptr;
   }
   DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-  if ((blender_mat->blend_flag & MA_BL_CULL_BACKFACE)) {
+  if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
-  float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);
@@ -184,10 +194,10 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          GPUMaterial *gpumat)
 {
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_LESS_EQUAL;
-  if ((blender_mat->blend_flag & MA_BL_CULL_BACKFACE)) {
+  if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
-  float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);
@@ -197,7 +207,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
 void ForwardPipeline::render(View &view,
                              Framebuffer &prepass_fb,
                              Framebuffer &combined_fb,
-                             GPUTexture *UNUSED(combined_tx))
+                             GPUTexture * /*combined_tx*/)
 {
   UNUSED_VARS(view);
 

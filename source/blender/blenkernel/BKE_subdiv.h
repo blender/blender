@@ -307,7 +307,6 @@ BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
 
 /* Convert Blender edge crease value to OpenSubdiv sharpness. */
 BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease);
-BLI_INLINE float BKE_subdiv_crease_to_sharpness_char(char edge_crease);
 
 #ifdef __cplusplus
 }

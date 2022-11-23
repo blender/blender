@@ -56,7 +56,7 @@ bool GlareBaseOperation::determine_depending_area_of_interest(rcti * /*input*/,
 }
 
 void GlareBaseOperation::get_area_of_interest(const int input_idx,
-                                              const rcti &UNUSED(output_area),
+                                              const rcti & /*output_area*/,
                                               rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);
@@ -68,7 +68,7 @@ void GlareBaseOperation::get_area_of_interest(const int input_idx,
 }
 
 void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
-                                              const rcti &UNUSED(area),
+                                              const rcti & /*area*/,
                                               Span<MemoryBuffer *> inputs)
 {
   if (!is_output_rendered_) {

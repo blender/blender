@@ -51,6 +51,7 @@ extern char datatoc_common_fullscreen_vert_glsl[];
  * \{ */
 
 typedef struct DRWShaderCompiler {
+  /** Default compilation queue. */
   ListBase queue; /* GPUMaterial */
   SpinLock list_lock;
 
@@ -63,8 +64,8 @@ static void drw_deferred_shader_compilation_exec(
     void *custom_data,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
-    short *stop,
-    short *UNUSED(do_update),
+    bool *stop,
+    bool *UNUSED(do_update),
     float *UNUSED(progress))
 {
   GPU_render_begin();
@@ -109,6 +110,7 @@ static void drw_deferred_shader_compilation_exec(
       MEM_freeN(link);
     }
     else {
+      /* No more materials to optimize, or shaders to compile. */
       break;
     }
 
@@ -216,7 +218,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     }
     else {
       comp->gl_context = WM_opengl_context_create();
-      comp->gpu_context = GPU_context_create(NULL);
+      comp->gpu_context = GPU_context_create(NULL, comp->gl_context);
       GPU_context_active_set(NULL);
 
       WM_opengl_context_activate(DST.gl_context);
@@ -235,6 +237,42 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
   WM_jobs_start(wm, wm_job);
 }
 
+static void drw_register_shader_vlattrs(GPUMaterial *mat)
+{
+  const ListBase *attrs = GPU_material_layer_attributes(mat);
+
+  if (!attrs) {
+    return;
+  }
+
+  GHash *hash = DST.vmempool->vlattrs_name_cache;
+  ListBase *list = &DST.vmempool->vlattrs_name_list;
+
+  LISTBASE_FOREACH (GPULayerAttr *, attr, attrs) {
+    GPULayerAttr **p_val;
+
+    /* Add to the table and list if newly seen. */
+    if (!BLI_ghash_ensure_p(hash, POINTER_FROM_UINT(attr->hash_code), (void ***)&p_val)) {
+      DST.vmempool->vlattrs_ubo_ready = false;
+
+      GPULayerAttr *new_link = *p_val = MEM_dupallocN(attr);
+
+      /* Insert into the list ensuring sorted order. */
+      GPULayerAttr *link = list->first;
+
+      while (link && link->hash_code <= attr->hash_code) {
+        link = link->next;
+      }
+
+      new_link->prev = new_link->next = NULL;
+      BLI_insertlinkbefore(list, link, new_link);
+    }
+
+    /* Reset the unused frames counter. */
+    (*p_val)->users = 0;
+  }
+}
+
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
   LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
@@ -243,6 +281,8 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
           wm, wm, WM_JOB_TYPE_SHADER_COMPILATION);
       if (comp != NULL) {
         BLI_spin_lock(&comp->list_lock);
+
+        /* Search for compilation job in queue. */
         LinkData *link = (LinkData *)BLI_findptr(&comp->queue, mat, offsetof(LinkData, data));
         if (link) {
           BLI_remlink(&comp->queue, link);
@@ -378,6 +418,9 @@ GPUMaterial *DRW_shader_from_world(World *wo,
                                                 false,
                                                 callback,
                                                 thunk);
+
+  drw_register_shader_vlattrs(mat);
+
   if (DRW_state_is_image_render()) {
     /* Do not deferred if doing render. */
     deferred = false;
@@ -406,6 +449,8 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
                                                 false,
                                                 callback,
                                                 thunk);
+
+  drw_register_shader_vlattrs(mat);
 
   if (DRW_state_is_image_render()) {
     /* Do not deferred if doing render. */

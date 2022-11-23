@@ -49,11 +49,11 @@ KERNEL_STRUCT_BEGIN(KernelBVH, bvh)
 KERNEL_STRUCT_MEMBER(bvh, int, root)
 KERNEL_STRUCT_MEMBER(bvh, int, have_motion)
 KERNEL_STRUCT_MEMBER(bvh, int, have_curves)
+KERNEL_STRUCT_MEMBER(bvh, int, have_points)
+KERNEL_STRUCT_MEMBER(bvh, int, have_volumes)
 KERNEL_STRUCT_MEMBER(bvh, int, bvh_layout)
 KERNEL_STRUCT_MEMBER(bvh, int, use_bvh_steps)
 KERNEL_STRUCT_MEMBER(bvh, int, curve_subdivisions)
-KERNEL_STRUCT_MEMBER(bvh, int, pad1)
-KERNEL_STRUCT_MEMBER(bvh, int, pad2)
 KERNEL_STRUCT_END(KernelBVH)
 
 /* Film. */
@@ -133,6 +133,10 @@ KERNEL_STRUCT_MEMBER(film, int, pass_bake_primitive)
 KERNEL_STRUCT_MEMBER(film, int, pass_bake_differential)
 /* Shadow catcher. */
 KERNEL_STRUCT_MEMBER(film, int, use_approximate_shadow_catcher)
+/* Path Guiding */
+KERNEL_STRUCT_MEMBER(film, int, pass_guiding_color)
+KERNEL_STRUCT_MEMBER(film, int, pass_guiding_probability)
+KERNEL_STRUCT_MEMBER(film, int, pass_guiding_avg_roughness)
 /* Padding. */
 KERNEL_STRUCT_MEMBER(film, int, pad1)
 KERNEL_STRUCT_MEMBER(film, int, pad2)
@@ -179,6 +183,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_lamp_mis)
 KERNEL_STRUCT_MEMBER(integrator, int, use_caustics)
 /* Sampling pattern. */
 KERNEL_STRUCT_MEMBER(integrator, int, sampling_pattern)
+KERNEL_STRUCT_MEMBER(integrator, int, pmj_sequence_size)
 KERNEL_STRUCT_MEMBER(integrator, float, scrambling_distance)
 /* Volume render. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_volumes)
@@ -190,8 +195,22 @@ KERNEL_STRUCT_MEMBER(integrator, int, has_shadow_catcher)
 KERNEL_STRUCT_MEMBER(integrator, int, filter_closures)
 /* MIS debugging. */
 KERNEL_STRUCT_MEMBER(integrator, int, direct_light_sampling_type)
-/* Padding */
+
+/* Path Guiding */
+KERNEL_STRUCT_MEMBER(integrator, float, surface_guiding_probability)
+KERNEL_STRUCT_MEMBER(integrator, float, volume_guiding_probability)
+KERNEL_STRUCT_MEMBER(integrator, int, guiding_distribution_type)
+KERNEL_STRUCT_MEMBER(integrator, int, use_guiding)
+KERNEL_STRUCT_MEMBER(integrator, int, train_guiding)
+KERNEL_STRUCT_MEMBER(integrator, int, use_surface_guiding)
+KERNEL_STRUCT_MEMBER(integrator, int, use_volume_guiding)
+KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_direct_light)
+KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
+
+/* Padding. */
 KERNEL_STRUCT_MEMBER(integrator, int, pad1)
+KERNEL_STRUCT_MEMBER(integrator, int, pad2)
+KERNEL_STRUCT_MEMBER(integrator, int, pad3)
 KERNEL_STRUCT_END(KernelIntegrator)
 
 /* SVM. For shader specialization. */

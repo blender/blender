@@ -48,14 +48,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Bottom")).field_source();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "fill_type", 0, nullptr, ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryMeshCylinder *node_storage = MEM_cnew<NodeGeometryMeshCylinder>(__func__);
 
@@ -66,7 +66,7 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *vertices_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *rings_socket = vertices_socket->next;
   bNodeSocket *fill_subdiv_socket = rings_socket->next;
 
@@ -154,8 +154,8 @@ void register_node_type_geo_mesh_primitive_cylinder()
 
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(
       &ntype, "NodeGeometryMeshCylinder", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;

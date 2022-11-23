@@ -347,13 +347,18 @@ void MD5Hash::finish(uint8_t digest[16])
 
 string MD5Hash::get_hex()
 {
+  constexpr char kHexDigits[] = {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
   uint8_t digest[16];
   char buf[16 * 2 + 1];
 
   finish(digest);
 
-  for (int i = 0; i < 16; i++)
-    sprintf(buf + i * 2, "%02X", (unsigned int)digest[i]);
+  for (int i = 0; i < 16; i++) {
+    buf[i * 2 + 0] = kHexDigits[digest[i] / 0x10];
+    buf[i * 2 + 1] = kHexDigits[digest[i] % 0x10];
+  }
   buf[sizeof(buf) - 1] = '\0';
 
   return string(buf);

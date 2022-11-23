@@ -57,49 +57,49 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         local_id = obj.override_create()
         self.assertIsNotNone(local_id.override_library)
         self.assertIsNone(local_id.data.override_library)
-        assert(len(local_id.override_library.properties) == 0)
+        assert len(local_id.override_library.properties) == 0
 
         # #### Generate an override property & operation automatically by editing the local override data.
         local_id.location.y = 1.0
         local_id.override_library.operations_update()
-        assert(len(local_id.override_library.properties) == 1)
+        assert len(local_id.override_library.properties) == 1
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "location")
-        assert(len(override_prop.operations) == 1)
+        assert override_prop.rna_path == "location"
+        assert len(override_prop.operations) == 1
         override_operation = override_prop.operations[0]
-        assert(override_operation.operation == 'REPLACE')
+        assert override_operation.operation == 'REPLACE'
         # Setting location.y overrode all elements in the location array. -1 is a wildcard.
-        assert(override_operation.subitem_local_index == -1)
+        assert override_operation.subitem_local_index == -1
 
         # #### Reset the override to its linked reference data.
         local_id.override_library.reset()
-        assert(len(local_id.override_library.properties) == 0)
-        assert(local_id.location == local_id.override_library.reference.location)
+        assert len(local_id.override_library.properties) == 0
+        assert local_id.location == local_id.override_library.reference.location
 
         # #### Generate an override property & operation manually using the API.
         override_property = local_id.override_library.properties.add(rna_path="location")
         override_property.operations.add(operation='REPLACE')
 
-        assert(len(local_id.override_library.properties) == 1)
+        assert len(local_id.override_library.properties) == 1
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "location")
-        assert(len(override_prop.operations) == 1)
+        assert override_prop.rna_path == "location"
+        assert len(override_prop.operations) == 1
         override_operation = override_prop.operations[0]
-        assert(override_operation.operation == 'REPLACE')
+        assert override_operation.operation == 'REPLACE'
         # Setting location.y overrode all elements in the location array. -1 is a wildcard.
-        assert(override_operation.subitem_local_index == -1)
+        assert override_operation.subitem_local_index == -1
 
         override_property = local_id.override_library.properties[0]
         override_property.operations.remove(override_property.operations[0])
         local_id.override_library.properties.remove(override_property)
 
-        assert(len(local_id.override_library.properties) == 0)
+        assert len(local_id.override_library.properties) == 0
 
         # #### Delete the override.
         local_id_name = local_id.name
-        assert(bpy.data.objects.get((local_id_name, None), None) == local_id)
+        assert bpy.data.objects.get((local_id_name, None), None) == local_id
         local_id.override_library.destroy()
-        assert(bpy.data.objects.get((local_id_name, None), None) is None)
+        assert bpy.data.objects.get((local_id_name, None), None) is None
 
     def test_link_permissive(self):
         """
@@ -119,39 +119,39 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         local_id = obj.override_create()
         self.assertIsNotNone(local_id.override_library)
         self.assertIsNone(local_id.data.override_library)
-        assert(len(local_id.override_library.properties) == 1)
+        assert len(local_id.override_library.properties) == 1
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "scale")
-        assert(len(override_prop.operations) == 1)
+        assert override_prop.rna_path == "scale"
+        assert len(override_prop.operations) == 1
         override_operation = override_prop.operations[0]
-        assert(override_operation.operation == 'NOOP')
-        assert(override_operation.subitem_local_index == -1)
+        assert override_operation.operation == 'NOOP'
+        assert override_operation.subitem_local_index == -1
         local_id.location.y = 1.0
         local_id.scale.x = 0.5
         # `scale.x` will apply, but will be reverted when the library overrides
         # are updated. This is by design so python scripts can still alter the
         # properties locally what is a typical usecase in productions.
-        assert(local_id.scale.x == 0.5)
-        assert(local_id.location.y == 1.0)
+        assert local_id.scale.x == 0.5
+        assert local_id.location.y == 1.0
 
         local_id.override_library.operations_update()
-        assert(local_id.scale.x == 1.0)
-        assert(local_id.location.y == 1.0)
+        assert local_id.scale.x == 1.0
+        assert local_id.location.y == 1.0
 
-        assert(len(local_id.override_library.properties) == 2)
+        assert len(local_id.override_library.properties) == 2
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "scale")
-        assert(len(override_prop.operations) == 1)
+        assert override_prop.rna_path == "scale"
+        assert len(override_prop.operations) == 1
         override_operation = override_prop.operations[0]
-        assert(override_operation.operation == 'NOOP')
-        assert(override_operation.subitem_local_index == -1)
+        assert override_operation.operation == 'NOOP'
+        assert override_operation.subitem_local_index == -1
 
         override_prop = local_id.override_library.properties[1]
-        assert(override_prop.rna_path == "location")
-        assert(len(override_prop.operations) == 1)
+        assert override_prop.rna_path == "location"
+        assert len(override_prop.operations) == 1
         override_operation = override_prop.operations[0]
-        assert(override_operation.operation == 'REPLACE')
-        assert (override_operation.subitem_local_index == -1)
+        assert override_operation.operation == 'REPLACE'
+        assert override_operation.subitem_local_index == -1
 
 
 class TestLibraryTemplate(TestHelper, unittest.TestCase):
@@ -169,16 +169,16 @@ class TestLibraryTemplate(TestHelper, unittest.TestCase):
         mesh = bpy.data.meshes.new(TestLibraryTemplate.MESH_LIBRARY_PERMISSIVE)
         obj = bpy.data.objects.new(TestLibraryTemplate.OBJECT_LIBRARY_PERMISSIVE, object_data=mesh)
         bpy.context.collection.objects.link(obj)
-        assert(obj.override_library is None)
+        assert obj.override_library is None
         obj.override_template_create()
-        assert(obj.override_library is not None)
-        assert(len(obj.override_library.properties) == 0)
+        assert obj.override_library is not None
+        assert len(obj.override_library.properties) == 0
         prop = obj.override_library.properties.add(rna_path='scale')
-        assert(len(obj.override_library.properties) == 1)
-        assert(len(prop.operations) == 0)
+        assert len(obj.override_library.properties) == 1
+        assert len(prop.operations) == 0
         operation = prop.operations.add(operation='NOOP')
-        assert(len(prop.operations) == 1)
-        assert(operation.operation == 'NOOP')
+        assert len(prop.operations) == 1
+        assert operation.operation == 'NOOP'
 
 
 class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
@@ -237,30 +237,30 @@ class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
         )
 
         linked_collection_container = bpy.data.collections[TestLibraryOverridesResync.DATA_NAME_CONTAINER]
-        assert(linked_collection_container.library is not None)
-        assert(linked_collection_container.override_library is None)
-        assert(len(bpy.data.collections) == 2)
-        assert(all(id_.library is not None for id_ in bpy.data.collections))
-        assert(len(bpy.data.objects) == 4)
-        assert(all(id_.library is not None for id_ in bpy.data.objects))
-        assert(len(bpy.data.meshes) == 1)
-        assert(all(id_.library is not None for id_ in bpy.data.meshes))
-        assert(len(bpy.data.armatures) == 1)
-        assert(all(id_.library is not None for id_ in bpy.data.armatures))
+        assert linked_collection_container.library is not None
+        assert linked_collection_container.override_library is None
+        assert len(bpy.data.collections) == 2
+        assert all(id_.library is not None for id_ in bpy.data.collections)
+        assert len(bpy.data.objects) == 4
+        assert all(id_.library is not None for id_ in bpy.data.objects)
+        assert len(bpy.data.meshes) == 1
+        assert all(id_.library is not None for id_ in bpy.data.meshes)
+        assert len(bpy.data.armatures) == 1
+        assert all(id_.library is not None for id_ in bpy.data.armatures)
 
         override_collection_container = linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
             bpy.context.view_layer,
         )
-        assert(override_collection_container.library is None)
-        assert(override_collection_container.override_library is not None)
+        assert override_collection_container.library is None
+        assert override_collection_container.override_library is not None
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        assert(len(bpy.data.collections) == 4)
-        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2]))
-        assert(len(bpy.data.objects) == 8)
-        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.armatures) == 1)
+        assert len(bpy.data.collections) == 4
+        assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2])
+        assert len(bpy.data.objects) == 8
+        assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4])
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.armatures) == 1
 
         bpy.ops.wm.save_as_mainfile(filepath=str(self.test_output_path), check_existing=False, compress=False)
 
@@ -279,21 +279,21 @@ class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
         bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path))
 
         override_collection_container = bpy.data.collections[TestLibraryOverridesResync.DATA_NAME_CONTAINER]
-        assert(override_collection_container.library is None)
-        assert(override_collection_container.override_library is not None)
+        assert override_collection_container.library is None
+        assert override_collection_container.override_library is not None
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        assert(len(bpy.data.collections) == 4)
-        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2]))
-        assert(len(bpy.data.objects) == 8)
-        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.armatures) == 1)
+        assert len(bpy.data.collections) == 4
+        assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2])
+        assert len(bpy.data.objects) == 8
+        assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4])
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.armatures) == 1
 
         obj_armature = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_RIG]
         obj_ctrl2 = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_CONTROLLER_2]
-        assert(obj_armature.library is None and obj_armature.override_library is not None)
-        assert(obj_ctrl2.library is None and obj_ctrl2.override_library is not None)
-        assert(obj_armature.constraints[0].target == obj_ctrl2)
+        assert obj_armature.library is None and obj_armature.override_library is not None
+        assert obj_ctrl2.library is None and obj_ctrl2.override_library is not None
+        assert obj_armature.constraints[0].target == obj_ctrl2
 
 
 TESTS = (

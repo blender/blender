@@ -66,7 +66,7 @@ static void icon_draw_rect_input_text(
   BLF_batch_draw_flush();
   const int font_id = BLF_default();
   BLF_color4fv(font_id, color);
-  BLF_size(font_id, font_size * U.pixelsize, U.dpi);
+  BLF_size(font_id, font_size * U.dpi_fac);
   float width, height;
   BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
   const float x = trunc(rect->xmin + (((rect->xmax - rect->xmin) - width) / 2.0f));

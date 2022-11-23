@@ -7,7 +7,9 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
+#include "BLI_utildefines_variadic.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,16 +37,6 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
  */
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
-/**
- * Returns in `string` the concatenation of `dir` and `file` (also with `relabase` on the
- * front if specified and `dir` begins with "//"). Normalizes all occurrences of path
- * separators, including ensuring there is exactly one between the copies of `dir` and `file`,
- * and between the copies of `relabase` and `dir`.
- *
- * \param relabase: Optional prefix to substitute for "//" on front of `dir`.
- * \param string: Area to return result.
- */
-void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file);
 /**
  * Ensures that the parent directory of `name` exists.
  *
@@ -76,29 +68,126 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
 
 /**
  * Append a filename to a dir, ensuring slash separates.
+ * \return The new length of `dst`.
  */
-void BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
+size_t BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
     ATTR_NONNULL();
 /**
- * Simple appending of filename to dir, does not check for valid path!
- * Puts result into `dst`, which may be same area as `dir`.
- *
- * \note Consider using #BLI_path_join for more general path joining
- * that de-duplicates separators and can handle an arbitrary number of paths.
+ * A version of #BLI_path_append that ensures a trailing slash if there is space in `dst`.
+ * \return The new length of `dst`.
  */
-void BLI_join_dirfile(char *__restrict dst,
-                      size_t maxlen,
-                      const char *__restrict dir,
-                      const char *__restrict file) ATTR_NONNULL();
+size_t BLI_path_append_dir(char *__restrict dst, size_t maxlen, const char *__restrict dir)
+    ATTR_NONNULL();
+
+/**
+ * See #BLI_path_join doc-string.
+ */
+size_t BLI_path_join_array(char *__restrict dst,
+                           const size_t dst_len,
+                           const char *path_array[],
+                           const int path_array_num);
+
 /**
  * Join multiple strings into a path, ensuring only a single path separator between each,
  * and trailing slash is kept.
  *
+ * \param path: The first patch which has special treatment,
+ * allowing `//` prefix which is kept intact unlike double-slashes which are stripped
+ * from the bounds of all other paths passed in.
+ * Passing in the following paths all result in the same output (`//a/b/c`):
+ * - `"//", "a", "b", "c"`.
+ * - `"//", "/a/", "/b/", "/c"`.
+ * - `"//a", "b/c"`.
+ *
  * \note If you want a trailing slash, add `SEP_STR` as the last path argument,
  * duplicate slashes will be cleaned up.
  */
-size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path_first, ...)
-    ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
+#define BLI_path_join(...) VA_NARGS_CALL_OVERLOAD(_BLI_path_join_, __VA_ARGS__)
+
+#define _BLI_PATH_JOIN_ARGS_1 char *__restrict dst, size_t dst_len, const char *a
+#define _BLI_PATH_JOIN_ARGS_2 _BLI_PATH_JOIN_ARGS_1, const char *b
+#define _BLI_PATH_JOIN_ARGS_3 _BLI_PATH_JOIN_ARGS_2, const char *c
+#define _BLI_PATH_JOIN_ARGS_4 _BLI_PATH_JOIN_ARGS_3, const char *d
+#define _BLI_PATH_JOIN_ARGS_5 _BLI_PATH_JOIN_ARGS_4, const char *e
+#define _BLI_PATH_JOIN_ARGS_6 _BLI_PATH_JOIN_ARGS_5, const char *f
+#define _BLI_PATH_JOIN_ARGS_7 _BLI_PATH_JOIN_ARGS_6, const char *g
+#define _BLI_PATH_JOIN_ARGS_8 _BLI_PATH_JOIN_ARGS_7, const char *h
+#define _BLI_PATH_JOIN_ARGS_9 _BLI_PATH_JOIN_ARGS_8, const char *i
+#define _BLI_PATH_JOIN_ARGS_10 _BLI_PATH_JOIN_ARGS_9, const char *j
+
+BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_5(_BLI_PATH_JOIN_ARGS_3) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_6(_BLI_PATH_JOIN_ARGS_4) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_7(_BLI_PATH_JOIN_ARGS_5) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_8(_BLI_PATH_JOIN_ARGS_6) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_9(_BLI_PATH_JOIN_ARGS_7) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_10(_BLI_PATH_JOIN_ARGS_8) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_11(_BLI_PATH_JOIN_ARGS_9) ATTR_NONNULL();
+BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10) ATTR_NONNULL();
+
+BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1)
+{
+  const char *path_array[] = {a};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2)
+{
+  const char *path_array[] = {a, b};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_5(_BLI_PATH_JOIN_ARGS_3)
+{
+  const char *path_array[] = {a, b, c};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_6(_BLI_PATH_JOIN_ARGS_4)
+{
+  const char *path_array[] = {a, b, c, d};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_7(_BLI_PATH_JOIN_ARGS_5)
+{
+  const char *path_array[] = {a, b, c, d, e};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_8(_BLI_PATH_JOIN_ARGS_6)
+{
+  const char *path_array[] = {a, b, c, d, e, f};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_9(_BLI_PATH_JOIN_ARGS_7)
+{
+  const char *path_array[] = {a, b, c, d, e, f, g};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_10(_BLI_PATH_JOIN_ARGS_8)
+{
+  const char *path_array[] = {a, b, c, d, e, f, g, h};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_11(_BLI_PATH_JOIN_ARGS_9)
+{
+  const char *path_array[] = {a, b, c, d, e, f, g, h, i};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10)
+{
+  const char *path_array[] = {a, b, c, d, e, f, g, h, i, j};
+  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+}
+
+#undef _BLI_PATH_JOIN_ARGS_1
+#undef _BLI_PATH_JOIN_ARGS_2
+#undef _BLI_PATH_JOIN_ARGS_3
+#undef _BLI_PATH_JOIN_ARGS_4
+#undef _BLI_PATH_JOIN_ARGS_5
+#undef _BLI_PATH_JOIN_ARGS_6
+#undef _BLI_PATH_JOIN_ARGS_7
+#undef _BLI_PATH_JOIN_ARGS_8
+#undef _BLI_PATH_JOIN_ARGS_9
+#undef _BLI_PATH_JOIN_ARGS_10
+
 /**
  * Like Python's `os.path.basename()`
  *
@@ -108,12 +197,15 @@ size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path_firs
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
  * Get an element of the path at an index, eg:
- * "/some/path/file.txt" where an index of:
- * - 0 or -3: "some"
- * - 1 or -2: "path"
- * - 2 or -1: "file.txt"
+ * `/some/path/file.txt` where an index of:
+ * - 0 or -3: `some`
+ * - 1 or -2: `path`
+ * - 2 or -1: `file.txt`
  *
- * Ignores multiple slashes at any point in the path (including start/end).
+ * Ignored elements in the path:
+ * - Multiple slashes at any point in the path (including start/end).
+ * - Single '.' in the path: `/./` except for the beginning of the path
+ *   where it's used to signify a $PWD relative path.
  */
 bool BLI_path_name_at_index(const char *__restrict path,
                             int index,
@@ -136,7 +228,7 @@ const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UN
  * Appends a slash to string if there isn't one there already.
  * Returns the new length of the string.
  */
-int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
+int BLI_path_slash_ensure(char *string, size_t string_maxlen) ATTR_NONNULL(1);
 /**
  * Removes the last slash and everything after it to the end of string, if there is one.
  */
@@ -232,7 +324,7 @@ void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
 
 /**
  * Make given name safe to be used in paths.
@@ -275,6 +367,8 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
  *
  * Replaces path with the path of its parent directory, returning true if
  * it was able to find a parent directory within the path.
+ *
+ * On success, the resulting path will always have a trailing slash.
  */
 bool BLI_path_parent_dir(char *path) ATTR_NONNULL();
 /**
@@ -367,8 +461,8 @@ void BLI_path_normalize_unc(char *path_16, int maxlen);
 /**
  * Appends a suffix to the string, fitting it before the extension
  *
- * string = Foo.png, suffix = 123, separator = _
- * Foo.png -> Foo_123.png
+ * string = `Foo.png`, suffix = `123`, separator = `_`.
+ * `Foo.png` -> `Foo_123.png`.
  *
  * \param string: original (and final) string
  * \param maxlen: Maximum length of string

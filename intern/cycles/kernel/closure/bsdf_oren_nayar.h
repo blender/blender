@@ -47,10 +47,10 @@ ccl_device int bsdf_oren_nayar_setup(ccl_private OrenNayarBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_oren_nayar_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                 const float3 I,
-                                                 const float3 omega_in,
-                                                 ccl_private float *pdf)
+ccl_device Spectrum bsdf_oren_nayar_eval(ccl_private const ShaderClosure *sc,
+                                         const float3 I,
+                                         const float3 omega_in,
+                                         ccl_private float *pdf)
 {
   ccl_private const OrenNayarBsdf *bsdf = (ccl_private const OrenNayarBsdf *)sc;
   if (dot(bsdf->N, omega_in) > 0.0f) {
@@ -61,15 +61,6 @@ ccl_device Spectrum bsdf_oren_nayar_eval_reflect(ccl_private const ShaderClosure
     *pdf = 0.0f;
     return zero_spectrum();
   }
-}
-
-ccl_device Spectrum bsdf_oren_nayar_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
 }
 
 ccl_device int bsdf_oren_nayar_sample(ccl_private const ShaderClosure *sc,

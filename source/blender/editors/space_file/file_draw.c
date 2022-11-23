@@ -171,7 +171,6 @@ static void file_draw_icon(const SpaceFile *sfile,
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->asset_data,
                               asset_params->import_type,
                               icon,
                               preview_image,
@@ -410,8 +409,15 @@ static void file_draw_preview(const SpaceFile *sfile,
     }
     icon_x = xco + (ex / 2.0f) - (icon_size / 2.0f);
     icon_y = yco + (ey / 2.0f) - (icon_size * ((file->typeflag & FILE_TYPE_DIR) ? 0.78f : 0.75f));
-    UI_icon_draw_ex(
-        icon_x, icon_y, icon, icon_aspect / U.dpi_fac, icon_opacity, 0.0f, icon_color, false);
+    UI_icon_draw_ex(icon_x,
+                    icon_y,
+                    icon,
+                    icon_aspect / U.dpi_fac,
+                    icon_opacity,
+                    0.0f,
+                    icon_color,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
   }
 
   if (is_link || is_offline) {
@@ -424,8 +430,24 @@ static void file_draw_preview(const SpaceFile *sfile,
       /* At very bottom-left if preview style. */
       const uchar dark[4] = {0, 0, 0, 255};
       const uchar light[4] = {255, 255, 255, 255};
-      UI_icon_draw_ex(icon_x + 1, icon_y - 1, arrow, 1.0f / U.dpi_fac, 0.2f, 0.0f, dark, false);
-      UI_icon_draw_ex(icon_x, icon_y, arrow, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+      UI_icon_draw_ex(icon_x + 1,
+                      icon_y - 1,
+                      arrow,
+                      1.0f / U.dpi_fac,
+                      0.2f,
+                      0.0f,
+                      dark,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
+      UI_icon_draw_ex(icon_x,
+                      icon_y,
+                      arrow,
+                      1.0f / U.dpi_fac,
+                      0.6f,
+                      0.0f,
+                      light,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
     }
     else {
       /* Link to folder or non-previewed file. */
@@ -433,8 +455,15 @@ static void file_draw_preview(const SpaceFile *sfile,
       UI_GetThemeColor4ubv(TH_BACK, icon_color);
       icon_x = xco + ((file->typeflag & FILE_TYPE_DIR) ? 0.14f : 0.23f) * scaledx;
       icon_y = yco + ((file->typeflag & FILE_TYPE_DIR) ? 0.24f : 0.14f) * scaledy;
-      UI_icon_draw_ex(
-          icon_x, icon_y, arrow, icon_aspect / U.dpi_fac * 1.8, 0.3f, 0.0f, icon_color, false);
+      UI_icon_draw_ex(icon_x,
+                      icon_y,
+                      arrow,
+                      icon_aspect / U.dpi_fac * 1.8,
+                      0.3f,
+                      0.0f,
+                      icon_color,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
     }
   }
   else if (icon && !is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) {
@@ -444,8 +473,17 @@ static void file_draw_preview(const SpaceFile *sfile,
     const uchar light[4] = {255, 255, 255, 255};
     icon_x = xco + (2.0f * UI_DPI_FAC);
     icon_y = yco + (2.0f * UI_DPI_FAC);
-    UI_icon_draw_ex(icon_x + 1, icon_y - 1, icon, 1.0f / U.dpi_fac, 0.2f, 0.0f, dark, false);
-    UI_icon_draw_ex(icon_x, icon_y, icon, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+    UI_icon_draw_ex(icon_x + 1,
+                    icon_y - 1,
+                    icon,
+                    1.0f / U.dpi_fac,
+                    0.2f,
+                    0.0f,
+                    dark,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
+    UI_icon_draw_ex(
+        icon_x, icon_y, icon, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 
   const bool is_current_main_data = filelist_file_get_id(file) != NULL;
@@ -456,7 +494,15 @@ static void file_draw_preview(const SpaceFile *sfile,
     const uchar light[4] = {255, 255, 255, 255};
     icon_x = xco + ex - UI_UNIT_X;
     icon_y = yco + ey - UI_UNIT_Y;
-    UI_icon_draw_ex(icon_x, icon_y, ICON_CURRENT_FILE, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+    UI_icon_draw_ex(icon_x,
+                    icon_y,
+                    ICON_CURRENT_FILE,
+                    1.0f / U.dpi_fac,
+                    0.6f,
+                    0.0f,
+                    light,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
   }
 
   /* Contrasting outline around some preview types. */
@@ -518,7 +564,6 @@ static void file_draw_preview(const SpaceFile *sfile,
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->asset_data,
                               asset_params->import_type,
                               icon,
                               imb,
@@ -544,10 +589,10 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   ARegion *region = CTX_wm_region(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
-  BLI_join_dirfile(orgname, sizeof(orgname), params->dir, oldname);
+  BLI_path_join(orgname, sizeof(orgname), params->dir, oldname);
   BLI_strncpy(filename, params->renamefile, sizeof(filename));
   BLI_filename_make_safe(filename);
-  BLI_join_dirfile(newname, sizeof(newname), params->dir, filename);
+  BLI_path_join(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {
     if (!BLI_exists(newname)) {
@@ -952,7 +997,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     file = filelist_file(files, i);
     file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
 
-    BLI_join_dirfile(path, sizeof(path), root, file->relpath);
+    BLI_path_join(path, sizeof(path), root, file->relpath);
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
       if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
@@ -971,7 +1016,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
     /* don't drag parent or refresh items */
-    do_drag = !(FILENAME_IS_CURRPAR(file->relpath));
+    do_drag = !FILENAME_IS_CURRPAR(file->relpath);
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
     const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
 

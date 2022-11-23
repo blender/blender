@@ -163,14 +163,14 @@ PyDoc_STRVAR(
     "(low-level API, not exposed to final users).");
 static struct PyModuleDef bpy_utils_previews_module = {
     PyModuleDef_HEAD_INIT,
-    "bpy._utils_previews",
-    bpy_utils_previews_doc,
-    0,
-    bpy_utils_previews_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_name*/ "bpy._utils_previews",
+    /*m_doc*/ bpy_utils_previews_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ bpy_utils_previews_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_utils_previews_module(void)

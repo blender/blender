@@ -192,9 +192,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SurfaceDeformModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -1331,7 +1329,7 @@ static void deformVert(void *__restrict userdata,
   const SDefDeformData *const data = (SDefDeformData *)userdata;
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int sdbind_num = data->bind_verts[index].binds_num;
-  const unsigned int vertex_idx = data->bind_verts[index].vertex_idx;
+  const uint vertex_idx = data->bind_verts[index].vertex_idx;
   float *const vertexCos = data->vertexCos[vertex_idx];
   float norm[3], temp[3], offset[3];
 
@@ -1468,8 +1466,8 @@ static void surfacedeformModifier_do(ModifierData *md,
         ob, md);
     float tmp_mat[4][4];
 
-    invert_m4_m4(tmp_mat, ob->obmat);
-    mul_m4_m4m4(smd_orig->mat, tmp_mat, ob_target->obmat);
+    invert_m4_m4(tmp_mat, ob->object_to_world);
+    mul_m4_m4m4(smd_orig->mat, tmp_mat, ob_target->object_to_world);
 
     /* Avoid converting edit-mesh data, binding is an exception. */
     BKE_mesh_wrapper_ensure_mdata(target);
@@ -1505,7 +1503,7 @@ static void surfacedeformModifier_do(ModifierData *md,
         ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_polys_num);
     return;
   }
-  if (smd->target_verts_num != 0 && smd->target_verts_num != target_verts_num) {
+  if (!ELEM(smd->target_verts_num, 0, target_verts_num)) {
     if (smd->target_verts_num > target_verts_num) {
       /* Number of vertices on the target did reduce. There is no usable recovery from this. */
       BKE_modifier_set_error(ob,

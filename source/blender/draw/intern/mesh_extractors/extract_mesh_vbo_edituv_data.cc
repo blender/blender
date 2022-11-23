@@ -43,7 +43,7 @@ static void extract_edituv_data_init_common(const MeshRenderData *mr,
 }
 
 static void extract_edituv_data_init(const MeshRenderData *mr,
-                                     MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache * /*cache*/,
                                      void *buf,
                                      void *tls_data)
 {
@@ -54,7 +54,7 @@ static void extract_edituv_data_init(const MeshRenderData *mr,
 
 static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
                                              const BMFace *f,
-                                             const int UNUSED(f_index),
+                                             const int /*f_index*/,
                                              void *_data)
 {
   BMLoop *l_iter, *l_first;
@@ -114,7 +114,7 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_edituv_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
-                                            MeshBatchCache *UNUSED(cache),
+                                            MeshBatchCache * /*cache*/,
                                             void *buf,
                                             void *tls_data)
 {
@@ -174,7 +174,7 @@ static void extract_edituv_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_ca
                                                  uint subdiv_quad_index,
                                                  const MPoly *coarse_quad)
 {
-  const int coarse_quad_index = static_cast<int>(coarse_quad - mr->mpoly);
+  const int coarse_quad_index = int(coarse_quad - mr->mpoly);
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edituv_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }

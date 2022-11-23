@@ -12,6 +12,7 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
@@ -25,6 +26,7 @@
 
 #include "versioning_common.h"
 
+using blender::Map;
 using blender::StringRef;
 
 ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
@@ -233,4 +235,31 @@ ARegion *do_versions_add_region(int regiontype, const char *name)
   ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), name);
   region->regiontype = regiontype;
   return region;
+}
+
+void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
+                                         bNode &old_node,
+                                         bNode &new_node,
+                                         const Map<std::string, std::string> &map)
+{
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+    if (link->tonode == &old_node) {
+      bNodeSocket *old_socket = link->tosock;
+      if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
+        bNodeSocket *new_socket = nodeFindSocket(&new_node, SOCK_IN, new_identifier->c_str());
+        link->tonode = &new_node;
+        link->tosock = new_socket;
+        old_socket->link = nullptr;
+      }
+    }
+    if (link->fromnode == &old_node) {
+      bNodeSocket *old_socket = link->fromsock;
+      if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
+        bNodeSocket *new_socket = nodeFindSocket(&new_node, SOCK_OUT, new_identifier->c_str());
+        link->fromnode = &new_node;
+        link->fromsock = new_socket;
+        old_socket->link = nullptr;
+      }
+    }
+  }
 }

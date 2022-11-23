@@ -1326,7 +1326,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 void ACTION_OT_extrapolation_type(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Keyframe Extrapolation";
+  ot->name = "Set F-Curve Extrapolation";
   ot->idname = "ACTION_OT_extrapolation_type";
   ot->description = "Set extrapolation mode for selected F-Curves";
 
@@ -1364,7 +1364,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 
   /* set handle type */
   ANIM_animdata_keyframe_callback(&ac,
-                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                    ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                    ANIMFILTER_FCURVESONLY),
                                   ANIM_editkeyframes_ipo(mode));
@@ -1414,7 +1414,7 @@ static int actkeys_easing_exec(bContext *C, wmOperator *op)
 
   /* set handle type */
   ANIM_animdata_keyframe_callback(&ac,
-                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                    ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                    ANIMFILTER_FCURVESONLY),
                                   ANIM_editkeyframes_easing(mode));

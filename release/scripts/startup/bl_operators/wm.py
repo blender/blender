@@ -17,8 +17,11 @@ from bpy.props import (
     IntVectorProperty,
     FloatVectorProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -178,10 +181,10 @@ def context_path_decompose(data_path):
         prop_item = "".join(path_split[i + 1:])
 
         if base_path:
-            assert(base_path.startswith("."))
+            assert base_path.startswith(".")
             base_path = base_path[1:]
         if prop_attr:
-            assert(prop_attr.startswith("."))
+            assert prop_attr.startswith(".")
             prop_attr = prop_attr[1:]
     else:
         # If there are no properties, everything is an item.
@@ -200,9 +203,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := rna_prop.description)
+            (description := iface_(rna_prop.description))
     ):
-        description = "%s: %s" % (prefix, description)
+        description = iface_("%s: %s") % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
         return description
@@ -302,7 +305,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -403,7 +406,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -769,7 +772,7 @@ class WM_OT_operator_pie_enum(Operator):
         try:
             op_rna = op.get_rna_type()
         except KeyError:
-            self.report({'ERROR'}, "Operator not found: bpy.ops.%s" % data_path)
+            self.report({'ERROR'}, tip_("Operator not found: bpy.ops.%s") % data_path)
             return {'CANCELLED'}
 
         def draw_cb(self, context):
@@ -869,7 +872,7 @@ class WM_OT_context_collection_boolean_set(Operator):
             elif value_orig is False:
                 pass
             else:
-                self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
+                self.report({'WARNING'}, tip_("Non boolean value found: %s[ ].%s") %
                             (data_path_iter, data_path_item))
                 return {'CANCELLED'}
 
@@ -972,7 +975,7 @@ class WM_OT_context_modal_mouse(Operator):
                     (item, ) = self._values.keys()
                     header_text = header_text % eval("item.%s" % self.data_path_item)
                 else:
-                    header_text = (self.header_text % delta) + " (delta)"
+                    header_text = (self.header_text % delta) + tip_(" (delta)")
                 context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
@@ -992,7 +995,7 @@ class WM_OT_context_modal_mouse(Operator):
         self._values_store(context)
 
         if not self._values:
-            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
+            self.report({'WARNING'}, tip_("Nothing to operate on: %s[ ].%s") %
                         (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
@@ -1130,7 +1133,7 @@ class WM_OT_path_open(Operator):
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "File '%s' not found" % filepath)
+            self.report({'ERROR'}, tip_("File '%s' not found") % filepath)
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
@@ -1201,7 +1204,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, iface_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, tip_("Type \"%s\" can not be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1272,9 +1275,9 @@ class WM_OT_doc_view_manual(Operator):
         if url is None:
             self.report(
                 {'WARNING'},
-                "No reference available %r, "
-                "Update info in 'rna_manual_reference.py' "
-                "or callback to bpy.utils.manual_map()" %
+                tip_("No reference available %r, "
+                     "Update info in 'rna_manual_reference.py' "
+                     "or callback to bpy.utils.manual_map()") %
                 self.doc_id
             )
             return {'CANCELLED'}
@@ -2153,7 +2156,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, "Tool %r not found for space %r" % (self.name, space_type))
+            self.report({'WARNING'}, tip_("Tool %r not found for space %r") % (self.name, space_type))
             return {'CANCELLED'}
 
 
@@ -2286,7 +2289,7 @@ class WM_OT_toolbar_fallback_pie(Operator):
             ToolSelectPanelHelper.draw_fallback_tool_items_for_pie_menu(self.layout, context)
 
         wm = context.window_manager
-        wm.popup_menu_pie(draw_func=draw_cb, title="Fallback Tool", event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=iface_("Fallback Tool"), event=event)
         return {'FINISHED'}
 
 
@@ -2402,7 +2405,9 @@ class WM_OT_toolbar_prompt(Operator):
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
             for _, name, item in status_items:
                 row = flow.row(align=True)
-                row.template_event_from_keymap_item(item, text=name)
+                row.template_event_from_keymap_item(
+                    item, text=name, text_ctxt=i18n_contexts.operator_default
+                )
 
         self._keymap = keymap
 
@@ -2518,6 +2523,7 @@ class WM_OT_batch_rename(Operator):
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
+            ('ACTION_CLIP', "Action Clips", ""),
         ),
         description="Type of data to rename",
     )
@@ -2690,6 +2696,30 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     iface_("Material(s)"),
                 )
+            elif data_type == "ACTION_CLIP":
+                data = (
+                    (
+                        # Outliner.
+                        tuple(set(
+                            action for id in context.selected_ids
+                            if (((animation_data := id.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            action for ob in context.selected_objects
+                            if (((animation_data := ob.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                    )
+                    if only_selected else
+                    [id for id in bpy.data.actions if id.library is None],
+                    "name",
+                    iface_("Action(s)"),
+                )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]
                 data = (
@@ -2730,7 +2760,7 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'SUFFIX':
                     name = name + text
                 else:
-                    assert(0)
+                    assert 0
 
             elif ty == 'STRIP':
                 chars = action.strip_chars
@@ -2775,9 +2805,9 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'TITLE':
                     name = name.title()
                 else:
-                    assert(0)
+                    assert 0
             else:
-                assert(0)
+                assert 0
         return name
 
     def _data_update(self, context):
@@ -2913,7 +2943,7 @@ class WM_OT_batch_rename(Operator):
             row.prop(action, "op_remove", text="", icon='REMOVE')
             row.prop(action, "op_add", text="", icon='ADD')
 
-        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]))
+        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]), translate=False)
 
     def check(self, context):
         changed = False
@@ -3053,7 +3083,7 @@ class WM_MT_splash_quick_setup(Menu):
 
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version)
+            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version, translate=False)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()
@@ -3133,6 +3163,15 @@ class WM_MT_splash_about(Menu):
                                                 bpy.app.build_commit_time.decode('utf-8', 'replace')), translate=False)
         col.label(text=iface_("Hash: %s") % bpy.app.build_hash.decode('ascii'), translate=False)
         col.label(text=iface_("Branch: %s") % bpy.app.build_branch.decode('utf-8', 'replace'), translate=False)
+
+        # This isn't useful information on MS-Windows or Apple systems as dynamically switching
+        # between windowing systems is only supported between X11/WAYLAND.
+        from _bpy import _ghost_backend
+        ghost_backend = _ghost_backend()
+        if ghost_backend not in {'NONE', 'DEFAULT'}:
+            col.label(text=iface_("Windowing Environment: %s") % _ghost_backend(), translate=False)
+        del _ghost_backend, ghost_backend
+
         col.separator(factor=2.0)
         col.label(text="Blender is free software")
         col.label(text="Licensed under the GNU General Public License")

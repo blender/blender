@@ -340,11 +340,6 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
-  if (do_bevel_convex) {
-    /* Make sure bweight is enabled. */
-    result->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-  }
-
   if (do_shell) {
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)verts_num);
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)verts_num, (int)verts_num);
@@ -390,6 +385,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     /* will be created later */
     CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)loops_num);
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)polys_num);
+  }
+
+  float *result_edge_bweight = NULL;
+  if (do_bevel_convex) {
+    result_edge_bweight = CustomData_add_layer(
+        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, result->totedge);
   }
 
   /* initializes: (i_end, do_shell_align, mv). */
@@ -671,20 +672,18 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (uint i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          medge[i].bweight = (char)clamp_i(
-              (int)medge[i].bweight + (int)((angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                            clamp_f(bevel_convex, -1.0f, 0.0f)) *
-                                            255),
-              0,
-              255);
+          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
+                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
+                                           0.0f,
+                                           1.0f);
           if (do_shell) {
-            medge[i + edges_num].bweight = (char)clamp_i(
-                (int)medge[i + edges_num].bweight +
-                    (int)((angle > M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                          clamp_f(bevel_convex, -1.0f, 0.0f)) *
-                          255),
+            result_edge_bweight[i + edges_num] = clamp_f(
+                result_edge_bweight[i + edges_num] + (angle > M_PI ?
+                                                          clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                          clamp_f(bevel_convex, -1.0f, 0.0f)),
                 0,
-                255);
+                1.0f);
           }
         }
       }
@@ -900,20 +899,17 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          medge[i].bweight = (char)clamp_i(
-              (int)medge[i].bweight + (int)((angle < M_PI ? clamp_f(bevel_convex, 0, 1) :
-                                                            clamp_f(bevel_convex, -1, 0)) *
-                                            255),
-              0,
-              255);
+          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
+                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
+                                           0.0f,
+                                           1.0f);
           if (do_shell) {
-            medge[i + edges_num].bweight = (char)clamp_i(
-                (int)medge[i + edges_num].bweight +
-                    (int)((angle > M_PI ? clamp_f(bevel_convex, 0, 1) :
-                                          clamp_f(bevel_convex, -1, 0)) *
-                          255),
-                0,
-                255);
+            result_edge_bweight[i + edges_num] = clamp_f(
+                result_edge_bweight[i + edges_num] +
+                    (angle > M_PI ? clamp_f(bevel_convex, 0, 1) : clamp_f(bevel_convex, -1, 0)),
+                0.0f,
+                1.0f);
           }
         }
       }
@@ -1028,16 +1024,18 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
                                    NULL;
     float nor[3];
 #endif
-    const uchar crease_rim = smd->crease_rim * 255.0f;
-    const uchar crease_outer = smd->crease_outer * 255.0f;
-    const uchar crease_inner = smd->crease_inner * 255.0f;
+    const float crease_rim = smd->crease_rim;
+    const float crease_outer = smd->crease_outer;
+    const float crease_inner = smd->crease_inner;
 
     int *origindex_edge;
     int *orig_ed;
     uint j;
 
+    float *result_edge_crease = NULL;
     if (crease_rim || crease_outer || crease_inner) {
-      result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+      result_edge_crease = (float *)CustomData_add_layer(
+          &result->edata, CD_CREASE, CD_SET_DEFAULT, NULL, result->totedge);
     }
 
     /* add faces & edges */
@@ -1047,7 +1045,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     for (i = 0; i < rimVerts; i++, ed++) {
       ed->v1 = new_vert_arr[i];
       ed->v2 = (do_shell ? new_vert_arr[i] : i) + verts_num;
-      ed->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+      ed->flag |= ME_EDGEDRAW;
 
       if (orig_ed) {
         *orig_ed = ORIGINDEX_NONE;
@@ -1055,7 +1053,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
 
       if (crease_rim) {
-        ed->crease = crease_rim;
+        result_edge_crease[ed - medge] = crease_rim;
       }
     }
 
@@ -1144,16 +1142,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
       if (crease_outer) {
         /* crease += crease_outer; without wrapping */
-        char *cr = &(ed->crease);
-        int tcr = *cr + crease_outer;
-        *cr = tcr > 255 ? 255 : tcr;
+        float *cr = &(result_edge_crease[ed - medge]);
+        float tcr = *cr + crease_outer;
+        *cr = tcr > 1.0f ? 1.0f : tcr;
       }
 
       if (crease_inner) {
         /* crease += crease_inner; without wrapping */
-        char *cr = &(medge[edges_num + (do_shell ? eidx : i)].crease);
-        int tcr = *cr + crease_inner;
-        *cr = tcr > 255 ? 255 : tcr;
+        float *cr = &(result_edge_crease[edges_num + (do_shell ? eidx : i)]);
+        float tcr = *cr + crease_inner;
+        *cr = tcr > 1.0f ? 1.0f : tcr;
       }
 
 #ifdef SOLIDIFY_SIDE_NORMALS

@@ -9,6 +9,7 @@
 #include "BKE_attribute.h"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -31,6 +32,8 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
 using blender::Vector;
+using blender::bke::InstanceReference;
+using blender::bke::Instances;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component
@@ -158,7 +161,8 @@ const GeometryComponent *GeometrySet::get_component_for_read(
 
 bool GeometrySet::has(const GeometryComponentType component_type) const
 {
-  return components_[component_type].has_value();
+  const GeometryComponentPtr &component = components_[component_type];
+  return component.has_value() && !component->is_empty();
 }
 
 void GeometrySet::remove(const GeometryComponentType component_type)
@@ -214,7 +218,7 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   using namespace blender;
   bool have_minmax = false;
   if (const PointCloud *pointcloud = this->get_pointcloud_for_read()) {
-    have_minmax |= BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
+    have_minmax |= pointcloud->bounds_min_max(*r_min, *r_max);
   }
   if (const Mesh *mesh = this->get_mesh_for_read()) {
     have_minmax |= BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
@@ -224,14 +228,7 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   }
   if (const Curves *curves_id = this->get_curves_for_read()) {
     const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-    /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
-    std::optional<bounds::MinMaxResult<float3>> min_max = bounds::min_max(
-        curves.evaluated_positions());
-    if (min_max) {
-      have_minmax = true;
-      *r_min = math::min(*r_min, min_max->min);
-      *r_max = math::max(*r_max, min_max->max);
-    }
+    have_minmax |= curves.bounds_min_max(*r_min, *r_max);
   }
   return have_minmax;
 }
@@ -256,8 +253,7 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
     parts.append(std::to_string(BKE_volume_num_grids(volume)) + " volume grids");
   }
   if (geometry_set.has_instances()) {
-    parts.append(std::to_string(
-                     geometry_set.get_component_for_read<InstancesComponent>()->instances_num()) +
+    parts.append(std::to_string(geometry_set.get_instances_for_read()->instances_num()) +
                  " instances");
   }
   if (geometry_set.get_curve_edit_hints_for_read()) {
@@ -338,6 +334,12 @@ const Curves *GeometrySet::get_curves_for_read() const
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
+const Instances *GeometrySet::get_instances_for_read() const
+{
+  const InstancesComponent *component = this->get_component_for_read<InstancesComponent>();
+  return (component == nullptr) ? nullptr : component->get_for_read();
+}
+
 const blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_read() const
 {
   const GeometryComponentEditData *component =
@@ -354,7 +356,8 @@ bool GeometrySet::has_pointcloud() const
 bool GeometrySet::has_instances() const
 {
   const InstancesComponent *component = this->get_component_for_read<InstancesComponent>();
-  return component != nullptr && component->instances_num() >= 1;
+  return component != nullptr && component->get_for_read() != nullptr &&
+         component->get_for_read()->instances_num() >= 1;
 }
 
 bool GeometrySet::has_volume() const
@@ -428,6 +431,14 @@ GeometrySet GeometrySet::create_with_curves(Curves *curves, GeometryOwnershipTyp
   return geometry_set;
 }
 
+GeometrySet GeometrySet::create_with_instances(Instances *instances,
+                                               GeometryOwnershipType ownership)
+{
+  GeometrySet geometry_set;
+  geometry_set.replace_instances(instances, ownership);
+  return geometry_set;
+}
+
 void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   if (mesh == nullptr) {
@@ -454,6 +465,20 @@ void GeometrySet::replace_curves(Curves *curves, GeometryOwnershipType ownership
   this->remove<CurveComponent>();
   CurveComponent &component = this->get_component_for_write<CurveComponent>();
   component.replace(curves, ownership);
+}
+
+void GeometrySet::replace_instances(Instances *instances, GeometryOwnershipType ownership)
+{
+  if (instances == nullptr) {
+    this->remove<InstancesComponent>();
+    return;
+  }
+  if (instances == this->get_instances_for_read()) {
+    return;
+  }
+  this->remove<InstancesComponent>();
+  InstancesComponent &component = this->get_component_for_write<InstancesComponent>();
+  component.replace(instances, ownership);
 }
 
 void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipType ownership)
@@ -508,6 +533,12 @@ Curves *GeometrySet::get_curves_for_write()
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
+Instances *GeometrySet::get_instances_for_write()
+{
+  InstancesComponent *component = this->get_component_ptr<InstancesComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
+}
+
 blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_write()
 {
   if (!this->has<GeometryComponentEditData>()) {
@@ -539,7 +570,7 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_
     }
   }
   if (include_instances && this->has_instances()) {
-    const InstancesComponent &instances = *this->get_component_for_read<InstancesComponent>();
+    const Instances &instances = *this->get_instances_for_read();
     instances.foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
       instance_geometry_set.attribute_foreach(component_types, include_instances, callback);
     });
@@ -570,7 +601,10 @@ void GeometrySet::gather_attributes_for_propagation(
             return;
           }
         }
-
+        if (meta_data.data_type == CD_PROP_STRING) {
+          /* Propagating string attributes is not supported yet. */
+          return;
+        }
         if (!attribute_id.should_be_kept()) {
           return;
         }
@@ -611,7 +645,7 @@ static void gather_component_types_recursive(const GeometrySet &geometry_set,
   if (!include_instances) {
     return;
   }
-  const InstancesComponent *instances = geometry_set.get_component_for_read<InstancesComponent>();
+  const blender::bke::Instances *instances = geometry_set.get_instances_for_read();
   if (instances == nullptr) {
     return;
   }
@@ -638,12 +672,11 @@ static void gather_mutable_geometry_sets(GeometrySet &geometry_set,
   }
   /* In the future this can be improved by deduplicating instance references across different
    * instances. */
-  InstancesComponent &instances_component =
-      geometry_set.get_component_for_write<InstancesComponent>();
-  instances_component.ensure_geometry_instances();
-  for (const int handle : instances_component.references().index_range()) {
-    if (instances_component.references()[handle].type() == InstanceReference::Type::GeometrySet) {
-      GeometrySet &instance_geometry = instances_component.geometry_set_from_reference(handle);
+  Instances &instances = *geometry_set.get_instances_for_write();
+  instances.ensure_geometry_instances();
+  for (const int handle : instances.references().index_range()) {
+    if (instances.references()[handle].type() == InstanceReference::Type::GeometrySet) {
+      GeometrySet &instance_geometry = instances.geometry_set_from_reference(handle);
       gather_mutable_geometry_sets(instance_geometry, r_geometry_sets);
     }
   }

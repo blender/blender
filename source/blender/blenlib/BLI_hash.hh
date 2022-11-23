@@ -85,7 +85,7 @@ template<typename T> struct DefaultHash {
   {
     if constexpr (std::is_enum_v<T>) {
       /* For enums use the value as hash directly. */
-      return (uint64_t)value;
+      return uint64_t(value);
     }
     else {
       /* Try to call the `hash()` function on the value. */
@@ -119,7 +119,7 @@ template<typename T> struct DefaultHash<const T> {
   template<> struct DefaultHash<TYPE> { \
     uint64_t operator()(TYPE value) const \
     { \
-      return static_cast<uint64_t>(value); \
+      return uint64_t(value); \
     } \
   }
 
@@ -158,7 +158,7 @@ template<> struct DefaultHash<double> {
 template<> struct DefaultHash<bool> {
   uint64_t operator()(bool value) const
   {
-    return static_cast<uint64_t>((value != false) * 1298191);
+    return uint64_t((value != false) * 1298191);
   }
 };
 
@@ -209,8 +209,8 @@ template<> struct DefaultHash<std::string_view> {
 template<typename T> struct DefaultHash<T *> {
   uint64_t operator()(const T *value) const
   {
-    uintptr_t ptr = reinterpret_cast<uintptr_t>(value);
-    uint64_t hash = static_cast<uint64_t>(ptr >> 4);
+    uintptr_t ptr = uintptr_t(value);
+    uint64_t hash = uint64_t(ptr >> 4);
     return hash;
   }
 };
@@ -246,18 +246,17 @@ uint64_t get_default_hash_4(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &
   return h1 ^ (h2 * 19349669) ^ (h3 * 83492791) ^ (h4 * 3632623);
 }
 
-template<typename T> struct DefaultHash<std::unique_ptr<T>> {
-  uint64_t operator()(const std::unique_ptr<T> &value) const
+/** Support hashing different kinds of pointer types. */
+template<typename T> struct PointerHashes {
+  template<typename U> uint64_t operator()(const U &value) const
   {
-    return get_default_hash(value.get());
+    return get_default_hash(&*value);
   }
 };
 
-template<typename T> struct DefaultHash<std::shared_ptr<T>> {
-  uint64_t operator()(const std::shared_ptr<T> &value) const
-  {
-    return get_default_hash(value.get());
-  }
+template<typename T> struct DefaultHash<std::unique_ptr<T>> : public PointerHashes<T> {
+};
+template<typename T> struct DefaultHash<std::shared_ptr<T>> : public PointerHashes<T> {
 };
 
 template<typename T> struct DefaultHash<std::reference_wrapper<T>> {

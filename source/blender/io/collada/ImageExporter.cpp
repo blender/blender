@@ -70,7 +70,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
     BLI_strncpy(export_file, name.c_str(), sizeof(export_file));
     BKE_image_path_ensure_ext_from_imformat(export_file, &imageFormat);
 
-    BLI_join_dirfile(export_path, sizeof(export_path), export_dir, export_file);
+    BLI_path_join(export_path, sizeof(export_path), export_dir, export_file);
 
     /* make dest directory if it doesn't exist */
     BLI_make_existing_file(export_path);

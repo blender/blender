@@ -120,7 +120,7 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
   return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
-         (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW));
+         ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
 bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
@@ -194,7 +194,7 @@ bool sequencer_strip_has_path_poll(bContext *C)
   Editing *ed;
   Sequence *seq;
   return (((ed = SEQ_editing_get(CTX_data_scene(C))) != NULL) && ((seq = ed->act_seq) != NULL) &&
-          (SEQ_HAS_PATH(seq)));
+          SEQ_HAS_PATH(seq));
 }
 
 bool sequencer_view_has_preview_poll(bContext *C)
@@ -371,7 +371,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
         else { /* SEQ_RIGHTSEL */
           SEQ_time_right_handle_frame_set(scene, seq, snap_frame);
         }
-        SEQ_transform_fix_single_image_seq_offsets(scene, seq);
       }
     }
   }
@@ -2939,7 +2938,7 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   Sequence *seq = SEQ_select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_join_dirfile(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
 
   RNA_string_set(op->ptr, "directory", seq->strip->dir);
   RNA_string_set(op->ptr, "filepath", filepath);

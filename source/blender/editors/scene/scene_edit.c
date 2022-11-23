@@ -286,6 +286,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "type", scene_new_items, SCE_COPY_NEW, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_SCENE);
 }
 
 /** \} */
@@ -333,7 +334,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   else {
     Scene *scene = CTX_data_scene(C);
     Sequence *seq = SEQ_select_active_get(scene);
-    if ((seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL))) {
+    if (seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL)) {
       has_scene_or_no_context = true;
     }
   }

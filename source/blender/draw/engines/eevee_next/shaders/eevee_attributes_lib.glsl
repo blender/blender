@@ -17,7 +17,7 @@
 vec3 attr_load_orco(vec4 orco)
 {
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
-   * attrib (which is [0,0,0,1]). */
+   * attribute (which is [0,0,0,1]). */
   if (orco.w == 1.0) {
     /* If the object does not have any deformation, the orco layer calculation is done on the fly
      * using the orco_madd factors. */

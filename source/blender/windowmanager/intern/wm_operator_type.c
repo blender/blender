@@ -235,8 +235,8 @@ void WM_operatortype_last_properties_clear_all(void)
 {
   GHashIterator iter;
 
-  for (WM_operatortype_iter(&iter); (!BLI_ghashIterator_done(&iter));
-       (BLI_ghashIterator_step(&iter))) {
+  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter);
+       BLI_ghashIterator_step(&iter)) {
     wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
 
     if (ot->last_properties) {

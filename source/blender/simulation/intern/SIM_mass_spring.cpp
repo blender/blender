@@ -65,7 +65,7 @@ static bool cloth_get_pressure_weights(ClothModifierData *clmd,
     Cloth *cloth = clmd->clothObject;
     ClothVertex *verts = cloth->verts;
 
-    for (unsigned int j = 0; j < 3; j++) {
+    for (uint j = 0; j < 3; j++) {
       r_weights[j] = verts[vt->tri[j]].pressure_factor;
 
       /* Skip the entire triangle if it has a zero weight. */
@@ -84,10 +84,10 @@ static void cloth_calc_pressure_gradient(ClothModifierData *clmd,
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   float pt[3];
 
-  for (unsigned int i = 0; i < mvert_num; i++) {
+  for (uint i = 0; i < mvert_num; i++) {
     SIM_mass_spring_get_position(data, i, pt);
     r_vertex_pressure[i] = dot_v3v3(pt, gradient_vector);
   }
@@ -107,7 +107,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
     return 0.0f;
   }
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -135,7 +135,7 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
     return 0.0f;
   }
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -159,7 +159,7 @@ static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *v
   float total_force = 0;
   float total_area = 0;
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -175,13 +175,13 @@ static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *v
   return total_force / total_area;
 }
 
-int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
+int SIM_cloth_solver_init(Object * /*ob*/, ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts;
   const float ZERO[3] = {0.0f, 0.0f, 0.0f};
   Implicit_Data *id;
-  unsigned int i, nondiag;
+  uint i, nondiag;
 
   nondiag = cloth_count_nondiag_blocks(cloth);
   cloth->implicit = id = SIM_mass_spring_solver_create(cloth->mvert_num, nondiag);
@@ -216,7 +216,7 @@ void SIM_cloth_solver_set_positions(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts;
-  unsigned int mvert_num = cloth->mvert_num, i;
+  uint mvert_num = cloth->mvert_num, i;
   ClothHairData *cloth_hairdata = clmd->hairdata;
   Implicit_Data *id = cloth->implicit;
 
@@ -271,11 +271,8 @@ static void cloth_setup_constraints(ClothModifierData *clmd)
  * (edge distance constraints) in a lagrangian solver. Then add forces to help
  * guide the implicit solver to that state. This function is called after collisions.
  */
-static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
-                                                     ClothModifierData *clmd,
-                                                     float (*initial_cos)[3],
-                                                     float UNUSED(step),
-                                                     float dt)
+static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
+    Object * /*ob*/, ClothModifierData *clmd, float (*initial_cos)[3], float /*step*/, float dt)
 {
   Cloth *cloth = clmd->clothObject;
   float(*cos)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * cloth->mvert_num,
@@ -552,7 +549,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   int i;
 
   INIT_MINMAX(gmin, gmax);
@@ -564,17 +561,17 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 }
 
 static void cloth_calc_force(
-    Scene *scene, ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
+    Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
 {
   /* Collect forces and derivatives:  F, dFdX, dFdV */
   Cloth *cloth = clmd->clothObject;
   ClothSimSettings *parms = clmd->sim_parms;
   Implicit_Data *data = cloth->implicit;
-  unsigned int i = 0;
+  uint i = 0;
   float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
   float gravity[3] = {0.0f, 0.0f, 0.0f};
   const MVertTri *tri = cloth->tri;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   ClothVertex *vert;
 
 #ifdef CLOTH_FORCE_GRAVITY
@@ -591,7 +588,7 @@ static void cloth_calc_force(
     SIM_mass_spring_force_gravity(data, i, vert->mass, gravity);
 
     /* Vertex goal springs */
-    if ((!(vert->flags & CLOTH_VERT_FLAG_PINNED)) && (vert->goal > FLT_EPSILON)) {
+    if (!(vert->flags & CLOTH_VERT_FLAG_PINNED) && (vert->goal > FLT_EPSILON)) {
       float goal_x[3], goal_v[3];
       float k;
 
@@ -1029,8 +1026,8 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
         for (i = 0; i < size; i++) {
           float x[3], v[3], gvel[3], gvel_smooth[3], gdensity;
 
-          madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size - 1));
-          madd_v3_v3fl(x, b, (float)j / (float)(size - 1));
+          madd_v3_v3v3fl(x, offset, a, float(i) / float(size - 1));
+          madd_v3_v3fl(x, b, float(j) / float(size - 1));
           zero_v3(v);
 
           SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
@@ -1237,7 +1234,7 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
 
     sres->min_iterations = min_ii(sres->min_iterations, result->iterations);
     sres->max_iterations = max_ii(sres->max_iterations, result->iterations);
-    sres->avg_iterations += (float)result->iterations * dt;
+    sres->avg_iterations += float(result->iterations) * dt;
   }
   else {
     /* error only makes sense for successful iterations */
@@ -1247,7 +1244,7 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
     }
 
     sres->min_iterations = sres->max_iterations = result->iterations;
-    sres->avg_iterations += (float)result->iterations * dt;
+    sres->avg_iterations += float(result->iterations) * dt;
   }
 
   sres->status |= result->status;
@@ -1263,11 +1260,11 @@ int SIM_cloth_solve(
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const bool is_hair = (clmd->hairdata != nullptr);
 
-  unsigned int i = 0;
+  uint i = 0;
   float step = 0.0f, tf = clmd->sim_parms->timescale;
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts /*, *cv*/;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   float dt = clmd->sim_parms->dt * clmd->sim_parms->timescale;
   Implicit_Data *id = cloth->implicit;
 
