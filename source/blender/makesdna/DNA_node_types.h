@@ -2048,6 +2048,14 @@ typedef enum CMPNodeToneMapType {
   CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
 } CMPNodeToneMapType;
 
+/* Track Position Node. Stored in custom1. */
+typedef enum CMPNodeTrackPositionMode {
+  CMP_NODE_TRACK_POSITION_ABSOLUTE = 0,
+  CMP_NODE_TRACK_POSITION_RELATIVE_START = 1,
+  CMP_NODE_TRACK_POSITION_RELATIVE_FRAME = 2,
+  CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
+} CMPNodeTrackPositionMode;
+
 /* Plane track deform node. */
 
 enum {
