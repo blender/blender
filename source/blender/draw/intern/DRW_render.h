@@ -886,6 +886,10 @@ bool DRW_state_is_scene_render(void);
 bool DRW_state_is_opengl_render(void);
 bool DRW_state_is_playback(void);
 /**
+ * Whether we are rendering a virtual camera, false when rendering the main camera/viewport.
+ */
+bool DRW_state_is_virtual_camera(void);
+/**
  * Is the user navigating the region.
  */
 bool DRW_state_is_navigating(void);

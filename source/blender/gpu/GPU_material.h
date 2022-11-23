@@ -35,6 +35,7 @@ struct Material;
 struct Scene;
 struct bNode;
 struct bNodeTree;
+struct Camera;
 
 typedef struct GPUMaterial GPUMaterial;
 typedef struct GPUNode GPUNode;
@@ -81,6 +82,8 @@ typedef enum eGPUMaterialFlag {
 
   GPU_MATFLAG_OBJECT_INFO = (1 << 10),
   GPU_MATFLAG_AOV = (1 << 11),
+
+  GPU_MATFLAG_VIRTUAL_MONITOR = (1 << 12),
 
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
 
@@ -178,6 +181,9 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            const float *pixels,
                            float *layer,
                            eGPUSamplerState sampler_state);
+GPUNodeLink *GPU_image_camera(GPUMaterial *mat,
+                              struct Camera *camera,
+                              eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row);
 
 /**
@@ -322,6 +328,7 @@ typedef struct GPUMaterialTexture {
   bool iuser_available;
   struct GPUTexture **colorband;
   struct GPUTexture **sky;
+  struct GPUTexture **camera;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;

@@ -1803,6 +1803,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     const bool is_image_render,
                                     const bool draw_background,
                                     const bool do_color_management,
+                                    const bool is_virtual_camera,
                                     GPUOffScreen *ofs,
                                     GPUViewport *viewport)
 {
@@ -1826,6 +1827,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   drw_state_prepare_clean_for_draw(&DST);
   DST.options.is_image_render = is_image_render;
   DST.options.draw_background = draw_background;
+  DST.options.is_virtual_camera = is_virtual_camera;
   DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, NULL);
 
   if (draw_background) {
@@ -2915,6 +2917,11 @@ bool DRW_state_is_scene_render(void)
 bool DRW_state_is_opengl_render(void)
 {
   return DST.options.is_image_render && !DST.options.is_scene_render;
+}
+
+bool DRW_state_is_virtual_camera(void)
+{
+  return DST.options.is_virtual_camera;
 }
 
 bool DRW_state_is_playback(void)

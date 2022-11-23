@@ -113,6 +113,7 @@ set(SRC
   nodes/node_shader_vector_rotate.cc
   nodes/node_shader_vector_transform.cc
   nodes/node_shader_vertex_color.cc
+  nodes/node_shader_virtual_monitor.cc
   nodes/node_shader_volume_absorption.cc
   nodes/node_shader_volume_info.cc
   nodes/node_shader_volume_principled.cc

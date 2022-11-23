@@ -71,6 +71,10 @@ typedef struct Camera_Runtime {
   float drw_depth[2];
   float drw_focusmat[4][4];
   float drw_normalmat[4][4];
+
+  struct GPUOffScreen *virtual_monitor_offscreen;
+  /* Local reference to not owning gpu texture. Used to have a reliable pointer to the texture. */
+  struct GPUTexture *offscreen_color_texture;
 } Camera_Runtime;
 
 typedef struct Camera {
