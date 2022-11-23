@@ -27,7 +27,7 @@ set(SRC
     IO_ply.cc
     exporter/ply_export.cc
     importer/ply_import.cc
-    
+
 
 
     IO_ply.h
@@ -41,3 +41,16 @@ set(LIB
 )
 
 blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if (WITH_GTESTS)
+  set(TEST_SRC
+          tests/io_ply_generic_test.cc
+  )
+  set(TEST_INC
+  )
+  set(TEST_LIB
+    bf_ply
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_io_ply_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+endif()
