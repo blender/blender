@@ -268,14 +268,14 @@ static void compo_startjob(void *cjv,
   cj->do_update = do_update;
   cj->progress = progress;
 
-  ntree->test_break = compo_breakjob;
-  ntree->tbh = cj;
-  ntree->stats_draw = compo_statsdrawjob;
-  ntree->sdh = cj;
-  ntree->progress = compo_progressjob;
-  ntree->prh = cj;
-  ntree->update_draw = compo_redrawjob;
-  ntree->udh = cj;
+  ntree->runtime->test_break = compo_breakjob;
+  ntree->runtime->tbh = cj;
+  ntree->runtime->stats_draw = compo_statsdrawjob;
+  ntree->runtime->sdh = cj;
+  ntree->runtime->progress = compo_progressjob;
+  ntree->runtime->prh = cj;
+  ntree->runtime->update_draw = compo_redrawjob;
+  ntree->runtime->udh = cj;
 
   // XXX BIF_store_spare();
   /* 1 is do_previews */
@@ -293,9 +293,9 @@ static void compo_startjob(void *cjv,
     }
   }
 
-  ntree->test_break = nullptr;
-  ntree->stats_draw = nullptr;
-  ntree->progress = nullptr;
+  ntree->runtime->test_break = nullptr;
+  ntree->runtime->stats_draw = nullptr;
+  ntree->runtime->progress = nullptr;
 }
 
 static void compo_canceljob(void *cjv)
@@ -2797,13 +2797,13 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
 {
   bool found = false;
 
-  ntree->done = true;
+  ntree->runtime->done = true;
 
   /* update each script that is using this text datablock */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == NODE_GROUP) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
-      if (ngroup && !ngroup->done) {
+      if (ngroup && !ngroup->runtime->done) {
         found |= node_shader_script_update_text_recursive(engine, type, ngroup, text);
       }
     }
@@ -2855,14 +2855,14 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
       /* clear flags for recursion check */
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
-          ntree->done = false;
+          ntree->runtime->done = false;
         }
       }
       FOREACH_NODETREE_END;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
-          if (!ntree->done) {
+          if (!ntree->runtime->done) {
             found |= node_shader_script_update_text_recursive(engine, type, ntree, text);
           }
         }

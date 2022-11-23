@@ -43,6 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -5615,7 +5616,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
   MTex *mtex = &brush->mtex;
 
   if (mtex->tex && mtex->tex->nodetree) {
-    ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
   }
 }
 

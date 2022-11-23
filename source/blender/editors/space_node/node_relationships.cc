@@ -903,7 +903,7 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
 
   /* avoid updates while applying links */
-  ntree.is_updating = true;
+  ntree.runtime->is_updating = true;
   for (bNodeLink *link : nldrag->links) {
     link->flag &= ~NODE_LINK_DRAGGED;
 
@@ -929,7 +929,7 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
       nodeRemLink(&ntree, link);
     }
   }
-  ntree.is_updating = false;
+  ntree.runtime->is_updating = false;
 
   ED_node_tree_propagate_change(&C, bmain, &ntree);
 

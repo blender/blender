@@ -27,6 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
@@ -323,7 +324,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     BLI_task_parallel_range(0, size, &data, load_tex_task_cb_ex, &settings);
 
     if (mtex->tex && mtex->tex->nodetree) {
-      ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+      ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
     }
 
     if (pool) {

@@ -138,7 +138,7 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   ntree_dst->runtime = MEM_new<bNodeTreeRuntime>(__func__);
 
   /* in case a running nodetree is copied */
-  ntree_dst->execdata = nullptr;
+  ntree_dst->runtime->execdata = nullptr;
 
   BLI_listbase_clear(&ntree_dst->nodes);
   BLI_listbase_clear(&ntree_dst->links);
@@ -225,14 +225,14 @@ static void ntree_free_data(ID *id)
    * This should be removed when old tree types no longer require it.
    * Currently the execution data for texture nodes remains in the tree
    * after execution, until the node tree is updated or freed. */
-  if (ntree->execdata) {
+  if (ntree->runtime->execdata) {
     switch (ntree->type) {
       case NTREE_SHADER:
-        ntreeShaderEndExecTree(ntree->execdata);
+        ntreeShaderEndExecTree(ntree->runtime->execdata);
         break;
       case NTREE_TEXTURE:
-        ntreeTexEndExecTree(ntree->execdata);
-        ntree->execdata = nullptr;
+        ntreeTexEndExecTree(ntree->runtime->execdata);
+        ntree->runtime->execdata = nullptr;
         break;
     }
   }
@@ -615,10 +615,8 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   bNodeTree *ntree = (bNodeTree *)id;
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  ntree->is_updating = false;
   ntree->typeinfo = nullptr;
-  ntree->progress = nullptr;
-  ntree->execdata = nullptr;
+  ntree->runtime->execdata = nullptr;
 
   BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
 
@@ -668,11 +666,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   ntree->owner_id = owner_id;
 
   /* NOTE: writing and reading goes in sync, for speed. */
-  ntree->is_updating = false;
   ntree->typeinfo = nullptr;
 
-  ntree->progress = nullptr;
-  ntree->execdata = nullptr;
   ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
   BKE_ntree_update_tag_missing_runtime_data(ntree);
 
@@ -2949,9 +2944,9 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
     }
 
     /* texture node has bad habit of keeping exec data around */
-    if (ntree->type == NTREE_TEXTURE && ntree->execdata) {
-      ntreeTexEndExecTree(ntree->execdata);
-      ntree->execdata = nullptr;
+    if (ntree->type == NTREE_TEXTURE && ntree->runtime->execdata) {
+      ntreeTexEndExecTree(ntree->runtime->execdata);
+      ntree->runtime->execdata = nullptr;
     }
   }
 

@@ -48,6 +48,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -85,8 +86,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     texture_dst->coba = static_cast<ColorBand *>(MEM_dupallocN(texture_dst->coba));
   }
   if (texture_src->nodetree) {
-    if (texture_src->nodetree->execdata) {
-      ntreeTexEndExecTree(texture_src->nodetree->execdata);
+    if (texture_src->nodetree->runtime->execdata) {
+      ntreeTexEndExecTree(texture_src->nodetree->runtime->execdata);
     }
 
     if (is_localized) {
