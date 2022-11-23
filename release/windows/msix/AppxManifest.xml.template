@@ -17,7 +17,7 @@
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
   <Applications>
-    <Application Id="BLENDER" Executable="Blender\blender.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="BLENDER" Executable="Blender\blender-launcher.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
           BackgroundColor="transparent"
           DisplayName="Blender [VERSION]"
@@ -49,9 +49,9 @@
             </uap2:SupportedVerbs>
           </uap3:FileTypeAssociation>
         </uap3:Extension>
-        <uap3:Extension Category="windows.appExecutionAlias" Executable="Blender\blender.exe" EntryPoint="Windows.FullTrustApplication">
+        <uap3:Extension Category="windows.appExecutionAlias" Executable="Blender\blender-launcher.exe" EntryPoint="Windows.FullTrustApplication">
           <uap3:AppExecutionAlias>
-            <desktop:ExecutionAlias Alias="blender.exe" />
+            <desktop:ExecutionAlias Alias="blender-launcher.exe" />
           </uap3:AppExecutionAlias>
         </uap3:Extension>
       </Extensions>
