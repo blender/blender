@@ -1020,6 +1020,7 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
     if (this->attributes().contains("radius")) {
       const VArraySpan<float> radii = this->attributes().lookup<float>("radius");
       Array<float> evaluated_radii(this->evaluated_points_num());
+      this->ensure_can_interpolate_to_evaluated();
       this->interpolate_to_evaluated(radii, evaluated_radii.as_mutable_span());
       r_bounds = *bounds::min_max_with_radii(positions, evaluated_radii.as_span());
     }
