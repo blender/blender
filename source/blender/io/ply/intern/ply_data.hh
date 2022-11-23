@@ -4,14 +4,52 @@
 
 #pragma once
 
+#include <optional>
+#include "string"
+#include "BLI_span.hh"
+
 namespace blender::io::ply {
 
-struct PlyData;
-struct Element;
-abstract struct Property;
-struct ScalarProperty : Property;
-struct ListProperty : Property;
+enum PlyDataTypes {
+  CHAR,
+  UCHAR,
+  SHORT,
+  USHORT,
+  INT,
+  UINT,
+  FLOAT,
+  DOUBLE
+};
 
-enum PlyDataTypes;
+int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
+
+struct Property {
+  std::string Name;
+  PlyDataTypes Type;
+};
+
+struct ListProperty : Property {
+  Span<uint64_t> Values;
+};
+
+struct ScalarProperty : Property {
+  uint64_t Value;
+};
+
+struct Data {
+  Span<Property> Properties;
+};
+
+struct Element {
+  std::string Name;
+  Span<Data> Data;
+};
+
+struct PlyData {
+  std::optional<Element> Vertices;
+  std::optional<Element> Faces;
+  std::optional<Element> Edges;
+};
+
 
 }  // namespace blender::io::ply

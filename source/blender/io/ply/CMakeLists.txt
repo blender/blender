@@ -34,7 +34,6 @@ set(SRC
     exporter/ply_export.hh
     importer/ply_import.hh
 
-    intern/ply_data.cxx
     intern/ply_data.hh
 )
 
