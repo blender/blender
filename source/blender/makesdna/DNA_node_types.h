@@ -511,11 +511,6 @@ typedef struct bNodeTree {
   int cur_index;
   int flag;
 
-  char _pad1[4];
-
-  /** Specific node type this tree is used for. */
-  int nodetype DNA_DEPRECATED;
-
   /** Quality setting when editing. */
   short edit_quality;
   /** Quality setting when rendering. */
