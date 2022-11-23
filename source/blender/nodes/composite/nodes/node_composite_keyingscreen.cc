@@ -11,6 +11,8 @@
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"
@@ -89,6 +91,7 @@ class KeyingScreenOperation : public NodeOperation {
   void execute() override
   {
     get_result("Screen").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -112,6 +115,8 @@ void register_node_type_cmp_keyingscreen()
   node_type_storage(
       &ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

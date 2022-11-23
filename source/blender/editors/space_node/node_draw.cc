@@ -107,6 +107,10 @@ struct TreeDrawContext {
    * currently drawn node tree can be retrieved from the log below.
    */
   geo_log::GeoTreeLog *geo_tree_log = nullptr;
+  /**
+   * True if there is an active realtime compositor using the node tree, false otherwise.
+   */
+  bool used_by_realtime_compositor = false;
 };
 
 float ED_node_grid_size()
@@ -1653,12 +1657,45 @@ static char *node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
+static void node_add_unsupported_compositor_operation_error_message_button(
+    TreeDrawContext &tree_draw_ctx,
+    bNode &node,
+    uiBlock &block,
+    const rctf &rect,
+    float &icon_offset)
+{
+  icon_offset -= NODE_HEADER_ICON_SIZE;
+  UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+  uiDefIconBut(&block,
+               UI_BTYPE_BUT,
+               0,
+               ICON_ERROR,
+               icon_offset,
+               rect.ymax - NODE_DY,
+               NODE_HEADER_ICON_SIZE,
+               UI_UNIT_Y,
+               nullptr,
+               0,
+               0,
+               0,
+               0,
+               TIP_(node.typeinfo->realtime_compositor_unsupported_message));
+  UI_block_emboss_set(&block, UI_EMBOSS);
+}
+
 static void node_add_error_message_button(TreeDrawContext &tree_draw_ctx,
                                           bNode &node,
                                           uiBlock &block,
                                           const rctf &rect,
                                           float &icon_offset)
 {
+  if (tree_draw_ctx.used_by_realtime_compositor &&
+      node.typeinfo->realtime_compositor_unsupported_message) {
+    node_add_unsupported_compositor_operation_error_message_button(
+        tree_draw_ctx, node, block, rect, icon_offset);
+    return;
+  }
+
   Span<geo_log::NodeWarning> warnings;
   if (tree_draw_ctx.geo_tree_log) {
     geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.name);
@@ -3059,6 +3096,48 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
   // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 
+/* Similar to is_compositor_enabled() in draw_manager.c but checks all 3D views. */
+static bool realtime_compositor_is_in_use(const bContext &context)
+{
+  if (!U.experimental.use_realtime_compositor) {
+    return false;
+  }
+
+  const Scene *scene = CTX_data_scene(&context);
+  if (!scene->use_nodes) {
+    return false;
+  }
+
+  if (!scene->nodetree) {
+    return false;
+  }
+
+  const Main *main = CTX_data_main(&context);
+  LISTBASE_FOREACH (bScreen *, screen, &main->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+        if (space->spacetype != SPACE_VIEW3D) {
+          continue;
+        }
+
+        const View3D &view_3d = *reinterpret_cast<const View3D *>(space);
+
+        if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
+          continue;
+        }
+
+        if (!(view_3d.shading.type >= OB_MATERIAL)) {
+          continue;
+        }
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 static void draw_nodetree(const bContext &C,
                           ARegion &region,
                           bNodeTree &ntree,
@@ -3081,6 +3160,9 @@ static void draw_nodetree(const bContext &C,
     WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
         workspace->viewer_path, *snode);
+  }
+  else if (ntree.type == NTREE_COMPOSIT) {
+    tree_draw_ctx.used_by_realtime_compositor = realtime_compositor_is_in_use(C);
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);
