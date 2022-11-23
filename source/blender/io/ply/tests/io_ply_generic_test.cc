@@ -4,7 +4,8 @@ namespace blender::io::ply {
 
 // Use this as template for making your own tests
 
-class GenericPlyTest : public testing::Test {};
+class GenericPlyTest : public testing::Test {
+};
 
 TEST_F(GenericPlyTest, TestingIfPlyTestingWorks)
 {
