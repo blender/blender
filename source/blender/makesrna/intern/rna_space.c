@@ -3325,6 +3325,26 @@ static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
   return UUID_STRING_LEN - 1;
 }
 
+static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char *value)
+{
+  FileAssetSelectParams *params = ptr->data;
+
+  if (value[0] == '\0') {
+    params->catalog_id = BLI_uuid_nil();
+    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    return;
+  }
+
+  bUUID new_uuid;
+  if (!BLI_uuid_parse_string(&new_uuid, value)) {
+    printf("UUID %s not formatted correctly, ignoring new value\n", value);
+    return;
+  }
+
+  params->catalog_id = new_uuid;
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+}
+
 #else
 
 static const EnumPropertyItem dt_uv_items[] = {
@@ -6870,9 +6890,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop,
                                 "rna_FileAssetSelectParams_catalog_id_get",
                                 "rna_FileAssetSelectParams_catalog_id_length",
-                                NULL);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+                                "rna_FileAssetSelectParams_catalog_id_set");
   RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
