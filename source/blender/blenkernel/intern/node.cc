@@ -203,8 +203,6 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
       new_node->parent = node_map.lookup(new_node->parent);
     }
   }
-  /* node tree will generate its own interface type */
-  ntree_dst->interface_type = nullptr;
 
   if (ntree_src->runtime->field_inferencing_interface) {
     ntree_dst->runtime->field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
@@ -241,9 +239,6 @@ static void ntree_free_data(ID *id)
 
   /* XXX not nice, but needed to free localized node groups properly */
   free_localized_node_groups(ntree);
-
-  /* Unregister associated RNA types. */
-  ntreeInterfaceTypeFree(ntree);
 
   BLI_freelistN(&ntree->links);
 
@@ -622,7 +617,6 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
-  ntree->interface_type = nullptr;
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
 
@@ -676,7 +670,6 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   /* NOTE: writing and reading goes in sync, for speed. */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
-  ntree->interface_type = nullptr;
 
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
@@ -3440,127 +3433,6 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
   MEM_freeN(sock);
 
   BKE_ntree_update_tag_interface(ntree);
-}
-
-/* generates a valid RNA identifier from the node tree name */
-static void ntree_interface_identifier_base(bNodeTree *ntree, char *base)
-{
-  /* generate a valid RNA identifier */
-  BLI_sprintf(base, "NodeTreeInterface_%s", ntree->id.name + 2);
-  RNA_identifier_sanitize(base, false);
-}
-
-/* check if the identifier is already in use */
-static bool ntree_interface_unique_identifier_check(void * /*data*/, const char *identifier)
-{
-  return (RNA_struct_find(identifier) != nullptr);
-}
-
-/* generates the actual unique identifier and ui name and description */
-static void ntree_interface_identifier(bNodeTree *ntree,
-                                       const char *base,
-                                       char *identifier,
-                                       int maxlen,
-                                       char *name,
-                                       char *description)
-{
-  /* There is a possibility that different node tree names get mapped to the same identifier
-   * after sanitation (e.g. "SomeGroup_A", "SomeGroup.A" both get sanitized to "SomeGroup_A").
-   * On top of the sanitized id string add a number suffix if necessary to avoid duplicates.
-   */
-  identifier[0] = '\0';
-  BLI_uniquename_cb(
-      ntree_interface_unique_identifier_check, nullptr, base, '_', identifier, maxlen);
-
-  BLI_sprintf(name, "Node Tree %s Interface", ntree->id.name + 2);
-  BLI_sprintf(description, "Interface properties of node group %s", ntree->id.name + 2);
-}
-
-static void ntree_interface_type_create(bNodeTree *ntree)
-{
-  /* strings are generated from base string + ID name, sizes are sufficient */
-  char base[MAX_ID_NAME + 64], identifier[MAX_ID_NAME + 64], name[MAX_ID_NAME + 64],
-      description[MAX_ID_NAME + 64];
-
-  /* generate a valid RNA identifier */
-  ntree_interface_identifier_base(ntree, base);
-  ntree_interface_identifier(ntree, base, identifier, sizeof(identifier), name, description);
-
-  /* register a subtype of PropertyGroup */
-  StructRNA *srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_PropertyGroup);
-  RNA_def_struct_ui_text(srna, name, description);
-  RNA_def_struct_duplicate_pointers(&BLENDER_RNA, srna);
-
-  /* associate the RNA type with the node tree */
-  ntree->interface_type = srna;
-  RNA_struct_blender_type_set(srna, ntree);
-
-  /* add socket properties */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-    bNodeSocketType *stype = sock->typeinfo;
-    if (stype && stype->interface_register_properties) {
-      stype->interface_register_properties(ntree, sock, srna);
-    }
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-    bNodeSocketType *stype = sock->typeinfo;
-    if (stype && stype->interface_register_properties) {
-      stype->interface_register_properties(ntree, sock, srna);
-    }
-  }
-}
-
-StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, bool create)
-{
-  if (ntree->interface_type) {
-    /* strings are generated from base string + ID name, sizes are sufficient */
-    char base[MAX_ID_NAME + 64], identifier[MAX_ID_NAME + 64], name[MAX_ID_NAME + 64],
-        description[MAX_ID_NAME + 64];
-
-    /* A bit of a hack: when changing the ID name, update the RNA type identifier too,
-     * so that the names match. This is not strictly necessary to keep it working,
-     * but better for identifying associated NodeTree blocks and RNA types.
-     */
-    StructRNA *srna = ntree->interface_type;
-
-    ntree_interface_identifier_base(ntree, base);
-
-    /* RNA identifier may have a number suffix, but should start with the idbase string */
-    if (!STREQLEN(RNA_struct_identifier(srna), base, sizeof(base))) {
-      /* generate new unique RNA identifier from the ID name */
-      ntree_interface_identifier(ntree, base, identifier, sizeof(identifier), name, description);
-
-      /* rename the RNA type */
-      RNA_def_struct_free_pointers(&BLENDER_RNA, srna);
-      RNA_def_struct_identifier(&BLENDER_RNA, srna, identifier);
-      RNA_def_struct_ui_text(srna, name, description);
-      RNA_def_struct_duplicate_pointers(&BLENDER_RNA, srna);
-    }
-  }
-  else if (create) {
-    ntree_interface_type_create(ntree);
-  }
-
-  return ntree->interface_type;
-}
-
-void ntreeInterfaceTypeFree(bNodeTree *ntree)
-{
-  if (ntree->interface_type) {
-    RNA_struct_free(&BLENDER_RNA, ntree->interface_type);
-    ntree->interface_type = nullptr;
-  }
-}
-
-void ntreeInterfaceTypeUpdate(bNodeTree *ntree)
-{
-  /* XXX it would be sufficient to just recreate all properties
-   * instead of re-registering the whole struct type,
-   * but there is currently no good way to do this in the RNA functions.
-   * Overhead should be negligible.
-   */
-  ntreeInterfaceTypeFree(ntree);
-  ntree_interface_type_create(ntree);
 }
 
 /* ************ find stuff *************** */

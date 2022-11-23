@@ -171,9 +171,6 @@ typedef struct bNodeSocketType {
 
   void (*interface_draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr);
   void (*interface_draw_color)(struct bContext *C, struct PointerRNA *ptr, float *r_color);
-  void (*interface_register_properties)(struct bNodeTree *ntree,
-                                        struct bNodeSocket *interface_socket,
-                                        struct StructRNA *data_srna);
   void (*interface_init_socket)(struct bNodeTree *ntree,
                                 const struct bNodeSocket *interface_socket,
                                 struct bNode *node,
@@ -582,10 +579,6 @@ struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree
                                                          struct bNode *from_node,
                                                          struct bNodeSocket *from_sock);
 void ntreeRemoveSocketInterface(struct bNodeTree *ntree, struct bNodeSocket *sock);
-
-struct StructRNA *ntreeInterfaceTypeGet(struct bNodeTree *ntree, bool create);
-void ntreeInterfaceTypeFree(struct bNodeTree *ntree);
-void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 
 /** \} */
 

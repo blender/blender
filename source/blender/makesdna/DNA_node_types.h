@@ -495,9 +495,6 @@ typedef struct bNodeTree {
   /** Runtime type identifier. */
   char idname[64];
 
-  /** Runtime RNA type of the group interface. */
-  struct StructRNA *interface_type;
-
   /** Grease pencil data. */
   struct bGPdata *gpd;
   /** Node tree stores own offset for consistent editor view. */
