@@ -383,8 +383,21 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   *data->do_update = true;
   *data->progress = 0.1f;
 
-  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(data->filepath);
+  std::string prim_path_mask(data->params.prim_path_mask);
+  pxr::UsdStagePopulationMask pop_mask;
+  if (!prim_path_mask.empty()) {
+    const std::vector<std::string> mask_tokens = pxr::TfStringTokenize(prim_path_mask, " ,;");
+    for (const std::string &tok : mask_tokens) {
+      pxr::SdfPath prim_path(tok);
+      if (!prim_path.IsEmpty()) {
+        pop_mask.Add(prim_path);
+      }
+    }
+  }
 
+  pxr::UsdStageRefPtr stage = pop_mask.IsEmpty() ?
+                                  pxr::UsdStage::Open(data->filepath) :
+                                  pxr::UsdStage::OpenMasked(data->filepath, pop_mask);
   if (!stage) {
     WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filepath);
     data->import_ok = false;
