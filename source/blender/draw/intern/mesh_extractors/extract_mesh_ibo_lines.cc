@@ -58,13 +58,14 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   /* Using poly & loop iterator would complicate accessing the adjacent loop. */
   const MLoop *mloop = mr->mloop;
-  if (mr->use_hide || (mr->e_origindex != nullptr)) {
+  const int *e_origindex = (mr->edit_bmesh) ? mr->e_origindex : nullptr;
+  if (mr->use_hide || (e_origindex != nullptr)) {
     const int ml_index_last = mp->loopstart + (mp->totloop - 1);
     int ml_index = ml_index_last, ml_index_next = mp->loopstart;
     do {
       const MLoop *ml = &mloop[ml_index];
       if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[ml->e]) ||
-            ((mr->e_origindex) && (mr->e_origindex[ml->e] == ORIGINDEX_NONE)))) {
+            ((e_origindex) && (e_origindex[ml->e] == ORIGINDEX_NONE)))) {
         GPU_indexbuf_set_line_verts(elb, ml->e, ml_index, ml_index_next);
       }
       else {
@@ -108,8 +109,9 @@ static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   const int l_index_offset = mr->edge_len + ledge_index;
   const int e_index = mr->ledges[ledge_index];
+  const int *e_origindex = (mr->edit_bmesh) ? mr->e_origindex : nullptr;
   if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[med - mr->medge]) ||
-        ((mr->e_origindex) && (mr->e_origindex[e_index] == ORIGINDEX_NONE)))) {
+        ((e_origindex) && (e_origindex[e_index] == ORIGINDEX_NONE)))) {
     const int l_index = mr->loop_len + ledge_index * 2;
     GPU_indexbuf_set_line_verts(elb, l_index_offset, l_index, l_index + 1);
   }
@@ -181,6 +183,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
   switch (mr->extract_type) {
     case MR_EXTRACT_MESH: {
+      const int *e_origindex = (mr->edit_bmesh) ? mr->e_origindex : nullptr;
       if (mr->e_origindex == nullptr) {
         const bool *hide_edge = mr->hide_edge;
         if (hide_edge) {
@@ -205,7 +208,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
             for (DRWSubdivLooseEdge edge : loose_edges) {
               int e = edge.coarse_edge_index;
 
-              if (mr->e_origindex && mr->e_origindex[e] != ORIGINDEX_NONE) {
+              if (e_origindex && e_origindex[e] != ORIGINDEX_NONE) {
                 *flags_data++ = hide_edge[edge.coarse_edge_index];
               }
               else {
