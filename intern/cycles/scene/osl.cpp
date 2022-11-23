@@ -525,6 +525,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
 
     SocketType::Type socket_type;
 
+    /* Read type and default value. */
     if (param->isclosure) {
       socket_type = SocketType::CLOSURE;
     }
@@ -579,7 +580,21 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
       node->add_output(param->name, socket_type);
     }
     else {
-      node->add_input(param->name, socket_type);
+      /* Detect if we should leave parameter initialization to OSL, either though
+       * not constant default or widget metadata. */
+      int socket_flags = 0;
+      if (!param->validdefault) {
+        socket_flags |= SocketType::LINK_OSL_INITIALIZER;
+      }
+      for (const OSL::OSLQuery::Parameter &metadata : param->metadata) {
+        if (metadata.type == TypeDesc::STRING) {
+          if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
+            socket_flags |= SocketType::LINK_OSL_INITIALIZER;
+          }
+        }
+      }
+
+      node->add_input(param->name, socket_type, socket_flags);
     }
   }
 
@@ -702,8 +717,12 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   foreach (ShaderInput *input, node->inputs) {
     if (!input->link) {
       /* checks to untangle graphs */
-      if (node_skip_input(node, input))
+      if (node_skip_input(node, input)) {
         continue;
+      }
+      if (input->flags() & SocketType::LINK_OSL_INITIALIZER) {
+        continue;
+      }
 
       string param_name = compatible_name(node, input);
       const SocketType &socket = input->socket_type;
