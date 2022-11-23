@@ -33,6 +33,8 @@ set(SRC
     IO_ply.h
     exporter/ply_export.hh
     importer/ply_import.hh
+
+    intern/ply_data.hh
 )
 
 set(LIB
