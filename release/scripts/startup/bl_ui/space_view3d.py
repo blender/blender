@@ -6211,8 +6211,8 @@ class VIEW3D_PT_shading_compositor(Panel):
     def draw(self, context):
         shading = context.space_data.shading
 
-        layout = self.layout
-        layout.prop(shading, "use_compositor")
+        row = self.layout.row()
+        row.prop(shading, "use_compositor", expand=True)
 
 
 class VIEW3D_PT_gizmo_display(Panel):

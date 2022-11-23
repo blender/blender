@@ -3959,6 +3959,25 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem use_compositor_items[] = {
+      {V3D_SHADING_USE_COMPOSITOR_DISABLED,
+       "DISABLED",
+       0,
+       "Disabled",
+       "The compositor is disabled"},
+      {V3D_SHADING_USE_COMPOSITOR_CAMERA,
+       "CAMERA",
+       0,
+       "Camera",
+       "The compositor is enabled only in camera view"},
+      {V3D_SHADING_USE_COMPOSITOR_ALWAYS,
+       "ALWAYS",
+       0,
+       "Always",
+       "The compositor is always enabled regardless of the view"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* Note these settings are used for both 3D viewport and the OpenGL render
    * engine in the scene, so can't assume to always be part of a screen. */
   srna = RNA_def_struct(brna, "View3DShading", NULL);
@@ -4245,12 +4264,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "use_compositor", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_COMPOSITOR);
+  prop = RNA_def_property(srna, "use_compositor", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "use_compositor");
+  RNA_def_property_enum_items(prop, use_compositor_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(
-      prop, "Compositor", "Preview the compositor output inside the viewport");
+      prop, "Compositor", "When to preview the compositor output inside the viewport");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 }
 
