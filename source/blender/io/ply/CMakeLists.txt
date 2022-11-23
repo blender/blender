@@ -27,12 +27,15 @@ set(SRC
     IO_ply.cc
     exporter/ply_export.cc
     importer/ply_import.cc
-    
+
 
 
     IO_ply.h
     exporter/ply_export.hh
     importer/ply_import.hh
+
+    intern/ply_data.cxx
+    intern/ply_data.hh
 )
 
 set(LIB
