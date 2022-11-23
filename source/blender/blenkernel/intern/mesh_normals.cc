@@ -153,6 +153,113 @@ bool BKE_mesh_poly_normals_are_dirty(const Mesh *mesh)
 /** \name Mesh Normal Calculation (Polygons)
  * \{ */
 
+/*
+ * COMPUTE POLY NORMAL
+ *
+ * Computes the normal of a planar
+ * polygon See Graphics Gems for
+ * computing newell normal.
+ */
+static void mesh_calc_ngon_normal(const MPoly *mpoly,
+                                  const MLoop *loopstart,
+                                  const MVert *mvert,
+                                  float normal[3])
+{
+  const int nverts = mpoly->totloop;
+  const float *v_prev = mvert[loopstart[nverts - 1].v].co;
+  const float *v_curr;
+
+  zero_v3(normal);
+
+  /* Newell's Method */
+  for (int i = 0; i < nverts; i++) {
+    v_curr = mvert[loopstart[i].v].co;
+    add_newell_cross_v3_v3v3(normal, v_prev, v_curr);
+    v_prev = v_curr;
+  }
+
+  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+    normal[2] = 1.0f; /* other axis set to 0.0 */
+  }
+}
+
+void BKE_mesh_calc_poly_normal(const MPoly *mpoly,
+                               const MLoop *loopstart,
+                               const MVert *mvarray,
+                               float r_no[3])
+{
+  if (mpoly->totloop > 4) {
+    mesh_calc_ngon_normal(mpoly, loopstart, mvarray, r_no);
+  }
+  else if (mpoly->totloop == 3) {
+    normal_tri_v3(
+        r_no, mvarray[loopstart[0].v].co, mvarray[loopstart[1].v].co, mvarray[loopstart[2].v].co);
+  }
+  else if (mpoly->totloop == 4) {
+    normal_quad_v3(r_no,
+                   mvarray[loopstart[0].v].co,
+                   mvarray[loopstart[1].v].co,
+                   mvarray[loopstart[2].v].co,
+                   mvarray[loopstart[3].v].co);
+  }
+  else { /* horrible, two sided face! */
+    r_no[0] = 0.0;
+    r_no[1] = 0.0;
+    r_no[2] = 1.0;
+  }
+}
+/* duplicate of function above _but_ takes coords rather than mverts */
+static void mesh_calc_ngon_normal_coords(const MPoly *mpoly,
+                                         const MLoop *loopstart,
+                                         const float (*vertex_coords)[3],
+                                         float r_normal[3])
+{
+  const int nverts = mpoly->totloop;
+  const float *v_prev = vertex_coords[loopstart[nverts - 1].v];
+  const float *v_curr;
+
+  zero_v3(r_normal);
+
+  /* Newell's Method */
+  for (int i = 0; i < nverts; i++) {
+    v_curr = vertex_coords[loopstart[i].v];
+    add_newell_cross_v3_v3v3(r_normal, v_prev, v_curr);
+    v_prev = v_curr;
+  }
+
+  if (UNLIKELY(normalize_v3(r_normal) == 0.0f)) {
+    r_normal[2] = 1.0f; /* other axis set to 0.0 */
+  }
+}
+
+void BKE_mesh_calc_poly_normal_coords(const MPoly *mpoly,
+                                      const MLoop *loopstart,
+                                      const float (*vertex_coords)[3],
+                                      float r_no[3])
+{
+  if (mpoly->totloop > 4) {
+    mesh_calc_ngon_normal_coords(mpoly, loopstart, vertex_coords, r_no);
+  }
+  else if (mpoly->totloop == 3) {
+    normal_tri_v3(r_no,
+                  vertex_coords[loopstart[0].v],
+                  vertex_coords[loopstart[1].v],
+                  vertex_coords[loopstart[2].v]);
+  }
+  else if (mpoly->totloop == 4) {
+    normal_quad_v3(r_no,
+                   vertex_coords[loopstart[0].v],
+                   vertex_coords[loopstart[1].v],
+                   vertex_coords[loopstart[2].v],
+                   vertex_coords[loopstart[3].v]);
+  }
+  else { /* horrible, two sided face! */
+    r_no[0] = 0.0;
+    r_no[1] = 0.0;
+    r_no[2] = 1.0;
+  }
+}
+
 struct MeshCalcNormalsData_Poly {
   const MVert *mvert;
   const MLoop *mloop;
