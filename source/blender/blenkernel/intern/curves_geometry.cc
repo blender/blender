@@ -654,7 +654,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
           case CURVE_TYPE_NURBS: {
             curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
                                                     nurbs_orders[curve_index],
-                                                    nurbs_weights.slice(points),
+                                                    nurbs_weights.slice_safe(points),
                                                     positions.slice(points),
                                                     evaluated_positions.slice(evaluated_points));
             break;
@@ -812,7 +812,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
     case CURVE_TYPE_NURBS:
       curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
                                               this->nurbs_orders()[curve_index],
-                                              this->nurbs_weights().slice(points),
+                                              this->nurbs_weights().slice_safe(points),
                                               src,
                                               dst);
       return;
@@ -853,7 +853,7 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
         case CURVE_TYPE_NURBS:
           curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
                                                   nurbs_orders[curve_index],
-                                                  nurbs_weights.slice(points),
+                                                  nurbs_weights.slice_safe(points),
                                                   src.slice(points),
                                                   dst.slice(evaluated_points));
           continue;
