@@ -65,9 +65,9 @@ void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/)
 {
 }
 
-Context *VKBackend::context_alloc(void * /*ghost_window*/, void * /*ghost_context*/)
+Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
-  return new VKContext();
+  return new VKContext(ghost_window, ghost_context);
 }
 
 Batch *VKBackend::batch_alloc()
