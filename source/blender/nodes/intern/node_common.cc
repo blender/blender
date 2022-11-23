@@ -101,6 +101,10 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
     }
     return false;
   }
+  if (nodetree->type != grouptree->type) {
+    *r_disabled_hint = TIP_("Node group has different type");
+    return false;
+  }
 
   LISTBASE_FOREACH (const bNode *, node, &grouptree->nodes) {
     if (node->typeinfo->poll_instance &&
