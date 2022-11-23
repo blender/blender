@@ -4,22 +4,13 @@
 
 #pragma once
 
-#include <optional>
-#include "string"
 #include "BLI_span.hh"
+#include "string"
+#include <optional>
 
 namespace blender::io::ply {
 
-enum PlyDataTypes {
-  CHAR,
-  UCHAR,
-  SHORT,
-  USHORT,
-  INT,
-  UINT,
-  FLOAT,
-  DOUBLE
-};
+enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 
 int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
 
@@ -50,6 +41,5 @@ struct PlyData {
   std::optional<Element> Faces;
   std::optional<Element> Edges;
 };
-
 
 }  // namespace blender::io::ply
