@@ -609,16 +609,26 @@ static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
 static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
-  if (t->spacetype == SPACE_NODE) {
-    return ts->snap_flag_node;
+  switch (t->spacetype) {
+    case SPACE_VIEW3D:
+      return ts->snap_flag;
+    case SPACE_NODE:
+      return ts->snap_flag_node;
+    case SPACE_IMAGE:
+      return ts->snap_uv_flag;
+    case SPACE_SEQ:
+      return ts->snap_flag_seq;
+    case SPACE_GRAPH:
+    case SPACE_ACTION:
+    case SPACE_NLA:
+      /* These editors have their own "Auto-Snap" activation option.
+       * See #getAnimEdit_SnapMode. */
+      return 0;
+    default:
+      BLI_assert(false);
+      break;
   }
-  if (t->spacetype == SPACE_IMAGE) {
-    return ts->snap_uv_flag;
-  }
-  if (t->spacetype == SPACE_SEQ) {
-    return ts->snap_flag_seq;
-  }
-  return ts->snap_flag;
+  return 0;
 }
 
 static eSnapMode snap_mode_from_spacetype(TransInfo *t)
