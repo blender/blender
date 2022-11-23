@@ -6212,6 +6212,8 @@ class VIEW3D_PT_shading_compositor(Panel):
         shading = context.space_data.shading
 
         row = self.layout.row()
+        import sys
+        row.active = sys.platform != "darwin"
         row.prop(shading, "use_compositor", expand=True)
 
 
