@@ -1761,7 +1761,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      GPUOffScreen *ofs,
                                      GPUViewport *viewport)
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion ar = {nullptr};
   RegionView3D rv3d = {{{0}}};
 
@@ -2011,7 +2011,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              GPUOffScreen *ofs,
                                              char err_out[256])
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion region = {nullptr};
   RegionView3D rv3d = {{{0}}};
 

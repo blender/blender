@@ -258,6 +258,8 @@ typedef struct View3D_Runtime {
 
 /** 3D ViewPort Struct. */
 typedef struct View3D {
+  DNA_DEFINE_CXX_METHODS(View3D)
+
   struct SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
   ListBase regionbase;

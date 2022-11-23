@@ -6264,7 +6264,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
   /* Create a copy of the overlays where they are all turned off, except the
    * texture paint overlay opacity */
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  View3D v3d_copy = *v3d;
+  View3D v3d_copy = blender::dna::shallow_copy(*v3d);
   v3d_copy.gridflag = 0;
   v3d_copy.flag2 = 0;
   v3d_copy.flag = V3D_HIDE_HELPLINES;
