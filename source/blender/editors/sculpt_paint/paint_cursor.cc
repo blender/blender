@@ -64,21 +64,21 @@
  * There is also some ugliness with sculpt-specific code.
  */
 
-typedef struct TexSnapshot {
+struct TexSnapshot {
   GPUTexture *overlay_texture;
   int winx;
   int winy;
   int old_size;
   float old_zoom;
   bool old_col;
-} TexSnapshot;
+};
 
-typedef struct CursorSnapshot {
+struct CursorSnapshot {
   GPUTexture *overlay_texture;
   int size;
   int zoom;
   int curve_preset;
-} CursorSnapshot;
+};
 
 static TexSnapshot primary_snap = {0};
 static TexSnapshot secondary_snap = {0};
@@ -140,7 +140,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
                                 const int j,
                                 const TaskParallelTLS *__restrict tls)
 {
-  LoadTexData *data = userdata;
+  LoadTexData *data = static_cast<LoadTexData *>(userdata);
   Brush *br = data->br;
   ViewContext *vc = data->vc;
 
@@ -154,14 +154,14 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   const float radius = data->radius;
 
   bool convert_to_linear = false;
-  struct ColorSpace *colorspace = NULL;
+  struct ColorSpace *colorspace = nullptr;
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   if (mtex->tex && mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
     ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
     /* For consistency, sampling always returns color in linear space. */
-    if (tex_ibuf && tex_ibuf->rect_float == NULL) {
+    if (tex_ibuf && tex_ibuf->rect_float == nullptr) {
       convert_to_linear = true;
       colorspace = tex_ibuf->rect_colorspace;
     }
@@ -239,7 +239,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
   MTex *mtex = (primary) ? &br->mtex : &br->mask_mtex;
   ePaintOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
-  uchar *buffer = NULL;
+  uchar *buffer = nullptr;
 
   int size;
   bool refresh;
@@ -254,7 +254,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
   init = (target->overlay_texture != 0);
 
   if (refresh) {
-    struct ImagePool *pool = NULL;
+    struct ImagePool *pool = nullptr;
     /* Stencil is rotated later. */
     const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ? -mtex->rot : 0.0f;
     const float radius = BKE_brush_size_get(vc->scene, br) * zoom;
@@ -286,7 +286,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     if (target->old_size != size || target->old_col != col) {
       if (target->overlay_texture) {
         GPU_texture_free(target->overlay_texture);
-        target->overlay_texture = NULL;
+        target->overlay_texture = nullptr;
       }
       init = false;
 
@@ -294,10 +294,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       target->old_col = col;
     }
     if (col) {
-      buffer = MEM_mallocN(sizeof(uchar) * size * size * 4, "load_tex");
+      buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size * 4, "load_tex"));
     }
     else {
-      buffer = MEM_mallocN(sizeof(uchar) * size * size, "load_tex");
+      buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size, "load_tex"));
     }
 
     pool = BKE_image_pool_new();
@@ -307,17 +307,16 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       ntreeTexBeginExecTree(mtex->tex->nodetree);
     }
 
-    LoadTexData data = {
-        .br = br,
-        .vc = vc,
-        .mtex = mtex,
-        .buffer = buffer,
-        .col = col,
-        .pool = pool,
-        .size = size,
-        .rotation = rotation,
-        .radius = radius,
-    };
+    LoadTexData data{};
+    data.br = br;
+    data.vc = vc;
+    data.mtex = mtex;
+    data.buffer = buffer;
+    data.col = col;
+    data.pool = pool;
+    data.size = size;
+    data.rotation = rotation;
+    data.radius = radius;
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
@@ -334,7 +333,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     if (!target->overlay_texture) {
       eGPUTextureFormat format = col ? GPU_RGBA8 : GPU_R8;
       target->overlay_texture = GPU_texture_create_2d(
-          "paint_cursor_overlay", size, size, 1, format, NULL);
+          "paint_cursor_overlay", size, size, 1, format, nullptr);
       GPU_texture_update(target->overlay_texture, GPU_DATA_UBYTE, buffer);
 
       if (!col) {
@@ -363,7 +362,7 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
                                     const int j,
                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  LoadTexData *data = userdata;
+  LoadTexData *data = static_cast<LoadTexData *>(userdata);
   Brush *br = data->br;
 
   uchar *buffer = data->buffer;
@@ -396,7 +395,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
   bool init;
 
   ePaintOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
-  uchar *buffer = NULL;
+  uchar *buffer = nullptr;
 
   int size;
   const bool refresh = !cursor_snap.overlay_texture ||
@@ -430,22 +429,21 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     if (cursor_snap.size != size) {
       if (cursor_snap.overlay_texture) {
         GPU_texture_free(cursor_snap.overlay_texture);
-        cursor_snap.overlay_texture = NULL;
+        cursor_snap.overlay_texture = nullptr;
       }
 
       init = false;
 
       cursor_snap.size = size;
     }
-    buffer = MEM_mallocN(sizeof(uchar) * size * size, "load_tex");
+    buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size, "load_tex"));
 
     BKE_curvemapping_init(br->curve);
 
-    LoadTexData data = {
-        .br = br,
-        .buffer = buffer,
-        .size = size,
-    };
+    LoadTexData data{};
+    data.br = br;
+    data.buffer = buffer;
+    data.size = size;
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
@@ -453,7 +451,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
     if (!cursor_snap.overlay_texture) {
       cursor_snap.overlay_texture = GPU_texture_create_2d(
-          "cursor_snap_overaly", size, size, 1, GPU_R8, NULL);
+          "cursor_snap_overaly", size, size, 1, GPU_R8, nullptr);
       GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UBYTE, buffer);
 
       GPU_texture_swizzle_set(cursor_snap.overlay_texture, "rrrr");
@@ -1096,7 +1094,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)))) {
 
       /* Axis Symmetry. */
-      flip_v3_v3(location, true_location, (char)i);
+      flip_v3_v3(location, true_location, ePaintSymmetryFlags(i));
       cursor_draw_point_screen_space(gpuattr, region, location, ob->object_to_world, 3);
 
       /* Tiling. */
@@ -1106,7 +1104,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
       for (char raxis = 0; raxis < 3; raxis++) {
         for (int r = 1; r < sd->radial_symm[raxis]; r++) {
           float angle = 2 * M_PI * r / sd->radial_symm[(int)raxis];
-          flip_v3_v3(location, true_location, (char)i);
+          flip_v3_v3(location, true_location, ePaintSymmetryFlags(i));
           unit_m4(symm_rot_mat);
           rotate_m4(symm_rot_mat, raxis + 'X', angle);
           mul_m4_v3(symm_rot_mat, location);
@@ -1263,11 +1261,11 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext->scene = CTX_data_scene(C);
   pcontext->ups = &pcontext->scene->toolsettings->unified_paint_settings;
   pcontext->paint = BKE_paint_get_active_from_context(C);
-  if (pcontext->paint == NULL) {
+  if (pcontext->paint == nullptr) {
     return false;
   }
   pcontext->brush = BKE_paint_brush(pcontext->paint);
-  if (pcontext->brush == NULL) {
+  if (pcontext->brush == nullptr) {
     return false;
   }
   pcontext->mode = BKE_paintmode_get_active_from_context(C);
@@ -1306,7 +1304,7 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext->outline_alpha = pcontext->brush->add_col[3];
 
   Object *active_object = pcontext->vc.obact;
-  pcontext->ss = active_object ? active_object->sculpt : NULL;
+  pcontext->ss = active_object ? active_object->sculpt : nullptr;
 
   if (pcontext->ss && pcontext->ss->draw_faded_cursor) {
     pcontext->outline_alpha = 0.3f;
@@ -1351,7 +1349,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext *pcontext)
 
 static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcontext)
 {
-  BLI_assert(pcontext->ss != NULL);
+  BLI_assert(pcontext->ss != nullptr);
   BLI_assert(pcontext->mode == PAINT_MODE_SCULPT);
 
   bContext *C = pcontext->C;
@@ -1363,8 +1361,8 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   SculptCursorGeometryInfo gi;
 
   const float mval_fl[2] = {
-      pcontext->x - pcontext->region->winrct.xmin,
-      pcontext->y - pcontext->region->winrct.ymin,
+      float(pcontext->x - pcontext->region->winrct.xmin),
+      float(pcontext->y - pcontext->region->winrct.ymin),
   };
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
@@ -1391,7 +1389,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
     paint_cursor_update_unprojected_radius(ups, brush, vc, pcontext->scene_space_location);
   }
 
-  pcontext->is_multires = ss->pbvh != NULL && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
+  pcontext->is_multires = ss->pbvh != nullptr && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
 
   pcontext->sd = CTX_data_tool_settings(pcontext->C)->sculpt;
 }
@@ -1613,7 +1611,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_POSE) {
     /* Just after switching to the Pose Brush, the active vertex can be the same and the
      * cursor won't be tagged to update, so always initialize the preview chain if it is
-     * null before drawing it. */
+     * nullptr before drawing it. */
     SculptSession *ss = pcontext->ss;
     if (update_previews || !ss->pose_ik_chain_preview) {
       BKE_sculpt_update_object_for_edit(
@@ -1656,9 +1654,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                             pcontext->scene,
                             pcontext->region,
                             CTX_wm_view3d(pcontext->C),
-                            NULL,
-                            NULL,
-                            NULL);
+                            nullptr,
+                            nullptr,
+                            nullptr);
 
   GPU_matrix_push();
   GPU_matrix_mul(pcontext->vc.obact->object_to_world);
@@ -1721,7 +1719,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
 static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorContext *pcontext)
 {
-  BLI_assert(pcontext->ss != NULL);
+  BLI_assert(pcontext->ss != nullptr);
   BLI_assert(pcontext->mode == PAINT_MODE_SCULPT);
 
   SculptSession *ss = pcontext->ss;
@@ -1748,9 +1746,9 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
                             pcontext->scene,
                             pcontext->region,
                             CTX_wm_view3d(pcontext->C),
-                            NULL,
-                            NULL,
-                            NULL);
+                            nullptr,
+                            nullptr,
+                            nullptr);
   GPU_matrix_push();
   GPU_matrix_mul(pcontext->vc.obact->object_to_world);
 
@@ -1940,7 +1938,7 @@ void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
 {
   if (p && !p->paint_cursor) {
     p->paint_cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, NULL);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, nullptr);
   }
 
   /* Invalidate the paint cursors. */
