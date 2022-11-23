@@ -1657,12 +1657,10 @@ static char *node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
-static void node_add_unsupported_compositor_operation_error_message_button(
-    TreeDrawContext &tree_draw_ctx,
-    bNode &node,
-    uiBlock &block,
-    const rctf &rect,
-    float &icon_offset)
+static void node_add_unsupported_compositor_operation_error_message_button(bNode &node,
+                                                                           uiBlock &block,
+                                                                           const rctf &rect,
+                                                                           float &icon_offset)
 {
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, UI_EMBOSS_NONE);
@@ -1691,8 +1689,7 @@ static void node_add_error_message_button(TreeDrawContext &tree_draw_ctx,
 {
   if (tree_draw_ctx.used_by_realtime_compositor &&
       node.typeinfo->realtime_compositor_unsupported_message) {
-    node_add_unsupported_compositor_operation_error_message_button(
-        tree_draw_ctx, node, block, rect, icon_offset);
+    node_add_unsupported_compositor_operation_error_message_button(node, block, rect, icon_offset);
     return;
   }
 
