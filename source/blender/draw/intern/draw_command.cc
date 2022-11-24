@@ -420,7 +420,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     intptr_t offset = grp.start;
 
     if (grp.back_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.back_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(handle.has_inverted_handedness());
@@ -432,7 +432,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     }
 
     if (grp.front_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.front_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(!handle.has_inverted_handedness());

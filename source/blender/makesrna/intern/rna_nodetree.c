@@ -2935,31 +2935,6 @@ static void rna_NodeSocketInterface_draw_color(bContext *C, PointerRNA *ptr, flo
   RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeSocketInterface_register_properties(bNodeTree *ntree,
-                                                        bNodeSocket *stemp,
-                                                        StructRNA *data_srna)
-{
-  extern FunctionRNA rna_NodeSocketInterface_register_properties_func;
-
-  PointerRNA ptr;
-  ParameterList list;
-  FunctionRNA *func;
-
-  if (!stemp->typeinfo) {
-    return;
-  }
-
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
-  // RNA_struct_find_function(&ptr, "register_properties");
-  func = &rna_NodeSocketInterface_register_properties_func;
-
-  RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "data_rna_type", &data_srna);
-  stemp->typeinfo->ext_interface.call(NULL, &ptr, func, &list);
-
-  RNA_parameter_list_free(&list);
-}
-
 static void rna_NodeSocketInterface_init_socket(bNodeTree *ntree,
                                                 const bNodeSocket *interface_socket,
                                                 bNode *node,
@@ -3046,7 +3021,7 @@ static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),
   bNodeSocketType *st, dummyst;
   bNodeSocket dummysock;
   PointerRNA dummyptr;
-  int have_function[5];
+  int have_function[4];
 
   /* setup dummy socket & socket type to store static properties in */
   memset(&dummyst, 0, sizeof(bNodeSocketType));
@@ -3089,11 +3064,8 @@ static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),
 
   st->interface_draw = (have_function[0]) ? rna_NodeSocketInterface_draw : NULL;
   st->interface_draw_color = (have_function[1]) ? rna_NodeSocketInterface_draw_color : NULL;
-  st->interface_register_properties = (have_function[2]) ?
-                                          rna_NodeSocketInterface_register_properties :
-                                          NULL;
-  st->interface_init_socket = (have_function[3]) ? rna_NodeSocketInterface_init_socket : NULL;
-  st->interface_from_socket = (have_function[4]) ? rna_NodeSocketInterface_from_socket : NULL;
+  st->interface_init_socket = (have_function[2]) ? rna_NodeSocketInterface_init_socket : NULL;
+  st->interface_from_socket = (have_function[3]) ? rna_NodeSocketInterface_from_socket : NULL;
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
@@ -3548,33 +3520,6 @@ static bool rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value
 
   const char *disabled_hint = NULL;
   return nodeGroupPoll(ntree, ngroup, &disabled_hint);
-}
-
-static StructRNA *rna_NodeGroup_interface_typef(PointerRNA *ptr)
-{
-  bNode *node = ptr->data;
-  bNodeTree *ngroup = (bNodeTree *)node->id;
-
-  if (ngroup) {
-    StructRNA *srna = ntreeInterfaceTypeGet(ngroup, true);
-    if (srna) {
-      return srna;
-    }
-  }
-  return &RNA_PropertyGroup;
-}
-
-static StructRNA *rna_NodeGroupInputOutput_interface_typef(PointerRNA *ptr)
-{
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-
-  if (ntree) {
-    StructRNA *srna = ntreeInterfaceTypeGet(ntree, true);
-    if (srna) {
-      return srna;
-    }
-  }
-  return &RNA_PropertyGroup;
 }
 
 static void rna_distance_matte_t1_set(PointerRNA *ptr, float value)
@@ -4732,28 +4677,13 @@ static const EnumPropertyItem node_subsurface_method_items[] = {
 
 /* -- Common nodes ---------------------------------------------------------- */
 
-static void def_group_input(StructRNA *srna)
+static void def_group_input(StructRNA *UNUSED(srna))
 {
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "interface", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_funcs(
-      prop, NULL, NULL, "rna_NodeGroupInputOutput_interface_typef", NULL);
-  RNA_def_property_struct_type(prop, "PropertyGroup");
-  RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
 }
 
 static void def_group_output(StructRNA *srna)
 {
   PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "interface", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_funcs(
-      prop, NULL, NULL, "rna_NodeGroupInputOutput_interface_typef", NULL);
-  RNA_def_property_struct_type(prop, "PropertyGroup");
-  RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
 
   prop = RNA_def_property(srna, "is_active_output", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
@@ -4776,12 +4706,6 @@ static void def_group(StructRNA *srna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Node Tree", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
-
-  prop = RNA_def_property(srna, "interface", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_NodeGroup_interface_typef", NULL);
-  RNA_def_property_struct_type(prop, "PropertyGroup");
-  RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
 }
 
 static void def_custom_group(BlenderRNA *brna,
@@ -8986,18 +8910,22 @@ static void def_cmp_trackpos(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem position_items[] = {
-      {CMP_TRACKPOS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Output absolute position of a marker"},
-      {CMP_TRACKPOS_RELATIVE_START,
+      {CMP_NODE_TRACK_POSITION_ABSOLUTE,
+       "ABSOLUTE",
+       0,
+       "Absolute",
+       "Output absolute position of a marker"},
+      {CMP_NODE_TRACK_POSITION_RELATIVE_START,
        "RELATIVE_START",
        0,
        "Relative Start",
        "Output position of a marker relative to first marker of a track"},
-      {CMP_TRACKPOS_RELATIVE_FRAME,
+      {CMP_NODE_TRACK_POSITION_RELATIVE_FRAME,
        "RELATIVE_FRAME",
        0,
        "Relative Frame",
        "Output position of a marker relative to marker at given frame number"},
-      {CMP_TRACKPOS_ABSOLUTE_FRAME,
+      {CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME,
        "ABSOLUTE_FRAME",
        0,
        "Absolute Frame",
@@ -11295,13 +11223,6 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
   parm = RNA_def_float_array(
       func, "color", 4, default_draw_color, 0.0f, 1.0f, "Color", "", 0.0f, 1.0f);
   RNA_def_function_output(func, parm);
-
-  func = RNA_def_function(srna, "register_properties", NULL);
-  RNA_def_function_ui_description(func, "Define RNA properties of a socket");
-  RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  parm = RNA_def_pointer(
-      func, "data_rna_type", "Struct", "Data RNA Type", "RNA type for special socket properties");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "init_socket", NULL);
   RNA_def_function_ui_description(func, "Initialize a node socket instance");

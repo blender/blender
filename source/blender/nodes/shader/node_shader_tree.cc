@@ -1181,8 +1181,8 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
   /* XXX hack: prevent exec data from being generated twice.
    * this should be handled by the renderer!
    */
-  if (ntree->execdata) {
-    return ntree->execdata;
+  if (ntree->runtime->execdata) {
+    return ntree->runtime->execdata;
   }
 
   context.previews = ntree->previews;
@@ -1192,7 +1192,7 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
   /* XXX: this should not be necessary, but is still used for compositor/shader/texture nodes,
    * which only store the `ntree` pointer. Should be fixed at some point!
    */
-  ntree->execdata = exec;
+  ntree->runtime->execdata = exec;
 
   return exec;
 }
@@ -1225,6 +1225,6 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 
     /* XXX: clear node-tree back-pointer to exec data,
      * same problem as noted in #ntreeBeginExecTree. */
-    ntree->execdata = nullptr;
+    ntree->runtime->execdata = nullptr;
   }
 }

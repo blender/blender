@@ -99,7 +99,8 @@ float node_socket_calculate_height(const bNodeSocket &socket)
 {
   float sock_height = NODE_SOCKSIZE * NODE_SOCKSIZE_DRAW_MULIPLIER;
   if (socket.flag & SOCK_MULTI_INPUT) {
-    sock_height += max_ii(NODE_MULTI_INPUT_LINK_GAP * 0.5f * socket.total_inputs, NODE_SOCKSIZE);
+    sock_height += max_ii(NODE_MULTI_INPUT_LINK_GAP * 0.5f * socket.runtime->total_inputs,
+                          NODE_SOCKSIZE);
   }
   return sock_height;
 }
@@ -267,14 +268,14 @@ static void compo_startjob(void *cjv,
   cj->do_update = do_update;
   cj->progress = progress;
 
-  ntree->test_break = compo_breakjob;
-  ntree->tbh = cj;
-  ntree->stats_draw = compo_statsdrawjob;
-  ntree->sdh = cj;
-  ntree->progress = compo_progressjob;
-  ntree->prh = cj;
-  ntree->update_draw = compo_redrawjob;
-  ntree->udh = cj;
+  ntree->runtime->test_break = compo_breakjob;
+  ntree->runtime->tbh = cj;
+  ntree->runtime->stats_draw = compo_statsdrawjob;
+  ntree->runtime->sdh = cj;
+  ntree->runtime->progress = compo_progressjob;
+  ntree->runtime->prh = cj;
+  ntree->runtime->update_draw = compo_redrawjob;
+  ntree->runtime->udh = cj;
 
   // XXX BIF_store_spare();
   /* 1 is do_previews */
@@ -292,9 +293,9 @@ static void compo_startjob(void *cjv,
     }
   }
 
-  ntree->test_break = nullptr;
-  ntree->stats_draw = nullptr;
-  ntree->progress = nullptr;
+  ntree->runtime->test_break = nullptr;
+  ntree->runtime->stats_draw = nullptr;
+  ntree->runtime->progress = nullptr;
 }
 
 static void compo_canceljob(void *cjv)
@@ -1194,7 +1195,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)
 {
   const float node_socket_height = node_socket_calculate_height(socket);
-  const float2 location(socket.locx, socket.locy);
+  const float2 location(socket.runtime->locx, socket.runtime->locy);
   /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
@@ -1244,7 +1245,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_IN) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (!nodeSocketIsHidden(sock)) {
-          const float2 location(sock->locx, sock->locy);
+          const float2 location(sock->runtime->locx, sock->runtime->locy);
           if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
               if (!socket_is_occluded(location, *node, snode)) {
@@ -1267,7 +1268,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_OUT) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         if (!nodeSocketIsHidden(sock)) {
-          const float2 location(sock->locx, sock->locy);
+          const float2 location(sock->runtime->locx, sock->runtime->locy);
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, *node, snode)) {
               *nodep = node;
@@ -1295,8 +1296,8 @@ float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
     return 1.0f;
   }
 
-  const float2 from(link.fromsock->locx, link.fromsock->locy);
-  const float2 to(link.tosock->locx, link.tosock->locy);
+  const float2 from(link.fromsock->runtime->locx, link.fromsock->runtime->locy);
+  const float2 to(link.tosock->runtime->locx, link.tosock->runtime->locy);
 
   const float min_endpoint_distance = std::min(
       std::max(BLI_rctf_length_x(&v2d.cur, from.x), BLI_rctf_length_y(&v2d.cur, from.y)),
@@ -2796,13 +2797,13 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
 {
   bool found = false;
 
-  ntree->done = true;
+  ntree->runtime->done = true;
 
   /* update each script that is using this text datablock */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == NODE_GROUP) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
-      if (ngroup && !ngroup->done) {
+      if (ngroup && !ngroup->runtime->done) {
         found |= node_shader_script_update_text_recursive(engine, type, ngroup, text);
       }
     }
@@ -2854,14 +2855,14 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
       /* clear flags for recursion check */
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
-          ntree->done = false;
+          ntree->runtime->done = false;
         }
       }
       FOREACH_NODETREE_END;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
-          if (!ntree->done) {
+          if (!ntree->runtime->done) {
             found |= node_shader_script_update_text_recursive(engine, type, ntree, text);
           }
         }

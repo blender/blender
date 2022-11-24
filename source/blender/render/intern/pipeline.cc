@@ -53,6 +53,7 @@
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -1161,12 +1162,12 @@ static void do_render_compositor(Render *re)
       }
 
       if (!re->test_break(re->tbh)) {
-        ntree->stats_draw = render_compositor_stats;
-        ntree->test_break = re->test_break;
-        ntree->progress = re->progress;
-        ntree->sdh = re;
-        ntree->tbh = re->tbh;
-        ntree->prh = re->prh;
+        ntree->runtime->stats_draw = render_compositor_stats;
+        ntree->runtime->test_break = re->test_break;
+        ntree->runtime->progress = re->progress;
+        ntree->runtime->sdh = re;
+        ntree->runtime->tbh = re->tbh;
+        ntree->runtime->prh = re->prh;
 
         if (update_newframe) {
           /* If we have consistent depsgraph now would be a time to update them. */
@@ -1177,10 +1178,10 @@ static void do_render_compositor(Render *re)
               re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
         }
 
-        ntree->stats_draw = nullptr;
-        ntree->test_break = nullptr;
-        ntree->progress = nullptr;
-        ntree->tbh = ntree->sdh = ntree->prh = nullptr;
+        ntree->runtime->stats_draw = nullptr;
+        ntree->runtime->test_break = nullptr;
+        ntree->runtime->progress = nullptr;
+        ntree->runtime->tbh = ntree->runtime->sdh = ntree->runtime->prh = nullptr;
       }
     }
   }

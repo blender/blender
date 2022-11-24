@@ -272,10 +272,10 @@ static void extrude_mesh_vertices(Mesh &mesh,
   });
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+  vert_orig_indices.slice_safe(new_vert_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> new_edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  new_edge_orig_indices.slice(new_edge_range).fill(ORIGINDEX_NONE);
+  new_edge_orig_indices.slice_safe(new_edge_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -608,14 +608,14 @@ static void extrude_mesh_edges(Mesh &mesh,
   }
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+  vert_orig_indices.slice_safe(new_vert_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-  edge_orig_indices.slice(duplicate_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(duplicate_edge_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  poly_orig_indices.slice(new_poly_range).fill(ORIGINDEX_NONE);
+  poly_orig_indices.slice_safe(new_poly_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -992,15 +992,15 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+  vert_orig_indices.slice_safe(new_vert_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-  edge_orig_indices.slice(new_inner_edge_range).fill(ORIGINDEX_NONE);
-  edge_orig_indices.slice(boundary_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(new_inner_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(boundary_edge_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  poly_orig_indices.slice(side_poly_range).fill(ORIGINDEX_NONE);
+  poly_orig_indices.slice_safe(side_poly_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -1256,14 +1256,14 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   });
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
-  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+  vert_orig_indices.slice_safe(new_vert_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
-  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
-  edge_orig_indices.slice(duplicate_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice_safe(duplicate_edge_range).fill(ORIGINDEX_NONE);
 
   MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  poly_orig_indices.slice(side_poly_range).fill(ORIGINDEX_NONE);
+  poly_orig_indices.slice_safe(side_poly_range).fill(ORIGINDEX_NONE);
 
   /* Finally update each extruded polygon's loops to point to the new edges and vertices.
    * This must be done last, because they were used to find original indices for attribute

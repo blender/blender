@@ -478,6 +478,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
     /* Read metadata. */
     bool is_bool_param = false;
+    bool hide_value = !param->validdefault;
     ustring param_label = param->name;
 
     for (const OSL::OSLQuery::Parameter &metadata : param->metadata) {
@@ -486,6 +487,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
           /* Boolean socket. */
           if (metadata.sdefault[0] == "boolean" || metadata.sdefault[0] == "checkBox") {
             is_bool_param = true;
+          }
+          else if (metadata.sdefault[0] == "null") {
+            hide_value = true;
           }
         }
         else if (metadata.name == "label") {
@@ -596,6 +600,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
             if (b_sock.name() != param_label) {
               b_sock.name(param_label.string());
             }
+            if (b_sock.hide_value() != hide_value) {
+              b_sock.hide_value(hide_value);
+            }
             used_sockets.insert(b_sock.ptr.data);
             found_existing = true;
           }
@@ -634,6 +641,8 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
       else if (data_type == BL::NodeSocket::type_BOOLEAN) {
         set_boolean(b_sock.ptr, "default_value", default_boolean);
       }
+
+      b_sock.hide_value(hide_value);
 
       used_sockets.insert(b_sock.ptr.data);
     }

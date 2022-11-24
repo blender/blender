@@ -34,6 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_paint.h"
 
 #include "NOD_texture.h"
@@ -395,11 +396,11 @@ void paint_brush_exit_tex(Brush *brush)
   if (brush) {
     MTex *mtex = &brush->mtex;
     if (mtex->tex && mtex->tex->nodetree) {
-      ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+      ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
     }
     mtex = &brush->mask_mtex;
     if (mtex->tex && mtex->tex->nodetree) {
-      ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+      ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
     }
   }
 }

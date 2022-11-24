@@ -163,7 +163,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
 bool ExecutionSystem::is_breaked() const
 {
   const bNodeTree *btree = context_.get_bnodetree();
-  return btree->test_break(btree->tbh);
+  return btree->runtime->test_break(btree->runtime->tbh);
 }
 
 }  // namespace blender::compositor

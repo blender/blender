@@ -45,6 +45,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "ED_gpencil.h"
@@ -1247,7 +1248,7 @@ static bool is_compositor_enabled(void)
     return false;
   }
 
-  if (!(DST.draw_ctx.v3d->shading.flag & V3D_SHADING_COMPOSITOR)) {
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
 
@@ -1260,6 +1261,11 @@ static bool is_compositor_enabled(void)
   }
 
   if (!DST.draw_ctx.scene->nodetree) {
+    return false;
+  }
+
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
+      DST.draw_ctx.rv3d->persp != RV3D_CAMOB) {
     return false;
   }
 

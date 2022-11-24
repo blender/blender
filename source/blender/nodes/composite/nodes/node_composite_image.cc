@@ -11,6 +11,8 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -876,6 +878,8 @@ void register_node_type_cmp_rlayers()
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Render passes not supported in the Viewport compositor");
   ntype.flag |= NODE_PREVIEW;
   node_type_storage(
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);

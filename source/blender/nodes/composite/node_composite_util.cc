@@ -23,7 +23,7 @@ bool cmp_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char *
 void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    if (sock->cache) {
+    if (sock->runtime->cache) {
       // free_compbuf(sock->cache);
       // sock->cache = nullptr;
     }

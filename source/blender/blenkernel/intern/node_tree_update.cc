@@ -1009,10 +1009,6 @@ class NodeTreeMainUpdater {
       result.interface_changed = true;
     }
 
-    if (result.interface_changed) {
-      ntreeInterfaceTypeUpdate(&ntree);
-    }
-
     return result;
   }
 

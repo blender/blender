@@ -6211,8 +6211,14 @@ class VIEW3D_PT_shading_compositor(Panel):
     def draw(self, context):
         shading = context.space_data.shading
 
-        layout = self.layout
-        layout.prop(shading, "use_compositor")
+        import sys
+        is_macos = sys.platform == "darwin"
+
+        row = self.layout.row()
+        row.active = not is_macos
+        row.prop(shading, "use_compositor", expand=True)
+        if is_macos and shading.use_compositor != "DISABLED":
+            self.layout.label(text="Compositor not supported on MacOS.", icon="ERROR")
 
 
 class VIEW3D_PT_gizmo_display(Panel):

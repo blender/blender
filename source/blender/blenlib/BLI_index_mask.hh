@@ -236,6 +236,9 @@ class IndexMask {
 
   IndexMask slice(int64_t start, int64_t size) const;
   IndexMask slice(IndexRange slice) const;
+
+  IndexMask slice_safe(int64_t start, int64_t size) const;
+  IndexMask slice_safe(IndexRange slice) const;
   /**
    * Create a sub-mask that is also shifted to the beginning.
    * The shifting to the beginning allows code to work with smaller indices,

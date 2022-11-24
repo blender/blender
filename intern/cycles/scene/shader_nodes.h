@@ -1525,7 +1525,7 @@ class OSLNode final : public ShaderNode {
   ShaderNode *clone(ShaderGraph *graph) const;
 
   char *input_default_value();
-  void add_input(ustring name, SocketType::Type type);
+  void add_input(ustring name, SocketType::Type type, const int flags = 0);
   void add_output(ustring name, SocketType::Type type);
 
   SHADER_NODE_NO_CLONE_CLASS(OSLNode)

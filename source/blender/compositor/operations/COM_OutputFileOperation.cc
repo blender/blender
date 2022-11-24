@@ -192,7 +192,7 @@ static void write_buffer_rect(rcti *rect,
       }
       offset += size;
 
-      if (tree->test_break && tree->test_break(tree->tbh)) {
+      if (tree->runtime->test_break && tree->runtime->test_break(tree->runtime->tbh)) {
         breaked = true;
       }
     }

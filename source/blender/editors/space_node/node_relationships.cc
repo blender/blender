@@ -300,12 +300,12 @@ static void sort_multi_input_socket_links_with_drag(bNode &node,
     if (!socket->is_multi_input()) {
       continue;
     }
-    const float2 &socket_location = {socket->locx, socket->locy};
+    const float2 &socket_location = {socket->runtime->locx, socket->runtime->locy};
 
     Vector<LinkAndPosition, 8> links;
     for (bNodeLink *link : socket->directly_linked_links()) {
       const float2 location = node_link_calculate_multi_input_position(
-          socket_location, link->multi_input_socket_index, link->tosock->total_inputs);
+          socket_location, link->multi_input_socket_index, link->tosock->runtime->total_inputs);
       links.append({link, location});
     };
 
@@ -645,8 +645,8 @@ static int view_socket(const bContext &C,
   }
   if (viewer_node == nullptr) {
     const int viewer_type = get_default_viewer_type(&C);
-    const float2 location{bsocket_to_view.locx / UI_DPI_FAC + 100,
-                          bsocket_to_view.locy / UI_DPI_FAC};
+    const float2 location{bsocket_to_view.runtime->locx / UI_DPI_FAC + 100,
+                          bsocket_to_view.runtime->locy / UI_DPI_FAC};
     viewer_node = add_static_node(C, viewer_type, location);
   }
 
@@ -903,7 +903,7 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
 
   /* avoid updates while applying links */
-  ntree.is_updating = true;
+  ntree.runtime->is_updating = true;
   for (bNodeLink *link : nldrag->links) {
     link->flag &= ~NODE_LINK_DRAGGED;
 
@@ -929,7 +929,7 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
       nodeRemLink(&ntree, link);
     }
   }
-  ntree.is_updating = false;
+  ntree.runtime->is_updating = false;
 
   ED_node_tree_propagate_change(&C, bmain, &ntree);
 

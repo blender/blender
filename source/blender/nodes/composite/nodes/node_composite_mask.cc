@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "DNA_mask_types.h"
 
 #include "UI_interface.h"
@@ -85,6 +87,7 @@ class MaskOperation : public NodeOperation {
   void execute() override
   {
     get_result("Mask").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -107,6 +110,8 @@ void register_node_type_cmp_mask()
   ntype.initfunc = file_ns::node_composit_init_mask;
   ntype.labelfunc = file_ns::node_mask_label;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 

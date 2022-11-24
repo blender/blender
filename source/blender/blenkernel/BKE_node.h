@@ -171,9 +171,6 @@ typedef struct bNodeSocketType {
 
   void (*interface_draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr);
   void (*interface_draw_color)(struct bContext *C, struct PointerRNA *ptr, float *r_color);
-  void (*interface_register_properties)(struct bNodeTree *ntree,
-                                        struct bNodeSocket *interface_socket,
-                                        struct StructRNA *data_srna);
   void (*interface_init_socket)(struct bNodeTree *ntree,
                                 const struct bNodeSocket *interface_socket,
                                 struct bNode *node,
@@ -329,6 +326,11 @@ typedef struct bNodeType {
   /* Get an instance of this node's compositor shader node. Freeing the instance is the
    * responsibility of the caller. */
   NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
+
+  /* A message to display in the node header for unsupported realtime compositor nodes. The message
+   * is assumed to be static and thus require no memory handling. This field is to be removed when
+   * all nodes are supported. */
+  const char *realtime_compositor_unsupported_message;
 
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function;
@@ -577,10 +579,6 @@ struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree
                                                          struct bNode *from_node,
                                                          struct bNodeSocket *from_sock);
 void ntreeRemoveSocketInterface(struct bNodeTree *ntree, struct bNodeSocket *sock);
-
-struct StructRNA *ntreeInterfaceTypeGet(struct bNodeTree *ntree, bool create);
-void ntreeInterfaceTypeFree(struct bNodeTree *ntree);
-void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 
 /** \} */
 
@@ -1336,12 +1334,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 /* channel toggles */
 #define CMP_CHAN_RGB 1
 #define CMP_CHAN_A 2
-
-/* track position node, in custom1 */
-#define CMP_TRACKPOS_ABSOLUTE 0
-#define CMP_TRACKPOS_RELATIVE_START 1
-#define CMP_TRACKPOS_RELATIVE_FRAME 2
-#define CMP_TRACKPOS_ABSOLUTE_FRAME 3
 
 /* Cryptomatte source. */
 #define CMP_CRYPTOMATTE_SRC_RENDER 0

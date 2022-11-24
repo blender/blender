@@ -2272,18 +2272,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
       FOREACH_NODETREE_END;
     }
-
-    {
-      /* Initialize group tree nodetypes.
-       * These are used to distinguish tree types and
-       * associate them with specific node types for polling.
-       */
-      bNodeTree *ntree;
-      /* all node trees in bmain->nodetree are considered groups */
-      for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next) {
-        ntree->nodetype = NODE_GROUP;
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 259, 4)) {

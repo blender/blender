@@ -663,10 +663,11 @@ static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, co
   return BLI_BITMAP_TEST_BOOL(lasso->mask_px, scr_co_s[1] * lasso->width + scr_co_s[0]);
 }
 
-static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, PBVHVertexIter *vd)
+static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, PBVHVertRef vertex)
 {
   float vertex_normal[3];
-  SCULPT_vertex_normal_get(sgcontext->ss, vd->vertex, vertex_normal);
+  const float *co = SCULPT_vertex_co_get(sgcontext->ss, vertex);
+  SCULPT_vertex_normal_get(sgcontext->ss, vertex, vertex_normal);
   float dot = dot_v3v3(sgcontext->view_normal, vertex_normal);
   const bool is_effected_front_face = !(sgcontext->front_faces_only && dot < 0.0f);
 
@@ -676,17 +677,28 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
 
   switch (sgcontext->shape_type) {
     case SCULPT_GESTURE_SHAPE_BOX:
-      return isect_point_planes_v3(sgcontext->clip_planes, 4, vd->co);
+      return isect_point_planes_v3(sgcontext->clip_planes, 4, co);
     case SCULPT_GESTURE_SHAPE_LASSO:
-      return sculpt_gesture_is_effected_lasso(sgcontext, vd->co);
+      return sculpt_gesture_is_effected_lasso(sgcontext, co);
     case SCULPT_GESTURE_SHAPE_LINE:
       if (sgcontext->line.use_side_planes) {
-        return plane_point_side_v3(sgcontext->line.plane, vd->co) > 0.0f &&
-               plane_point_side_v3(sgcontext->line.side_plane[0], vd->co) > 0.0f &&
-               plane_point_side_v3(sgcontext->line.side_plane[1], vd->co) > 0.0f;
+        return plane_point_side_v3(sgcontext->line.plane, co) > 0.0f &&
+               plane_point_side_v3(sgcontext->line.side_plane[0], co) > 0.0f &&
+               plane_point_side_v3(sgcontext->line.side_plane[1], co) > 0.0f;
       }
-      return plane_point_side_v3(sgcontext->line.plane, vd->co) > 0.0f;
+      return plane_point_side_v3(sgcontext->line.plane, co) > 0.0f;
   }
+  return false;
+}
+
+static bool sculpt_gesture_is_face_effected(SculptGestureContext *sgcontext, PBVHFaceIter *fd)
+{
+  for (int i = 0; i < fd->verts_num; i++) {
+    if (sculpt_gesture_is_vertex_effected(sgcontext, fd->verts[i])) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -728,9 +740,6 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
-
-  /* Face Sets modifications do a single undo push. */
-  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_FACE_SETS);
 }
 
 static void face_set_gesture_apply_task_cb(void *__restrict userdata,
@@ -741,16 +750,18 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
   PBVHNode *node = sgcontext->nodes[i];
-  PBVHVertexIter vd;
   bool any_updated = false;
 
-  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
-      SCULPT_vertex_face_set_set(sgcontext->ss, vd.vertex, face_set_operation->new_face_set_id);
+  SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_FACE_SETS);
+
+  PBVHFaceIter fd;
+  BKE_pbvh_face_iter_begin (sgcontext->ss->pbvh, node, fd) {
+    if (sculpt_gesture_is_face_effected(sgcontext, &fd)) {
+      SCULPT_face_set_set(sgcontext->ss, fd.face, face_set_operation->new_face_set_id);
       any_updated = true;
     }
   }
-  BKE_pbvh_vertex_iter_end;
+  BKE_pbvh_face_iter_end(fd);
 
   if (any_updated) {
     BKE_pbvh_node_mark_update_visibility(node);
@@ -821,7 +832,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
   bool redraw = false;
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+    if (sculpt_gesture_is_vertex_effected(sgcontext, vd.vertex)) {
       float prevmask = vd.mask ? *vd.mask : 0.0f;
       if (!any_masked) {
         any_masked = true;
@@ -1442,7 +1453,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
   SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+    if (!sculpt_gesture_is_vertex_effected(sgcontext, vd.vertex)) {
       continue;
     }
 

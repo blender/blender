@@ -397,6 +397,8 @@ void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
  */
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *pbvh);
 
+void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, struct Mesh *me);
+
 /**
  * Returns the number of visible quads in the nodes' grids.
  */
@@ -442,6 +444,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 void BKE_pbvh_node_mark_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
 void BKE_pbvh_node_mark_update_color(PBVHNode *node);
+void BKE_pbvh_node_mark_update_face_sets(PBVHNode *node);
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BKE_pbvh_node_mark_redraw(PBVHNode *node);
@@ -473,6 +476,11 @@ void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
                              const struct MLoop **r_loops);
+
+/* Get number of faces in the mesh; for PBVH_GRIDS the
+ * number of base mesh faces is returned.
+ */
+int BKE_pbvh_num_faces(const PBVH *pbvh);
 
 void BKE_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
@@ -699,6 +707,7 @@ typedef struct PBVHFaceIter {
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
+  CCGKey subdiv_key_;
 
   int last_face_index_;
 } PBVHFaceIter;

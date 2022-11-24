@@ -144,8 +144,7 @@ typedef enum eImBufFlags {
   IB_multilayer = 1 << 7,
   IB_metadata = 1 << 8,
   IB_animdeinterlace = 1 << 9,
-  IB_tiles = 1 << 10,
-  IB_tilecache = 1 << 11,
+
   /** indicates whether image on disk have premul alpha */
   IB_alphamode_premul = 1 << 12,
   /** if this flag is set, alpha mode would be guessed from file */
@@ -201,11 +200,6 @@ typedef struct ImBuf {
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];
-
-  /* tiled pixel storage */
-  int tilex, tiley;
-  int xtiles, ytiles;
-  unsigned int **tiles;
 
   /* zbuffer */
   /** z buffer data, original zbuffer */

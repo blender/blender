@@ -126,12 +126,6 @@ typedef struct bNodeSocket {
   /** Runtime type identifier. */
   char idname[64];
 
-  /**
-   * The location of the sockets, in the view-space of the node editor.
-   * \note These are runtime data-- only calculated when drawing, and could be removed from DNA.
-   */
-  float locx, locy;
-
   /** Default input value used for unlinked sockets. */
   void *default_value;
 
@@ -143,10 +137,7 @@ typedef struct bNodeSocket {
    * output. */
   char attribute_domain;
 
-  char _pad[2];
-
-  /* Runtime-only cache of the number of input links, for multi-input sockets. */
-  short total_inputs;
+  char _pad[4];
 
   /** Custom dynamic defined label, MAX_NAME. */
   char label[64];
@@ -159,9 +150,6 @@ typedef struct bNodeSocket {
    * declarations.
    */
   char *default_attribute_name;
-
-  /** Cached data from execution. */
-  void *cache;
 
   /* internal data to retrieve relations and groups
    * DEPRECATED, now uses the generic identifier string instead
@@ -507,9 +495,6 @@ typedef struct bNodeTree {
   /** Runtime type identifier. */
   char idname[64];
 
-  /** Runtime RNA type of the group interface. */
-  struct StructRNA *interface_type;
-
   /** Grease pencil data. */
   struct bGPdata *gpd;
   /** Node tree stores own offset for consistent editor view. */
@@ -525,13 +510,6 @@ typedef struct bNodeTree {
    */
   int cur_index;
   int flag;
-  /** Flag to prevent re-entrant update calls. */
-  short is_updating;
-  /** Generic temporary flag for recursion check (DFS/BFS). */
-  short done;
-
-  /** Specific node type this tree is used for. */
-  int nodetype DNA_DEPRECATED;
 
   /** Quality setting when editing. */
   short edit_quality;
@@ -560,25 +538,6 @@ typedef struct bNodeTree {
   bNodeInstanceKey active_viewer_key;
 
   char _pad[4];
-
-  /** Execution data.
-   *
-   * XXX It would be preferable to completely move this data out of the underlying node tree,
-   * so node tree execution could finally run independent of the tree itself.
-   * This would allow node trees to be merely linked by other data (materials, textures, etc.),
-   * as ID data is supposed to.
-   * Execution data is generated from the tree once at execution start and can then be used
-   * as long as necessary, even while the tree is being modified.
-   */
-  struct bNodeTreeExec *execdata;
-
-  /* Callbacks. */
-  void (*progress)(void *, float progress);
-  /** \warning may be called by different threads */
-  void (*stats_draw)(void *, const char *str);
-  bool (*test_break)(void *);
-  void (*update_draw)(void *);
-  void *tbh, *prh, *sdh, *udh;
 
   /** Image representing what the node group does. */
   struct PreviewImage *preview;
@@ -2059,6 +2018,14 @@ typedef enum CMPNodeToneMapType {
   CMP_NODE_TONE_MAP_SIMPLE = 0,
   CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
 } CMPNodeToneMapType;
+
+/* Track Position Node. Stored in custom1. */
+typedef enum CMPNodeTrackPositionMode {
+  CMP_NODE_TRACK_POSITION_ABSOLUTE = 0,
+  CMP_NODE_TRACK_POSITION_RELATIVE_START = 1,
+  CMP_NODE_TRACK_POSITION_RELATIVE_FRAME = 2,
+  CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
+} CMPNodeTrackPositionMode;
 
 /* Plane track deform node. */
 

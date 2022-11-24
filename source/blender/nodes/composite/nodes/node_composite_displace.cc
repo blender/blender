@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -35,6 +37,7 @@ class DisplaceOperation : public NodeOperation {
   void execute() override
   {
     get_input("Image").pass_through(get_result("Image"));
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -54,6 +57,8 @@ void register_node_type_cmp_displace()
   cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT);
   ntype.declare = file_ns::cmp_node_displace_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }
