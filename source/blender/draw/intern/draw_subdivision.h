@@ -248,9 +248,9 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,
                                     struct GPUVertBuf *dst_data,
+                                    int comp_type, /*GPUVertCompType*/
                                     int dimensions,
-                                    int dst_offset,
-                                    bool compress_to_u16);
+                                    int dst_offset);
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
                              struct GPUVertBuf *uvs,

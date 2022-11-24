@@ -251,7 +251,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
         dst_custom_normals, get_custom_normals_format(), subdiv_cache->num_subdiv_loops);
 
     draw_subdiv_interp_custom_data(
-        subdiv_cache, src_custom_normals, dst_custom_normals, 3, 0, false);
+        subdiv_cache, src_custom_normals, dst_custom_normals, GPU_COMP_F32, 3, 0);
 
     draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo);
 
