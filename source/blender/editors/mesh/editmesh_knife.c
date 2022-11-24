@@ -1897,17 +1897,9 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
   kcd->mdata.is_stored = false;
 
   if (kcd->prev.vert == NULL && kcd->prev.edge == NULL) {
-    float origin[3], origin_ofs[3];
     float ofs_local[3];
-
     negate_v3_v3(ofs_local, kcd->vc.rv3d->ofs);
-
-    knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
-
-    if (!isect_line_plane_v3(
-            kcd->prev.cage, origin, origin_ofs, ofs_local, kcd->vc.rv3d->viewinv[2])) {
-      zero_v3(kcd->prev.cage);
-    }
+    ED_view3d_win_to_3d(kcd->vc.v3d, kcd->region, ofs_local, kcd->curr.mval, kcd->prev.cage);
 
     copy_v3_v3(kcd->prev.co, kcd->prev.cage); /* TODO: do we need this? */
     copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
