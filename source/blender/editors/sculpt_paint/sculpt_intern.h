@@ -1356,6 +1356,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
+/* Brush can be null. */
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
