@@ -117,7 +117,6 @@ static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
     case CD_PROP_INT8:
     case CD_PROP_INT32:
       return GPU_FETCH_INT_TO_FLOAT;
-    case CD_PROP_COLOR:
     case CD_PROP_BYTE_COLOR:
       return GPU_FETCH_INT_TO_FLOAT_UNIT;
     default:
@@ -131,8 +130,9 @@ static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
     case CD_PROP_INT8:
     case CD_PROP_INT32:
       return GPU_COMP_I32;
-    case CD_PROP_COLOR:
     case CD_PROP_BYTE_COLOR:
+      /* This should be u8,
+       * but u16 is required to store the color in linear space without precission loss */
       return GPU_COMP_U16;
     default:
       return GPU_COMP_F32;
@@ -309,7 +309,7 @@ static void extract_attr(const MeshRenderData *mr,
       extract_attr_generic<float3>(mr, vbo, request);
       break;
     case CD_PROP_COLOR:
-      extract_attr_generic<MPropCol, gpuMeshCol>(mr, vbo, request);
+      extract_attr_generic<float4>(mr, vbo, request);
       break;
     case CD_PROP_BYTE_COLOR:
       extract_attr_generic<ColorGeometry4b, gpuMeshCol>(mr, vbo, request);
