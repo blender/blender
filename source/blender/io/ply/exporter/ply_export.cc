@@ -24,6 +24,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ply_export.hh"
+#include "ply_data.hh"
 
 namespace blender::io::ply {
 
@@ -40,5 +41,12 @@ void exporter_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYExportParams &export_params)
 {
+  // Load bmesh data into PlyData struct
+
+  // Create file, get writer
+
+  // Write file header
+
+  // Write file body
 }
 }  // namespace blender::io::ply

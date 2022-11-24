@@ -26,6 +26,8 @@ set(INC_SYS
 set(SRC
     IO_ply.cc
     exporter/ply_export.cc
+    exporter/ply_export_ascii_writer.cc
+    exporter/ply_export_binary_writer.cc
     importer/ply_import.cc
 
 
