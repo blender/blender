@@ -9,7 +9,7 @@ namespace blender::nodes {
 
 NODE_STORAGE_FUNCS(NodeCombSepColor)
 
-static void fn_node_separate_color_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
@@ -19,18 +19,18 @@ static void fn_node_separate_color_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 };
 
-static void fn_node_separate_color_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void fn_node_separate_color_update(bNodeTree * /*tree*/, bNode *node)
+static void node_update(bNodeTree * /*tree*/, bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
 }
 
-static void fn_node_separate_color_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeCombSepColor *data = MEM_cnew<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
@@ -178,7 +178,7 @@ class SeparateHSLAFunction : public fn::MultiFunction {
   }
 };
 
-static void fn_node_separate_color_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeCombSepColor &storage = node_storage(builder.node());
 
@@ -212,13 +212,13 @@ void register_node_type_fn_separate_color(void)
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::fn_node_separate_color_declare;
-  ntype.updatefunc = blender::nodes::fn_node_separate_color_update;
-  ntype.initfunc = blender::nodes::fn_node_separate_color_init;
+  ntype.declare = blender::nodes::node_declare;
+  ntype.updatefunc = blender::nodes::node_update;
+  ntype.initfunc = blender::nodes::node_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::fn_node_separate_color_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_separate_color_layout;
+  ntype.build_multi_function = blender::nodes::node_build_multi_function;
+  ntype.draw_buttons = blender::nodes::node_layout;
 
   nodeRegisterType(&ntype);
 }

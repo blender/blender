@@ -6,7 +6,7 @@
 
 namespace blender::nodes::node_fn_replace_string_cc {
 
-static void fn_node_replace_string_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>(N_("String"));
   b.add_input<decl::String>(N_("Find")).description(N_("The string to find in the input string"));
@@ -28,7 +28,7 @@ static std::string replace_all(const StringRefNull str,
   return new_str;
 }
 
-static void fn_node_replace_string_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static fn::CustomMF_SI_SI_SI_SO<std::string, std::string, std::string, std::string> substring_fn{
       "Replace", [](const std::string &str, const std::string &find, const std::string &replace) {
@@ -46,7 +46,7 @@ void register_node_type_fn_replace_string()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_REPLACE_STRING, "Replace String", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::fn_node_replace_string_declare;
-  ntype.build_multi_function = file_ns::fn_node_replace_string_build_multi_function;
+  ntype.declare = file_ns::node_declare;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
   nodeRegisterType(&ntype);
 }
