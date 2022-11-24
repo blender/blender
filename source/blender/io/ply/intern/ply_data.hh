@@ -17,7 +17,7 @@ int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
 struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
-  //value between 0 and 1
+  // value between 0 and 1
   Vector<float3> vertex_colors;
   Vector<MEdge> edges;
   Vector<Vector<int>> faces;
