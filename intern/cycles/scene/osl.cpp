@@ -720,7 +720,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       if (node_skip_input(node, input)) {
         continue;
       }
-      if (input->flags() & SocketType::LINK_OSL_INITIALIZER) {
+      if ((input->flags() & SocketType::LINK_OSL_INITIALIZER) && !(input->constant_folded_in)) {
         continue;
       }
 
