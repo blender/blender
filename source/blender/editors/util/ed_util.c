@@ -97,11 +97,12 @@ void ED_editors_init(bContext *C)
       continue;
     }
     if (BKE_object_has_mode_data(ob, mode)) {
+      /* For multi-edit mode we may already have mode data. */
       continue;
     }
     if (ob->type == OB_GPENCIL) {
-      /* For multi-edit mode we may already have mode data (grease pencil does not need it).
-       * However we may have a non-active object stuck in a grease-pencil edit mode. */
+      /* Grease pencil does not need a toggle of mode. However we may have a non-active object
+       * stuck in a grease-pencil edit mode. */
       if (ob != obact) {
         bGPdata *gpd = (bGPdata *)ob->data;
         gpd->flag &= ~(GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE |
