@@ -152,6 +152,8 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
       struct TransDataArgs_PushPull data = {
           .t = t,
           .tc = tc,
+
+          .distance = distance,
           .axis_global = {UNPACK3(axis_global)},
           .is_lock_constraint = is_lock_constraint,
           .is_data_space = is_data_space,
