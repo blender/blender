@@ -188,6 +188,90 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         assert orig_data == read_data
 
 
+class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_append(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_indirect_lib()
+
+        # Simple link of a single ObData.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Mesh")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
+
+        assert len(bpy.data.materials) == 1
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 0
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
+
+        mesh = bpy.data.meshes[0]
+        material = bpy.data.materials[0]
+
+        assert material.library is not None
+        assert material.use_fake_user is True
+        assert material.users == 2  # Fake user is not cleared when linking.
+        assert material.is_library_indirect == True
+
+        assert mesh.library is not None
+        assert mesh.use_fake_user is False
+        assert mesh.users == 0
+        assert mesh.is_library_indirect == False  # IDs explicitely linked by the user are forcefully considered directly linked.
+
+        ob = bpy.data.objects.new("LocalMesh", mesh)
+        coll = bpy.data.collections.new("LocalMesh")
+        coll.objects.link(ob)
+        bpy.context.scene.collection.children.link(coll)
+
+        assert material.users == 2
+        assert material.is_library_indirect == True
+        assert mesh.users == 1
+        assert mesh.is_library_indirect == False
+
+        ob.material_slots[0].link = 'OBJECT'
+        ob.material_slots[0].material = material
+
+        assert material.users == 3
+        assert material.is_library_indirect == False
+
+        ob.material_slots[0].material = None
+
+        assert material.users == 2
+        assert material.is_library_indirect == False  # This is not properly updated whene removing a local user of linked data.
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        assert material.users == 2
+        # Currently linked data which has no more local user never gets reset to indirectly linked status.
+        # ~ assert material.is_library_indirect == True
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        assert len(bpy.data.materials) == 1
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1
+        assert len(bpy.data.collections) == 1  # Scene's master collection is not listed here
+
+        mesh = bpy.data.meshes[0]
+        material = bpy.data.materials[0]
+
+        assert material.library is not None
+        assert material.use_fake_user is True
+        assert material.users == 2  # Fake user is not cleared when linking.
+        # Currently even re-reading the .blend file will not properly reset tag for indirectly linked data,
+        # if their reference was written in the .blend file.
+        # ~ assert material.is_library_indirect == True
+
+        assert mesh.library is not None
+        assert mesh.use_fake_user is False
+        assert mesh.users == 1
+        assert mesh.is_library_indirect == False
+
+
 class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
     def __init__(self, args):
@@ -203,13 +287,6 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Mesh")
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=False, do_reuse_local_id=False)
-
-        print(
-            bpy.data.materials[:],
-            bpy.data.materials[0].library,
-            bpy.data.materials[0].users,
-            bpy.data.materials[0].use_fake_user,
-        )
 
         assert len(bpy.data.materials) == 1
         assert bpy.data.materials[0].library is not None
@@ -473,8 +550,11 @@ class TestBlendLibDataLibrariesLoad(TestBlendLibLinkHelper):
 
 TESTS = (
     TestBlendLibLinkSaveLoadBasic,
+    TestBlendLibLinkIndirect,
+
     TestBlendLibAppendBasic,
     TestBlendLibAppendReuseID,
+
     TestBlendLibLibraryReload,
     TestBlendLibLibraryRelocate,
     TestBlendLibDataLibrariesLoad,
