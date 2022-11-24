@@ -95,11 +95,10 @@ ccl_device_inline void volume_shader_copy_phases(ccl_private ShaderVolumePhases 
 ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
                                                      IntegratorState state,
                                                      ccl_private ShaderData *sd,
-                                                     ccl_private const RNGState *rng_state,
+                                                     float rand_phase_guiding,
                                                      const float3 P,
                                                      const float3 D,
-                                                     ccl_private ShaderVolumePhases *phases,
-                                                     const VolumeSampleMethod direct_sample_method)
+                                                     ccl_private ShaderVolumePhases *phases)
 {
   /* Have any phase functions to guide? */
   const int num_phases = phases->num_closure;
@@ -109,7 +108,6 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
   }
 
   const float volume_guiding_probability = kernel_data.integrator.volume_guiding_probability;
-  float rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING);
 
   /* If we have more than one phase function we select one random based on its
    * sample weight to calculate the product distribution for guiding. */

@@ -34,6 +34,9 @@ typedef struct VolumeIntegrateResult {
   Spectrum direct_throughput;
   float direct_t;
   ShaderVolumePhases direct_phases;
+#  ifdef __PATH_GUIDING__
+  VolumeSampleMethod direct_sample_method;
+#  endif
 
   /* Throughput and offset for indirect light scattering. */
   bool indirect_scatter;
@@ -580,6 +583,9 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
     result.direct_t = volume_equiangular_sample(
         ray, equiangular_light_P, vstate.rscatter, &vstate.equiangular_pdf);
   }
+#  ifdef __PATH_GUIDING__
+  result.direct_sample_method = vstate.direct_sample_method;
+#  endif
 
 #  ifdef __DENOISING_FEATURES__
   const bool write_denoising_features = (INTEGRATOR_STATE(state, path, flag) &
@@ -719,6 +725,9 @@ ccl_device_forceinline void integrate_volume_direct_light(
     ccl_private const RNGState *ccl_restrict rng_state,
     const float3 P,
     ccl_private const ShaderVolumePhases *ccl_restrict phases,
+#  ifdef __PATH_GUIDING__
+    ccl_private const Spectrum unlit_throughput,
+#  endif
     ccl_private const Spectrum throughput,
     ccl_private LightSample *ccl_restrict ls)
 {
@@ -851,7 +860,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
                                                    kernel_data.background.lightgroup + 1;
 
 #  ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = throughput;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
       state, guiding, path_segment);
 #  endif
@@ -990,7 +999,13 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
+  /* The current path throughput which is used later to calculate per-segment throughput.*/
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
+  /* The path throughput used to calculate the throughput for direct light. */
+  float3 unlit_throughput = initial_throughput;
+  /* If a new path segment is generated at the direct scatter position.*/
+  bool guiding_generated_new_segment = false;
+  float rand_phase_guiding = 0.5f;
 #  endif
 
   /* TODO: expensive to zero closures? */
@@ -1018,41 +1033,48 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     return VOLUME_PATH_MISSED;
   }
 
-#  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
-  bool guiding_generated_new_segment = false;
-  if (kernel_data.integrator.use_guiding) {
-    /* Record transmittance using change in throughput. */
-    float3 transmittance_weight = spectrum_to_rgb(
-        safe_divide_color(result.indirect_throughput, initial_throughput));
-    guiding_record_volume_transmission(kg, state, transmittance_weight);
-
-    if (result.indirect_scatter) {
-      const float3 P = ray->P + result.indirect_t * ray->D;
-
-      /* Record volume segment up to direct scatter position.
-       * TODO: volume segment is wrong when direct_t and indirect_t. */
-      if (result.direct_scatter && (result.direct_t == result.indirect_t)) {
-        guiding_record_volume_segment(kg, state, P, sd.I);
-        guiding_generated_new_segment = true;
-      }
-
-#    if PATH_GUIDING_LEVEL >= 4
-      /* TODO: this position will be wrong for direct light pdf computation,
-       * since the direct light position may be different? */
-      volume_shader_prepare_guiding(
-          kg, state, &sd, &rng_state, P, ray->D, &result.direct_phases, direct_sample_method);
-#    endif
-    }
-    else {
-      /* No guiding if we don't scatter. */
-      state->guiding.use_volume_guiding = false;
-    }
-  }
-#  endif
-
   /* Direct light. */
   if (result.direct_scatter) {
     const float3 direct_P = ray->P + result.direct_t * ray->D;
+
+#  ifdef __PATH_GUIDING__
+    if (kernel_data.integrator.use_guiding) {
+#    if PATH_GUIDING_LEVEL >= 1
+      if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
+        /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
+         * will happen at the same position as the indirect event and the direct light contribution
+         * will contribute to the position of the next path segment.*/
+        float3 transmittance_weight = spectrum_to_rgb(
+            safe_divide_color(result.indirect_throughput, initial_throughput));
+        guiding_record_volume_transmission(kg, state, transmittance_weight);
+        guiding_record_volume_segment(kg, state, direct_P, sd.I);
+        guiding_generated_new_segment = true;
+        unlit_throughput = result.indirect_throughput / continuation_probability;
+        rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
+      }
+      else {
+        /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
+         * event will happen at a separate position as the indirect event and the direct light
+         * contribution will contribute to the position of the current/previous path segment. The
+         * unlit_throughput has to be adjusted to include the scattering at the previous segment.*/
+        float3 scatterEval = one_float3();
+        if (state->guiding.path_segment) {
+          pgl_vec3f scatteringWeight = state->guiding.path_segment->scatteringWeight;
+          scatterEval = make_float3(scatteringWeight.x, scatteringWeight.y, scatteringWeight.z);
+        }
+        unlit_throughput /= scatterEval;
+        unlit_throughput *= continuation_probability;
+        rand_phase_guiding = path_state_rng_1D(
+            kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_EQUIANGULAR);
+      }
+#    endif
+#    if PATH_GUIDING_LEVEL >= 4
+      volume_shader_prepare_guiding(
+          kg, state, &sd, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
+#    endif
+    }
+#  endif
+
     result.direct_throughput /= continuation_probability;
     integrate_volume_direct_light(kg,
                                   state,
@@ -1060,6 +1082,9 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                   &rng_state,
                                   direct_P,
                                   &result.direct_phases,
+#  ifdef __PATH_GUIDING__
+                                  unlit_throughput,
+#  endif
                                   result.direct_throughput,
                                   &ls);
   }
@@ -1069,6 +1094,13 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
    * Only divide throughput by continuation_probability if we scatter. For the attenuation
    * case the next surface will already do this division. */
   if (result.indirect_scatter) {
+#  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
+    if (!guiding_generated_new_segment) {
+      float3 transmittance_weight = spectrum_to_rgb(
+          safe_divide_color(result.indirect_throughput, initial_throughput));
+      guiding_record_volume_transmission(kg, state, transmittance_weight);
+    }
+#  endif
     result.indirect_throughput /= continuation_probability;
   }
   INTEGRATOR_STATE_WRITE(state, path, throughput) = result.indirect_throughput;
@@ -1076,10 +1108,21 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   if (result.indirect_scatter) {
     sd.P = ray->P + result.indirect_t * ray->D;
 
-#  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
+#  if defined(__PATH_GUIDING__)
+#    if PATH_GUIDING_LEVEL >= 1
     if (!guiding_generated_new_segment) {
       guiding_record_volume_segment(kg, state, sd.P, sd.I);
     }
+#    endif
+#    if PATH_GUIDING_LEVEL >= 4
+    /* If the direct scatter event was generated using VOLUME_SAMPLE_EQUIANGULAR we need to
+     * initialize the guiding distribution at the indirect scatter position. */
+    if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
+      rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
+      volume_shader_prepare_guiding(
+          kg, state, &sd, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
+    }
+#    endif
 #  endif
 
     if (integrate_volume_phase_scatter(kg, state, &sd, &rng_state, &result.indirect_phases)) {
@@ -1090,6 +1133,10 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     }
   }
   else {
+#  if defined(__PATH_GUIDING__)
+    /* No guiding if we don't scatter. */
+    state->guiding.use_volume_guiding = false;
+#  endif
     return VOLUME_PATH_ATTENUATED;
   }
 }
