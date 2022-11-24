@@ -37,6 +37,7 @@
 
 #include "ED_armature.h"
 #include "ED_asset.h"
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -110,6 +111,9 @@ void ED_editors_init(bContext *C)
                        GP_DATA_STROKE_VERTEXMODE);
         ob->mode = OB_MODE_OBJECT;
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+      }
+      else if (mode & OB_MODE_ALL_PAINT_GPENCIL) {
+        ED_gpencil_toggle_brush_cursor(C, true, NULL);
       }
       continue;
     }
