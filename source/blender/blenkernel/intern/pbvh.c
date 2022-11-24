@@ -3563,9 +3563,8 @@ BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
   if (fd->subdiv_ccg_) {
     return BKE_subdiv_ccg_grid_to_face_index(fd->subdiv_ccg_, prim_index);
   }
-  else {
-    return fd->looptri_[prim_index].poly;
-  }
+
+  return fd->looptri_[prim_index].poly;
 }
 
 static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
