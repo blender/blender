@@ -110,31 +110,6 @@ void imb_freerectImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_rect;
 }
 
-void imb_freetilesImBuf(ImBuf *ibuf)
-{
-  int tx, ty;
-
-  if (ibuf == NULL) {
-    return;
-  }
-
-  if (ibuf->tiles && (ibuf->mall & IB_tiles)) {
-    for (ty = 0; ty < ibuf->ytiles; ty++) {
-      for (tx = 0; tx < ibuf->xtiles; tx++) {
-        if (ibuf->tiles[ibuf->xtiles * ty + tx]) {
-          imb_tile_cache_tile_free(ibuf, tx, ty);
-          MEM_freeN(ibuf->tiles[ibuf->xtiles * ty + tx]);
-        }
-      }
-    }
-
-    MEM_freeN(ibuf->tiles);
-  }
-
-  ibuf->tiles = NULL;
-  ibuf->mall &= ~IB_tiles;
-}
-
 static void freeencodedbufferImBuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
@@ -183,7 +158,6 @@ void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);
   imb_freerectfloatImBuf(ibuf);
-  imb_freetilesImBuf(ibuf);
   IMB_freezbufImBuf(ibuf);
   IMB_freezbuffloatImBuf(ibuf);
   freeencodedbufferImBuf(ibuf);
@@ -476,21 +450,6 @@ struct ImBuf *IMB_allocFromBuffer(
   return ibuf;
 }
 
-bool imb_addtilesImBuf(ImBuf *ibuf)
-{
-  if (ibuf == NULL) {
-    return false;
-  }
-
-  if (!ibuf->tiles) {
-    if ((ibuf->tiles = MEM_callocN(sizeof(uint *) * ibuf->xtiles * ibuf->ytiles, "imb_tiles"))) {
-      ibuf->mall |= IB_tiles;
-    }
-  }
-
-  return (ibuf->tiles != NULL);
-}
-
 ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
 {
   ImBuf *ibuf;
@@ -668,10 +627,6 @@ size_t IMB_get_size_in_memory(ImBuf *ibuf)
         size += IMB_get_size_in_memory(ibuf->mipmap[a]);
       }
     }
-  }
-
-  if (ibuf->tiles) {
-    size += sizeof(uint) * ibuf->ytiles * ibuf->xtiles;
   }
 
   return size;

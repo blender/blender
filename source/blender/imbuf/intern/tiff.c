@@ -536,10 +536,9 @@ void imb_inittiff(void)
 ImBuf *imb_loadtiff(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   TIFF *image = NULL;
-  ImBuf *ibuf = NULL, *hbuf;
+  ImBuf *ibuf = NULL;
   ImbTIFFMemFile memFile;
   uint32_t width, height;
-  char *format = NULL;
   short spp;
   int ib_depth;
 
@@ -595,51 +594,8 @@ ImBuf *imb_loadtiff(const uchar *mem, size_t size, int flags, char colorspace[IM
     return ibuf;
   }
 
-  /* detect if we are reading a tiled/mipmapped texture, in that case
-   * we don't read pixels but leave it to the cache to load tiles */
-  if (flags & IB_tilecache) {
-    format = NULL;
-    TIFFGetField(image, TIFFTAG_PIXAR_TEXTUREFORMAT, &format);
-
-    if (format && STREQ(format, "Plain Texture") && TIFFIsTiled(image)) {
-      int numlevel = TIFFNumberOfDirectories(image);
-
-      /* create empty mipmap levels in advance */
-      for (int level = 0; level < numlevel; level++) {
-        if (!TIFFSetDirectory(image, level)) {
-          break;
-        }
-
-        if (level > 0) {
-          width = (width > 1) ? width / 2 : 1;
-          height = (height > 1) ? height / 2 : 1;
-
-          hbuf = IMB_allocImBuf(width, height, 32, 0);
-          hbuf->miplevel = level;
-          hbuf->ftype = ibuf->ftype;
-          ibuf->mipmap[level - 1] = hbuf;
-        }
-        else {
-          hbuf = ibuf;
-        }
-
-        hbuf->flags |= IB_tilecache;
-
-        TIFFGetField(image, TIFFTAG_TILEWIDTH, &hbuf->tilex);
-        TIFFGetField(image, TIFFTAG_TILELENGTH, &hbuf->tiley);
-
-        hbuf->xtiles = ceil(hbuf->x / (float)hbuf->tilex);
-        hbuf->ytiles = ceil(hbuf->y / (float)hbuf->tiley);
-
-        imb_addtilesImBuf(hbuf);
-
-        ibuf->miptot++;
-      }
-    }
-  }
-
   /* read pixels */
-  if (!(ibuf->flags & IB_tilecache) && !imb_read_tiff_pixels(ibuf, image)) {
+  if (!imb_read_tiff_pixels(ibuf, image)) {
     fprintf(stderr, "imb_loadtiff: Failed to read tiff image.\n");
     TIFFClose(image);
     return NULL;
@@ -650,56 +606,6 @@ ImBuf *imb_loadtiff(const uchar *mem, size_t size, int flags, char colorspace[IM
 
   /* return successfully */
   return ibuf;
-}
-
-void imb_loadtiletiff(ImBuf *ibuf, const uchar *mem, size_t size, int tx, int ty, uint *rect)
-{
-  TIFF *image = NULL;
-  uint32_t width, height;
-  ImbTIFFMemFile memFile;
-
-  image = imb_tiff_client_open(&memFile, mem, size);
-
-  if (image == NULL) {
-    printf("imb_loadtiff: could not open TIFF IO layer for loading mipmap level.\n");
-    return;
-  }
-
-  if (TIFFSetDirectory(image, ibuf->miplevel)) { /* allocate the image buffer */
-    TIFFGetField(image, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
-
-    if (width == ibuf->x && height == ibuf->y) {
-      if (rect) {
-        /* tiff pixels are bottom to top, tiles are top to bottom */
-        if (TIFFReadRGBATile(
-                image, tx * ibuf->tilex, (ibuf->ytiles - 1 - ty) * ibuf->tiley, rect) == 1) {
-          if (ibuf->tiley > ibuf->y) {
-            memmove(rect,
-                    rect + ibuf->tilex * (ibuf->tiley - ibuf->y),
-                    sizeof(int) * ibuf->tilex * ibuf->y);
-          }
-        }
-        else {
-          printf("imb_loadtiff: failed to read tiff tile at mipmap level %d\n", ibuf->miplevel);
-        }
-      }
-    }
-    else {
-      printf("imb_loadtiff: mipmap level %d has unexpected size %ux%u instead of %dx%d\n",
-             ibuf->miplevel,
-             width,
-             height,
-             ibuf->x,
-             ibuf->y);
-    }
-  }
-  else {
-    printf("imb_loadtiff: could not find mipmap level %d\n", ibuf->miplevel);
-  }
-
-  /* close the client layer interface to the in-memory file */
-  TIFFClose(image);
 }
 
 /** \} */
