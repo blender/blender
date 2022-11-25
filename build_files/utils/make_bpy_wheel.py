@@ -35,6 +35,25 @@ from typing import (
     Tuple,
 )
 
+# ------------------------------------------------------------------------------
+# Long Description
+
+long_description = """# Blender
+
+[Blender](https://www.blender.org) is the free and open source 3D creation suite. It supports the entirety of the 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing and motion tracking, even video editing.
+
+This package provides Blender as a Python module for use in studio pipelines, web services, scientific research, and more.
+
+## Documentation
+
+* [Blender Python API](https://docs.blender.org/api/current/)
+* [Blender as a Python Module](https://docs.blender.org/api/current/info_advanced_blender_as_bpy.html)
+
+## Requirements
+
+[System requirements](https://www.blender.org/download/requirements/) are the same as Blender.
+
+Each Blender release supports one Python version, and the package is only compatible with that version."""
 
 # ------------------------------------------------------------------------------
 # Generic Functions
@@ -195,6 +214,8 @@ def main() -> None:
         options={"bdist_wheel": {"plat_name": platform_tag}},
 
         description="Blender as a Python module",
+        long_description=long_description,
+        long_description_content_type='text/markdown',
         license="GPL-3.0",
         author="Blender Foundation",
         author_email="bf-committers@blender.org",
