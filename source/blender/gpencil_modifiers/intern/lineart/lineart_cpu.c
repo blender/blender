@@ -3594,6 +3594,10 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
   }
   copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
+  /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and lights. */
+  normalize_v3(ld->conf.cam_obmat[0]);
+  normalize_v3(ld->conf.cam_obmat[1]);
+  normalize_v3(ld->conf.cam_obmat[2]);
 
   ld->conf.cam_is_persp = (c->type == CAM_PERSP);
   ld->conf.near_clip = c->clip_start + clipping_offset;
@@ -3622,6 +3626,10 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     Object *light_obj = lmd->light_contour_object;
     copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
     copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
+    /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and lights. */
+    normalize_v3(ld->conf.cam_obmat_secondary[0]);
+    normalize_v3(ld->conf.cam_obmat_secondary[1]);
+    normalize_v3(ld->conf.cam_obmat_secondary[2]);
     ld->conf.light_reference_available = true;
     if (light_obj->type == OB_LAMP) {
       ld->conf.cam_is_persp_secondary = ((Light *)light_obj->data)->type != LA_SUN;
