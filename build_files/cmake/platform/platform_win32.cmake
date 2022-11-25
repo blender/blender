@@ -972,7 +972,13 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
-  list(APPEND _sycl_runtime_libraries ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll)
+  file(GLOB _sycl_pi_runtime_libraries_glob
+    ${SYCL_ROOT_DIR}/bin/pi_*.dll
+  )
+  list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
+  list (APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
+  unset(_sycl_pi_runtime_libraries_glob)
+
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
