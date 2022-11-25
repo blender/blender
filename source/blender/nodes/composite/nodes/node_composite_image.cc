@@ -853,7 +853,11 @@ class RenderLayerOperation : public NodeOperation {
     /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
       if (!STR_ELEM(output->identifier, "Image", "Alpha")) {
-        get_result(output->identifier).allocate_invalid();
+        Result &unsupported_result = get_result(output->identifier);
+        if (unsupported_result.should_compute()) {
+          unsupported_result.allocate_invalid();
+          context().set_info_message("Viewport compositor setup not fully supported");
+        }
       }
     }
   }
