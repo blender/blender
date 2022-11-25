@@ -1,0 +1,114 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
+#pragma once
+
+#include <cstdio>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+#include "BLI_compiler_attrs.h"
+#include "BLI_fileops.h"
+#include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
+
+/* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
+#undef SEP
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
+namespace blender::io::ply {
+
+/**
+ * File buffer writer.
+ * All writes are done into an internal chunked memory buffer
+ * (list of default 64 kilobyte blocks).
+ * Call write_fo_file once in a while to write the memory buffer(s)
+ * into the given file.
+ */
+class FileBuffer : NonCopyable, NonMovable {
+ private:
+  typedef std::vector<char> VectorChar;
+  std::vector<VectorChar> blocks_;
+  size_t buffer_chunk_size_;
+
+ public:
+  FileBuffer(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
+  {
+  }
+
+  /* Write contents to the buffer(s) into a file, and clear the buffers. */
+  void write_to_file(FILE *f)
+  {
+    for (const auto &b : blocks_)
+      fwrite(b.data(), 1, b.size(), f);
+    blocks_.clear();
+  }
+
+  std::string get_as_string() const
+  {
+    std::string s;
+    for (const auto &b : blocks_)
+      s.append(b.data(), b.size());
+    return s;
+  }
+  size_t get_block_count() const
+  {
+    return blocks_.size();
+  }
+
+  void append_from(FileBuffer &v)
+  {
+    blocks_.insert(blocks_.end(),
+                   std::make_move_iterator(v.blocks_.begin()),
+                   std::make_move_iterator(v.blocks_.end()));
+    v.blocks_.clear();
+  }
+
+  virtual void write_vertex(float x, float y, float z)
+  {
+  }
+
+  virtual void write_vertex_color(float x, float y, float z, float r, float g, float b)
+  {
+  }
+
+
+  void write_string(StringRef s)
+  {
+    write_impl("{}\n", s);
+  }
+
+  void write_newline()
+  {
+    write_impl("\n");
+  }
+
+ private:
+  /* Ensure the last block contains at least this amount of free space.
+   * If not, add a new block with max of block size & the amount of space needed. */
+  void ensure_space(size_t at_least)
+  {
+    if (blocks_.empty() || (blocks_.back().capacity() - blocks_.back().size() < at_least)) {
+      VectorChar &b = blocks_.emplace_back(VectorChar());
+      b.reserve(std::max(at_least, buffer_chunk_size_));
+    }
+  }
+
+  template<typename... T> void write_impl(const char *fmt, T &&...args)
+  {
+    /* Format into a local buffer. */
+    fmt::memory_buffer buf;
+    fmt::format_to(fmt::appender(buf), fmt, std::forward<T>(args)...);
+    size_t len = buf.size();
+    ensure_space(len);
+    VectorChar &bb = blocks_.back();
+    bb.insert(bb.end(), buf.begin(), buf.end());
+  }
+};
+
+}  // namespace blender::io::ply

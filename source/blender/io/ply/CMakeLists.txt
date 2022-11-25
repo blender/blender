@@ -16,6 +16,7 @@ set(INC
   ../../nodes
   ../../windowmanager
   ../../../../extern/fast_float
+  ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
 
@@ -26,14 +27,14 @@ set(INC_SYS
 set(SRC
     IO_ply.cc
     exporter/ply_export.cc
-    exporter/ply_export_ascii_writer.cc
-    exporter/ply_export_binary_writer.cc
     importer/ply_import.cc
 
 
 
     IO_ply.h
     exporter/ply_export.hh
+    exporter/ply_file_buffer_ascii.hh
+    exporter/ply_file_buffer_binary.hh
     importer/ply_import.hh
 
     intern/ply_data.hh
