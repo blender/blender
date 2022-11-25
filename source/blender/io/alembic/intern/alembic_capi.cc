@@ -134,8 +134,7 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
   }
 
   if (get_path) {
-    void *abc_path_void = MEM_callocN(sizeof(CacheObjectPath), "CacheObjectPath");
-    CacheObjectPath *abc_path = static_cast<CacheObjectPath *>(abc_path_void);
+    CacheObjectPath *abc_path = MEM_cnew<CacheObjectPath>("CacheObjectPath");
 
     BLI_strncpy(abc_path->path, object.getFullName().c_str(), sizeof(abc_path->path));
     BLI_addtail(object_paths, abc_path);
@@ -358,8 +357,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     readers.push_back(reader);
     reader->incref();
 
-    CacheObjectPath *abc_path = static_cast<CacheObjectPath *>(
-        MEM_callocN(sizeof(CacheObjectPath), "CacheObjectPath"));
+    CacheObjectPath *abc_path = MEM_cnew<CacheObjectPath>("CacheObjectPath");
     BLI_strncpy(abc_path->path, full_name.c_str(), sizeof(abc_path->path));
     BLI_addtail(&settings.cache_file->object_paths, abc_path);
 
