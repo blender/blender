@@ -23,21 +23,35 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "intern/ply_data.hh"
 #include "ply_import.hh"
 
 
 namespace blender::io::ply {
 
-  void ply_import_report_error(FILE *file)
-  {
-    fprintf(stderr, "STL Importer: failed to read file");
-    if (feof(file)) {
+void ply_import_report_error(FILE *file)
+{
+  fprintf(stderr, "STL Importer: failed to read file");
+  if (feof(file)) {
     fprintf(stderr, ", end of file reached.\n");
-    }
-    else if (ferror(file)) {
+  }
+  else if (ferror(file)) {
     perror("Error");
-    }
-    }
+  }
+}
+
+void splitstr(std::string str, std::vector<std::string> &words, std::string deli = " ")
+{
+   int pos = 0;
+   int end = str.find(deli);
+
+   while ((pos = str.find(deli)) != std::string::npos) {
+     words.push_back(str.substr(0, pos));
+     str.erase(0, pos + deli.length());
+   }
+   //adds the final word to the vector
+   words.push_back(str.substr());
+}
 
 
 
@@ -66,21 +80,25 @@ void importer_main(Main *bmain,
   std::ifstream infile(import_params.filepath);
   PlyFormatType type;
 
+
   //hier kan ook het PlyDataStruct gevuld worden
   while (std::getline(infile, line)){
 
-    if (strcmp(line.c_str(), "format ascii 1.0")== 0) {
-      type = ascii;
-      
-    }else
-    if (strcmp(line.c_str(), "format binary_big_endian 1.0") == 0) {
-      type = binary_big_endian;
-      
-    }else
-    if (strcmp(line.c_str(), "format binary_little_endian 1.0") == 0) {
-      type = binary_little_endian;
+   std::vector<std::string> words{};
+   splitstr(line, words);
+    
+    if (strcmp(words[0].c_str(), "format") == 0) {
+      if (strcmp(words[1].c_str(), "ascii")== 0)
+        type = ascii;
+      if (strcmp(words[1].c_str(), "binary_big_endian")== 0)
+        type = binary_big_endian;
+      if (strcmp(words[1].c_str(), "binary_little_endian")== 0)
+        type = binary_little_endian;
     }
-    if (line == "end_header") {
+
+    
+
+    if (words[0] == "end_header") {
       break;
     }   
   }
@@ -90,6 +108,7 @@ void importer_main(Main *bmain,
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
+  Mesh *mesh = nullptr;
   if(type == ascii){
     printf("ASCII PLY \n");
   }
