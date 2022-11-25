@@ -37,15 +37,15 @@ set(SRC
   interface.cc
   interface_align.c
   interface_anim.cc
-  interface_button_group.c
-  interface_context_menu.c
+  interface_button_group.cc
+  interface_context_menu.cc
   interface_context_path.cc
   interface_drag.cc
-  interface_draw.c
+  interface_draw.cc
   interface_dropboxes.cc
   interface_handlers.c
   interface_icons.c
-  interface_icons_event.c
+  interface_icons_event.cc
   interface_layout.c
   interface_ops.cc
   interface_panel.cc

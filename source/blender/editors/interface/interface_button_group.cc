@@ -18,14 +18,13 @@ void ui_block_new_button_group(uiBlock *block, uiButtonGroupFlag flag)
 {
   /* Don't create a new group if there is a "lock" on new groups. */
   if (!BLI_listbase_is_empty(&block->button_groups)) {
-    uiButtonGroup *last_button_group = block->button_groups.last;
+    uiButtonGroup *last_button_group = static_cast<uiButtonGroup *>(block->button_groups.last);
     if (last_button_group->flag & UI_BUTTON_GROUP_LOCK) {
       return;
     }
   }
 
-  uiButtonGroup *new_group = MEM_mallocN(sizeof(uiButtonGroup), __func__);
-  BLI_listbase_clear(&new_group->buttons);
+  uiButtonGroup *new_group = MEM_cnew<uiButtonGroup>(__func__);
   new_group->flag = flag;
   BLI_addtail(&block->button_groups, new_group);
 }
@@ -33,10 +32,10 @@ void ui_block_new_button_group(uiBlock *block, uiButtonGroupFlag flag)
 void ui_button_group_add_but(uiBlock *block, uiBut *but)
 {
   if (BLI_listbase_is_empty(&block->button_groups)) {
-    ui_block_new_button_group(block, 0);
+    ui_block_new_button_group(block, uiButtonGroupFlag(0));
   }
 
-  uiButtonGroup *current_button_group = block->button_groups.last;
+  uiButtonGroup *current_button_group = static_cast<uiButtonGroup *>(block->button_groups.last);
 
   /* We can't use the button directly because adding it to
    * this list would mess with its `prev` and `next` pointers. */

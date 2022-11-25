@@ -1020,7 +1020,7 @@ extern void ui_draw_aligned_panel(const struct uiStyle *style,
                                   bool region_search_filter_active);
 void ui_panel_tag_search_filter_match(struct Panel *panel);
 
-/* interface_draw.c */
+/* interface_draw.cc */
 
 extern void ui_draw_dropshadow(
     const rctf *rct, float radius, float aspect, float alpha, int select);
@@ -1287,7 +1287,7 @@ void uiStyleInit(void);
 void ui_icon_ensure_deferred(const struct bContext *C, int icon_id, bool big);
 int ui_id_icon_get(const struct bContext *C, struct ID *id, bool big);
 
-/* interface_icons_event.c */
+/* interface_icons_event.cc */
 
 void icon_draw_rect_input(
     float x, float y, int w, int h, float alpha, short event_type, short event_value);
@@ -1325,7 +1325,7 @@ void ui_layout_list_set_labels_active(uiLayout *layout);
 void ui_item_menutype_func(struct bContext *C, struct uiLayout *layout, void *arg_mt);
 void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *arg_pt);
 
-/* interface_button_group.c */
+/* interface_button_group.cc */
 
 /**
  * Every function that adds a set of buttons must create another group,
@@ -1474,7 +1474,7 @@ struct ARegion *ui_screen_region_find_mouse_over_ex(struct bScreen *screen, cons
 struct ARegion *ui_screen_region_find_mouse_over(struct bScreen *screen,
                                                  const struct wmEvent *event);
 
-/* interface_context_menu.c */
+/* interface_context_menu.cc */
 
 bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but, const struct wmEvent *event);
 /**
