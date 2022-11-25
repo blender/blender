@@ -18,7 +18,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
