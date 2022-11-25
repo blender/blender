@@ -27,6 +27,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -1265,6 +1266,20 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   for (ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
     if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
+      float center[3];
+      mul_v3_m4v3(center, ob->object_to_world, hmd->cent);
+      if (hmd->object) {
+        OVERLAY_extra_line_dashed(cb, hmd->object->object_to_world[3], center, relation_color);
+      }
+      OVERLAY_extra_point(cb, center, relation_color);
+    }
+  }
+  for (GpencilModifierData *md =
+           static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
+       md;
+       md = md->next) {
+    if (md->type == eGpencilModifierType_Hook) {
+      HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
       float center[3];
       mul_v3_m4v3(center, ob->object_to_world, hmd->cent);
       if (hmd->object) {
