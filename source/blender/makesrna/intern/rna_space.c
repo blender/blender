@@ -999,6 +999,15 @@ static void rna_SpaceView3D_object_type_visibility_update(Main *UNUSED(bmain),
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
+static void rna_SpaceView3D_shading_use_compositor_update(Main *UNUSED(bmain),
+                                                          Scene *UNUSED(scene),
+                                                          PointerRNA *UNUSED(ptr))
+{
+  /* Nodes may display warnings when the compositor is enabled, so we need a redraw in that case,
+   * and even when it gets disabled in order to potentially remove the warning. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE, NULL);
+}
+
 static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
@@ -4270,7 +4279,9 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Compositor", "When to preview the compositor output inside the viewport");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
+  RNA_def_property_update(prop,
+                          NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING,
+                          "rna_SpaceView3D_shading_use_compositor_update");
 }
 
 static void rna_def_space_view3d_overlay(BlenderRNA *brna)
