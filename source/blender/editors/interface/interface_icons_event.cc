@@ -9,54 +9,14 @@
  * Event codes are used as identifiers.
  */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-
-#include "MEM_guardedalloc.h"
-
 #include "GPU_batch.h"
-#include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
-
-#include "DNA_brush_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_dynamicpaint_types.h"
-#include "DNA_object_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
-
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
-
-#include "BKE_appdir.h"
-#include "BKE_icons.h"
-#include "BKE_studiolight.h"
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "BLI_string.h"
 
 #include "BLF_api.h"
 
-#include "DEG_depsgraph.h"
-
-#include "DRW_engine.h"
-
-#include "ED_datafiles.h"
-#include "ED_keyframes_draw.h"
-#include "ED_render.h"
-
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "interface_intern.h"
 
