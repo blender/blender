@@ -1158,7 +1158,7 @@ void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete);
 struct wmIMEData *ui_but_ime_data_get(uiBut *but);
 #endif
 
-/* interface_widgets.c */
+/* interface_widgets.cc */
 
 /* Widget shader parameters, must match the shader layout. */
 typedef struct uiWidgetBaseParameters {
@@ -1282,7 +1282,7 @@ extern const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];
  */
 void uiStyleInit(void);
 
-/* interface_icons.c */
+/* interface_icons.cc */
 
 void ui_icon_ensure_deferred(const struct bContext *C, int icon_id, bool big);
 int ui_id_icon_get(const struct bContext *C, struct ID *id, bool big);
@@ -1292,12 +1292,12 @@ int ui_id_icon_get(const struct bContext *C, struct ID *id, bool big);
 void icon_draw_rect_input(
     float x, float y, int w, int h, float alpha, short event_type, short event_value);
 
-/* resources.c */
+/* resources.cc */
 
 void ui_resources_init(void);
 void ui_resources_free(void);
 
-/* interface_layout.c */
+/* interface_layout.cc */
 
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
 void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
@@ -1342,7 +1342,7 @@ void ui_but_drag_free(uiBut *but);
 bool ui_but_drag_is_draggable(const uiBut *but);
 void ui_but_drag_start(struct bContext *C, uiBut *but);
 
-/* interface_align.c */
+/* interface_align.cc */
 
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 int ui_but_align_opposite_to_area_align_get(const struct ARegion *region) ATTR_WARN_UNUSED_RESULT;
@@ -1556,7 +1556,7 @@ uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
 uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     const uiBlock *new_block, const uiViewItemHandle *new_item_handle);
 
-/* interface_templates.c */
+/* interface_templates.cc */
 
 struct uiListType *UI_UL_cache_file_layers(void);
 

@@ -35,7 +35,7 @@ set(SRC
   eyedroppers/eyedropper_gpencil_color.c
   eyedroppers/interface_eyedropper.c
   interface.cc
-  interface_align.c
+  interface_align.cc
   interface_anim.cc
   interface_button_group.cc
   interface_context_menu.cc
@@ -44,9 +44,9 @@ set(SRC
   interface_draw.cc
   interface_dropboxes.cc
   interface_handlers.c
-  interface_icons.c
+  interface_icons.cc
   interface_icons_event.cc
-  interface_layout.c
+  interface_layout.cc
   interface_ops.cc
   interface_panel.cc
   interface_query.cc
@@ -65,11 +65,11 @@ set(SRC
   interface_template_list.cc
   interface_template_search_menu.cc
   interface_template_search_operator.cc
-  interface_templates.c
+  interface_templates.cc
   interface_undo.cc
   interface_utils.cc
-  interface_widgets.c
-  resources.c
+  interface_widgets.cc
+  resources.cc
   view2d.cc
   view2d_draw.cc
   view2d_edge_pan.cc

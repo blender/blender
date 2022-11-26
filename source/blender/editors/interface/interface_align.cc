@@ -41,7 +41,7 @@
  *       This will probably not work in all possible cases,
  *       but not sure we want to support such exotic cases anyway.
  */
-typedef struct ButAlign {
+struct ButAlign {
   uiBut *but;
 
   /* Neighbor buttons */
@@ -56,7 +56,7 @@ typedef struct ButAlign {
   /* Flags, used to mark whether we should 'stitch'
    * the corners of this button with its neighbors' ones. */
   char flags[4];
-} ButAlign;
+};
 
 /* Side-related enums and flags. */
 enum {
@@ -168,7 +168,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
             /* We found an as close or closer neighbor.
              * If both buttons are alignable, we set them as each other neighbors.
              * Else, we have an unalignable one, we need to reset the others matching
-             * neighbor to NULL if its 'proximity distance'
+             * neighbor to nullptr if its 'proximity distance'
              * is really lower with current one.
              *
              * NOTE: We cannot only execute that piece of code in case we found a
@@ -181,10 +181,10 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
               butal_other->neighbors[side_opp] = butal;
             }
             else if (butal_can_align && (delta < butal->dists[side])) {
-              butal->neighbors[side] = NULL;
+              butal->neighbors[side] = nullptr;
             }
             else if (butal_other_can_align && (delta < butal_other->dists[side_opp])) {
-              butal_other->neighbors[side_opp] = NULL;
+              butal_other->neighbors[side_opp] = nullptr;
             }
             butal->dists[side] = butal_other->dists[side_opp] = delta;
           }
@@ -196,10 +196,10 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
             const int stitch = STITCH(side);
             const int stitch_opp = STITCH(side_opp);
 
-            if (butal->neighbors[side] == NULL) {
+            if (butal->neighbors[side] == nullptr) {
               butal->neighbors[side] = butal_other;
             }
-            if (butal_other->neighbors[side_opp] == NULL) {
+            if (butal_other->neighbors[side_opp] == nullptr) {
               butal_other->neighbors[side_opp] = butal;
             }
 
@@ -304,8 +304,8 @@ static void block_align_stitch_neighbors(ButAlign *butal,
  */
 static int ui_block_align_butal_cmp(const void *a, const void *b)
 {
-  const ButAlign *butal = a;
-  const ButAlign *butal_other = b;
+  const ButAlign *butal = static_cast<const ButAlign *>(a);
+  const ButAlign *butal_other = static_cast<const ButAlign *>(b);
 
   /* Sort by align group. */
   if (butal->but->alignnr != butal_other->but->alignnr) {
@@ -402,7 +402,8 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     butal_array = butal_array_buf;
   }
   else {
-    butal_array = MEM_mallocN(sizeof(*butal_array) * num_buttons, __func__);
+    butal_array = static_cast<ButAlign *>(
+        MEM_mallocN(sizeof(*butal_array) * num_buttons, __func__));
   }
   memset(butal_array, 0, sizeof(*butal_array) * (size_t)num_buttons);
 
@@ -549,7 +550,7 @@ static bool buts_are_horiz(uiBut *but1, uiBut *but2)
 
 static void ui_block_align_calc_but(uiBut *first, short nr)
 {
-  uiBut *prev, *but = NULL, *next;
+  uiBut *prev, *but = nullptr, *next;
   int flag = 0, cols = 0, rows = 0;
 
   /* auto align */
@@ -569,10 +570,10 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 
   /* NOTE: manipulation of 'flag' in the loop below is confusing.
    * In some cases it's assigned, other times OR is used. */
-  for (but = first, prev = NULL; but && but->alignnr == nr; prev = but, but = but->next) {
+  for (but = first, prev = nullptr; but && but->alignnr == nr; prev = but, but = but->next) {
     next = but->next;
     if (next && next->alignnr != nr) {
-      next = NULL;
+      next = nullptr;
     }
 
     /* clear old flag */
@@ -593,7 +594,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
         }
       }
     }
-    else if (next == NULL) { /* last case */
+    else if (next == nullptr) { /* last case */
       if (prev) {
         if (buts_are_horiz(prev, but)) {
           if (rows == 0) {
@@ -622,7 +623,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
             }
             bt = bt->next;
           }
-          if (bt == NULL || bt->alignnr != nr) {
+          if (bt == nullptr || bt->alignnr != nr) {
             flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
           }
         }
@@ -704,7 +705,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
   }
 }
 
-void ui_block_align_calc(uiBlock *block, const struct ARegion *UNUSED(region))
+void ui_block_align_calc(uiBlock *block, const struct ARegion *(region))
 {
   short nr;
 
