@@ -96,6 +96,19 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
   }
 }
 
+static void update_internal_link_inputs(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  for (bNode *node : tree_runtime.nodes) {
+    for (bNodeSocket *socket : node->runtime->outputs) {
+      socket->runtime->internal_link_input = nullptr;
+    }
+    for (bNodeLink *link : node->runtime->internal_links) {
+      link->tosock->runtime->internal_link_input = link->fromsock;
+    }
+  }
+}
+
 static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
@@ -416,6 +429,7 @@ static void ensure_topology_cache(const bNodeTree &ntree)
         update_node_vector(ntree);
         update_link_vector(ntree);
         update_socket_vectors_and_owner_node(ntree);
+        update_internal_link_inputs(ntree);
         update_directly_linked_links_and_sockets(ntree);
         threading::parallel_invoke(
             tree_runtime.nodes.size() > 32,
