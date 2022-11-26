@@ -174,9 +174,11 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
+  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
+  node_geometry_register.hh
   node_geometry_util.hh
 )
 

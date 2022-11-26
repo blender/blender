@@ -15,10 +15,10 @@
 
 #include "BLT_translation.h"
 
-#include "NOD_function.h"
 #include "NOD_multi_function.hh"
 #include "NOD_socket_declarations.hh"
 
+#include "node_function_register.hh"
 #include "node_util.h"
 
 #include "FN_multi_function_builder.hh"

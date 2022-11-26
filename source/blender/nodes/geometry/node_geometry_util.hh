@@ -22,6 +22,7 @@
 
 #include "RNA_access.h"
 
+#include "node_geometry_register.hh"
 #include "node_util.h"
 
 struct BVHTreeFromMesh;

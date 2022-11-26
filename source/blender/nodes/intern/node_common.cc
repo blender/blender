@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "NOD_common.h"
+#include "NOD_register.hh"
 #include "node_common.h"
 #include "node_util.h"
 

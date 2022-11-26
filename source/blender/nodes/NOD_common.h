@@ -13,12 +13,6 @@
 extern "C" {
 #endif
 
-void register_node_type_frame(void);
-void register_node_type_reroute(void);
-
-void register_node_type_group_input(void);
-void register_node_type_group_output(void);
-
 /* Internal functions for editor. */
 
 struct bNodeSocket *node_group_find_input_socket(struct bNode *groupnode, const char *identifier);
