@@ -35,14 +35,14 @@
 
 #include "interface_intern.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 
-typedef struct Colorband_RNAUpdateCb {
+struct Colorband_RNAUpdateCb {
   PointerRNA ptr;
   PropertyRNA *prop;
-} Colorband_RNAUpdateCb;
+};
 
-typedef struct EyedropperColorband {
+struct EyedropperColorband {
   int event_xy_last[2];
   /* Alpha is currently fixed at 1.0, may support in future. */
   float (*color_buffer)[4];
@@ -55,7 +55,7 @@ typedef struct EyedropperColorband {
   PropertyRNA *prop;
   bool is_undo;
   bool is_set;
-} EyedropperColorband;
+};
 
 /* For user-data only. */
 struct EyedropperColorband_Context {
@@ -65,15 +65,15 @@ struct EyedropperColorband_Context {
 
 static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 {
-  ColorBand *band = NULL;
+  ColorBand *band = nullptr;
 
   uiBut *but = UI_context_active_but_get(C);
 
   PointerRNA rna_update_ptr = PointerRNA_NULL;
-  PropertyRNA *rna_update_prop = NULL;
+  PropertyRNA *rna_update_prop = nullptr;
   bool is_undo = true;
 
-  if (but == NULL) {
+  if (but == nullptr) {
     /* pass */
   }
   else {
@@ -95,8 +95,8 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 
   if (!band) {
     const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
-    if (ptr.data != NULL) {
-      band = ptr.data;
+    if (ptr.data != nullptr) {
+      band = static_cast<ColorBand *>(ptr.data);
 
       /* Set this to a sub-member of the property to trigger an update. */
       rna_update_ptr = ptr;
@@ -109,9 +109,10 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  EyedropperColorband *eye = MEM_callocN(sizeof(EyedropperColorband), __func__);
+  EyedropperColorband *eye = MEM_cnew<EyedropperColorband>(__func__);
   eye->color_buffer_alloc = 16;
-  eye->color_buffer = MEM_mallocN(sizeof(*eye->color_buffer) * eye->color_buffer_alloc, __func__);
+  eye->color_buffer = static_cast<float(*)[4]>(
+      MEM_mallocN(sizeof(*eye->color_buffer) * eye->color_buffer_alloc, __func__));
   eye->color_buffer_len = 0;
   eye->color_band = band;
   eye->init_color_band = *eye->color_band;
@@ -134,8 +135,8 @@ static void eyedropper_colorband_sample_point(bContext *C,
     eyedropper_color_sample_fl(C, m_xy, col);
     if (eye->color_buffer_len + 1 == eye->color_buffer_alloc) {
       eye->color_buffer_alloc *= 2;
-      eye->color_buffer = MEM_reallocN(eye->color_buffer,
-                                       sizeof(*eye->color_buffer) * eye->color_buffer_alloc);
+      eye->color_buffer = static_cast<float(*)[4]>(
+          MEM_reallocN(eye->color_buffer, sizeof(*eye->color_buffer) * eye->color_buffer_alloc));
     }
     copy_v4_v4(eye->color_buffer[eye->color_buffer_len], col);
     eye->color_buffer_len += 1;
@@ -146,7 +147,7 @@ static void eyedropper_colorband_sample_point(bContext *C,
 
 static bool eyedropper_colorband_sample_callback(int mx, int my, void *userdata)
 {
-  struct EyedropperColorband_Context *data = userdata;
+  EyedropperColorband_Context *data = static_cast<EyedropperColorband_Context *>(userdata);
   bContext *C = data->context;
   EyedropperColorband *eye = data->eye;
   const int cursor[2] = {mx, my};
@@ -160,7 +161,7 @@ static void eyedropper_colorband_sample_segment(bContext *C,
 {
   /* Since the mouse tends to move rather rapidly we use #BLI_bitmap_draw_2d_line_v2v2i
    * to interpolate between the reported coordinates */
-  struct EyedropperColorband_Context userdata = {C, eye};
+  EyedropperColorband_Context userdata = {C, eye};
   BLI_bitmap_draw_2d_line_v2v2i(
       eye->event_xy_last, m_xy, eyedropper_colorband_sample_callback, &userdata);
 }
@@ -170,16 +171,16 @@ static void eyedropper_colorband_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(CTX_wm_window(C));
 
   if (op->customdata) {
-    EyedropperColorband *eye = op->customdata;
+    EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
     MEM_freeN(eye->color_buffer);
     MEM_freeN(eye);
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 }
 
 static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
 {
-  EyedropperColorband *eye = op->customdata;
+  EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
   /* Always filter, avoids noise in resulting color-band. */
   const bool filter_samples = true;
   BKE_colorband_init_from_table_rgba(
@@ -192,7 +193,7 @@ static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
 
 static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
 {
-  EyedropperColorband *eye = op->customdata;
+  EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
   if (eye->is_set) {
     *eye->color_band = eye->init_color_band;
     if (eye->prop) {
@@ -205,7 +206,7 @@ static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
 /* main modal status check */
 static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  EyedropperColorband *eye = op->customdata;
+  EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
   /* handle modal keymap */
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
@@ -242,7 +243,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
 
 static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  EyedropperColorband *eye = op->customdata;
+  EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
   /* handle modal keymap */
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
@@ -280,7 +281,7 @@ static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const w
 }
 
 /* Modal Operator init */
-static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (eyedropper_colorband_init(C, op)) {
@@ -320,7 +321,7 @@ static bool eyedropper_colorband_poll(bContext *C)
     return true;
   }
   const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
-  if (ptr.data != NULL) {
+  if (ptr.data != nullptr) {
     return true;
   }
   return false;

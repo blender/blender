@@ -50,10 +50,10 @@
 
 #include "RE_pipeline.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 
-typedef struct Eyedropper {
-  struct ColorManagedDisplay *display;
+struct Eyedropper {
+  ColorManagedDisplay *display;
 
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -71,23 +71,24 @@ typedef struct Eyedropper {
   char sample_text[MAX_NAME];
 
   bNode *crypto_node;
-  struct CryptomatteSession *cryptomatte_session;
-} Eyedropper;
+  CryptomatteSession *cryptomatte_session;
+};
 
 static void eyedropper_draw_cb(const wmWindow *window, void *arg)
 {
-  Eyedropper *eye = arg;
+  Eyedropper *eye = static_cast<Eyedropper *>(arg);
   eyedropper_draw_cursor_text_window(window, eye->sample_text);
 }
 
 static bool eyedropper_init(bContext *C, wmOperator *op)
 {
-  Eyedropper *eye = MEM_callocN(sizeof(Eyedropper), __func__);
+  Eyedropper *eye = MEM_cnew<Eyedropper>(__func__);
 
   uiBut *but = UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
-  const enum PropertySubType prop_subtype = eye->prop ? RNA_property_subtype(eye->prop) : 0;
+  const enum PropertySubType prop_subtype = eye->prop ? RNA_property_subtype(eye->prop) :
+                                                        PropertySubType(0);
 
-  if ((eye->ptr.data == NULL) || (eye->prop == NULL) ||
+  if ((eye->ptr.data == nullptr) || (eye->prop == nullptr) ||
       (RNA_property_editable(&eye->ptr, eye->prop) == false) ||
       (RNA_property_array_length(&eye->ptr, eye->prop) < 3) ||
       (RNA_property_type(eye->prop) != PROP_FLOAT) ||
@@ -127,18 +128,18 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
 static void eyedropper_exit(bContext *C, wmOperator *op)
 {
-  Eyedropper *eye = op->customdata;
+  Eyedropper *eye = static_cast<Eyedropper *>(op->customdata);
   wmWindow *window = CTX_wm_window(C);
   WM_cursor_modal_restore(window);
 
   if (eye->draw_handle_sample_text) {
     WM_draw_cb_exit(window, eye->draw_handle_sample_text);
-    eye->draw_handle_sample_text = NULL;
+    eye->draw_handle_sample_text = nullptr;
   }
 
   if (eye->cryptomatte_session) {
     BKE_cryptomatte_free(eye->cryptomatte_session);
-    eye->cryptomatte_session = NULL;
+    eye->cryptomatte_session = nullptr;
   }
 
   MEM_SAFE_FREE(op->customdata);
@@ -219,11 +220,11 @@ static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
 {
   bool success = false;
   Image *image = (Image *)node->id;
-  BLI_assert((image == NULL) || (GS(image->id.name) == ID_IM));
+  BLI_assert((image == nullptr) || (GS(image->id.name) == ID_IM));
   ImageUser *iuser = &crypto->iuser;
 
   if (image && image->type == IMA_TYPE_MULTILAYER) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
     if (image->rr) {
       LISTBASE_FOREACH (RenderLayer *, render_layer, &image->rr->layers) {
         success = eyedropper_cryptomatte_sample_renderlayer_fl(render_layer, prefix, fpos, r_col);
@@ -232,7 +233,7 @@ static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
         }
       }
     }
-    BKE_image_release_ibuf(image, ibuf, NULL);
+    BKE_image_release_ibuf(image, ibuf, nullptr);
   }
   return success;
 }
@@ -243,7 +244,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
                                              float r_col[3])
 {
   bNode *node = eye->crypto_node;
-  NodeCryptomatte *crypto = node ? ((NodeCryptomatte *)node->storage) : NULL;
+  NodeCryptomatte *crypto = node ? ((NodeCryptomatte *)node->storage) : nullptr;
 
   if (!crypto) {
     return false;
@@ -264,18 +265,18 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   float fpos[2] = {-1.0f, -1.0};
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = area->spacedata.first;
+      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
       ED_space_image_get_position(sima, region, mval, fpos);
       break;
     }
     case SPACE_NODE: {
       Main *bmain = CTX_data_main(C);
-      SpaceNode *snode = area->spacedata.first;
+      SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
       ED_space_node_get_position(bmain, snode, region, mval, fpos);
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sc = area->spacedata.first;
+      SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
       ED_space_clip_get_position(sc, region, mval, fpos);
       break;
     }
@@ -315,7 +316,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const char *display_device = CTX_data_scene(C)->display_settings.display_device;
-  struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
+  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
   int mval[2];
   wmWindow *win;
@@ -326,10 +327,10 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
     if (area->spacetype == SPACE_IMAGE) {
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
-        if (ED_space_image_color_sample(sima, region, region_mval, r_col, NULL)) {
+        if (ED_space_image_color_sample(sima, region, region_mval, r_col, nullptr)) {
           return;
         }
       }
@@ -337,7 +338,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
     else if (area->spacetype == SPACE_NODE) {
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
-        SpaceNode *snode = area->spacedata.first;
+        SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
         const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
         if (ED_space_node_color_sample(bmain, snode, region, region_mval, r_col)) {
@@ -348,7 +349,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
     else if (area->spacetype == SPACE_CLIP) {
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
         if (ED_space_clip_color_sample(sc, region, region_mval, r_col)) {
@@ -440,7 +441,7 @@ static void eyedropper_color_sample_text_update(bContext *C, Eyedropper *eye, co
 
 static void eyedropper_cancel(bContext *C, wmOperator *op)
 {
-  Eyedropper *eye = op->customdata;
+  Eyedropper *eye = static_cast<Eyedropper *>(op->customdata);
   if (eye->is_set) {
     eyedropper_color_set(C, eye, eye->init_col);
   }
@@ -495,7 +496,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (eyedropper_init(C, op)) {
@@ -532,7 +533,7 @@ static bool eyedropper_poll(bContext *C)
 {
   /* Actual test for active button happens later, since we don't
    * know which one is active until mouse over. */
-  return (CTX_wm_window(C) != NULL);
+  return (CTX_wm_window(C) != nullptr);
 }
 
 void UI_OT_eyedropper_color(wmOperatorType *ot)

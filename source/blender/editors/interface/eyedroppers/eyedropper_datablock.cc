@@ -38,13 +38,13 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 #include "interface_intern.h"
 
 /**
  * \note #DataDropper is only internal name to avoid confusion with other kinds of eye-droppers.
  */
-typedef struct DataDropper {
+struct DataDropper {
   PointerRNA ptr;
   PropertyRNA *prop;
   short idcode;
@@ -58,13 +58,11 @@ typedef struct DataDropper {
   void *draw_handle_pixel;
   int name_pos[2];
   char name[200];
-} DataDropper;
+};
 
-static void datadropper_draw_cb(const struct bContext *UNUSED(C),
-                                ARegion *UNUSED(region),
-                                void *arg)
+static void datadropper_draw_cb(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
-  DataDropper *ddr = arg;
+  DataDropper *ddr = static_cast<DataDropper *>(arg);
   eyedropper_draw_cursor_text_region(ddr->name_pos, ddr->name);
 }
 
@@ -79,11 +77,11 @@ static int datadropper_init(bContext *C, wmOperator *op)
   st = BKE_spacetype_from_id(SPACE_VIEW3D);
   art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
 
-  DataDropper *ddr = MEM_callocN(sizeof(DataDropper), __func__);
+  DataDropper *ddr = MEM_cnew<DataDropper>(__func__);
 
   uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
-  if ((ddr->ptr.data == NULL) || (ddr->prop == NULL) ||
+  if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_type(ddr->prop) != PROP_POINTER)) {
     MEM_freeN(ddr);
@@ -126,7 +124,7 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 
     MEM_freeN(op->customdata);
 
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 
   WM_event_add_mousemove(win);
@@ -168,7 +166,7 @@ static void datadropper_id_sample_pt(
 
         if (base) {
           Object *ob = base->object;
-          ID *id = NULL;
+          ID *id = nullptr;
           if (ddr->idcode == ID_OB) {
             id = (ID *)ob;
           }
@@ -208,7 +206,7 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 
   RNA_id_pointer_create(id, &ptr_value);
 
-  RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value, NULL);
+  RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value, nullptr);
 
   RNA_property_update(C, &ddr->ptr, ddr->prop);
 
@@ -220,7 +218,7 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 /* single point sample & set */
 static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int m_xy[2])
 {
-  ID *id = NULL;
+  ID *id = nullptr;
 
   int mval[2];
   wmWindow *win;
@@ -233,7 +231,7 @@ static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int m_xy[
 
 static void datadropper_cancel(bContext *C, wmOperator *op)
 {
-  DataDropper *ddr = op->customdata;
+  DataDropper *ddr = static_cast<DataDropper *>(op->customdata);
   datadropper_id_set(C, ddr, ddr->init_id);
   datadropper_exit(C, op);
 }
@@ -287,7 +285,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
   else if (event->type == MOUSEMOVE) {
-    ID *id = NULL;
+    ID *id = nullptr;
 
     int mval[2];
     wmWindow *win;
@@ -304,7 +302,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (datadropper_init(C, op)) {
@@ -342,7 +340,7 @@ static bool datadropper_poll(bContext *C)
   uiBut *but;
 
   /* data dropper only supports object data */
-  if ((CTX_wm_window(C) != NULL) &&
+  if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
       (but->type == UI_BTYPE_SEARCH_MENU) && (but->flag & UI_BUT_VALUE_CLEAR)) {
     if (prop && RNA_property_type(prop) == PROP_POINTER) {

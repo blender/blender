@@ -38,13 +38,13 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 #include "interface_intern.h"
 
 /**
  * \note #DepthDropper is only internal name to avoid confusion with other kinds of eye-droppers.
  */
-typedef struct DepthDropper {
+struct DepthDropper {
   PointerRNA ptr;
   PropertyRNA *prop;
   bool is_undo;
@@ -60,13 +60,11 @@ typedef struct DepthDropper {
   void *draw_handle_pixel;
   int name_pos[2];
   char name[200];
-} DepthDropper;
+};
 
-static void depthdropper_draw_cb(const struct bContext *UNUSED(C),
-                                 ARegion *UNUSED(region),
-                                 void *arg)
+static void depthdropper_draw_cb(const struct bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
-  DepthDropper *ddr = arg;
+  DepthDropper *ddr = static_cast<DepthDropper *>(arg);
   eyedropper_draw_cursor_text_region(ddr->name_pos, ddr->name);
 }
 
@@ -80,17 +78,17 @@ static int depthdropper_init(bContext *C, wmOperator *op)
   st = BKE_spacetype_from_id(SPACE_VIEW3D);
   art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
 
-  DepthDropper *ddr = MEM_callocN(sizeof(DepthDropper), __func__);
+  DepthDropper *ddr = MEM_cnew<DepthDropper>(__func__);
 
   uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
   /* fallback to the active camera's dof */
-  if (ddr->prop == NULL) {
+  if (ddr->prop == nullptr) {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), v3d->camera->data)) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
         Camera *camera = (Camera *)v3d->camera->data;
         RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
         ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
@@ -102,7 +100,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
   }
 
-  if ((ddr->ptr.data == NULL) || (ddr->prop == NULL) ||
+  if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_type(ddr->prop) != PROP_FLOAT)) {
     MEM_freeN(ddr);
@@ -131,7 +129,7 @@ static void depthdropper_exit(bContext *C, wmOperator *op)
 
     MEM_freeN(op->customdata);
 
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 }
 
@@ -159,8 +157,8 @@ static void depthdropper_depth_sample_pt(bContext *C,
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
       if (region) {
         struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-        View3D *v3d = area->spacedata.first;
-        RegionView3D *rv3d = region->regiondata;
+        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+        RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
         /* weak, we could pass in some reference point */
         const float *view_co = v3d->camera ? v3d->camera->object_to_world[3] : rv3d->viewinv[3];
         const int mval[2] = {m_xy[0] - region->winrct.xmin, m_xy[1] - region->winrct.ymin};
@@ -176,7 +174,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
 
         view3d_operator_needs_opengl(C);
 
-        if (ED_view3d_autodist(depsgraph, region, v3d, mval, co, true, NULL)) {
+        if (ED_view3d_autodist(depsgraph, region, v3d, mval, co, true, nullptr)) {
           const float mval_center_fl[2] = {(float)region->winx / 2, (float)region->winy / 2};
           float co_align[3];
 
@@ -244,7 +242,7 @@ static void depthdropper_depth_sample_accum(bContext *C, DepthDropper *ddr, cons
 
 static void depthdropper_cancel(bContext *C, wmOperator *op)
 {
-  DepthDropper *ddr = op->customdata;
+  DepthDropper *ddr = static_cast<DepthDropper *>(op->customdata);
   if (ddr->is_set) {
     depthdropper_depth_set(C, ddr, ddr->init_depth);
   }
@@ -254,7 +252,7 @@ static void depthdropper_cancel(bContext *C, wmOperator *op)
 /* main modal status check */
 static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  DepthDropper *ddr = (DepthDropper *)op->customdata;
+  DepthDropper *ddr = static_cast<DepthDropper *>(op->customdata);
 
   /* handle modal keymap */
   if (event->type == EVT_MODAL_MAP) {
@@ -299,7 +297,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (depthdropper_init(C, op)) {
@@ -337,9 +335,9 @@ static bool depthdropper_poll(bContext *C)
   uiBut *but;
 
   /* check if there's an active button taking depth value */
-  if ((CTX_wm_window(C) != NULL) &&
+  if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_NUM) && (prop != NULL)) {
+      (but->type == UI_BTYPE_NUM) && (prop != nullptr)) {
     if ((RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
         (RNA_property_array_check(prop) == false)) {
@@ -351,7 +349,7 @@ static bool depthdropper_poll(bContext *C)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), v3d->camera->data)) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
         return true;
       }
     }

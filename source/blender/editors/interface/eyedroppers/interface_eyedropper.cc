@@ -21,7 +21,7 @@
 
 #include "interface_intern.h"
 
-#include "eyedropper_intern.h" /* own include */
+#include "eyedropper_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /* Keymap
@@ -36,14 +36,14 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
       {EYE_MODAL_SAMPLE_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
       {EYE_MODAL_SAMPLE_BEGIN, "SAMPLE_BEGIN", 0, "Start Sampling", ""},
       {EYE_MODAL_SAMPLE_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Eyedropper Modal Map");
 
   /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
-    return NULL;
+    return nullptr;
   }
 
   keymap = WM_modalkeymap_ensure(keyconf, "Eyedropper Modal Map", modal_items);
@@ -66,7 +66,7 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
       {EYE_MODAL_POINT_SAMPLE, "SAMPLE_SAMPLE", 0, "Sample a Point", ""},
       {EYE_MODAL_POINT_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
       {EYE_MODAL_POINT_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Eyedropper ColorRamp PointSampling Map");
@@ -107,7 +107,7 @@ static void eyedropper_draw_cursor_text_ex(const int xy[2], const char *name)
   UI_fontstyle_draw_simple_backdrop(fstyle, xy[0], xy[1] + U.widget_unit, name, col_fg, col_bg);
 }
 
-void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name)
+void eyedropper_draw_cursor_text_window(const wmWindow *window, const char *name)
 {
   if (name[0] == '\0') {
     return;
@@ -133,8 +133,8 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
 
   uiBut *but = ui_but_find_mouse_over(region, event);
 
-  if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
-    return NULL;
+  if (ELEM(nullptr, but, but->rnapoin.data, but->rnaprop)) {
+    return nullptr;
   }
   return but;
 }
@@ -146,7 +146,7 @@ void datadropper_win_area_find(
 
   *r_win = CTX_wm_window(C);
   *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mval);
-  if (*r_area == NULL) {
+  if (*r_area == nullptr) {
     *r_win = WM_window_find_under_cursor(*r_win, mval, r_mval);
     if (*r_win) {
       screen = WM_window_get_active_screen(*r_win);

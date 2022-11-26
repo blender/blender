@@ -46,16 +46,16 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 #include "interface_intern.h"
 
-typedef struct EyedropperGPencil {
+struct EyedropperGPencil {
   struct ColorManagedDisplay *display;
   /** color under cursor RGB */
   float color[3];
   /** Mode */
   int mode;
-} EyedropperGPencil;
+};
 
 /* Helper: Draw status message while the user is running the operator */
 static void eyedropper_gpencil_status_indicators(bContext *C)
@@ -70,7 +70,7 @@ static void eyedropper_gpencil_status_indicators(bContext *C)
 /* Initialize. */
 static bool eyedropper_gpencil_init(bContext *C, wmOperator *op)
 {
-  EyedropperGPencil *eye = MEM_callocN(sizeof(EyedropperGPencil), __func__);
+  EyedropperGPencil *eye = MEM_cnew<EyedropperGPencil>(__func__);
 
   op->customdata = eye;
   Scene *scene = CTX_data_scene(C);
@@ -87,7 +87,7 @@ static bool eyedropper_gpencil_init(bContext *C, wmOperator *op)
 static void eyedropper_gpencil_exit(bContext *C, wmOperator *op)
 {
   /* Clear status message area. */
-  ED_workspace_status_text(C, NULL);
+  ED_workspace_status_text(C, nullptr);
 
   MEM_SAFE_FREE(op->customdata);
 }
@@ -100,7 +100,7 @@ static void eyedropper_add_material(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
-  Material *ma = NULL;
+  Material *ma = nullptr;
 
   bool found = false;
 
@@ -108,12 +108,12 @@ static void eyedropper_add_material(bContext *C,
   short *totcol = BKE_object_material_len_p(ob);
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_object_material_get(ob, i + 1);
-    if (ma == NULL) {
+    if (ma == nullptr) {
       continue;
     }
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
-    if (gp_style != NULL) {
+    if (gp_style != nullptr) {
       /* Check stroke color. */
       bool found_stroke = compare_v3v3(gp_style->stroke_rgba, col_conv, 0.01f) &&
                           (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
@@ -134,8 +134,8 @@ static void eyedropper_add_material(bContext *C,
       /* Found existing material. */
       if (found) {
         ob->actcol = i + 1;
-        WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, NULL);
-        WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
+        WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, nullptr);
+        WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
         return;
       }
     }
@@ -147,13 +147,13 @@ static void eyedropper_add_material(bContext *C,
   int idx;
   Material *ma_new = BKE_gpencil_object_material_new(bmain, ob, "Material", &idx);
   WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, &ob->id);
-  WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, NULL);
+  WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, nullptr);
   DEG_relations_tag_update(bmain);
 
-  BLI_assert(ma_new != NULL);
+  BLI_assert(ma_new != nullptr);
 
   MaterialGPencilStyle *gp_style_new = ma_new->gp_style;
-  BLI_assert(gp_style_new != NULL);
+  BLI_assert(gp_style_new != nullptr);
 
   /* Only create Stroke (default option). */
   if (only_stroke) {
@@ -193,13 +193,13 @@ static void eyedropper_add_palette_color(bContext *C, const float col_conv[4])
   Paint *vertexpaint = &gp_vertexpaint->paint;
 
   /* Check for Palette in Draw and Vertex Paint Mode. */
-  if (paint->palette == NULL) {
+  if (paint->palette == nullptr) {
     Palette *palette = BKE_palette_add(bmain, "Grease Pencil");
     id_us_min(&palette->id);
 
     BKE_paint_palette_set(paint, palette);
 
-    if (vertexpaint->palette == NULL) {
+    if (vertexpaint->palette == nullptr) {
       BKE_paint_palette_set(vertexpaint, palette);
     }
   }
@@ -280,7 +280,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
 
           /* Create material. */
           eyedropper_gpencil_color_set(C, event, eye);
-          WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+          WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
           eyedropper_gpencil_exit(C, op);
           return OPERATOR_FINISHED;
@@ -305,7 +305,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
 }
 
 /* Modal Operator init */
-static int eyedropper_gpencil_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int eyedropper_gpencil_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* Init. */
   if (eyedropper_gpencil_init(C, op)) {
@@ -337,12 +337,12 @@ static bool eyedropper_gpencil_poll(bContext *C)
 {
   /* Only valid if the current active object is grease pencil. */
   Object *obact = CTX_data_active_object(C);
-  if ((obact == NULL) || (obact->type != OB_GPENCIL)) {
+  if ((obact == nullptr) || (obact->type != OB_GPENCIL)) {
     return false;
   }
 
   /* Test we have a window below. */
-  return (CTX_wm_window(C) != NULL);
+  return (CTX_wm_window(C) != nullptr);
 }
 
 void UI_OT_eyedropper_gpencil_color(wmOperatorType *ot)
@@ -350,7 +350,7 @@ void UI_OT_eyedropper_gpencil_color(wmOperatorType *ot)
   static const EnumPropertyItem items_mode[] = {
       {0, "MATERIAL", 0, "Material", ""},
       {1, "PALETTE", 0, "Palette", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

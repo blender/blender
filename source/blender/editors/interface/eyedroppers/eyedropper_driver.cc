@@ -33,10 +33,10 @@
 
 #include "ED_keyframing.h"
 
-#include "eyedropper_intern.h"
+#include "eyedropper_intern.hh"
 #include "interface_intern.h"
 
-typedef struct DriverDropper {
+struct DriverDropper {
   /* Destination property (i.e. where we'll add a driver) */
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -44,15 +44,15 @@ typedef struct DriverDropper {
   bool is_undo;
 
   /* TODO: new target? */
-} DriverDropper;
+};
 
 static bool driverdropper_init(bContext *C, wmOperator *op)
 {
-  DriverDropper *ddr = MEM_callocN(sizeof(DriverDropper), __func__);
+  DriverDropper *ddr = MEM_cnew<DriverDropper>(__func__);
 
   uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
 
-  if ((ddr->ptr.data == NULL) || (ddr->prop == NULL) ||
+  if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_animateable(&ddr->ptr, ddr->prop) == false) || (but->flag & UI_BUT_DRIVEN)) {
     MEM_freeN(ddr);
@@ -74,14 +74,14 @@ static void driverdropper_exit(bContext *C, wmOperator *op)
 
 static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  DriverDropper *ddr = (DriverDropper *)op->customdata;
+  DriverDropper *ddr = static_cast<DriverDropper *>(op->customdata);
   uiBut *but = eyedropper_get_property_button_under_mouse(C, event);
 
   const short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
   const short flag = 0;
 
   /* we can only add a driver if we know what RNA property it corresponds to */
-  if (but == NULL) {
+  if (but == nullptr) {
     return;
   }
   /* Get paths for the source. */
@@ -112,7 +112,7 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
       UI_context_update_anim_flag(C);
       DEG_relations_tag_update(CTX_data_main(C));
       DEG_id_tag_update(ddr->ptr.owner_id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); /* XXX */
+      WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, nullptr); /* XXX */
     }
   }
 
@@ -133,7 +133,7 @@ static void driverdropper_cancel(bContext *C, wmOperator *op)
 /* main modal status check */
 static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  DriverDropper *ddr = op->customdata;
+  DriverDropper *ddr = static_cast<DriverDropper *>(op->customdata);
 
   /* handle modal keymap */
   if (event->type == EVT_MODAL_MAP) {
@@ -156,7 +156,7 @@ static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event
 }
 
 /* Modal Operator init */
-static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent */*event*/)
 {
   /* init */
   if (driverdropper_init(C, op)) {
