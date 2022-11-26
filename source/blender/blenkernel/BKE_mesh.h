@@ -72,6 +72,11 @@ void BKE_mesh_tag_coords_changed_uniformly(struct Mesh *mesh);
 
 void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
 
+/**
+ * Call when new edges and vertices have been created but positions and faces haven't changed.
+ */
+void BKE_mesh_tag_edges_split(struct Mesh *mesh);
+
 /* *** mesh.c *** */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,

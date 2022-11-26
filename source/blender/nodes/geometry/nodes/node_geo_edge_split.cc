@@ -27,48 +27,105 @@ static inline bool naive_edges_equal(const MEdge &edge1, const MEdge &edge2)
   return edge1.v1 == edge2.v1 && edge1.v2 == edge2.v2;
 }
 
-static void transfer_attributes(const Map<AttributeIDRef, AttributeKind> &attributes,
-                                const Span<int> new_to_old_verts_map,
-                                const Span<int> new_to_old_edges_map,
-                                const AttributeAccessor src_attributes,
-                                MutableAttributeAccessor dst_attributes)
+static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
-    const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
-    if (!src_attribute) {
+  CustomData_realloc(&mesh.vdata, mesh.totvert, mesh.totvert + new_to_old_verts_map.size());
+  mesh.totvert += new_to_old_verts_map.size();
+
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  for (const AttributeIDRef &id : attributes.all_ids()) {
+    if (attributes.lookup_meta_data(id)->domain != ATTR_DOMAIN_POINT) {
       continue;
     }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
-        src_attribute.varray.type());
-    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, src_attribute.domain, data_type);
-    if (!dst_attribute) {
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    if (!attribute) {
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      VArraySpan<T> span{src_attribute.varray.typed<T>()};
-      MutableSpan<T> dst_span = dst_attribute.span.typed<T>();
-      switch (src_attribute.domain) {
-        case ATTR_DOMAIN_POINT:
-          array_utils::gather(span, new_to_old_verts_map, dst_span);
-          break;
-        case ATTR_DOMAIN_EDGE:
-          array_utils::gather(span, new_to_old_edges_map, dst_span);
-          break;
-        case ATTR_DOMAIN_FACE:
-          dst_span.copy_from(span);
-          break;
-        case ATTR_DOMAIN_CORNER:
-          dst_span.copy_from(span);
-          break;
-        default:
-          BLI_assert_unreachable();
-      }
+      MutableSpan<T> span = attribute.span.typed<T>();
+      const Span<T> old_data = span.drop_back(new_to_old_verts_map.size());
+      MutableSpan<T> new_data = span.take_back(new_to_old_verts_map.size());
+      array_utils::gather(old_data, new_to_old_verts_map, new_data);
     });
-    dst_attribute.finish();
+
+    attribute.finish();
+  }
+}
+
+static void add_new_edges(Mesh &mesh,
+                          const Span<MEdge> new_edges,
+                          const Span<int> new_to_old_edges_map)
+{
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+
+  /* Store a copy of the IDs locally since we will remove the existing attributes which
+   * can also free the names, since the API does not provide pointer stability. */
+  Vector<std::string> named_ids;
+  Vector<WeakAnonymousAttributeID> anonymous_ids;
+  for (const AttributeIDRef &id : attributes.all_ids()) {
+    if (attributes.lookup_meta_data(id)->domain != ATTR_DOMAIN_EDGE) {
+      continue;
+    }
+    if (!id.should_be_kept()) {
+      continue;
+    }
+    if (id.is_named()) {
+      named_ids.append(id.name());
+    }
+    else {
+      anonymous_ids.append(WeakAnonymousAttributeID(&id.anonymous_id()));
+    }
+  }
+  Vector<AttributeIDRef> local_edge_ids;
+  for (const StringRef name : named_ids) {
+    local_edge_ids.append(name);
+  }
+  for (const WeakAnonymousAttributeID &id : anonymous_ids) {
+    local_edge_ids.append(id.get());
+  }
+
+  /* Build new arrays for the copied edge attributes. Unlike vertices, new edges aren't all at the
+   * end of the array, so just copying to the new edges would overwrite old values when they were
+   * still needed. */
+  struct NewAttributeData {
+    const AttributeIDRef &local_id;
+    const CPPType &type;
+    void *array;
+  };
+  Vector<NewAttributeData> dst_attributes;
+  for (const AttributeIDRef &id : local_edge_ids) {
+    GAttributeReader attribute = attributes.lookup(id);
+    if (!attribute) {
+      continue;
+    }
+
+    const CPPType &type = attribute.varray.type();
+    void *new_data = MEM_malloc_arrayN(new_edges.size(), type.size(), __func__);
+
+    attribute_math::convert_to_static_type(type, [&](auto dummy) {
+      using T = decltype(dummy);
+      const VArray<T> src = attribute.varray.typed<T>();
+      MutableSpan<T> dst(static_cast<T *>(new_data), new_edges.size());
+      array_utils::gather(src, new_to_old_edges_map, dst);
+    });
+
+    /* Free the original attribute as soon as possible to lower peak memory usage. */
+    attributes.remove(id);
+    dst_attributes.append({id, type, new_data});
+  }
+
+  CustomData_free(&mesh.edata, mesh.totedge);
+  mesh.totedge = new_edges.size();
+  CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_CONSTRUCT, nullptr, mesh.totedge);
+  mesh.edges_for_write().copy_from(new_edges);
+
+  for (NewAttributeData &new_data : dst_attributes) {
+    attributes.add(new_data.local_id,
+                   ATTR_DOMAIN_EDGE,
+                   bke::cpp_type_to_custom_data_type(new_data.type),
+                   bke::AttributeInitMoveArray(new_data.array));
   }
 }
 
@@ -139,6 +196,7 @@ static void swap_vertex_of_edge(MEdge &edge,
 /** Split the vertex into duplicates so that each fan has a different vertex. */
 static void split_vertex_per_fan(const int vertex,
                                  const int start_offset,
+                                 const int orig_verts_num,
                                  const Span<int> fans,
                                  const Span<int> fan_sizes,
                                  const Span<Vector<int>> edge_to_loop_map,
@@ -151,7 +209,7 @@ static void split_vertex_per_fan(const int vertex,
    * original vertex. */
   for (const int i : fan_sizes.index_range().drop_back(1)) {
     const int new_vert_i = start_offset + i;
-    new_to_old_verts_map[new_vert_i] = vertex;
+    new_to_old_verts_map[new_vert_i - orig_verts_num] = vertex;
 
     for (const int edge_i : fans.slice(fan_start, fan_sizes[i])) {
       swap_vertex_of_edge(
@@ -272,9 +330,7 @@ static void split_edge_per_poly(const int edge_i,
   edge_to_loop_map[edge_i].resize(1);
 }
 
-static Mesh *mesh_edge_split(const Mesh &mesh,
-                             const IndexMask mask,
-                             const Map<AttributeIDRef, AttributeKind> &attributes)
+static void mesh_edge_split(Mesh &mesh, const IndexMask mask)
 {
   /* Flag vertices that need to be split. */
   Array<bool> should_split_vert(mesh.totvert, false);
@@ -308,26 +364,21 @@ static Mesh *mesh_edge_split(const Mesh &mesh,
 
   const Span<MPoly> polys = mesh.polys();
 
-  Array<MLoop> new_loops(mesh.loops());
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
   Vector<MEdge> new_edges(new_edges_size);
   new_edges.as_mutable_span().take_front(edges.size()).copy_from(edges);
 
   edge_to_loop_map.resize(new_edges_size);
 
   /* Used for transferring attributes. */
-  Vector<int> new_to_old_verts_map(IndexRange(mesh.totvert).as_span());
   Vector<int> new_to_old_edges_map(IndexRange(new_edges.size()).as_span());
 
   /* Step 1: Split the edges. */
   threading::parallel_for(mask.index_range(), 512, [&](IndexRange range) {
     for (const int mask_i : range) {
       const int edge_i = mask[mask_i];
-      split_edge_per_poly(edge_i,
-                          edge_offsets[edge_i],
-                          edge_to_loop_map,
-                          new_loops,
-                          new_edges,
-                          new_to_old_edges_map);
+      split_edge_per_poly(
+          edge_i, edge_offsets[edge_i], edge_to_loop_map, loops, new_edges, new_to_old_edges_map);
     }
   });
 
@@ -348,7 +399,7 @@ static Mesh *mesh_edge_split(const Mesh &mesh,
         continue;
       }
       calc_vertex_fans(vert,
-                       new_loops,
+                       loops,
                        polys,
                        edge_to_loop_map,
                        loop_to_poly_map,
@@ -359,18 +410,20 @@ static Mesh *mesh_edge_split(const Mesh &mesh,
 
   /* Step 2.5: Calculate offsets for next step. */
   Array<int> vert_offsets(mesh.totvert);
-  int new_verts_size = mesh.totvert;
+  int total_verts_num = mesh.totvert;
   for (const int vert : IndexRange(mesh.totvert)) {
     if (!should_split_vert[vert]) {
       continue;
     }
-    vert_offsets[vert] = new_verts_size;
+    vert_offsets[vert] = total_verts_num;
     /* We only create a new vertex for each fan different from the first. */
-    new_verts_size += vertex_fan_sizes[vert].size() - 1;
+    total_verts_num += vertex_fan_sizes[vert].size() - 1;
   }
-  new_to_old_verts_map.resize(new_verts_size);
 
-  /* Step 3: Split the vertices. */
+  /* Step 3: Split the vertices.
+   * Build a map from each new vertex to an old vertex to use for transferring attributes later. */
+  const int new_verts_num = total_verts_num - mesh.totvert;
+  Array<int> new_to_old_verts_map(new_verts_num);
   threading::parallel_for(IndexRange(mesh.totvert), 512, [&](IndexRange range) {
     for (const int vert : range) {
       if (!should_split_vert[vert]) {
@@ -378,11 +431,12 @@ static Mesh *mesh_edge_split(const Mesh &mesh,
       }
       split_vertex_per_fan(vert,
                            vert_offsets[vert],
+                           mesh.totvert,
                            vert_to_edge_map[vert],
                            vertex_fan_sizes[vert],
                            edge_to_loop_map,
                            new_edges,
-                           new_loops,
+                           loops,
                            new_to_old_verts_map);
     }
   });
@@ -397,35 +451,23 @@ static Mesh *mesh_edge_split(const Mesh &mesh,
     int end_of_duplicates = start_of_duplicates + num_edge_duplicates[edge] - 1;
     for (int duplicate = end_of_duplicates; duplicate >= start_of_duplicates; duplicate--) {
       if (naive_edges_equal(new_edges[edge], new_edges[duplicate])) {
-        merge_edges(edge, duplicate, new_loops, edge_to_loop_map, new_edges, new_to_old_edges_map);
+        merge_edges(edge, duplicate, loops, edge_to_loop_map, new_edges, new_to_old_edges_map);
         break;
       }
       for (int other = start_of_duplicates; other < duplicate; other++) {
         if (naive_edges_equal(new_edges[other], new_edges[duplicate])) {
-          merge_edges(
-              other, duplicate, new_loops, edge_to_loop_map, new_edges, new_to_old_edges_map);
+          merge_edges(other, duplicate, loops, edge_to_loop_map, new_edges, new_to_old_edges_map);
           break;
         }
       }
     }
   }
 
-  /* Copy to the new mesh. */
-  Mesh *result = BKE_mesh_new_nomain(
-      new_verts_size, new_edges.size(), 0, mesh.totloop, mesh.totpoly);
-  transfer_attributes(attributes,
-                      new_to_old_verts_map,
-                      new_to_old_edges_map,
-                      mesh.attributes(),
-                      result->attributes_for_write());
+  /* Step 5: Resize the mesh to add the new vertices and rebuild the edges. */
+  add_new_vertices(mesh, new_to_old_verts_map);
+  add_new_edges(mesh, new_edges, new_to_old_edges_map);
 
-  MutableSpan<MEdge> dst_edges = result->edges_for_write();
-  dst_edges.copy_from(new_edges);
-  MutableSpan<MLoop> dst_loops = result->loops_for_write();
-  dst_loops.copy_from(new_loops);
-  MutableSpan<MPoly> dst_polys = result->polys_for_write();
-  dst_polys.copy_from(polys);
-  return result;
+  BKE_mesh_tag_edges_split(&mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -439,16 +481,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
       bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_EDGE};
       fn::FieldEvaluator selection_evaluator{field_context, mesh->totedge};
-      selection_evaluator.add(selection_field);
+      selection_evaluator.set_selection(selection_field);
       selection_evaluator.evaluate();
-      const IndexMask mask = selection_evaluator.get_evaluated_as_mask(0);
+      const IndexMask mask = selection_evaluator.get_evaluated_selection_as_mask();
+      if (mask.is_empty()) {
+        return;
+      }
 
-      Map<AttributeIDRef, AttributeKind> attributes;
-      geometry_set.gather_attributes_for_propagation(
-          {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, attributes);
-
-      Mesh *result = mesh_edge_split(*mesh, mask, attributes);
-      geometry_set.replace_mesh(result);
+      mesh_edge_split(*geometry_set.get_mesh_for_write(), mask);
     }
   });
 
