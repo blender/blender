@@ -19,7 +19,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "eyedropper_intern.hh" /* own include */
 

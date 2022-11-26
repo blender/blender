@@ -40,7 +40,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* Show an icon button after each RNA button to use to quickly set keyframes,
  * this is a way to display animation/driven/override status, see T54951. */

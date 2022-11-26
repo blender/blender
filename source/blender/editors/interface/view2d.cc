@@ -43,7 +43,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
 

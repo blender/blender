@@ -48,7 +48,7 @@
 #include "UI_interface.h"
 
 /* own include */
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 static int roundboxtype = UI_CNR_ALL;
 

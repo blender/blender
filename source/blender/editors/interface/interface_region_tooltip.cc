@@ -52,7 +52,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
 #define UI_TIP_PAD_FAC 1.3f

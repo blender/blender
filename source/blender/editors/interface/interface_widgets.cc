@@ -32,7 +32,7 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

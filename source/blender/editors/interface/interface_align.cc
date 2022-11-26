@@ -14,7 +14,7 @@
 
 #include "UI_interface.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "MEM_guardedalloc.h"
 

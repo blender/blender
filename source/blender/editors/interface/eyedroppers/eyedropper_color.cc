@@ -41,7 +41,7 @@
 
 #include "RNA_define.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "ED_clip.h"
 #include "ED_image.h"

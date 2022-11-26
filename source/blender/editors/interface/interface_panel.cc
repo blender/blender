@@ -48,7 +48,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Defines & Structs

@@ -57,7 +57,7 @@
 
 #include "BLF_api.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"

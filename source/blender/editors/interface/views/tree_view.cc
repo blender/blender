@@ -11,7 +11,7 @@
 
 #include "BLT_translation.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "UI_interface.h"
 

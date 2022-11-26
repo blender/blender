@@ -34,7 +34,7 @@
 #include "UI_interface_icons.h"
 
 #include "GPU_framebuffer.h"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* be sure to keep 'bThemeState' in sync */
 static bThemeState g_theme_state = {

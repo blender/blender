@@ -62,7 +62,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #ifndef WITH_HEADLESS
 #  define ICON_GRID_COLS 26

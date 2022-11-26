@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Button Groups

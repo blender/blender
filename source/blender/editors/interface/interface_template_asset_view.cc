@@ -28,7 +28,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 struct AssetViewListData {
   AssetLibraryReference asset_library_ref;

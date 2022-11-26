@@ -73,7 +73,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 using blender::Vector;
 

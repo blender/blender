@@ -4,7 +4,7 @@
  * \ingroup edinterface
  */
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "UI_abstract_view.hh"
 

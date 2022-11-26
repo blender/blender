@@ -82,7 +82,7 @@ set(SRC
   views/tree_view.cc
 
   eyedroppers/eyedropper_intern.hh
-  interface_intern.h
+  interface_intern.hh
   interface_regions_intern.hh
 )
 

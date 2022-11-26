@@ -34,7 +34,7 @@
 #include "ED_keyframing.h"
 
 #include "eyedropper_intern.hh"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 struct DriverDropper {
   /* Destination property (i.e. where we'll add a driver) */
@@ -156,7 +156,7 @@ static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event
 }
 
 /* Modal Operator init */
-static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent */*event*/)
+static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (driverdropper_init(C, op)) {

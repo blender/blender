@@ -18,7 +18,7 @@
 
 #include "UI_interface.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 static void icon_draw_rect_input_text(
     const rctf *rect, const float color[4], const char *str, float font_size, float v_offset)

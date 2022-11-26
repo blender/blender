@@ -39,7 +39,7 @@
 #include "ED_view3d.h"
 
 #include "eyedropper_intern.hh"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /**
  * \note #DataDropper is only internal name to avoid confusion with other kinds of eye-droppers.

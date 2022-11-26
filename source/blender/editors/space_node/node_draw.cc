@@ -77,18 +77,14 @@
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
 
+#include "../interface/interface_intern.hh" /* TODO: Remove */
+
 #include "node_intern.hh" /* own include */
 
 namespace geo_log = blender::nodes::geo_eval_log;
 
 using blender::GPointer;
 using blender::Vector;
-
-extern "C" {
-/* XXX interface.h */
-extern void ui_draw_dropshadow(
-    const rctf *rct, float radius, float aspect, float alpha, int select);
-}
 
 /**
  * This is passed to many functions which draw the node editor.
