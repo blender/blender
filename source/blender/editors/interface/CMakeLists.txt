@@ -43,7 +43,7 @@ set(SRC
   interface_drag.cc
   interface_draw.cc
   interface_dropboxes.cc
-  interface_handlers.c
+  interface_handlers.cc
   interface_icons.cc
   interface_icons_event.cc
   interface_layout.cc

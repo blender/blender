@@ -1094,7 +1094,7 @@ const char *ui_textedit_undo(struct uiUndoStack_Text *undo_stack,
                              int direction,
                              int *r_cursor_index);
 
-/* interface_handlers.c */
+/* interface_handlers.cc */
 
 extern void ui_handle_afterfunc_add_operator(struct wmOperatorType *ot,
                                              wmOperatorCallContext opcontext);
