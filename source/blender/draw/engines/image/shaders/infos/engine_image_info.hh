@@ -29,4 +29,5 @@ GPU_SHADER_CREATE_INFO(image_engine_depth_shader)
     .vertex_source("image_engine_depth_vert.glsl")
     .fragment_source("image_engine_depth_frag.glsl")
     .additional_info("draw_modelmat")
+    .depth_write(DepthWrite::ANY)
     .do_static_compilation(true);
