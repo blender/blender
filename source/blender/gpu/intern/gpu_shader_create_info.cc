@@ -68,7 +68,9 @@ void ShaderCreateInfo::finalize()
     if (info.early_fragment_test_) {
       early_fragment_test_ = true;
     }
-    if (info.depth_write_ != DepthWrite::ANY) {
+    /* Override depth-write with additional info if this specifies a writing mode
+     * other than the default. */
+    if (info.depth_write_ != DepthWrite::UNCHANGED) {
       depth_write_ = info.depth_write_;
     }
 
