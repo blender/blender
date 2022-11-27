@@ -289,11 +289,11 @@ static GPUShader *get_subdiv_shader(int shader_type)
     if (ELEM(shader_type,
              SHADER_BUFFER_LINES,
              SHADER_BUFFER_LNOR,
-             SHADER_BUFFER_TRIS,
+             SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
              SHADER_BUFFER_UV_STRETCH_AREA)) {
       defines = "#define SUBDIV_POLYGON_OFFSET\n";
     }
-    else if (shader_type == SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS) {
+    else if (shader_type == SHADER_BUFFER_TRIS) {
       defines =
           "#define SUBDIV_POLYGON_OFFSET\n"
           "#define SINGLE_MATERIAL\n";
