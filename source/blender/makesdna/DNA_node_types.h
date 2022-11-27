@@ -1521,8 +1521,8 @@ typedef struct NodeGeometrySeparateGeometry {
 } NodeGeometrySeparateGeometry;
 
 typedef struct NodeGeometryImageTexture {
-  int interpolation;
-  int extension;
+  int8_t interpolation;
+  int8_t extension;
 } NodeGeometryImageTexture;
 
 typedef struct NodeGeometryViewer {
