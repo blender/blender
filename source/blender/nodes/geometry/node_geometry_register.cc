@@ -149,7 +149,7 @@ void register_geometry_nodes()
   register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
-  register_node_type_geo_transform();
+  register_node_type_geo_transform_geometry();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();
   register_node_type_geo_uv_pack_islands();

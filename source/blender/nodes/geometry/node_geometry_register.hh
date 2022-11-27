@@ -147,7 +147,7 @@ void register_node_type_geo_string_join();
 void register_node_type_geo_string_to_curves();
 void register_node_type_geo_subdivision_surface();
 void register_node_type_geo_switch();
-void register_node_type_geo_transform();
+void register_node_type_geo_transform_geometry();
 void register_node_type_geo_translate_instances();
 void register_node_type_geo_triangulate();
 void register_node_type_geo_uv_pack_islands();

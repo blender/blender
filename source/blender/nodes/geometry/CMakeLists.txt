@@ -165,7 +165,7 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
-  nodes/node_geo_transform.cc
+  nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
