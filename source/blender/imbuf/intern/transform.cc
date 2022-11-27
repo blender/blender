@@ -22,19 +22,19 @@ struct TransformUserData {
   /** \brief Destination image buffer to write to. */
   ImBuf *dst;
   /** \brief UV coordinates at the origin (0,0) in source image space. */
-  float start_uv[2];
+  double start_uv[2];
 
   /**
    * \brief delta UV coordinates along the source image buffer, when moving a single pixel in the X
    * axis of the dst image buffer.
    */
-  float add_x[2];
+  double add_x[2];
 
   /**
    * \brief delta UV coordinate along the source image buffer, when moving a single pixel in the Y
    * axes of the dst image buffer.
    */
-  float add_y[2];
+  double add_y[2];
 
   /**
    * \brief Cropping region in source image pixel space.
@@ -54,39 +54,45 @@ struct TransformUserData {
  private:
   void init_start_uv(const float transform_matrix[4][4])
   {
-    float start_uv_v3[3];
-    float orig[3];
-    zero_v3(orig);
-    mul_v3_m4v3(start_uv_v3, transform_matrix, orig);
-    copy_v2_v2(start_uv, start_uv_v3);
+    double start_uv_v3[3];
+    double orig[3];
+    double transform_matrix_double[4][4];
+    copy_m4d_m4(transform_matrix_double, transform_matrix);
+    zero_v3_db(orig);
+    mul_v3_m4v3_db(start_uv_v3, transform_matrix_double, orig);
+    copy_v2_v2_db(start_uv, start_uv_v3);
   }
 
   void init_add_x(const float transform_matrix[4][4])
   {
+    double transform_matrix_double[4][4];
+    copy_m4d_m4(transform_matrix_double, transform_matrix);
     const int width = src->x;
-    float add_x_v3[3];
-    float uv_max_x[3];
-    zero_v3(uv_max_x);
+    double add_x_v3[3];
+    double uv_max_x[3];
+    zero_v3_db(uv_max_x);
     uv_max_x[0] = width;
     uv_max_x[1] = 0.0f;
-    mul_v3_m4v3(add_x_v3, transform_matrix, uv_max_x);
-    sub_v2_v2(add_x_v3, start_uv);
-    mul_v2_fl(add_x_v3, 1.0f / width);
-    copy_v2_v2(add_x, add_x_v3);
+    mul_v3_m4v3_db(add_x_v3, transform_matrix_double, uv_max_x);
+    sub_v2_v2_db(add_x_v3, start_uv);
+    mul_v3db_db(add_x_v3, 1.0f / width);
+    copy_v2_v2_db(add_x, add_x_v3);
   }
 
   void init_add_y(const float transform_matrix[4][4])
   {
+    double transform_matrix_double[4][4];
+    copy_m4d_m4(transform_matrix_double, transform_matrix);
     const int height = src->y;
-    float add_y_v3[3];
-    float uv_max_y[3];
-    zero_v3(uv_max_y);
+    double add_y_v3[3];
+    double uv_max_y[3];
+    zero_v3_db(uv_max_y);
     uv_max_y[0] = 0.0f;
     uv_max_y[1] = height;
-    mul_v3_m4v3(add_y_v3, transform_matrix, uv_max_y);
-    sub_v2_v2(add_y_v3, start_uv);
-    mul_v2_fl(add_y_v3, 1.0f / height);
-    copy_v2_v2(add_y, add_y_v3);
+    mul_v3_m4v3_db(add_y_v3, transform_matrix_double, uv_max_y);
+    sub_v2_v2_db(add_y_v3, start_uv);
+    mul_v3db_db(add_y_v3, 1.0f / height);
+    copy_v2_v2_db(add_y, add_y_v3);
   }
 };
 
@@ -104,7 +110,7 @@ class BaseDiscard {
   /**
    * \brief Should the source pixel at the given uv coordinate be discarded.
    */
-  virtual bool should_discard(const TransformUserData &user_data, const float uv[2]) = 0;
+  virtual bool should_discard(const TransformUserData &user_data, const double uv[2]) = 0;
 };
 
 /**
@@ -117,7 +123,7 @@ class CropSource : public BaseDiscard {
    *
    * Uses user_data.src_crop to determine if the uv coordinate should be skipped.
    */
-  bool should_discard(const TransformUserData &user_data, const float uv[2]) override
+  bool should_discard(const TransformUserData &user_data, const double uv[2]) override
   {
     return uv[0] < user_data.src_crop.xmin || uv[0] >= user_data.src_crop.xmax ||
            uv[1] < user_data.src_crop.ymin || uv[1] >= user_data.src_crop.ymax;
@@ -134,7 +140,7 @@ class NoDiscard : public BaseDiscard {
    *
    * Will never discard any pixels.
    */
-  bool should_discard(const TransformUserData & /*user_data*/, const float /*uv*/[2]) override
+  bool should_discard(const TransformUserData & /*user_data*/, const double /*uv*/[2]) override
   {
     return false;
   }
@@ -202,12 +208,12 @@ class BaseUVWrapping {
   /**
    * \brief modify the given u coordinate.
    */
-  virtual float modify_u(const ImBuf *source_buffer, float u) = 0;
+  virtual double modify_u(const ImBuf *source_buffer, double u) = 0;
 
   /**
    * \brief modify the given v coordinate.
    */
-  virtual float modify_v(const ImBuf *source_buffer, float v) = 0;
+  virtual double modify_v(const ImBuf *source_buffer, double v) = 0;
 };
 
 /**
@@ -215,12 +221,12 @@ class BaseUVWrapping {
  */
 class PassThroughUV : public BaseUVWrapping {
  public:
-  float modify_u(const ImBuf * /*source_buffer*/, float u) override
+  double modify_u(const ImBuf * /*source_buffer*/, double u) override
   {
     return u;
   }
 
-  float modify_v(const ImBuf * /*source_buffer*/, float v) override
+  double modify_v(const ImBuf * /*source_buffer*/, double v) override
   {
     return v;
   }
@@ -231,7 +237,7 @@ class PassThroughUV : public BaseUVWrapping {
  */
 class WrapRepeatUV : public BaseUVWrapping {
  public:
-  float modify_u(const ImBuf *source_buffer, float u) override
+  double modify_u(const ImBuf *source_buffer, double u) override
 
   {
     int x = int(floor(u));
@@ -242,7 +248,7 @@ class WrapRepeatUV : public BaseUVWrapping {
     return x;
   }
 
-  float modify_v(const ImBuf *source_buffer, float v) override
+  double modify_v(const ImBuf *source_buffer, double v) override
   {
     int y = int(floor(v));
     y = y % source_buffer->y;
@@ -284,24 +290,24 @@ class Sampler {
   static const int ChannelLen = NumChannels;
   using SampleType = std::array<StorageType, NumChannels>;
 
-  void sample(const ImBuf *source, const float u, const float v, SampleType &r_sample)
+  void sample(const ImBuf *source, const double u, const double v, SampleType &r_sample)
   {
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
                   NumChannels == 4) {
-      const float wrapped_u = uv_wrapper.modify_u(source, u);
-      const float wrapped_v = uv_wrapper.modify_v(source, v);
+      const double wrapped_u = uv_wrapper.modify_u(source, u);
+      const double wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_fl(source, nullptr, r_sample.data(), wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, uchar> &&
                        NumChannels == 4) {
-      const float wrapped_u = uv_wrapper.modify_u(source, u);
-      const float wrapped_v = uv_wrapper.modify_v(source, v);
+      const double wrapped_u = uv_wrapper.modify_u(source, u);
+      const double wrapped_v = uv_wrapper.modify_v(source, v);
       nearest_interpolation_color_char(source, r_sample.data(), nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, uchar> &&
                        NumChannels == 4) {
-      const float wrapped_u = uv_wrapper.modify_u(source, u);
-      const float wrapped_v = uv_wrapper.modify_v(source, v);
+      const double wrapped_u = uv_wrapper.modify_u(source, u);
+      const double wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_char(source, r_sample.data(), nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
@@ -317,8 +323,8 @@ class Sampler {
                                            true);
       }
       else {
-        const float wrapped_u = uv_wrapper.modify_u(source, u);
-        const float wrapped_v = uv_wrapper.modify_v(source, v);
+        const double wrapped_u = uv_wrapper.modify_u(source, u);
+        const double wrapped_v = uv_wrapper.modify_v(source, v);
         BLI_bilinear_interpolation_fl(source->rect_float,
                                       r_sample.data(),
                                       source->x,
@@ -329,8 +335,8 @@ class Sampler {
       }
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, float>) {
-      const float wrapped_u = uv_wrapper.modify_u(source, u);
-      const float wrapped_v = uv_wrapper.modify_v(source, v);
+      const double wrapped_u = uv_wrapper.modify_u(source, u);
+      const double wrapped_v = uv_wrapper.modify_v(source, v);
       sample_nearest_float(source, wrapped_u, wrapped_v, r_sample);
     }
     else {
@@ -341,8 +347,8 @@ class Sampler {
 
  private:
   void sample_nearest_float(const ImBuf *source,
-                            const float u,
-                            const float v,
+                            const double u,
+                            const double v,
                             SampleType &r_sample)
   {
     BLI_STATIC_ASSERT(std::is_same_v<StorageType, float>);
@@ -461,8 +467,8 @@ class ScanlineProcessor {
   {
     const int width = user_data->dst->x;
 
-    float uv[2];
-    madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
+    double uv[2];
+    madd_v2_v2db_db(uv, user_data->start_uv, user_data->add_y, scanline);
 
     output.init_pixel_pointer(user_data->dst, 0, scanline);
     for (int xi = 0; xi < width; xi++) {
@@ -472,7 +478,7 @@ class ScanlineProcessor {
         channel_converter.convert_and_store(sample, output);
       }
 
-      add_v2_v2(uv, user_data->add_x);
+      add_v2_v2_db(uv, user_data->add_x);
       output.increase_pixel_pointer();
     }
   }
