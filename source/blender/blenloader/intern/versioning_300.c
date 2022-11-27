@@ -609,6 +609,15 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
 static bool seq_speed_factor_set(Sequence *seq, void *user_data)
 {
   const Scene *scene = user_data;
@@ -861,6 +870,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -1288,15 +1298,6 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
       version_node_socket_id_delim(socket);
     }
   }
-}
-
-static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
-{
-  Scene *scene = (Scene *)user_data;
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, seq);
-  }
-  return true;
 }
 
 static bool version_merge_still_offsets(Sequence *seq, void *UNUSED(user_data))
@@ -2595,17 +2596,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
-      }
-    }
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      /* Make sure range of meta strips is correct.
-       * It was possible to save .blend file with incorrect state of meta strip
-       * range. The root cause is expected to be fixed, but need to ensure files
-       * with invalid meta strip range are corrected. */
-      if (ed != NULL) {
-        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
       }
     }
   }
