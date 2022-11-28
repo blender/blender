@@ -3199,6 +3199,7 @@ void uiItemPopoverPanel_ptr(
     Panel panel{};
     panel.type = pt;
     panel.layout = layout;
+    panel.flag = PNL_POPOVER;
     pt->draw_header(C, &panel);
   }
   uiBut *but = ui_item_menu(
