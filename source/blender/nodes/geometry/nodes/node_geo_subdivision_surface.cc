@@ -170,6 +170,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
 
+    if (use_creases) {
+      /* Remove the layer in case it was created by the node from the field input. The fact
+       * that this node uses #CD_CREASE to input creases to the subvision code is meant to be
+       * an implementation detail ideally. */
+      CustomData_free_layers(&mesh_out->edata, CD_CREASE, mesh_out->totedge);
+    }
+
     geometry_set.replace_mesh(mesh_out);
 
     BKE_subdiv_free(subdiv);
