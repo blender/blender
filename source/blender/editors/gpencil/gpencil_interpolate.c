@@ -412,15 +412,19 @@ static void gpencil_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgp
 }
 
 /* Helper: Get previous keyframe (exclude breakdown type). */
-static bGPDframe *gpencil_get_previous_keyframe(bGPDlayer *gpl, int cfra)
+static bGPDframe *gpencil_get_previous_keyframe(bGPDlayer *gpl,
+                                                int cfra,
+                                                const bool exclude_breakdowns)
 {
-  if (gpl->actframe != NULL && gpl->actframe->framenum < cfra &&
-      gpl->actframe->key_type != BEZT_KEYTYPE_BREAKDOWN) {
-    return gpl->actframe;
+  if (gpl->actframe != NULL && gpl->actframe->framenum < cfra) {
+    if ((!exclude_breakdowns) ||
+        ((exclude_breakdowns) && (gpl->actframe->key_type != BEZT_KEYTYPE_BREAKDOWN))) {
+      return gpl->actframe;
+    }
   }
 
   LISTBASE_FOREACH_BACKWARD (bGPDframe *, gpf, &gpl->frames) {
-    if (gpf->key_type == BEZT_KEYTYPE_BREAKDOWN) {
+    if ((exclude_breakdowns) && (gpf->key_type == BEZT_KEYTYPE_BREAKDOWN)) {
       continue;
     }
     if (gpf->framenum >= cfra) {
@@ -433,10 +437,12 @@ static bGPDframe *gpencil_get_previous_keyframe(bGPDlayer *gpl, int cfra)
 }
 
 /* Helper: Get next keyframe (exclude breakdown type). */
-static bGPDframe *gpencil_get_next_keyframe(bGPDlayer *gpl, int cfra)
+static bGPDframe *gpencil_get_next_keyframe(bGPDlayer *gpl,
+                                            int cfra,
+                                            const bool exclude_breakdowns)
 {
   LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-    if (gpf->key_type == BEZT_KEYTYPE_BREAKDOWN) {
+    if ((exclude_breakdowns) && (gpf->key_type == BEZT_KEYTYPE_BREAKDOWN)) {
       continue;
     }
     if (gpf->framenum <= cfra) {
@@ -455,6 +461,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
   bGPdata *gpd = tgpi->gpd;
   bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
   bGPDframe *actframe = active_gpl->actframe;
+  const bool exclude_breakdowns = (tgpi->flag & GP_TOOLFLAG_INTERPOLATE_EXCLUDE_BREAKDOWNS) != 0;
 
   /* save initial factor for active layer to define shift limits */
   tgpi->init_factor = (float)(tgpi->cframe - actframe->framenum) /
@@ -483,10 +490,10 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 
     tgpil->gpl = gpl;
-    bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, scene->r.cfra);
+    bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
     tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
-    gpf = gpencil_get_next_keyframe(gpl, scene->r.cfra);
+    gpf = gpencil_get_next_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
     tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
@@ -692,6 +699,9 @@ static bool gpencil_interpolate_set_init_values(bContext *C, wmOperator *op, tGP
       tgpi->flag,
       (GPENCIL_EDIT_MODE(tgpi->gpd) && RNA_boolean_get(op->ptr, "interpolate_selected_only")),
       GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED);
+  SET_FLAG_FROM_TEST(tgpi->flag,
+                     RNA_boolean_get(op->ptr, "exclude_breakdowns"),
+                     GP_TOOLFLAG_INTERPOLATE_EXCLUDE_BREAKDOWNS);
 
   tgpi->flipmode = RNA_enum_get(op->ptr, "flip");
 
@@ -751,8 +761,9 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
 
   /* Cannot interpolate if not between 2 frames. */
   int cfra = scene->r.cfra;
-  bGPDframe *gpf_prv = gpencil_get_previous_keyframe(gpl, cfra);
-  bGPDframe *gpf_next = gpencil_get_next_keyframe(gpl, cfra);
+  const bool exclude_breakdowns = RNA_boolean_get(op->ptr, "exclude_breakdowns");
+  bGPDframe *gpf_prv = gpencil_get_previous_keyframe(gpl, cfra, exclude_breakdowns);
+  bGPDframe *gpf_next = gpencil_get_next_keyframe(gpl, cfra, exclude_breakdowns);
   if (ELEM(NULL, gpf_prv, gpf_next)) {
     BKE_report(
         op->reports,
@@ -971,6 +982,12 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
                   0,
                   "Only Selected",
                   "Interpolate only selected strokes");
+
+  RNA_def_boolean(ot->srna,
+                  "exclude_breakdowns",
+                  false,
+                  "Exclude Breakdowns",
+                  "Exclude existing Breakdowns keyframes as interpolation extremes");
 
   RNA_def_enum(ot->srna,
                "flip",
@@ -1229,6 +1246,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
   const bool all_layers = (bool)(RNA_enum_get(op->ptr, "layers") == 1);
   const bool only_selected = (GPENCIL_EDIT_MODE(gpd) &&
                               (RNA_boolean_get(op->ptr, "interpolate_selected_only") != 0));
+  const bool exclude_breakdowns = RNA_boolean_get(op->ptr, "exclude_breakdowns");
 
   eGP_InterpolateFlipMode flipmode = RNA_enum_get(op->ptr, "flip");
 
@@ -1243,8 +1261,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
   BKE_curvemapping_init(ipo_settings->custom_ipo);
 
   /* Cannot interpolate if not between 2 frames. */
-  bGPDframe *gpf_prv = gpencil_get_previous_keyframe(active_gpl, cfra);
-  bGPDframe *gpf_next = gpencil_get_next_keyframe(active_gpl, cfra);
+  bGPDframe *gpf_prv = gpencil_get_previous_keyframe(active_gpl, cfra, exclude_breakdowns);
+  bGPDframe *gpf_next = gpencil_get_next_keyframe(active_gpl, cfra, exclude_breakdowns);
   if (ELEM(NULL, gpf_prv, gpf_next)) {
     BKE_report(
         op->reports,
@@ -1268,8 +1286,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     if (!BKE_gpencil_layer_is_editable(gpl)) {
       continue;
     }
-    gpf_prv = gpencil_get_previous_keyframe(gpl, cfra);
-    gpf_next = gpencil_get_next_keyframe(gpl, cfra);
+    gpf_prv = gpencil_get_previous_keyframe(gpl, cfra, exclude_breakdowns);
+    gpf_next = gpencil_get_next_keyframe(gpl, cfra, exclude_breakdowns);
 
     /* Need a set of frames to interpolate. */
     if ((gpf_prv == NULL) || (gpf_next == NULL)) {
@@ -1432,6 +1450,9 @@ static void gpencil_interpolate_seq_ui(bContext *C, wmOperator *op)
     row = uiLayoutRow(layout, true);
     uiItemR(row, op->ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
   }
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "exclude_breakdowns", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(layout, true);
   uiItemR(row, op->ptr, "flip", 0, NULL, ICON_NONE);
@@ -1601,6 +1622,12 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
                   0,
                   "Only Selected",
                   "Interpolate only selected strokes");
+
+  RNA_def_boolean(ot->srna,
+                  "exclude_breakdowns",
+                  false,
+                  "Exclude Breakdowns",
+                  "Exclude existing Breakdowns keyframes as interpolation extremes");
 
   RNA_def_enum(ot->srna,
                "flip",
