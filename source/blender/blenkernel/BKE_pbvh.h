@@ -99,6 +99,15 @@ typedef struct {
   float (*color)[4];
 } PBVHColorBufferNode;
 
+typedef struct PBVHPixels {
+  /**
+   * Storage for texture painting on PBVH level.
+   *
+   * Contains #blender::bke::pbvh::pixels::PBVHData
+   */
+  void *data;
+} PBVHPixels;
+
 typedef struct PBVHPixelsNode {
   /**
    * Contains triangle/pixel data used during texture painting.

@@ -3725,5 +3725,12 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
       }
     }
+
+    /* UVSeam fixing distance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+      LISTBASE_FOREACH (Image *, image, &bmain->images) {
+        image->seam_margin = 8;
+      }
+    }
   }
 }

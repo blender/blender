@@ -960,7 +960,7 @@ void BKE_pbvh_free(PBVH *pbvh)
         BLI_gset_free(node->bm_other_verts, NULL);
       }
 
-      pbvh_pixels_free(node);
+      pbvh_node_pixels_free(node);
     }
   }
 
@@ -985,6 +985,8 @@ void BKE_pbvh_free(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
+
+  pbvh_pixels_free(pbvh);
 
   MEM_freeN(pbvh);
 }
