@@ -239,7 +239,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   for (int i = 0; i < totlooptri; i++) {
     int edges[3];
-    BKE_mesh_looptri_get_real_edges(mesh, &mlooptri[i], edges);
+    BKE_mesh_looptri_get_real_edges(medge, mloop, &mlooptri[i], edges);
 
     for (int j = 0; j < 3; j++) {
       if (edges[j] >= 0 && edge_mode[edges[j]]) {
@@ -1049,7 +1049,7 @@ static void mesh_looptri_target_project(void *userdata,
     const BLI_bitmap *is_boundary = tree->boundary->edge_is_boundary;
     int edges[3];
 
-    BKE_mesh_looptri_get_real_edges(tree->mesh, lt, edges);
+    BKE_mesh_looptri_get_real_edges(data->edge, data->loop, lt, edges);
 
     for (int i = 0; i < 3; i++) {
       if (edges[i] >= 0 && BLI_BITMAP_TEST(is_boundary, edges[i])) {

@@ -1474,6 +1474,8 @@ struct EdgeFeatData {
   Object *ob_eval; /* For evaluated materials. */
   const MLoopTri *mlooptri;
   const int *material_indices;
+  blender::Span<MEdge> edges;
+  blender::Span<MLoop> loops;
   LineartTriangle *tri_array;
   LineartVert *v_array;
   float crease_threshold;
@@ -1677,13 +1679,12 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     }
   }
 
-  const MEdge *edges = BKE_mesh_edges(me);
-
   int real_edges[3];
-  BKE_mesh_looptri_get_real_edges(me, &mlooptri[i / 3], real_edges);
+  BKE_mesh_looptri_get_real_edges(
+      e_feat_data->edges.data(), e_feat_data->loops.data(), &mlooptri[i / 3], real_edges);
 
   if (real_edges[i % 3] >= 0) {
-    const MEdge *medge = &edges[real_edges[i % 3]];
+    const MEdge *medge = &e_feat_data->edges[real_edges[i % 3]];
 
     if (ld->conf.use_crease && ld->conf.sharp_as_crease && (medge->flag & ME_SHARP)) {
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
@@ -2072,6 +2073,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.ob_eval = ob_info->original_ob_eval;
   edge_feat_data.mlooptri = mlooptri;
   edge_feat_data.material_indices = material_indices;
+  edge_feat_data.edges = me->edges();
+  edge_feat_data.loops = me->loops();
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
   edge_feat_data.v_array = la_v_arr;

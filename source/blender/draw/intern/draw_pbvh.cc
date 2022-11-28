@@ -24,6 +24,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vec_types.hh"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -959,6 +960,8 @@ struct PBVHBatches {
       material_index = mat_index[poly_index];
     }
 
+    const blender::Span<MEdge> edges = args->me->edges();
+
     /* Calculate number of edges*/
     int edge_count = 0;
     for (int i = 0; i < args->totprim; i++) {
@@ -969,7 +972,7 @@ struct PBVHBatches {
       }
 
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(args->me, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
 
       if (r_edges[0] != -1) {
         edge_count++;
@@ -994,7 +997,7 @@ struct PBVHBatches {
       }
 
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(args->me, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
 
       if (r_edges[0] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);
