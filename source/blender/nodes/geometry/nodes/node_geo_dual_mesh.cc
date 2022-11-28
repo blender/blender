@@ -8,6 +8,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "node_geometry_util.hh"
 
@@ -245,23 +246,6 @@ static void calc_boundaries(const Mesh &mesh,
       if (r_vertex_types[edge.v2] == VertexType::Loose) {
         r_vertex_types[edge.v2] = VertexType::Normal;
       }
-    }
-  }
-}
-
-/**
- * Stores the indices of the polygons connected to each vertex.
- */
-static void create_vertex_poly_map(const Mesh &mesh,
-                                   MutableSpan<Vector<int>> r_vertex_poly_indices)
-{
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
-  for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-    for (const MLoop &loop : poly_loops) {
-      r_vertex_poly_indices[loop.v].append(i);
     }
   }
 }
@@ -538,14 +522,13 @@ static bool vertex_needs_dissolving(const int vertex,
                                     const int first_poly_index,
                                     const int second_poly_index,
                                     const Span<VertexType> vertex_types,
-                                    const Span<Vector<int>> vertex_poly_indices)
+                                    const Span<Vector<int>> vert_to_poly_map)
 {
   /* Order is guaranteed to be the same because 2poly verts that are not on the boundary are
    * ignored in `sort_vertex_polys`. */
-  return (vertex_types[vertex] != VertexType::Boundary &&
-          vertex_poly_indices[vertex].size() == 2 &&
-          vertex_poly_indices[vertex][0] == first_poly_index &&
-          vertex_poly_indices[vertex][1] == second_poly_index);
+  return (vertex_types[vertex] != VertexType::Boundary && vert_to_poly_map[vertex].size() == 2 &&
+          vert_to_poly_map[vertex][0] == first_poly_index &&
+          vert_to_poly_map[vertex][1] == second_poly_index);
 }
 
 /**
@@ -558,7 +541,7 @@ static bool vertex_needs_dissolving(const int vertex,
 static void dissolve_redundant_verts(const Span<MEdge> edges,
                                      const Span<MPoly> polys,
                                      const Span<MLoop> loops,
-                                     const Span<Vector<int>> vertex_poly_indices,
+                                     const Span<Vector<int>> vert_to_poly_map,
                                      MutableSpan<VertexType> vertex_types,
                                      MutableSpan<int> old_to_new_edges_map,
                                      Vector<MEdge> &new_edges,
@@ -566,11 +549,11 @@ static void dissolve_redundant_verts(const Span<MEdge> edges,
 {
   const int vertex_num = vertex_types.size();
   for (const int vert_i : IndexRange(vertex_num)) {
-    if (vertex_poly_indices[vert_i].size() != 2 || vertex_types[vert_i] != VertexType::Normal) {
+    if (vert_to_poly_map[vert_i].size() != 2 || vertex_types[vert_i] != VertexType::Normal) {
       continue;
     }
-    const int first_poly_index = vertex_poly_indices[vert_i][0];
-    const int second_poly_index = vertex_poly_indices[vert_i][1];
+    const int first_poly_index = vert_to_poly_map[vert_i][0];
+    const int second_poly_index = vert_to_poly_map[vert_i][1];
     const int new_edge_index = new_edges.size();
     bool edge_created = false;
     const MPoly &poly = polys[first_poly_index];
@@ -581,13 +564,13 @@ static void dissolve_redundant_verts(const Span<MEdge> edges,
       const int v2 = edge.v2;
       bool mark_edge = false;
       if (vertex_needs_dissolving(
-              v1, first_poly_index, second_poly_index, vertex_types, vertex_poly_indices)) {
+              v1, first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
         vertex_types[v1] = VertexType::Loose;
         mark_edge = true;
       }
       if (vertex_needs_dissolving(
-              v2, first_poly_index, second_poly_index, vertex_types, vertex_poly_indices)) {
+              v2, first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
         vertex_types[v2] = VertexType::Loose;
         mark_edge = true;
@@ -642,18 +625,18 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
   /* Stores the indices of the polygons connected to the vertex. Because the polygons are looped
    * over in order of their indices, the polygon's indices will be sorted in ascending order.
    * (This can change once they are sorted using `sort_vertex_polys`). */
-  Array<Vector<int>> vertex_poly_indices(mesh_in.totvert);
+  Array<Vector<int>> vert_to_poly_map = bke::mesh_topology::build_vert_to_poly_map(
+      src_polys, src_loops, src_verts.size());
   Array<Array<int>> vertex_shared_edges(mesh_in.totvert);
   Array<Array<int>> vertex_corners(mesh_in.totvert);
-  create_vertex_poly_map(mesh_in, vertex_poly_indices);
-  threading::parallel_for(vertex_poly_indices.index_range(), 512, [&](IndexRange range) {
+  threading::parallel_for(vert_to_poly_map.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
       if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
           (!keep_boundaries && vertex_types[i] == VertexType::Boundary)) {
         /* Bad vertex that we can't work with. */
         continue;
       }
-      MutableSpan<int> loop_indices = vertex_poly_indices[i];
+      MutableSpan<int> loop_indices = vert_to_poly_map[i];
       Array<int> sorted_corners(loop_indices.size());
       bool vertex_ok = true;
       if (vertex_types[i] == VertexType::Normal) {
@@ -737,7 +720,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
   dissolve_redundant_verts(src_edges,
                            src_polys,
                            src_loops,
-                           vertex_poly_indices,
+                           vert_to_poly_map,
                            vertex_types,
                            old_to_new_edges_map,
                            new_edges,
@@ -750,7 +733,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
       continue;
     }
 
-    Vector<int> loop_indices = vertex_poly_indices[i];
+    Vector<int> loop_indices = vert_to_poly_map[i];
     Span<int> shared_edges = vertex_shared_edges[i];
     Span<int> sorted_corners = vertex_corners[i];
     if (vertex_types[i] == VertexType::Normal) {
