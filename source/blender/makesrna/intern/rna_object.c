@@ -323,6 +323,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
+#  include "BKE_gpencil_modifier.h"
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
@@ -1948,6 +1949,8 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
    * instead, to avoid duplicating code. */
   GpencilModifierData *mod_dst = ED_object_gpencil_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
+
+  BKE_gpencil_modifier_copydata(mod_src, mod_dst);
 
   BLI_remlink(&ob_dst->greasepencil_modifiers, mod_dst);
   /* This handles NULL anchor as expected by adding at head of list. */
