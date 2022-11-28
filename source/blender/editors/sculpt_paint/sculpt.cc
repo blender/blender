@@ -1832,14 +1832,27 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape)
 {
+  if (!ss->cache && !ss->filter_cache) {
+    falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
+  }
+
   SCULPT_brush_test_init(ss, test);
   SculptBrushTestFn sculpt_brush_test_sq_fn;
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
   }
   else {
+    float view_normal[3];
+
+    if (ss->cache) {
+      copy_v3_v3(view_normal, ss->cache->view_normal);
+    }
+    else {
+      copy_v3_v3(view_normal, ss->filter_cache->view_normal);
+    }
+
     /* PAINT_FALLOFF_SHAPE_TUBE */
-    plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+    plane_from_point_normal_v3(test->plane_view, test->location, view_normal);
     sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
   }
   return sculpt_brush_test_sq_fn;
