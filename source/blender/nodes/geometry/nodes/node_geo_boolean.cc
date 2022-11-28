@@ -83,8 +83,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (mesh_in_a != nullptr) {
       meshes.append(mesh_in_a);
       transforms.append(nullptr);
-      for (Material *material : Span(mesh_in_a->mat, mesh_in_a->totcol)) {
-        materials.add(material);
+      if (mesh_in_a->totcol == 0) {
+        /* Necessary for faces using the default material when there are no material slots. */
+        materials.add(nullptr);
+      }
+      else {
+        materials.add_multiple({mesh_in_a->mat, mesh_in_a->totcol});
       }
       material_remaps.append({});
     }
@@ -101,17 +105,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const bke::GeometryInstanceGroup &set_group : set_groups) {
     const Mesh *mesh = set_group.geometry_set.get_mesh_for_read();
     if (mesh != nullptr) {
-      for (Material *material : Span(mesh->mat, mesh->totcol)) {
-        materials.add(material);
-      }
-    }
-  }
-  for (const bke::GeometryInstanceGroup &set_group : set_groups) {
-    const Mesh *mesh = set_group.geometry_set.get_mesh_for_read();
-    if (mesh != nullptr) {
       Array<short> map(mesh->totcol);
       for (const int i : IndexRange(mesh->totcol)) {
-        map[i] = materials.index_of(mesh->mat[i]);
+        Material *material = mesh->mat[i];
+        map[i] = material ? materials.index_of_or_add(material) : -1;
       }
       material_remaps.append(std::move(map));
     }
