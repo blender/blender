@@ -674,15 +674,8 @@ static void get_ccgdm_data(DerivedMesh *lodm,
 
     mpoly = lodm->getPolyArray(lodm) + poly_index;
     g_index = grid_offset[poly_index];
-    S = mdisp_rot_face_to_crn(lodm->getVertArray(lodm),
-                              mpoly,
-                              lodm->getLoopArray(lodm),
-                              lt,
-                              face_side,
-                              u * (face_side - 1),
-                              v * (face_side - 1),
-                              &crn_x,
-                              &crn_y);
+    S = mdisp_rot_face_to_crn(
+        mpoly, face_side, u * (face_side - 1), v * (face_side - 1), &crn_x, &crn_y);
   }
   else {
     /* number of faces per grid side */
