@@ -23,7 +23,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"

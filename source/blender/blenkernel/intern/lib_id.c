@@ -168,6 +168,8 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 {
   ID *id = cb_data->user_data;
   if (*cb_data->id_pointer == id) {
+    /* Even though the ID itself remain the same after being made local, from depsgraph point of
+     * view this is a different ID. Hence we need to tag all of its users for COW update. */
     DEG_id_tag_update_ex(
         cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
     return IDWALK_RET_STOP_ITER;
@@ -232,6 +234,8 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     BKE_lib_id_clear_library_data(bmain, &key->id, flags);
   }
 
+  /* Even though the ID itself remain the same after being made local, from depsgraph point of view
+   * this is a different ID. Hence we rebuild depsgraph relationships. */
   DEG_relations_tag_update(bmain);
 }
 

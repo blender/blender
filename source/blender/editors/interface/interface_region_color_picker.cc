@@ -34,7 +34,7 @@
 
 #include "IMB_colormanagement.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 enum ePickerType {
   PICKER_TYPE_RGB = 0,

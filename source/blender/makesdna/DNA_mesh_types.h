@@ -139,6 +139,15 @@ typedef struct Mesh {
    */
   float smoothresh;
 
+  /** Per-mesh settings for voxel remesh. */
+  float remesh_voxel_size;
+  float remesh_voxel_adaptivity;
+
+  int face_sets_color_seed;
+  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
+   * default and Face Sets can be used without affecting the color of the mesh. */
+  int face_sets_color_default;
+
   /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
@@ -191,20 +200,11 @@ typedef struct Mesh {
   /* Deprecated size of #fdata. */
   int totface;
 
-  /** Per-mesh settings for voxel remesh. */
-  float remesh_voxel_size;
-  float remesh_voxel_adaptivity;
-
-  int face_sets_color_seed;
-  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
-   * default and Face Sets can be used without affecting the color of the mesh. */
-  int face_sets_color_default;
-
   char _pad1[4];
 
   /**
    * Data that isn't saved in files, including caches of derived data, temporary data to improve
-   * the editing experience, etc. Runtime data is created when reading files and can be accessed
+   * the editing experience, etc. The struct is created when reading files and can be accessed
    * without null checks, with the exception of some temporary meshes which should allocate and
    * free the data if they are passed to functions that expect run-time data.
    */
@@ -263,7 +263,7 @@ typedef struct Mesh {
    * Explicitly set the cached number of loose edges to zero. This can improve performance
    * later on, because finding loose edges lazily can be skipped entirely.
    *
-   * \note To allow setting this status on meshes without changing them, this This does not tag the
+   * \note To allow setting this status on meshes without changing them, this does not tag the
    * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
    */
   void loose_edges_tag_none() const;

@@ -233,8 +233,6 @@ typedef struct ImBuf {
   ImbFormatOptions foptions;
   /** filename associated with this image */
   char name[IMB_FILENAME_SIZE];
-  /** full filename used for reading from cache */
-  char cachename[IMB_FILENAME_SIZE];
 
   /* memory cache limiter */
   /** handle for cache limiter */

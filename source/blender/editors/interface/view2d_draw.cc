@@ -33,7 +33,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* Compute display grid resolution
  ********************************************************/

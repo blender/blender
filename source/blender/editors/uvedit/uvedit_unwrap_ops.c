@@ -1100,6 +1100,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
       .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
       .correct_aspect = options.correct_aspect,
       .ignore_pinned = false,
+      .pin_unselected = options.pin_unselected,
       .margin_method = RNA_enum_get(op->ptr, "margin_method"),
       .margin = RNA_float_get(op->ptr, "margin"),
   };
@@ -1878,6 +1879,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
         .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
         .correct_aspect = options.correct_aspect,
         .ignore_pinned = true,
+        .pin_unselected = options.pin_unselected,
         .margin_method = ED_UVPACK_MARGIN_SCALED,
         .margin = scene->toolsettings->uvcalc_margin,
     };
@@ -2025,6 +2027,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
       .correct_aspect = options.correct_aspect,
       .ignore_pinned = true,
+      .pin_unselected = options.pin_unselected,
       .margin_method = RNA_enum_get(op->ptr, "margin_method"),
       .margin = RNA_float_get(op->ptr, "margin"),
   };

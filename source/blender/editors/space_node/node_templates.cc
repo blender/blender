@@ -32,7 +32,7 @@
 #include "NOD_socket.h"
 #include "NOD_socket_declarations.hh"
 
-#include "../interface/interface_intern.h" /* XXX bad level */
+#include "../interface/interface_intern.hh" /* XXX bad level */
 #include "UI_interface.h"
 
 #include "ED_node.h" /* own include */

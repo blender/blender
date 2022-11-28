@@ -7177,6 +7177,9 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
                     # Handles for Curve Edit
                     layout.prop(overlay, "display_handle", text="Handles")
 
+        if context.object.mode == 'SCULPT_GPENCIL':
+            layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
+
         if context.object.mode in {'PAINT_GPENCIL', 'VERTEX_GPENCIL'}:
             layout.label(text="Vertex Paint")
             row = layout.row()

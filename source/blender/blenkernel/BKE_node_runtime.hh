@@ -487,6 +487,18 @@ inline const bNodeSocket &bNode::output_by_identifier(blender::StringRef identif
   return *this->runtime->outputs_by_identifier.lookup_as(identifier);
 }
 
+inline bNodeSocket &bNode::input_by_identifier(blender::StringRef identifier)
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return *this->runtime->inputs_by_identifier.lookup_as(identifier);
+}
+
+inline bNodeSocket &bNode::output_by_identifier(blender::StringRef identifier)
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return *this->runtime->outputs_by_identifier.lookup_as(identifier);
+}
+
 inline const bNodeTree &bNode::owner_tree() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
@@ -580,6 +592,11 @@ inline int bNodeSocket::index_in_tree() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->index_in_all_sockets;
+}
+
+inline bool bNodeSocket::is_hidden() const
+{
+  return (this->flag & SOCK_HIDDEN) != 0;
 }
 
 inline bool bNodeSocket::is_available() const

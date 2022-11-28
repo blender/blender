@@ -75,6 +75,7 @@ struct PointCloudRealizeInfo {
   Array<std::optional<GVArraySpan>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<float3> positions;
+  VArray<float> radii;
   Span<int> stored_ids;
 };
 
@@ -180,6 +181,7 @@ struct AllPointCloudsInfo {
   /** Preprocessed data about every original point cloud. This is ordered by #order. */
   Array<PointCloudRealizeInfo> realize_info;
   bool create_id_attribute = false;
+  bool create_radius_attribute = false;
 };
 
 struct AllMeshesInfo {
@@ -622,7 +624,10 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
  * \{ */
 
 static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
-    const GeometrySet &in_geometry_set, const RealizeInstancesOptions &options, bool &r_create_id)
+    const GeometrySet &in_geometry_set,
+    const RealizeInstancesOptions &options,
+    bool &r_create_radii,
+    bool &r_create_id)
 {
   Vector<GeometryComponentType> src_component_types;
   src_component_types.append(GEO_COMPONENT_TYPE_POINT_CLOUD);
@@ -635,6 +640,7 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_POINT_CLOUD, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
+  r_create_radii = attributes_to_propagate.pop_try("radius").has_value();
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);
@@ -663,7 +669,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
 {
   AllPointCloudsInfo info;
   info.attributes = gather_generic_pointcloud_attributes_to_propagate(
-      geometry_set, options, info.create_id_attribute);
+      geometry_set, options, info.create_radius_attribute, info.create_id_attribute);
 
   gather_pointclouds_to_realize(geometry_set, info.order);
   info.realize_info.reinitialize(info.order.size());
@@ -690,6 +696,9 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
         pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
+    if (info.create_radius_attribute) {
+      pointcloud_info.radii = attributes.lookup_or_default("radius", ATTR_DOMAIN_POINT, 0.01f);
+    }
     const VArray<float3> position_attribute = attributes.lookup_or_default<float3>(
         "position", ATTR_DOMAIN_POINT, float3(0));
     pointcloud_info.positions = position_attribute.get_internal_span();
@@ -702,6 +711,7 @@ static void execute_realize_pointcloud_task(
     const RealizePointCloudTask &task,
     const OrderedAttributes &ordered_attributes,
     MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+    MutableSpan<float> all_dst_radii,
     MutableSpan<int> all_dst_ids,
     MutableSpan<float3> all_dst_positions)
 {
@@ -716,6 +726,9 @@ static void execute_realize_pointcloud_task(
   if (!all_dst_ids.is_empty()) {
     create_result_ids(
         options, pointcloud_info.stored_ids, task.id, all_dst_ids.slice(point_slice));
+  }
+  if (!all_dst_radii.is_empty()) {
+    pointcloud_info.radii.materialize(all_dst_radii.slice(point_slice));
   }
 
   copy_generic_attributes_to_result(
@@ -759,6 +772,11 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   if (all_pointclouds_info.create_id_attribute) {
     point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
+  SpanAttributeWriter<float> point_radii;
+  if (all_pointclouds_info.create_radius_attribute) {
+    point_radii = dst_attributes.lookup_or_add_for_write_only_span<float>("radius",
+                                                                          ATTR_DOMAIN_POINT);
+  }
 
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
@@ -777,6 +795,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
                                       task,
                                       ordered_attributes,
                                       dst_attribute_writers,
+                                      point_radii.span,
                                       point_ids.span,
                                       positions.span);
     }
@@ -787,6 +806,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     dst_attribute.finish();
   }
   positions.finish();
+  point_radii.finish();
   point_ids.finish();
 }
 

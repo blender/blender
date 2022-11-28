@@ -847,7 +847,10 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     use_stroke_id = true;
 
     if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_CAVITY_USE_CURVE)) {
-      BKE_curvemapping_init(brush->automasking_cavity_curve);
+      if (brush) {
+        BKE_curvemapping_init(brush->automasking_cavity_curve);
+      }
+
       BKE_curvemapping_init(sd->automasking_cavity_curve);
     }
 

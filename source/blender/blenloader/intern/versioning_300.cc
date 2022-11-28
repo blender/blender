@@ -653,6 +653,15 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
 static bool seq_speed_factor_set(Sequence *seq, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
@@ -1046,6 +1055,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList * /*reports*/)
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -1484,15 +1494,6 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
       version_node_socket_id_delim(socket);
     }
   }
-}
-
-static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
-{
-  Scene *scene = (Scene *)user_data;
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, seq);
-  }
-  return true;
 }
 
 static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
@@ -2816,17 +2817,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      /* Make sure range of meta strips is correct.
-       * It was possible to save .blend file with incorrect state of meta strip
-       * range. The root cause is expected to be fixed, but need to ensure files
-       * with invalid meta strip range are corrected. */
-      if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
-      }
-    }
   }
 
   /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
@@ -3729,5 +3719,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
+      }
+    }
+
+    /* UVSeam fixing distance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+      LISTBASE_FOREACH (Image *, image, &bmain->images) {
+        image->seam_margin = 8;
+      }
+    }
   }
 }

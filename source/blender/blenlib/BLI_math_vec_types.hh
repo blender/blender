@@ -261,9 +261,8 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base &operator+=(const T &b)
   {
-    vec_base result;
     unroll<Size>([&](auto i) { (*this)[i] += b; });
-    return result;
+    return *this;
   }
 
   friend vec_base operator-(const vec_base &a)

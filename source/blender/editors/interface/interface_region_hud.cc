@@ -36,7 +36,7 @@
 #include "ED_undo.h"
 
 #include "GPU_framebuffer.h"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities

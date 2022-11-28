@@ -34,7 +34,8 @@ void register_node_type_sh_squeeze()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.gather_link_search_ops = nullptr;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_squeeze;
 

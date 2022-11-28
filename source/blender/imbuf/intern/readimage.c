@@ -186,34 +186,22 @@ ImBuf *IMB_loadifffile(
   return ibuf;
 }
 
-static void imb_cache_filename(char *filepath, const char *name, int flags)
-{
-  BLI_strncpy(filepath, name, IMB_FILENAME_SIZE);
-}
-
 ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
 {
   ImBuf *ibuf;
   int file;
-  char filepath_tx[IMB_FILENAME_SIZE];
 
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  imb_cache_filename(filepath_tx, filepath, flags);
-
-  file = BLI_open(filepath_tx, O_BINARY | O_RDONLY, 0);
+  file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     return NULL;
   }
 
-  ibuf = IMB_loadifffile(file, filepath, flags, colorspace, filepath_tx);
+  ibuf = IMB_loadifffile(file, filepath, flags, colorspace, filepath);
 
   if (ibuf) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
-    for (int a = 1; a < ibuf->miptot; a++) {
-      BLI_strncpy(ibuf->mipmap[a - 1]->cachename, filepath_tx, sizeof(ibuf->cachename));
-    }
   }
 
   close(file);
@@ -280,23 +268,19 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 {
   ImBuf *ibuf;
   int file;
-  char filepath_tx[IMB_FILENAME_SIZE];
   char colorspace[IM_MAX_SPACE] = "\0";
 
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  imb_cache_filename(filepath_tx, filepath, flags);
-
-  file = BLI_open(filepath_tx, O_BINARY | O_RDONLY, 0);
+  file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     return NULL;
   }
 
-  ibuf = IMB_loadifffile(file, filepath, flags | IB_test | IB_multilayer, colorspace, filepath_tx);
+  ibuf = IMB_loadifffile(file, filepath, flags | IB_test | IB_multilayer, colorspace, filepath);
 
   if (ibuf) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
   }
 
   close(file);

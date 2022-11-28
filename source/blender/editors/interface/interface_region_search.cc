@@ -41,7 +41,7 @@
 #include "ED_screen.h"
 
 #include "GPU_state.h"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
 #define MENU_BORDER int(0.3f * U.widget_unit)

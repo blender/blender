@@ -40,7 +40,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 static FCurve *ui_but_get_fcurve(
     uiBut *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)

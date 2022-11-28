@@ -918,6 +918,11 @@ class Vector {
     return int64_t(capacity_end_ - begin_);
   }
 
+  bool is_at_capacity() const
+  {
+    return end_ == capacity_end_;
+  }
+
   /**
    * Get an index range that makes looping over all indices more convenient and less error prone.
    * Obviously, this should only be used when you actually need the index in the loop.

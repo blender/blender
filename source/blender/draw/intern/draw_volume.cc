@@ -56,7 +56,6 @@ struct VolumeUniformBufPool {
     if (used >= ubos.size()) {
       VolumeInfosBuf *buf = new VolumeInfosBuf();
       ubos.append(buf);
-      return buf;
     }
     return ubos[used++];
   }

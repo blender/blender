@@ -230,7 +230,7 @@ void transform_mesh(Mesh &mesh,
 
 }  // namespace blender::nodes
 
-namespace blender::nodes::node_geo_transform_cc {
+namespace blender::nodes::node_geo_transform_geometry_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -261,15 +261,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set));
 }
-}  // namespace blender::nodes::node_geo_transform_cc
+}  // namespace blender::nodes::node_geo_transform_geometry_cc
 
-void register_node_type_geo_transform()
+void register_node_type_geo_transform_geometry()
 {
-  namespace file_ns = blender::nodes::node_geo_transform_cc;
+  namespace file_ns = blender::nodes::node_geo_transform_geometry_cc;
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_TRANSFORM, "Transform", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, GEO_NODE_TRANSFORM_GEOMETRY, "Transform Geometry", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

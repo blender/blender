@@ -989,6 +989,9 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
     case GPU_COMP_I10:
       out_vert_format = MTLVertexFormatInt1010102Normalized;
       break;
+    case GPU_COMP_MAX:
+      BLI_assert_unreachable();
+      break;
   }
   *r_convertedFormat = out_vert_format;
   return (out_vert_format != MTLVertexFormatInvalid);

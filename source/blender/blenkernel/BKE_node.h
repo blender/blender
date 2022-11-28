@@ -1389,7 +1389,7 @@ struct TexResult;
  * \{ */
 
 #define GEO_NODE_TRIANGULATE 1000
-#define GEO_NODE_TRANSFORM 1002
+#define GEO_NODE_TRANSFORM_GEOMETRY 1002
 #define GEO_NODE_MESH_BOOLEAN 1003
 #define GEO_NODE_OBJECT_INFO 1007
 #define GEO_NODE_JOIN_GEOMETRY 1010
@@ -1568,6 +1568,7 @@ struct TexResult;
 void BKE_node_system_init(void);
 void BKE_node_system_exit(void);
 
+extern bNodeTreeType NodeTreeTypeUndefined;
 extern struct bNodeType NodeTypeUndefined;
 extern struct bNodeSocketType NodeSocketTypeUndefined;
 

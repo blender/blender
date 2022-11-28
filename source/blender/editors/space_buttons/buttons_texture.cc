@@ -51,7 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "../interface/interface_intern.h"
+#include "../interface/interface_intern.hh"
 
 #include "buttons_intern.h" /* own include */
 
