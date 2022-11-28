@@ -1122,7 +1122,8 @@ static bool collection_object_remove(Main *bmain,
     id_us_min(&ob->id);
   }
 
-  collection_tag_update_parent_recursive(bmain, collection, ID_RECALC_COPY_ON_WRITE);
+  collection_tag_update_parent_recursive(
+      bmain, collection, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
 
   return true;
 }
