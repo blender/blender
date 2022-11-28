@@ -600,7 +600,7 @@ static BoxPack *pack_islands_params(const blender::Vector<FaceIsland *> &island_
   return box_array;
 }
 
-static bool island_has_pins(FaceIsland *island)
+static bool island_has_pins(const Scene *scene, FaceIsland *island, const bool pin_unselected)
 {
   BMLoop *l;
   BMIter iter;
@@ -609,6 +609,9 @@ static bool island_has_pins(FaceIsland *island)
     BM_ITER_ELEM (l, &iter, island->faces[i], BM_LOOPS_OF_FACE) {
       MLoopUV *luv = static_cast<MLoopUV *>(BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
       if (luv->flag & MLOOPUV_PINNED) {
+        return true;
+      }
+      if (pin_unselected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
         return true;
       }
     }
@@ -657,12 +660,18 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       }
     }
 
+    bool only_selected_faces = params->only_selected_faces;
+    bool only_selected_uvs = params->only_selected_uvs;
+    if (params->ignore_pinned && params->pin_unselected) {
+      only_selected_faces = false;
+      only_selected_uvs = false;
+    }
     ListBase island_list = {nullptr};
     bm_mesh_calc_uv_islands(scene,
                             bm,
                             &island_list,
-                            params->only_selected_faces,
-                            params->only_selected_uvs,
+                            only_selected_faces,
+                            only_selected_uvs,
                             params->use_seams,
                             aspect_y,
                             cd_loop_uv_offset);
@@ -670,7 +679,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     /* Remove from linked list and append to blender::Vector. */
     LISTBASE_FOREACH_MUTABLE (struct FaceIsland *, island, &island_list) {
       BLI_remlink(&island_list, island);
-      if (params->ignore_pinned && island_has_pins(island)) {
+      if (params->ignore_pinned && island_has_pins(scene, island, params->pin_unselected)) {
         MEM_freeN(island->faces);
         MEM_freeN(island);
         continue;

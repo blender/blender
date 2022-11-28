@@ -353,6 +353,7 @@ struct UVPackIsland_Params {
   uint use_seams : 1;
   uint correct_aspect : 1;
   bool ignore_pinned;                       /* Ignore islands which have any pinned UVs. */
+  bool pin_unselected;                      /* Treat unselected UVs as if they were pinned. */
   eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
   float margin;                             /* Additional space to add around each island. */
 };
