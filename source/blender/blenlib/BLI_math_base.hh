@@ -102,6 +102,41 @@ template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T fract(cons
   return a - std::floor(a);
 }
 
+template<typename T> inline T cos(const T &a)
+{
+  return std::cos(a);
+}
+
+template<typename T> inline T sin(const T &a)
+{
+  return std::sin(a);
+}
+
+template<typename T> inline T tan(const T &a)
+{
+  return std::tan(a);
+}
+
+template<typename T> inline T acos(const T &a)
+{
+  return std::acos(a);
+}
+
+template<typename T> inline T asin(const T &a)
+{
+  return std::asin(a);
+}
+
+template<typename T> inline T atan(const T &a)
+{
+  return std::atan(a);
+}
+
+template<typename T> inline T atan2(const T &a, const T &b)
+{
+  return std::atan2(a, b);
+}
+
 template<typename T,
          typename FactorT,
          BLI_ENABLE_IF((std::is_arithmetic_v<T>)),
