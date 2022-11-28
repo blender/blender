@@ -4,9 +4,6 @@
  * \ingroup asset_system
  */
 
-#include "asset_library_service.hh"
-#include "AS_asset_library.hh"
-
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
@@ -18,6 +15,10 @@
 #include "DNA_userdef_types.h"
 
 #include "CLG_log.h"
+
+#include "AS_asset_library.hh"
+#include "asset_library_service.hh"
+#include "utils.hh"
 
 /* When enabled, use a pre file load handler (#BKE_CB_EVT_LOAD_PRE) callback to destroy the asset
  * library service. Without this an explicit call from the file loading code is needed to do this,
@@ -57,69 +58,58 @@ void AssetLibraryService::destroy()
 AssetLibrary *AssetLibraryService::get_asset_library(
     const Main *bmain, const AssetLibraryReference &library_reference)
 {
-  if (library_reference.type == ASSET_LIBRARY_LOCAL) {
-    /* For the "Current File" library  we get the asset library root path based on main. */
-    std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) : "";
+  const eAssetLibraryType type = eAssetLibraryType(library_reference.type);
 
-    if (root_path.empty()) {
-      /* File wasn't saved yet. */
-      return get_asset_library_current_file();
-    }
+  switch (type) {
+    case ASSET_LIBRARY_LOCAL: {
+      /* For the "Current File" library  we get the asset library root path based on main. */
+      std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) :
+                                      "";
 
-    return get_asset_library_on_disk(root_path);
-  }
-
-  /* TODO */
-  if (library_reference.type == ASSET_LIBRARY_ALL) {
-    return get_asset_library_current_file();
-  }
-
-  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
-    std::string root_path = root_path_from_library_ref(library_reference);
-
-    if (!root_path.empty()) {
+      if (root_path.empty()) {
+        /* File wasn't saved yet. */
+        return get_asset_library_current_file();
+      }
       return get_asset_library_on_disk(root_path);
     }
+    case ASSET_LIBRARY_ALL:
+      return get_asset_library_all(bmain);
+    case ASSET_LIBRARY_CUSTOM: {
+      std::string root_path = root_path_from_library_ref(library_reference);
+
+      if (!root_path.empty()) {
+        return get_asset_library_on_disk(root_path);
+      }
+    } break;
   }
 
   return nullptr;
 }
 
-namespace {
-std::string normalize_directory_path(StringRefNull directory)
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_path)
 {
-
-  char dir_normalized[PATH_MAX];
-  STRNCPY(dir_normalized, directory.c_str());
-  BLI_path_normalize_dir(nullptr, dir_normalized, sizeof(dir_normalized));
-  return std::string(dir_normalized);
-}
-}  // namespace
-
-AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_level_directory)
-{
-  BLI_assert_msg(!top_level_directory.is_empty(),
+  BLI_assert_msg(!root_path.is_empty(),
                  "top level directory must be given for on-disk asset library");
 
-  std::string top_dir_trailing_slash = normalize_directory_path(top_level_directory);
+  std::string normalized_root_path = utils::normalize_directory_path(root_path);
 
   std::unique_ptr<AssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
-      top_dir_trailing_slash);
+      normalized_root_path);
   if (lib_uptr_ptr != nullptr) {
-    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_dir_trailing_slash.c_str());
+    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", normalized_root_path.c_str());
     AssetLibrary *lib = lib_uptr_ptr->get();
     lib->refresh();
     return lib;
   }
 
-  std::unique_ptr lib_uptr = std::make_unique<AssetLibrary>();
+  std::unique_ptr lib_uptr = std::make_unique<AssetLibrary>(normalized_root_path);
   AssetLibrary *lib = lib_uptr.get();
 
   lib->on_blend_save_handler_register();
-  lib->load_catalogs(top_dir_trailing_slash);
+  lib->load_catalogs();
 
-  on_disk_libraries_.add_new(top_dir_trailing_slash, std::move(lib_uptr));
-  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", top_dir_trailing_slash.c_str());
+  on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
+  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
   return lib;
 }
 
@@ -138,6 +128,30 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   return lib;
 }
 
+AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
+{
+  if (all_library_) {
+    CLOG_INFO(&LOG, 2, "get all lib (cached)");
+    all_library_->nested_libs_.clear();
+  }
+  else {
+    CLOG_INFO(&LOG, 2, "get all lib (loaded)");
+    all_library_ = std::make_unique<AssetLibrary>();
+  }
+
+  for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
+    /* Skip self :) */
+    if (library_ref.type == ASSET_LIBRARY_ALL) {
+      continue;
+    }
+
+    AssetLibrary *nested_lib = get_asset_library(bmain, library_ref);
+    all_library_->nested_libs_.append(nested_lib);
+  }
+
+  return all_library_.get();
+}
+
 std::string AssetLibraryService::root_path_from_library_ref(
     const AssetLibraryReference &library_reference)
 {
@@ -145,22 +159,16 @@ std::string AssetLibraryService::root_path_from_library_ref(
     return "";
   }
 
-  const char *top_level_directory = nullptr;
-
   BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
   BLI_assert(library_reference.custom_library_index >= 0);
 
   bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
       &U, library_reference.custom_library_index);
-  if (user_library) {
-    top_level_directory = user_library->path;
-  }
-
-  if (!top_level_directory) {
+  if (!user_library || !user_library->path[0]) {
     return "";
   }
 
-  return normalize_directory_path(top_level_directory);
+  return user_library->path;
 }
 
 void AssetLibraryService::allocate_service_instance()

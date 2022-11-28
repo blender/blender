@@ -22,6 +22,7 @@
 
 #include "asset_library_service.hh"
 #include "asset_storage.hh"
+#include "utils.hh"
 
 using namespace blender;
 using namespace blender::asset_system;
@@ -126,8 +127,9 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
 
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary()
-    : asset_storage_(std::make_unique<AssetStorage>()),
+AssetLibrary::AssetLibrary(StringRef root_path)
+    : root_path_(utils::normalize_directory_path(root_path)),
+      asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
 }
@@ -139,9 +141,9 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
-void AssetLibrary::load_catalogs(StringRefNull library_root_directory)
+void AssetLibrary::load_catalogs()
 {
-  auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
+  auto catalog_service = std::make_unique<AssetCatalogService>(root_path_);
   catalog_service->load_from_disk();
   this->catalog_service = std::move(catalog_service);
 }
@@ -165,6 +167,18 @@ AssetRepresentation &AssetLibrary::add_local_id_asset(ID &id)
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
   return asset_storage_->remove_asset(asset);
+}
+
+void AssetLibrary::foreach_nested(FunctionRef<void(AssetLibrary &)> fn)
+{
+  for (AssetLibrary *library : nested_libs_) {
+    if (!library) {
+      BLI_assert_unreachable();
+      continue;
+    }
+
+    fn(*library);
+  }
 }
 
 void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)
@@ -213,6 +227,11 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   if (save_catalogs_when_file_is_saved) {
     this->catalog_service->write_to_disk(main->filepath);
   }
+}
+
+StringRefNull AssetLibrary::root_path() const
+{
+  return root_path_;
 }
 
 void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)

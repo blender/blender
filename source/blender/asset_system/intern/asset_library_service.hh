@@ -33,12 +33,15 @@ namespace blender::asset_system {
 class AssetLibraryService {
   static std::unique_ptr<AssetLibraryService> instance_;
 
-  /* Mapping absolute path of the library's top-level directory to the AssetLibrary instance. */
+  /* Mapping absolute path of the library's root path (normalize with #normalize_directory_path()!)
+   * the AssetLibrary instance. */
   Map<std::string, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
   /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
    * above should be used. */
   std::unique_ptr<AssetLibrary> current_file_library_;
+  /** The "all" asset library, merging all other libraries into one. */
+  std::unique_ptr<AssetLibrary> all_library_;
 
   /* Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
@@ -66,6 +69,9 @@ class AssetLibraryService {
 
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file();
+
+  /** Get the "All" asset library, merging all others into one. */
+  AssetLibrary *get_asset_library_all(const Main *bmain);
 
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;

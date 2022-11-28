@@ -320,10 +320,10 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          bool *stop,
                                          bool *do_update,
                                          float *progress);
-static void filelist_readjob_all_asset_libraries(FileListReadJob *job_params,
-                                                 bool *stop,
-                                                 bool *do_update,
-                                                 float *progress);
+static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
+                                               bool *stop,
+                                               bool *do_update,
+                                               float *progress);
 
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
@@ -1781,7 +1781,7 @@ void filelist_settype(FileList *filelist, short type)
       break;
     case FILE_ASSET_LIBRARY_ALL:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
-      filelist->read_job_fn = filelist_readjob_all_asset_libraries;
+      filelist->read_job_fn = filelist_readjob_all_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
@@ -3784,6 +3784,8 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
   /* A valid, but empty file-list from now. */
   filelist->filelist.entries_num = 0;
 
+  BLI_assert(job_params->filelist->asset_library_ref != nullptr);
+
   /* NOP if already read. */
   filelist_readjob_load_asset_library_data(job_params, do_update);
 
@@ -3821,10 +3823,10 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
   filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
 }
 
-static void filelist_readjob_all_asset_libraries(FileListReadJob *job_params,
-                                                 bool *stop,
-                                                 bool *do_update,
-                                                 float *progress)
+static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
+                                               bool *stop,
+                                               bool *do_update,
+                                               float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
@@ -3843,16 +3845,19 @@ static void filelist_readjob_all_asset_libraries(FileListReadJob *job_params,
   }
   /* TODO propertly update progress? */
 
-  for (const AssetLibraryReference &library_ref : asset_system::all_valid_asset_library_refs()) {
-    if (library_ref.type == ASSET_LIBRARY_LOCAL) {
-      /* Already added main assets above. */
-      continue;
+  BLI_assert(filelist->asset_library != nullptr);
+
+  /* Add assets from asset libraries on disk. */
+  filelist->asset_library->foreach_nested([&](asset_system::AssetLibrary &nested_library) {
+    StringRefNull root_path = nested_library.root_path();
+    if (root_path.is_empty()) {
+      return;
     }
-    std::string library_path = AS_asset_library_root_path_from_library_ref(library_ref);
-    BLI_strncpy(filelist->filelist.root, library_path.c_str(), sizeof(filelist->filelist.root));
+
+    BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
 
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
-  }
+  });
 }
 
 /**
