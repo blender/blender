@@ -860,7 +860,7 @@ ccl_device_inline uint find_first_set(uint x)
   return (x != 0) ? ctz(x) + 1 : 0;
 #else
 #  ifdef _MSC_VER
-  return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
+  return (x != 0) ? (32 - count_leading_zeros(x & (~x + 1))) : 0;
 #  else
   return __builtin_ffs(x);
 #  endif
