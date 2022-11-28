@@ -375,12 +375,13 @@ struct PBVHBatches {
             no = CCG_elem_no(&args->ccg_key, elems[0]);
           }
           else {
-            for (int j = 0; j < 4; j++) {
-              no += CCG_elem_no(&args->ccg_key, elems[j]);
-            }
+            normal_quad_v3(no,
+                           CCG_elem_co(&args->ccg_key, elems[3]),
+                           CCG_elem_co(&args->ccg_key, elems[2]),
+                           CCG_elem_co(&args->ccg_key, elems[1]),
+                           CCG_elem_co(&args->ccg_key, elems[0]));
           }
 
-          normalize_v3(no);
           short sno[3];
 
           normal_float_to_short_v3(sno, no);
