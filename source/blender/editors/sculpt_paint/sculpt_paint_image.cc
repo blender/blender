@@ -362,12 +362,18 @@ static void do_paint_pixels(void *__restrict userdata,
           }
           bool pixels_painted = false;
           if (image_buffer->rect_float != nullptr) {
-            pixels_painted = kernel_float4.paint(
-                pbvh_data.geom_primitives, node_data.uv_primitives, pixel_row, image_buffer, &automask_data);
+            pixels_painted = kernel_float4.paint(pbvh_data.geom_primitives,
+                                                 node_data.uv_primitives,
+                                                 pixel_row,
+                                                 image_buffer,
+                                                 &automask_data);
           }
           else {
-            pixels_painted = kernel_byte4.paint(
-                pbvh_data.geom_primitives, node_data.uv_primitives, pixel_row, image_buffer, &automask_data);
+            pixels_painted = kernel_byte4.paint(pbvh_data.geom_primitives,
+                                                node_data.uv_primitives,
+                                                pixel_row,
+                                                image_buffer,
+                                                &automask_data);
           }
 
           if (pixels_painted) {
