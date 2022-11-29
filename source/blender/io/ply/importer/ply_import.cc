@@ -79,6 +79,10 @@ void importer_main(Main *bmain,
   std::string line;
   std::ifstream infile(import_params.filepath);
   PlyFormatType type;
+  int vertex_count = 0;
+  int face_count = 0;
+  int edge_count = 0;
+
 
 
   //hier kan ook het PlyDataStruct gevuld worden
@@ -95,8 +99,16 @@ void importer_main(Main *bmain,
       if (strcmp(words[1].c_str(), "binary_little_endian")== 0)
         type = binary_little_endian;
     }
+    if (strcmp(words[0].c_str(), "element") == 0) {
+      if (strcmp(words[1].c_str(), "vertex") == 0)
+        vertex_count = std::stoi(words[2]);
+      if (strcmp(words[1].c_str(), "face") == 0)
+        face_count = std::stoi(words[2]);
+      if (strcmp(words[1].c_str(), "edge") == 0)
+        edge_count = std::stoi(words[2]);
+    }
 
-    
+
 
     if (words[0] == "end_header") {
       break;
