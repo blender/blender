@@ -617,25 +617,18 @@ static void p_vert_load_pin_select_uvs(ParamHandle *handle, PVert *v)
 
 static void p_flush_uvs(ParamHandle *handle, PChart *chart)
 {
-  PEdge *e;
-
-  for (e = chart->edges; e; e = e->nextlink) {
+  const float blend = handle->blend;
+  const float invblend = 1.0f - blend;
+  for (PEdge *e = chart->edges; e; e = e->nextlink) {
     if (e->orig_uv) {
-      e->orig_uv[0] = e->vert->uv[0] / handle->aspx;
-      e->orig_uv[1] = e->vert->uv[1] / handle->aspy;
-    }
-  }
-}
-
-static void p_flush_uvs_blend(ParamHandle *handle, PChart *chart, float blend)
-{
-  PEdge *e;
-  float invblend = 1.0f - blend;
-
-  for (e = chart->edges; e; e = e->nextlink) {
-    if (e->orig_uv) {
-      e->orig_uv[0] = blend * e->old_uv[0] + invblend * e->vert->uv[0] / handle->aspx;
-      e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1] / handle->aspy;
+      if (blend) {
+        e->orig_uv[0] = blend * e->old_uv[0] + invblend * e->vert->uv[0] / handle->aspx;
+        e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1] / handle->aspy;
+      }
+      else {
+        e->orig_uv[0] = e->vert->uv[0] / handle->aspx;
+        e->orig_uv[1] = e->vert->uv[1] / handle->aspy;
+      }
     }
   }
 }
@@ -4023,13 +4016,10 @@ void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 
 void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *count_failed)
 {
-  PChart *chart;
-  int i;
-
   param_assert(phandle->state == PHANDLE_STATE_LSCM);
 
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
 
     if (chart->u.lscm.context) {
       const bool result = p_chart_lscm_solve(phandle, chart);
@@ -4416,12 +4406,7 @@ void GEO_uv_parametrizer_flush(ParamHandle *phandle)
       continue;
     }
 
-    if (phandle->blend == 0.0f) {
-      p_flush_uvs(phandle, chart);
-    }
-    else {
-      p_flush_uvs_blend(phandle, chart, phandle->blend);
-    }
+    p_flush_uvs(phandle, chart);
   }
 }
 
