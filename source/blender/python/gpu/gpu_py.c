@@ -56,13 +56,13 @@ static const char g_error[] = "GPU API is not available in background mode";
 static PyObject *py_error__ml_meth(PyObject *UNUSED(self), PyObject *UNUSED(args))
 {
   PyErr_SetString(PyExc_SystemError, g_error);
-  Py_RETURN_NONE;
+  return NULL;
 }
 
 static PyObject *py_error__getter(PyObject *UNUSED(self), void *UNUSED(type))
 {
   PyErr_SetString(PyExc_SystemError, g_error);
-  Py_RETURN_NONE;
+  return NULL;
 }
 
 static int py_error__setter(PyObject *UNUSED(self), PyObject *value, void *UNUSED(type))
