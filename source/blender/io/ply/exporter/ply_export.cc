@@ -107,14 +107,9 @@ void exporter_main(Main *bmain,
   PlyData plyData = get_test_ply_data();
 
   // Create file, get writer
-  FILE *outfile_ = BLI_fopen(export_params.filepath, "wb");
-  if (!outfile_) {
-    throw std::system_error(errno, std::system_category(), "Cannot open file.");
-  }
-  FileBufferAscii buffer;
+  FileBuffer buffer(export_params.filepath);
   buffer.write_string("comment Hello, blender!");
-  buffer.write_to_file(outfile_);
-  std::fclose(outfile_);
+  buffer.write_to_file();
 
   // Write file header
 

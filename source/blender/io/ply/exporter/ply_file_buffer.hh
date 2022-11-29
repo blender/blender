@@ -35,17 +35,32 @@ class FileBuffer : NonCopyable, NonMovable {
   typedef std::vector<char> VectorChar;
   std::vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
+  const char *filepath;
+  FILE *outfile_;
 
  public:
-  FileBuffer(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
+  FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
   {
+    this->filepath = filepath;
+    outfile_ = BLI_fopen(filepath, "wb");
+    if (!outfile_) {
+      throw std::system_error(errno, std::system_category(), "Cannot open file " + std::string(filepath) + ".");
+    }
+  }
+  ~FileBuffer()
+  {
+    if (outfile_ && std::fclose(outfile_)) {
+      std::cerr << "Error: could not close the file '" << this->filepath
+                << "' properly, it may be corrupted." << std::endl;
+    }
   }
 
+
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
-  void write_to_file(FILE *f)
+  void write_to_file()
   {
     for (const auto &b : blocks_)
-      fwrite(b.data(), 1, b.size(), f);
+      fwrite(b.data(), 1, b.size(), this->outfile_);
     blocks_.clear();
   }
 
