@@ -4839,6 +4839,10 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
+  if (!brush) {
+    return true;
+  }
+
   if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return true;
   }
