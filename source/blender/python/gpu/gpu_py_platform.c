@@ -14,6 +14,7 @@
 #include "GPU_context.h"
 #include "GPU_platform.h"
 
+#include "gpu_py.h"
 #include "gpu_py_platform.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
@@ -155,7 +156,7 @@ PyObject *bpygpu_platform_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_platform_module_def);
+  submodule = bpygpu_create_module(&pygpu_platform_module_def);
 
   return submodule;
 }

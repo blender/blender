@@ -17,6 +17,7 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
+#include "gpu_py.h"
 #include "gpu_py_framebuffer.h"
 #include "gpu_py_state.h" /* own include */
 
@@ -445,7 +446,7 @@ PyObject *bpygpu_state_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_state_module_def);
+  submodule = bpygpu_create_module(&pygpu_state_module_def);
 
   return submodule;
 }

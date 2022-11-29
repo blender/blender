@@ -111,8 +111,6 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 
 static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   PyObject *py_size;
   int size[3] = {1, 1, 1};
   int layers = 0;
@@ -605,7 +603,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
 PyObject *bpygpu_texture_init(void)
 {
   PyObject *submodule;
-  submodule = PyModule_Create(&pygpu_texture_module_def);
+  submodule = bpygpu_create_module(&pygpu_texture_module_def);
 
   return submodule;
 }

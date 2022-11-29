@@ -211,8 +211,6 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject *UNUSED(self),
                                          PyObject *args,
                                          PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   GPUOffScreen *ofs = NULL;
   int width, height;
   struct PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};
