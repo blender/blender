@@ -565,7 +565,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
 
   /* Initialize default view with 7 channels, that are visible even if empty. */
   rctf strip_boundbox;
-  BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 7.0f);
+  BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 6.0f);
   SEQ_timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
 
   /* Clamp Y max. Scrubbing area height must be added, so strips aren't occluded. */
@@ -574,8 +574,8 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
   const float scrub_bar_height = BLI_rcti_size_y(&scrub_rect) * pixel_view_size_y;
 
-  /* Channel n has range of <n, n+1>. */
-  strip_boundbox.ymax += 1.0f + scrub_bar_height;
+  /* Channel n has range of <n, n+1>, +1 for empty channel. */
+  strip_boundbox.ymax += 2.0f + scrub_bar_height;
 
   /* Clamp Y min. Scroller and marker area height must be added, so strips aren't occluded. */
   float scroll_bar_height = v2d->hor.ymax * pixel_view_size_y;
