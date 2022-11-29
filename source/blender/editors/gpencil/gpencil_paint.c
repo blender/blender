@@ -2229,10 +2229,8 @@ static void gpencil_paint_initstroke(tGPsdata *p,
        *       -> If there are no strokes in that frame, don't add a new empty frame
        */
       if (gpl->actframe && gpl->actframe->strokes.first) {
-        if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
-          short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
-          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, frame_mode);
-        }
+        short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
+        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, frame_mode);
         has_layer_to_erase = true;
         break;
       }
