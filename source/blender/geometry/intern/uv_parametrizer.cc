@@ -3087,29 +3087,21 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
 {
   LinearSolver *context = chart->u.lscm.context;
-  PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
-  PFace *f;
-  const float *alpha = chart->u.lscm.abf_alpha;
-  float area_pinned_up, area_pinned_down;
-  bool flip_faces;
-  int row;
 
-#if 0
-  /* TODO: make loading pins work for simplify/complexify. */
-#endif
-
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     if (v->flag & PVERT_PIN) {
-      p_vert_load_pin_select_uvs(handle, v); /* reload for live */
+      p_vert_load_pin_select_uvs(handle, v); /* Reload for Live Unwrap. */
     }
   }
 
   if (chart->u.lscm.single_pin) {
-    /* If only one pin, save area and pin for transform later. */
+    /* If only one pin, save pin location for transform later. */
     copy_v2_v2(chart->u.lscm.single_pin_uv, chart->u.lscm.single_pin->uv);
   }
 
   if (chart->u.lscm.pin1) {
+    PVert *pin1 = chart->u.lscm.pin1;
+    PVert *pin2 = chart->u.lscm.pin2;
     EIG_linear_solver_variable_lock(context, 2 * pin1->u.id);
     EIG_linear_solver_variable_lock(context, 2 * pin1->u.id + 1);
     EIG_linear_solver_variable_lock(context, 2 * pin2->u.id);
@@ -3121,8 +3113,8 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     EIG_linear_solver_variable_set(context, 0, 2 * pin2->u.id + 1, pin2->uv[1]);
   }
   else {
-    /* set and lock the pins */
-    for (v = chart->verts; v; v = v->nextlink) {
+    /* Set and lock the pins. */
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
       if (v->flag & PVERT_PIN) {
         EIG_linear_solver_variable_lock(context, 2 * v->u.id);
         EIG_linear_solver_variable_lock(context, 2 * v->u.id + 1);
@@ -3133,16 +3125,16 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     }
   }
 
-  /* detect up direction based on pinned vertices */
-  area_pinned_up = 0.0f;
-  area_pinned_down = 0.0f;
+  /* Detect "up" direction based on pinned vertices. */
+  float area_pinned_up = 0.0f;
+  float area_pinned_down = 0.0f;
 
-  for (f = chart->faces; f; f = f->nextlink) {
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
     PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
     PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 
     if ((v1->flag & PVERT_PIN) && (v2->flag & PVERT_PIN) && (v3->flag & PVERT_PIN)) {
-      float area = p_face_uv_area_signed(f);
+      const float area = p_face_uv_area_signed(f);
 
       if (area > 0.0f) {
         area_pinned_up += area;
@@ -3153,19 +3145,18 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     }
   }
 
-  flip_faces = (area_pinned_down > area_pinned_up);
+  const bool flip_faces = (area_pinned_down > area_pinned_up);
 
-  /* construct matrix */
-
-  row = 0;
-  for (f = chart->faces; f; f = f->nextlink) {
+  /* Construct matrix. */
+  const float *alpha = chart->u.lscm.abf_alpha;
+  int row = 0;
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
     PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
     PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
-    float a1, a2, a3, ratio, cosine, sine;
-    float sina1, sina2, sina3, sinmax;
+    float a1, a2, a3;
 
     if (alpha) {
-      /* use abf angles if passed on */
+      /* Use abf angles if present. */
       a1 = *(alpha++);
       a2 = *(alpha++);
       a3 = *(alpha++);
@@ -3180,13 +3171,13 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
       SWAP(PVert *, v2, v3);
     }
 
-    sina1 = sinf(a1);
-    sina2 = sinf(a2);
-    sina3 = sinf(a3);
+    float sina1 = sinf(a1);
+    float sina2 = sinf(a2);
+    float sina3 = sinf(a3);
 
-    sinmax = max_fff(sina1, sina2, sina3);
+    const float sinmax = max_fff(sina1, sina2, sina3);
 
-    /* shift vertices to find most stable order */
+    /* Shift vertices to find most stable order. */
     if (sina3 != sinmax) {
       SHIFT3(PVert *, v1, v2, v3);
       SHIFT3(float, a1, a2, a3);
@@ -3199,10 +3190,10 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
       }
     }
 
-    /* angle based lscm formulation */
-    ratio = (sina3 == 0.0f) ? 1.0f : sina2 / sina3;
-    cosine = cosf(a1) * ratio;
-    sine = sina1 * ratio;
+    /* Angle based lscm formulation. */
+    const float ratio = (sina3 == 0.0f) ? 1.0f : sina2 / sina3;
+    const float cosine = cosf(a1) * ratio;
+    const float sine = sina1 * ratio;
 
     EIG_linear_solver_matrix_add(context, row, 2 * v1->u.id, cosine - 1.0f);
     EIG_linear_solver_matrix_add(context, row, 2 * v1->u.id + 1, -sine);
@@ -3224,7 +3215,7 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     return true;
   }
 
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     v->uv[0] = 0.0f;
     v->uv[1] = 0.0f;
   }
