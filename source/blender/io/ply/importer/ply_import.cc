@@ -82,12 +82,13 @@ void importer_main(Main *bmain,
   int vertex_count = 0;
   int face_count = 0;
   int edge_count = 0;
+  int header_size = 0;
 
 
 
   //hier kan ook het PlyDataStruct gevuld worden
   while (std::getline(infile, line)){
-
+   header_size++;
    std::vector<std::string> words{};
    splitstr(line, words);
     
