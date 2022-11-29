@@ -169,7 +169,7 @@ template<
     /**
      * Number of bits that can be stored in the vector without doing an allocation.
      */
-    int64_t InlineBufferCapacity = 32,
+    int64_t InlineBufferCapacity = 64,
     /**
      * The allocator used by this vector. Should rarely be changed, except when you don't want that
      * MEM_* is used internally.
