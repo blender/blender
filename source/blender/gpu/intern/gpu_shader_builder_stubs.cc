@@ -177,7 +177,8 @@ void BKE_mesh_calc_poly_normal(const struct MPoly * /*mpoly*/,
   BLI_assert_unreachable();
 }
 
-void BKE_mesh_looptri_get_real_edges(const struct Mesh * /*mesh*/,
+void BKE_mesh_looptri_get_real_edges(const struct MEdge * /*edges*/,
+                                     const struct MLoop * /*loops*/,
                                      const struct MLoopTri * /*looptri*/,
                                      int UNUSED(r_edges[3]))
 {

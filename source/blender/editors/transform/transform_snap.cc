@@ -627,10 +627,9 @@ static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
       /* These editors have their own "Auto-Snap" activation option.
        * See #getAnimEdit_SnapMode. */
       return eSnapFlag(0);
-    default:
-      BLI_assert(false);
-      break;
   }
+  /* #SPACE_EMPTY.
+   * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
   return eSnapFlag(0);
 }
 

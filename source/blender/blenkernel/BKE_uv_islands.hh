@@ -17,7 +17,6 @@
 
 #include "DNA_meshdata_types.h"
 
-
 namespace blender::bke::uv_islands {
 
 struct MeshEdge;

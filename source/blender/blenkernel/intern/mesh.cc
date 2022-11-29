@@ -1490,13 +1490,13 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
   return -1;
 }
 
-void BKE_mesh_looptri_get_real_edges(const Mesh *mesh, const MLoopTri *looptri, int r_edges[3])
+void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
+                                     const MLoop *loops,
+                                     const MLoopTri *tri,
+                                     int r_edges[3])
 {
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MLoop> loops = mesh->loops();
-
   for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const MLoop *l1 = &loops[looptri->tri[i]], *l2 = &loops[looptri->tri[i_next]];
+    const MLoop *l1 = &loops[tri->tri[i]], *l2 = &loops[tri->tri[i_next]];
     const MEdge *e = &edges[l1->e];
 
     bool is_real = (l1->v == e->v1 && l2->v == e->v2) || (l1->v == e->v2 && l2->v == e->v1);

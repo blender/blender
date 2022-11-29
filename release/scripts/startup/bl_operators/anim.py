@@ -282,8 +282,12 @@ class NLA_OT_bake(Operator):
 
     def invoke(self, context, _event):
         scene = context.scene
-        self.frame_start = scene.frame_start
-        self.frame_end = scene.frame_end
+        if scene.use_preview_range:
+            self.frame_start = scene.frame_preview_start
+            self.frame_end = scene.frame_preview_end
+        else:
+            self.frame_start = scene.frame_start
+            self.frame_end = scene.frame_end
         self.bake_types = {'POSE'} if context.mode == 'POSE' else {'OBJECT'}
 
         wm = context.window_manager

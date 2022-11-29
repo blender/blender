@@ -173,7 +173,6 @@ static void get_cols(const CDStreamConfig &config,
 {
   const float cscale = 1.0f / 255.0f;
   const MPoly *polys = config.mpoly;
-  const MLoop *mloops = config.mloop;
   const MCol *cfaces = static_cast<const MCol *>(cd_data);
 
   buffer.reserve(config.totvert);
@@ -184,11 +183,9 @@ static void get_cols(const CDStreamConfig &config,
   for (int i = 0; i < config.totpoly; i++) {
     const MPoly *p = &polys[i];
     const MCol *cface = &cfaces[p->loopstart + p->totloop];
-    const MLoop *mloop = &mloops[p->loopstart + p->totloop];
 
     for (int j = 0; j < p->totloop; j++) {
       cface--;
-      mloop--;
 
       col[0] = cface->a * cscale;
       col[1] = cface->r * cscale;

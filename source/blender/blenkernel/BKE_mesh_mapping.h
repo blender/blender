@@ -351,6 +351,7 @@ namespace blender::bke::mesh_topology {
 Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);
 
 Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
+Array<Vector<int>> build_vert_to_poly_map(Span<MPoly> polys, Span<MLoop> loops, int verts_num);
 Array<Vector<int>> build_vert_to_loop_map(Span<MLoop> loops, int verts_num);
 Array<Vector<int>> build_edge_to_loop_map(Span<MLoop> loops, int edges_num);
 Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<MLoop> loops, int edges_num);

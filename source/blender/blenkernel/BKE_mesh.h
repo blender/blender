@@ -132,7 +132,8 @@ int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
 /**
  * Sets each output array element to the edge index if it is a real edge, or -1.
  */
-void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
+void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,
+                                     const struct MLoop *loops,
                                      const struct MLoopTri *looptri,
                                      int r_edges[3]);
 

@@ -3765,7 +3765,6 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
     }
     case PBVH_GRIDS: {
       const MPoly *mp = BKE_mesh_polys(mesh);
-      const MLoop *mloop = BKE_mesh_loops(mesh);
       CCGKey key = pbvh->gridkey;
 
       bool *hide_poly = (bool *)CustomData_get_layer_named(
@@ -3773,10 +3772,9 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
       bool delete_hide_poly = true;
       for (int face_index = 0; face_index < mesh->totpoly; face_index++, mp++) {
-        const MLoop *ml = mloop + mp->loopstart;
         bool hidden = false;
 
-        for (int loop_index = 0; !hidden && loop_index < mp->totloop; loop_index++, ml++) {
+        for (int loop_index = 0; !hidden && loop_index < mp->totloop; loop_index++) {
           int grid_index = mp->loopstart + loop_index;
 
           if (pbvh->grid_hidden[grid_index] &&

@@ -255,7 +255,7 @@ int ConeConfig::calculate_total_corners()
   return corner_total;
 }
 
-static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConfig &config)
+static void calculate_cone_verts(const ConeConfig &config, MutableSpan<MVert> verts)
 {
   Array<float2> circle(config.circle_segments);
   const float angle_delta = 2.0f * (M_PI / float(config.circle_segments));
@@ -319,7 +319,7 @@ static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConf
   }
 }
 
-static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConfig &config)
+static void calculate_cone_edges(const ConeConfig &config, MutableSpan<MEdge> edges)
 {
   int edge_index = 0;
 
@@ -368,9 +368,9 @@ static void calculate_cone_edges(const MutableSpan<MEdge> &edges, const ConeConf
   }
 }
 
-static void calculate_cone_faces(const MutableSpan<MLoop> &loops,
-                                 const MutableSpan<MPoly> &polys,
-                                 const ConeConfig &config)
+static void calculate_cone_faces(const ConeConfig &config,
+                                 MutableSpan<MLoop> loops,
+                                 MutableSpan<MPoly> polys)
 {
   int loop_index = 0;
   int poly_index = 0;
@@ -474,12 +474,10 @@ static void calculate_cone_faces(const MutableSpan<MLoop> &loops,
   }
 }
 
-static void calculate_selection_outputs(Mesh *mesh,
-                                        const ConeConfig &config,
-                                        ConeAttributeOutputs &attribute_outputs)
+static void calculate_selection_outputs(const ConeConfig &config,
+                                        const ConeAttributeOutputs &attribute_outputs,
+                                        MutableAttributeAccessor attributes)
 {
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
@@ -691,11 +689,11 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  calculate_cone_verts(verts, config);
-  calculate_cone_edges(edges, config);
-  calculate_cone_faces(loops, polys, config);
+  calculate_cone_verts(config, verts);
+  calculate_cone_edges(config, edges);
+  calculate_cone_faces(config, loops, polys);
   calculate_cone_uvs(mesh, config);
-  calculate_selection_outputs(mesh, config, attribute_outputs);
+  calculate_selection_outputs(config, attribute_outputs, mesh->attributes_for_write());
 
   mesh->loose_edges_tag_none();
 
