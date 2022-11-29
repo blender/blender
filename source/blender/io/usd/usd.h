@@ -176,6 +176,7 @@ struct USDImportParams {
   eUSDAttrImportMode attr_import_mode;
   bool triangulate_meshes;
   bool import_shapes;
+  bool import_defined_only;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.

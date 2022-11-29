@@ -287,10 +287,14 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     dome_lights_.push_back(pxr::UsdLuxDomeLight(prim));
   }
 
-  pxr::Usd_PrimFlagsPredicate filter_predicate = pxr::UsdPrimDefaultPredicate;
+  pxr::Usd_PrimFlagsConjunction filter_predicate = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
+                                                   !pxr::UsdPrimIsAbstract;
+  if (params_.import_defined_only) {
+    filter_predicate &= pxr::UsdPrimIsDefined;
+  }
 
   if (!params_.use_instancing && params_.import_instance_proxies) {
-    filter_predicate = pxr::UsdTraverseInstanceProxies(filter_predicate);
+    filter_predicate.TraverseInstanceProxies(true);
   }
 
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_predicate);
