@@ -516,7 +516,7 @@ static ARegion *template_ID_search_menu_item_tooltip(
   ID *active_id = static_cast<ID *>(active);
   StructRNA *type = RNA_property_pointer_type(&template_ui->ptr, template_ui->prop);
 
-  uiSearchItemTooltipData tooltip_data = {0};
+  uiSearchItemTooltipData tooltip_data = {{0}};
 
   tooltip_data.name = active_id->name + 2;
   BLI_snprintf(tooltip_data.description,
