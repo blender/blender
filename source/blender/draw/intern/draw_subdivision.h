@@ -242,6 +242,7 @@ void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
                                          GPUVertBuf *pos_nor);
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
+                                 GPUVertBuf *flags_buffer,
                                  struct GPUVertBuf *pos_nor,
                                  struct GPUVertBuf *orco);
 
