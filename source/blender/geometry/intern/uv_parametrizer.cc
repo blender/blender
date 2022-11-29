@@ -426,9 +426,7 @@ static float p_chart_uv_area(PChart *chart)
 
 static void p_chart_uv_scale(PChart *chart, float scale)
 {
-  PVert *v;
-
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     v->uv[0] *= scale;
     v->uv[1] *= scale;
   }
@@ -436,9 +434,7 @@ static void p_chart_uv_scale(PChart *chart, float scale)
 
 static void p_chart_uv_scale_xy(PChart *chart, float x, float y)
 {
-  PVert *v;
-
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     v->uv[0] *= x;
     v->uv[1] *= y;
   }
@@ -446,9 +442,7 @@ static void p_chart_uv_scale_xy(PChart *chart, float x, float y)
 
 static void p_chart_uv_translate(PChart *chart, const float trans[2])
 {
-  PVert *v;
-
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     v->uv[0] += trans[0];
     v->uv[1] += trans[1];
   }
@@ -456,9 +450,7 @@ static void p_chart_uv_translate(PChart *chart, const float trans[2])
 
 static void p_chart_uv_transform(PChart *chart, const float mat[2][2])
 {
-  PVert *v;
-
-  for (v = chart->verts; v; v = v->nextlink) {
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
     mul_m2_v2(mat, v->uv);
   }
 }
@@ -4000,14 +3992,11 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
 
 void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 {
-  PFace *f;
-  int i;
-
   param_assert(phandle->state == PHANDLE_STATE_CONSTRUCTED);
   phandle->state = PHANDLE_STATE_LSCM;
 
-  for (i = 0; i < phandle->ncharts; i++) {
-    for (f = phandle->charts[i]->faces; f; f = f->nextlink) {
+  for (int i = 0; i < phandle->ncharts; i++) {
+    for (PFace *f = phandle->charts[i]->faces; f; f = f->nextlink) {
       p_face_backup_uvs(f);
     }
     p_chart_lscm_begin(phandle->charts[i], live, abf);
