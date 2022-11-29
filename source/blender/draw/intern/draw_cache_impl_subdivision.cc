@@ -1408,6 +1408,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
 }
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
+                                 GPUVertBuf *flags_buffer,
                                  GPUVertBuf *pos_nor,
                                  GPUVertBuf *orco)
 {
@@ -1460,6 +1461,10 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
+  if (flags_buffer) {
+    GPU_vertbuf_bind_as_ssbo(flags_buffer, binding_point);
+  }
+  binding_point++;
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   if (orco) {
     GPU_vertbuf_bind_as_ssbo(src_extra_buffer, binding_point++);
