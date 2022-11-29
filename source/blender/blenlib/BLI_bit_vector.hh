@@ -200,10 +200,10 @@ class BitVector {
   int64_t capacity_in_bits_;
 
   /** Used for allocations when the inline buffer is too small. */
-  Allocator allocator_;
+  BLI_NO_UNIQUE_ADDRESS Allocator allocator_;
 
   /** Contains the bits as long as the vector is small enough. */
-  TypedBuffer<uint8_t, BytesInInlineBuffer> inline_buffer_;
+  BLI_NO_UNIQUE_ADDRESS TypedBuffer<uint8_t, BytesInInlineBuffer> inline_buffer_;
 
  public:
   BitVector(Allocator allocator = {}) noexcept : allocator_(allocator)
