@@ -51,6 +51,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
@@ -229,119 +230,19 @@ static const char *library_parent_filepath(Library *lib)
 /** \name OldNewMap API
  * \{ */
 
-struct OldNew {
-  const void *oldp;
+struct NewAddress {
   void *newp;
   /* `nr` is "user count" for data, and ID code for libdata. */
   int nr;
 };
 
 struct OldNewMap {
-  /* Array that stores the actual entries. */
-  OldNew *entries;
-  int nentries;
-  /* Hash-map that stores indices into the `entries` array. */
-  int32_t *map;
-
-  int capacity_exp;
+  blender::Map<const void *, NewAddress> map;
 };
-
-#define ENTRIES_CAPACITY(onm) (1ll << (onm)->capacity_exp)
-#define MAP_CAPACITY(onm) (1ll << ((onm)->capacity_exp + 1))
-#define SLOT_MASK(onm) (MAP_CAPACITY(onm) - 1)
-#define DEFAULT_SIZE_EXP 6
-#define PERTURB_SHIFT 5
-
-/* based on the probing algorithm used in Python dicts. */
-#define ITER_SLOTS(onm, KEY, SLOT_NAME, INDEX_NAME) \
-  uint32_t hash = BLI_ghashutil_ptrhash(KEY); \
-  uint32_t mask = SLOT_MASK(onm); \
-  uint perturb = hash; \
-  int SLOT_NAME = mask & hash; \
-  int INDEX_NAME = onm->map[SLOT_NAME]; \
-  for (;; SLOT_NAME = mask & ((5 * SLOT_NAME) + 1 + perturb), \
-          perturb >>= PERTURB_SHIFT, \
-          INDEX_NAME = onm->map[SLOT_NAME])
-
-static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int index)
-{
-  ITER_SLOTS (onm, ptr, slot, stored_index) {
-    if (stored_index == -1) {
-      onm->map[slot] = index;
-      break;
-    }
-  }
-}
-
-static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
-{
-  ITER_SLOTS (onm, entry.oldp, slot, index) {
-    if (index == -1) {
-      onm->entries[onm->nentries] = entry;
-      onm->map[slot] = onm->nentries;
-      onm->nentries++;
-      break;
-    }
-    if (onm->entries[index].oldp == entry.oldp) {
-      onm->entries[index] = entry;
-      break;
-    }
-  }
-}
-
-static OldNew *oldnewmap_lookup_entry(const OldNewMap *onm, const void *addr)
-{
-  ITER_SLOTS (onm, addr, slot, index) {
-    if (index >= 0) {
-      OldNew *entry = &onm->entries[index];
-      if (entry->oldp == addr) {
-        return entry;
-      }
-    }
-    else {
-      return nullptr;
-    }
-  }
-}
-
-static void oldnewmap_clear_map(OldNewMap *onm)
-{
-  memset(onm->map, 0xFF, MAP_CAPACITY(onm) * sizeof(*onm->map));
-}
-
-static void oldnewmap_increase_size(OldNewMap *onm)
-{
-  onm->capacity_exp++;
-  onm->entries = static_cast<OldNew *>(
-      MEM_reallocN(onm->entries, sizeof(*onm->entries) * ENTRIES_CAPACITY(onm)));
-  onm->map = static_cast<int32_t *>(MEM_reallocN(onm->map, sizeof(*onm->map) * MAP_CAPACITY(onm)));
-  oldnewmap_clear_map(onm);
-  for (int i = 0; i < onm->nentries; i++) {
-    oldnewmap_insert_index_in_map(onm, onm->entries[i].oldp, i);
-  }
-}
-
-/* Public OldNewMap API */
-
-static void oldnewmap_init_data(OldNewMap *onm, const int capacity_exp)
-{
-  memset(onm, 0x0, sizeof(*onm));
-
-  onm->capacity_exp = capacity_exp;
-  onm->entries = static_cast<OldNew *>(
-      MEM_malloc_arrayN(ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries"));
-  onm->map = static_cast<int32_t *>(
-      MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map"));
-  oldnewmap_clear_map(onm);
-}
 
 static OldNewMap *oldnewmap_new()
 {
-  OldNewMap *onm = static_cast<OldNewMap *>(MEM_mallocN(sizeof(*onm), "OldNewMap"));
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
-
-  return onm;
+  return MEM_new<OldNewMap>(__func__);
 }
 
 static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
@@ -350,15 +251,7 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
     return;
   }
 
-  if (UNLIKELY(onm->nentries == ENTRIES_CAPACITY(onm))) {
-    oldnewmap_increase_size(onm);
-  }
-
-  OldNew entry;
-  entry.oldp = oldaddr;
-  entry.newp = newaddr;
-  entry.nr = nr;
-  oldnewmap_insert_or_replace(onm, entry);
+  onm->map.add_overwrite(oldaddr, NewAddress{newaddr, nr});
 }
 
 static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
@@ -373,7 +266,7 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void 
 
 static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool increase_users)
 {
-  OldNew *entry = oldnewmap_lookup_entry(onm, addr);
+  NewAddress *entry = onm->map.lookup_ptr(addr);
   if (entry == nullptr) {
     return nullptr;
   }
@@ -383,7 +276,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool inc
   return entry->newp;
 }
 
-/* for libdata, OldNew.nr has ID code, no increment */
+/* for libdata, NewAddress.nr has ID code, no increment */
 static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
 {
   if (addr == nullptr) {
@@ -403,33 +296,18 @@ static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *l
 static void oldnewmap_clear(OldNewMap *onm)
 {
   /* Free unused data. */
-  for (int i = 0; i < onm->nentries; i++) {
-    OldNew *entry = &onm->entries[i];
-    if (entry->nr == 0) {
-      MEM_freeN(entry->newp);
-      entry->newp = nullptr;
+  for (NewAddress &new_addr : onm->map.values()) {
+    if (new_addr.nr == 0) {
+      MEM_freeN(new_addr.newp);
     }
   }
-
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
+  onm->map.clear();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
 {
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-  MEM_freeN(onm);
+  MEM_delete(onm);
 }
-
-#undef ENTRIES_CAPACITY
-#undef MAP_CAPACITY
-#undef SLOT_MASK
-#undef DEFAULT_SIZE_EXP
-#undef PERTURB_SHIFT
-#undef ITER_SLOTS
 
 /** \} */
 
@@ -1555,13 +1433,11 @@ static void change_link_placeholder_to_real_ID_pointer_fd(FileData *fd,
                                                           const void *old,
                                                           void *newp)
 {
-  for (int i = 0; i < fd->libmap->nentries; i++) {
-    OldNew *entry = &fd->libmap->entries[i];
-
-    if (old == entry->newp && entry->nr == ID_LINK_PLACEHOLDER) {
-      entry->newp = newp;
+  for (NewAddress &entry : fd->libmap->map.values()) {
+    if (old == entry.newp && entry.nr == ID_LINK_PLACEHOLDER) {
+      entry.newp = newp;
       if (newp) {
-        entry->nr = GS(((ID *)newp)->name);
+        entry.nr = GS(((ID *)newp)->name);
       }
     }
   }
@@ -1640,12 +1516,10 @@ void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 {
-  OldNew *entry = fd->packedmap->entries;
-
   /* used entries were restored, so we put them to zero */
-  for (int i = 0; i < fd->packedmap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = nullptr;
+  for (NewAddress &entry : fd->packedmap->map.values()) {
+    if (entry.nr > 0) {
+      entry.newp = nullptr;
     }
   }
 
