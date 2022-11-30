@@ -99,9 +99,8 @@ std::pair<Mesh *, bool> OBJMesh::triangulate_mesh_eval()
    * triangulated here. */
   const int triangulate_min_verts = 4;
 
-  unique_bmesh_ptr bmesh(
-      BKE_mesh_to_bmesh_ex(export_mesh_eval_, &bm_create_params, &bm_convert_params));
-  BM_mesh_triangulate(bmesh.get(),
+  BMesh *bmesh = BKE_mesh_to_bmesh_ex(export_mesh_eval_, &bm_create_params, &bm_convert_params);
+  BM_mesh_triangulate(bmesh,
                       MOD_TRIANGULATE_NGON_BEAUTY,
                       MOD_TRIANGULATE_QUAD_SHORTEDGE,
                       triangulate_min_verts,
@@ -110,8 +109,8 @@ std::pair<Mesh *, bool> OBJMesh::triangulate_mesh_eval()
                       nullptr,
                       nullptr);
 
-  Mesh *triangulated = BKE_mesh_from_bmesh_for_eval_nomain(
-      bmesh.get(), nullptr, export_mesh_eval_);
+  Mesh *triangulated = BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, export_mesh_eval_);
+  BM_mesh_free(bmesh);
   free_mesh_if_needed();
   return {triangulated, true};
 }
