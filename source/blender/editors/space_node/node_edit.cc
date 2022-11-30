@@ -2793,18 +2793,19 @@ static bool node_shader_script_update_poll(bContext *C)
 static bool node_shader_script_update_text_recursive(RenderEngine *engine,
                                                      RenderEngineType *type,
                                                      bNodeTree *ntree,
-                                                     Text *text)
+                                                     Text *text,
+                                                     Set<bNodeTree *> &done_trees)
 {
   bool found = false;
 
-  ntree->runtime->done = true;
+  done_trees.add_new(ntree);
 
   /* update each script that is using this text datablock */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == NODE_GROUP) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
-      if (ngroup && !ngroup->runtime->done) {
-        found |= node_shader_script_update_text_recursive(engine, type, ngroup, text);
+      if (ngroup && !done_trees.contains(ngroup)) {
+        found |= node_shader_script_update_text_recursive(engine, type, ngroup, text, done_trees);
       }
     }
     else if (node->type == SH_NODE_SCRIPT && node->id == &text->id) {
@@ -2852,18 +2853,14 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
     Text *text = (Text *)CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
 
     if (text) {
-      /* clear flags for recursion check */
-      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-        if (ntree->type == NTREE_SHADER) {
-          ntree->runtime->done = false;
-        }
-      }
-      FOREACH_NODETREE_END;
+
+      Set<bNodeTree *> done_trees;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
-          if (!ntree->runtime->done) {
-            found |= node_shader_script_update_text_recursive(engine, type, ntree, text);
+          if (!done_trees.contains(ntree)) {
+            found |= node_shader_script_update_text_recursive(
+                engine, type, ntree, text, done_trees);
           }
         }
       }

@@ -28,20 +28,6 @@ const int NOT_FOUND = -1;
 /** Any negative number other than `NOT_FOUND` to initialize usually non-negative numbers. */
 const int NEGATIVE_INIT = -10;
 
-/**
- * #std::unique_ptr than handles freeing #BMesh.
- */
-struct CustomBMeshDeleter {
-  void operator()(BMesh *bmesh)
-  {
-    if (bmesh) {
-      BM_mesh_free(bmesh);
-    }
-  }
-};
-
-using unique_bmesh_ptr = std::unique_ptr<BMesh, CustomBMeshDeleter>;
-
 class OBJMesh : NonCopyable {
  private:
   /**

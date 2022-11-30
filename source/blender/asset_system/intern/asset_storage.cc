@@ -15,16 +15,18 @@
 
 namespace blender::asset_system {
 
-AssetRepresentation &AssetStorage::add_local_id_asset(ID &id)
+AssetRepresentation &AssetStorage::add_local_id_asset(AssetIdentifier &&identifier, ID &id)
 {
-  return *local_id_assets_.lookup_key_or_add(std::make_unique<AssetRepresentation>(id));
+  return *local_id_assets_.lookup_key_or_add(
+      std::make_unique<AssetRepresentation>(std::move(identifier), id));
 }
 
-AssetRepresentation &AssetStorage::add_external_asset(StringRef name,
+AssetRepresentation &AssetStorage::add_external_asset(AssetIdentifier &&identifier,
+                                                      StringRef name,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
   return *external_assets_.lookup_key_or_add(
-      std::make_unique<AssetRepresentation>(name, std::move(metadata)));
+      std::make_unique<AssetRepresentation>(std::move(identifier), name, std::move(metadata)));
 }
 
 bool AssetStorage::remove_asset(AssetRepresentation &asset)

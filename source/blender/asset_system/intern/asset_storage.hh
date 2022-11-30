@@ -19,6 +19,7 @@ struct IDRemapper;
 
 namespace blender::asset_system {
 
+class AssetIdentifier;
 class AssetRepresentation;
 
 class AssetStorage {
@@ -34,9 +35,11 @@ class AssetStorage {
 
  public:
   /** See #AssetLibrary::add_external_asset(). */
-  AssetRepresentation &add_external_asset(StringRef name, std::unique_ptr<AssetMetaData> metadata);
+  AssetRepresentation &add_external_asset(AssetIdentifier &&identifier,
+                                          StringRef name,
+                                          std::unique_ptr<AssetMetaData> metadata);
   /** See #AssetLibrary::add_external_asset(). */
-  AssetRepresentation &add_local_id_asset(ID &id);
+  AssetRepresentation &add_local_id_asset(AssetIdentifier &&identifier, ID &id);
 
   /** See #AssetLibrary::remove_asset(). */
   bool remove_asset(AssetRepresentation &asset);
