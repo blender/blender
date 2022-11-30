@@ -38,8 +38,12 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
   exporter_main(bmain, scene, view_layer, export_params);
 }
 
-PlyData get_test_ply_data()
+void exporter_main(Main *bmain,
+                   Scene *scene,
+                   ViewLayer *view_layer,
+                   const PLYExportParams &export_params)
 {
+  // Load bmesh data into PlyData struct
   PlyData plyData;
   plyData.vertices = {{1, 1, -1},
                       {1, -1, -1},
@@ -95,19 +99,9 @@ PlyData get_test_ply_data()
                            {1, 0.8470588235294118, 0},
                            {1, 0.8470588235294118, 0},
                            {1, 0.8470588235294118, 0}};
-  return plyData;
-}
-
-void exporter_main(Main *bmain,
-                   Scene *scene,
-                   ViewLayer *view_layer,
-                   const PLYExportParams &export_params)
-{
-  // Load bmesh data into PlyData struct
-  PlyData plyData = get_test_ply_data();
 
   // Create file, get writer
-  FileBuffer buffer(export_params.filepath);
+  FileBuffer buffer = FileBufferAscii(export_params.filepath);
   buffer.write_string("comment Hello, blender!");
   buffer.write_to_file();
 

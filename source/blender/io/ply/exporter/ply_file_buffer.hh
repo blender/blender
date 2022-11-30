@@ -30,7 +30,7 @@ namespace blender::io::ply {
  * Call write_fo_file once in a while to write the memory buffer(s)
  * into the given file.
  */
-class FileBuffer : NonCopyable, NonMovable {
+class FileBuffer : NonMovable {
  private:
   typedef std::vector<char> VectorChar;
   std::vector<VectorChar> blocks_;
@@ -39,22 +39,28 @@ class FileBuffer : NonCopyable, NonMovable {
   FILE *outfile_;
 
  public:
-  FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
+  FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
+      : buffer_chunk_size_(buffer_chunk_size)
   {
     this->filepath = filepath;
     outfile_ = BLI_fopen(filepath, "wb");
     if (!outfile_) {
-      throw std::system_error(errno, std::system_category(), "Cannot open file " + std::string(filepath) + ".");
+      throw std::system_error(
+          errno, std::system_category(), "Cannot open file " + std::string(filepath) + ".");
     }
   }
   ~FileBuffer()
   {
-    if (outfile_ && std::fclose(outfile_)) {
+    printf("Destructing FileBuffer");
+    auto close_status = std::fclose(outfile_);
+    if (close_status == EOF) {
+      return;
+    }
+    if (outfile_ && close_status) {
       std::cerr << "Error: could not close the file '" << this->filepath
                 << "' properly, it may be corrupted." << std::endl;
     }
   }
-
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file()
@@ -91,7 +97,6 @@ class FileBuffer : NonCopyable, NonMovable {
   virtual void write_vertex_color(float x, float y, float z, float r, float g, float b)
   {
   }
-
 
   void write_string(StringRef s)
   {
