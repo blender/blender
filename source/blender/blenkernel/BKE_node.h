@@ -405,8 +405,6 @@ typedef struct bNodeTreeType {
   int ui_icon;
 
   /* callbacks */
-  void (*free_cache)(struct bNodeTree *ntree);
-  void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
   /* Iteration over all node classes. */
   void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);
   /* Check visibility in the node editor */
@@ -520,8 +518,6 @@ void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
  * New tree types have a per-output socket flag to indicate the final output to use explicitly.
  */
 void ntreeSetOutput(struct bNodeTree *ntree);
-
-void ntreeFreeCache(struct bNodeTree *ntree);
 
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
 /**

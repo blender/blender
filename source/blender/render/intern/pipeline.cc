@@ -1115,9 +1115,6 @@ static void do_render_compositor(Render *re)
   int update_newframe = 0;
 
   if (compositor_needs_render(re->pipeline_scene_eval, 1)) {
-    /* save memory... free all cached images */
-    ntreeFreeCache(ntree);
-
     /* render the frames
      * it could be optimized to render only the needed view
      * but what if a scene has a different number of views

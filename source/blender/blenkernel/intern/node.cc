@@ -2234,9 +2234,6 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
       MEM_dupallocN(sock_src->default_attribute_name));
 
   sock_dst->stack_index = 0;
-  /* XXX some compositor nodes (e.g. image, render layers) still store
-   * some persistent buffer data here, need to clear this to avoid dangling pointers. */
-  sock_dst->runtime->cache = nullptr;
 }
 
 namespace blender::bke {
@@ -2923,10 +2920,6 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   if (ntree) {
     BLI_remlink(&ntree->nodes, node);
 
-    if (ntree->typeinfo->free_node_cache) {
-      ntree->typeinfo->free_node_cache(ntree, node);
-    }
-
     /* texture node has bad habit of keeping exec data around */
     if (ntree->type == NTREE_TEXTURE && ntree->runtime->execdata) {
       ntreeTexEndExecTree(ntree->runtime->execdata);
@@ -3104,17 +3097,6 @@ void ntreeFreeLocalTree(bNodeTree *ntree)
   else {
     ntreeFreeTree(ntree);
     BKE_libblock_free_data(&ntree->id, true);
-  }
-}
-
-void ntreeFreeCache(bNodeTree *ntree)
-{
-  if (ntree == nullptr) {
-    return;
-  }
-
-  if (ntree->typeinfo->free_cache) {
-    ntree->typeinfo->free_cache(ntree);
   }
 }
 

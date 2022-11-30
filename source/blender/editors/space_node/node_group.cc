@@ -889,9 +889,6 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
     }
   }
 
-  /* node groups don't use internal cached data */
-  ntreeFreeCache(ngroup);
-
   /* create input node */
   bNode *input_node = nodeAddStaticNode(&C, ngroup, NODE_GROUP_INPUT);
   input_node->locx = real_min[0] - center[0] - offsetx;
