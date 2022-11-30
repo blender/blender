@@ -252,9 +252,14 @@ class NLA_OT_bake(Operator):
         do_pose = 'POSE' in self.bake_types
         do_object = 'OBJECT' in self.bake_types
 
-        objects = context.selected_editable_objects
-        if do_pose and not do_object:
-            objects = [obj for obj in objects if obj.pose is not None]
+        if do_pose and self.only_selected:
+            pose_bones = context.selected_pose_bones or []
+            armatures = {pose_bone.id_data for pose_bone in pose_bones}
+            objects = list(armatures)
+        else:
+            objects = context.selected_editable_objects
+            if do_pose and not do_object:
+                objects = [obj for obj in objects if obj.pose is not None]
 
         object_action_pairs = (
             [(obj, getattr(obj.animation_data, "action", None)) for obj in objects]
