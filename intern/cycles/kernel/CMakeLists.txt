@@ -472,6 +472,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_CYCLES_DEBUG)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
     set(_cuda_nvcc_args
@@ -479,7 +480,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
           ${CUDA_NVCC_FLAGS}
           --${format}
           ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-          --ptxas-options="-v"
           ${cuda_flags})
 
     if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
