@@ -29,5 +29,10 @@ class FileBufferAscii : public FileBuffer {
       : FileBuffer(filepath, buffer_chunk_size)
   {
   }
+
+  void write_vertex(float x, float y, float z)
+  {
+    write_fstring("{} {} {}\n", x, y, z);
+  }
 };
 }  // namespace blender::io::ply

@@ -20,8 +20,28 @@
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
 #undef SEP
 #define FMT_HEADER_ONLY
+#include <bitset>
 #include <fmt/format.h>
 
 namespace blender::io::ply {
-class FileBufferBinary : public FileBuffer {};
+class FileBufferBinary : public FileBuffer {
+ public:
+  FileBufferBinary(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
+      : FileBuffer(filepath, buffer_chunk_size)
+  {
+  }
+
+  void write_vertex(float x, float y, float z)
+  {
+    char *xbits = reinterpret_cast<char *>(&x);
+    char *ybits = reinterpret_cast<char *>(&y);
+    char *zbits = reinterpret_cast<char *>(&z);
+
+    std::vector<char> data(xbits, xbits + sizeof(float));
+    data.insert(data.end(), ybits, ybits + sizeof(float));
+    data.insert(data.end(), zbits, zbits + sizeof(float));
+
+    write_bytes(data);
+  }
+};
 }  // namespace blender::io::ply

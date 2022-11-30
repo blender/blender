@@ -90,34 +90,30 @@ class FileBuffer : NonMovable {
     v.blocks_.clear();
   }
 
-  virtual void write_vertex(float x, float y, float z)
-  {
-  }
+  virtual void write_vertex(float x, float y, float z) {}
 
-  virtual void write_vertex_color(float x, float y, float z, float r, float g, float b)
-  {
-  }
+  virtual void write_vertex_color(float x, float y, float z, float r, float g, float b) {}
 
   void write_header_element(StringRef name, int count)
   {
-    write_impl("element {} {}\n", name, count);
+    write_fstring("element {} {}\n", name, count);
   }
   void write_header_scalar_property(StringRef dataType, StringRef name)
   {
-    write_impl("property {} {}\n", dataType, name);
+    write_fstring("property {} {}\n", dataType, name);
   }
 
   void write_string(StringRef s)
   {
-    write_impl("{}\n", s);
+    write_fstring("{}\n", s);
   }
 
   void write_newline()
   {
-    write_impl("\n");
+    write_fstring("\n");
   }
 
- private:
+ protected:
   /* Ensure the last block contains at least this amount of free space.
    * If not, add a new block with max of block size & the amount of space needed. */
   void ensure_space(size_t at_least)
@@ -128,7 +124,7 @@ class FileBuffer : NonMovable {
     }
   }
 
-  template<typename... T> void write_impl(const char *fmt, T &&...args)
+  template<typename... T> void write_fstring(const char *fmt, T &&...args)
   {
     /* Format into a local buffer. */
     fmt::memory_buffer buf;
@@ -137,6 +133,13 @@ class FileBuffer : NonMovable {
     ensure_space(len);
     VectorChar &bb = blocks_.back();
     bb.insert(bb.end(), buf.begin(), buf.end());
+  }
+
+  void write_bytes(std::vector<char> bytes)
+  {
+    ensure_space(bytes.size());
+    VectorChar &bb = blocks_.back();
+    bb.insert(bb.end(), bytes.begin(), bytes.end());
   }
 };
 

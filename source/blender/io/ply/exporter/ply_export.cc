@@ -102,14 +102,22 @@ void exporter_main(Main *bmain,
                            {1, 0.8470588235294118, 0}};
 
   // Create file, get writer
-  FileBuffer buffer = FileBufferAscii(export_params.filepath);
-  generate_header(buffer, plyData, export_params);
-  buffer.write_string("comment Hello, blender!");
-  buffer.write_to_file();
-  buffer.close_file();
+  FileBuffer *buffer;
+  FileBufferBinary derived(export_params.filepath);
+  buffer = &derived;
+  generate_header(*buffer, plyData, export_params);
+  buffer->write_to_file();
+
+  for (auto &&vertex : plyData.vertices)
+  {
+    buffer->write_vertex(vertex.x, vertex.y, vertex.z);
+  }
+
+  buffer->write_to_file();
 
   // Write file header
 
   // Write file body
+  buffer->close_file();
 }
 }  // namespace blender::io::ply
