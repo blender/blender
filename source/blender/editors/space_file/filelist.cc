@@ -3614,7 +3614,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       }
       /* Only load assets when browsing an asset library. For normal file browsing we return all
        * entries. `FLF_ASSETS_ONLY` filter can be enabled/disabled by the user. */
-      if (filelist->asset_library_ref) {
+      if (filelist->asset_library) {
         list_lib_options |= LIST_LIB_ASSETS_ONLY;
       }
       std::optional<int> lib_entries_num = filelist_readjob_list_lib(
