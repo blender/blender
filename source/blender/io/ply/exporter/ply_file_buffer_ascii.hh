@@ -23,5 +23,11 @@
 #include <fmt/format.h>
 
 namespace blender::io::ply {
-class FileBufferAscii : public FileBuffer {};
+class FileBufferAscii : public FileBuffer {
+ public:
+  FileBufferAscii(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
+      : FileBuffer(filepath, buffer_chunk_size)
+  {
+  }
+};
 }  // namespace blender::io::ply
