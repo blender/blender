@@ -94,6 +94,10 @@ void filelist_clear_ex(struct FileList *filelist,
 void filelist_clear_from_reset_tag(struct FileList *filelist);
 void filelist_free(struct FileList *filelist);
 
+/**
+ * Get the root path of the file list. To get the full path for a file, use
+ * #filelist_file_get_full_path().
+ */
 const char *filelist_dir(const struct FileList *filelist);
 bool filelist_is_dir(struct FileList *filelist, const char *path);
 /**
