@@ -908,7 +908,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   struct FileList *files = sfile->files;
   struct FileDirEntry *file;
-  const char *root = filelist_dir(files);
   ImBuf *imb;
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
@@ -989,7 +988,6 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
     uint file_selflag;
-    char path[FILE_MAX_LIBEXTRA];
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
@@ -998,7 +996,8 @@ void file_draw_list(const bContext *C, ARegion *region)
     file = filelist_file(files, i);
     file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
 
-    BLI_path_join(path, sizeof(path), root, file->relpath);
+    char path[FILE_MAX_LIBEXTRA];
+    filelist_file_get_full_path(files, file, path);
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
       if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
