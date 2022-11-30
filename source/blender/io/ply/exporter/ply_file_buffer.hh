@@ -98,6 +98,15 @@ class FileBuffer : NonMovable {
   {
   }
 
+  void write_header_element(StringRef name, int count)
+  {
+    write_impl("element {} {}\n", name, count);
+  }
+  void write_header_scalar_property(StringRef dataType, StringRef name)
+  {
+    write_impl("property {} {}\n", dataType, name);
+  }
+
   void write_string(StringRef s)
   {
     write_impl("{}\n", s);

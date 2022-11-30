@@ -25,6 +25,7 @@
 
 #include "../intern/ply_data.hh"
 #include "ply_export.hh"
+#include "ply_export_header.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
 
@@ -102,6 +103,7 @@ void exporter_main(Main *bmain,
 
   // Create file, get writer
   FileBuffer buffer = FileBufferAscii(export_params.filepath);
+  generate_header(buffer, plyData, export_params);
   buffer.write_string("comment Hello, blender!");
   buffer.write_to_file();
   buffer.close_file();
