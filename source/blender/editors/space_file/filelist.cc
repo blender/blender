@@ -2928,6 +2928,11 @@ struct FileListReadJob {
    * `Materials/Material.001`). */
   char cur_relbase[FILE_MAX_LIBEXTRA];
 
+  /** The current asset library to load. Usually the same as #FileList.asset_library, however
+   * sometimes the #FileList one is a combination of multiple other ones ("All" asset library),
+   * which need to be loaded individually. Then this can be set to override the #FileList library.
+   * Use this in all loading code. */
+  asset_system::AssetLibrary *load_asset_library;
   /** Set to request a partial read that only adds files representing #Main data (IDs). Used when
    * #Main may have received changes of interest (e.g. asset removed or renamed). */
   bool only_main_data;
@@ -3105,7 +3110,6 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
                                                     const int idcode,
                                                     const char *group_name)
 {
-  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
     std::string datablock_path = StringRef(group_name) + "/" + datablock_info->name;
@@ -3121,13 +3125,13 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
     if (datablock_info->asset_data) {
       entry->typeflag |= FILE_TYPE_ASSET;
 
-      if (filelist->asset_library) {
+      if (job_params->load_asset_library) {
         /** XXX Moving out the asset metadata like this isn't great. */
         std::unique_ptr metadata = BKE_asset_metadata_move_to_unique_ptr(
             datablock_info->asset_data);
         BKE_asset_metadata_free(&datablock_info->asset_data);
 
-        entry->asset = &filelist->asset_library->add_external_asset(
+        entry->asset = &job_params->load_asset_library->add_external_asset(
             entry->relpath, datablock_info->name, std::move(metadata));
       }
     }
@@ -3631,7 +3635,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       }
       /* Only load assets when browsing an asset library. For normal file browsing we return all
        * entries. `FLF_ASSETS_ONLY` filter can be enabled/disabled by the user. */
-      if (filelist->asset_library_ref) {
+      if (job_params->load_asset_library) {
         list_lib_options |= LIST_LIB_ASSETS_ONLY;
       }
       std::optional<int> lib_entries_num = filelist_readjob_list_lib(
@@ -3746,6 +3750,8 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
    * #filelist_readjob_endjob() will move it into the real filelist. */
   tmp_filelist->asset_library = AS_asset_library_load(job_params->current_main,
                                                       *job_params->filelist->asset_library_ref);
+  /* Set asset library to load (may be overridden later for loading nested ones). */
+  job_params->load_asset_library = tmp_filelist->asset_library;
   *do_update = true;
 }
 
@@ -3783,8 +3789,8 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
     entry->local_data.preview_image = BKE_asset_metadata_preview_get_from_id(id_iter->asset_data,
                                                                              id_iter);
     entry->local_data.id = id_iter;
-    if (filelist->asset_library) {
-      entry->asset = &filelist->asset_library->add_local_id_asset(entry->relpath, *id_iter);
+    if (job_params->load_asset_library) {
+      entry->asset = &job_params->load_asset_library->add_local_id_asset(entry->relpath, *id_iter);
     }
     entries_num++;
     BLI_addtail(&tmp_entries, entry);
@@ -3902,6 +3908,8 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
       return;
     }
 
+    /* Override library info to read this library. */
+    job_params->load_asset_library = &nested_library;
     BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
 
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);

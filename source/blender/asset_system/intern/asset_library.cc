@@ -170,7 +170,24 @@ AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_p
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
-  return asset_storage_->remove_asset(asset);
+  /* Usual case, only the "All" library differs and uses nested libraries (see below). */
+  if (asset_storage_->remove_asset(asset)) {
+    return true;
+  }
+
+  /* If asset is not stored in this library, check nested ones (for "All" library). */
+  for (AssetLibrary *library : nested_libs_) {
+    if (!library) {
+      BLI_assert_unreachable();
+      continue;
+    }
+
+    if (asset_storage_->remove_asset(asset)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void AssetLibrary::foreach_nested(FunctionRef<void(AssetLibrary &)> fn)
