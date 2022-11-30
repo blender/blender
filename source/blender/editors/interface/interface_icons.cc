@@ -2124,10 +2124,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
     }
 
     /* reset the icon */
-    if ((ob != NULL) &&
-        (ob->mode & (OB_MODE_PAINT_GPENCIL | OB_MODE_VERTEX_GPENCIL | OB_MODE_SCULPT_GPENCIL |
-                     OB_MODE_WEIGHT_GPENCIL)) &&
-        (br->gpencil_settings != NULL)) {
+    if ((ob != NULL) && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL) && (br->gpencil_settings != NULL)) {
       switch (br->gpencil_settings->icon_id) {
         case GP_BRUSH_ICON_PENCIL:
           br->id.icon_id = ICON_GPBRUSH_PENCIL;
