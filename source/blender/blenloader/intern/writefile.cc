@@ -102,6 +102,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
@@ -1083,6 +1084,30 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 /** \name File Writing (Private)
  * \{ */
 
+/* Helper callback for checking linked IDs used by given ID (assumed local), to ensure directly
+ * linked data is tagged accordingly. */
+static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_data)
+{
+  ID *id_self = cb_data->id_self;
+  ID *id = *cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
+
+  if (id == nullptr || !ID_IS_LINKED(id)) {
+    return IDWALK_RET_NOP;
+  }
+  BLI_assert(!ID_IS_LINKED(id_self));
+  BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
+
+  if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
+    id_lib_indirect_weak_link(id);
+  }
+  else {
+    id_lib_extern(id);
+  }
+
+  return IDWALK_RET_NOP;
+}
+
 /* if MemFile * there's filesave to memory */
 static bool write_file_handle(Main *mainvar,
                               WriteWrap *ww,
@@ -1097,10 +1122,23 @@ static bool write_file_handle(Main *mainvar,
   char buf[16];
   WriteData *wd;
 
-  blo_split_main(&mainlist, mainvar);
-
   wd = mywrite_begin(ww, compare, current);
   BlendWriter writer = {wd};
+
+  /* Clear 'directly linked' flag for all linked data, these are not necessarily valid/up-to-date
+   * info, they will be re-generated while write code is processing local IDs below. */
+  if (!wd->use_memfile) {
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
+      if (ID_IS_LINKED(id_iter)) {
+        id_iter->tag |= LIB_TAG_INDIRECT;
+        id_iter->tag &= ~LIB_TAG_EXTERN;
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  blo_split_main(&mainlist, mainvar);
 
   BLI_snprintf(buf,
                sizeof(buf),
@@ -1168,6 +1206,12 @@ static bool write_file_handle(Main *mainvar,
 
         const bool do_override = !ELEM(override_storage, nullptr, bmain) &&
                                  ID_IS_OVERRIDE_LIBRARY_REAL(id);
+
+        /* If not writing undo data, properly set directly linked IDs as `LIB_TAG_EXTERN`. */
+        if (!wd->use_memfile) {
+          BKE_library_foreach_ID_link(
+              bmain, id, write_id_direct_linked_data_process_cb, nullptr, IDWALK_READONLY);
+        }
 
         if (do_override) {
           BKE_lib_override_library_operations_store_start(bmain, override_storage, id);

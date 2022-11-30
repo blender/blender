@@ -761,7 +761,8 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase 
                          (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
                             IDWALK_CB_EMBEDDED :
                             IDWALK_CB_NOP;
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lc->collection, cb_flag);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, lc->collection, cb_flag | IDWALK_CB_DIRECT_WEAK_LINK);
     scene_foreach_layer_collection(data, &lc->layer_collections);
   }
 }
@@ -834,8 +835,11 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->mat_override, IDWALK_CB_USER);
     BKE_view_layer_synced_ensure(scene, view_layer);
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-          data, base->object, IDWALK_CB_NOP | IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                        base->object,
+                                        IDWALK_CB_NOP |
+                                            IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE |
+                                            IDWALK_CB_DIRECT_WEAK_LINK);
     }
 
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
