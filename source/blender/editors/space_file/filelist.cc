@@ -1132,6 +1132,18 @@ void filelist_free_icons(void)
   }
 }
 
+void filelist_file_get_full_path(const FileList *filelist, const FileDirEntry *file, char *r_path)
+{
+  if (file->asset) {
+    const std::string asset_path = AS_asset_representation_full_path_get(file->asset);
+    BLI_strncpy(r_path, asset_path.c_str(), FILE_MAX_LIBEXTRA);
+    return;
+  }
+
+  const char *root = filelist_dir(filelist);
+  BLI_path_join(r_path, FILE_MAX_LIBEXTRA, root, file->relpath);
+}
+
 static FileDirEntry *filelist_geticon_get_file(struct FileList *filelist, const int index)
 {
   BLI_assert(G.background == false);
@@ -1176,8 +1188,8 @@ ImBuf *filelist_geticon_image(struct FileList *filelist, const int index)
   return filelist_geticon_image_ex(file);
 }
 
-static int filelist_geticon_ex(const FileDirEntry *file,
-                               const char *root,
+static int filelist_geticon_ex(const FileList *filelist,
+                               const FileDirEntry *file,
                                const bool is_main,
                                const bool ignore_libdir)
 {
@@ -1215,8 +1227,8 @@ static int filelist_geticon_ex(const FileDirEntry *file,
       if (file->redirection_path) {
         target = file->redirection_path;
       }
-      else if (root) {
-        BLI_path_join(fullpath, sizeof(fullpath), root, file->relpath);
+      else if (filelist) {
+        filelist_file_get_full_path(filelist, file, fullpath);
         BLI_path_slash_ensure(fullpath, sizeof(fullpath));
       }
       for (; tfsm; tfsm = tfsm->next) {
@@ -1296,13 +1308,13 @@ int filelist_geticon(struct FileList *filelist, const int index, const bool is_m
 {
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
 
-  return filelist_geticon_ex(file, filelist->filelist.root, is_main, false);
+  return filelist_geticon_ex(filelist, file, is_main, false);
 }
 
 int ED_file_icon(const FileDirEntry *file)
 {
   return file->preview_icon_id ? file->preview_icon_id :
-                                 filelist_geticon_ex(file, nullptr, false, false);
+                                 filelist_geticon_ex(nullptr, file, false, false);
 }
 
 static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry)
@@ -1629,8 +1641,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
     else {
-      BLI_path_join(
-          preview->filepath, sizeof(preview->filepath), filelist->filelist.root, entry->relpath);
+      filelist_file_get_full_path(filelist, entry, preview->filepath);
     }
     // printf("%s: %d - %s\n", __func__, preview->index, preview->filepath);
 
@@ -1953,7 +1964,7 @@ static const char *fileentry_uiname(const char *root, FileListInternEntry *entry
   return BLI_strdup(name);
 }
 
-const char *filelist_dir(struct FileList *filelist)
+const char *filelist_dir(const FileList *filelist)
 {
   return filelist->filelist.root;
 }
