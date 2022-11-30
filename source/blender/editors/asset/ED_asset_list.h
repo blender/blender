@@ -51,7 +51,6 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
 void ED_assetlist_storage_exit(void);
 
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
-const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
 
 /**
  * \return True if the region needs a UI redraw.

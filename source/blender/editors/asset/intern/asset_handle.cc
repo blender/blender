@@ -6,7 +6,9 @@
 
 #include <string>
 
+#include "AS_asset_identifier.hh"
 #include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "DNA_space_types.h"
 
@@ -42,14 +44,12 @@ int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
   return asset->file_data->preview_icon_id;
 }
 
-void ED_asset_handle_get_full_library_path(const bContext *C,
-                                           const AssetLibraryReference *asset_library_ref,
-                                           const AssetHandle *asset,
+void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
                                            char r_full_lib_path[FILE_MAX_LIBEXTRA])
 {
   *r_full_lib_path = '\0';
 
-  std::string asset_path = ED_assetlist_asset_filepath_get(C, *asset_library_ref, *asset);
+  std::string asset_path = AS_asset_representation_full_path_get(asset_handle->file_data->asset);
   if (asset_path.empty()) {
     return;
   }
@@ -59,16 +59,14 @@ void ED_asset_handle_get_full_library_path(const bContext *C,
 
 namespace blender::ed::asset {
 
-ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain,
-                                                const AssetLibraryReference &library_ref,
-                                                const AssetHandle asset)
+ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain, const AssetHandle asset)
 {
   if (ID *local_id = ED_asset_handle_get_local_id(&asset)) {
     return local_id;
   }
 
   char blend_path[FILE_MAX_LIBEXTRA];
-  ED_asset_handle_get_full_library_path(nullptr, &library_ref, &asset, blend_path);
+  ED_asset_handle_get_full_library_path(&asset, blend_path);
   const char *id_name = ED_asset_handle_get_name(&asset);
 
   return WM_file_append_datablock(&bmain,
