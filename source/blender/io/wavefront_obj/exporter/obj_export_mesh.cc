@@ -3,8 +3,6 @@
 /** \file
  * \ingroup obj
  */
-/* Silence warnings from copying deprecated fields. Needed for an Object copy constructor use. */
-#define DNA_DEPRECATED_ALLOW
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
