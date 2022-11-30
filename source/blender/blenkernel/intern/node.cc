@@ -876,7 +876,7 @@ static void lib_link_node_sockets(BlendLibReader *reader, Library *lib, ListBase
   }
 }
 
-void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
+void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
 {
   Library *lib = ntree->id.lib;
 
@@ -1002,7 +1002,7 @@ static void ntree_blend_read_expand(BlendExpander *expander, ID *id)
 
 namespace blender::bke {
 
-static void node_tree_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_data)
+static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 {
   bNodeTree &node_tree = *static_cast<bNodeTree *>(asset_ptr);
 
@@ -1085,7 +1085,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
  * The #bNodeType may not be registered at creation time of the node,
  * so this can be delayed until the node type gets registered.
  */
-static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
+static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
 {
   bNodeType *ntype = node->typeinfo;
   if (ntype == &NodeTypeUndefined) {
@@ -1126,7 +1126,6 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
     id_us_plus(node->id);
   }
 
-  /* extra init callback */
   if (ntype->initfunc_api) {
     PointerRNA ptr;
     RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
@@ -1154,7 +1153,7 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
   BKE_ntree_update_tag_all(ntree);
 }
 
-static void node_set_typeinfo(const struct bContext *C,
+static void node_set_typeinfo(const bContext *C,
                               bNodeTree *ntree,
                               bNode *node,
                               bNodeType *typeinfo)
@@ -1206,7 +1205,7 @@ static void node_socket_set_typeinfo(bNodeTree *ntree,
 
 /* Set specific typeinfo pointers in all node trees on register/unregister */
 static void update_typeinfo(Main *bmain,
-                            const struct bContext *C,
+                            const bContext *C,
                             bNodeTreeType *treetype,
                             bNodeType *nodetype,
                             bNodeSocketType *socktype,
@@ -1255,7 +1254,7 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
+void ntreeSetTypes(const bContext *C, bNodeTree *ntree)
 {
   ntree_set_typeinfo(ntree, ntreeTypeFind(ntree->idname));
 
@@ -1303,7 +1302,6 @@ void ntreeTypeAdd(bNodeTreeType *nt)
   update_typeinfo(G_MAIN, nullptr, nt, nullptr, nullptr, false);
 }
 
-/* callback for hash value free function */
 static void ntree_free_type(void *treetype_v)
 {
   bNodeTreeType *treetype = (bNodeTreeType *)treetype_v;
@@ -1341,7 +1339,6 @@ bNodeType *nodeTypeFind(const char *idname)
   return nullptr;
 }
 
-/* callback for hash value free function */
 static void node_free_type(void *nodetype_v)
 {
   bNodeType *nodetype = (bNodeType *)nodetype_v;
@@ -1409,7 +1406,6 @@ bNodeSocketType *nodeSocketTypeFind(const char *idname)
   return nullptr;
 }
 
-/* callback for hash value free function */
 static void node_free_socket_type(void *socktype_v)
 {
   bNodeSocketType *socktype = (bNodeSocketType *)socktype_v;
@@ -1451,9 +1447,7 @@ const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
   return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
 }
 
-struct bNodeSocket *nodeFindSocket(const bNode *node,
-                                   eNodeSocketInOut in_out,
-                                   const char *identifier)
+bNodeSocket *nodeFindSocket(const bNode *node, eNodeSocketInOut in_out, const char *identifier)
 {
   const ListBase *sockets = (in_out == SOCK_IN) ? &node->inputs : &node->outputs;
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
@@ -1491,7 +1485,6 @@ bNodeSocket *node_find_enabled_output_socket(bNode &node, StringRef name)
 
 }  // namespace blender::bke
 
-/* find unique socket identifier */
 static bool unique_identifier_check(void *arg, const char *identifier)
 {
   const ListBase *lb = (const ListBase *)arg;
@@ -1703,7 +1696,7 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree,
   return sock;
 }
 
-bool nodeIsStaticSocketType(const struct bNodeSocketType *stype)
+bool nodeIsStaticSocketType(const bNodeSocketType *stype)
 {
   /*
    * Cannot rely on type==SOCK_CUSTOM here, because type is 0 by default
@@ -1943,10 +1936,7 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
   nodeRemoveSocketEx(ntree, node, sock, true);
 }
 
-void nodeRemoveSocketEx(struct bNodeTree *ntree,
-                        struct bNode *node,
-                        struct bNodeSocket *sock,
-                        bool do_id_user)
+void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool do_id_user)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (link->fromsock == sock || link->tosock == sock) {
@@ -2180,15 +2170,13 @@ bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node)
   }
 }
 
-/* ************** Add stuff ********** */
-
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
 {
   BLI_uniquename(
       &ntree->nodes, node, DATA_("Node"), '.', offsetof(bNode, name), sizeof(node->name));
 }
 
-bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idname)
+bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
 {
   bNode *node = MEM_cnew<bNode>("new node");
   node->runtime = MEM_new<bNodeRuntime>(__func__);
@@ -2206,7 +2194,7 @@ bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idnam
   return node;
 }
 
-bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
+bNode *nodeAddStaticNode(const bContext *C, bNodeTree *ntree, int type)
 {
   const char *idname = nullptr;
 
@@ -2354,12 +2342,10 @@ static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
 bNodeLink *nodeAddLink(
     bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock)
 {
-  bNodeLink *link = nullptr;
-
-  /* Test valid input. */
   BLI_assert(fromnode);
   BLI_assert(tonode);
 
+  bNodeLink *link = nullptr;
   if (fromsock->in_out == SOCK_OUT && tosock->in_out == SOCK_IN) {
     link = MEM_cnew<bNodeLink>("link");
     if (ntree) {
@@ -2888,8 +2874,6 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
   }
 }
 
-/* ************** Free stuff ********** */
-
 void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
@@ -3375,19 +3359,19 @@ bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree,
   return iosock;
 }
 
-struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
-                                                      bNode *from_node,
-                                                      bNodeSocket *from_sock)
+bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
+                                               bNode *from_node,
+                                               bNodeSocket *from_sock)
 {
   return ntreeAddSocketInterfaceFromSocketWithName(
       ntree, from_node, from_sock, from_sock->idname, from_sock->name);
 }
 
-struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
-                                                              bNode *from_node,
-                                                              bNodeSocket *from_sock,
-                                                              const char *idname,
-                                                              const char *name)
+bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
+                                                       bNode *from_node,
+                                                       bNodeSocket *from_sock,
+                                                       const char *idname,
+                                                       const char *name)
 {
   bNodeSocket *iosock = ntreeAddSocketInterface(
       ntree, static_cast<eNodeSocketInOut>(from_sock->in_out), idname, DATA_(name));
@@ -3399,10 +3383,10 @@ struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
   return iosock;
 }
 
-struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
-                                                         bNodeSocket *next_sock,
-                                                         bNode *from_node,
-                                                         bNodeSocket *from_sock)
+bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
+                                                  bNodeSocket *next_sock,
+                                                  bNode *from_node,
+                                                  bNodeSocket *from_sock)
 {
   bNodeSocket *iosock = ntreeInsertSocketInterface(
       ntree,
@@ -4028,7 +4012,6 @@ static bool node_poll_default(bNodeType * /*ntype*/,
   return true;
 }
 
-/* use the basic poll function */
 static bool node_poll_instance_default(bNode *node, bNodeTree *ntree, const char **disabled_hint)
 {
   return node->typeinfo->poll(node->typeinfo, ntree, disabled_hint);
@@ -4115,9 +4098,9 @@ static void unique_socket_template_identifier(bNodeSocketTemplate *list,
                     sizeof(ntemp->identifier));
 }
 
-void node_type_socket_templates(struct bNodeType *ntype,
-                                struct bNodeSocketTemplate *inputs,
-                                struct bNodeSocketTemplate *outputs)
+void node_type_socket_templates(bNodeType *ntype,
+                                bNodeSocketTemplate *inputs,
+                                bNodeSocketTemplate *outputs)
 {
   ntype->inputs = inputs;
   ntype->outputs = outputs;
@@ -4147,7 +4130,7 @@ void node_type_socket_templates(struct bNodeType *ntype,
   }
 }
 
-void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth)
+void node_type_size(bNodeType *ntype, int width, int minwidth, int maxwidth)
 {
   ntype->width = width;
   ntype->minwidth = minwidth;
@@ -4159,7 +4142,7 @@ void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwid
   }
 }
 
-void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size)
+void node_type_size_preset(bNodeType *ntype, eNodeSizePreset size)
 {
   switch (size) {
     case NODE_SIZE_DEFAULT:
@@ -4179,10 +4162,10 @@ void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size)
 
 void node_type_storage(bNodeType *ntype,
                        const char *storagename,
-                       void (*freefunc)(struct bNode *node),
-                       void (*copyfunc)(struct bNodeTree *dest_ntree,
-                                        struct bNode *dest_node,
-                                        const struct bNode *src_node))
+                       void (*freefunc)(bNode *node),
+                       void (*copyfunc)(bNodeTree *dest_ntree,
+                                        bNode *dest_node,
+                                        const bNode *src_node))
 {
   if (storagename) {
     BLI_strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
@@ -4248,7 +4231,7 @@ void BKE_node_system_exit()
 /* -------------------------------------------------------------------- */
 /* NodeTree Iterator Helpers (FOREACH_NODETREE_BEGIN) */
 
-void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain)
+void BKE_node_tree_iter_init(NodeTreeIterStore *ntreeiter, Main *bmain)
 {
   ntreeiter->ngroup = (bNodeTree *)bmain->nodetrees.first;
   ntreeiter->scene = (Scene *)bmain->scenes.first;
@@ -4259,9 +4242,7 @@ void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *b
   ntreeiter->linestyle = (FreestyleLineStyle *)bmain->linestyles.first;
   ntreeiter->simulation = (Simulation *)bmain->simulations.first;
 }
-bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
-                             bNodeTree **r_nodetree,
-                             struct ID **r_id)
+bool BKE_node_tree_iter_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetree, ID **r_id)
 {
   if (ntreeiter->ngroup) {
     *r_nodetree = (bNodeTree *)ntreeiter->ngroup;
@@ -4309,9 +4290,6 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 
   return true;
 }
-
-/* -------------------------------------------------------------------- */
-/* NodeTree kernel functions */
 
 void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_index)
 {
