@@ -21,6 +21,7 @@ set(SRC
   intern/asset_library_service.cc
   intern/asset_representation.cc
   intern/asset_storage.cc
+  intern/utils.cc
 
   AS_asset_catalog.hh
   AS_asset_catalog_path.hh
@@ -29,6 +30,7 @@ set(SRC
   AS_asset_representation.hh
   intern/asset_library_service.hh
   intern/asset_storage.hh
+  intern/utils.hh
 
   AS_asset_library.h
   AS_asset_representation.h

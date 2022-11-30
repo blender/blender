@@ -33,7 +33,8 @@ namespace blender::asset_system {
 class AssetLibraryService {
   static std::unique_ptr<AssetLibraryService> instance_;
 
-  /* Mapping absolute path of the library's top-level directory to the AssetLibrary instance. */
+  /* Mapping absolute path of the library's root path (normalize with #normalize_directory_path()!)
+   * the AssetLibrary instance. */
   Map<std::string, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
   /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_

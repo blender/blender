@@ -22,6 +22,7 @@
 
 #include "asset_library_service.hh"
 #include "asset_storage.hh"
+#include "utils.hh"
 
 using namespace blender;
 using namespace blender::asset_system;
@@ -120,8 +121,9 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
 
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary()
-    : asset_storage_(std::make_unique<AssetStorage>()),
+AssetLibrary::AssetLibrary(StringRef root_path)
+    : root_path_(utils::normalize_directory_path(root_path)),
+      asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
 }
@@ -133,9 +135,9 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
-void AssetLibrary::load_catalogs(StringRefNull library_root_directory)
+void AssetLibrary::load_catalogs()
 {
-  auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
+  auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
   catalog_service->load_from_disk();
   this->catalog_service = std::move(catalog_service);
 }
@@ -222,6 +224,11 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     return;
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
+}
+
+StringRefNull AssetLibrary::root_path() const
+{
+  return root_path_;
 }
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs()

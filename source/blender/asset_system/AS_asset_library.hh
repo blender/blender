@@ -34,7 +34,9 @@ class AssetStorage;
  * to also include asset indexes and more.
  */
 class AssetLibrary {
-  bCallbackFuncStore on_save_callback_store_{};
+  /** If this is an asset library on disk, the top-level directory path. Normalized using
+   * #normalize_directory_path().*/
+  std::string root_path_;
 
   /** Storage for assets (better said their representations) that are considered to be part of this
    * library. Assets are not automatically loaded into this when loading an asset library. Assets
@@ -51,6 +53,8 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
+  bCallbackFuncStore on_save_callback_store_{};
+
  public:
   /* Controlled by #ED_asset_catalogs_set_save_catalogs_when_file_is_saved,
    * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
@@ -59,10 +63,13 @@ class AssetLibrary {
   std::unique_ptr<AssetCatalogService> catalog_service;
 
  public:
-  AssetLibrary();
+  /**
+   * \param root_path: If this is an asset library on disk, the top-level directory path.
+   */
+  AssetLibrary(StringRef root_path = "");
   ~AssetLibrary();
 
-  void load_catalogs(StringRefNull library_root_directory);
+  void load_catalogs();
 
   /** Load catalogs that have changed on disk. */
   void refresh();
@@ -104,6 +111,8 @@ class AssetLibrary {
   void on_blend_save_handler_unregister();
 
   void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
+
+  StringRefNull root_path() const;
 
  private:
   std::optional<int> find_asset_index(const AssetRepresentation &asset);
