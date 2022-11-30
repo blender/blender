@@ -1832,9 +1832,9 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
         cmat = mat.cycles
 
         col = layout.column()
-        col.prop(cmat, "sample_as_light", text="Multiple Importance")
-        col.prop(cmat, "use_transparent_shadow")
         col.prop(cmat, "displacement_method", text="Displacement")
+        col.prop(cmat, "emission_sampling")
+        col.prop(cmat, "use_transparent_shadow")
 
     def draw(self, context):
         self.draw_shared(self, context.material)

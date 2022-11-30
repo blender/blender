@@ -768,7 +768,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
                                     sd->time,
                                     P,
                                     zero_float3(),
-                                    0,
+                                    SD_BSDF_HAS_TRANSMISSION,
                                     bounce,
                                     path_flag,
                                     ls)) {
@@ -984,7 +984,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
       unguided_phase_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
 
-  path_state_next(kg, state, label);
+  path_state_next(kg, state, label, sd->flag);
   return true;
 }
 

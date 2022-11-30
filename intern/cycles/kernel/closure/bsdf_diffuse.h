@@ -69,7 +69,7 @@ ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_translucent_setup(ccl_private DiffuseBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_TRANSLUCENT_ID;
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device Spectrum bsdf_translucent_eval(ccl_private const ShaderClosure *sc,

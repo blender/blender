@@ -112,11 +112,13 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   Spectrum L = surface_shader_emission(sd);
   float mis_weight = 1.0f;
 
+  const bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
+                       (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
+
 #ifdef __HAIR__
-  if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) &&
-      (sd->type & PRIMITIVE_TRIANGLE))
+  if (has_mis && (sd->type & PRIMITIVE_TRIANGLE))
 #else
-  if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
+  if (has_mis)
 #endif
   {
     mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, sd);
@@ -447,7 +449,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
 
-  path_state_next(kg, state, label);
+  path_state_next(kg, state, label, sd->flag);
 
   guiding_record_surface_bounce(kg,
                                 state,

@@ -162,7 +162,9 @@ bool Light::has_contribution(Scene *scene)
   if (light_type == LIGHT_BACKGROUND) {
     return true;
   }
-  return (shader) ? shader->has_surface_emission : scene->default_light->has_surface_emission;
+
+  const Shader *effective_shader = (shader) ? shader : scene->default_light;
+  return !is_zero(effective_shader->emission_estimate);
 }
 
 /* Light Manager */
@@ -256,7 +258,7 @@ bool LightManager::object_usable_as_light(Object *object)
    */
   foreach (Node *node, geom->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
-    if (shader->get_use_mis() && shader->has_surface_emission) {
+    if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       return true;
     }
   }
@@ -295,7 +297,7 @@ void LightManager::device_update_distribution(Device *device,
                            static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
 
-      if (shader->get_use_mis() && shader->has_surface_emission) {
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         num_triangles++;
       }
     }
@@ -359,7 +361,7 @@ void LightManager::device_update_distribution(Device *device,
                            static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
 
-      if (shader->get_use_mis() && shader->has_surface_emission) {
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         distribution[offset].totarea = totarea;
         distribution[offset].prim = i + mesh->prim_offset;
         distribution[offset].mesh_light.shader_flag = shader_flag;
