@@ -293,7 +293,10 @@ void ED_object_vpaintmode_exit(struct bContext *C);
 void ED_object_wpaintmode_exit_ex(struct Object *ob);
 void ED_object_wpaintmode_exit(struct bContext *C);
 
-void ED_object_texture_paint_mode_enter_ex(struct Main *bmain, struct Scene *scene, Object *ob);
+void ED_object_texture_paint_mode_enter_ex(struct Main *bmain,
+                                           struct Scene *scene,
+                                           struct Depsgraph *depsgraph,
+                                           Object *ob);
 void ED_object_texture_paint_mode_enter(struct bContext *C);
 
 void ED_object_texture_paint_mode_exit_ex(struct Main *bmain, struct Scene *scene, Object *ob);

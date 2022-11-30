@@ -304,6 +304,32 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   }
 }
 
+void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const SculptSession *ss = ob->sculpt;
+
+  printf("%s: stroke counter: %d %d\n",
+         __func__,
+         ups->average_stroke_counter,
+         (int)ups->last_stroke_valid);
+
+  /* No valid pivot? Use bounding box center. */
+  if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
+    float location[3], max[3];
+    BKE_pbvh_bounding_box(ss->pbvh, location, max);
+
+    interp_v3_v3v3(location, location, max, 0.5f);
+    mul_m4_v3(ob->object_to_world, location);
+
+    copy_v3_v3(ups->average_stroke_accum, location);
+    ups->average_stroke_counter = 1;
+
+    /* Update last stroke position. */
+    ups->last_stroke_valid = true;
+  }
+}
+
 void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Depsgraph *depsgraph,
                                    Scene *scene,
@@ -387,6 +413,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
     }
   }
+
+  SCULPT_ensure_valid_pivot(ob, scene);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
