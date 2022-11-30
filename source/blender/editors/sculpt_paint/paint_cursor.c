@@ -15,6 +15,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -27,6 +28,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
