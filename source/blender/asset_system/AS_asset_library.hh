@@ -24,6 +24,7 @@ struct Main;
 
 namespace blender::asset_system {
 
+class AssetIdentifier;
 class AssetRepresentation;
 class AssetStorage;
 
@@ -35,8 +36,10 @@ class AssetStorage;
  */
 class AssetLibrary {
   /** If this is an asset library on disk, the top-level directory path. Normalized using
-   * #normalize_directory_path().*/
-  std::string root_path_;
+   * #normalize_directory_path(). Shared pointer so assets can safely point to it, and don't have
+   * to hold a copy (which is the size of `std::string` + the allocated buffer, if no short string
+   * optimization is used). With thousands of assets this might make a reasonable difference. */
+  std::shared_ptr<std::string> root_path_;
 
   /** Storage for assets (better said their representations) that are considered to be part of this
    * library. Assets are not automatically loaded into this when loading an asset library. Assets
@@ -79,10 +82,16 @@ class AssetLibrary {
    * representation is not needed anymore, it must be freed using #remove_asset(), or there will be
    * leaking that's only cleared when the library storage is destructed (typically on exit or
    * loading a different file).
+   *
+   * \param relative_asset_path: The path of the asset relative to the asset library root. With
+   *                             this the asset must be uniquely identifiable within the asset
+   *                             library.
    */
-  AssetRepresentation &add_external_asset(StringRef name, std::unique_ptr<AssetMetaData> metadata);
+  AssetRepresentation &add_external_asset(StringRef relative_asset_path,
+                                          StringRef name,
+                                          std::unique_ptr<AssetMetaData> metadata);
   /** See #AssetLibrary::add_external_asset(). */
-  AssetRepresentation &add_local_id_asset(ID &id);
+  AssetRepresentation &add_local_id_asset(StringRef relative_asset_path, ID &id);
   /** Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
@@ -111,6 +120,12 @@ class AssetLibrary {
   void on_blend_save_handler_unregister();
 
   void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
+
+  /**
+   * Create an asset identifier from the root path of this asset library and the given relative
+   * asset path (relative to the asset library root directory).
+   */
+  AssetIdentifier derive_asset_identifier(StringRef relative_asset_path);
 
   StringRefNull root_path() const;
 

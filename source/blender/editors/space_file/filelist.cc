@@ -3099,8 +3099,8 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
             datablock_info->asset_data);
         BKE_asset_metadata_free(&datablock_info->asset_data);
 
-        entry->asset = &filelist->asset_library->add_external_asset(datablock_info->name,
-                                                                    std::move(metadata));
+        entry->asset = &filelist->asset_library->add_external_asset(
+            entry->relpath, datablock_info->name, std::move(metadata));
       }
     }
   }
@@ -3745,7 +3745,8 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
     const char *id_code_name = BKE_idtype_idcode_to_name(GS(id_iter->name));
 
     entry = MEM_cnew<FileListInternEntry>(__func__);
-    entry->relpath = current_relpath_append(job_params, id_code_name);
+    std::string datablock_path = StringRef(id_code_name) + "/" + (id_iter->name + 2);
+    entry->relpath = current_relpath_append(job_params, datablock_path.c_str());
     entry->name = id_iter->name + 2;
     entry->free_name = false;
     entry->typeflag |= FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET;
@@ -3755,7 +3756,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
                                                                              id_iter);
     entry->local_data.id = id_iter;
     if (filelist->asset_library) {
-      entry->asset = &filelist->asset_library->add_local_id_asset(*id_iter);
+      entry->asset = &filelist->asset_library->add_local_id_asset(entry->relpath, *id_iter);
     }
     entries_num++;
     BLI_addtail(&tmp_entries, entry);
