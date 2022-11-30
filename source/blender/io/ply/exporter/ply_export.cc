@@ -104,6 +104,7 @@ void exporter_main(Main *bmain,
   FileBuffer buffer = FileBufferAscii(export_params.filepath);
   buffer.write_string("comment Hello, blender!");
   buffer.write_to_file();
+  buffer.close_file();
 
   // Write file header
 
