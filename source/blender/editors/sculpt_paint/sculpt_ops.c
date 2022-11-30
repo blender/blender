@@ -308,11 +308,6 @@ void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   const SculptSession *ss = ob->sculpt;
 
-  printf("%s: stroke counter: %d %d\n",
-         __func__,
-         ups->average_stroke_counter,
-         (int)ups->last_stroke_valid);
-
   /* No valid pivot? Use bounding box center. */
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
     float location[3], max[3];
