@@ -95,13 +95,10 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 
 static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
-  bNode *lnode;
-  bNodeSocket *lsock;
-
   /* move over the compbufs and previews */
   BKE_node_preview_merge_tree(ntree, localtree, true);
 
-  for (lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
+  for (bNode *lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
     if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
       if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
