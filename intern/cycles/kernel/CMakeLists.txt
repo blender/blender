@@ -285,10 +285,16 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
 )
 
 set(SRC_KERNEL_LIGHT_HEADERS
-  light/light.h
+  light/area.h
   light/background.h
   light/common.h
+  light/distant.h
+  light/distribution.h
+  light/light.h
+  light/point.h
   light/sample.h
+  light/spot.h
+  light/triangle.h
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
