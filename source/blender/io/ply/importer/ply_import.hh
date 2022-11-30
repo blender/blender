@@ -20,5 +20,6 @@ void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
                    const PLYImportParams &import_params);
+enum PlyFormatType { ascii, binary_big_endian , binary_little_endian};
 
 }  // namespace blender::io::ply
