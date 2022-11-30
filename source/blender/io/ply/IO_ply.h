@@ -15,13 +15,16 @@ extern "C" {
 #endif
 
 struct PLYExportParams {
-  /** Full path to the destination .OBJ file. */
+  /** Full path to the destination .PLY file. */
   char filepath[FILE_MAX];
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
   char file_base_for_tests[FILE_MAX];
 
   /** Full path to current blender file (used for comments in output). */
   const char *blen_filepath;
+
+  /** File export format, ASCII if true, binary otherwise */
+  bool ascii_format;
 
   /* Geometry Transform options. */
   eIOAxis forward_axis;
