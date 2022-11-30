@@ -1097,6 +1097,7 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   }
   BLI_assert(!ID_IS_LINKED(id_self));
   BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
+  UNUSED_VARS_NDEBUG(id_self);
 
   if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
     id_lib_indirect_weak_link(id);
