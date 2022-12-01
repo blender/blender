@@ -102,6 +102,11 @@ template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T fract(cons
   return a - std::floor(a);
 }
 
+template<typename T> inline T sqrt(const T &a)
+{
+  return std::sqrt(a);
+}
+
 template<typename T> inline T cos(const T &a)
 {
   return std::cos(a);
