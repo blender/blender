@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_path_util.h"
+#include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
@@ -83,6 +84,8 @@
 #include "DEG_depsgraph_build.h"
 
 #include "BLO_read_write.h"
+
+#include "PIL_time.h"
 
 #define NODE_DEFAULT_MAX_WIDTH 700
 
@@ -146,12 +149,14 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
+  ntree_dst->runtime->nodes_by_id.reserve(ntree_src->all_nodes().size());
   BLI_listbase_clear(&ntree_dst->nodes);
   LISTBASE_FOREACH (const bNode *, src_node, &ntree_src->nodes) {
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = blender::bke::node_copy_with_mapping(
         ntree_dst, *src_node, flag_subdata, false, socket_map);
     node_map.add(src_node, new_node);
+    ntree_dst->runtime->nodes_by_id.add_new(new_node);
   }
 
   /* copy links */
@@ -679,6 +684,15 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     node->runtime = MEM_new<bNodeRuntime>(__func__);
     node->typeinfo = nullptr;
 
+    /* Create the `nodes_by_id` cache eagerly so it can be expected to be valid. Because
+     * we create it here we also have to check for zero identifiers from previous versions. */
+    if (ntree->runtime->nodes_by_id.contains_as(node->identifier)) {
+      nodeUniqueID(ntree, node);
+    }
+    else {
+      ntree->runtime->nodes_by_id.add_new(node);
+    }
+
     BLO_read_list(reader, &node->inputs);
     BLO_read_list(reader, &node->outputs);
 
@@ -764,6 +778,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     }
   }
   BLO_read_list(reader, &ntree->links);
+  BLI_assert(ntree->all_nodes().size() == BLI_listbase_count(&ntree->nodes));
 
   /* and we connect the rest */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -2176,11 +2191,28 @@ void nodeUniqueName(bNodeTree *ntree, bNode *node)
       &ntree->nodes, node, DATA_("Node"), '.', offsetof(bNode, name), sizeof(node->name));
 }
 
+void nodeUniqueID(bNodeTree *ntree, bNode *node)
+{
+  /* Use a pointer cast to avoid overflow warnings. */
+  const double time = PIL_check_seconds_timer() * 1000000.0;
+  blender::RandomNumberGenerator id_rng{*reinterpret_cast<const uint32_t *>(&time)};
+
+  /* In the unlikely case that the random ID doesn't match, choose a new one until it does. */
+  int32_t new_id = id_rng.get_int32();
+  while (ntree->runtime->nodes_by_id.contains_as(new_id)) {
+    new_id = id_rng.get_int32();
+  }
+
+  node->identifier = new_id;
+  ntree->runtime->nodes_by_id.add_new(node);
+}
+
 bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
 {
   bNode *node = MEM_cnew<bNode>("new node");
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree->nodes, node);
+  nodeUniqueID(ntree, node);
 
   BLI_strncpy(node->idname, idname, sizeof(node->idname));
   node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
@@ -2241,7 +2273,7 @@ namespace blender::bke {
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
                               const int flag,
-                              const bool unique_name,
+                              const bool use_unique,
                               Map<const bNodeSocket *, bNodeSocket *> &socket_map)
 {
   bNode *node_dst = (bNode *)MEM_mallocN(sizeof(bNode), __func__);
@@ -2251,8 +2283,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 
   /* Can be called for nodes outside a node tree (e.g. clipboard). */
   if (dst_tree) {
-    if (unique_name) {
+    if (use_unique) {
       nodeUniqueName(dst_tree, node_dst);
+      nodeUniqueID(dst_tree, node_dst);
     }
     BLI_addtail(&dst_tree->nodes, node_dst);
   }
@@ -2314,13 +2347,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   return node_dst;
 }
 
-bNode *node_copy(bNodeTree *dst_tree,
-                 const bNode &src_node,
-                 const int flag,
-                 const bool unique_name)
+bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, const int flag, const bool use_unique)
 {
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
-  return node_copy_with_mapping(dst_tree, src_node, flag, unique_name, socket_map);
+  return node_copy_with_mapping(dst_tree, src_node, flag, use_unique, socket_map);
 }
 
 }  // namespace blender::bke
@@ -2910,8 +2940,20 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
   }
 }
 
-/* Free the node itself. ID user refcounting is up the caller,
- * that does not happen here. */
+static void rebuild_nodes_vector(bNodeTree &node_tree)
+{
+  /* Rebuild nodes #VectorSet which must have the same order as the list. */
+  node_tree.runtime->nodes_by_id.clear();
+  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+    node_tree.runtime->nodes_by_id.add_new(node);
+  }
+}
+
+/**
+ * Free the node itself.
+ *
+ * \note: ID user refcounting and changing the `nodes_by_id` vector are up to the caller.
+ */
 static void node_free_node(bNodeTree *ntree, bNode *node)
 {
   /* since it is called while free database, node->id is undefined */
@@ -2919,6 +2961,8 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   /* can be called for nodes outside a node tree (e.g. clipboard) */
   if (ntree) {
     BLI_remlink(&ntree->nodes, node);
+    /* Rebuild nodes #VectorSet which must have the same order as the list. */
+    rebuild_nodes_vector(*ntree);
 
     /* texture node has bad habit of keeping exec data around */
     if (ntree->type == NTREE_TEXTURE && ntree->runtime->execdata) {
@@ -2976,6 +3020,7 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
   node_unlink_attached(ntree, node);
 
   node_free_node(ntree, node);
+  rebuild_nodes_vector(*ntree);
 }
 
 void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
@@ -3035,6 +3080,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 
   /* Free node itself. */
   node_free_node(ntree, node);
+  rebuild_nodes_vector(*ntree);
 }
 
 static void node_socket_interface_free(bNodeTree * /*ntree*/,

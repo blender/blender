@@ -1009,6 +1009,15 @@ class NodeTreeMainUpdater {
       result.interface_changed = true;
     }
 
+#ifdef DEBUG
+    /* Check the uniqueness of node identifiers. */
+    Set<int32_t> node_identifiers;
+    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+      BLI_assert(node->identifier >= 0);
+      node_identifiers.add_new(node->identifier);
+    }
+#endif
+
     return result;
   }
 

@@ -317,7 +317,14 @@ typedef struct bNode {
   /** Additional offset from loc. */
   float offsetx, offsety;
 
-  char _pad0[4];
+  /**
+   * A value that uniquely identifies a node in a node tree even when the name changes.
+   * This also allows referencing nodes more efficiently than with strings.
+   *
+   * Must be set whenever a node is added to a tree, besides a simple tree copy.
+   * Must always be positive.
+   */
+  int32_t identifier;
 
   /** Custom user-defined label, MAX_NAME. */
   char label[64];
@@ -548,6 +555,15 @@ typedef struct bNodeTree {
   bNodeTreeRuntimeHandle *runtime;
 
 #ifdef __cplusplus
+
+  /** A span containing all nodes in the node tree. */
+  blender::Span<bNode *> all_nodes();
+  blender::Span<const bNode *> all_nodes() const;
+
+  /** Retrieve a node based on its persistent integer identifier. */
+  struct bNode *node_by_id(int32_t identifier);
+  const struct bNode *node_by_id(int32_t identifier) const;
+
   /**
    * Update a run-time cache for the node tree based on it's current state. This makes many methods
    * available which allow efficient lookup for topology information (like neighboring sockets).
@@ -557,9 +573,6 @@ typedef struct bNodeTree {
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */
 
-  /** A span containing all nodes in the node tree. */
-  blender::Span<bNode *> all_nodes();
-  blender::Span<const bNode *> all_nodes() const;
   /** A span containing all group nodes in the node tree. */
   blender::Span<bNode *> group_nodes();
   blender::Span<const bNode *> group_nodes() const;

@@ -45,15 +45,16 @@ static void double_checked_lock_with_task_isolation(std::mutex &mutex,
 static void update_node_vector(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  tree_runtime.nodes.clear();
+  const Span<bNode *> nodes = tree_runtime.nodes_by_id;
   tree_runtime.group_nodes.clear();
   tree_runtime.has_undefined_nodes_or_sockets = false;
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->runtime->index_in_tree = tree_runtime.nodes.append_and_get_index(node);
-    node->runtime->owner_tree = const_cast<bNodeTree *>(&ntree);
-    tree_runtime.has_undefined_nodes_or_sockets |= node->typeinfo == &NodeTypeUndefined;
-    if (node->is_group()) {
-      tree_runtime.group_nodes.append(node);
+  for (const int i : nodes.index_range()) {
+    bNode &node = *nodes[i];
+    node.runtime->index_in_tree = i;
+    node.runtime->owner_tree = const_cast<bNodeTree *>(&ntree);
+    tree_runtime.has_undefined_nodes_or_sockets |= node.typeinfo == &NodeTypeUndefined;
+    if (node.is_group()) {
+      tree_runtime.group_nodes.append(&node);
     }
   }
 }
@@ -73,7 +74,7 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
   tree_runtime.sockets.clear();
   tree_runtime.input_sockets.clear();
   tree_runtime.output_sockets.clear();
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     bNodeRuntime &node_runtime = *node->runtime;
     node_runtime.inputs.clear();
     node_runtime.outputs.clear();
@@ -99,7 +100,7 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
 static void update_internal_link_inputs(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     for (bNodeSocket *socket : node->runtime->outputs) {
       socket->runtime->internal_link_input = nullptr;
     }
@@ -112,7 +113,7 @@ static void update_internal_link_inputs(const bNodeTree &ntree)
 static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     for (bNodeSocket *socket : node->runtime->inputs) {
       socket->runtime->directly_linked_links.clear();
       socket->runtime->directly_linked_sockets.clear();
@@ -207,9 +208,10 @@ static void find_logical_origins_for_socket_recursive(
 static void update_logical_origins(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  threading::parallel_for(tree_runtime.nodes.index_range(), 128, [&](const IndexRange range) {
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+  threading::parallel_for(nodes.index_range(), 128, [&](const IndexRange range) {
     for (const int i : range) {
-      bNode &node = *tree_runtime.nodes[i];
+      bNode &node = *nodes[i];
       for (bNodeSocket *socket : node.runtime->inputs) {
         Vector<bNodeSocket *, 16> sockets_in_current_chain;
         socket->runtime->logically_linked_sockets.clear();
@@ -229,7 +231,7 @@ static void update_nodes_by_type(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.nodes_by_type.clear();
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     tree_runtime.nodes_by_type.add(node->typeinfo, node);
   }
 }
@@ -237,8 +239,9 @@ static void update_nodes_by_type(const bNodeTree &ntree)
 static void update_sockets_by_identifier(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  threading::parallel_for(tree_runtime.nodes.index_range(), 128, [&](const IndexRange range) {
-    for (bNode *node : tree_runtime.nodes.as_span().slice(range)) {
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+  threading::parallel_for(nodes.index_range(), 128, [&](const IndexRange range) {
+    for (bNode *node : nodes.slice(range)) {
       node->runtime->inputs_by_identifier.clear();
       node->runtime->outputs_by_identifier.clear();
       for (bNodeSocket *socket : node->runtime->inputs) {
@@ -337,11 +340,11 @@ static void update_toposort(const bNodeTree &ntree,
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   r_sorted_nodes.clear();
-  r_sorted_nodes.reserve(tree_runtime.nodes.size());
+  r_sorted_nodes.reserve(tree_runtime.nodes_by_id.size());
   r_cycle_detected = false;
 
-  Array<ToposortNodeState> node_states(tree_runtime.nodes.size());
-  for (bNode *node : tree_runtime.nodes) {
+  Array<ToposortNodeState> node_states(tree_runtime.nodes_by_id.size());
+  for (bNode *node : tree_runtime.nodes_by_id) {
     if (node_states[node->runtime->index_in_tree].is_done) {
       /* Ignore nodes that are done already. */
       continue;
@@ -355,9 +358,9 @@ static void update_toposort(const bNodeTree &ntree,
     toposort_from_start_node(direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
   }
 
-  if (r_sorted_nodes.size() < tree_runtime.nodes.size()) {
+  if (r_sorted_nodes.size() < tree_runtime.nodes_by_id.size()) {
     r_cycle_detected = true;
-    for (bNode *node : tree_runtime.nodes) {
+    for (bNode *node : tree_runtime.nodes_by_id) {
       if (node_states[node->runtime->index_in_tree].is_done) {
         /* Ignore nodes that are done already. */
         continue;
@@ -367,13 +370,13 @@ static void update_toposort(const bNodeTree &ntree,
     }
   }
 
-  BLI_assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
+  BLI_assert(tree_runtime.nodes_by_id.size() == r_sorted_nodes.size());
 }
 
 static void update_root_frames(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  Span<bNode *> nodes = tree_runtime.nodes;
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
 
   tree_runtime.root_frames.clear();
 
@@ -387,7 +390,7 @@ static void update_root_frames(const bNodeTree &ntree)
 static void update_direct_frames_childrens(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  Span<bNode *> nodes = tree_runtime.nodes;
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
 
   for (bNode *node : nodes) {
     node->runtime->direct_children_in_frame.clear();
@@ -432,7 +435,7 @@ static void ensure_topology_cache(const bNodeTree &ntree)
         update_internal_link_inputs(ntree);
         update_directly_linked_links_and_sockets(ntree);
         threading::parallel_invoke(
-            tree_runtime.nodes.size() > 32,
+            tree_runtime.nodes_by_id.size() > 32,
             [&]() { update_logical_origins(ntree); },
             [&]() { update_nodes_by_type(ntree); },
             [&]() { update_sockets_by_identifier(ntree); },

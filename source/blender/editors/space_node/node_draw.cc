@@ -245,57 +245,22 @@ static bool compare_nodes(const bNode *a, const bNode *b)
 
 void node_sort(bNodeTree &ntree)
 {
-  /* Merge sort is the algorithm of choice here. */
-  int totnodes = BLI_listbase_count(&ntree.nodes);
+  Array<bNode *> sort_nodes = ntree.all_nodes();
+  std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_nodes);
 
-  int k = 1;
-  while (k < totnodes) {
-    bNode *first_a = (bNode *)ntree.nodes.first;
-    bNode *first_b = first_a;
+  /* If nothing was changed, exit early. Otherwise the node tree's runtime
+   * node vector needs to be rebuilt, since it cannot be reordered in place. */
+  if (sort_nodes == ntree.all_nodes()) {
+    return;
+  }
 
-    do {
-      /* Set up first_b pointer. */
-      for (int b = 0; b < k && first_b; b++) {
-        first_b = first_b->next;
-      }
-      /* All batches merged? */
-      if (first_b == nullptr) {
-        break;
-      }
+  BKE_ntree_update_tag_node_reordered(&ntree);
 
-      /* Merge batches. */
-      bNode *node_a = first_a;
-      bNode *node_b = first_b;
-      int a = 0;
-      int b = 0;
-      while (a < k && b < k && node_b) {
-        if (compare_nodes(node_a, node_b) == 0) {
-          node_a = node_a->next;
-          a++;
-        }
-        else {
-          bNode *tmp = node_b;
-          node_b = node_b->next;
-          b++;
-          BLI_remlink(&ntree.nodes, tmp);
-          BLI_insertlinkbefore(&ntree.nodes, node_a, tmp);
-          BKE_ntree_update_tag_node_reordered(&ntree);
-        }
-      }
-
-      /* Set up first pointers for next batch. */
-      first_b = node_b;
-      for (; b < k; b++) {
-        /* All nodes sorted? */
-        if (first_b == nullptr) {
-          break;
-        }
-        first_b = first_b->next;
-      }
-      first_a = first_b;
-    } while (first_b);
-
-    k = k << 1;
+  ntree.runtime->nodes_by_id.clear();
+  BLI_listbase_clear(&ntree.nodes);
+  for (const int i : sort_nodes.index_range()) {
+    BLI_addtail(&ntree.nodes, sort_nodes[i]);
+    ntree.runtime->nodes_by_id.add_new(sort_nodes[i]);
   }
 }
 
@@ -1691,7 +1656,7 @@ static void node_add_error_message_button(TreeDrawContext &tree_draw_ctx,
 
   Span<geo_log::NodeWarning> warnings;
   if (tree_draw_ctx.geo_tree_log) {
-    geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.name);
+    geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.identifier);
     if (node_log != nullptr) {
       warnings = node_log->warnings;
     }
@@ -1751,7 +1716,8 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
         }
       }
       else {
-        if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(tnode->name)) {
+        if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(
+                tnode->identifier)) {
           found_node = true;
           run_time += node_log->run_time;
         }
@@ -1762,7 +1728,7 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
     }
     return std::nullopt;
   }
-  if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.name)) {
+  if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier)) {
     return node_log->run_time;
   }
   return std::nullopt;
@@ -1903,7 +1869,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
     }
   }
   tree_draw_ctx.geo_tree_log->ensure_used_named_attributes();
-  geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.name);
+  geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.identifier);
   if (node_log == nullptr) {
     return std::nullopt;
   }
@@ -1944,15 +1910,17 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
     }
   }
 
-  if (snode.edittree->type == NTREE_GEOMETRY && tree_draw_ctx.geo_tree_log != nullptr) {
-    tree_draw_ctx.geo_tree_log->ensure_debug_messages();
-    const geo_log::GeoNodeLog *node_log = tree_draw_ctx.geo_tree_log->nodes.lookup_ptr(node.name);
-    if (node_log != nullptr) {
-      for (const StringRef message : node_log->debug_messages) {
-        NodeExtraInfoRow row;
-        row.text = message;
-        row.icon = ICON_INFO;
-        rows.append(std::move(row));
+  if (snode.edittree->type == NTREE_GEOMETRY) {
+    if (geo_log::GeoTreeLog *tree_log = tree_draw_ctx.geo_tree_log) {
+      tree_log->ensure_debug_messages();
+      const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier);
+      if (node_log != nullptr) {
+        for (const StringRef message : node_log->debug_messages) {
+          NodeExtraInfoRow row;
+          row.text = message;
+          row.icon = ICON_INFO;
+          rows.append(std::move(row));
+        }
       }
     }
   }

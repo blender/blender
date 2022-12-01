@@ -249,10 +249,10 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* migrate node */
     BLI_remlink(&wgroup->nodes, node);
     BLI_addtail(&ntree->nodes, node);
-    BKE_ntree_update_tag_node_new(ntree, node);
-
-    /* ensure unique node name in the node tree */
+    nodeUniqueID(ntree, node);
     nodeUniqueName(ntree, node);
+
+    BKE_ntree_update_tag_node_new(ntree, node);
 
     if (wgroup->adt) {
       PointerRNA ptr;
@@ -494,8 +494,7 @@ static bool node_group_separate_selected(
     /* migrate node */
     BLI_remlink(&ngroup.nodes, newnode);
     BLI_addtail(&ntree.nodes, newnode);
-
-    /* ensure unique node name in the node tree */
+    nodeUniqueID(&ntree, newnode);
     nodeUniqueName(&ntree, newnode);
 
     if (!newnode->parent) {
@@ -871,11 +870,11 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
       /* change node-collection membership */
       BLI_remlink(&ntree.nodes, node);
       BLI_addtail(&ngroup->nodes, node);
+      nodeUniqueID(ngroup, node);
+      nodeUniqueName(ngroup, node);
+
       BKE_ntree_update_tag_node_removed(&ntree);
       BKE_ntree_update_tag_node_new(ngroup, node);
-
-      /* ensure unique node name in the ngroup */
-      nodeUniqueName(ngroup, node);
     }
   }
 

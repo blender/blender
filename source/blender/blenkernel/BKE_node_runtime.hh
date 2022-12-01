@@ -8,6 +8,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_node_types.h"
 
@@ -23,6 +24,36 @@ struct FieldInferencingInterface;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 }  // namespace blender::nodes
+
+namespace blender {
+
+struct NodeIDHash {
+  uint64_t operator()(const bNode *node) const
+  {
+    return node->identifier;
+  }
+  uint64_t operator()(const int32_t id) const
+  {
+    return id;
+  }
+};
+
+struct NodeIDEquality {
+  bool operator()(const bNode *a, const bNode *b) const
+  {
+    return a->identifier == b->identifier;
+  }
+  bool operator()(const bNode *a, const int32_t b) const
+  {
+    return a->identifier == b;
+  }
+  bool operator()(const int32_t a, const bNode *b) const
+  {
+    return this->operator()(b, a);
+  }
+};
+
+}  // namespace blender
 
 namespace blender::bke {
 
@@ -45,6 +76,13 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * #eNodeTreeRuntimeFlag.
    */
   uint8_t runtime_flag = 0;
+
+  /**
+   * Storage of nodes based on their identifier. Also used as a contiguous array of nodes to
+   * allow simpler and more cache friendly iteration. Supports lookup by integer or by node.
+   * Unlike other caches, this is maintained eagerly while changing the tree.
+   */
+  VectorSet<bNode *, DefaultProbingStrategy, NodeIDHash, NodeIDEquality> nodes_by_id;
 
   /** Execution data.
    *
@@ -91,7 +129,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   mutable std::atomic<int> allow_use_dirty_topology_cache = 0;
 
   /** Only valid when #topology_cache_is_dirty is false. */
-  Vector<bNode *> nodes;
   Vector<bNodeLink *> links;
   Vector<bNodeSocket *> sockets;
   Vector<bNodeSocket *> input_sockets;
@@ -292,6 +329,28 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 /** \name #bNodeTree Inline Methods
  * \{ */
 
+inline blender::Span<const bNode *> bNodeTree::all_nodes() const
+{
+  return this->runtime->nodes_by_id.as_span();
+}
+
+inline blender::Span<bNode *> bNodeTree::all_nodes()
+{
+  return this->runtime->nodes_by_id;
+}
+
+inline bNode *bNodeTree::node_by_id(const int32_t identifier)
+{
+  bNode *const *node = this->runtime->nodes_by_id.lookup_key_ptr_as(identifier);
+  return node ? *node : nullptr;
+}
+
+inline const bNode *bNodeTree::node_by_id(const int32_t identifier) const
+{
+  const bNode *const *node = this->runtime->nodes_by_id.lookup_key_ptr_as(identifier);
+  return node ? *node : nullptr;
+}
+
 inline blender::Span<bNode *> bNodeTree::nodes_by_type(const blender::StringRefNull type_idname)
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
@@ -327,18 +386,6 @@ inline blender::Span<bNode *> bNodeTree::toposort_right_to_left()
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->toposort_right_to_left;
-}
-
-inline blender::Span<const bNode *> bNodeTree::all_nodes() const
-{
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->nodes;
-}
-
-inline blender::Span<bNode *> bNodeTree::all_nodes()
-{
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->nodes;
 }
 
 inline blender::Span<const bNode *> bNodeTree::group_nodes() const

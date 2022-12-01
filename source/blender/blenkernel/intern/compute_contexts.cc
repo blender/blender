@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_node_types.h"
+
 #include "BKE_compute_contexts.hh"
 
 namespace blender::bke {
@@ -17,22 +19,30 @@ void ModifierComputeContext::print_current_in_line(std::ostream &stream) const
   stream << "Modifier: " << modifier_name_;
 }
 
-NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent,
-                                                 std::string node_name)
-    : ComputeContext(s_static_type, parent), node_name_(std::move(node_name))
+NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent, const int node_id)
+    : ComputeContext(s_static_type, parent), node_id_(node_id)
 {
   hash_.mix_in(s_static_type, strlen(s_static_type));
-  hash_.mix_in(node_name_.data(), node_name_.size());
+  hash_.mix_in(&node_id_, sizeof(int32_t));
 }
 
-StringRefNull NodeGroupComputeContext::node_name() const
+NodeGroupComputeContext::NodeGroupComputeContext(const ComputeContext *parent, const bNode &node)
+    : NodeGroupComputeContext(parent, node.identifier)
 {
-  return node_name_;
+#ifdef DEBUG
+  debug_node_name_ = node.name;
+#endif
 }
 
 void NodeGroupComputeContext::print_current_in_line(std::ostream &stream) const
 {
-  stream << "Node: " << node_name_;
+#ifdef DEBUG
+  if (!debug_node_name_.empty()) {
+    stream << "Node: " << debug_node_name_;
+    return;
+  }
+#endif
+  stream << "Node ID: " << node_id_;
 }
 
 }  // namespace blender::bke
