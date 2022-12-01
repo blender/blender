@@ -133,9 +133,11 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             bool *r_is_merged_icon,
                                             bool *r_is_over_icon)
 {
-  /* if parent_te is opened, it doesn't show children in row */
+  TreeStoreElem *parent_tselem = TREESTORE(parent_te);
   TreeElement *te = parent_te;
-  if (!TSELEM_OPEN(TREESTORE(parent_te), space_outliner)) {
+
+  /* If parent_te is opened, or it is a ViewLayer, it doesn't show children in row. */
+  if (!TSELEM_OPEN(parent_tselem, space_outliner) && parent_tselem->type != TSE_R_LAYER) {
     te = outliner_find_item_at_x_in_row_recursive(parent_te, view_co_x, r_is_merged_icon);
   }
 
