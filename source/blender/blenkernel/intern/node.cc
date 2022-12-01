@@ -143,9 +143,6 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   /* in case a running nodetree is copied */
   ntree_dst->runtime->execdata = nullptr;
 
-  BLI_listbase_clear(&ntree_dst->nodes);
-  BLI_listbase_clear(&ntree_dst->links);
-
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
