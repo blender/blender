@@ -2942,7 +2942,7 @@ static char *current_relpath_append(const FileListReadJob *job_params, const cha
     return BLI_strdup(filename);
   }
 
-  BLI_assert(relbase[strlen(relbase) - 1] == SEP);
+  BLI_assert(ELEM(relbase[strlen(relbase) - 1], SEP, ALTSEP));
   BLI_assert(BLI_path_is_rel(relbase));
 
   char relpath[FILE_MAX_LIBEXTRA];
