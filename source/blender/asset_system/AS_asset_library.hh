@@ -125,7 +125,7 @@ class AssetLibrary {
    * Create an asset identifier from the root path of this asset library and the given relative
    * asset path (relative to the asset library root directory).
    */
-  AssetIdentifier derive_asset_identifier(StringRef relative_asset_path);
+  AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
   StringRefNull root_path() const;
 

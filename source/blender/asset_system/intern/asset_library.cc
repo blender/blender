@@ -152,13 +152,13 @@ AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_p
                                                       StringRef name,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
-  AssetIdentifier identifier = derive_asset_identifier(relative_asset_path);
+  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
   return asset_storage_->add_external_asset(std::move(identifier), name, std::move(metadata));
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
 {
-  AssetIdentifier identifier = derive_asset_identifier(relative_asset_path);
+  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
   return asset_storage_->add_local_id_asset(std::move(identifier), id);
 }
 
@@ -215,7 +215,7 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   }
 }
 
-AssetIdentifier AssetLibrary::derive_asset_identifier(StringRef relative_asset_path)
+AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_asset_path)
 {
   return AssetIdentifier(root_path_, relative_asset_path);
 }
