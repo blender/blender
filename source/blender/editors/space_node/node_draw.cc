@@ -187,7 +187,8 @@ static void node_socket_add_tooltip_in_node_editor(TreeDrawContext * /*tree_draw
                                                    const bNodeSocket *sock,
                                                    uiLayout *layout);
 
-static bool compare_nodes(const bNode *a, const bNode *b)
+/** Return true when \a a should be behind \a b and false otherwise. */
+static bool compare_node_depth(const bNode *a, const bNode *b)
 {
   /* These tell if either the node or any of the parent nodes is selected.
    * A selected parent means an unselected node is also in foreground! */
@@ -200,7 +201,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   for (bNode *parent = a->parent; parent; parent = parent->parent) {
     /* If B is an ancestor, it is always behind A. */
     if (parent == b) {
-      return true;
+      return false;
     }
     /* Any selected ancestor moves the node forward. */
     if (parent->flag & NODE_ACTIVE) {
@@ -213,7 +214,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   for (bNode *parent = b->parent; parent; parent = parent->parent) {
     /* If A is an ancestor, it is always behind B. */
     if (parent == a) {
-      return false;
+      return true;
     }
     /* Any selected ancestor moves the node forward. */
     if (parent->flag & NODE_ACTIVE) {
@@ -226,17 +227,23 @@ static bool compare_nodes(const bNode *a, const bNode *b)
 
   /* One of the nodes is in the background and the other not. */
   if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND)) {
-    return false;
-  }
-  if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND)) {
     return true;
+  }
+  if ((b->flag & NODE_BACKGROUND) && !(a->flag & NODE_BACKGROUND)) {
+    return false;
   }
 
   /* One has a higher selection state (active > selected > nothing). */
-  if (!b_active && a_active) {
+  if (a_active && !b_active) {
+    return false;
+  }
+  if (b_active && !a_active) {
     return true;
   }
   if (!b_select && (a_active || a_select)) {
+    return false;
+  }
+  if (!a_select && (b_active || b_select)) {
     return true;
   }
 
@@ -246,7 +253,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
 void node_sort(bNodeTree &ntree)
 {
   Array<bNode *> sort_nodes = ntree.all_nodes();
-  std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_nodes);
+  std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_node_depth);
 
   /* If nothing was changed, exit early. Otherwise the node tree's runtime
    * node vector needs to be rebuilt, since it cannot be reordered in place. */
