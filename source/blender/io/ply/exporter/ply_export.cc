@@ -102,27 +102,25 @@ void exporter_main(Main *bmain,
                            {1, 0.8470588235294118, 0}};
 
   // Create file, get writer
-  FileBuffer *buffer;
+  FileBuffer *buffer = nullptr;
 
-  FileBufferAscii derivedBuffer(export_params.filepath);
-  buffer = &derivedBuffer;
-  // if (export_params.ascii_format) {
-  // } else {
-  //   FileBufferBinary derivedBuffer(export_params.filepath);
-  //   buffer = &derivedBuffer;
-  // }
+  if (export_params.ascii_format) {
+    buffer = new FileBufferAscii(export_params.filepath);
+  }
+  else {
+    buffer = new FileBufferBinary(export_params.filepath);
+  }
 
   // Generate and write header
   generate_header(*buffer, plyData, export_params);
-  buffer->write_to_file();
 
   // Generate and write vertices
-  for (auto &&vertex : plyData.vertices)
-  {
+  for (auto &&vertex : plyData.vertices) {
     buffer->write_vertex(vertex.x, vertex.y, vertex.z);
   }
   buffer->write_to_file();
 
   buffer->close_file();
+  delete buffer;
 }
 }  // namespace blender::io::ply
