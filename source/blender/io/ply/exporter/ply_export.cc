@@ -22,6 +22,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "../intern/ply_data.hh"
 #include "ply_export.hh"
@@ -36,70 +37,38 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  exporter_main(bmain, scene, view_layer, export_params);
+  exporter_main(bmain, scene, view_layer, C, export_params);
 }
 
 void exporter_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
+                   bContext *C,
                    const PLYExportParams &export_params)
 {
   // Load bmesh data into PlyData struct
   PlyData plyData;
-  plyData.vertices = {{1, 1, -1},
-                      {1, -1, -1},
-                      {-1, -1, -1},
-                      {-1, 1, -1},
-                      {1, 0.999999, 1},
-                      {-1, 1, 1},
-                      {-1, -1, 1},
-                      {0.999999, -1.000001, 1},
-                      {1, 1, -1},
-                      {1, 0.999999, 1},
-                      {0.999999, -1.000001, 1},
-                      {1, -1, -1},
-                      {1, -1, -1},
-                      {0.999999, -1.000001, 1},
-                      {-1, -1, 1},
-                      {-1, -1, -1},
-                      {-1, -1, -1},
-                      {-1, -1, 1},
-                      {-1, 1, 1},
-                      {-1, 1, -1},
-                      {1, 0.999999, 1},
-                      {1, 1, -1},
-                      {-1, 1, -1},
-                      {-1, 1, 1}};
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  plyData.vertex_normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},
-                            {0, 0, 1},  {0, 0, 1},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},
-                            {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {-1, 0, 0}, {-1, 0, 0},
-                            {-1, 0, 0}, {-1, 0, 0}, {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 1, 0}};
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
 
-  plyData.vertex_colors = {{1, 0.8470588235294118, 0},
-                           {0, 0.011764705882352941, 1},
-                           {0, 0.011764705882352941, 1},
-                           {1, 0.8470588235294118, 0},
-                           {1, 0.8509803921568627, 0.08627450980392157},
-                           {1, 0.8470588235294118, 0},
-                           {0, 0.00392156862745098, 1},
-                           {0.00392156862745098, 0.00392156862745098, 1},
-                           {1, 0.8470588235294118, 0.01568627450980392},
-                           {1, 0.8509803921568627, 0.08627450980392157},
-                           {0.00392156862745098, 0.00392156862745098, 1},
-                           {0, 0.00392156862745098, 1},
-                           {0, 0.00392156862745098, 1},
-                           {0.00392156862745098, 0.00392156862745098, 1},
-                           {0, 0.00392156862745098, 1},
-                           {0, 0.00392156862745098, 1},
-                           {0, 0.011764705882352941, 1},
-                           {0, 0.00392156862745098, 1},
-                           {1, 0.8470588235294118, 0},
-                           {1, 0.8470588235294118, 0},
-                           {1, 0.8509803921568627, 0.08627450980392157},
-                           {1, 0.8470588235294118, 0},
-                           {1, 0.8470588235294118, 0},
-                           {1, 0.8470588235294118, 0}};
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
+    if (object->type != OB_MESH)
+      continue;
+
+    auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
+    for (auto &&vertex : mesh->verts())
+    {
+      plyData.vertices.append(vertex.co);
+    }
+
+  }
+
+  DEG_OBJECT_ITER_END;
 
   // Create file, get writer
   FileBuffer *buffer = nullptr;
