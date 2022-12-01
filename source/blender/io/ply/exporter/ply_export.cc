@@ -104,13 +104,13 @@ void exporter_main(Main *bmain,
   // Create file, get writer
   FileBuffer *buffer;
 
-  if (export_params.ascii_format) {
-    FileBufferAscii derivedBuffer(export_params.filepath);
-    buffer = &derivedBuffer;
-  } else {
-    FileBufferBinary derivedBuffer(export_params.filepath);
-    buffer = &derivedBuffer;
-  }
+  FileBufferAscii derivedBuffer(export_params.filepath);
+  buffer = &derivedBuffer;
+  // if (export_params.ascii_format) {
+  // } else {
+  //   FileBufferBinary derivedBuffer(export_params.filepath);
+  //   buffer = &derivedBuffer;
+  // }
 
   // Generate and write header
   generate_header(*buffer, plyData, export_params);

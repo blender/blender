@@ -5,6 +5,7 @@
  */
 
 #include "BKE_customdata.h"
+#include "BKE_blender_version.h"
 
 #include "../intern/ply_data.hh"
 #include "IO_ply.h"
@@ -17,6 +18,8 @@ void generate_header(FileBuffer &FB, const PlyData &plyData, const PLYExportPara
   FB.write_string("ply");
   StringRef format = export_params.ascii_format ? "ascii" : "binary_little_endian";
   FB.write_string("format " + format + " 1.0");
+  StringRef version = BKE_blender_version_string();
+  FB.write_string("comment Created in Blender version " + version);
   FB.write_header_element("vertex", plyData.vertices.size());
   FB.write_header_scalar_property("float", "x");
   FB.write_header_scalar_property("float", "y");
