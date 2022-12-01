@@ -362,6 +362,11 @@ void clip_delete_plane_track(bContext *C, MovieClip *clip, MovieTrackingPlaneTra
 {
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+
+  if (plane_track == tracking_object->active_plane_track) {
+    tracking_object->active_plane_track = NULL;
+  }
+
   /* Delete f-curves associated with the track (such as weight, i.e.) */
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
