@@ -137,9 +137,9 @@ template<typename T> inline T atan(const T &a)
   return std::atan(a);
 }
 
-template<typename T> inline T atan2(const T &a, const T &b)
+template<typename T> inline T atan2(const T &y, const T &x)
 {
-  return std::atan2(a, b);
+  return std::atan2(y, x);
 }
 
 template<typename T,
