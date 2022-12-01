@@ -235,6 +235,10 @@ class MTLTexture : public Texture {
 
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
+  void update_sub(int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  GPUPixelBuffer *pixbuf) override;
 
   void generate_mipmap() override;
   void copy_to(Texture *dst) override;
@@ -422,6 +426,24 @@ class MTLTexture : public Texture {
   GPUShader *fullscreen_blit_sh_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLTexture")
+};
+
+class MTLPixelBuffer : public PixelBuffer {
+ private:
+  id<MTLBuffer> buffer_ = nil;
+
+ public:
+  MTLPixelBuffer(uint size);
+  ~MTLPixelBuffer();
+
+  void *map() override;
+  void unmap() override;
+  int64_t get_native_handle() override;
+  uint get_size() override;
+
+  id<MTLBuffer> get_metal_buffer();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLPixelBuffer")
 };
 
 /* Utility */

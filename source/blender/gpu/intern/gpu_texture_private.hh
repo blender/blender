@@ -129,6 +129,10 @@ class Texture {
 
   virtual void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
+  virtual void update_sub(int offset[3],
+                          int extent[3],
+                          eGPUDataFormat format,
+                          GPUPixelBuffer *pixbuf) = 0;
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
   virtual uint gl_bindcode_get() const = 0;
@@ -262,6 +266,35 @@ static inline Texture *unwrap(GPUTexture *vert)
 static inline const Texture *unwrap(const GPUTexture *vert)
 {
   return reinterpret_cast<const Texture *>(vert);
+}
+
+/* GPU pixel Buffer. */
+class PixelBuffer {
+ protected:
+  uint size_ = 0;
+
+ public:
+  PixelBuffer(uint size) : size_(size){};
+  virtual ~PixelBuffer(){};
+
+  virtual void *map() = 0;
+  virtual void unmap() = 0;
+  virtual int64_t get_native_handle() = 0;
+  virtual uint get_size() = 0;
+};
+
+/* Syntactic sugar. */
+static inline GPUPixelBuffer *wrap(PixelBuffer *pixbuf)
+{
+  return reinterpret_cast<GPUPixelBuffer *>(pixbuf);
+}
+static inline PixelBuffer *unwrap(GPUPixelBuffer *pixbuf)
+{
+  return reinterpret_cast<PixelBuffer *>(pixbuf);
+}
+static inline const PixelBuffer *unwrap(const GPUPixelBuffer *pixbuf)
+{
+  return reinterpret_cast<const PixelBuffer *>(pixbuf);
 }
 
 #undef DEBUG_NAME_LEN
@@ -405,6 +438,8 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
   switch (data_format) {
     case GPU_DATA_UBYTE:
       return 1;
+    case GPU_DATA_HALF_FLOAT:
+      return 2;
     case GPU_DATA_FLOAT:
     case GPU_DATA_INT:
     case GPU_DATA_UINT:

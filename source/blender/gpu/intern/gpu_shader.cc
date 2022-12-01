@@ -527,6 +527,15 @@ void GPU_shader_unbind()
 #endif
 }
 
+GPUShader *GPU_shader_get_bound()
+{
+  Context *ctx = Context::get();
+  if (ctx) {
+    return wrap(ctx->shader);
+  }
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

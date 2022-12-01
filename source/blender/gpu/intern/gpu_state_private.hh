@@ -160,5 +160,34 @@ class StateManager {
   virtual void texture_unpack_row_length_set(uint len) = 0;
 };
 
+/**
+ * GPUFence.
+ */
+class Fence {
+ protected:
+  bool signalled_ = false;
+
+ public:
+  Fence(){};
+  virtual ~Fence(){};
+
+  virtual void signal() = 0;
+  virtual void wait() = 0;
+};
+
+/* Syntactic sugar. */
+static inline GPUFence *wrap(Fence *pixbuf)
+{
+  return reinterpret_cast<GPUFence *>(pixbuf);
+}
+static inline Fence *unwrap(GPUFence *pixbuf)
+{
+  return reinterpret_cast<Fence *>(pixbuf);
+}
+static inline const Fence *unwrap(const GPUFence *pixbuf)
+{
+  return reinterpret_cast<const Fence *>(pixbuf);
+}
+
 }  // namespace gpu
 }  // namespace blender
