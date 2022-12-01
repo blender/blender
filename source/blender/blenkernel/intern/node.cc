@@ -139,34 +139,37 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   ntree_dst->runtime = MEM_new<bNodeTreeRuntime>(__func__);
+  bNodeTreeRuntime &dst_runtime = *ntree_dst->runtime;
 
-  /* in case a running nodetree is copied */
-  ntree_dst->runtime->execdata = nullptr;
-
-  Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
-  ntree_dst->runtime->nodes_by_id.reserve(ntree_src->all_nodes().size());
+  dst_runtime.nodes_by_id.reserve(ntree_src->all_nodes().size());
   BLI_listbase_clear(&ntree_dst->nodes);
   LISTBASE_FOREACH (const bNode *, src_node, &ntree_src->nodes) {
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = blender::bke::node_copy_with_mapping(
         ntree_dst, *src_node, flag_subdata, false, socket_map);
-    node_map.add(src_node, new_node);
-    ntree_dst->runtime->nodes_by_id.add_new(new_node);
+    dst_runtime.nodes_by_id.add_new(new_node);
   }
 
   /* copy links */
   BLI_listbase_clear(&ntree_dst->links);
   LISTBASE_FOREACH (const bNodeLink *, src_link, &ntree_src->links) {
     bNodeLink *dst_link = (bNodeLink *)MEM_dupallocN(src_link);
-    dst_link->fromnode = node_map.lookup(src_link->fromnode);
+    dst_link->fromnode = dst_runtime.nodes_by_id.lookup_key_as(src_link->fromnode->identifier);
     dst_link->fromsock = socket_map.lookup(src_link->fromsock);
-    dst_link->tonode = node_map.lookup(src_link->tonode);
+    dst_link->tonode = dst_runtime.nodes_by_id.lookup_key_as(src_link->tonode->identifier);
     dst_link->tosock = socket_map.lookup(src_link->tosock);
     BLI_assert(dst_link->tosock);
     dst_link->tosock->link = dst_link;
     BLI_addtail(&ntree_dst->links, dst_link);
+  }
+
+  /* update node->parent pointers */
+  LISTBASE_FOREACH (bNode *, new_node, &ntree_dst->nodes) {
+    if (new_node->parent) {
+      new_node->parent = dst_runtime.nodes_by_id.lookup_key_as(new_node->parent->identifier);
+    }
   }
 
   /* copy interface sockets */
@@ -199,15 +202,8 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     ntree_dst->previews = nullptr;
   }
 
-  /* update node->parent pointers */
-  LISTBASE_FOREACH (bNode *, new_node, &ntree_dst->nodes) {
-    if (new_node->parent) {
-      new_node->parent = node_map.lookup(new_node->parent);
-    }
-  }
-
   if (ntree_src->runtime->field_inferencing_interface) {
-    ntree_dst->runtime->field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
+    dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
 
