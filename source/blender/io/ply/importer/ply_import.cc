@@ -151,16 +151,50 @@ void importer_main(Main *bmain,
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
-  Mesh *mesh = nullptr;
+  Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   if (header.type == PlyFormatType::ASCII) {
     printf("ASCII PLY \n");
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
     printf("Binary Big Endian \n");
-    import_ply_big_endian(infile, &header);
+    mesh = import_ply_big_endian(infile, &header, mesh);
   }
   else {
     printf("Binary Little Endian \n");
   }
+
+  BKE_view_layer_base_deselect_all(scene, view_layer);
+  LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+  Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
+  BKE_mesh_assign_object(bmain, obj, mesh);
+  BKE_collection_object_add(bmain, lc->collection, obj);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_base_find(view_layer, obj);
+  BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+  float global_scale = import_params.global_scale;
+  if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {
+    global_scale *= scene->unit.scale_length;
+  }
+  float scale_vec[3] = {global_scale, global_scale, global_scale};
+  float obmat3x3[3][3];
+  unit_m3(obmat3x3);
+  float obmat4x4[4][4];
+  unit_m4(obmat4x4);
+  /* +Y-forward and +Z-up are the Blender's default axis settings. */
+  mat3_from_axis_conversion(
+      IO_AXIS_Y, IO_AXIS_Z, import_params.forward_axis, import_params.up_axis, obmat3x3);
+  copy_m4_m3(obmat4x4, obmat3x3);
+  rescale_m4(obmat4x4, scale_vec);
+  BKE_object_apply_mat4(obj, obmat4x4, true, false);
+
+  DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
+  int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
+              ID_RECALC_BASE_FLAGS;
+  DEG_id_tag_update_ex(bmain, &obj->id, flags);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+  DEG_relations_tag_update(bmain);
+
+  infile.close();
 }
 }  // namespace blender::io::ply
