@@ -414,6 +414,45 @@ template<typename T> inline int dominant_axis(const vec_base<T, 3> &a)
   return ((b.x > b.y) ? ((b.x > b.z) ? 0 : 2) : ((b.y > b.z) ? 1 : 2));
 }
 
+/**
+ * Calculates a perpendicular vector to \a v.
+ * \note Returned vector can be in any perpendicular direction.
+ * \note Returned vector might not the same length as \a v.
+ */
+template<typename T> inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
+{
+  const int axis = dominant_axis(v);
+  switch (axis) {
+    case 0:
+      return {-v.y - v.z, v.x, v.x};
+    case 1:
+      return {v.y, -v.x - v.z, v.y};
+    case 2:
+      return {v.z, v.z, -v.x - v.y};
+  }
+  return v;
+}
+
+/**
+ * Calculates a perpendicular vector to \a v.
+ * \note Returned vector can be in any perpendicular direction.
+ */
+template<typename T> inline vec_base<T, 2> orthogonal(const vec_base<T, 2> &v)
+{
+  return {-v.y, v.x};
+}
+
+template<typename T, int Size>
+inline bool compare(const vec_base<T, Size> &a, const vec_base<T, Size> &b, const T limit)
+{
+  for (int i = 0; i < Size; i++) {
+    if (std::abs(a[i] - b[i]) > limit) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /** Intersections. */
 
 template<typename T> struct isect_result {
