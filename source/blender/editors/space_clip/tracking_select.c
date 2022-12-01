@@ -454,7 +454,7 @@ bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Point closest to point or plane track.
+/** \name Pick closest point or plane track.
  * \{ */
 
 BLI_INLINE TrackingPick tracking_pick_make_null(void)
