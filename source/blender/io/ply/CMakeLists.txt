@@ -37,6 +37,7 @@ set(SRC
     exporter/ply_export_header.hh
     exporter/ply_file_buffer_ascii.hh
     exporter/ply_file_buffer_binary.hh
+    exporter/ply_export_load_plydata.hh
     importer/ply_import.hh
 
     intern/ply_data.hh
