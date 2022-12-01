@@ -326,10 +326,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
-  if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
-    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
-  }
-
   /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(
       shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?

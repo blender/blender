@@ -616,7 +616,6 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
   MAP_PASS("Emit", PASS_EMISSION, false);
   MAP_PASS("Env", PASS_BACKGROUND, false);
   MAP_PASS("AO", PASS_AO, false);
-  MAP_PASS("Shadow", PASS_SHADOW, false);
 
   MAP_PASS("BakePrimitive", PASS_BAKE_PRIMITIVE, false);
   MAP_PASS("BakeDifferential", PASS_BAKE_DIFFERENTIAL, false);

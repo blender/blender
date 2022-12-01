@@ -527,17 +527,6 @@ ccl_device_inline void film_write_direct_light(KernelGlobals kg,
         film_write_pass_spectrum(buffer + pass_offset, contribution);
       }
     }
-
-    /* Write shadow pass. */
-    if (kernel_data.film.pass_shadow != PASS_UNUSED && (path_flag & PATH_RAY_SHADOW_FOR_LIGHT) &&
-        (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
-      const Spectrum unshadowed_throughput = INTEGRATOR_STATE(
-          state, shadow_path, unshadowed_throughput);
-      const Spectrum shadowed_throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
-      const Spectrum shadow = safe_divide(shadowed_throughput, unshadowed_throughput) *
-                              kernel_data.film.pass_shadow_scale;
-      film_write_pass_spectrum(buffer + kernel_data.film.pass_shadow, shadow);
-    }
   }
 #endif
 }

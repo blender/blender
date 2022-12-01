@@ -271,7 +271,6 @@ void LightManager::device_update_distribution(Device *,
                                               Progress &progress)
 {
   KernelIntegrator *kintegrator = &dscene->data.integrator;
-  KernelFilm *kfilm = &dscene->data.film;
 
   /* Update CDF over lights. */
   progress.set_status("Updating Lights", "Computing distribution");
@@ -304,7 +303,6 @@ void LightManager::device_update_distribution(Device *,
   }
 
   const size_t num_lights = kintegrator->num_lights;
-  const size_t num_background_lights = kintegrator->num_background_lights;
   const size_t num_distribution = num_triangles + num_lights;
 
   /* Distribution size. */
@@ -446,18 +444,6 @@ void LightManager::device_update_distribution(Device *,
     if (trianglearea > 0.0f) {
       kintegrator->distribution_pdf_lights *= 0.5f;
     }
-  }
-
-  /* bit of an ugly hack to compensate for emitting triangles influencing
-   * amount of samples we get for this pass */
-  kfilm->pass_shadow_scale = 1.0f;
-
-  if (kintegrator->distribution_pdf_triangles != 0.0f) {
-    kfilm->pass_shadow_scale /= 0.5f;
-  }
-
-  if (num_background_lights < num_lights) {
-    kfilm->pass_shadow_scale /= (float)(num_lights - num_background_lights) / (float)num_lights;
   }
 
   /* Copy distribution to device. */

@@ -348,7 +348,6 @@ typedef enum PassType {
   PASS_EMISSION,
   PASS_BACKGROUND,
   PASS_AO,
-  PASS_SHADOW,
   PASS_DIFFUSE,
   PASS_DIFFUSE_DIRECT,
   PASS_DIFFUSE_INDIRECT,
@@ -1548,22 +1547,19 @@ enum KernelFeatureFlag : uint32_t {
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
 
-  /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
-
   /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 23U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 24U),
+  KERNEL_FEATURE_AO_PASS = (1U << 22U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 23U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 
   /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 25U),
+  KERNEL_FEATURE_MNEE = (1U << 24U),
 
   /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 25U),
 
   /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 27U),
+  KERNEL_FEATURE_OSL = (1U << 26U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

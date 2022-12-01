@@ -170,7 +170,6 @@ enum_view3d_shading_render_pass = (
     ('EMISSION', "Emission", "Show the Emission render pass"),
     ('BACKGROUND', "Background", "Show the Background render pass"),
     ('AO', "Ambient Occlusion", "Show the Ambient Occlusion render pass"),
-    ('SHADOW', "Shadow", "Show the Shadow render pass"),
     ('SHADOW_CATCHER', "Shadow Catcher", "Show the Shadow Catcher render pass"),
 
     ('', "Light", ""),

@@ -559,11 +559,6 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
                                      0);
     integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
   }
-  /* Shadow pass. */
-  else if (strcmp(bake_type, "SHADOW") == 0) {
-    type = PASS_SHADOW;
-    use_direct_light = true;
-  }
   /* Light component passes. */
   else if (strcmp(bake_type, "DIFFUSE") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
