@@ -14,13 +14,6 @@ namespace blender::io::ply {
 Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh);
 
 /**
- * Converts the PlyData datastructure to a mesh
- * @param data The PLY data
- * @return The mesh that can be used inside blender
- */
-Mesh *convert_ply_to_mesh(PlyData& data, Mesh* mesh);
-
-/**
  * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure
  * @param file The PLY file that was opened
  * @param header The information in the PLY header

@@ -1,6 +1,7 @@
 #include "ply_import_big_endian.hh"
 #include "BKE_customdata.h"
 #include "BLI_math_vector.h"
+#include "ply_import_mesh.hh"
 #include <fstream>
 
 namespace blender::io::ply {
@@ -11,26 +12,6 @@ Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh)
     return convert_ply_to_mesh(data, mesh);
   }
   return nullptr;
-}
-
-Mesh *convert_ply_to_mesh(PlyData& data, Mesh* mesh)
-{
-  mesh->totvert = data.vertices.size();
-  CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (int i = 0; i < mesh->totvert; i++) {
-    float vert[3] = {data.vertices[i].x, data.vertices[i].y, data.vertices[i].z};
-    copy_v3_v3(verts[i].co, vert);
-  }
-
-  mesh->totpoly = data.faces.size();
-  mesh->totloop = data.edges.size();
-  CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-  CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
-
-  return mesh;
 }
 
 float3 read_float3(std::ifstream &file) {
