@@ -679,7 +679,7 @@ BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get
 
   interop_dst.buffer_width = tiles_->current_tile.buffer_object.width;
   interop_dst.buffer_height = tiles_->current_tile.buffer_object.height;
-  interop_dst.opengl_pbo_id = (int)GPU_pixel_buffer_get_native_handle(
+  interop_dst.opengl_pbo_id = GPU_pixel_buffer_get_native_handle(
       tiles_->current_tile.buffer_object.gpu_pixel_buffer);
 
   return interop_dst;

@@ -320,7 +320,7 @@ void GLTexture::update_sub(int offset[3],
   GLContext::state_manager_active_get()->texture_bind_temp(this);
 
   /* Bind pixel buffer for source data. */
-  int pix_buf_handle = (int)GPU_pixel_buffer_get_native_handle(pixbuf);
+  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pix_buf_handle);
 
   switch (dimensions) {
