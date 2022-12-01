@@ -12,7 +12,7 @@ namespace blender::io::ply {
 
 enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 
-int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
+//int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
 
 struct PlyData {
   Vector<float3> vertices;
@@ -21,6 +21,14 @@ struct PlyData {
   Vector<float3> vertex_colors;
   Vector<MEdge> edges;
   Vector<Vector<int>> faces;
+};
+
+enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
+
+struct PlyHeader {
+  int vertex_count = 0, edge_count = 0, face_count = 0, header_size = 0;
+  std::vector<std::pair<std::string, PlyDataTypes>> properties;
+  PlyFormatType type;
 };
 
 }  // namespace blender::io::ply

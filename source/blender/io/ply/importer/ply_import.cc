@@ -25,7 +25,7 @@
 
 #include "intern/ply_data.hh"
 #include "ply_import.hh"
-
+#include "ply_import_big_endian.hh"
 
 namespace blender::io::ply {
 
@@ -42,18 +42,16 @@ void ply_import_report_error(FILE *file)
 
 void splitstr(std::string str, std::vector<std::string> &words, std::string deli = " ")
 {
-   int pos = 0;
-   int end = str.find(deli);
+  int pos = 0;
+  int end = str.find(deli);
 
-   while ((pos = str.find(deli)) != std::string::npos) {
-     words.push_back(str.substr(0, pos));
-     str.erase(0, pos + deli.length());
-   }
-   //adds the final word to the vector
-   words.push_back(str.substr());
+  while ((pos = str.find(deli)) != std::string::npos) {
+    words.push_back(str.substr(0, pos));
+    str.erase(0, pos + deli.length());
+  }
+  // adds the final word to the vector
+  words.push_back(str.substr());
 }
-
-
 
 void importer_main(bContext *C, const PLYImportParams &import_params)
 {
@@ -78,42 +76,74 @@ void importer_main(Main *bmain,
 
   std::string line;
   std::ifstream infile(import_params.filepath);
-  PlyFormatType type;
-  int vertex_count = 0;
-  int face_count = 0;
-  int edge_count = 0;
-  int header_size = 0;
 
+  PlyHeader header;
 
+  // hier kan ook het PlyDataStruct gevuld worden
+  while (std::getline(infile, line)) {
+    header.header_size++;
+    std::vector<std::string> words{};
+    splitstr(line, words);
 
-  //hier kan ook het PlyDataStruct gevuld worden
-  while (std::getline(infile, line)){
-   header_size++;
-   std::vector<std::string> words{};
-   splitstr(line, words);
-    
     if (strcmp(words[0].c_str(), "format") == 0) {
-      if (strcmp(words[1].c_str(), "ascii")== 0)
-        type = ascii;
-      if (strcmp(words[1].c_str(), "binary_big_endian")== 0)
-        type = binary_big_endian;
-      if (strcmp(words[1].c_str(), "binary_little_endian")== 0)
-        type = binary_little_endian;
+      if (strcmp(words[1].c_str(), "ascii") == 0) {
+        header.type = PlyFormatType::ASCII;
+      }
+      else if (strcmp(words[1].c_str(), "binary_big_endian") == 0) {
+        header.type = PlyFormatType::BINARY_BE;
+      }
+      else if (strcmp(words[1].c_str(), "binary_little_endian") == 0) {
+        header.type = PlyFormatType::BINARY_LE;
+      }
     }
-    if (strcmp(words[0].c_str(), "element") == 0) {
-      if (strcmp(words[1].c_str(), "vertex") == 0)
-        vertex_count = std::stoi(words[2]);
-      if (strcmp(words[1].c_str(), "face") == 0)
-        face_count = std::stoi(words[2]);
-      if (strcmp(words[1].c_str(), "edge") == 0)
-        edge_count = std::stoi(words[2]);
+    else if (strcmp(words[0].c_str(), "element") == 0) {
+      if (strcmp(words[1].c_str(), "vertex") == 0) {
+        header.vertex_count = std::stoi(words[2]);
+      }
+      else if (strcmp(words[1].c_str(), "face") == 0) {
+        header.face_count = std::stoi(words[2]);
+      }
+      else if (strcmp(words[1].c_str(), "edge") == 0) {
+        header.edge_count = std::stoi(words[2]);
+      }
     }
+    else if (strcmp(words[0].c_str(), "property") == 0) {
+      if (strcmp(words[1].c_str(), "list") == 0) { // TODO: Support list properties
+        continue;
+      }
+      std::pair<std::string, PlyDataTypes> property;
+      property.first = words[2];
 
+      if (strcmp(words[1].c_str(), "uchar") == 0) {
+        property.second = PlyDataTypes::UCHAR;
+      }
+      else if (strcmp(words[1].c_str(), "char") == 0) {
+        property.second = PlyDataTypes::CHAR;
+      }
+      else if (strcmp(words[1].c_str(), "short") == 0) {
+        property.second = PlyDataTypes::SHORT;
+      }
+      else if (strcmp(words[1].c_str(), "ushort") == 0) {
+        property.second = PlyDataTypes::USHORT;
+      }
+      else if (strcmp(words[1].c_str(), "int") == 0) {
+        property.second = PlyDataTypes::UINT;
+      }
+      else if (strcmp(words[1].c_str(), "uint") == 0) {
+        property.second = PlyDataTypes::UINT;
+      }
+      else if (strcmp(words[1].c_str(), "float") == 0) {
+        property.second = PlyDataTypes::FLOAT;
+      }
+      else if (strcmp(words[1].c_str(), "double") == 0) {
+        property.second = PlyDataTypes::DOUBLE;
+      }
 
-
-    if (words[0] == "end_header") {
+      header.properties.push_back(property);
+    }
+    else if (words[0] == "end_header") {
       break;
-    }   
+    }
   }
 
   /* Name used for both mesh and object. */
@@ -121,15 +151,50 @@ void importer_main(Main *bmain,
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
-  Mesh *mesh = nullptr;
-  if(type == ascii){
+  Mesh *mesh = BKE_mesh_add(bmain, ob_name);
+  if (header.type == PlyFormatType::ASCII) {
     printf("ASCII PLY \n");
   }
-  else if (type == binary_big_endian) {
+  else if (header.type == PlyFormatType::BINARY_BE) {
     printf("Binary Big Endian \n");
+    mesh = import_ply_big_endian(infile, &header, mesh);
   }
-  else{
+  else {
     printf("Binary Little Endian \n");
   }
+
+  BKE_view_layer_base_deselect_all(scene, view_layer);
+  LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+  Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
+  BKE_mesh_assign_object(bmain, obj, mesh);
+  BKE_collection_object_add(bmain, lc->collection, obj);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_base_find(view_layer, obj);
+  BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+  float global_scale = import_params.global_scale;
+  if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {
+    global_scale *= scene->unit.scale_length;
+  }
+  float scale_vec[3] = {global_scale, global_scale, global_scale};
+  float obmat3x3[3][3];
+  unit_m3(obmat3x3);
+  float obmat4x4[4][4];
+  unit_m4(obmat4x4);
+  /* +Y-forward and +Z-up are the Blender's default axis settings. */
+  mat3_from_axis_conversion(
+      IO_AXIS_Y, IO_AXIS_Z, import_params.forward_axis, import_params.up_axis, obmat3x3);
+  copy_m4_m3(obmat4x4, obmat3x3);
+  rescale_m4(obmat4x4, scale_vec);
+  BKE_object_apply_mat4(obj, obmat4x4, true, false);
+
+  DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
+  int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
+              ID_RECALC_BASE_FLAGS;
+  DEG_id_tag_update_ex(bmain, &obj->id, flags);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+  DEG_relations_tag_update(bmain);
+
+  infile.close();
 }
 }  // namespace blender::io::ply
