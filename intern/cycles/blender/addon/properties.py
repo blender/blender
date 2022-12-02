@@ -503,6 +503,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='MULTIPLE_IMPORTANCE_SAMPLING',
     )
 
+    use_light_tree: BoolProperty(
+        name="Light Tree",
+        description="Sample multiple lights more efficiently based on estimated contribution at every shading point",
+        default=True,
+    )
+
     min_light_bounces: IntProperty(
         name="Min Light Bounces",
         description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
@@ -644,7 +650,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     transparent_max_bounces: IntProperty(
         name="Transparent Max Bounces",
-        description="Maximum number of transparent bounces. This is independent of maximum number of other bounces ",
+        description="Maximum number of transparent bounces. This is independent of maximum number of other bounces",
         min=0, max=1024,
         default=8,
     )

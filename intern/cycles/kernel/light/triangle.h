@@ -103,15 +103,17 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
   }
 
   /* Belongs in distribution.h but can reuse computations here. */
-  float distribution_area = area;
+  if (!kernel_data.integrator.use_light_tree) {
+    float distribution_area = area;
 
-  if (has_motion && area != 0.0f) {
-    /* For motion blur need area of triangle at fixed time as used in the CDF. */
-    triangle_world_space_vertices(kg, sd->object, sd->prim, -1.0f, V);
-    distribution_area = triangle_area(V[0], V[1], V[2]);
+    if (has_motion && area != 0.0f) {
+      /* For motion blur need area of triangle at fixed time as used in the CDF. */
+      triangle_world_space_vertices(kg, sd->object, sd->prim, -1.0f, V);
+      distribution_area = triangle_area(V[0], V[1], V[2]);
+    }
+
+    pdf *= distribution_area * kernel_data.integrator.distribution_pdf_triangles;
   }
-
-  pdf *= distribution_area * kernel_data.integrator.distribution_pdf_triangles;
 
   return pdf;
 }
@@ -265,17 +267,61 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   }
 
   /* Belongs in distribution.h but can reuse computations here. */
-  float distribution_area = area;
+  if (!kernel_data.integrator.use_light_tree) {
+    float distribution_area = area;
 
-  if (has_motion && area != 0.0f) {
-    /* For motion blur need area of triangle at fixed time as used in the CDF. */
-    triangle_world_space_vertices(kg, object, prim, -1.0f, V);
-    distribution_area = triangle_area(V[0], V[1], V[2]);
+    if (has_motion && area != 0.0f) {
+      /* For motion blur need area of triangle at fixed time as used in the CDF. */
+      triangle_world_space_vertices(kg, object, prim, -1.0f, V);
+      distribution_area = triangle_area(V[0], V[1], V[2]);
+    }
+
+    ls->pdf_selection = distribution_area * kernel_data.integrator.distribution_pdf_triangles;
   }
-
-  ls->pdf_selection = distribution_area * kernel_data.integrator.distribution_pdf_triangles;
-  ls->pdf *= ls->pdf_selection;
 
   return (ls->pdf > 0.0f);
 }
+
+template<bool in_volume_segment>
+ccl_device_forceinline bool triangle_light_tree_parameters(
+    KernelGlobals kg,
+    const ccl_global KernelLightTreeEmitter *kemitter,
+    const float3 centroid,
+    const float3 P,
+    const float3 N,
+    const BoundingCone bcone,
+    ccl_private float &cos_theta_u,
+    ccl_private float2 &distance,
+    ccl_private float3 &point_to_centroid)
+{
+  if (!in_volume_segment) {
+    /* TODO: a cheap substitute for minimal distance between point and primitive. Does it
+     * worth the overhead to compute the accurate minimal distance? */
+    float min_distance;
+    point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+    distance = make_float2(min_distance, min_distance);
+  }
+
+  const int object = kemitter->mesh_light.object_id;
+  float3 vertices[3];
+  triangle_world_space_vertices(kg, object, kemitter->prim_id, -1.0f, vertices);
+
+  bool shape_above_surface = false;
+  for (int i = 0; i < 3; i++) {
+    const float3 corner = vertices[i];
+    float distance_point_to_corner;
+    const float3 point_to_corner = safe_normalize_len(corner - P, &distance_point_to_corner);
+    cos_theta_u = fminf(cos_theta_u, dot(point_to_centroid, point_to_corner));
+    shape_above_surface |= dot(point_to_corner, N) > 0;
+    if (!in_volume_segment) {
+      distance.x = fmaxf(distance.x, distance_point_to_corner);
+    }
+  }
+
+  const bool front_facing = bcone.theta_o != 0.0f || dot(bcone.axis, point_to_centroid) < 0;
+  const bool in_volume = is_zero(N);
+
+  return (front_facing && shape_above_surface) || in_volume;
+}
+
 CCL_NAMESPACE_END

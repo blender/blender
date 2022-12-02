@@ -294,6 +294,7 @@ set(SRC_KERNEL_LIGHT_HEADERS
   light/point.h
   light/sample.h
   light/spot.h
+  light/tree.h
   light/triangle.h
 )
 

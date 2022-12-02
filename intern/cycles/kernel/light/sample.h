@@ -8,6 +8,7 @@
 
 #include "kernel/light/distribution.h"
 #include "kernel/light/light.h"
+#include "kernel/light/tree.h"
 
 #include "kernel/sample/mapping.h"
 #include "kernel/sample/mis.h"
@@ -315,11 +316,13 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
 /* Next event estimation sampling.
  *
  * Sample a position on a light in the scene, from a position on a surface or
- * from a volume segment. */
+ * from a volume segment.
+ *
+ * Uses either a flat distribution or light tree. */
 
 ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
                                                         float randu,
-                                                        const float randv,
+                                                        float randv,
                                                         const float time,
                                                         const float3 P,
                                                         const float3 D,
@@ -328,13 +331,89 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
                                                         const uint32_t path_flag,
                                                         ccl_private LightSample *ls)
 {
-  return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
+  /* Select an emitter. */
+  int emitter_object = 0;
+  int emitter_prim = 0;
+  int emitter_shader_flag = 0;
+  float emitter_pdf_selection = 0.0f;
+
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    if (!light_tree_sample<true>(kg,
+                                 randu,
+                                 randv,
+                                 time,
+                                 P,
+                                 D,
+                                 t,
+                                 SD_BSDF_HAS_TRANSMISSION,
+                                 bounce,
+                                 path_flag,
+                                 emitter_object,
+                                 emitter_prim,
+                                 emitter_shader_flag,
+                                 emitter_pdf_selection)) {
+      return false;
+    }
+  }
+  else
+#endif
+  {
+    if (!light_distribution_sample(kg,
+                                   randu,
+                                   randv,
+                                   time,
+                                   P,
+                                   bounce,
+                                   path_flag,
+                                   emitter_object,
+                                   emitter_prim,
+                                   emitter_shader_flag,
+                                   emitter_pdf_selection)) {
+      return false;
+    }
+  }
+
+  /* Set first, triangle light sampling from flat distribution will override. */
+  ls->pdf_selection = emitter_pdf_selection;
+
+  /* Sample a point on the chosen emitter. */
+  if (emitter_prim >= 0) {
+    /* Mesh light. */
+    /* Exclude synthetic meshes from shadow catcher pass. */
+    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
+        !(kernel_data_fetch(object_flag, emitter_object) & SD_OBJECT_SHADOW_CATCHER)) {
+      return false;
+    }
+
+    if (!triangle_light_sample<true>(
+            kg, emitter_prim, emitter_object, randu, randv, time, ls, P)) {
+      return false;
+    }
+  }
+  else {
+    /* Light object. */
+    const int lamp = ~emitter_prim;
+
+    if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
+      return false;
+    }
+
+    if (!light_sample<true>(kg, lamp, randu, randv, P, path_flag, ls)) {
+      return false;
+    }
+  }
+
+  ls->pdf *= ls->pdf_selection;
+  ls->shader |= emitter_shader_flag;
+
+  return (ls->pdf > 0);
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            ccl_private const RNGState *rng_state,
-                                           const float randu,
-                                           const float randv,
+                                           float randu,
+                                           float randv,
                                            const float time,
                                            const float3 P,
                                            const float3 N,
@@ -343,7 +422,84 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            const uint32_t path_flag,
                                            ccl_private LightSample *ls)
 {
-  return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
+  /* Select an emitter. */
+  int emitter_object = 0;
+  int emitter_prim = 0;
+  int emitter_shader_flag = 0;
+  float emitter_pdf_selection = 0.0f;
+
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    if (!light_tree_sample<false>(kg,
+                                  randu,
+                                  randv,
+                                  time,
+                                  P,
+                                  N,
+                                  0,
+                                  shader_flags,
+                                  bounce,
+                                  path_flag,
+                                  emitter_object,
+                                  emitter_prim,
+                                  emitter_shader_flag,
+                                  emitter_pdf_selection)) {
+      return false;
+    }
+  }
+  else
+#endif
+  {
+    if (!light_distribution_sample(kg,
+                                   randu,
+                                   randv,
+                                   time,
+                                   P,
+                                   bounce,
+                                   path_flag,
+                                   emitter_object,
+                                   emitter_prim,
+                                   emitter_shader_flag,
+                                   emitter_pdf_selection)) {
+      return false;
+    }
+  }
+
+  /* Set first, triangle light sampling from flat distribution will override. */
+  ls->pdf_selection = emitter_pdf_selection;
+
+  /* Sample a point on the chosen emitter.
+   * TODO: deduplicate code with light_sample_from_volume_segment? */
+  if (emitter_prim >= 0) {
+    /* Mesh light. */
+    /* Exclude synthetic meshes from shadow catcher pass. */
+    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
+        !(kernel_data_fetch(object_flag, emitter_object) & SD_OBJECT_SHADOW_CATCHER)) {
+      return false;
+    }
+
+    if (!triangle_light_sample<false>(
+            kg, emitter_prim, emitter_object, randu, randv, time, ls, P)) {
+      return false;
+    }
+  }
+  else {
+    /* Light object. */
+    const int lamp = ~emitter_prim;
+
+    if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
+      return false;
+    }
+
+    if (!light_sample<false>(kg, lamp, randu, randv, P, path_flag, ls)) {
+      return false;
+    }
+  }
+
+  ls->pdf *= ls->pdf_selection;
+  ls->shader |= emitter_shader_flag;
+
+  return (ls->pdf > 0);
 }
 
 ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
@@ -357,6 +513,16 @@ ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
   if (ls->type == LIGHT_TRIANGLE) {
     if (!triangle_light_sample<false>(kg, ls->prim, ls->object, randu, randv, time, ls, P)) {
       return false;
+    }
+
+#ifdef __LIGHT_TREE__
+    if (kernel_data.integrator.use_light_tree) {
+      ls->pdf *= ls->pdf_selection;
+    }
+    else
+#endif
+    {
+      /* Handled in triangle_light_sample for effeciency. */
     }
     return true;
   }
@@ -401,7 +567,19 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
   float pdf = triangle_light_pdf(kg, sd, t);
 
   /* Light selection pdf. */
-  /* Handled in triangle_light_pdf for efficiency. */
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    uint lookup_offset = kernel_data_fetch(object_lookup_offset, sd->object);
+    uint prim_offset = kernel_data_fetch(object_prim_offset, sd->object);
+    pdf *= light_tree_pdf(kg, ray_P, N, path_flag, sd->prim - prim_offset + lookup_offset);
+  }
+  else
+#endif
+  {
+    /* Handled in triangle_light_pdf for efficiency. */
+  }
 
   return light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
 }
@@ -416,7 +594,16 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
   float pdf = ls->pdf;
 
   /* Light selection pdf. */
-  pdf *= light_distribution_pdf_lamp(kg);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    pdf *= light_tree_pdf(kg, P, N, path_flag, ~ls->lamp);
+  }
+  else
+#endif
+  {
+    pdf *= light_distribution_pdf_lamp(kg);
+  }
 
   return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }
@@ -441,7 +628,16 @@ ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals
   float pdf = background_light_pdf(kg, ray_P, ray_D);
 
   /* Light selection pdf. */
-  pdf *= light_distribution_pdf_lamp(kg);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    pdf *= light_tree_pdf(kg, ray_P, N, path_flag, ~kernel_data.background.light_index);
+  }
+  else
+#endif
+  {
+    pdf *= light_distribution_pdf_lamp(kg);
+  }
 
   return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }

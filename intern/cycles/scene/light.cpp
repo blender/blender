@@ -110,6 +110,7 @@ NODE_DEFINE(Light)
   SOCKET_FLOAT(spread, "Spread", M_PI_F);
 
   SOCKET_INT(map_resolution, "Map Resolution", 0);
+  SOCKET_FLOAT(average_radiance, "Average Radiance", 0.0f);
 
   SOCKET_FLOAT(spot_angle, "Spot Angle", M_PI_4_F);
   SOCKET_FLOAT(spot_smooth, "Spot Smooth", 0.0f);
@@ -310,6 +311,11 @@ void LightManager::device_update_distribution(Device *,
 
   VLOG_INFO << "Total " << num_distribution << " of light distribution primitives.";
 
+  if (kintegrator->use_light_tree) {
+    dscene->light_distribution.free();
+    return;
+  }
+
   /* Emission area. */
   KernelLightDistribution *distribution = dscene->light_distribution.alloc(num_distribution + 1);
   float totarea = 0.0f;
@@ -400,8 +406,8 @@ void LightManager::device_update_distribution(Device *,
 
       distribution[offset].totarea = totarea;
       distribution[offset].prim = ~light_index;
-      distribution[offset].lamp.pad = 1.0f;
-      distribution[offset].lamp.size = light->size;
+      distribution[offset].mesh_light.object_id = OBJECT_NONE;
+      distribution[offset].mesh_light.shader_flag = 0;
       totarea += lightarea;
 
       light_index++;
@@ -411,9 +417,9 @@ void LightManager::device_update_distribution(Device *,
 
   /* normalize cumulative distribution functions */
   distribution[num_distribution].totarea = totarea;
-  distribution[num_distribution].prim = 0.0f;
-  distribution[num_distribution].lamp.pad = 0.0f;
-  distribution[num_distribution].lamp.size = 0.0f;
+  distribution[num_distribution].prim = 0;
+  distribution[num_distribution].mesh_light.object_id = OBJECT_NONE;
+  distribution[num_distribution].mesh_light.shader_flag = 0;
 
   if (totarea > 0.0f) {
     for (size_t i = 0; i < num_distribution; i++)
@@ -448,6 +454,197 @@ void LightManager::device_update_distribution(Device *,
 
   /* Copy distribution to device. */
   dscene->light_distribution.copy_to_device();
+}
+
+void LightManager::device_update_tree(Device *device,
+                                      DeviceScene *dscene,
+                                      Scene *scene,
+                                      Progress &progress)
+{
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+
+  if (!kintegrator->use_light_tree) {
+    dscene->light_tree_nodes.free();
+    dscene->light_tree_emitters.free();
+    dscene->light_to_tree.free();
+    dscene->object_lookup_offset.free();
+    dscene->triangle_to_tree.free();
+    return;
+  }
+
+  /* Update light tree. */
+  progress.set_status("Updating Lights", "Computing tree");
+
+  /* Add both lights and emissive triangles to this vector for light tree construction. */
+  vector<LightTreePrimitive> light_prims;
+  light_prims.reserve(kintegrator->num_distribution);
+  vector<LightTreePrimitive> distant_lights;
+  distant_lights.reserve(kintegrator->num_distant_lights);
+  vector<uint> object_lookup_offsets(scene->objects.size());
+
+  /* When we keep track of the light index, only contributing lights will be added to the device.
+   * Therefore, we want to keep track of the light's index on the device.
+   * However, we also need the light's index in the scene when we're constructing the tree. */
+  int device_light_index = 0;
+  int scene_light_index = 0;
+  foreach (Light *light, scene->lights) {
+    if (light->is_enabled) {
+      if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
+        distant_lights.emplace_back(scene, ~device_light_index, scene_light_index);
+      }
+      else {
+        light_prims.emplace_back(scene, ~device_light_index, scene_light_index);
+      }
+
+      device_light_index++;
+    }
+
+    scene_light_index++;
+  }
+
+  /* Similarly, we also want to keep track of the index of triangles that are emissive. */
+  size_t total_triangles = 0;
+  int object_id = 0;
+  foreach (Object *object, scene->objects) {
+    if (progress.get_cancel())
+      return;
+
+    if (!object_usable_as_light(object)) {
+      object_id++;
+      continue;
+    }
+
+    object_lookup_offsets[object_id] = total_triangles;
+
+    /* Count emissive triangles. */
+    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+    size_t mesh_num_triangles = mesh->num_triangles();
+
+    for (size_t i = 0; i < mesh_num_triangles; i++) {
+      int shader_index = mesh->get_shader()[i];
+      Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
+                           static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
+                           scene->default_surface;
+
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
+        light_prims.emplace_back(scene, i, object_id);
+      }
+    }
+
+    total_triangles += mesh_num_triangles;
+    object_id++;
+  }
+
+  /* Append distant lights to the end of `light_prims` */
+  std::move(distant_lights.begin(), distant_lights.end(), std::back_inserter(light_prims));
+
+  /* Update integrator state. */
+  kintegrator->use_direct_light = !light_prims.empty();
+
+  /* TODO: For now, we'll start with a smaller number of max lights in a node.
+   * More benchmarking is needed to determine what number works best. */
+  LightTree light_tree(light_prims, kintegrator->num_distant_lights, 8);
+
+  /* We want to create separate arrays corresponding to triangles and lights,
+   * which will be used to index back into the light tree for PDF calculations. */
+  const size_t num_lights = kintegrator->num_lights;
+  uint *light_array = dscene->light_to_tree.alloc(num_lights);
+  uint *object_offsets = dscene->object_lookup_offset.alloc(object_lookup_offsets.size());
+  uint *triangle_array = dscene->triangle_to_tree.alloc(total_triangles);
+
+  for (int i = 0; i < object_lookup_offsets.size(); i++) {
+    object_offsets[i] = object_lookup_offsets[i];
+  }
+
+  /* First initialize the light tree's nodes. */
+  const vector<LightTreeNode> &linearized_bvh = light_tree.get_nodes();
+  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(linearized_bvh.size());
+  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(
+      light_prims.size());
+  for (int index = 0; index < linearized_bvh.size(); index++) {
+    const LightTreeNode &node = linearized_bvh[index];
+
+    light_tree_nodes[index].energy = node.energy;
+
+    light_tree_nodes[index].bbox.min = node.bbox.min;
+    light_tree_nodes[index].bbox.max = node.bbox.max;
+
+    light_tree_nodes[index].bcone.axis = node.bcone.axis;
+    light_tree_nodes[index].bcone.theta_o = node.bcone.theta_o;
+    light_tree_nodes[index].bcone.theta_e = node.bcone.theta_e;
+
+    light_tree_nodes[index].bit_trail = node.bit_trail;
+    light_tree_nodes[index].num_prims = node.num_prims;
+
+    /* Here we need to make a distinction between interior and leaf nodes. */
+    if (node.is_leaf()) {
+      light_tree_nodes[index].child_index = -node.first_prim_index;
+
+      for (int i = 0; i < node.num_prims; i++) {
+        int emitter_index = i + node.first_prim_index;
+        LightTreePrimitive &prim = light_prims[emitter_index];
+
+        light_tree_emitters[emitter_index].energy = prim.energy;
+        light_tree_emitters[emitter_index].theta_o = prim.bcone.theta_o;
+        light_tree_emitters[emitter_index].theta_e = prim.bcone.theta_e;
+
+        if (prim.is_triangle()) {
+          light_tree_emitters[emitter_index].mesh_light.object_id = prim.object_id;
+
+          int shader_flag = 0;
+          Object *object = scene->objects[prim.object_id];
+          Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+          Shader *shader = static_cast<Shader *>(
+              mesh->get_used_shaders()[mesh->get_shader()[prim.prim_id]]);
+
+          if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
+            shader_flag |= SHADER_EXCLUDE_CAMERA;
+          }
+          if (!(object->get_visibility() & PATH_RAY_DIFFUSE)) {
+            shader_flag |= SHADER_EXCLUDE_DIFFUSE;
+          }
+          if (!(object->get_visibility() & PATH_RAY_GLOSSY)) {
+            shader_flag |= SHADER_EXCLUDE_GLOSSY;
+          }
+          if (!(object->get_visibility() & PATH_RAY_TRANSMIT)) {
+            shader_flag |= SHADER_EXCLUDE_TRANSMIT;
+          }
+          if (!(object->get_visibility() & PATH_RAY_VOLUME_SCATTER)) {
+            shader_flag |= SHADER_EXCLUDE_SCATTER;
+          }
+          if (!(object->get_is_shadow_catcher())) {
+            shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
+          }
+
+          light_tree_emitters[emitter_index].prim_id = prim.prim_id + mesh->prim_offset;
+          light_tree_emitters[emitter_index].mesh_light.shader_flag = shader_flag;
+          light_tree_emitters[emitter_index].mesh_light.emission_sampling =
+              shader->emission_sampling;
+          triangle_array[prim.prim_id + object_lookup_offsets[prim.object_id]] = emitter_index;
+        }
+        else {
+          light_tree_emitters[emitter_index].prim_id = prim.prim_id;
+          light_tree_emitters[emitter_index].mesh_light.shader_flag = 0;
+          light_tree_emitters[emitter_index].mesh_light.object_id = OBJECT_NONE;
+          light_tree_emitters[emitter_index].mesh_light.emission_sampling =
+              EMISSION_SAMPLING_FRONT_BACK;
+          light_array[~prim.prim_id] = emitter_index;
+        }
+
+        light_tree_emitters[emitter_index].parent_index = index;
+      }
+    }
+    else {
+      light_tree_nodes[index].child_index = node.right_child_index;
+    }
+  }
+
+  /* Copy arrays to device. */
+  dscene->light_tree_nodes.copy_to_device();
+  dscene->light_tree_emitters.copy_to_device();
+  dscene->light_to_tree.copy_to_device();
+  dscene->object_lookup_offset.copy_to_device();
+  dscene->triangle_to_tree.copy_to_device();
 }
 
 static void background_cdf(
@@ -636,6 +833,8 @@ void LightManager::device_update_background(Device *device,
   float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
   marg_cdf[res.y].x = cdf_total;
 
+  background_light->set_average_radiance(cdf_total * M_PI_2_F);
+
   if (cdf_total > 0.0f)
     for (int i = 1; i < res.y; i++)
       marg_cdf[i].y /= cdf_total;
@@ -649,7 +848,7 @@ void LightManager::device_update_background(Device *device,
   dscene->light_background_conditional_cdf.copy_to_device();
 }
 
-void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *scene)
+void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Scene *scene)
 {
   /* Counts lights in the scene. */
   size_t num_lights = 0;
@@ -683,6 +882,8 @@ void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *sc
 
   /* Update integrator settings. */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
+  kintegrator->use_light_tree = scene->integrator->get_use_light_tree() &&
+                                device->info.has_light_tree;
   kintegrator->num_lights = num_lights;
   kintegrator->num_distant_lights = num_distant_lights;
   kintegrator->num_background_lights = num_background_lights;
@@ -943,6 +1144,10 @@ void LightManager::device_update(Device *device,
   if (progress.get_cancel())
     return;
 
+  device_update_tree(device, dscene, scene, progress);
+  if (progress.get_cancel())
+    return;
+
   device_update_ies(dscene);
   if (progress.get_cancel())
     return;
@@ -953,6 +1158,12 @@ void LightManager::device_update(Device *device,
 
 void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_background)
 {
+  /* to-do: check if the light tree member variables need to be wrapped in a conditional too*/
+  dscene->light_tree_nodes.free();
+  dscene->light_tree_emitters.free();
+  dscene->light_to_tree.free();
+  dscene->triangle_to_tree.free();
+
   dscene->light_distribution.free();
   dscene->lights.free();
   if (free_background) {
