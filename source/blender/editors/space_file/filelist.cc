@@ -3125,7 +3125,7 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
     if (datablock_info->asset_data) {
       entry->typeflag |= FILE_TYPE_ASSET;
 
-      if (job_params->asset_library) {
+      if (job_params->load_asset_library) {
         /* Take ownership over the asset data (shallow copies into unique_ptr managed memory) to
          * pass it on to the asset system. */
         std::unique_ptr metadata = std::make_unique<AssetMetaData>(*datablock_info->asset_data);
@@ -3905,8 +3905,9 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   BLI_assert(filelist->asset_library != nullptr);
 
-  /* Add assets from asset libraries on disk. */
-  filelist->asset_library->foreach_nested([&](asset_system::AssetLibrary &nested_library) {
+  /* The "All" asset library was loaded, which means all other asset libraries are also loaded.
+   * Load their assets from disk into the "All" library. */
+  asset_system::AssetLibrary::foreach_loaded([&](asset_system::AssetLibrary &nested_library) {
     StringRefNull root_path = nested_library.root_path();
     if (root_path.is_empty()) {
       return;

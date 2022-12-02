@@ -132,7 +132,6 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 {
   if (all_library_) {
     CLOG_INFO(&LOG, 2, "get all lib (cached)");
-    all_library_->nested_libs_.clear();
   }
   else {
     CLOG_INFO(&LOG, 2, "get all lib (loaded)");
@@ -145,8 +144,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
       continue;
     }
 
-    AssetLibrary *nested_lib = get_asset_library(bmain, library_ref);
-    all_library_->nested_libs_.append(nested_lib);
+    /* Ensure all asset libraries are loaded. */
+    get_asset_library(bmain, library_ref);
   }
 
   return all_library_.get();
@@ -214,21 +213,25 @@ void AssetLibraryService::app_handler_unregister()
 
 bool AssetLibraryService::has_any_unsaved_catalogs() const
 {
-  if (current_file_library_ && current_file_library_->catalog_service->has_unsaved_changes()) {
-    return true;
-  }
+  bool has_unsaved_changes = false;
 
-  for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
-    if (asset_lib_uptr->catalog_service->has_unsaved_changes()) {
-      return true;
-    }
-  }
-
-  return false;
+  foreach_loaded_asset_library(
+      [&has_unsaved_changes](AssetLibrary &library) {
+        if (library.catalog_service->has_unsaved_changes()) {
+          has_unsaved_changes = true;
+        }
+      },
+      true);
+  return has_unsaved_changes;
 }
 
-void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const
+void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn,
+                                                       const bool include_all_library) const
 {
+  if (include_all_library && all_library_) {
+    fn(*all_library_);
+  }
+
   if (current_file_library_) {
     fn(*current_file_library_);
   }

@@ -121,9 +121,11 @@ void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_li
 void AS_asset_library_remap_ids(const IDRemapper *mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  service->foreach_loaded_asset_library([mappings](asset_system::AssetLibrary &library) {
-    library.remap_ids_and_remove_invalid(*mappings);
-  });
+  service->foreach_loaded_asset_library(
+      [mappings](asset_system::AssetLibrary &library) {
+        library.remap_ids_and_remove_invalid(*mappings);
+      },
+      true);
 }
 
 namespace blender::asset_system {
@@ -140,6 +142,13 @@ AssetLibrary::~AssetLibrary()
   if (on_save_callback_store_.func) {
     on_blend_save_handler_unregister();
   }
+}
+
+void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
+                                  const bool include_all_library)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  service->foreach_loaded_asset_library(fn, include_all_library);
 }
 
 void AssetLibrary::load_catalogs()
@@ -170,36 +179,7 @@ AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_p
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
-  /* Usual case, only the "All" library differs and uses nested libraries (see below). */
-  if (asset_storage_->remove_asset(asset)) {
-    return true;
-  }
-
-  /* If asset is not stored in this library, check nested ones (for "All" library). */
-  for (AssetLibrary *library : nested_libs_) {
-    if (!library) {
-      BLI_assert_unreachable();
-      continue;
-    }
-
-    if (asset_storage_->remove_asset(asset)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-void AssetLibrary::foreach_nested(FunctionRef<void(AssetLibrary &)> fn)
-{
-  for (AssetLibrary *library : nested_libs_) {
-    if (!library) {
-      BLI_assert_unreachable();
-      continue;
-    }
-
-    fn(*library);
-  }
+  return asset_storage_->remove_asset(asset);
 }
 
 void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)

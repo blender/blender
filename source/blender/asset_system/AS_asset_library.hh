@@ -56,10 +56,6 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
-  /** In some cases an asset library is a combination of multiple other ones, these are then
-   * referenced here. "All" asset library only currently. */
-  Vector<AssetLibrary *> nested_libs_; /* Non-owning pointers. */
-
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
@@ -77,6 +73,17 @@ class AssetLibrary {
    */
   AssetLibrary(StringRef root_path = "");
   ~AssetLibrary();
+
+  /**
+   * Execute \a fn for every asset library that is loaded. The asset library is passed to the
+   * \a fn call.
+   *
+   * \param skip_all_library: When true, the \a fn will also be executed for the "All" asset
+   *                          library. This is just a combination of the other ones, so usually
+   *                          iterating over it is redundant.
+   */
+  static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
+                             bool include_all_library = true);
 
   void load_catalogs();
 
@@ -101,19 +108,12 @@ class AssetLibrary {
   /** Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
-   * Can also be called when this asset library is just a merged library containing multiple nested
-   * ones ("All" library). Will then check if it exists in a nested library and remove it.
    *
    * \note This is save to call if \a asset is freed (dangling reference), will not perform any
    *       change then.
    * \return True on success, false if the asset couldn't be found inside the library (also the
    *         case when the reference is dangling). */
   bool remove_asset(AssetRepresentation &asset);
-
-  /** In some cases an asset library is a combination of multiple other ones ("All" asset library
-   * only currently). Iterate over the contained asset libraries, executing \a fn for each of them.
-   */
-  void foreach_nested(FunctionRef<void(AssetLibrary &nested_library)> fn);
 
   /**
    * Remap ID pointers for local ID assets, see #BKE_lib_remap.h. When an ID pointer would be
@@ -142,9 +142,6 @@ class AssetLibrary {
   AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
   StringRefNull root_path() const;
-
- private:
-  std::optional<int> find_asset_index(const AssetRepresentation &asset);
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
@@ -152,6 +149,13 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs();
 }  // namespace blender::asset_system
 
 /**
+ * Load the data for an asset library, but not the asset representations themselves (loading these
+ * is currently not done in the asset system).
+ *
+ * For the "All" asset library (#ASSET_LIBRARY_ALL), every other known asset library will be
+ * loaded as well. So a call to #AssetLibrary::foreach_loaded() can be expected to iterate over all
+ * libraries.
+ *
  * \warning Catalogs are reloaded, invalidating catalog pointers. Do not store catalog pointers,
  *          store CatalogIDs instead and lookup the catalog where needed.
  */
