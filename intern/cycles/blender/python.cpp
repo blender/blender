@@ -18,7 +18,6 @@
 #include "util/guiding.h"
 #include "util/log.h"
 #include "util/md5.h"
-#include "util/opengl.h"
 #include "util/openimagedenoise.h"
 #include "util/path.h"
 #include "util/string.h"

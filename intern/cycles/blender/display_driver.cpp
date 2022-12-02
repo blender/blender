@@ -6,7 +6,6 @@
 #include "device/device.h"
 #include "util/log.h"
 #include "util/math.h"
-#include "util/opengl.h"
 
 #include "GPU_context.h"
 #include "GPU_immediate.h"
