@@ -109,12 +109,12 @@ static void bm_vert_calc_normals_impl(BMVert *v)
   zero_v3(v_no);
 
   BMEdge *e_first = v->e;
-  if (e_first != NULL) {
+  if (e_first != nullptr) {
     float e1diff[3], e2diff[3];
     BMEdge *e_iter = e_first;
     do {
       BMLoop *l_first = e_iter->l;
-      if (l_first != NULL) {
+      if (l_first != nullptr) {
         sub_v3_v3v3(e2diff, e_iter->v1->co, e_iter->v2->co);
         normalize_v3(e2diff);
 
@@ -155,12 +155,12 @@ static void bm_vert_calc_normals_with_coords(BMVert *v, BMVertsCalcNormalsWithCo
 
   /* Loop over edges. */
   BMEdge *e_first = v->e;
-  if (e_first != NULL) {
+  if (e_first != nullptr) {
     float e1diff[3], e2diff[3];
     BMEdge *e_iter = e_first;
     do {
       BMLoop *l_first = e_iter->l;
-      if (l_first != NULL) {
+      if (l_first != nullptr) {
         sub_v3_v3v3(e2diff,
                     data->vcos[BM_elem_index_get(e_iter->v1)],
                     data->vcos[BM_elem_index_get(e_iter->v2)]);
@@ -194,7 +194,8 @@ static void bm_vert_calc_normals_with_coords_cb(void *userdata,
                                                 MempoolIterData *mp_v,
                                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  BMVertsCalcNormalsWithCoordsData *data = userdata;
+  BMVertsCalcNormalsWithCoordsData *data = static_cast<BMVertsCalcNormalsWithCoordsData *>(
+      userdata);
   BMVert *v = (BMVert *)mp_v;
   bm_vert_calc_normals_with_coords(v, data);
 }
@@ -210,16 +211,15 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
   BLI_parallel_mempool_settings_defaults(&settings);
   settings.use_threading = bm->totvert >= BM_OMP_LIMIT;
 
-  if (vcos == NULL) {
-    BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_cb, NULL, &settings);
+  if (vcos == nullptr) {
+    BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_cb, nullptr, &settings);
   }
   else {
-    BLI_assert(!ELEM(NULL, fnos, vnos));
-    BMVertsCalcNormalsWithCoordsData data = {
-        .fnos = fnos,
-        .vcos = vcos,
-        .vnos = vnos,
-    };
+    BLI_assert(!ELEM(nullptr, fnos, vnos));
+    BMVertsCalcNormalsWithCoordsData data{};
+    data.fnos = fnos;
+    data.vcos = vcos;
+    data.vnos = vnos;
     BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_with_coords_cb, &data, &settings);
   }
 }
@@ -241,19 +241,18 @@ void BM_mesh_normals_update_ex(BMesh *bm, const struct BMeshNormalsUpdate_Params
     BLI_parallel_mempool_settings_defaults(&settings);
     settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
 
-    BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, NULL, &settings);
+    BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, nullptr, &settings);
   }
 
   /* Add weighted face normals to vertices, and normalize vert normals. */
-  bm_mesh_verts_calc_normals(bm, NULL, NULL, NULL);
+  bm_mesh_verts_calc_normals(bm, nullptr, nullptr, nullptr);
 }
 
 void BM_mesh_normals_update(BMesh *bm)
 {
-  BM_mesh_normals_update_ex(bm,
-                            &(const struct BMeshNormalsUpdate_Params){
-                                .face_normals = true,
-                            });
+  BMeshNormalsUpdate_Params params{};
+  params.face_normals = true;
+  BM_mesh_normals_update_ex(bm, &params);
 }
 
 /** \} */
@@ -307,11 +306,9 @@ void BM_mesh_normals_update_with_partial_ex(BMesh *UNUSED(bm),
 
 void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo)
 {
-  BM_mesh_normals_update_with_partial_ex(bm,
-                                         bmpinfo,
-                                         &(const struct BMeshNormalsUpdate_Params){
-                                             .face_normals = true,
-                                         });
+  BMeshNormalsUpdate_Params params{};
+  params.face_normals = true;
+  BM_mesh_normals_update_with_partial_ex(bm, bmpinfo, &params);
 }
 
 /** \} */
@@ -389,7 +386,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
   if (do_sharp_edges_tag) {
     BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
       BM_elem_index_set(e, i); /* set_inline */
-      if (e->l != NULL) {
+      if (e->l != nullptr) {
         bm_edge_tag_from_smooth_and_set_sharp(fnos, e, split_angle_cos);
       }
     }
@@ -397,7 +394,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
   else {
     BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
       BM_elem_index_set(e, i); /* set_inline */
-      if (e->l != NULL) {
+      if (e->l != nullptr) {
         bm_edge_tag_from_smooth(fnos, e, split_angle_cos);
       }
     }
@@ -413,7 +410,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
     return;
   }
 
-  bm_mesh_edges_sharp_tag(bm, NULL, cosf(split_angle), true);
+  bm_mesh_edges_sharp_tag(bm, nullptr, cosf(split_angle), true);
 }
 
 /** \} */
@@ -481,8 +478,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
                                                MLoopNorSpaceArray *r_lnors_spacearr)
 {
   BLI_assert((bm->elem_index_dirty & BM_LOOP) == 0);
-  BLI_assert((fnos == NULL) || ((bm->elem_index_dirty & BM_FACE) == 0));
-  BLI_assert((vcos == NULL) || ((bm->elem_index_dirty & BM_VERT) == 0));
+  BLI_assert((fnos == nullptr) || ((bm->elem_index_dirty & BM_FACE) == 0));
+  BLI_assert((vcos == nullptr) || ((bm->elem_index_dirty & BM_VERT) == 0));
   UNUSED_VARS_NDEBUG(bm);
 
   int handled = 0;
@@ -537,15 +534,16 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         normalize_v3(vec_prev);
       }
 
-      BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, NULL);
+      BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, nullptr);
       /* We know there is only one loop in this space,
        * no need to create a linklist in this case... */
       BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, l_curr, true);
 
       if (has_clnors) {
-        const short(*clnor)[2] = clnors_data ? &clnors_data[l_curr_index] :
-                                               (const void *)BM_ELEM_CD_GET_VOID_P(
-                                                   l_curr, cd_loop_clnors_offset);
+        const short(*clnor)[2] = clnors_data ?
+                                     &clnors_data[l_curr_index] :
+                                     static_cast<const short(*)[2]>(
+                                         BM_ELEM_CD_GET_VOID_P(l_curr, cd_loop_clnors_offset));
         BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor, r_lnos[l_curr_index]);
       }
     }
@@ -579,15 +577,16 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
     /* We validate clnors data on the fly - cheapest way to do! */
     int clnors_avg[2] = {0, 0};
-    const short(*clnor_ref)[2] = NULL;
+    const short(*clnor_ref)[2] = nullptr;
     int clnors_count = 0;
     bool clnors_invalid = false;
 
     const float *co_pivot = vcos ? vcos[BM_elem_index_get(v_pivot)] : v_pivot->co;
 
-    MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) : NULL;
+    MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) :
+                                                   nullptr;
 
-    BLI_assert((edge_vectors == NULL) || BLI_stack_is_empty(edge_vectors));
+    BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
 
     lfan_pivot = l_curr;
     lfan_pivot_index = BM_elem_index_get(lfan_pivot);
@@ -646,9 +645,10 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
         if (has_clnors) {
           /* Accumulate all clnors, if they are not all equal we have to fix that! */
-          const short(*clnor)[2] = clnors_data ? &clnors_data[lfan_pivot_index] :
-                                                 (const void *)BM_ELEM_CD_GET_VOID_P(
-                                                     lfan_pivot, cd_loop_clnors_offset);
+          const short(*clnor)[2] = clnors_data ?
+                                       &clnors_data[lfan_pivot_index] :
+                                       static_cast<const short(*)[2]>(BM_ELEM_CD_GET_VOID_P(
+                                           lfan_pivot, cd_loop_clnors_offset));
           if (clnors_count) {
             clnors_invalid |= ((*clnor_ref)[0] != (*clnor)[0] || (*clnor_ref)[1] != (*clnor)[1]);
           }
@@ -713,7 +713,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
             /* Prints continuously when merge custom normals, so commenting. */
             // printf("Invalid clnors in this fan!\n");
 
-            while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
+            while ((clnor = static_cast<short *>(BLI_SMALLSTACK_POP(clnors)))) {
               // print_v2("org clnor", clnor);
               clnor[0] = (short)clnors_avg[0];
               clnor[1] = (short)clnors_avg[1];
@@ -735,7 +735,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         /* Copy back the final computed normal into all related loop-normals. */
         float *nor;
 
-        while ((nor = BLI_SMALLSTACK_POP(normal))) {
+        while ((nor = static_cast<float *>(BLI_SMALLSTACK_POP(normal)))) {
           copy_v3_v3(nor, lnor);
         }
       }
@@ -791,14 +791,14 @@ BLI_INLINE bool bm_edge_is_smooth_no_angle_test(const BMEdge *e,
 
 static void bm_edge_tag_from_smooth(const float (*fnos)[3], BMEdge *e, const float split_angle_cos)
 {
-  BLI_assert(e->l != NULL);
+  BLI_assert(e->l != nullptr);
   BMLoop *l_a = e->l, *l_b = l_a->radial_next;
   bool is_smooth = false;
   if (bm_edge_is_smooth_no_angle_test(e, l_a, l_b)) {
     if (split_angle_cos != -1.0f) {
-      const float dot = (fnos == NULL) ? dot_v3v3(l_a->f->no, l_b->f->no) :
-                                         dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
-                                                  fnos[BM_elem_index_get(l_b->f)]);
+      const float dot = (fnos == nullptr) ? dot_v3v3(l_a->f->no, l_b->f->no) :
+                                            dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
+                                                     fnos[BM_elem_index_get(l_b->f)]);
       if (dot >= split_angle_cos) {
         is_smooth = true;
       }
@@ -832,14 +832,14 @@ static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
                                                   BMEdge *e,
                                                   const float split_angle_cos)
 {
-  BLI_assert(e->l != NULL);
+  BLI_assert(e->l != nullptr);
   BMLoop *l_a = e->l, *l_b = l_a->radial_next;
   bool is_smooth = false;
   if (bm_edge_is_smooth_no_angle_test(e, l_a, l_b)) {
     if (split_angle_cos != -1.0f) {
-      const float dot = (fnos == NULL) ? dot_v3v3(l_a->f->no, l_b->f->no) :
-                                         dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
-                                                  fnos[BM_elem_index_get(l_b->f)]);
+      const float dot = (fnos == nullptr) ? dot_v3v3(l_a->f->no, l_b->f->no) :
+                                            dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
+                                                     fnos[BM_elem_index_get(l_b->f)]);
       if (dot >= split_angle_cos) {
         is_smooth = true;
       }
@@ -887,7 +887,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
    *
    * Sorting is only performed when multiple fans are found. */
   const bool has_clnors = true;
-  LinkNode *loops_of_vert = NULL;
+  LinkNode *loops_of_vert = nullptr;
   int loops_of_vert_count = 0;
   /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
@@ -899,7 +899,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
     BMEdge *e_curr_iter = v->e;
     do { /* Edges of vertex. */
       BMLoop *l_curr = e_curr_iter->l;
-      if (l_curr == NULL) {
+      if (l_curr == nullptr) {
         continue;
       }
 
@@ -927,7 +927,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
       } while ((l_curr = l_curr->radial_next) != e_curr_iter->l);
     } while ((e_curr_iter = BM_DISK_EDGE_NEXT(e_curr_iter, v)) != v->e);
 
-    if (UNLIKELY(loops_of_vert == NULL)) {
+    if (UNLIKELY(loops_of_vert == nullptr)) {
       return;
     }
 
@@ -944,8 +944,8 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
   /* Keep track of the number of loops that have been assigned. */
   int loops_of_vert_handled = 0;
 
-  while (loops_of_vert != NULL) {
-    BMLoop *l_best = loops_of_vert->link;
+  while (loops_of_vert != nullptr) {
+    BMLoop *l_best = static_cast<BMLoop *>(loops_of_vert->link);
     loops_of_vert = loops_of_vert->next;
 
     BLI_assert(l_best->v == v);
@@ -997,7 +997,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
     BMVert *v)
 {
   const bool has_clnors = false;
-  const short(*clnors_data)[2] = NULL;
+  const short(*clnors_data)[2] = nullptr;
   /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
   const int cd_loop_clnors_offset = -1;
@@ -1008,7 +1008,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
   e_curr_iter = v->e;
   do { /* Edges of vertex. */
     BMLoop *l_curr = e_curr_iter->l;
-    if (l_curr == NULL) {
+    if (l_curr == nullptr) {
       continue;
     }
 
@@ -1027,7 +1027,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
   e_curr_iter = v->e;
   do { /* Edges of vertex. */
     BMLoop *l_curr = e_curr_iter->l;
-    if (l_curr == NULL) {
+    if (l_curr == nullptr) {
       continue;
     }
     do { /* Radial loops. */
@@ -1055,7 +1055,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
 /**
  * BMesh version of BKE_mesh_normals_loop_split() in `mesh_evaluate.cc`
  * Will use first clnors_data array, and fallback to cd_loop_clnors_offset
- * (use NULL and -1 to not use clnors).
+ * (use nullptr and -1 to not use clnors).
  *
  * \note This sets #BM_ELEM_TAG which is used in tool code (e.g. T84426).
  * we could add a low-level API flag for this, see #BM_ELEM_API_FLAG_ENABLE and friends.
@@ -1076,9 +1076,9 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
 
-  MLoopNorSpaceArray _lnors_spacearr = {NULL};
+  MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
-  BLI_Stack *edge_vectors = NULL;
+  BLI_Stack *edge_vectors = nullptr;
 
   {
     char htype = 0;
@@ -1159,9 +1159,9 @@ typedef struct BMLoopsCalcNormalsWithCoordsData {
   const float (*vcos)[3];
   BMesh *bm;
   const short (*clnors_data)[2];
-  const int cd_loop_clnors_offset;
-  const bool do_rebuild;
-  const float split_angle_cos;
+  int cd_loop_clnors_offset;
+  bool do_rebuild;
+  float split_angle_cos;
 
   /* Output. */
   float (*r_lnos)[3];
@@ -1171,7 +1171,7 @@ typedef struct BMLoopsCalcNormalsWithCoordsData {
 typedef struct BMLoopsCalcNormalsWithCoords_TLS {
   BLI_Stack *edge_vectors;
 
-  /** Copied from #BMLoopsCalcNormalsWithCoordsData.r_lnors_spacearr when it's not NULL. */
+  /** Copied from #BMLoopsCalcNormalsWithCoordsData.r_lnors_spacearr when it's not nullptr. */
   MLoopNorSpaceArray *lnors_spacearr;
   MLoopNorSpaceArray lnors_spacearr_buf;
 } BMLoopsCalcNormalsWithCoords_TLS;
@@ -1179,15 +1179,15 @@ typedef struct BMLoopsCalcNormalsWithCoords_TLS {
 static void bm_mesh_loops_calc_normals_for_vert_init_fn(const void *__restrict userdata,
                                                         void *__restrict chunk)
 {
-  const BMLoopsCalcNormalsWithCoordsData *data = userdata;
-  BMLoopsCalcNormalsWithCoords_TLS *tls_data = chunk;
+  auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);
+  auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
   if (data->r_lnors_spacearr) {
     tls_data->edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
     BKE_lnor_spacearr_tls_init(data->r_lnors_spacearr, &tls_data->lnors_spacearr_buf);
     tls_data->lnors_spacearr = &tls_data->lnors_spacearr_buf;
   }
   else {
-    tls_data->lnors_spacearr = NULL;
+    tls_data->lnors_spacearr = nullptr;
   }
 }
 
@@ -1195,8 +1195,8 @@ static void bm_mesh_loops_calc_normals_for_vert_reduce_fn(const void *__restrict
                                                           void *__restrict UNUSED(chunk_join),
                                                           void *__restrict chunk)
 {
-  const BMLoopsCalcNormalsWithCoordsData *data = userdata;
-  BMLoopsCalcNormalsWithCoords_TLS *tls_data = chunk;
+  auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);
+  auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
 
   if (data->r_lnors_spacearr) {
     BKE_lnor_spacearr_tls_join(data->r_lnors_spacearr, tls_data->lnors_spacearr);
@@ -1206,8 +1206,8 @@ static void bm_mesh_loops_calc_normals_for_vert_reduce_fn(const void *__restrict
 static void bm_mesh_loops_calc_normals_for_vert_free_fn(const void *__restrict userdata,
                                                         void *__restrict chunk)
 {
-  const BMLoopsCalcNormalsWithCoordsData *data = userdata;
-  BMLoopsCalcNormalsWithCoords_TLS *tls_data = chunk;
+  auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);
+  auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
 
   if (data->r_lnors_spacearr) {
     BLI_stack_free(tls_data->edge_vectors);
@@ -1218,11 +1218,11 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors_fn(
     void *userdata, MempoolIterData *mp_v, const TaskParallelTLS *__restrict tls)
 {
   BMVert *v = (BMVert *)mp_v;
-  if (v->e == NULL) {
+  if (v->e == nullptr) {
     return;
   }
-  BMLoopsCalcNormalsWithCoordsData *data = userdata;
-  BMLoopsCalcNormalsWithCoords_TLS *tls_data = tls->userdata_chunk;
+  auto *data = static_cast<BMLoopsCalcNormalsWithCoordsData *>(userdata);
+  auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(tls->userdata_chunk);
   bm_mesh_loops_calc_normals_for_vert_with_clnors(data->bm,
                                                   data->vcos,
                                                   data->fnos,
@@ -1243,11 +1243,11 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors_fn(
     void *userdata, MempoolIterData *mp_v, const TaskParallelTLS *__restrict tls)
 {
   BMVert *v = (BMVert *)mp_v;
-  if (v->e == NULL) {
+  if (v->e == nullptr) {
     return;
   }
-  BMLoopsCalcNormalsWithCoordsData *data = userdata;
-  BMLoopsCalcNormalsWithCoords_TLS *tls_data = tls->userdata_chunk;
+  auto *data = static_cast<BMLoopsCalcNormalsWithCoordsData *>(userdata);
+  auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(tls->userdata_chunk);
   bm_mesh_loops_calc_normals_for_vert_without_clnors(data->bm,
                                                      data->vcos,
                                                      data->fnos,
@@ -1273,7 +1273,7 @@ static void bm_mesh_loops_calc_normals__multi_threaded(BMesh *bm,
                                                        const float split_angle_cos)
 {
   const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
-  MLoopNorSpaceArray _lnors_spacearr = {NULL};
+  MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
   {
     char htype = BM_LOOP;
@@ -1303,7 +1303,7 @@ static void bm_mesh_loops_calc_normals__multi_threaded(BMesh *bm,
   TaskParallelSettings settings;
   BLI_parallel_mempool_settings_defaults(&settings);
 
-  BMLoopsCalcNormalsWithCoords_TLS tls = {NULL};
+  BMLoopsCalcNormalsWithCoords_TLS tls = {nullptr};
 
   settings.userdata_chunk = &tls;
   settings.userdata_chunk_size = sizeof(tls);
@@ -1312,17 +1312,16 @@ static void bm_mesh_loops_calc_normals__multi_threaded(BMesh *bm,
   settings.func_reduce = bm_mesh_loops_calc_normals_for_vert_reduce_fn;
   settings.func_free = bm_mesh_loops_calc_normals_for_vert_free_fn;
 
-  BMLoopsCalcNormalsWithCoordsData data = {
-      .bm = bm,
-      .vcos = vcos,
-      .fnos = fnos,
-      .r_lnos = r_lnos,
-      .r_lnors_spacearr = r_lnors_spacearr,
-      .clnors_data = clnors_data,
-      .cd_loop_clnors_offset = cd_loop_clnors_offset,
-      .do_rebuild = do_rebuild,
-      .split_angle_cos = split_angle_cos,
-  };
+  BMLoopsCalcNormalsWithCoordsData data{};
+  data.bm = bm;
+  data.vcos = vcos;
+  data.fnos = fnos;
+  data.r_lnos = r_lnos;
+  data.r_lnors_spacearr = r_lnors_spacearr;
+  data.clnors_data = clnors_data;
+  data.cd_loop_clnors_offset = cd_loop_clnors_offset;
+  data.do_rebuild = do_rebuild;
+  data.split_angle_cos = split_angle_cos;
 
   BM_iter_parallel(bm,
                    BM_VERTS_OF_MESH,
@@ -1391,12 +1390,12 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
   for (int i = 0; i < bm->totloop; i++) {
     if (!lnors_spacearr->lspacearr[i]) {
       /* This should not happen in theory, but in some rare case (probably ugly geometry)
-       * we can get some NULL loopspacearr at this point. :/
+       * we can get some nullptr loopspacearr at this point. :/
        * Maybe we should set those loops' edges as sharp?
        */
       BLI_BITMAP_ENABLE(done_loops, i);
       if (G.debug & G_DEBUG) {
-        printf("WARNING! Getting invalid NULL loop space for loop %d!\n", i);
+        printf("WARNING! Getting invalid nullptr loop space for loop %d!\n", i);
       }
       continue;
     }
@@ -1417,11 +1416,11 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
       }
 
       LinkNode *loops = lnors_spacearr->lspacearr[i]->loops;
-      BMLoop *prev_ml = NULL;
-      const float *org_nor = NULL;
+      BMLoop *prev_ml = nullptr;
+      const float *org_nor = nullptr;
 
       while (loops) {
-        BMLoop *ml = loops->link;
+        BMLoop *ml = static_cast<BMLoop *>(loops->link);
         const int lidx = BM_elem_index_get(ml);
         const float *nor = new_lnors[lidx];
 
@@ -1453,7 +1452,7 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
        * See T45984. */
       loops = lnors_spacearr->lspacearr[i]->loops;
       if (loops && org_nor) {
-        BMLoop *ml = loops->link;
+        BMLoop *ml = static_cast<BMLoop *>(loops->link);
         const int lidx = BM_elem_index_get(ml);
         const float *nor = new_lnors[lidx];
 
@@ -1491,7 +1490,8 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
     if (!lnors_spacearr->lspacearr[i]) {
       BLI_BITMAP_ENABLE(done_loops, i);
       if (G.debug & G_DEBUG) {
-        printf("WARNING! Still getting invalid NULL loop space in second loop for loop %d!\n", i);
+        printf("WARNING! Still getting invalid nullptr loop space in second loop for loop %d!\n",
+               i);
       }
       continue;
     }
@@ -1510,8 +1510,9 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
         BLI_assert(lidx == i);
 
         const float *nor = new_lnors[lidx];
-        short *clnor = r_clnors_data ? &r_clnors_data[lidx] :
-                                       BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset);
+        short *clnor = static_cast<short *>(r_clnors_data ?
+                                                &r_clnors_data[lidx] :
+                                                BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset));
 
         BKE_lnor_space_custom_normal_to_data(lnors_spacearr->lspacearr[i], nor, clnor);
         BLI_BITMAP_ENABLE(done_loops, i);
@@ -1524,11 +1525,12 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
         zero_v3(avg_nor);
 
         while (loops) {
-          BMLoop *ml = loops->link;
+          BMLoop *ml = static_cast<BMLoop *>(loops->link);
           const int lidx = BM_elem_index_get(ml);
           const float *nor = new_lnors[lidx];
-          short *clnor = r_clnors_data ? &r_clnors_data[lidx] :
-                                         BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset);
+          short *clnor = static_cast<short *>(
+              r_clnors_data ? &r_clnors_data[lidx] :
+                              BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset));
 
           avg_nor_count++;
           add_v3_v3(avg_nor, nor);
@@ -1542,7 +1544,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
         BKE_lnor_space_custom_normal_to_data(
             lnors_spacearr->lspacearr[i], avg_nor, clnor_data_tmp);
 
-        while ((clnor_data = BLI_SMALLSTACK_POP(clnors_data))) {
+        while ((clnor_data = static_cast<short *>(BLI_SMALLSTACK_POP(clnors_data)))) {
           clnor_data[0] = clnor_data_tmp[0];
           clnor_data[1] = clnor_data_tmp[1];
         }
@@ -1573,7 +1575,8 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
   BMFace *f;
   BMLoop *l;
   BMIter liter, fiter;
-  float(*cur_lnors)[3] = MEM_mallocN(sizeof(*cur_lnors) * bm->totloop, __func__);
+  float(*cur_lnors)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*cur_lnors) * bm->totloop, __func__));
 
   BKE_lnor_spacearr_clear(r_lnors_spacearr);
 
@@ -1596,12 +1599,13 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
   /* Extract new normals from the data layer if necessary. */
   float(*custom_lnors)[3] = new_lnors;
 
-  if (new_lnors == NULL) {
-    custom_lnors = MEM_mallocN(sizeof(*new_lnors) * bm->totloop, __func__);
+  if (new_lnors == nullptr) {
+    custom_lnors = static_cast<float(*)[3]>(
+        MEM_mallocN(sizeof(*new_lnors) * bm->totloop, __func__));
 
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        const float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_new_lnors_offset);
+        const float *normal = static_cast<float *>(BM_ELEM_CD_GET_VOID_P(l, cd_new_lnors_offset));
         copy_v3_v3(custom_lnors[BM_elem_index_get(l)], normal);
       }
     }
@@ -1719,7 +1723,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
 
 void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3])
 {
-  BLI_assert(bm->lnor_spacearr != NULL);
+  BLI_assert(bm->lnor_spacearr != nullptr);
 
   if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
     BM_data_layer_add(bm, &bm->ldata, CD_CUSTOMLOOPNORMAL);
@@ -1728,14 +1732,14 @@ void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3])
   int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
   BM_loops_calc_normal_vcos(bm,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             true,
                             M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
-                            NULL,
+                            nullptr,
                             cd_loop_clnors_offset,
                             false);
   bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
@@ -1752,7 +1756,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
     return;
   }
-  if (bm->lnor_spacearr == NULL) {
+  if (bm->lnor_spacearr == nullptr) {
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
     return;
   }
@@ -1813,7 +1817,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
 
 void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 {
-  BLI_assert(bm->lnor_spacearr != NULL);
+  BLI_assert(bm->lnor_spacearr != nullptr);
 
   if (!(bm->spacearr_dirty & (BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL))) {
     return;
@@ -1822,22 +1826,24 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
   BMLoop *l;
   BMIter fiter, liter;
 
-  float(*r_lnors)[3] = MEM_callocN(sizeof(*r_lnors) * bm->totloop, __func__);
-  float(*oldnors)[3] = preserve_clnor ? MEM_mallocN(sizeof(*oldnors) * bm->totloop, __func__) :
-                                        NULL;
+  float(*r_lnors)[3] = static_cast<float(*)[3]>(
+      MEM_callocN(sizeof(*r_lnors) * bm->totloop, __func__));
+  float(*oldnors)[3] = static_cast<float(*)[3]>(
+      preserve_clnor ? MEM_mallocN(sizeof(*oldnors) * bm->totloop, __func__) : nullptr);
 
   int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
   if (preserve_clnor) {
-    BLI_assert(bm->lnor_spacearr->lspacearr != NULL);
+    BLI_assert(bm->lnor_spacearr->lspacearr != nullptr);
 
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
         if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
             bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
-          short(*clnor)[2] = BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset);
+          short(*clnor)[2] = static_cast<short(*)[2]>(
+              BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));
           int l_index = BM_elem_index_get(l);
 
           BKE_lnor_space_custom_data_to_normal(
@@ -1851,14 +1857,14 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
     BKE_lnor_spacearr_clear(bm->lnor_spacearr);
   }
   BM_loops_calc_normal_vcos(bm,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             true,
                             M_PI,
                             r_lnors,
                             bm->lnor_spacearr,
-                            NULL,
+                            nullptr,
                             cd_loop_clnors_offset,
                             true);
   MEM_freeN(r_lnors);
@@ -1868,7 +1874,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
       if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
           bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
         if (preserve_clnor) {
-          short(*clnor)[2] = BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset);
+          short(*clnor)[2] = static_cast<short(*)[2]>(
+              BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));
           int l_index = BM_elem_index_get(l);
           BKE_lnor_space_custom_normal_to_data(
               bm->lnor_spacearr->lspacearr[l_index], oldnors[l_index], *clnor);
@@ -1888,11 +1895,12 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 
 void BM_lnorspace_update(BMesh *bm)
 {
-  if (bm->lnor_spacearr == NULL) {
-    bm->lnor_spacearr = MEM_callocN(sizeof(*bm->lnor_spacearr), __func__);
+  if (bm->lnor_spacearr == nullptr) {
+    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
   }
-  if (bm->lnor_spacearr->lspacearr == NULL) {
-    float(*lnors)[3] = MEM_callocN(sizeof(*lnors) * bm->totloop, __func__);
+  if (bm->lnor_spacearr->lspacearr == nullptr) {
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        MEM_callocN(sizeof(*lnors) * bm->totloop, __func__));
 
     BM_lnorspacearr_store(bm, lnors);
 
@@ -1922,15 +1930,24 @@ void BM_lnorspace_err(BMesh *bm)
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
   bool clear = true;
 
-  MLoopNorSpaceArray *temp = MEM_callocN(sizeof(*temp), __func__);
-  temp->lspacearr = NULL;
+  MLoopNorSpaceArray *temp = MEM_cnew<MLoopNorSpaceArray>(__func__);
+  temp->lspacearr = nullptr;
 
   BKE_lnor_spacearr_init(temp, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
 
   int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
-  float(*lnors)[3] = MEM_callocN(sizeof(*lnors) * bm->totloop, __func__);
-  BM_loops_calc_normal_vcos(
-      bm, NULL, NULL, NULL, true, M_PI, lnors, temp, NULL, cd_loop_clnors_offset, true);
+  float(*lnors)[3] = static_cast<float(*)[3]>(MEM_callocN(sizeof(*lnors) * bm->totloop, __func__));
+  BM_loops_calc_normal_vcos(bm,
+                            nullptr,
+                            nullptr,
+                            nullptr,
+                            true,
+                            M_PI,
+                            lnors,
+                            temp,
+                            nullptr,
+                            cd_loop_clnors_offset,
+                            true);
 
   for (int i = 0; i < bm->totloop; i++) {
     int j = 0;
@@ -1965,7 +1982,7 @@ static void bm_loop_normal_mark_indiv_do_loop(BMLoop *l,
                                               int *totloopsel,
                                               const bool do_all_loops_of_vert)
 {
-  if (l != NULL) {
+  if (l != nullptr) {
     const int l_idx = BM_elem_index_get(l);
 
     if (!BLI_BITMAP_TEST(loops, l_idx)) {
@@ -2016,7 +2033,7 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
-  BLI_assert(bm->lnor_spacearr != NULL);
+  BLI_assert(bm->lnor_spacearr != nullptr);
   BLI_assert(bm->lnor_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
 
   if (use_sel_face_history) {
@@ -2025,7 +2042,7 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
      * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most. */
     /* Goes from last selected to the first selected element. */
-    for (ese = bm->selected.last; ese; ese = ese->prev) {
+    for (ese = static_cast<BMEditSelection *>(bm->selected.last); ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {
         /* If current face is selected,
          * then any verts to be edited must have been selected before it. */
@@ -2118,11 +2135,11 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
 static void loop_normal_editdata_init(
     BMesh *bm, BMLoopNorEditData *lnor_ed, BMVert *v, BMLoop *l, const int offset)
 {
-  BLI_assert(bm->lnor_spacearr != NULL);
-  BLI_assert(bm->lnor_spacearr->lspacearr != NULL);
+  BLI_assert(bm->lnor_spacearr != nullptr);
+  BLI_assert(bm->lnor_spacearr->lspacearr != nullptr);
 
   const int l_index = BM_elem_index_get(l);
-  short *clnors_data = BM_ELEM_CD_GET_VOID_P(l, offset);
+  short *clnors_data = static_cast<short *>(BM_ELEM_CD_GET_VOID_P(l, offset));
 
   lnor_ed->loop_index = l_index;
   lnor_ed->loop = l;
@@ -2149,9 +2166,8 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
 
   BLI_assert(bm->spacearr_dirty == 0);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = MEM_callocN(sizeof(*lnors_ed_arr), __func__);
-  lnors_ed_arr->lidx_to_lnor_editdata = MEM_callocN(
-      sizeof(*lnors_ed_arr->lidx_to_lnor_editdata) * bm->totloop, __func__);
+  BMLoopNorEditDataArray *lnors_ed_arr = MEM_cnew<BMLoopNorEditDataArray>(__func__);
+  lnors_ed_arr->lidx_to_lnor_editdata = MEM_cnew_array<BMLoopNorEditData *>(bm->totloop, __func__);
 
   if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
     BM_data_layer_add(bm, &bm->ldata, CD_CUSTOMLOOPNORMAL);
@@ -2166,8 +2182,8 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
   totloopsel = bm_loop_normal_mark_indiv(bm, loops, do_all_loops_of_vert);
 
   if (totloopsel) {
-    BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata = MEM_mallocN(
-        sizeof(*lnor_ed) * totloopsel, __func__);
+    BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata = static_cast<BMLoopNorEditData *>(
+        MEM_mallocN(sizeof(*lnor_ed) * totloopsel, __func__));
 
     BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
       BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
@@ -2224,8 +2240,9 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   int l_index = 0;
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      const short *clnors_data = BM_ELEM_CD_GET_VOID_P(l, cd_custom_normal_offset);
-      float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_normal_offset);
+      const short *clnors_data = static_cast<const short *>(
+          BM_ELEM_CD_GET_VOID_P(l, cd_custom_normal_offset));
+      float *normal = static_cast<float *>(BM_ELEM_CD_GET_VOID_P(l, cd_normal_offset));
 
       BKE_lnor_space_custom_data_to_normal(
           bm->lnor_spacearr->lspacearr[l_index], clnors_data, normal);
@@ -2246,17 +2263,17 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
 
-  if (bm->lnor_spacearr == NULL) {
-    bm->lnor_spacearr = MEM_callocN(sizeof(*bm->lnor_spacearr), __func__);
+  if (bm->lnor_spacearr == nullptr) {
+    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
   }
 
   bm_mesh_loops_custom_normals_set(bm,
-                                   NULL,
-                                   NULL,
+                                   nullptr,
+                                   nullptr,
                                    bm->lnor_spacearr,
-                                   NULL,
+                                   nullptr,
                                    cd_custom_normal_offset,
-                                   NULL,
+                                   nullptr,
                                    cd_normal_offset,
                                    add_sharp_edges);
 

@@ -45,8 +45,10 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   BMesh *bm;
   int edges_num, i;
   MEdge *me;
-  CustomData_MeshMasks cd_mask_extra = {
-      .vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX};
+  CustomData_MeshMasks cd_mask_extra{};
+  cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
 
   bool keep_clnors = (flag & MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS) != 0;
 
@@ -57,22 +59,23 @@ static Mesh *triangulate_mesh(Mesh *mesh,
     cd_mask_extra.lmask |= CD_MASK_NORMAL;
   }
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &((struct BMeshCreateParams){0}),
-                            &((struct BMeshFromMeshParams){
-                                .calc_face_normal = true,
-                                .calc_vert_normal = false,
-                                .cd_mask_extra = cd_mask_extra,
-                            }));
+  BMeshCreateParams bmesh_create_params{};
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.calc_vert_normal = false;
+  bmesh_from_mesh_params.cd_mask_extra = cd_mask_extra;
 
-  BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, false, NULL, NULL, NULL);
+  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+
+  BM_mesh_triangulate(
+      bm, quad_method, ngon_method, min_vertices, false, nullptr, nullptr, nullptr);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, mesh);
   BM_mesh_free(bm);
 
   if (keep_clnors) {
-    float(*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
-    BLI_assert(lnors != NULL);
+    float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&result->ldata, CD_NORMAL));
+    BLI_assert(lnors != nullptr);
 
     BKE_mesh_set_custom_normals(result, lnors);
 
@@ -125,10 +128,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "quad_method", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "ngon_method", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "min_vertices", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "keep_custom_normals", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "quad_method", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "ngon_method", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "min_vertices", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "keep_custom_normals", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -151,24 +154,24 @@ ModifierTypeInfo modifierType_Triangulate = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,  // requiredDataMask,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* requiredDataMask */ nullptr,  // requiredDataMask,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
+    /* updateDepsgraph */ nullptr,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
+    /* foreachIDLink */ nullptr,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

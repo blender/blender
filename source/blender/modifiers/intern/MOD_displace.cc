@@ -126,10 +126,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     need_transform_relation = true;
   }
 
-  if (dmd->texture != NULL) {
+  if (dmd->texture != nullptr) {
     DEG_add_generic_id_relation(ctx->node, &dmd->texture->id, "Displace Modifier");
 
-    if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
+    if (dmd->map_object != nullptr && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
       MOD_depsgraph_update_object_bone_relation(
           ctx->node, dmd->map_object, dmd->map_bone, "Displace Modifier");
       need_transform_relation = true;
@@ -273,11 +273,11 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   int defgrp_index;
   float(*tex_co)[3];
   float weight = 1.0f; /* init value unused but some compilers may complain */
-  float(*vert_clnors)[3] = NULL;
+  float(*vert_clnors)[3] = nullptr;
   float local_mat[4][4] = {{0}};
   const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
-  if (dmd->texture == NULL && dmd->direction == MOD_DISP_DIR_RGB_XYZ) {
+  if (dmd->texture == nullptr && dmd->direction == MOD_DISP_DIR_RGB_XYZ) {
     return;
   }
   if (dmd->strength == 0.0f) {
@@ -287,20 +287,21 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   mvert = BKE_mesh_verts_for_write(mesh);
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
-  if (defgrp_index >= 0 && dvert == NULL) {
+  if (defgrp_index >= 0 && dvert == nullptr) {
     /* There is a vertex group, but it has no vertices. */
     return;
   }
 
   Tex *tex_target = dmd->texture;
-  if (tex_target != NULL) {
-    tex_co = MEM_calloc_arrayN((size_t)verts_num, sizeof(*tex_co), "displaceModifier_do tex_co");
+  if (tex_target != nullptr) {
+    tex_co = static_cast<float(*)[3]>(
+        MEM_calloc_arrayN((size_t)verts_num, sizeof(*tex_co), "displaceModifier_do tex_co"));
     MOD_get_texture_coords((MappingInfoModifierData *)dmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)dmd, ctx);
   }
   else {
-    tex_co = NULL;
+    tex_co = nullptr;
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
@@ -311,8 +312,9 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
         BKE_mesh_calc_normals_split(mesh);
       }
 
-      float(*clnors)[3] = CustomData_get_layer(ldata, CD_NORMAL);
-      vert_clnors = MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__);
+      float(*clnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(ldata, CD_NORMAL));
+      vert_clnors = static_cast<float(*)[3]>(
+          MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(
           verts_num, BKE_mesh_loops(mesh), mesh->totloop, (const float(*)[3])clnors, vert_clnors);
     }
@@ -325,7 +327,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     copy_m4_m4(local_mat, ob->object_to_world);
   }
 
-  DisplaceUserdata data = {NULL};
+  DisplaceUserdata data = {nullptr};
   data.scene = DEG_get_evaluated_scene(ctx->depsgraph);
   data.dmd = dmd;
   data.dvert = dvert;
@@ -342,7 +344,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
   data.vert_clnors = vert_clnors;
-  if (tex_target != NULL) {
+  if (tex_target != nullptr) {
     data.pool = BKE_image_pool_new();
     BKE_texture_fetch_images_for_pool(tex_target, data.pool);
   }
@@ -351,7 +353,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   settings.use_threading = (verts_num > 512);
   BLI_task_parallel_range(0, verts_num, &data, displaceModifier_do_task, &settings);
 
-  if (data.pool != NULL) {
+  if (data.pool != nullptr) {
     BKE_image_pool_free(data.pool);
   }
 
@@ -370,12 +372,12 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
@@ -386,17 +388,18 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, editData, mesh, nullptr, verts_num, false);
 
   /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
+  if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
   displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
@@ -416,7 +419,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, has_texture);
@@ -437,7 +440,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
   }
 
   uiItemS(layout);
@@ -449,16 +452,16 @@ static void panel_draw(const bContext *C, Panel *panel)
            MOD_DISP_DIR_Y,
            MOD_DISP_DIR_Z,
            MOD_DISP_DIR_RGB_XYZ)) {
-    uiItemR(col, ptr, "space", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "space", 0, nullptr, ICON_NONE);
   }
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "strength", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "mid_level", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "strength", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "mid_level", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
@@ -480,23 +483,23 @@ ModifierTypeInfo modifierType_Displace = {
     /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
+    /* deformMatrices */ nullptr,
     /* deformVertsEM */ deformVertsEM,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /* deformMatricesEM */ nullptr,
+    /* modifyMesh */ nullptr,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
+    /* freeData */ nullptr,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
     /* dependsOnNormals */ dependsOnNormals,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ NULL,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

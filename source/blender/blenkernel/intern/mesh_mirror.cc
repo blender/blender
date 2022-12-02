@@ -42,15 +42,16 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
   BMIter viter;
   BMVert *v, *v_next;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &(struct BMeshCreateParams){0},
-                            &(struct BMeshFromMeshParams){
-                                .calc_face_normal = true,
-                                .calc_vert_normal = true,
-                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                                                  .emask = CD_MASK_ORIGINDEX,
-                                                  .pmask = CD_MASK_ORIGINDEX},
-                            });
+  BMeshCreateParams bmesh_create_params{0};
+
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.calc_vert_normal = true;
+  bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  bmesh_from_mesh_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  bmesh_from_mesh_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   /* Define bisecting plane (aka mirror plane). */
   float plane[4];
@@ -76,7 +77,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
     }
   }
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
   BM_mesh_free(bm);
 
   return result;
@@ -87,18 +88,15 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                           const int axis,
                                           const float dist)
 {
-  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh,
-                                   &(struct BMeshCreateParams){
-                                       .use_toolflags = 1,
-                                   },
-                                   &(struct BMeshFromMeshParams){
-                                       .calc_face_normal = true,
-                                       .calc_vert_normal = true,
-                                       .cd_mask_extra =
-                                           {
-                                               .vmask = CD_MASK_SHAPEKEY,
-                                           },
-                                   });
+  BMeshCreateParams bmesh_create_params{};
+  bmesh_create_params.use_toolflags = 1;
+
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.calc_vert_normal = true;
+  bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_SHAPEKEY;
+
+  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
@@ -106,13 +104,10 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                dist,
                true);
 
-  BM_mesh_bm_to_me(bmain,
-                   bm,
-                   mesh,
-                   (&(struct BMeshToMeshParams){
-                       .calc_object_remap = true,
+  BMeshToMeshParams bmesh_to_mesh_params{};
+  bmesh_to_mesh_params.calc_object_remap = true;
 
-                   }));
+  BM_mesh_bm_to_me(bmain, bm, mesh, &bmesh_to_mesh_params);
   BM_mesh_free(bm);
 }
 
@@ -139,14 +134,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   float plane_co[3], plane_no[3];
   int i;
   int a, totshape;
-  int *vtargetmap = NULL, *vtmap_a = NULL, *vtmap_b = NULL;
+  int *vtargetmap = nullptr, *vtmap_a = nullptr, *vtmap_b = nullptr;
 
   /* mtx is the mirror transformation */
   unit_m4(mtx);
   mtx[axis][axis] = -1.0f;
 
   Object *mirror_ob = mmd->mirror_ob;
-  if (mirror_ob != NULL) {
+  if (mirror_ob != nullptr) {
     float tmp[4][4];
     float itmp[4][4];
 
@@ -187,7 +182,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     negate_v3_v3(plane_no, mtx[axis]);
   }
 
-  Mesh *mesh_bisect = NULL;
+  Mesh *mesh_bisect = nullptr;
   if (do_bisect) {
     mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
         mmd, mesh, axis, plane_co, plane_no);
@@ -230,7 +225,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
-    vtargetmap = MEM_malloc_arrayN(maxVerts, sizeof(int[2]), "MOD_mirror tarmap");
+    vtargetmap = static_cast<int *>(
+        MEM_malloc_arrayN(maxVerts, sizeof(int[2]), "MOD_mirror tarmap"));
 
     vtmap_a = vtargetmap;
     vtmap_b = vtargetmap + maxVerts;
@@ -297,7 +293,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle shape keys */
   totshape = CustomData_number_of_layers(&result->vdata, CD_SHAPEKEY);
   for (a = 0; a < totshape; a++) {
-    float(*cos)[3] = CustomData_get_layer_n(&result->vdata, CD_SHAPEKEY, a);
+    float(*cos)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_n(&result->vdata, CD_SHAPEKEY, a));
     for (i = maxVerts; i < result->totvert; i++) {
       mul_m4_v3(mtx, cos[i]);
     }
@@ -359,7 +356,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const int totuv = CustomData_number_of_layers(&result->ldata, CD_MLOOPUV);
 
     for (a = 0; a < totuv; a++) {
-      MLoopUV *dmloopuv = CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, a);
+      MLoopUV *dmloopuv = static_cast<MLoopUV *>(
+          CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, a));
       int j = maxLoops;
       dmloopuv += j; /* second set of loops only */
       for (; j-- > 0; dmloopuv++) {
@@ -392,10 +390,11 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL)) {
     const int totloop = result->totloop;
     const int totpoly = result->totpoly;
-    float(*loop_normals)[3] = MEM_calloc_arrayN((size_t)totloop, sizeof(*loop_normals), __func__);
+    float(*loop_normals)[3] = static_cast<float(*)[3]>(
+        MEM_calloc_arrayN((size_t)totloop, sizeof(*loop_normals), __func__));
     CustomData *ldata = &result->ldata;
-    short(*clnors)[2] = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
-    MLoopNorSpaceArray lnors_spacearr = {NULL};
+    short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL));
+    MLoopNorSpaceArray lnors_spacearr = {nullptr};
 
     /* The transform matrix of a normal must be
      * the transpose of inverse of transform matrix of the geometry... */
@@ -418,7 +417,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 totpoly,
                                 true,
                                 mesh->smoothresh,
-                                NULL,
+                                nullptr,
                                 &lnors_spacearr,
                                 clnors);
 
@@ -448,7 +447,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle vgroup stuff */
   if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vdata, CD_MDEFORMVERT)) {
     MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result) + maxVerts;
-    int *flip_map = NULL, flip_map_len = 0;
+    int *flip_map = nullptr, flip_map_len = 0;
 
     flip_map = BKE_object_defgroup_flip_map(ob, false, &flip_map_len);
 
@@ -480,8 +479,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     MEM_freeN(vtargetmap);
   }
 
-  if (mesh_bisect != NULL) {
-    BKE_id_free(NULL, mesh_bisect);
+  if (mesh_bisect != nullptr) {
+    BKE_id_free(nullptr, mesh_bisect);
   }
 
   return result;
