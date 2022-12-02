@@ -2192,7 +2192,7 @@ void nodeUniqueID(bNodeTree *ntree, bNode *node)
 
   /* In the unlikely case that the random ID doesn't match, choose a new one until it does. */
   int32_t new_id = id_rng.get_int32();
-  while (ntree->runtime->nodes_by_id.contains_as(new_id)) {
+  while (ntree->runtime->nodes_by_id.contains_as(new_id) || new_id <= 0) {
     new_id = id_rng.get_int32();
   }
 
