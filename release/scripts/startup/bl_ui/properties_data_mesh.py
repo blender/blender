@@ -536,7 +536,7 @@ class MESH_UL_attributes(UIList):
         indices = [i for i in range(len(attributes))]
 
         for item in attributes:
-            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+            flags.append(0 if item.is_internal else self.bitflag_filter_item)
 
         return flags, indices
 
@@ -632,9 +632,9 @@ class ColorAttributesListBase():
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
                 (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
-                (not item.is_internal)
+                item.is_internal
             )
-            ret.append(self.bitflag_filter_item if not skip else 0)
+            ret.append(0 if skip else self.bitflag_filter_item)
             idxs.append(idx)
 
         return ret, idxs
