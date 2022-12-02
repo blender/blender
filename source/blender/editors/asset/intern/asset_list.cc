@@ -114,6 +114,7 @@ class AssetList : NonCopyable {
   void clear(bContext *C);
 
   bool needsRefetch() const;
+  asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListIterFn fn) const;
   bool listen(const wmNotifier &notifier) const;
   int size() const;
@@ -178,6 +179,11 @@ void AssetList::fetch(const bContext &C)
 bool AssetList::needsRefetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
+}
+
+asset_system::AssetLibrary *AssetList::asset_library() const
+{
+  return reinterpret_cast<asset_system::AssetLibrary *>(filelist_asset_library(filelist_));
 }
 
 void AssetList::iterate(AssetListIterFn fn) const
@@ -399,6 +405,7 @@ AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 /** \name C-API
  * \{ */
 
+using namespace blender;
 using namespace blender::ed::asset;
 
 void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference, const bContext *C)
@@ -447,6 +454,16 @@ void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetL
   if (list) {
     list->iterate(fn);
   }
+}
+
+asset_system::AssetLibrary *ED_assetlist_library_get(
+    const AssetLibraryReference &library_reference)
+{
+  const AssetList *list = AssetListStorage::lookup_list(library_reference);
+  if (!list) {
+    return nullptr;
+  }
+  return list->asset_library();
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
