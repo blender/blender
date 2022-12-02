@@ -9,7 +9,7 @@
 
 namespace blender::gpu {
 
-VKPixelBuffer::VKPixelBuffer(int64_t size): PixelBuffer(size)
+VKPixelBuffer::VKPixelBuffer(int64_t size) : PixelBuffer(size)
 {
 }
 
