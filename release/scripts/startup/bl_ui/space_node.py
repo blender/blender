@@ -307,8 +307,10 @@ class NODE_MT_select(Menu):
 class NODE_MT_node(Menu):
     bl_label = "Node"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        snode = context.space_data
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
 
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
@@ -346,14 +348,17 @@ class NODE_MT_node(Menu):
 
         layout.operator("node.hide_toggle")
         layout.operator("node.mute_toggle")
-        layout.operator("node.preview_toggle")
+        if is_compositor:
+            layout.operator("node.preview_toggle")
         layout.operator("node.hide_socket_toggle")
         layout.operator("node.options_toggle")
         layout.operator("node.collapse_hide_unused_toggle")
 
-        layout.separator()
 
-        layout.operator("node.read_viewlayers")
+        if is_compositor:
+            layout.separator()
+
+            layout.operator("node.read_viewlayers")
 
 
 class NODE_MT_view_pie(Menu):
