@@ -16,6 +16,7 @@
 
 #include "CLG_log.h"
 
+#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "asset_library_service.hh"
 #include "utils.hh"
@@ -107,6 +108,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_
 
   lib->on_blend_save_handler_register();
   lib->load_catalogs();
+  /* Reload catalogs on refresh. */
+  lib->on_refresh_ = [lib]() { lib->catalog_service->reload_catalogs(); };
 
   on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
@@ -117,6 +120,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 {
   if (current_file_library_) {
     CLOG_INFO(&LOG, 2, "get current file lib (cached)");
+    current_file_library_->refresh();
   }
   else {
     CLOG_INFO(&LOG, 2, "get current file lib (loaded)");
@@ -130,14 +134,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 {
-  if (all_library_) {
-    CLOG_INFO(&LOG, 2, "get all lib (cached)");
-  }
-  else {
-    CLOG_INFO(&LOG, 2, "get all lib (loaded)");
-    all_library_ = std::make_unique<AssetLibrary>();
-  }
-
+  /* (Re-)load all other asset libraries. */
   for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
     /* Skip self :) */
     if (library_ref.type == ASSET_LIBRARY_ALL) {
@@ -148,7 +145,32 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
     get_asset_library(bmain, library_ref);
   }
 
-  return all_library_.get();
+  if (all_library_) {
+    CLOG_INFO(&LOG, 2, "get all lib (cached)");
+    all_library_->refresh();
+    return all_library_.get();
+  }
+
+  CLOG_INFO(&LOG, 2, "get all lib (loaded)");
+  all_library_ = std::make_unique<AssetLibrary>();
+
+  AssetLibrary &all_library = *all_library_;
+  auto build_catalogs_fn = [&all_library]() {
+    /* Start with empty catalog storage. */
+    all_library.catalog_service = std::make_unique<AssetCatalogService>();
+
+    /* (Re-)load catalogs on refresh. */
+    AssetLibrary::foreach_loaded([&all_library](AssetLibrary &nested) {
+      nested.catalog_service->reload_catalogs();
+      all_library.catalog_service->add_from_existing(*nested.catalog_service);
+    });
+    all_library.catalog_service->rebuild_tree();
+  };
+
+  build_catalogs_fn();
+  all_library.on_refresh_ = build_catalogs_fn;
+
+  return &all_library;
 }
 
 std::string AssetLibraryService::root_path_from_library_ref(

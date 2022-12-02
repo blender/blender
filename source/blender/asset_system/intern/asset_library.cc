@@ -160,7 +160,9 @@ void AssetLibrary::load_catalogs()
 
 void AssetLibrary::refresh()
 {
-  this->catalog_service->reload_catalogs();
+  if (on_refresh_) {
+    on_refresh_();
+  }
 }
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,

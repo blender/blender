@@ -68,6 +68,12 @@ class AssetCatalogService {
   void load_from_disk(const CatalogFilePath &file_or_directory_path);
 
   /**
+   * Duplicate the catalogs from \a other_service into this one. Does not rebuild the tree, this
+   * needs to be done by the caller (call #rebuild_tree()!).
+   */
+  void add_from_existing(const AssetCatalogService &other_service);
+
+  /**
    * Write the catalog definitions to disk.
    *
    * The location where the catalogs are saved is variable, and depends on the location of the
@@ -104,6 +110,15 @@ class AssetCatalogService {
    *   data). This includes in-memory marked-as-deleted catalogs.
    */
   void reload_catalogs();
+
+  /**
+   * Make sure the tree is updated to the latest collection of catalogs stored in this service.
+   * Does not depend on a CDF file being available so this can be called on a service that stores
+   * catalogs that are not stored in a CDF.
+   * Most API functions that modify catalog data will trigger this, unless otherwise specified (for
+   * batch operations).
+   */
+  void rebuild_tree();
 
   /** Return catalog with the given ID. Return nullptr if not found. */
   AssetCatalog *find_catalog(CatalogID catalog_id) const;
@@ -222,7 +237,6 @@ class AssetCatalogService {
       const CatalogFilePath &blend_file_path);
 
   std::unique_ptr<AssetCatalogTree> read_into_tree();
-  void rebuild_tree();
 
   /**
    * For every catalog, ensure that its parent path also has a known catalog.
@@ -270,6 +284,11 @@ class AssetCatalogCollection {
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
 
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
+  /**
+   * Copy the catalogs from \a other and append them to this collection. Copies no other data
+   * otherwise (but marks as having unsaved changes).
+   */
+  void add_catalogs_from_existing(const AssetCatalogCollection &other);
 
  protected:
   static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);

@@ -56,6 +56,8 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
+  std::function<void()> on_refresh_;
+
   bCallbackFuncStore on_save_callback_store_{};
 
  public:

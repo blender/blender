@@ -323,6 +323,11 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   rebuild_tree();
 }
 
+void AssetCatalogService::add_from_existing(const AssetCatalogService &other_service)
+{
+  catalog_collection_->add_catalogs_from_existing(*other_service.catalog_collection_);
+}
+
 void AssetCatalogService::load_directory_recursive(const CatalogFilePath &directory_path)
 {
   /* TODO(@sybren): implement proper multi-file support. For now, just load
@@ -658,15 +663,25 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
   return copy;
 }
 
+static void copy_catalog_map_into_existing(const OwningAssetCatalogMap &source,
+                                           OwningAssetCatalogMap &dest)
+{
+  for (const auto &orig_catalog_uptr : source.values()) {
+    auto copy_catalog_uptr = std::make_unique<AssetCatalog>(*orig_catalog_uptr);
+    dest.add_new(copy_catalog_uptr->catalog_id, std::move(copy_catalog_uptr));
+  }
+}
+
+void AssetCatalogCollection::add_catalogs_from_existing(const AssetCatalogCollection &other)
+{
+  has_unsaved_changes_ = true;
+  copy_catalog_map_into_existing(other.catalogs_, catalogs_);
+}
+
 OwningAssetCatalogMap AssetCatalogCollection::copy_catalog_map(const OwningAssetCatalogMap &orig)
 {
   OwningAssetCatalogMap copy;
-
-  for (const auto &orig_catalog_uptr : orig.values()) {
-    auto copy_catalog_uptr = std::make_unique<AssetCatalog>(*orig_catalog_uptr);
-    copy.add_new(copy_catalog_uptr->catalog_id, std::move(copy_catalog_uptr));
-  }
-
+  copy_catalog_map_into_existing(orig, copy);
   return copy;
 }
 
