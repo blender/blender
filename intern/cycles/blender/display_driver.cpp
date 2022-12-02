@@ -238,11 +238,18 @@ class DisplayGPUTexture {
     return *this;
   }
 
-  bool gpu_resources_ensure()
+  bool gpu_resources_ensure(const uint texture_width, const uint texture_height)
   {
+    if (width != texture_width || height != texture_height) {
+      gpu_resources_destroy();
+    }
+
     if (gpu_texture) {
       return true;
     }
+
+    width = texture_width;
+    height = texture_height;
 
     /* Texture must have a minimum size of 1x1. */
     gpu_texture = GPU_texture_create_2d(
@@ -272,16 +279,6 @@ class DisplayGPUTexture {
     reset();
 
     --num_used;
-  }
-
-  void ensure_size(uint texture_width, uint texture_height)
-  {
-    if (width != texture_width || height != texture_height) {
-      gpu_resources_destroy();
-      width = texture_width;
-      height = texture_height;
-      gpu_resources_ensure();
-    }
   }
 
   /* Texture resource allocated by the GPU module.
@@ -339,15 +336,15 @@ class DisplayGPUPixelBuffer {
     return *this;
   }
 
-  void ensure_size(uint new_width, uint new_height)
+  bool gpu_resources_ensure(const uint new_width, const uint new_height)
   {
-    size_t required_size = sizeof(half4) * new_width * new_height * 4;
+    const size_t required_size = sizeof(half4) * new_width * new_height * 4;
 
+    /* Try to re-use the existing PBO if it has usable size. */
     if (gpu_pixel_buffer) {
       if (new_width != width || new_height != height ||
           GPU_pixel_buffer_size(gpu_pixel_buffer) < required_size) {
-        GPU_pixel_buffer_free(gpu_pixel_buffer);
-        gpu_pixel_buffer = nullptr;
+        gpu_resources_destroy();
       }
     }
 
@@ -359,12 +356,6 @@ class DisplayGPUPixelBuffer {
     if (!gpu_pixel_buffer) {
       gpu_pixel_buffer = GPU_pixel_buffer_create(required_size);
     }
-  }
-
-  bool gpu_resources_ensure()
-  {
-    /* Create pixel buffer using current size. */
-    ensure_size(width, height);
 
     if (gpu_pixel_buffer == nullptr) {
       LOG(ERROR) << "Error creating texture pixel buffer object.";
@@ -420,16 +411,6 @@ class DrawTile {
 
   DrawTile &operator=(DrawTile &&other) = default;
 
-  bool gpu_resources_ensure()
-  {
-    if (!texture.gpu_resources_ensure()) {
-      gpu_resources_destroy();
-      return false;
-    }
-
-    return true;
-  }
-
   void gpu_resources_destroy()
   {
     texture.gpu_resources_destroy();
@@ -449,16 +430,6 @@ class DrawTile {
 
 class DrawTileAndPBO {
  public:
-  bool gpu_resources_ensure()
-  {
-    if (!tile.gpu_resources_ensure() || !buffer_object.gpu_resources_ensure()) {
-      gpu_resources_destroy();
-      return false;
-    }
-
-    return true;
-  }
-
   void gpu_resources_destroy()
   {
     tile.gpu_resources_destroy();
@@ -560,15 +531,6 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
     need_clear_ = false;
   }
 
-  if (!tiles_->current_tile.gpu_resources_ensure()) {
-    tiles_->current_tile.gpu_resources_destroy();
-    gpu_context_disable();
-    return false;
-  }
-
-  /* Update texture dimensions if needed. */
-  current_tile.texture.ensure_size(texture_width, texture_height);
-
   /* Update PBO dimensions if needed.
    *
    * NOTE: Allocate the PBO for the size which will fit the final render resolution (as in,
@@ -580,7 +542,13 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
    * mode faster. */
   const int buffer_width = params.size.x;
   const int buffer_height = params.size.y;
-  current_tile_buffer_object.ensure_size(buffer_width, buffer_height);
+
+  if (!current_tile_buffer_object.gpu_resources_ensure(buffer_width, buffer_height) ||
+      !current_tile.texture.gpu_resources_ensure(texture_width, texture_height)) {
+    tiles_->current_tile.gpu_resources_destroy();
+    gpu_context_disable();
+    return false;
+  }
 
   /* Store an updated parameters of the current tile.
    * In theory it is only needed once per update of the tile, but doing it on every update is

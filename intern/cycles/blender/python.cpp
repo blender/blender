@@ -26,6 +26,8 @@
 #include "util/tbb.h"
 #include "util/types.h"
 
+#include "GPU_state.h"
+
 #ifdef WITH_OSL
 #  include "scene/osl.h"
 
@@ -337,7 +339,7 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
   if (PyLong_AsVoidPtr(pyrv3d)) {
     /* 3d view drawing */
     int viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
+    GPU_viewport_size_get_i(viewport);
 
     session->view_draw(viewport[2], viewport[3]);
   }
