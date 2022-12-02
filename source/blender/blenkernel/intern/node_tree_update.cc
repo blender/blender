@@ -733,7 +733,7 @@ struct NodeTreeRelations {
     this->ensure_all_trees();
 
     for (bNodeTree *ntree : *all_trees_) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      for (bNode *node : ntree->all_nodes()) {
         if (node->id == nullptr) {
           continue;
         }
@@ -1012,7 +1012,7 @@ class NodeTreeMainUpdater {
 #ifdef DEBUG
     /* Check the uniqueness of node identifiers. */
     Set<int32_t> node_identifiers;
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    for (bNode *node : ntree.all_nodes()) {
       BLI_assert(node->identifier > 0);
       node_identifiers.add_new(node->identifier);
     }
@@ -1053,7 +1053,7 @@ class NodeTreeMainUpdater {
   void update_individual_nodes(bNodeTree &ntree)
   {
     Vector<bNode *> group_inout_nodes;
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    for (bNode *node : ntree.all_nodes()) {
       nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
         bNodeType &ntype = *node->typeinfo;
@@ -1610,7 +1610,7 @@ class NodeTreeMainUpdater {
   void reset_changed_flags(bNodeTree &ntree)
   {
     ntree.runtime->changed_flag = NTREE_CHANGED_NOTHING;
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    for (bNode *node : ntree.all_nodes()) {
       node->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       node->runtime->update = 0;
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
@@ -1728,7 +1728,7 @@ void BKE_ntree_update_tag_parent_change(bNodeTree *ntree, bNode *node)
 void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
 {
   FOREACH_NODETREE_BEGIN (bmain, ntree, ntree_id) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       if (node->id == id) {
         node->runtime->update |= NODE_UPDATE_ID;
         add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);

@@ -166,9 +166,9 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   }
 
   /* update node->parent pointers */
-  LISTBASE_FOREACH (bNode *, new_node, &ntree_dst->nodes) {
-    if (new_node->parent) {
-      new_node->parent = dst_runtime.nodes_by_id.lookup_key_as(new_node->parent->identifier);
+  for (bNode *node : ntree_dst->all_nodes()) {
+    if (node->parent) {
+      node->parent = dst_runtime.nodes_by_id.lookup_key_as(node->parent->identifier);
     }
   }
 
@@ -323,7 +323,7 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ntree->gpd, IDWALK_CB_USER);
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
 
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
@@ -363,7 +363,7 @@ static void node_foreach_cache(ID *id,
 #endif
 
   if (nodetree->type == NTREE_COMPOSIT) {
-    LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+    for (bNode *node : nodetree->all_nodes()) {
       if (node->type == CMP_NODE_MOVIEDISTORTION) {
         key.offset_in_ID = size_t(BLI_ghashutil_strhash_p(node->name));
         function_callback(id, &key, (void **)&node->storage, 0, user_data);
@@ -378,7 +378,7 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
   switch (ntree->type) {
     case NTREE_SHADER: {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      for (bNode *node : ntree->all_nodes()) {
         if (node->type == SH_NODE_SCRIPT) {
           NodeShaderScript *nss = reinterpret_cast<NodeShaderScript *>(node->storage);
           BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath);
@@ -495,7 +495,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     BKE_animdata_blend_write(writer, ntree->adt);
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     BLO_write_struct(writer, bNode, node);
 
     if (node->prop) {
@@ -1229,7 +1229,7 @@ static void update_typeinfo(Main *bmain,
     }
 
     /* initialize nodes */
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       if (nodetype && STREQ(node->idname, nodetype->idname)) {
         node_set_typeinfo(C, ntree, node, unregister ? nullptr : nodetype);
       }
@@ -1266,7 +1266,7 @@ void ntreeSetTypes(const bContext *C, bNodeTree *ntree)
 {
   ntree_set_typeinfo(ntree, ntreeTypeFind(ntree->idname));
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     node_set_typeinfo(C, ntree, node, nodeTypeFind(node->idname));
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
@@ -2023,7 +2023,7 @@ void nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_so
 
 bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     ListBase *sockets = (sock->in_out == SOCK_IN) ? &node->inputs : &node->outputs;
     int i;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, tsock, sockets, i) {
@@ -2778,7 +2778,7 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
                                              const int xsize,
                                              const int ysize)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
 
     if (BKE_node_preview_used(node)) {
@@ -2811,7 +2811,7 @@ static void node_preview_tag_used_recursive(bNodeInstanceHash *previews,
                                             bNodeTree *ntree,
                                             bNodeInstanceKey parent_key)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
 
     if (BKE_node_preview_used(node)) {
@@ -2926,7 +2926,7 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 
 static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->parent == parent) {
       nodeDetachNode(ntree, node);
     }
@@ -3454,7 +3454,7 @@ bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
   if (ntree == lookup) {
     return true;
   }
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
       if (ntreeHasTree((bNodeTree *)node->id, lookup)) {
         return true;
@@ -3494,7 +3494,7 @@ bNode *nodeGetActive(bNodeTree *ntree)
     return nullptr;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & NODE_ACTIVE) {
       return node;
     }
@@ -3526,7 +3526,7 @@ void nodeClearActive(bNodeTree *ntree)
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     node->flag &= ~NODE_ACTIVE;
   }
 }
@@ -3540,7 +3540,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   SET_FLAG_FROM_TEST(flags_to_set, is_texture_class, NODE_ACTIVE_TEXTURE);
 
   /* Make sure only one node is active per node tree. */
-  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
+  for (bNode *tnode : ntree->all_nodes()) {
     tnode->flag &= ~flags_to_set;
   }
   node->flag |= flags_to_set;
@@ -3974,7 +3974,7 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
 
   /* Update all users of ngroup, to add/remove sockets as needed. */
   FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       if (node->id == id) {
         BKE_ntree_update_tag_node_property(ntree, node);
         need_update = true;
@@ -4315,7 +4315,7 @@ bool BKE_node_tree_iter_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetre
 void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_index)
 {
   BLI_assert(layer_index != -1);
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (Scene *)node->id == scene) {
       if (node->custom1 == layer_index) {
         node->custom1 = 0;

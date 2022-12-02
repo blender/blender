@@ -2621,7 +2621,7 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
     }
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
         socket->runtime->total_inputs = counts.lookup_default(socket, 0);

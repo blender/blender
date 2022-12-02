@@ -247,7 +247,7 @@ static void node_socket_toggle(bNode *node, bNodeSocket &sock, bool deselect_nod
 
 void node_deselect_all(SpaceNode &snode)
 {
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     nodeSetSelected(node, false);
   }
 }
@@ -259,7 +259,7 @@ void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes
    * We can do that more efficiently here.
    */
 
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
@@ -289,7 +289,7 @@ void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_node
    * We can do that more efficiently here.
    */
 
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
@@ -334,7 +334,7 @@ Set<bNode *> get_selected_nodes(bNodeTree &node_tree)
 static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (node->type == node_act.type) {
         nodeSetSelected(node, true);
@@ -348,7 +348,7 @@ static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
 static bool node_select_grouped_color(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (compare_v3v3(node->color, node_act.color, 0.005f)) {
         nodeSetSelected(node, true);
@@ -375,7 +375,7 @@ static bool node_select_grouped_name(bNodeTree &node_tree, bNode &node_act, cons
     suf_act = node_act.name;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if (node->flag & SELECT) {
       continue;
     }
@@ -501,7 +501,7 @@ void node_select_single(bContext &C, bNode &node)
   const wmWindowManager *wm = CTX_wm_manager(&C);
   bool active_texture_changed = false;
 
-  LISTBASE_FOREACH (bNode *, node_iter, &node_tree.nodes) {
+  for (bNode *node_iter : node_tree.all_nodes()) {
     if (node_iter != &node) {
       nodeSetSelected(node_iter, false);
     }
@@ -771,7 +771,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
     node_deselect_all(snode);
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     bool is_inside = false;
 
     switch (node->type) {
@@ -1326,7 +1326,7 @@ static void node_find_update_fn(const bContext *C,
 
   StringSearch *search = BLI_string_search_new();
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
     BLI_string_search_add(search, name, node, 0);

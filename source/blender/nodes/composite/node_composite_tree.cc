@@ -196,7 +196,7 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS) {
       node_cmp_rlayers_outputs(ntree, node);
     }
@@ -213,7 +213,7 @@ void ntreeCompositTagRender(Scene *scene)
   for (Scene *sce_iter = (Scene *)G_MAIN->scenes.first; sce_iter;
        sce_iter = (Scene *)sce_iter->id.next) {
     if (sce_iter->nodetree) {
-      LISTBASE_FOREACH (bNode *, node, &sce_iter->nodetree->nodes) {
+      for (bNode *node : sce_iter->nodetree->all_nodes()) {
         if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
           BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
@@ -233,7 +233,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
     if (node->type == NODE_GROUP) {
       ntreeCompositClearTags((bNodeTree *)node->id);

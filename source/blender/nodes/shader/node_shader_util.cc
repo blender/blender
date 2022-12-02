@@ -185,7 +185,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
     return nullptr;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & sub_activity) {
       activetexnode = node;
       /* if active we can return immediately */
@@ -221,7 +221,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
 
   if (hasgroup) {
     /* node active texture node in this tree, look inside groups */
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       if (node->type == NODE_GROUP) {
         bNode *tnode = node_get_active((bNodeTree *)node->id, sub_activity);
         if (tnode && ((tnode->flag & sub_activity) || !inactivenode)) {

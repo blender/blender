@@ -1046,7 +1046,7 @@ static int compositor_needs_render(Scene *sce, int this_scene)
     return 1;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
       if (this_scene == 0 || node->id == nullptr || node->id == &sce->id) {
         return 1;
@@ -1071,7 +1071,7 @@ static void do_render_compositor_scenes(Render *re)
   /* now foreach render-result node we do a full render */
   /* results are stored in a way compositor will find it */
   GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
-  LISTBASE_FOREACH (bNode *, node, &re->scene->nodetree->nodes) {
+  for (bNode *node : re->scene->nodetree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
       if (node->id && node->id != (ID *)re->scene) {
         Scene *scene = (Scene *)node->id;
@@ -1400,7 +1400,7 @@ static bool check_valid_compositing_camera(Scene *scene,
                                            ReportList *reports)
 {
   if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
-    LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
+    for (bNode *node : scene->nodetree->all_nodes()) {
       if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
@@ -1508,15 +1508,15 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   return true;
 }
 
-static bool node_tree_has_compositor_output(bNodeTree *ntree)
+static bool node_tree_has_compositor_output(const bNodeTree *ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
       return true;
     }
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       if (node->id) {
-        if (node_tree_has_compositor_output((bNodeTree *)node->id)) {
+        if (node_tree_has_compositor_output((const bNodeTree *)node->id)) {
           return true;
         }
       }

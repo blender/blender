@@ -730,7 +730,7 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
                                                 bNodeTree *ntree,
                                                 struct ImagePool *pool)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == SH_NODE_TEX_IMAGE && node->id != nullptr) {
       Image *image = (Image *)node->id;
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);

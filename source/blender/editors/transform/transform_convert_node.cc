@@ -15,6 +15,7 @@
 
 #include "BKE_context.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
@@ -128,8 +129,8 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   t->flag = t->flag & ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (node->flag & NODE_SELECT && is_node_parent_select(node) == false) {
+  for (bNode *node : snode->edittree->all_nodes()) {
+    if (node->flag & NODE_SELECT && !is_node_parent_select(node)) {
       node->flag |= NODE_TRANSFORM;
       tc->data_len++;
     }
@@ -145,7 +146,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   TransData *td = tc->data = MEM_cnew_array<TransData>(tc->data_len, __func__);
   TransData2D *td2d = tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & NODE_TRANSFORM) {
       NodeToTransData(td++, td2d++, node, dpi_fac);
     }

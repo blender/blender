@@ -19,6 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
 #include "ED_node.h"
@@ -330,7 +331,7 @@ static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
   if (ELEM(nullptr, ntree, id)) {
     return false;
   }
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (node->id == id) {
       return true;
     }

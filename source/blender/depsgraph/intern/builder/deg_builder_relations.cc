@@ -2627,7 +2627,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
                  RELATION_FLAG_NO_FLUSH);
   }
   /* nodetree's nodes... */
-  LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
+  for (bNode *bnode : ntree->all_nodes()) {
     build_idproperties(bnode->prop);
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
       build_nodetree_socket(socket);

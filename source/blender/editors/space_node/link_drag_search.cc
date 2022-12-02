@@ -9,6 +9,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
@@ -91,7 +92,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
-  LISTBASE_FOREACH (bNode *, node, &params.node_tree.nodes) {
+  for (bNode *node : params.node_tree.all_nodes()) {
     if (node->type == NODE_GROUP_INPUT) {
       bNodeSocket *new_group_input_socket = (bNodeSocket *)BLI_findlink(&node->outputs,
                                                                         group_input_index);

@@ -58,6 +58,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_vfont.h"
@@ -1387,7 +1388,7 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
 {
   const bool do_image_nodes = (slot_filter & PAINT_SLOT_IMAGE) != 0;
   const bool do_color_attributes = (slot_filter & PAINT_SLOT_COLOR_ATTRIBUTE) != 0;
-  LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+  for (bNode *node : nodetree->all_nodes()) {
     if (do_image_nodes && node->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
       if (!callback(node, userdata)) {
