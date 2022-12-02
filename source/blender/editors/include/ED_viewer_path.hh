@@ -35,8 +35,8 @@ Object *parse_object_only(const ViewerPath &viewer_path);
 struct ViewerPathForGeometryNodesViewer {
   Object *object;
   blender::StringRefNull modifier_name;
-  blender::Vector<blender::StringRefNull> group_node_names;
-  blender::StringRefNull viewer_node_name;
+  blender::Vector<int32_t> group_node_ids;
+  int32_t viewer_node_id;
 };
 
 /**

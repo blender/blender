@@ -137,8 +137,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_GPENCIL:
-      if (mode & (OB_MODE_EDIT_GPENCIL | OB_MODE_PAINT_GPENCIL | OB_MODE_SCULPT_GPENCIL |
-                  OB_MODE_WEIGHT_GPENCIL | OB_MODE_VERTEX_GPENCIL)) {
+      if (mode & (OB_MODE_EDIT_GPENCIL | OB_MODE_ALL_PAINT_GPENCIL)) {
         return true;
       }
       break;

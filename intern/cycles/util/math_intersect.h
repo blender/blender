@@ -257,8 +257,8 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
                                    float ray_tmin,
                                    float ray_tmax,
                                    float3 quad_P,
-                                   float3 quad_u,
-                                   float3 quad_v,
+                                   float3 inv_quad_u,
+                                   float3 inv_quad_v,
                                    float3 quad_n,
                                    ccl_private float3 *isect_P,
                                    ccl_private float *isect_t,
@@ -273,11 +273,11 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
   }
   const float3 hit = ray_P + t * ray_D;
   const float3 inplane = hit - quad_P;
-  const float u = dot(inplane, quad_u) / dot(quad_u, quad_u);
+  const float u = dot(inplane, inv_quad_u);
   if (u < -0.5f || u > 0.5f) {
     return false;
   }
-  const float v = dot(inplane, quad_v) / dot(quad_v, quad_v);
+  const float v = dot(inplane, inv_quad_v);
   if (v < -0.5f || v > 0.5f) {
     return false;
   }

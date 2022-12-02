@@ -39,6 +39,11 @@
 
 #define LEAF_LIMIT 10000
 
+/* Uncomment to test if triangles of the same face are
+ * properly clustered into single nodes.
+ */
+//#define TEST_PBVH_FACE_SPLIT
+
 /* Uncomment to test that faces are only assigned to one PBVHNode */
 //#define VALIDATE_UNIQUE_NODE_FACES
 
@@ -164,24 +169,64 @@ static bool grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
 
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
-static int partition_indices(int *prim_indices, int lo, int hi, int axis, float mid, BBC *prim_bbc)
+static int partition_indices_faces(int *prim_indices,
+                                   int *prim_scratch,
+                                   int lo,
+                                   int hi,
+                                   int axis,
+                                   float mid,
+                                   BBC *prim_bbc,
+                                   const MLoopTri *looptri)
 {
-  int i = lo, j = hi;
-  for (;;) {
-    for (; prim_bbc[prim_indices[i]].bcentroid[axis] < mid; i++) {
-      /* pass */
-    }
-    for (; mid < prim_bbc[prim_indices[j]].bcentroid[axis]; j--) {
-      /* pass */
-    }
-
-    if (!(i < j)) {
-      return i;
-    }
-
-    SWAP(int, prim_indices[i], prim_indices[j]);
-    i++;
+  for (int i = lo; i < hi; i++) {
+    prim_scratch[i - lo] = prim_indices[i];
   }
+
+  int lo2 = lo, hi2 = hi - 1;
+  int i1 = lo, i2 = 0;
+
+  while (i1 < hi) {
+    int poly = looptri[prim_scratch[i2]].poly;
+    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
+
+    while (i1 < hi && looptri[prim_scratch[i2]].poly == poly) {
+      prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
+      i1++;
+      i2++;
+    }
+  }
+
+  return lo2;
+}
+
+static int partition_indices_grids(int *prim_indices,
+                                   int *prim_scratch,
+                                   int lo,
+                                   int hi,
+                                   int axis,
+                                   float mid,
+                                   BBC *prim_bbc,
+                                   SubdivCCG *subdiv_ccg)
+{
+  for (int i = lo; i < hi; i++) {
+    prim_scratch[i - lo] = prim_indices[i];
+  }
+
+  int lo2 = lo, hi2 = hi - 1;
+  int i1 = lo, i2 = 0;
+
+  while (i1 < hi) {
+    int poly = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]);
+    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
+
+    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]) == poly) {
+      prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
+      i1++;
+      i2++;
+    }
+  }
+
+  return lo2;
 }
 
 /* Returns the index of the first element on the right of the partition */
@@ -424,55 +469,53 @@ static bool leaf_needs_material_split(PBVH *pbvh, int offset, int count)
   return false;
 }
 
-static int adjust_partition_faces(PBVH *pbvh, int offset, int mid, int count)
+#ifdef TEST_PBVH_FACE_SPLIT
+static void test_face_boundaries(PBVH *pbvh)
 {
-  int poly = pbvh->looptri[pbvh->prim_indices[mid]].poly;
-
-  /* Scan backwards. */
-  while (mid > offset + 2) { /* First node should have at least 1 primitive */
-    if (pbvh->looptri[pbvh->prim_indices[mid - 1]].poly != poly) {
-      return mid;
-    }
-
-    mid--;
+  int faces_num = BKE_pbvh_num_faces(pbvh);
+  int *node_map = MEM_calloc_arrayN(faces_num, sizeof(int), __func__);
+  for (int i = 0; i < faces_num; i++) {
+    node_map[i] = -1;
   }
 
-  /* If that didn't work try scanning forward. */
-  while (mid < pbvh->totprim + count) {
-    if (pbvh->looptri[pbvh->prim_indices[mid]].poly != poly) {
-      break;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
     }
 
-    mid++;
+    switch (BKE_pbvh_type(pbvh)) {
+      case PBVH_FACES: {
+        for (int j = 0; j < node->totprim; j++) {
+          int poly = pbvh->looptri[node->prim_indices[j]].poly;
+
+          if (node_map[poly] >= 0 && node_map[poly] != i) {
+            int old_i = node_map[poly];
+            int prim_i = node->prim_indices - pbvh->prim_indices + j;
+
+            printf("PBVH split error; poly: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
+                   poly,
+                   prim_i,
+                   old_i,
+                   i,
+                   node->totprim);
+          }
+
+          node_map[poly] = i;
+        }
+        break;
+      }
+      case PBVH_GRIDS:
+        break;
+      case PBVH_BMESH:
+        break;
+    }
   }
 
-  return mid;
+  MEM_SAFE_FREE(node_map);
 }
-
-static int adjust_partition_grids(PBVH *pbvh, int offset, int mid, int count)
-{
-  int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]);
-
-  /* Scan backwards. */
-  while (mid > offset + 2) { /* First node should have at least 1 primitive */
-    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid - 1]) != poly) {
-      return mid;
-    }
-
-    mid--;
-  }
-
-  /* If that didn't work try scanning forward. */
-  while (mid < pbvh->totprim + count) {
-    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]) != poly) {
-      break;
-    }
-
-    mid++;
-  }
-
-  return mid;
-}
+#endif
 
 /* Recursively build a node in the tree
  *
@@ -485,16 +528,32 @@ static int adjust_partition_grids(PBVH *pbvh, int offset, int mid, int count)
  * offset and start indicate a range in the array of primitive indices
  */
 
-static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int offset, int count)
+static void build_sub(PBVH *pbvh,
+                      int node_index,
+                      BB *cb,
+                      BBC *prim_bbc,
+                      int offset,
+                      int count,
+                      int *prim_scratch,
+                      int depth)
 {
   int end;
   BB cb_backing;
 
+  if (!prim_scratch) {
+    prim_scratch = MEM_malloc_arrayN(pbvh->totprim, sizeof(int), __func__);
+  }
+
   /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = count <= pbvh->leaf_limit;
+  const bool below_leaf_limit = count <= pbvh->leaf_limit || depth == STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(pbvh, offset, count)) {
       build_leaf(pbvh, node_index, prim_bbc, offset, count);
+
+      if (node_index == 0) {
+        MEM_SAFE_FREE(prim_scratch);
+      }
+
       return;
     }
   }
@@ -518,33 +577,53 @@ static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int off
     const int axis = BB_widest_axis(cb);
 
     /* Partition primitives along that axis */
-    end = partition_indices(pbvh->prim_indices,
-                            offset,
-                            offset + count - 1,
-                            axis,
-                            (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-                            prim_bbc);
+    if (pbvh->header.type == PBVH_FACES) {
+      end = partition_indices_faces(pbvh->prim_indices,
+                                    prim_scratch,
+                                    offset,
+                                    offset + count,
+                                    axis,
+                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+                                    prim_bbc,
+                                    pbvh->looptri);
+    }
+    else {
+      end = partition_indices_grids(pbvh->prim_indices,
+                                    prim_scratch,
+                                    offset,
+                                    offset + count,
+                                    axis,
+                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+                                    prim_bbc,
+                                    pbvh->subdiv_ccg);
+    }
   }
   else {
     /* Partition primitives by material */
     end = partition_indices_material(pbvh, offset, offset + count - 1);
   }
 
-  if (pbvh->header.type == PBVH_FACES) {
-    end = adjust_partition_faces(pbvh, offset, end, count);
-  }
-  else {
-    end = adjust_partition_grids(pbvh, offset, end, count);
-  }
-
   /* Build children */
-  build_sub(pbvh, pbvh->nodes[node_index].children_offset, NULL, prim_bbc, offset, end - offset);
+  build_sub(pbvh,
+            pbvh->nodes[node_index].children_offset,
+            NULL,
+            prim_bbc,
+            offset,
+            end - offset,
+            prim_scratch,
+            depth + 1);
   build_sub(pbvh,
             pbvh->nodes[node_index].children_offset + 1,
             NULL,
             prim_bbc,
             end,
-            offset + count - end);
+            offset + count - end,
+            prim_scratch,
+            depth + 1);
+
+  if (node_index == 0) {
+    MEM_SAFE_FREE(prim_scratch);
+  }
 }
 
 static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
@@ -569,7 +648,7 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
   }
 
   pbvh->totnode = 1;
-  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim);
+  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim, NULL, 0);
 }
 
 static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
@@ -742,7 +821,16 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->hide_vert = (bool *)CustomData_get_layer_named(&mesh->vdata, CD_PROP_BOOL, ".hide_vert");
   pbvh->vert_bitmap = MEM_calloc_arrayN(totvert, sizeof(bool), "bvh->vert_bitmap");
   pbvh->totvert = totvert;
+
+#ifdef TEST_PBVH_FACE_SPLIT
+  /* Use lower limit to increase probability of
+   * edge cases.
+   */
+  pbvh->leaf_limit = 100;
+#else
   pbvh->leaf_limit = LEAF_LIMIT;
+#endif
+
   pbvh->vdata = vdata;
   pbvh->ldata = ldata;
   pbvh->pdata = pdata;
@@ -772,34 +860,12 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
-  /* Ensure all primitives belonging to the same base face
-   * have the same bounds. This is needed to prevent them
-   * from being swapped away from each other inside the partition
-   * array.
-   */
-  for (int i = 0; i < looptri_num; i++) {
-    const MLoopTri *lt = &looptri[i];
-    int poly = lt->poly;
-    BBC *bbc = prim_bbc + i;
-    int j = i + 1;
-
-    while (j < looptri_num && looptri[j].poly == poly) {
-      BBC *bbc2 = prim_bbc + j;
-
-      BB_expand((BB *)bbc, bbc2->bmin);
-      BB_expand((BB *)bbc, bbc2->bmax);
-      j++;
-    }
-
-    j = i + 1;
-    while (j < looptri_num && looptri[j].poly == poly) {
-      prim_bbc[j] = prim_bbc[i];
-      j++;
-    }
-  }
-
   if (looptri_num) {
     pbvh_build(pbvh, &cb, prim_bbc, looptri_num);
+
+#ifdef TEST_PBVH_FACE_SPLIT
+    test_face_boundaries(pbvh);
+#endif
   }
 
   MEM_freeN(prim_bbc);
@@ -882,34 +948,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
-  /* Ensure all primitives belonging to the same base face
-   * have the same bounds.  This is needed to prevent them
-   * from being swapped away from each other inside the partition
-   * array.
-   */
-  for (int i = 0; i < totgrid; i++) {
-    int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, i);
-
-    BBC *bbc = prim_bbc + i;
-    int j = i + 1;
-
-    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
-      BBC *bbc2 = prim_bbc + j;
-
-      BB_expand((BB *)bbc, bbc2->bmin);
-      BB_expand((BB *)bbc, bbc2->bmax);
-      j++;
-    }
-
-    j = i + 1;
-    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
-      prim_bbc[j] = prim_bbc[i];
-      j++;
-    }
-  }
-
   if (totgrid) {
     pbvh_build(pbvh, &cb, prim_bbc, totgrid);
+
+#ifdef TEST_PBVH_FACE_SPLIT
+    test_face_boundaries(pbvh);
+#endif
   }
 
   MEM_freeN(prim_bbc);

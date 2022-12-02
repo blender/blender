@@ -1931,6 +1931,8 @@ void SCULPT_stroke_id_ensure(struct Object *ob);
 void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
 
+void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif

@@ -285,10 +285,16 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
 )
 
 set(SRC_KERNEL_LIGHT_HEADERS
-  light/light.h
+  light/area.h
   light/background.h
   light/common.h
+  light/distant.h
+  light/distribution.h
+  light/light.h
+  light/point.h
   light/sample.h
+  light/spot.h
+  light/triangle.h
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
@@ -466,6 +472,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_CYCLES_DEBUG)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
     set(_cuda_nvcc_args
@@ -473,7 +480,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
           ${CUDA_NVCC_FLAGS}
           --${format}
           ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-          --ptxas-options="-v"
           ${cuda_flags})
 
     if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)

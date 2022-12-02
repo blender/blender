@@ -483,6 +483,18 @@ bool BKE_fcurve_delete_keys_selected(struct FCurve *fcu);
  */
 void BKE_fcurve_delete_keys_all(struct FCurve *fcu);
 
+/**
+ * Called during transform/snapping to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ *
+ * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
+ *                  but may want to use a different one at times (if caller does not operate on
+ *                  selection).
+ */
+void BKE_fcurve_merge_duplicate_keys(struct FCurve *fcu,
+                                     const int sel_flag,
+                                     const bool use_handle);
+
 /* -------- Curve Sanity -------- */
 
 /**

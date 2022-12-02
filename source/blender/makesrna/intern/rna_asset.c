@@ -434,7 +434,7 @@ static void rna_def_asset_handle_api(StructRNA *srna)
       "AssetLibraryReference",
       "",
       "The asset library containing the given asset. Deprecated and optional argument, will be "
-      "ignored. Kept for API compatibility only.");
+      "ignored. Kept for API compatibility only");
   parm = RNA_def_string(func, "result", NULL, FILE_MAX_LIBEXTRA, "result", "");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);

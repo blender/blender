@@ -76,6 +76,11 @@ class GLBackend : public GPUBackend {
     return new GLDrawList(list_length);
   };
 
+  Fence *fence_alloc() override
+  {
+    return new GLFence();
+  };
+
   FrameBuffer *framebuffer_alloc(const char *name) override
   {
     return new GLFrameBuffer(name);
@@ -84,6 +89,11 @@ class GLBackend : public GPUBackend {
   IndexBuf *indexbuf_alloc() override
   {
     return new GLIndexBuf();
+  };
+
+  PixelBuffer *pixelbuf_alloc(uint size) override
+  {
+    return new GLPixelBuffer(size);
   };
 
   QueryPool *querypool_alloc() override

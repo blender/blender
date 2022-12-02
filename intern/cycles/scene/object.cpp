@@ -231,7 +231,7 @@ void Object::tag_update(Scene *scene)
 
     foreach (Node *node, geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
-      if (shader->get_use_mis() && shader->has_surface_emission)
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE)
         scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
     }
   }

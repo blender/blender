@@ -690,6 +690,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 ccl_device_forceinline bool integrate_volume_sample_light(
     KernelGlobals kg,
     IntegratorState state,
+    ccl_private const Ray *ccl_restrict ray,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const RNGState *ccl_restrict rng_state,
     ccl_private LightSample *ccl_restrict ls)
@@ -704,8 +705,16 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   const uint bounce = INTEGRATOR_STATE(state, path, bounce);
   const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
-  if (!light_distribution_sample_from_volume_segment(
-          kg, rand_light.x, rand_light.y, sd->time, sd->P, bounce, path_flag, ls)) {
+  if (!light_sample_from_volume_segment(kg,
+                                        rand_light.x,
+                                        rand_light.y,
+                                        sd->time,
+                                        sd->P,
+                                        ray->D,
+                                        ray->tmax - ray->tmin,
+                                        bounce,
+                                        path_flag,
+                                        ls)) {
     return false;
   }
 
@@ -737,18 +746,32 @@ ccl_device_forceinline void integrate_volume_direct_light(
     return;
   }
 
-  /* Sample position on the same light again, now from the shading
-   * point where we scattered.
+  /* Sample position on the same light again, now from the shading point where we scattered.
    *
-   * TODO: decorrelate random numbers and use light_sample_new_position to
-   * avoid resampling the CDF. */
+   * Note that this means we sample the light tree twice when equiangular sampling is used.
+   * We could consider sampling the light tree just once and use the same light position again.
+   *
+   * This would make the PDFs for MIS weights more complicated due to having to account for
+   * both distance/equiangular and direct/indirect light sampling, but could be more accurate.
+   * Additionally we could end up behind the light or outside a spot light cone, which might
+   * waste a sample. Though on the other hand it would be possible to prevent that with
+   * equiangular sampling restricted to a smaller sub-segment where the light has influence. */
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
-    if (!light_distribution_sample_from_position(
-            kg, rand_light.x, rand_light.y, sd->time, P, bounce, path_flag, ls)) {
+    if (!light_sample_from_position(kg,
+                                    rng_state,
+                                    rand_light.x,
+                                    rand_light.y,
+                                    sd->time,
+                                    P,
+                                    zero_float3(),
+                                    SD_BSDF_HAS_TRANSMISSION,
+                                    bounce,
+                                    path_flag,
+                                    ls)) {
       return;
     }
   }
@@ -961,7 +984,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
       unguided_phase_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
 
-  path_state_next(kg, state, label);
+  path_state_next(kg, state, label, sd->flag);
   return true;
 }
 
@@ -987,7 +1010,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const bool need_light_sample = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE);
   const bool have_equiangular_sample = need_light_sample &&
                                        integrate_volume_sample_light(
-                                           kg, state, &sd, &rng_state, &ls) &&
+                                           kg, state, ray, &sd, &rng_state, &ls) &&
                                        (ls.t != FLT_MAX);
 
   VolumeSampleMethod direct_sample_method = (have_equiangular_sample) ?

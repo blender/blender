@@ -23,6 +23,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
+#include "BKE_asset.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
@@ -43,6 +44,23 @@
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp);
 
 /* Access routines used by filesel. */
+
+void BLO_datablock_info_free(BLODataBlockInfo *datablock_info)
+{
+  if (datablock_info->free_asset_data) {
+    BKE_asset_metadata_free(&datablock_info->asset_data);
+    datablock_info->free_asset_data = false;
+  }
+}
+
+void BLO_datablock_info_linklist_free(LinkNode *datablock_infos)
+{
+  BLI_linklist_free(datablock_infos, [](void *link) {
+    BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(link);
+    BLO_datablock_info_free(datablock_info);
+    MEM_freeN(datablock_info);
+  });
+}
 
 BlendHandle *BLO_blendhandle_from_file(const char *filepath, BlendFileReadReport *reports)
 {
@@ -168,6 +186,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
 
       STRNCPY(info->name, name);
       info->asset_data = asset_meta_data;
+      info->free_asset_data = true;
 
       bool has_preview = false;
       /* See if we can find a preview in the data of this ID. */

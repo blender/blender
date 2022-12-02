@@ -11,9 +11,9 @@
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_catcher.h"
 
-#include "kernel/light/light.h"
-
 #include "kernel/geom/geom.h"
+
+#include "kernel/light/light.h"
 
 #include "kernel/bvh/bvh.h"
 
@@ -387,7 +387,7 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
 #endif /* __MNEE__ */
 
   /* Light intersection for MIS. */
-  if (kernel_data.integrator.use_lamp_mis) {
+  if (kernel_data.integrator.use_light_mis) {
     /* NOTE: if we make lights visible to camera rays, we'll need to initialize
      * these in the path_state_init. */
     const int last_type = INTEGRATOR_STATE(state, isect, type);

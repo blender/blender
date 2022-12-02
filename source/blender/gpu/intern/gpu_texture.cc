@@ -455,6 +455,21 @@ void GPU_texture_update_sub(GPUTexture *tex,
   reinterpret_cast<Texture *>(tex)->update_sub(0, offset, extent, data_format, pixels);
 }
 
+void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
+                                              eGPUDataFormat data_format,
+                                              GPUPixelBuffer *pix_buf,
+                                              int offset_x,
+                                              int offset_y,
+                                              int offset_z,
+                                              int width,
+                                              int height,
+                                              int depth)
+{
+  int offset[3] = {offset_x, offset_y, offset_z};
+  int extent[3] = {width, height, depth};
+  reinterpret_cast<Texture *>(tex)->update_sub(offset, extent, data_format, pix_buf);
+}
+
 void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
@@ -820,6 +835,53 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
 {
   return reinterpret_cast<Texture *>(tex)->mip_size_get(lvl, r_size);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GPU Pixel Buffer
+ *
+ * Pixel buffer utility functions.
+ * \{ */
+
+GPUPixelBuffer *GPU_pixel_buffer_create(uint size)
+{
+  /* Ensure buffer satifies the alignment of 256 bytes for copying
+   * data between buffers and textures. As specified in:
+   * https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+   *
+   * Ensuring minimal size across all platforms handles cases for small-sized
+   * textures and avoids issues with zero-sized buffers. */
+  size = ceil_to_multiple_ul(size, 256);
+  PixelBuffer *pixbuf = GPUBackend::get()->pixelbuf_alloc(size);
+  return wrap(pixbuf);
+}
+
+void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf)
+{
+  PixelBuffer *handle = unwrap(pix_buf);
+  delete handle;
+}
+
+void *GPU_pixel_buffer_map(GPUPixelBuffer *pix_buf)
+{
+  return reinterpret_cast<PixelBuffer *>(pix_buf)->map();
+}
+
+void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf)
+{
+  reinterpret_cast<PixelBuffer *>(pix_buf)->unmap();
+}
+
+uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
+{
+  return reinterpret_cast<PixelBuffer *>(pix_buf)->get_size();
+}
+
+int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pix_buf)
+{
+  return reinterpret_cast<PixelBuffer *>(pix_buf)->get_native_handle();
 }
 
 /** \} */

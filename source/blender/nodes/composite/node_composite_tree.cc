@@ -62,22 +62,6 @@ static void foreach_nodeclass(Scene * /*scene*/, void *calldata, bNodeClassCallb
   func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
-static void free_node_cache(bNodeTree * /*ntree*/, bNode *node)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    if (sock->runtime->cache) {
-      sock->runtime->cache = nullptr;
-    }
-  }
-}
-
-static void free_cache(bNodeTree *ntree)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    free_node_cache(ntree, node);
-  }
-}
-
 /* local tree then owns all compbufs */
 static void localize(bNodeTree *localtree, bNodeTree *ntree)
 {
@@ -111,13 +95,10 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 
 static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
-  bNode *lnode;
-  bNodeSocket *lsock;
-
   /* move over the compbufs and previews */
   BKE_node_preview_merge_tree(ntree, localtree, true);
 
-  for (lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
+  for (bNode *lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
     if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
       if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
@@ -135,14 +116,6 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
           }
 
           orig_node->storage = BKE_tracking_distortion_copy((MovieDistortion *)lnode->storage);
-        }
-      }
-
-      for (lsock = (bNodeSocket *)lnode->outputs.first; lsock; lsock = lsock->next) {
-        if (bNodeSocket *orig_socket = nodeFindSocket(orig_node, SOCK_OUT, lsock->identifier)) {
-          orig_socket->runtime->cache = lsock->runtime->cache;
-          lsock->runtime->cache = nullptr;
-          orig_socket = nullptr;
         }
       }
     }
@@ -186,8 +159,6 @@ void register_node_tree_type_cmp()
   tt->ui_icon = ICON_NODE_COMPOSITING;
   strcpy(tt->ui_description, N_("Compositing nodes"));
 
-  tt->free_cache = free_cache;
-  tt->free_node_cache = free_node_cache;
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
   tt->local_merge = local_merge;

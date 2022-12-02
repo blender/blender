@@ -40,7 +40,7 @@ using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 namespace blender::ed::space_node {
 
 struct AttributeSearchData {
-  char node_name[MAX_NAME];
+  int32_t node_id;
   char socket_identifier[MAX_NAME];
 };
 
@@ -62,7 +62,7 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     BLI_assert_unreachable();
     return {};
   }
-  bNode *node = nodeFindNodebyName(node_tree, data.node_name);
+  const bNode *node = node_tree->node_by_id(data.node_id);
   if (node == nullptr) {
     BLI_assert_unreachable();
     return {};
@@ -84,7 +84,7 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     }
     return attributes;
   }
-  GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node->name);
+  GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
   if (node_log == nullptr) {
     return {};
   }
@@ -173,7 +173,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
     return;
   }
   AttributeSearchData *data = static_cast<AttributeSearchData *>(data_v);
-  bNode *node = nodeFindNodebyName(node_tree, data->node_name);
+  bNode *node = node_tree->node_by_id(data->node_id);
   if (node == nullptr) {
     BLI_assert_unreachable();
     return;
@@ -243,7 +243,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   AttributeSearchData *data = MEM_new<AttributeSearchData>(__func__);
-  BLI_strncpy(data->node_name, node.name, sizeof(data->node_name));
+  data->node_id = node.identifier;
   BLI_strncpy(data->socket_identifier, socket.identifier, sizeof(data->socket_identifier));
 
   UI_but_func_search_set_results_are_suggestions(but, true);

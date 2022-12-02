@@ -74,15 +74,15 @@ class ShaderInput {
   {
   }
 
-  ustring name()
+  ustring name() const
   {
     return socket_type.ui_name;
   }
-  int flags()
+  int flags() const
   {
     return socket_type.flags;
   }
-  SocketType::Type type()
+  SocketType::Type type() const
   {
     return socket_type.type;
   }
@@ -119,11 +119,11 @@ class ShaderOutput {
   {
   }
 
-  ustring name()
+  ustring name() const
   {
     return socket_type.ui_name;
   }
-  SocketType::Type type()
+  SocketType::Type type() const
   {
     return socket_type.type;
   }

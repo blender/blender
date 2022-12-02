@@ -1664,11 +1664,7 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
   ScrArea *area = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob == NULL) || !ELEM(ob->mode,
-                            OB_MODE_PAINT_GPENCIL,
-                            OB_MODE_SCULPT_GPENCIL,
-                            OB_MODE_WEIGHT_GPENCIL,
-                            OB_MODE_VERTEX_GPENCIL)) {
+  if ((ob == NULL) || ((ob->mode & OB_MODE_ALL_PAINT_GPENCIL) == 0)) {
     return false;
   }
 

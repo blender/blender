@@ -15,7 +15,6 @@
 #include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
-#include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
 CCL_NAMESPACE_BEGIN
@@ -113,20 +112,16 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   Spectrum L = surface_shader_emission(sd);
   float mis_weight = 1.0f;
 
+  const bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
+                       (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
+
 #ifdef __HAIR__
-  if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) &&
-      (sd->type & PRIMITIVE_TRIANGLE))
+  if (has_mis && (sd->type & PRIMITIVE_TRIANGLE))
 #else
-  if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
+  if (has_mis)
 #endif
   {
-    const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float t = sd->ray_length;
-
-    /* Multiple importance sampling, get triangle light pdf,
-     * and compute weight with respect to BSDF pdf. */
-    float pdf = triangle_light_pdf(kg, sd, t);
-    mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
+    mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, sd);
   }
 
   guiding_record_surface_emission(kg, state, L, mis_weight);
@@ -154,8 +149,17 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
-    if (!light_distribution_sample_from_position(
-            kg, rand_light.x, rand_light.y, sd->time, sd->P, bounce, path_flag, &ls)) {
+    if (!light_sample_from_position(kg,
+                                    rng_state,
+                                    rand_light.x,
+                                    rand_light.y,
+                                    sd->time,
+                                    sd->P,
+                                    sd->N,
+                                    sd->flag,
+                                    bounce,
+                                    path_flag,
+                                    &ls)) {
       return;
     }
   }
@@ -445,7 +449,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
 
-  path_state_next(kg, state, label);
+  path_state_next(kg, state, label, sd->flag);
 
   guiding_record_surface_bounce(kg,
                                 state,

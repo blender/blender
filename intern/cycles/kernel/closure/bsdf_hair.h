@@ -34,7 +34,7 @@ ccl_device int bsdf_hair_transmission_setup(ccl_private HairBsdf *bsdf)
   bsdf->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
   bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
   bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device Spectrum bsdf_hair_reflection_eval(ccl_private const ShaderClosure *sc,

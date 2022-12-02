@@ -6391,6 +6391,13 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Enable viewport debugging options for developers in the overlays "
                            "pop-over");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
+
+  prop = RNA_def_property(srna, "use_all_linked_data_direct", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "All Linked Data Direct",
+      "Forces all linked data to be considered as directly linked. Workaround for current "
+      "issues/limitations in BAT (Blender studio pipeline tool)");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

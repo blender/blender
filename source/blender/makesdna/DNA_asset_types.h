@@ -43,6 +43,7 @@ typedef struct AssetFilterSettings {
  */
 typedef struct AssetMetaData {
 #ifdef __cplusplus
+  /** Enables use with `std::unique_ptr<AssetMetaData>`. */
   ~AssetMetaData();
 #endif
 

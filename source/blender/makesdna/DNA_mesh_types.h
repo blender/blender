@@ -15,6 +15,9 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+
+#  include "BLI_math_vec_types.hh"
+
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
@@ -267,6 +270,17 @@ typedef struct Mesh {
    * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
    */
   void loose_edges_tag_none() const;
+
+  /**
+   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   */
+  blender::Span<blender::float3> poly_normals() const;
+  /**
+   * Normal direction for each vertex, which is defined as the weighted average of the normals
+   * from a vertices surrounding faces, or the normalized position of vertices connected to no
+   * faces.
+   */
+  blender::Span<blender::float3> vertex_normals() const;
 #endif
 } Mesh;
 

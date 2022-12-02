@@ -336,7 +336,8 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
   }
 
   BVHTreeRayHit *hits;
-  hits = MEM_mallocN(sizeof(BVHTreeRayHit) * tot_highpoly, "Bake Highpoly to Lowpoly: BVH Rays");
+  hits = static_cast<BVHTreeRayHit *>(
+      MEM_mallocN(sizeof(BVHTreeRayHit) * tot_highpoly, "Bake Highpoly to Lowpoly: BVH Rays"));
 
   for (i = 0; i < tot_highpoly; i++) {
     float co_high[3], dir_high[3];
@@ -463,15 +464,15 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
 
-  looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
-  triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
+  looptri = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
+  triangles = static_cast<TriTessFace *>(MEM_callocN(sizeof(TriTessFace) * tottri, __func__));
 
   const float(*precomputed_normals)[3] = BKE_mesh_poly_normals_are_dirty(me) ?
-                                             NULL :
+                                             nullptr :
                                              BKE_mesh_poly_normals_ensure(me);
   const bool calculate_normal = precomputed_normals ? false : true;
 
-  if (precomputed_normals != NULL) {
+  if (precomputed_normals != nullptr) {
     BKE_mesh_recalc_looptri_with_normals(
         loops, polys, verts, me->totloop, me->totpoly, looptri, precomputed_normals);
   }
@@ -479,17 +480,18 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     BKE_mesh_recalc_looptri(loops, polys, verts, me->totloop, me->totpoly, looptri);
   }
 
-  const TSpace *tspace = NULL;
-  const float(*loop_normals)[3] = NULL;
+  const TSpace *tspace = nullptr;
+  const float(*loop_normals)[3] = nullptr;
   if (tangent) {
     BKE_mesh_ensure_normals_for_display(me_eval);
     BKE_mesh_calc_normals_split(me_eval);
-    BKE_mesh_calc_loop_tangents(me_eval, true, NULL, 0);
+    BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
-    tspace = CustomData_get_layer(&me_eval->ldata, CD_TANGENT);
+    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->ldata, CD_TANGENT));
     BLI_assert(tspace);
 
-    loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
+    loop_normals = static_cast<const float(*)[3]>(
+        CustomData_get_layer(&me_eval->ldata, CD_NORMAL));
   }
 
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
@@ -551,41 +553,42 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
   int primitive_id;
   float u, v;
   float imat_low[4][4];
-  bool is_cage = me_cage != NULL;
+  bool is_cage = me_cage != nullptr;
   bool result = true;
 
-  Mesh *me_eval_low = NULL;
+  Mesh *me_eval_low = nullptr;
   Mesh **me_highpoly;
   BVHTreeFromMesh *treeData;
 
   /* NOTE: all coordinates are in local space. */
-  TriTessFace *tris_low = NULL;
-  TriTessFace *tris_cage = NULL;
+  TriTessFace *tris_low = nullptr;
+  TriTessFace *tris_cage = nullptr;
   TriTessFace **tris_high;
 
   /* Assume all low-poly tessfaces can be quads. */
-  tris_high = MEM_callocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
+  tris_high = MEM_cnew_array<TriTessFace *>(tot_highpoly, "MVerts Highpoly Mesh Array");
 
   /* Assume all high-poly tessfaces are triangles. */
-  me_highpoly = MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes");
-  treeData = MEM_callocN(sizeof(BVHTreeFromMesh) * tot_highpoly, "Highpoly BVH Trees");
+  me_highpoly = static_cast<Mesh **>(
+      MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
+  treeData = MEM_cnew_array<BVHTreeFromMesh>(tot_highpoly, "Highpoly BVH Trees");
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(me_low, false);
     tris_low = mesh_calc_tri_tessface(me_low, true, me_eval_low);
   }
   else if (is_custom_cage) {
-    tris_low = mesh_calc_tri_tessface(me_low, false, NULL);
-    tris_cage = mesh_calc_tri_tessface(me_cage, false, NULL);
+    tris_low = mesh_calc_tri_tessface(me_low, false, nullptr);
+    tris_cage = mesh_calc_tri_tessface(me_cage, false, nullptr);
   }
   else {
-    tris_cage = mesh_calc_tri_tessface(me_cage, false, NULL);
+    tris_cage = mesh_calc_tri_tessface(me_cage, false, nullptr);
   }
 
   invert_m4_m4(imat_low, mat_low);
 
   for (i = 0; i < tot_highpoly; i++) {
-    tris_high[i] = mesh_calc_tri_tessface(highpoly[i].me, false, NULL);
+    tris_high[i] = mesh_calc_tri_tessface(highpoly[i].me, false, nullptr);
 
     me_highpoly[i] = highpoly[i].me;
     BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
@@ -594,7 +597,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
       /* Create a BVH-tree for each `highpoly` object. */
       BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_LOOPTRI, 2);
 
-      if (treeData[i].tree == NULL) {
+      if (treeData[i].tree == nullptr) {
         printf("Baking: out of memory while creating BHVTree for object \"%s\"\n",
                highpoly[i].ob->id.name + 2);
         result = false;
@@ -668,7 +671,7 @@ cleanup:
   MEM_freeN(me_highpoly);
 
   if (me_eval_low) {
-    BKE_id_free(NULL, me_eval_low);
+    BKE_id_free(nullptr, me_eval_low);
   }
   if (tris_low) {
     MEM_freeN(tris_low);
@@ -712,21 +715,21 @@ void RE_bake_pixels_populate(Mesh *me,
                              const char *uv_layer)
 {
   const MLoopUV *mloopuv;
-  if ((uv_layer == NULL) || (uv_layer[0] == '\0')) {
-    mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
+  if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
+    mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
   }
   else {
     int uv_id = CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, uv_layer);
-    mloopuv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id);
+    mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id));
   }
 
-  if (mloopuv == NULL) {
+  if (mloopuv == nullptr) {
     return;
   }
 
   BakeDataZSpan bd;
   bd.pixel_array = pixel_array;
-  bd.zspan = MEM_callocN(sizeof(ZSpan) * targets->images_num, "bake zspan");
+  bd.zspan = MEM_cnew_array<ZSpan>(targets->images_num, "bake zspan");
 
   /* initialize all pixel arrays so we know which ones are 'blank' */
   for (int i = 0; i < pixels_num; i++) {
@@ -739,7 +742,7 @@ void RE_bake_pixels_populate(Mesh *me,
   }
 
   const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
-  MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
+  MLoopTri *looptri = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
 
   const MVert *verts = BKE_mesh_verts(me);
   const MPoly *polys = BKE_mesh_polys(me);
@@ -957,7 +960,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
   MEM_freeN(triangles);
 
   if (me_eval) {
-    BKE_id_free(NULL, me_eval);
+    BKE_id_free(nullptr, me_eval);
   }
 }
 
@@ -1027,7 +1030,7 @@ void RE_bake_ibuf_clear(Image *image, const bool is_tangent)
   const float nor_alpha[4] = {0.5f, 0.5f, 1.0f, 0.0f};
   const float nor_solid[4] = {0.5f, 0.5f, 1.0f, 1.0f};
 
-  ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
   BLI_assert(ibuf);
 
   if (is_tangent) {

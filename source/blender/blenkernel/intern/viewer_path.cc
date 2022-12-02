@@ -215,6 +215,7 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
     case VIEWER_PATH_ELEM_TYPE_NODE: {
       const auto *old_elem = reinterpret_cast<const NodeViewerPathElem *>(src);
       auto *new_elem = reinterpret_cast<NodeViewerPathElem *>(dst);
+      new_elem->node_id = old_elem->node_id;
       if (old_elem->node_name != nullptr) {
         new_elem->node_name = BLI_strdup(old_elem->node_name);
       }
@@ -243,7 +244,7 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b
     case VIEWER_PATH_ELEM_TYPE_NODE: {
       const auto *a_elem = reinterpret_cast<const NodeViewerPathElem *>(a);
       const auto *b_elem = reinterpret_cast<const NodeViewerPathElem *>(b);
-      return StringRef(a_elem->node_name) == StringRef(b_elem->node_name);
+      return a_elem->node_id == b_elem->node_id;
     }
   }
   return false;

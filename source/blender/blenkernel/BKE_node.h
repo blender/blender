@@ -405,8 +405,6 @@ typedef struct bNodeTreeType {
   int ui_icon;
 
   /* callbacks */
-  void (*free_cache)(struct bNodeTree *ntree);
-  void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
   /* Iteration over all node classes. */
   void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);
   /* Check visibility in the node editor */
@@ -520,8 +518,6 @@ void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
  * New tree types have a per-output socket flag to indicate the final output to use explicitly.
  */
 void ntreeSetOutput(struct bNodeTree *ntree);
-
-void ntreeFreeCache(struct bNodeTree *ntree);
 
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
 /**
@@ -672,6 +668,7 @@ void nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
  * Find the first available, non-duplicate name for a given node.
  */
 void nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
+void nodeUniqueID(struct bNodeTree *ntree, struct bNode *node);
 
 /**
  * Delete node, associated animation data and ID user count.
@@ -691,16 +688,17 @@ namespace blender::bke {
 
 /**
  * \note keeps socket list order identical, for copying links.
- * \note `unique_name` should usually be true, unless the \a dst_tree is temporary,
- * or the names can already be assumed valid.
+ * \param use_unique: If true, make sure the node's identifier and name are unique in the new
+ * tree. Must be *true* if the \a dst_tree had nodes that weren't in the source node's tree.
+ * Must be *false* when simply copying a node tree, so that identifiers don't change.
  */
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
                               int flag,
-                              bool unique_name,
+                              bool use_unique,
                               Map<const bNodeSocket *, bNodeSocket *> &new_socket_map);
 
-bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool unique_name);
+bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool use_unique);
 
 }  // namespace blender::bke
 

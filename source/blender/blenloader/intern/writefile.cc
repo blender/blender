@@ -1131,9 +1131,17 @@ static bool write_file_handle(Main *mainvar,
   if (!wd->use_memfile) {
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if (ID_IS_LINKED(id_iter)) {
-        id_iter->tag |= LIB_TAG_INDIRECT;
-        id_iter->tag &= ~LIB_TAG_EXTERN;
+      if (ID_IS_LINKED(id_iter) && BKE_idtype_idcode_is_linkable(GS(id_iter->name))) {
+        if (USER_EXPERIMENTAL_TEST(&U, use_all_linked_data_direct)) {
+          /* Forces all linked data to be considered as directly linked.
+           * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
+           * asap afterward. */
+          id_lib_extern(id_iter);
+        }
+        else {
+          id_iter->tag |= LIB_TAG_INDIRECT;
+          id_iter->tag &= ~LIB_TAG_EXTERN;
+        }
       }
     }
     FOREACH_MAIN_ID_END;
