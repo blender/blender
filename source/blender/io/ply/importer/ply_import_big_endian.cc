@@ -39,9 +39,12 @@ float3 read_float3(std::ifstream &file) {
   for (int i = 0; i < 3; i++) {
     float temp;
     file.read((char *)&temp, sizeof(temp));
-    if (!file.good()) {
-      printf("Error reading data");
-      break;
+    if (file.bad()) {
+      printf("Read/Write error on io operation\n");
+    } else if (file.fail()) {
+      printf("Logical error on io operation\n");
+    } else if (file.eof()) {
+      printf("Reached end of the file\n");
     }
     temp = swap_bits<float>(temp);
     currFloat3[i] = temp;

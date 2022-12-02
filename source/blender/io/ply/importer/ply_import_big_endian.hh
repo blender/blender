@@ -3,6 +3,7 @@
 
 #include "DNA_mesh_types.h"
 #include "ply_data.hh"
+#include "BKE_mesh.h"
 
 namespace blender::io::ply {
 /**

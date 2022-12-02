@@ -75,11 +75,10 @@ void importer_main(Main *bmain,
   BLI_SCOPED_DEFER([&]() { fclose(file); });
 
   std::string line;
-  std::ifstream infile(import_params.filepath);
+  std::ifstream infile(import_params.filepath, std::ios::binary);
 
   PlyHeader header;
 
-  // hier kan ook het PlyDataStruct gevuld worden
   while (std::getline(infile, line)) {
     header.header_size++;
     std::vector<std::string> words{};
