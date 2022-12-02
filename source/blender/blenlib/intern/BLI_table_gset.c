@@ -100,7 +100,7 @@ bool BLI_table_gset_add(TableGSet *ts, void *elem)
   bool ret = BLI_smallhash_ensure_p(PTR_TO_IDX(ts), (uintptr_t)elem, &val);
 
   if (!ret) {
-    *val = ts->cur;
+    *val = POINTER_FROM_INT(ts->cur);
 
     ts->elems[ts->cur++] = elem;
     ts->length++;
@@ -113,7 +113,7 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
 {
   table_gset_resize(ts);
 
-  BLI_smallhash_insert(PTR_TO_IDX(ts), elem, (void *)ts->cur);
+  BLI_smallhash_insert(PTR_TO_IDX(ts), (uintptr_t)elem, (void *)ts->cur);
 
   ts->elems[ts->cur++] = elem;
   ts->length++;
@@ -125,14 +125,14 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
     return;
   }
 
-  int *idx = (int *)BLI_smallhash_lookup_p(PTR_TO_IDX(ts), elem);
+  int *idx = (int *)BLI_smallhash_lookup_p(PTR_TO_IDX(ts), (uintptr_t)elem);
   if (!idx) {
     return;
   }
 
   int idx2 = *idx;
 
-  BLI_smallhash_remove(PTR_TO_IDX(ts), elem);
+  BLI_smallhash_remove(PTR_TO_IDX(ts), (uintptr_t)elem);
 
   if (!ts->elems || ts->elems[idx2] != elem) {
     return;
@@ -144,7 +144,7 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
 
 bool BLI_table_gset_haskey(TableGSet *ts, void *elem)
 {
-  return BLI_smallhash_haskey(PTR_TO_IDX(ts), elem);
+  return BLI_smallhash_haskey(PTR_TO_IDX(ts), (uintptr_t)elem);
 }
 
 int BLI_table_gset_len(TableGSet *ts)

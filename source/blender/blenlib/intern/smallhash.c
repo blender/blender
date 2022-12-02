@@ -68,8 +68,8 @@
 #endif
 
 #define SMHASH_KEY_UNUSED (uintptr_t)(MAKE_ID_8('s', 'm', 'h', 'k', 'u', 'n', 'u', 's'))
-#define SMHASH_CELL_FREE (uintptr_t)(MAKE_ID_8('s', 'm', 'h', 'c', 'f', 'r', 'e', 'e'))
-#define SMHASH_CELL_UNUSED (uintptr_t)(MAKE_ID_8('s', 'm', 'h', 'c', 'u', 'n', 'u', 's'))
+#define SMHASH_CELL_FREE (void *)(MAKE_ID_8('s', 'm', 'h', 'c', 'f', 'r', 'e', 'e'))
+#define SMHASH_CELL_UNUSED (void *)(MAKE_ID_8('s', 'm', 'h', 'c', 'u', 'n', 'u', 's'))
 
 #define USE_REMOVE
 
