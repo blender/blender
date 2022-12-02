@@ -265,7 +265,7 @@ bool LightManager::object_usable_as_light(Object *object)
   return false;
 }
 
-void LightManager::device_update_distribution(Device *device,
+void LightManager::device_update_distribution(Device *,
                                               DeviceScene *dscene,
                                               Scene *scene,
                                               Progress &progress)
