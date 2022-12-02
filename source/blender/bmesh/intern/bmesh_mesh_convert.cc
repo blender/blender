@@ -581,9 +581,9 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  *     Also not correct but it's better then having it zeroed for e.g.
  *
  * - Missing key-index layer.
- *   In this case the basis key wont apply it's deltas to other keys and in the case
- *   a shape-key layer is missing, its coordinates will be initialized from the edit-mesh
- *   vertex locations instead of attempting to remap the shape-keys coordinates.
+ *   In this case the basis key won't apply its deltas to other keys and if a shape-key layer is
+ *   missing, its coordinates will be initialized from the edit-mesh vertex locations instead of
+ *   attempting to remap the shape-keys coordinates.
  *
  * \note These cases are considered abnormal and shouldn't occur in typical usage.
  * A warning is logged in this case to help troubleshooting bugs with shape-keys.
