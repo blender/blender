@@ -212,9 +212,6 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** #eNodeTreeChangedFlag. */
   uint32_t changed_flag = 0;
 
-  /** For dependency and sorting. */
-  short done = 0;
-
   /** Used as a boolean for execution. */
   uint8_t need_exec = 0;
 

@@ -1630,40 +1630,42 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 /** \name Join Nodes Operator
  * \{ */
 
-/* tags for depth-first search */
-#define NODE_JOIN_DONE 1
-#define NODE_JOIN_IS_DESCENDANT 2
+struct NodeJoinState {
+  bool done;
+  bool descendent;
+};
 
 static void node_join_attach_recursive(bNodeTree &ntree,
+                                       MutableSpan<NodeJoinState> join_states,
                                        bNode *node,
                                        bNode *frame,
                                        const VectorSet<bNode *> &selected_nodes)
 {
-  node->runtime->done |= NODE_JOIN_DONE;
+  join_states[node->runtime->index_in_tree].done = true;
 
   if (node == frame) {
-    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    join_states[node->runtime->index_in_tree].descendent = true;
   }
   else if (node->parent) {
     /* call recursively */
-    if (!(node->parent->runtime->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(ntree, node->parent, frame, selected_nodes);
+    if (!join_states[node->parent->runtime->index_in_tree].done) {
+      node_join_attach_recursive(ntree, join_states, node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->runtime->done & NODE_JOIN_IS_DESCENDANT) {
-      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    if (join_states[node->parent->runtime->index_in_tree].descendent) {
+      join_states[node->runtime->index_in_tree].descendent = true;
     }
     else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
       nodeDetachNode(&ntree, node);
       nodeAttachNode(&ntree, node, frame);
-      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+      join_states[node->runtime->index_in_tree].descendent = true;
     }
   }
   else if (selected_nodes.contains(node)) {
     nodeAttachNode(&ntree, node, frame);
-    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    join_states[node->runtime->index_in_tree].descendent = true;
   }
 }
 
@@ -1678,14 +1680,11 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
   nodeSetActive(&ntree, frame_node);
 
-  /* reset tags */
-  for (bNode *node : ntree.all_nodes()) {
-    node->runtime->done = 0;
-  }
+  Array<NodeJoinState> join_states(ntree.all_nodes().size(), NodeJoinState{false, false});
 
   for (bNode *node : ntree.all_nodes()) {
-    if (!(node->runtime->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(ntree, node, frame_node, selected_nodes);
+    if (!join_states[node->runtime->index_in_tree].done) {
+      node_join_attach_recursive(ntree, join_states, node, frame_node, selected_nodes);
     }
   }
 
@@ -1808,32 +1807,35 @@ void NODE_OT_attach(wmOperatorType *ot)
 /** \name Detach Operator
  * \{ */
 
-/* tags for depth-first search */
-#define NODE_DETACH_DONE 1
-#define NODE_DETACH_IS_DESCENDANT 2
+struct NodeDetachstate {
+  bool done;
+  bool descendent;
+};
 
-static void node_detach_recursive(bNodeTree &ntree, bNode *node)
+static void node_detach_recursive(bNodeTree &ntree,
+                                  MutableSpan<NodeDetachstate> detach_states,
+                                  bNode *node)
 {
-  node->runtime->done |= NODE_DETACH_DONE;
+  detach_states[node->runtime->index_in_tree].done = true;
 
   if (node->parent) {
     /* call recursively */
-    if (!(node->parent->runtime->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(ntree, node->parent);
+    if (!detach_states[node->parent->runtime->index_in_tree].done) {
+      node_detach_recursive(ntree, detach_states, node->parent);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->runtime->done & NODE_DETACH_IS_DESCENDANT) {
-      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+    if (detach_states[node->parent->runtime->index_in_tree].descendent) {
+      detach_states[node->runtime->index_in_tree].descendent = true;
     }
     else if (node->flag & NODE_SELECT) {
       /* if parent is not a descendant of a selected node, detach */
       nodeDetachNode(&ntree, node);
-      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+      detach_states[node->runtime->index_in_tree].descendent = true;
     }
   }
   else if (node->flag & NODE_SELECT) {
-    node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+    detach_states[node->runtime->index_in_tree].descendent = true;
   }
 }
 
@@ -1843,16 +1845,14 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  /* reset tags */
-  for (bNode *node : ntree.all_nodes()) {
-    node->runtime->done = 0;
-  }
+  Array<NodeDetachstate> detach_states(ntree.all_nodes().size(), NodeDetachstate{false, false});
+
   /* detach nodes recursively
    * relative order is preserved here!
    */
   for (bNode *node : ntree.all_nodes()) {
-    if (!(node->runtime->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(ntree, node);
+    if (!detach_states[node->runtime->index_in_tree].done) {
+      node_detach_recursive(ntree, detach_states, node);
     }
   }
 
