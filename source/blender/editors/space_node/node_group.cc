@@ -440,7 +440,7 @@ static bool node_group_separate_selected(
     Main &bmain, bNodeTree &ntree, bNodeTree &ngroup, const float2 &offset, const bool make_copy)
 {
   /* deselect all nodes in the target tree */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     nodeSetSelected(node, false);
   }
 
@@ -642,7 +642,7 @@ void NODE_OT_group_separate(wmOperatorType *ot)
 /** \name Make Group Operator
  * \{ */
 
-static bool node_group_make_use_node(bNode &node, bNode *gnode)
+static bool node_group_make_use_node(const bNode &node, bNode *gnode)
 {
   return (&node != gnode && !ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT) &&
           (node.flag & NODE_SELECT));
@@ -659,7 +659,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
   bNodeTree *ngroup = ntreeAddTree(nullptr, "Pseudo Node Group", ntree_idname);
 
   /* check poll functions for selected nodes */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node_group_make_use_node(*node, gnode)) {
       const char *disabled_hint = nullptr;
       if (node->typeinfo->poll_instance &&
@@ -699,7 +699,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       link->fromnode->runtime->done |= 2;
     }
   }
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (!(node->flag & NODE_SELECT) && node != gnode && node->runtime->done == 3) {
       return false;
     }
@@ -713,7 +713,7 @@ static int node_get_selected_minmax(
   int totselect = 0;
 
   INIT_MINMAX2(min, max);
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (const bNode *node : ntree.all_nodes()) {
     if (node_group_make_use_node(*node, gnode)) {
       float2 loc;
       nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
@@ -814,7 +814,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
   static const float offsety = 0.0f;
 
   /* deselect all nodes in the target tree */
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+  for (bNode *node : ngroup->all_nodes()) {
     nodeSetSelected(node, false);
   }
 
@@ -835,7 +835,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* Detach unselected nodes inside frames when the frame is put into the group. Otherwise the
    * `parent` pointer becomes dangling. */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node->parent == nullptr) {
       continue;
     }
@@ -979,7 +979,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
   }
 
   /* move nodes in the group to the center */
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+  for (bNode *node : ngroup->all_nodes()) {
     if (node_group_make_use_node(*node, gnode) && !node->parent) {
       node->locx -= center[0];
       node->locy -= center[1];
@@ -988,7 +988,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* Expose all unlinked sockets too but only the visible ones. */
   if (expose_visible) {
-    LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+    for (bNode *node : ngroup->all_nodes()) {
       if (node_group_make_use_node(*node, gnode)) {
         LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
           bool skip = false;

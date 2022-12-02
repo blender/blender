@@ -10,6 +10,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "NOD_common.h"
 #include "node_common.h"
@@ -24,7 +25,7 @@ static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gs
 {
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+  for (bNode *node : ngroup->all_nodes()) {
     if (node->type == NODE_GROUP_INPUT) {
       int a;
       LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, a) {
@@ -44,7 +45,7 @@ static void group_gpu_move_outputs(bNode *gnode, GPUNodeStack *out, bNodeStack *
 {
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+  for (bNode *node : ngroup->all_nodes()) {
     if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
       int a;
       LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, a) {

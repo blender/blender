@@ -51,6 +51,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -598,7 +599,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     ma->roughness = 0.5f;
 
     if (ma->nodetree) {
-      LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
+      for (bNode *node : ma->nodetree->all_nodes()) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(

@@ -116,7 +116,7 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
 
 static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
 {
-  LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+  for (bNode *node : nodetree->all_nodes()) {
     if (node->type == CMP_NODE_COMPOSITE) {
       if (recalc_flags & COM_RECALC_COMPOSITE) {
         node->flag |= NODE_DO_OUTPUT_RECALC;
@@ -505,7 +505,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
-    LISTBASE_FOREACH (bNode *, node_iter, &ma->nodetree->nodes) {
+    for (bNode *node_iter : ma->nodetree->all_nodes()) {
       BLI_strncpy(node_iter->name, DATA_(node_iter->name), NODE_MAXSTR);
       nodeUniqueName(ma->nodetree, node_iter);
     }
@@ -680,7 +680,7 @@ void ED_node_set_active(
 
     /* generic node group output: set node as active output */
     if (node->type == NODE_GROUP_OUTPUT) {
-      LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+      for (bNode *node_iter : ntree->all_nodes()) {
         if (node_iter->type == NODE_GROUP_OUTPUT) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
         }
@@ -700,7 +700,7 @@ void ED_node_set_active(
                SH_NODE_OUTPUT_WORLD,
                SH_NODE_OUTPUT_LIGHT,
                SH_NODE_OUTPUT_LINESTYLE)) {
-        LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+        for (bNode *node_iter : ntree->all_nodes()) {
           if (node_iter->type == node->type) {
             node_iter->flag &= ~NODE_DO_OUTPUT;
           }
@@ -759,7 +759,7 @@ void ED_node_set_active(
     else if (ntree->type == NTREE_COMPOSIT) {
       /* make active viewer, currently only 1 supported... */
       if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-        LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+        for (bNode *node_iter : ntree->all_nodes()) {
           if (ELEM(node_iter->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
             node_iter->flag &= ~NODE_DO_OUTPUT;
           }
@@ -776,7 +776,7 @@ void ED_node_set_active(
       }
       else if (node->type == CMP_NODE_COMPOSITE) {
         if (was_output == 0) {
-          LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+          for (bNode *node_iter : ntree->all_nodes()) {
             if (node_iter->type == CMP_NODE_COMPOSITE) {
               node_iter->flag &= ~NODE_DO_OUTPUT;
             }
@@ -804,7 +804,7 @@ void ED_node_set_active(
     else if (ntree->type == NTREE_GEOMETRY) {
       if (node->type == GEO_NODE_VIEWER) {
         if ((node->flag & NODE_DO_OUTPUT) == 0) {
-          LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+          for (bNode *node_iter : ntree->all_nodes()) {
             if (node_iter->type == GEO_NODE_VIEWER) {
               node_iter->flag &= ~NODE_DO_OUTPUT;
             }
@@ -1362,7 +1362,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   Map<const ID *, ID *> duplicated_node_groups;
 
   bNode *lastnode = (bNode *)ntree->nodes.last;
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & SELECT) {
       bNode *new_node = bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
@@ -1429,11 +1429,11 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   /* clear flags for recursive depth-first iteration */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     node->flag &= ~NODE_TEST;
   }
   /* reparent copied nodes */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if ((node->flag & SELECT) && !(node->flag & NODE_TEST)) {
       node_duplicate_reparent_recursive(ntree, node_map, node);
     }
@@ -1445,7 +1445,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   /* deselect old nodes, select the copies instead */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & SELECT) {
       /* has been set during copy above */
       bNode *newnode = node_map.lookup(node);
@@ -1500,6 +1500,7 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *curscene = CTX_data_scene(C);
+  bNodeTree &edit_tree = *snode->edittree;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1508,7 +1509,7 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
     scene->id.tag |= LIB_TAG_DOIT;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : edit_tree.all_nodes()) {
     if ((node->type == CMP_NODE_R_LAYERS) ||
         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)) {
       ID *id = node->id;
@@ -1523,7 +1524,7 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(C, bmain, snode->edittree);
+  ED_node_tree_propagate_change(C, bmain, &edit_tree);
 
   return OPERATOR_FINISHED;
 }
@@ -1551,7 +1552,7 @@ int node_render_changed_exec(bContext *C, wmOperator * /*op*/)
    * All the nodes are using same render result, so there is no need to do
    * anything smart about check how exactly scene is used. */
   bNode *node = nullptr;
-  LISTBASE_FOREACH (bNode *, node_iter, &sce->nodetree->nodes) {
+  for (bNode *node_iter : sce->nodetree->all_nodes()) {
     if (node_iter->id == (ID *)sce) {
       node = node_iter;
       break;
@@ -1610,7 +1611,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
    * If the flag is not set on all nodes, it is set.
    */
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
 
       if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0) {
@@ -1629,7 +1630,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
       }
     }
   }
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
 
       if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0) {
@@ -1721,7 +1722,7 @@ static int node_deactivate_viewer_exec(bContext *C, wmOperator * /*op*/)
 
   bNode *active_viewer = viewer_path::find_geometry_nodes_viewer(workspace.viewer_path, snode);
 
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     if (node->type != GEO_NODE_VIEWER) {
       continue;
     }
@@ -1798,7 +1799,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   /* Toggle for all selected nodes */
   bool hidden = false;
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
       if (node_has_hidden_sockets(node)) {
         hidden = true;
@@ -1807,7 +1808,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
       node_set_hidden_sockets(snode, node, !hidden);
     }
@@ -1848,7 +1849,7 @@ static int node_mute_exec(bContext *C, wmOperator * /*op*/)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if ((node->flag & SELECT) && !node->typeinfo->no_muting) {
       node->flag ^= NODE_MUTED;
       BKE_ntree_update_tag_node_mute(snode->edittree, node);
@@ -2198,7 +2199,7 @@ static int node_copy_color_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node->flag & NODE_SELECT && node != active_node) {
       if (active_node->flag & NODE_CUSTOM_COLOR) {
         node->flag |= NODE_CUSTOM_COLOR;
@@ -2249,7 +2250,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & SELECT) {
       /* No ID refcounting, this node is virtual,
        * detached from any actual Blender data currently. */
@@ -2801,7 +2802,7 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
   done_trees.add_new(ntree);
 
   /* update each script that is using this text datablock */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == NODE_GROUP) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
       if (ngroup && !done_trees.contains(ngroup)) {

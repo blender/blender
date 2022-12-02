@@ -89,7 +89,7 @@ class CURVES_UL_attributes(UIList):
         indices = [i for i in range(len(attributes))]
 
         for item in attributes:
-            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+            flags.append(0 if item.is_internal else self.bitflag_filter_item)
 
         return flags, indices
 

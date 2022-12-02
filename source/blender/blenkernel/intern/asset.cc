@@ -33,8 +33,8 @@ AssetMetaData *BKE_asset_metadata_create()
 
 void BKE_asset_metadata_free(AssetMetaData **asset_data)
 {
-  (*asset_data)->~AssetMetaData();
-  MEM_SAFE_FREE(*asset_data);
+  MEM_delete(*asset_data);
+  *asset_data = nullptr;
 }
 
 AssetMetaData::~AssetMetaData()

@@ -78,7 +78,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
   if (wm == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (bNode *, iter_node, &snode.edittree->nodes) {
+  for (bNode *iter_node : snode.edittree->all_nodes()) {
     if (iter_node->type == GEO_NODE_VIEWER) {
       SET_FLAG_FROM_TEST(iter_node->flag, iter_node == &node, NODE_DO_OUTPUT);
     }

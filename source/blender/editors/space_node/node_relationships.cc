@@ -343,7 +343,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
   bNodeTree *ntree = snode.edittree;
   Vector<bNode *> sorted_nodes;
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & NODE_SELECT) {
       sorted_nodes.append(node);
     }
@@ -616,7 +616,7 @@ static int view_socket(const bContext &C,
 {
   bNode *viewer_node = nullptr;
   /* Try to find a viewer that is already active. */
-  LISTBASE_FOREACH (bNode *, node, &btree.nodes) {
+  for (bNode *node : btree.all_nodes()) {
     if (is_viewer_node(*node)) {
       if (node->flag & NODE_DO_OUTPUT) {
         viewer_node = node;
@@ -636,7 +636,7 @@ static int view_socket(const bContext &C,
   }
 
   if (viewer_node == nullptr) {
-    LISTBASE_FOREACH (bNode *, node, &btree.nodes) {
+    for (bNode *node : btree.all_nodes()) {
       if (is_viewer_node(*node)) {
         viewer_node = node;
         break;
@@ -1554,7 +1554,7 @@ static int detach_links_exec(bContext *C, wmOperator * /*op*/)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node->flag & SELECT) {
       nodeInternalRelink(&ntree, node);
     }
@@ -1593,7 +1593,7 @@ static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node == frame) {
       continue;
     }
@@ -1679,11 +1679,11 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   nodeSetActive(&ntree, frame_node);
 
   /* reset tags */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     node->runtime->done = 0;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (!(node->runtime->done & NODE_JOIN_DONE)) {
       node_join_attach_recursive(ntree, node, frame_node, selected_nodes);
     }
@@ -1844,13 +1844,13 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
   bNodeTree &ntree = *snode.edittree;
 
   /* reset tags */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     node->runtime->done = 0;
   }
   /* detach nodes recursively
    * relative order is preserved here!
    */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (!(node->runtime->done & NODE_DETACH_DONE)) {
       node_detach_recursive(ntree, node);
     }
@@ -2166,7 +2166,7 @@ static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, con
 
   /* Flag all children as offset to prevent them from being offset
    * separately (they've already moved with the parent). */
-  LISTBASE_FOREACH (bNode *, node, &data->ntree->nodes) {
+  for (bNode *node : data->ntree->all_nodes()) {
     if (nodeIsChildOf(parent, node)) {
       /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
       node->flag |= NODE_TEST;
@@ -2201,12 +2201,12 @@ static bool node_link_insert_offset_frame_chain_cb(bNode *fromnode,
 /**
  * Applies #NodeInsertOfsData.offset_x to all children of \a parent.
  */
-static void node_link_insert_offset_frame_chains(const bNodeTree *ntree,
+static void node_link_insert_offset_frame_chains(bNodeTree *ntree,
                                                  const bNode *parent,
                                                  NodeInsertOfsData *data,
                                                  const bool reversed)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (nodeIsChildOf(parent, node)) {
       nodeChainIter(ntree, node, node_link_insert_offset_frame_chain_cb, data, reversed);
     }
@@ -2384,7 +2384,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (UNLIKELY(node->runtime->anim_ofsx)) {
       const float endval = node->runtime->anim_init_locx + node->runtime->anim_ofsx;
       if (IS_EQF(node->locx, endval) == false) {
@@ -2410,7 +2410,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
   if (duration > NODE_INSOFS_ANIM_DURATION) {
     WM_event_remove_timer(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
 
-    LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+    for (bNode *node : snode->edittree->all_nodes()) {
       node->runtime->anim_init_locx = node->runtime->anim_ofsx = 0.0f;
     }
 
