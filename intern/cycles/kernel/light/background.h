@@ -166,8 +166,14 @@ ccl_device_inline float background_portal_pdf(
 
     int portal = kernel_data.integrator.portal_offset + p;
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
-    float3 extentu = klight->area.extentu;
-    float3 extentv = klight->area.extentv;
+
+    const float3 axis_u = klight->area.axis_u;
+    const float len_u = klight->area.len_u;
+    const float3 axis_v = klight->area.axis_v;
+    const float len_v = klight->area.len_v;
+    const float3 inv_extent_u = axis_u / len_u;
+    const float3 inv_extent_v = axis_v / len_v;
+
     bool is_round = (klight->area.invarea < 0.0f);
 
     if (!ray_quad_intersect(P,
@@ -175,8 +181,8 @@ ccl_device_inline float background_portal_pdf(
                             1e-4f,
                             FLT_MAX,
                             lightpos,
-                            extentu,
-                            extentv,
+                            inv_extent_u,
+                            inv_extent_v,
                             dir,
                             NULL,
                             NULL,
@@ -191,7 +197,8 @@ ccl_device_inline float background_portal_pdf(
       portal_pdf += fabsf(klight->area.invarea) * lamp_light_pdf(dir, -D, t);
     }
     else {
-      portal_pdf += area_light_rect_sample(P, &lightpos, extentu, extentv, 0.0f, 0.0f, false);
+      portal_pdf += area_light_rect_sample(
+          P, &lightpos, axis_u, len_u, axis_v, len_v, 0.0f, 0.0f, false);
     }
   }
 
@@ -240,19 +247,22 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
       /* p is the portal to be sampled. */
       int portal = kernel_data.integrator.portal_offset + p;
       const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
-      float3 extentu = klight->area.extentu;
-      float3 extentv = klight->area.extentv;
+      const float3 axis_u = klight->area.axis_u;
+      const float3 axis_v = klight->area.axis_v;
+      const float len_u = klight->area.len_u;
+      const float len_v = klight->area.len_v;
       bool is_round = (klight->area.invarea < 0.0f);
 
       float3 D;
       if (is_round) {
-        lightpos += ellipse_sample(extentu * 0.5f, extentv * 0.5f, randu, randv);
+        lightpos += ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
         float t;
         D = normalize_len(lightpos - P, &t);
         *pdf = fabsf(klight->area.invarea) * lamp_light_pdf(dir, -D, t);
       }
       else {
-        *pdf = area_light_rect_sample(P, &lightpos, extentu, extentv, randu, randv, true);
+        *pdf = area_light_rect_sample(
+            P, &lightpos, axis_u, len_u, axis_v, len_v, randu, randv, true);
         D = normalize(lightpos - P);
       }
 

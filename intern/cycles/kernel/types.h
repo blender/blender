@@ -1296,12 +1296,15 @@ typedef struct KernelSpotLight {
 /* PointLight is SpotLight with only radius and invarea being used. */
 
 typedef struct KernelAreaLight {
-  packed_float3 extentu;
-  float invarea;
-  packed_float3 extentv;
-  float tan_spread;
+  packed_float3 axis_u;
+  float len_u;
+  packed_float3 axis_v;
+  float len_v;
   packed_float3 dir;
+  float invarea;
+  float tan_spread;
   float normalize_spread;
+  float pad[2];
 } KernelAreaLight;
 
 typedef struct KernelDistantLight {

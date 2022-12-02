@@ -719,7 +719,11 @@ void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *sc
 
       float3 extentu = light->axisu * (light->sizeu * light->size);
       float3 extentv = light->axisv * (light->sizev * light->size);
-      float area = len(extentu) * len(extentv);
+
+      float len_u, len_v;
+      float3 axis_u = normalize_len(extentu, &len_u);
+      float3 axis_v = normalize_len(extentv, &len_v);
+      float area = len_u * len_v;
       if (light->round) {
         area *= -M_PI_4_F;
       }
@@ -729,8 +733,10 @@ void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *sc
       dir = safe_normalize(dir);
 
       klights[portal_index].co = light->co;
-      klights[portal_index].area.extentu = extentu;
-      klights[portal_index].area.extentv = extentv;
+      klights[portal_index].area.axis_u = axis_u;
+      klights[portal_index].area.len_u = len_u;
+      klights[portal_index].area.axis_v = axis_v;
+      klights[portal_index].area.len_v = len_v;
       klights[portal_index].area.invarea = invarea;
       klights[portal_index].area.dir = dir;
       klights[portal_index].tfm = light->tfm;
@@ -834,7 +840,11 @@ void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *sc
     else if (light->light_type == LIGHT_AREA) {
       float3 extentu = light->axisu * (light->sizeu * light->size);
       float3 extentv = light->axisv * (light->sizev * light->size);
-      float area = len(extentu) * len(extentv);
+
+      float len_u, len_v;
+      float3 axis_u = normalize_len(extentu, &len_u);
+      float3 axis_v = normalize_len(extentv, &len_v);
+      float area = len_u * len_v;
       if (light->round) {
         area *= -M_PI_4_F;
       }
@@ -856,8 +866,10 @@ void LightManager::device_update_lights(Device *, DeviceScene *dscene, Scene *sc
         shader_id |= SHADER_USE_MIS;
 
       klights[light_index].co = co;
-      klights[light_index].area.extentu = extentu;
-      klights[light_index].area.extentv = extentv;
+      klights[light_index].area.axis_u = axis_u;
+      klights[light_index].area.len_u = len_u;
+      klights[light_index].area.axis_v = axis_v;
+      klights[light_index].area.len_v = len_v;
       klights[light_index].area.invarea = invarea;
       klights[light_index].area.dir = dir;
       klights[light_index].area.tan_spread = tan_spread;
