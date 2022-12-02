@@ -2795,7 +2795,7 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
                                                      RenderEngineType *type,
                                                      bNodeTree *ntree,
                                                      Text *text,
-                                                     Set<bNodeTree *> &done_trees)
+                                                     VectorSet<bNodeTree *> &done_trees)
 {
   bool found = false;
 
@@ -2855,7 +2855,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
     if (text) {
 
-      Set<bNodeTree *> done_trees;
+      VectorSet<bNodeTree *> done_trees;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {

@@ -9,8 +9,8 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_set.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_node.h"
 
@@ -183,7 +183,7 @@ void node_keymap(wmKeyConfig *keyconf);
 rctf node_frame_rect_inside(const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
-Set<bNode *> get_selected_nodes(bNodeTree &node_tree);
+VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);
 void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);

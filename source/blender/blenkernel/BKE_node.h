@@ -671,6 +671,13 @@ void nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 void nodeUniqueID(struct bNodeTree *ntree, struct bNode *node);
 
 /**
+ * Rebuild the `node_by_id` runtime vector set. Call after removing a node if not handled
+ * separately. This is important instead of just using `nodes_by_id.remove()` since it maintains
+ * the node order.
+ */
+void nodeRebuildIDVector(struct bNodeTree *node_tree);
+
+/**
  * Delete node, associated animation data and ID user count.
  */
 void nodeRemoveNode(struct Main *bmain,

@@ -1637,7 +1637,7 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 static void node_join_attach_recursive(bNodeTree &ntree,
                                        bNode *node,
                                        bNode *frame,
-                                       const Set<bNode *> &selected_nodes)
+                                       const VectorSet<bNode *> &selected_nodes)
 {
   node->runtime->done |= NODE_JOIN_DONE;
 
@@ -1673,7 +1673,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  const Set<bNode *> selected_nodes = get_selected_nodes(ntree);
+  const VectorSet<bNode *> selected_nodes = get_selected_nodes(ntree);
 
   bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
   nodeSetActive(&ntree, frame_node);

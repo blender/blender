@@ -2933,12 +2933,12 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
   }
 }
 
-static void rebuild_nodes_vector(bNodeTree &node_tree)
+void nodeRebuildIDVector(bNodeTree *node_tree)
 {
   /* Rebuild nodes #VectorSet which must have the same order as the list. */
-  node_tree.runtime->nodes_by_id.clear();
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    node_tree.runtime->nodes_by_id.add_new(node);
+  node_tree->runtime->nodes_by_id.clear();
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    node_tree->runtime->nodes_by_id.add_new(node);
   }
 }
 
@@ -2955,7 +2955,7 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   if (ntree) {
     BLI_remlink(&ntree->nodes, node);
     /* Rebuild nodes #VectorSet which must have the same order as the list. */
-    rebuild_nodes_vector(*ntree);
+    nodeRebuildIDVector(ntree);
 
     /* texture node has bad habit of keeping exec data around */
     if (ntree->type == NTREE_TEXTURE && ntree->runtime->execdata) {
@@ -3013,7 +3013,7 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
   node_unlink_attached(ntree, node);
 
   node_free_node(ntree, node);
-  rebuild_nodes_vector(*ntree);
+  nodeRebuildIDVector(ntree);
 }
 
 void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
@@ -3073,7 +3073,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 
   /* Free node itself. */
   node_free_node(ntree, node);
-  rebuild_nodes_vector(*ntree);
+  nodeRebuildIDVector(ntree);
 }
 
 static void node_socket_interface_free(bNodeTree * /*ntree*/,

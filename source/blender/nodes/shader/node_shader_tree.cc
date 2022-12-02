@@ -446,10 +446,12 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     /* migrate node */
     BLI_remlink(&ngroup->nodes, node);
     BLI_addtail(&ntree->nodes, node);
+    nodeUniqueID(ntree, node);
     /* ensure unique node name in the node tree */
     /* This is very slow and it has no use for GPU nodetree. (see T70609) */
     // nodeUniqueName(ntree, node);
   }
+  ngroup->runtime->nodes_by_id.clear();
 
   /* Save first and last link to iterate over flattened group links. */
   bNodeLink *glinks_first = static_cast<bNodeLink *>(ntree->links.last);
