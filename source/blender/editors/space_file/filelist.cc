@@ -3907,18 +3907,20 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   /* The "All" asset library was loaded, which means all other asset libraries are also loaded.
    * Load their assets from disk into the "All" library. */
-  asset_system::AssetLibrary::foreach_loaded([&](asset_system::AssetLibrary &nested_library) {
-    StringRefNull root_path = nested_library.root_path();
-    if (root_path.is_empty()) {
-      return;
-    }
+  asset_system::AssetLibrary::foreach_loaded(
+      [&](asset_system::AssetLibrary &nested_library) {
+        StringRefNull root_path = nested_library.root_path();
+        if (root_path.is_empty()) {
+          return;
+        }
 
-    /* Override library info to read this library. */
-    job_params->load_asset_library = &nested_library;
-    BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
+        /* Override library info to read this library. */
+        job_params->load_asset_library = &nested_library;
+        BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
 
-    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
-  });
+        filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+      },
+      false);
 }
 
 /**

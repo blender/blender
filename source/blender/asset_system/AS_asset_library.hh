@@ -84,8 +84,7 @@ class AssetLibrary {
    *                          library. This is just a combination of the other ones, so usually
    *                          iterating over it is redundant.
    */
-  static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
-                             bool include_all_library = true);
+  static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   void load_catalogs();
 

@@ -155,20 +155,25 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   all_library_ = std::make_unique<AssetLibrary>();
 
   AssetLibrary &all_library = *all_library_;
-  auto build_catalogs_fn = [&all_library]() {
+  auto build_catalogs_fn = [&all_library](const bool is_first_load) {
     /* Start with empty catalog storage. */
     all_library.catalog_service = std::make_unique<AssetCatalogService>();
 
     /* (Re-)load catalogs on refresh. */
-    AssetLibrary::foreach_loaded([&all_library](AssetLibrary &nested) {
-      nested.catalog_service->reload_catalogs();
-      all_library.catalog_service->add_from_existing(*nested.catalog_service);
-    });
+    AssetLibrary::foreach_loaded(
+        [&](AssetLibrary &nested) {
+          /* On first load the catalogs were read just above, no need to reload. */
+          if (!is_first_load) {
+            nested.catalog_service->reload_catalogs();
+          }
+          all_library.catalog_service->add_from_existing(*nested.catalog_service);
+        },
+        false);
     all_library.catalog_service->rebuild_tree();
   };
 
-  build_catalogs_fn();
-  all_library.on_refresh_ = build_catalogs_fn;
+  build_catalogs_fn(true);
+  all_library.on_refresh_ = [build_catalogs_fn]() { build_catalogs_fn(false); };
 
   return &all_library;
 }
